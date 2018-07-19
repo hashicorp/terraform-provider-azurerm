@@ -24,42 +24,40 @@ import (
 	"net/http"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ActivityLogsClient is the monitor Management Client
 type ActivityLogsClient struct {
 	BaseClient
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // NewActivityLogsClient creates an instance of the ActivityLogsClient client.
 func NewActivityLogsClient(subscriptionID string) ActivityLogsClient {
 	return NewActivityLogsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // NewActivityLogsClientWithBaseURI creates an instance of the ActivityLogsClient client.
 func NewActivityLogsClientWithBaseURI(baseURI string, subscriptionID string) ActivityLogsClient {
 	return ActivityLogsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // List provides the list of records from the activity logs.
-//
-// filter is reduces the set of data collected.<br>The **$filter** argument is very restricted and allows only the
-// following patterns.<br>- *List events for a resource group*: $filter=eventTimestamp ge
+// Parameters:
+// filter - reduces the set of data collected.<br>The **$filter** argument is very restricted and allows only
+// the following patterns.<br>- *List events for a resource group*: $filter=eventTimestamp ge
 // '2014-07-16T04:36:37.6407898Z' and eventTimestamp le '2014-07-20T04:36:37.6407898Z' and resourceGroupName eq
-// 'resourceGroupName'.<br>- *List events for resource*: $filter=eventTimestamp ge '2014-07-16T04:36:37.6407898Z'
-// and eventTimestamp le '2014-07-20T04:36:37.6407898Z' and resourceUri eq 'resourceURI'.<br>- *List events for a
-// subscription in a time range*: $filter=eventTimestamp ge '2014-07-16T04:36:37.6407898Z' and eventTimestamp le
-// '2014-07-20T04:36:37.6407898Z'.<br>- *List events for a resource provider*: $filter=eventTimestamp ge
-// '2014-07-16T04:36:37.6407898Z' and eventTimestamp le '2014-07-20T04:36:37.6407898Z' and resourceProvider eq
-// 'resourceProviderName'.<br>- *List events for a correlation Id*: $filter=eventTimestamp ge
-// '2014-07-16T04:36:37.6407898Z' and eventTimestamp le '2014-07-20T04:36:37.6407898Z' and correlationId eq
-// 'correlationID'.<br><br>**NOTE**: No other syntax is allowed. selectParameter is used to fetch events with only
-// the given properties.<br>The **$select** argument is a comma separated list of property names to be returned.
-// Possible values are: *authorization*, *claims*, *correlationId*, *description*, *eventDataId*, *eventName*,
-// *eventTimestamp*, *httpRequest*, *level*, *operationId*, *operationName*, *properties*, *resourceGroupName*,
-// *resourceProviderName*, *resourceId*, *status*, *submissionTimestamp*, *subStatus*, *subscriptionId*
+// 'resourceGroupName'.<br>- *List events for resource*: $filter=eventTimestamp ge
+// '2014-07-16T04:36:37.6407898Z' and eventTimestamp le '2014-07-20T04:36:37.6407898Z' and resourceUri eq
+// 'resourceURI'.<br>- *List events for a subscription in a time range*: $filter=eventTimestamp ge
+// '2014-07-16T04:36:37.6407898Z' and eventTimestamp le '2014-07-20T04:36:37.6407898Z'.<br>- *List events for a
+// resource provider*: $filter=eventTimestamp ge '2014-07-16T04:36:37.6407898Z' and eventTimestamp le
+// '2014-07-20T04:36:37.6407898Z' and resourceProvider eq 'resourceProviderName'.<br>- *List events for a
+// correlation Id*: $filter=eventTimestamp ge '2014-07-16T04:36:37.6407898Z' and eventTimestamp le
+// '2014-07-20T04:36:37.6407898Z' and correlationId eq 'correlationID'.<br><br>**NOTE**: No other syntax is
+// allowed.
+// selectParameter - used to fetch events with only the given properties.<br>The **$select** argument is a
+// comma separated list of property names to be returned. Possible values are: *authorization*, *claims*,
+// *correlationId*, *description*, *eventDataId*, *eventName*, *eventTimestamp*, *httpRequest*, *level*,
+// *operationId*, *operationName*, *properties*, *resourceGroupName*, *resourceProviderName*, *resourceId*,
+// *status*, *submissionTimestamp*, *subStatus*, *subscriptionId*
 func (client ActivityLogsClient) List(ctx context.Context, filter string, selectParameter string) (result EventDataCollectionPage, err error) {
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx, filter, selectParameter)
@@ -83,7 +81,6 @@ func (client ActivityLogsClient) List(ctx context.Context, filter string, select
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListPreparer prepares the List request.
 func (client ActivityLogsClient) ListPreparer(ctx context.Context, filter string, selectParameter string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -109,7 +106,6 @@ func (client ActivityLogsClient) ListPreparer(ctx context.Context, filter string
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ActivityLogsClient) ListSender(req *http.Request) (*http.Response, error) {
@@ -117,7 +113,6 @@ func (client ActivityLogsClient) ListSender(req *http.Request) (*http.Response, 
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
 func (client ActivityLogsClient) ListResponder(resp *http.Response) (result EventDataCollection, err error) {
@@ -152,7 +147,6 @@ func (client ActivityLogsClient) listNextResults(lastResults EventDataCollection
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
 func (client ActivityLogsClient) ListComplete(ctx context.Context, filter string, selectParameter string) (result EventDataCollectionIterator, err error) {
 	result.page, err = client.List(ctx, filter, selectParameter)

@@ -25,29 +25,26 @@ import (
 	"net/http"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AutoscaleSettingsClient is the monitor Management Client
 type AutoscaleSettingsClient struct {
 	BaseClient
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // NewAutoscaleSettingsClient creates an instance of the AutoscaleSettingsClient client.
 func NewAutoscaleSettingsClient(subscriptionID string) AutoscaleSettingsClient {
 	return NewAutoscaleSettingsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // NewAutoscaleSettingsClientWithBaseURI creates an instance of the AutoscaleSettingsClient client.
 func NewAutoscaleSettingsClientWithBaseURI(baseURI string, subscriptionID string) AutoscaleSettingsClient {
 	return AutoscaleSettingsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // CreateOrUpdate creates or updates an autoscale setting.
-//
-// resourceGroupName is the name of the resource group. autoscaleSettingName is the autoscale setting name.
-// parameters is parameters supplied to the operation.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// autoscaleSettingName - the autoscale setting name.
+// parameters - parameters supplied to the operation.
 func (client AutoscaleSettingsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, autoscaleSettingName string, parameters AutoscaleSettingResource) (result AutoscaleSettingResource, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: parameters,
@@ -79,7 +76,6 @@ func (client AutoscaleSettingsClient) CreateOrUpdate(ctx context.Context, resour
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
 func (client AutoscaleSettingsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, autoscaleSettingName string, parameters AutoscaleSettingResource) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -103,7 +99,6 @@ func (client AutoscaleSettingsClient) CreateOrUpdatePreparer(ctx context.Context
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client AutoscaleSettingsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
@@ -111,7 +106,6 @@ func (client AutoscaleSettingsClient) CreateOrUpdateSender(req *http.Request) (*
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
 func (client AutoscaleSettingsClient) CreateOrUpdateResponder(resp *http.Response) (result AutoscaleSettingResource, err error) {
@@ -125,10 +119,10 @@ func (client AutoscaleSettingsClient) CreateOrUpdateResponder(resp *http.Respons
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Delete deletes and autoscale setting
-//
-// resourceGroupName is the name of the resource group. autoscaleSettingName is the autoscale setting name.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// autoscaleSettingName - the autoscale setting name.
 func (client AutoscaleSettingsClient) Delete(ctx context.Context, resourceGroupName string, autoscaleSettingName string) (result autorest.Response, err error) {
 	req, err := client.DeletePreparer(ctx, resourceGroupName, autoscaleSettingName)
 	if err != nil {
@@ -151,7 +145,6 @@ func (client AutoscaleSettingsClient) Delete(ctx context.Context, resourceGroupN
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // DeletePreparer prepares the Delete request.
 func (client AutoscaleSettingsClient) DeletePreparer(ctx context.Context, resourceGroupName string, autoscaleSettingName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -173,7 +166,6 @@ func (client AutoscaleSettingsClient) DeletePreparer(ctx context.Context, resour
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client AutoscaleSettingsClient) DeleteSender(req *http.Request) (*http.Response, error) {
@@ -181,7 +173,6 @@ func (client AutoscaleSettingsClient) DeleteSender(req *http.Request) (*http.Res
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
 func (client AutoscaleSettingsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
@@ -194,10 +185,10 @@ func (client AutoscaleSettingsClient) DeleteResponder(resp *http.Response) (resu
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Get gets an autoscale setting
-//
-// resourceGroupName is the name of the resource group. autoscaleSettingName is the autoscale setting name.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// autoscaleSettingName - the autoscale setting name.
 func (client AutoscaleSettingsClient) Get(ctx context.Context, resourceGroupName string, autoscaleSettingName string) (result AutoscaleSettingResource, err error) {
 	req, err := client.GetPreparer(ctx, resourceGroupName, autoscaleSettingName)
 	if err != nil {
@@ -220,7 +211,6 @@ func (client AutoscaleSettingsClient) Get(ctx context.Context, resourceGroupName
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // GetPreparer prepares the Get request.
 func (client AutoscaleSettingsClient) GetPreparer(ctx context.Context, resourceGroupName string, autoscaleSettingName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -242,7 +232,6 @@ func (client AutoscaleSettingsClient) GetPreparer(ctx context.Context, resourceG
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client AutoscaleSettingsClient) GetSender(req *http.Request) (*http.Response, error) {
@@ -250,7 +239,6 @@ func (client AutoscaleSettingsClient) GetSender(req *http.Request) (*http.Respon
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
 func (client AutoscaleSettingsClient) GetResponder(resp *http.Response) (result AutoscaleSettingResource, err error) {
@@ -264,10 +252,9 @@ func (client AutoscaleSettingsClient) GetResponder(resp *http.Response) (result 
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListByResourceGroup lists the autoscale settings for a resource group
-//
-// resourceGroupName is the name of the resource group.
+// Parameters:
+// resourceGroupName - the name of the resource group.
 func (client AutoscaleSettingsClient) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result AutoscaleSettingResourceCollectionPage, err error) {
 	result.fn = client.listByResourceGroupNextResults
 	req, err := client.ListByResourceGroupPreparer(ctx, resourceGroupName)
@@ -291,7 +278,6 @@ func (client AutoscaleSettingsClient) ListByResourceGroup(ctx context.Context, r
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListByResourceGroupPreparer prepares the ListByResourceGroup request.
 func (client AutoscaleSettingsClient) ListByResourceGroupPreparer(ctx context.Context, resourceGroupName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -312,7 +298,6 @@ func (client AutoscaleSettingsClient) ListByResourceGroupPreparer(ctx context.Co
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client AutoscaleSettingsClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
@@ -320,7 +305,6 @@ func (client AutoscaleSettingsClient) ListByResourceGroupSender(req *http.Reques
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
 // closes the http.Response Body.
 func (client AutoscaleSettingsClient) ListByResourceGroupResponder(resp *http.Response) (result AutoscaleSettingResourceCollection, err error) {
@@ -355,18 +339,107 @@ func (client AutoscaleSettingsClient) listByResourceGroupNextResults(lastResults
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListByResourceGroupComplete enumerates all values, automatically crossing page boundaries as required.
 func (client AutoscaleSettingsClient) ListByResourceGroupComplete(ctx context.Context, resourceGroupName string) (result AutoscaleSettingResourceCollectionIterator, err error) {
 	result.page, err = client.ListByResourceGroup(ctx, resourceGroupName)
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
+// ListBySubscription lists the autoscale settings for a subscription
+func (client AutoscaleSettingsClient) ListBySubscription(ctx context.Context) (result AutoscaleSettingResourceCollectionPage, err error) {
+	result.fn = client.listBySubscriptionNextResults
+	req, err := client.ListBySubscriptionPreparer(ctx)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "insights.AutoscaleSettingsClient", "ListBySubscription", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListBySubscriptionSender(req)
+	if err != nil {
+		result.asrc.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "insights.AutoscaleSettingsClient", "ListBySubscription", resp, "Failure sending request")
+		return
+	}
+
+	result.asrc, err = client.ListBySubscriptionResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "insights.AutoscaleSettingsClient", "ListBySubscription", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// ListBySubscriptionPreparer prepares the ListBySubscription request.
+func (client AutoscaleSettingsClient) ListBySubscriptionPreparer(ctx context.Context) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2015-04-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/microsoft.insights/autoscalesettings", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListBySubscriptionSender sends the ListBySubscription request. The method will close the
+// http.Response Body if it receives an error.
+func (client AutoscaleSettingsClient) ListBySubscriptionSender(req *http.Request) (*http.Response, error) {
+	return autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListBySubscriptionResponder handles the response to the ListBySubscription request. The method always
+// closes the http.Response Body.
+func (client AutoscaleSettingsClient) ListBySubscriptionResponder(resp *http.Response) (result AutoscaleSettingResourceCollection, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// listBySubscriptionNextResults retrieves the next set of results, if any.
+func (client AutoscaleSettingsClient) listBySubscriptionNextResults(lastResults AutoscaleSettingResourceCollection) (result AutoscaleSettingResourceCollection, err error) {
+	req, err := lastResults.autoscaleSettingResourceCollectionPreparer()
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "insights.AutoscaleSettingsClient", "listBySubscriptionNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListBySubscriptionSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "insights.AutoscaleSettingsClient", "listBySubscriptionNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListBySubscriptionResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "insights.AutoscaleSettingsClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListBySubscriptionComplete enumerates all values, automatically crossing page boundaries as required.
+func (client AutoscaleSettingsClient) ListBySubscriptionComplete(ctx context.Context) (result AutoscaleSettingResourceCollectionIterator, err error) {
+	result.page, err = client.ListBySubscription(ctx)
+	return
+}
+
 // Update updates an existing AutoscaleSettingsResource. To update other fields use the CreateOrUpdate method.
-//
-// resourceGroupName is the name of the resource group. autoscaleSettingName is the autoscale setting name.
-// autoscaleSettingResource is parameters supplied to the operation.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// autoscaleSettingName - the autoscale setting name.
+// autoscaleSettingResource - parameters supplied to the operation.
 func (client AutoscaleSettingsClient) Update(ctx context.Context, resourceGroupName string, autoscaleSettingName string, autoscaleSettingResource AutoscaleSettingResourcePatch) (result AutoscaleSettingResource, err error) {
 	req, err := client.UpdatePreparer(ctx, resourceGroupName, autoscaleSettingName, autoscaleSettingResource)
 	if err != nil {
@@ -389,7 +462,6 @@ func (client AutoscaleSettingsClient) Update(ctx context.Context, resourceGroupN
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // UpdatePreparer prepares the Update request.
 func (client AutoscaleSettingsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, autoscaleSettingName string, autoscaleSettingResource AutoscaleSettingResourcePatch) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -413,7 +485,6 @@ func (client AutoscaleSettingsClient) UpdatePreparer(ctx context.Context, resour
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client AutoscaleSettingsClient) UpdateSender(req *http.Request) (*http.Response, error) {
@@ -421,7 +492,6 @@ func (client AutoscaleSettingsClient) UpdateSender(req *http.Request) (*http.Res
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // UpdateResponder handles the response to the Update request. The method always
 // closes the http.Response Body.
 func (client AutoscaleSettingsClient) UpdateResponder(resp *http.Response) (result AutoscaleSettingResource, err error) {

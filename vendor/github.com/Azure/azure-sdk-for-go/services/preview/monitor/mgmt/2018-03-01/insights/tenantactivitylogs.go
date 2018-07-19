@@ -24,43 +24,40 @@ import (
 	"net/http"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // TenantActivityLogsClient is the monitor Management Client
 type TenantActivityLogsClient struct {
 	BaseClient
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // NewTenantActivityLogsClient creates an instance of the TenantActivityLogsClient client.
 func NewTenantActivityLogsClient(subscriptionID string) TenantActivityLogsClient {
 	return NewTenantActivityLogsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // NewTenantActivityLogsClientWithBaseURI creates an instance of the TenantActivityLogsClient client.
 func NewTenantActivityLogsClientWithBaseURI(baseURI string, subscriptionID string) TenantActivityLogsClient {
 	return TenantActivityLogsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // List gets the Activity Logs for the Tenant.<br>Everything that is applicable to the API to get the Activity Logs for
 // the subscription is applicable to this API (the parameters, $filter, etc.).<br>One thing to point out here is that
 // this API does *not* retrieve the logs at the individual subscription of the tenant but only surfaces the logs that
 // were generated at the tenant level.
-//
-// filter is reduces the set of data collected. <br>The **$filter** is very restricted and allows only the
+// Parameters:
+// filter - reduces the set of data collected. <br>The **$filter** is very restricted and allows only the
 // following patterns.<br>- List events for a resource group: $filter=eventTimestamp ge '<Start Time>' and
 // eventTimestamp le '<End Time>' and eventChannels eq 'Admin, Operation' and resourceGroupName eq
 // '<ResourceGroupName>'.<br>- List events for resource: $filter=eventTimestamp ge '<Start Time>' and
-// eventTimestamp le '<End Time>' and eventChannels eq 'Admin, Operation' and resourceUri eq '<ResourceURI>'.<br>-
-// List events for a subscription: $filter=eventTimestamp ge '<Start Time>' and eventTimestamp le '<End Time>' and
-// eventChannels eq 'Admin, Operation'.<br>- List events for a resource provider: $filter=eventTimestamp ge '<Start
-// Time>' and eventTimestamp le '<End Time>' and eventChannels eq 'Admin, Operation' and resourceProvider eq
-// '<ResourceProviderName>'.<br>- List events for a correlation Id: api-version=2014-04-01&$filter=eventTimestamp
-// ge '2014-07-16T04:36:37.6407898Z' and eventTimestamp le '2014-07-20T04:36:37.6407898Z' and eventChannels eq
-// 'Admin, Operation' and correlationId eq '<CorrelationID>'.<br>**NOTE**: No other syntax is allowed.
-// selectParameter is used to fetch events with only the given properties.<br>The **$select** argument is a comma
-// separated list of property names to be returned. Possible values are: *authorization*, *claims*,
+// eventTimestamp le '<End Time>' and eventChannels eq 'Admin, Operation' and resourceUri eq
+// '<ResourceURI>'.<br>- List events for a subscription: $filter=eventTimestamp ge '<Start Time>' and
+// eventTimestamp le '<End Time>' and eventChannels eq 'Admin, Operation'.<br>- List events for a resource
+// provider: $filter=eventTimestamp ge '<Start Time>' and eventTimestamp le '<End Time>' and eventChannels eq
+// 'Admin, Operation' and resourceProvider eq '<ResourceProviderName>'.<br>- List events for a correlation Id:
+// api-version=2014-04-01&$filter=eventTimestamp ge '2014-07-16T04:36:37.6407898Z' and eventTimestamp le
+// '2014-07-20T04:36:37.6407898Z' and eventChannels eq 'Admin, Operation' and correlationId eq
+// '<CorrelationID>'.<br>**NOTE**: No other syntax is allowed.
+// selectParameter - used to fetch events with only the given properties.<br>The **$select** argument is a
+// comma separated list of property names to be returned. Possible values are: *authorization*, *claims*,
 // *correlationId*, *description*, *eventDataId*, *eventName*, *eventTimestamp*, *httpRequest*, *level*,
 // *operationId*, *operationName*, *properties*, *resourceGroupName*, *resourceProviderName*, *resourceId*,
 // *status*, *submissionTimestamp*, *subStatus*, *subscriptionId*
@@ -87,7 +84,6 @@ func (client TenantActivityLogsClient) List(ctx context.Context, filter string, 
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListPreparer prepares the List request.
 func (client TenantActivityLogsClient) ListPreparer(ctx context.Context, filter string, selectParameter string) (*http.Request, error) {
 	const APIVersion = "2015-04-01"
@@ -109,7 +105,6 @@ func (client TenantActivityLogsClient) ListPreparer(ctx context.Context, filter 
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client TenantActivityLogsClient) ListSender(req *http.Request) (*http.Response, error) {
@@ -117,7 +112,6 @@ func (client TenantActivityLogsClient) ListSender(req *http.Request) (*http.Resp
 		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
 func (client TenantActivityLogsClient) ListResponder(resp *http.Response) (result EventDataCollection, err error) {
@@ -152,7 +146,6 @@ func (client TenantActivityLogsClient) listNextResults(lastResults EventDataColl
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
 func (client TenantActivityLogsClient) ListComplete(ctx context.Context, filter string, selectParameter string) (result EventDataCollectionIterator, err error) {
 	result.page, err = client.List(ctx, filter, selectParameter)

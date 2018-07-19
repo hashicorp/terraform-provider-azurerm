@@ -24,25 +24,21 @@ import (
 	"net/http"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // EventCategoriesClient is the monitor Management Client
 type EventCategoriesClient struct {
 	BaseClient
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // NewEventCategoriesClient creates an instance of the EventCategoriesClient client.
 func NewEventCategoriesClient(subscriptionID string) EventCategoriesClient {
 	return NewEventCategoriesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // NewEventCategoriesClientWithBaseURI creates an instance of the EventCategoriesClient client.
 func NewEventCategoriesClientWithBaseURI(baseURI string, subscriptionID string) EventCategoriesClient {
 	return EventCategoriesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // List get the list of available event categories supported in the Activity Logs Service.<br>The current list includes
 // the following: Administrative, Security, ServiceHealth, Alert, Recommendation, Policy.
 func (client EventCategoriesClient) List(ctx context.Context) (result EventCategoryCollection, err error) {
@@ -67,7 +63,6 @@ func (client EventCategoriesClient) List(ctx context.Context) (result EventCateg
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListPreparer prepares the List request.
 func (client EventCategoriesClient) ListPreparer(ctx context.Context) (*http.Request, error) {
 	const APIVersion = "2015-04-01"
@@ -83,7 +78,6 @@ func (client EventCategoriesClient) ListPreparer(ctx context.Context) (*http.Req
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client EventCategoriesClient) ListSender(req *http.Request) (*http.Response, error) {
@@ -91,7 +85,6 @@ func (client EventCategoriesClient) ListSender(req *http.Request) (*http.Respons
 		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
 func (client EventCategoriesClient) ListResponder(resp *http.Response) (result EventCategoryCollection, err error) {
