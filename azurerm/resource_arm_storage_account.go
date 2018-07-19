@@ -843,8 +843,10 @@ func flattenStorageAccountNetworkRules(input *storage.NetworkRuleSet) []interfac
 
 func flattenStorageAccountIPRules(input *[]storage.IPRule) []interface{} {
 	ipRules := make([]interface{}, len(*input))
-	for i, ipRule := range *input {
-		ipRules[i] = *ipRule.IPAddressOrRange
+	if input != nil {
+		for i, ipRule := range *input {
+			ipRules[i] = *ipRule.IPAddressOrRange
+		}
 	}
 
 	return ipRules
@@ -852,8 +854,11 @@ func flattenStorageAccountIPRules(input *[]storage.IPRule) []interface{} {
 
 func flattenStorageAccountVirtualNetworks(input *[]storage.VirtualNetworkRule) []interface{} {
 	virtualNetworks := make([]interface{}, len(*input))
-	for i, virtualNetwork := range *input {
-		virtualNetworks[i] = *virtualNetwork.VirtualNetworkResourceID
+
+	if input != nil {
+		for i, virtualNetwork := range *input {
+			virtualNetworks[i] = *virtualNetwork.VirtualNetworkResourceID
+		}
 	}
 
 	return virtualNetworks
