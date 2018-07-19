@@ -123,6 +123,58 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			"network_profile": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"network_plugin": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							Default:      "kubenet",
+							ValidateFunc: validateKubernetesClusterNetworkPlugin(),
+						},
+
+						"network_policy": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validateKubernetesClusterNetworkPolicy(),
+						},
+
+						"pod_cidr": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  "10.10.0.0/16",
+							ForceNew: true,
+						},
+
+						"service_cidr": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  "10.0.0.0/16",
+							ForceNew: true,
+						},
+
+						"dns_service_ip": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  "10.0.0.10",
+							ForceNew: true,
+						},
+
+						"docker_bridge_cidr": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  "172.17.0.1/16",
+							ForceNew: true,
+						},
+					},
+				},
+			},
+
 			"agent_pool_profile": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -229,6 +281,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	linuxProfile := expandAzureRmKubernetesClusterLinuxProfile(d)
 	agentProfiles := expandAzureRmKubernetesClusterAgentProfiles(d)
 	servicePrincipalProfile := expandAzureRmKubernetesClusterServicePrincipal(d)
+	networkProfile := expandAzureRmKubernetesClusterNetworkProfile(d)
 
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -240,6 +293,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 			DNSPrefix:               &dnsPrefix,
 			KubernetesVersion:       &kubernetesVersion,
 			LinuxProfile:            &linuxProfile,
+			NetworkProfile:          &networkProfile,
 			ServicePrincipalProfile: servicePrincipalProfile,
 		},
 		Tags: expandTags(tags),
@@ -534,6 +588,29 @@ func expandAzureRmKubernetesClusterServicePrincipal(d *schema.ResourceData) *con
 	return &principal
 }
 
+func expandAzureRmKubernetesClusterNetworkProfile(d *schema.ResourceData) containerservice.NetworkProfile {
+	profiles := d.Get("network_profile").([]interface{})
+	config := profiles[0].(map[string]interface{})
+
+	networkPlugin := containerservice.NetworkPlugin(config["network_plugin"].(string))
+	networkPolicy := containerservice.NetworkPolicy(config["network_policy"].(string))
+	podCidr := config["pod_cidr"].(string)
+	servicCidr := config["service_cidr"].(string)
+	dnsServiceIP := config["dns_service_ip"].(string)
+	dockerBridgeCidr := config["docker_bridge_cidr"].(string)
+
+	profile := containerservice.NetworkProfile{
+		NetworkPlugin:    networkPlugin,
+		NetworkPolicy:    networkPolicy,
+		PodCidr:          &podCidr,
+		ServiceCidr:      &servicCidr,
+		DNSServiceIP:     &dnsServiceIP,
+		DockerBridgeCidr: &dockerBridgeCidr,
+	}
+
+	return profile
+}
+
 func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []containerservice.ManagedClusterAgentPoolProfile {
 	configs := d.Get("agent_pool_profile").([]interface{})
 	config := configs[0].(map[string]interface{})
@@ -580,5 +657,19 @@ func validateKubernetesClusterAgentPoolName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^[a-z]{1}[a-z0-9]{0,11}$"),
 		"Agent Pool names must start with a lowercase letter, have max length of 12, and only have characters a-z0-9.",
+	)
+}
+
+func validateKubernetesClusterNetworkPlugin() schema.SchemaValidateFunc {
+	return validation.StringMatch(
+		regexp.MustCompile("^(kubenet|azure)$"),
+		"Network Plugin must be 'kubenet' or 'azure'.",
+	)
+}
+
+func validateKubernetesClusterNetworkPolicy() schema.SchemaValidateFunc {
+	return validation.StringMatch(
+		regexp.MustCompile("^calico$"),
+		"Network Policy must be 'calico'.",
 	)
 }
