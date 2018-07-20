@@ -10,8 +10,6 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-// TODO: multiple profiles
-
 func TestAccAzureRMAutoScaleSetting_basic(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
 	ri := acctest.RandInt()
@@ -33,6 +31,32 @@ func TestAccAzureRMAutoScaleSetting_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "profile.0.name", "metricRules"),
 					resource.TestCheckResourceAttr(resourceName, "profile.0.rule.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAutoScaleSetting_multipleProfiles(t *testing.T) {
+	resourceName := "azurerm_autoscale_setting.test"
+	ri := acctest.RandInt()
+	rs := acctest.RandString(6)
+	location := testLocation()
+	config := testAccAzureRMAutoScaleSetting_multipleProfiles(ri, rs, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAutoScaleSettingExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "profile.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "profile.0.name", "primary"),
+					resource.TestCheckResourceAttr(resourceName, "profile.1.name", "secondary"),
 				),
 			},
 		},
@@ -275,7 +299,6 @@ resource "azurerm_autoscale_setting" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
-  enabled             = true
 
   profile {
     name = "metricRules"
@@ -304,6 +327,91 @@ resource "azurerm_autoscale_setting" "test" {
         value     = 1
         cooldown  = "PT1M"
       }
+    }
+  }
+}
+`, template, rInt)
+}
+
+func testAccAzureRMAutoScaleSetting_multipleProfiles(rInt int, rString string, location string) string {
+	template := testAccAzureRMAutoScaleSetting_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_autoscale_setting" "test" {
+  name                = "acctestautoscale-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
+
+  profile {
+    name = "primary"
+
+    capacity {
+      default = 1
+      minimum = 1
+      maximum = 10
+    }
+
+    rule {
+      metric_trigger {
+        metric_name          = "Percentage CPU"
+        metric_resource_id   = "${azurerm_virtual_machine_scale_set.test.id}"
+        time_grain           = "PT1M"
+        statistic            = "Average"
+        time_window          = "PT5M"
+        time_aggregation     = "Average"
+        operator             = "GreaterThan"
+        threshold            = 75
+      }
+
+      scale_action {
+        direction = "Increase"
+        type      = "ChangeCount"
+        value     = 1
+        cooldown  = "PT1M"
+      }
+    }
+
+    rule {
+      metric_trigger {
+        metric_name          = "Percentage CPU"
+        metric_resource_id   = "${azurerm_virtual_machine_scale_set.test.id}"
+        time_grain           = "PT1M"
+        statistic            = "Average"
+        time_window          = "PT5M"
+        time_aggregation     = "Average"
+        operator             = "GreaterThan"
+        threshold            = 75
+      }
+
+      scale_action {
+        direction = "Decrease"
+        type      = "ChangeCount"
+        value     = 1
+        cooldown  = "PT1M"
+      }
+    }
+  }
+
+  profile {
+    name = "secondary"
+
+    capacity {
+      default = 1
+      minimum = 1
+      maximum = 10
+    }
+
+    recurrence {
+      timezone  = "Pacific Standard Time"
+      days      = [
+        "Monday",
+        "Wednesday",
+        "Friday"
+      ]
+      hours     = [ 18 ]
+      minutes   = [ 0 ]
     }
   }
 }
@@ -385,7 +493,6 @@ resource "azurerm_autoscale_setting" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
-  enabled             = true
 
   profile {
     name = "metricRules"
@@ -438,7 +545,6 @@ resource "azurerm_autoscale_setting" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
-  enabled             = true
 
   profile {
     name = "metricRules"
@@ -491,7 +597,6 @@ resource "azurerm_autoscale_setting" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
-  enabled             = true
 
   profile {
     name = "recurrence"
@@ -534,7 +639,6 @@ resource "azurerm_autoscale_setting" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
-  enabled             = true
 
   profile {
     name = "recurrence"
@@ -572,7 +676,6 @@ func testAccAzureRMAutoScaleSetting_fixedDate(rInt int, rString string, location
 	return fmt.Sprintf(`%s
 resource "azurerm_autoscale_setting" "test" {
   name                = "acctestautoscale-%d"
-  enabled             = true
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"

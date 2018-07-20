@@ -201,7 +201,6 @@ func resourceArmAutoScaleSetting() *schema.Resource {
 								},
 							},
 						},
-						// TODO: does this want a ConflictsWith or a CustomizeDiff?
 						"fixed_date": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -547,7 +546,6 @@ func expandAzureRmAutoScaleSettingFixedDate(input []interface{}) (*insights.Time
 
 	raw := input[0].(map[string]interface{})
 
-	// TODO: technically we could remove these errors since they'll be caught by the validation?
 	startString := raw["start"].(string)
 	startTime, err := date.ParseTime(time.RFC3339, startString)
 	if err != nil {
