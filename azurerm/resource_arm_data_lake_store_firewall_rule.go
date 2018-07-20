@@ -58,13 +58,13 @@ func resourceArmDateLakeStoreAccountFirewallRuleCreateUpdate(d *schema.ResourceD
 	client := meta.(*ArmClient).dataLakeStoreFirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	log.Printf("[INFO] preparing arguments for Date Lake Store Firewall Rule creation.")
-
 	name := d.Get("name").(string)
 	accountName := d.Get("account_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	startIPAddress := d.Get("start_ip_address").(string)
 	endIPAddress := d.Get("end_ip_address").(string)
+
+	log.Printf("[INFO] preparing arguments for Date Lake Store Firewall Rule creation  %q (Resource Group %q)", name, resourceGroup)
 
 	dateLakeStore := account.CreateOrUpdateFirewallRuleParameters{
 		CreateOrUpdateFirewallRuleProperties: &account.CreateOrUpdateFirewallRuleProperties{

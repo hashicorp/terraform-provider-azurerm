@@ -2,13 +2,16 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"log"
+
+	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceArmDataLakeStore() *schema.Resource {
@@ -58,13 +61,13 @@ func resourceArmDateLakeStoreCreate(d *schema.ResourceData, meta interface{}) er
 	client := meta.(*ArmClient).dataLakeStoreAccountClient
 	ctx := meta.(*ArmClient).StopContext
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Date Lake Store creation.")
-
 	name := d.Get("name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 	tier := d.Get("tier").(string)
 	tags := d.Get("tags").(map[string]interface{})
+
+	log.Printf("[INFO] preparing arguments for Azure ARM Date Lake Store creation %q (Resource Group %q)", name, resourceGroup)
 
 	dateLakeStore := account.CreateDataLakeStoreAccountParameters{
 		Location: &location,

@@ -2,16 +2,17 @@ package azurerm
 
 import (
 	"fmt"
-	"github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
 	"log"
 
+	"github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 func resourceArmDataLakeAnalyticsAccount() *schema.Resource {
@@ -71,14 +72,14 @@ func resourceArmDateLakeAnalyticsAccountCreate(d *schema.ResourceData, meta inte
 	client := meta.(*ArmClient).dataLakeAnalyticsAccountClient
 	ctx := meta.(*ArmClient).StopContext
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Date Lake Store creation.")
-
 	name := d.Get("name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 	storeAccountName := d.Get("default_store_account_name").(string)
 	tier := d.Get("tier").(string)
 	tags := d.Get("tags").(map[string]interface{})
+
+	log.Printf("[INFO] preparing arguments for Azure ARM Date Lake Store creation %q (Resource Group %q)", name, resourceGroup)
 
 	dateLakeAnalyticsAccount := account.CreateDataLakeAnalyticsAccountParameters{
 		Location: &location,
