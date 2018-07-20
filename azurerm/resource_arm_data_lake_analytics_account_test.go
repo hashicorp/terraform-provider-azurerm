@@ -49,7 +49,7 @@ func TestAccAzureRMDataLakeAnalyticsAccount_tier(t *testing.T) {
 				Config: testAccAzureRMDataLakeAnalyticsAccount_tier(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeAnalyticsAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tier", "Commitment100AUHours"),
+					resource.TestCheckResourceAttr(resourceName, "tier", "Commitment_100AUHours"),
 				),
 			},
 			{
@@ -173,7 +173,7 @@ resource "azurerm_data_lake_analytics_account" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
 
-  tier                = "Commitment100AUHours"
+  tier                = "Commitment_100AUHours"
 
   default_store_account_name = "${azurerm_data_lake_store.test.name}"
 }
