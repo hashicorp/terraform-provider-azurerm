@@ -175,7 +175,7 @@ resource "azurerm_data_lake_analytics_account" "test" {
 
   tier                = "Commitment100AUHours"
 
-  default_store_account_name = "${azurerm_data_lake_store
+  default_store_account_name = "${azurerm_data_lake_store.test.name}"
 }
 `, testAccAzureRMDataLakeStore_basic(rInt, location), strconv.Itoa(rInt)[0:15])
 }
@@ -189,7 +189,7 @@ resource "azurerm_data_lake_analytics_account" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   
-  default_store_account_name = "${azurerm_data_lake_store
+  default_store_account_name = "${azurerm_data_lake_store.test.name}"
 
   tags {
     environment = "Production"
@@ -208,7 +208,7 @@ resource "azurerm_data_lake_analytics_account" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   
-  default_store_account_name = "${azurerm_data_lake_store
+  default_store_account_name = "${azurerm_data_lake_store.test.name}"
 
   tags {
     environment = "staging"
