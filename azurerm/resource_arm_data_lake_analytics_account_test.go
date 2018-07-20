@@ -11,19 +11,19 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccAzureRMDataLakeStore_basic(t *testing.T) {
-	resourceName := "azurerm_data_lake_store.test"
+func TestAccAzureRMDataLakeAnalyticsAccount_basic(t *testing.T) {
+	resourceName := "azurerm_data_lake_analytics_account.test"
 	ri := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
+		CheckDestroy: testCheckAzureRMDataLakeAnalyticsAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataLakeStore_basic(ri, testLocation()),
+				Config: testAccAzureRMDataLakeAnalyticsAccount_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataLakeStoreExists(resourceName),
+					testCheckAzureRMDataLakeAnalyticsAccountExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tier", "Consumption"),
 				),
 			},
@@ -36,20 +36,20 @@ func TestAccAzureRMDataLakeStore_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDataLakeStore_tier(t *testing.T) {
-	resourceName := "azurerm_data_lake_store.test"
+func TestAccAzureRMDataLakeAnalyticsAccount_tier(t *testing.T) {
+	resourceName := "azurerm_data_lake_analytics_account.test"
 	ri := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
+		CheckDestroy: testCheckAzureRMDataLakeAnalyticsAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataLakeStore_tier(ri, testLocation()),
+				Config: testAccAzureRMDataLakeAnalyticsAccount_tier(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataLakeStoreExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tier", "Commitment_1TB"),
+					testCheckAzureRMDataLakeAnalyticsAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tier", "Commitment100AUHours"),
 				),
 			},
 			{
@@ -61,26 +61,26 @@ func TestAccAzureRMDataLakeStore_tier(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDataLakeStore_withTags(t *testing.T) {
-	resourceName := "azurerm_data_lake_store.test"
+func TestAccAzureRMDataLakeAnalyticsAccount_withTags(t *testing.T) {
+	resourceName := "azurerm_data_lake_analytics_account.test"
 	ri := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
+		CheckDestroy: testCheckAzureRMDataLakeAnalyticsAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataLakeStore_withTags(ri, testLocation()),
+				Config: testAccAzureRMDataLakeAnalyticsAccount_withTags(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataLakeStoreExists(resourceName),
+					testCheckAzureRMDataLakeAnalyticsAccountExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 				),
 			},
 			{
-				Config: testAccAzureRMDataLakeStore_withTagsUpdate(ri, testLocation()),
+				Config: testAccAzureRMDataLakeAnalyticsAccount_withTagsUpdate(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataLakeStoreExists(resourceName),
+					testCheckAzureRMDataLakeAnalyticsAccountExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
 			},
@@ -93,7 +93,7 @@ func TestAccAzureRMDataLakeStore_withTags(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDataLakeStoreExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDataLakeAnalyticsAccountExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
@@ -107,28 +107,28 @@ func testCheckAzureRMDataLakeStoreExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for data lake store: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).dataLakeStoreAccountClient
+		conn := testAccProvider.Meta().(*ArmClient).dataLakeAnalyticsAccountClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, accountName)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on dataLakeStoreAccountClient: %+v", err)
+			return fmt.Errorf("Bad: Get on dataLakeAnalyticsAccountClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Date Lake Store %q (resource group: %q) does not exist", accountName, resourceGroup)
+			return fmt.Errorf("Bad: Date Lake Analytics Account %q (resource group: %q) does not exist", accountName, resourceGroup)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMDataLakeStoreDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).dataLakeStoreAccountClient
+func testCheckAzureRMDataLakeAnalyticsAccountDestroy(s *terraform.State) error {
+	conn := testAccProvider.Meta().(*ArmClient).dataLakeAnalyticsAccountClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_data_lake_store" {
+		if rs.Type != "azurerm_data_lake_analytics_account" {
 			continue
 		}
 
@@ -144,79 +144,75 @@ func testCheckAzureRMDataLakeStoreDestroy(s *terraform.State) error {
 			return err
 		}
 
-		return fmt.Errorf("Data Lake Store still exists:\n%#v", resp)
+		return fmt.Errorf("Data Lake Analytics Account still exists:\n%#v", resp)
 	}
 
 	return nil
 }
 
-func testAccAzureRMDataLakeStore_basic(rInt int, location string) string {
+func testAccAzureRMDataLakeAnalyticsAccount_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
+%s
 
-resource "azurerm_data_lake_store" "test" {
-  name                = "acctest%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-}
-`, rInt, location, strconv.Itoa(rInt)[0:15])
-}
-
-func testAccAzureRMDataLakeStore_tier(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_data_lake_store" "test" {
+resource "azurerm_data_lake_analytics_account" "test" {
   name                = "acctest%s"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
 
-  tier                = "Commitment_1TB"
+  default_store_account_name = "${azurerm_data_lake_store.test.name}"
 }
-`, rInt, location, strconv.Itoa(rInt)[0:15])
+`, testAccAzureRMDataLakeStore_basic(rInt, location), strconv.Itoa(rInt)[0:15])
 }
 
-func testAccAzureRMDataLakeStore_withTags(rInt int, location string) string {
+func testAccAzureRMDataLakeAnalyticsAccount_tier(rInt int, location string) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-name     = "acctestRG-%d"
-  location = "%s"
+%s
+
+resource "azurerm_data_lake_analytics_account" "test" {
+  name                = "acctest%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  tier                = "Commitment100AUHours"
+
+  default_store_account_name = "${azurerm_data_lake_store
+}
+`, testAccAzureRMDataLakeStore_basic(rInt, location), strconv.Itoa(rInt)[0:15])
 }
 
-resource "azurerm_data_lake_store" "test" {
+func testAccAzureRMDataLakeAnalyticsAccount_withTags(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_lake_analytics_account" "test" {
   name                = "acctest%s"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   
+  default_store_account_name = "${azurerm_data_lake_store
+
   tags {
     environment = "Production"
     cost_center = "MSFT"
   }
 }
-`, rInt, location, strconv.Itoa(rInt)[0:15])
+`, testAccAzureRMDataLakeStore_basic(rInt, location), strconv.Itoa(rInt)[0:15])
 }
 
-func testAccAzureRMDataLakeStore_withTagsUpdate(rInt int, location string) string {
+func testAccAzureRMDataLakeAnalyticsAccount_withTagsUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-name     = "acctestRG-%d"
-  location = "%s"
-}
+%s
 
-resource "azurerm_data_lake_store" "test" {
+resource "azurerm_data_lake_analytics_account" "test" {
   name                = "acctest%s"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   
+  default_store_account_name = "${azurerm_data_lake_store
+
   tags {
     environment = "staging"
   }
 }
-`, rInt, location, strconv.Itoa(rInt)[0:15])
+`, testAccAzureRMDataLakeStore_basic(rInt, location), strconv.Itoa(rInt)[0:15])
 }

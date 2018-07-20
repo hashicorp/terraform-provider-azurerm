@@ -2,14 +2,13 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
-	"regexp"
-
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"log"
 )
 
 func resourceArmDataLakeStore() *schema.Resource {
@@ -24,13 +23,10 @@ func resourceArmDataLakeStore() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`\A([a-z0-9]{3,24})\z`),
-					"Name can only consist of lowercase letters and numbers, and must be between 3 and 24 characters long",
-				),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateDataLakeAccountName(),
 			},
 
 			"location": locationSchema(),
