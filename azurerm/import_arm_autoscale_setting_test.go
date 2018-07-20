@@ -7,16 +7,18 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccAzureRMAutoscaleSetting_importBasic(t *testing.T) {
+func TestAccAzureRMAutoScaleSetting_importBasic(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMAutoscaleSetting_basic(ri, testLocation())
+	rs := acctest.RandString(6)
+	location := testLocation()
+	config := testAccAzureRMAutoScaleSetting_basic(ri, rs, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMAutoscaleSettingDestroy,
+		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -30,16 +32,18 @@ func TestAccAzureRMAutoscaleSetting_importBasic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutoscaleSetting_importRecurrence(t *testing.T) {
+func TestAccAzureRMAutoScaleSetting_importRecurrence(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMAutoscaleSetting_recurrence(ri, testLocation())
+	rs := acctest.RandString(6)
+	location := testLocation()
+	config := testAccAzureRMAutoScaleSetting_recurrence(ri, rs, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMAutoscaleSettingDestroy,
+		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -53,16 +57,18 @@ func TestAccAzureRMAutoscaleSetting_importRecurrence(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutoscaleSetting_importFixedDate(t *testing.T) {
+func TestAccAzureRMAutoScaleSetting_importFixedDate(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMAutoscaleSetting_fixedDate(ri, testLocation())
+	rs := acctest.RandString(6)
+	location := testLocation()
+	config := testAccAzureRMAutoScaleSetting_fixedDate(ri, rs, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMAutoscaleSettingDestroy,
+		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
