@@ -24,30 +24,27 @@ import (
 	"net/http"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MetricDefinitionsClient is the monitor Management Client
 type MetricDefinitionsClient struct {
 	BaseClient
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // NewMetricDefinitionsClient creates an instance of the MetricDefinitionsClient client.
 func NewMetricDefinitionsClient(subscriptionID string) MetricDefinitionsClient {
 	return NewMetricDefinitionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // NewMetricDefinitionsClientWithBaseURI creates an instance of the MetricDefinitionsClient client.
 func NewMetricDefinitionsClientWithBaseURI(baseURI string, subscriptionID string) MetricDefinitionsClient {
 	return MetricDefinitionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // List lists the metric definitions for the resource.
-//
-// resourceURI is the identifier of the resource.
-func (client MetricDefinitionsClient) List(ctx context.Context, resourceURI string) (result MetricDefinitionCollection, err error) {
-	req, err := client.ListPreparer(ctx, resourceURI)
+// Parameters:
+// resourceURI - the identifier of the resource.
+// metricnamespace - metric namespace to query metric definitions for.
+func (client MetricDefinitionsClient) List(ctx context.Context, resourceURI string, metricnamespace string) (result MetricDefinitionCollection, err error) {
+	req, err := client.ListPreparer(ctx, resourceURI, metricnamespace)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MetricDefinitionsClient", "List", nil, "Failure preparing request")
 		return
@@ -68,16 +65,18 @@ func (client MetricDefinitionsClient) List(ctx context.Context, resourceURI stri
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListPreparer prepares the List request.
-func (client MetricDefinitionsClient) ListPreparer(ctx context.Context, resourceURI string) (*http.Request, error) {
+func (client MetricDefinitionsClient) ListPreparer(ctx context.Context, resourceURI string, metricnamespace string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceUri": resourceURI,
 	}
 
-	const APIVersion = "2017-05-01-preview"
+	const APIVersion = "2018-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(metricnamespace) > 0 {
+		queryParameters["metricnamespace"] = autorest.Encode("query", metricnamespace)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -88,7 +87,6 @@ func (client MetricDefinitionsClient) ListPreparer(ctx context.Context, resource
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client MetricDefinitionsClient) ListSender(req *http.Request) (*http.Response, error) {
@@ -96,7 +94,6 @@ func (client MetricDefinitionsClient) ListSender(req *http.Request) (*http.Respo
 		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
 func (client MetricDefinitionsClient) ListResponder(resp *http.Response) (result MetricDefinitionCollection, err error) {

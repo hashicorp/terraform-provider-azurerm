@@ -131,14 +131,6 @@
 			"versionExact": "v18.0.0"
 		},
 		{
-			"checksumSHA1": "E+QgVQ3X1EvmDta96Xa2aPHrkt4=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2018-03-01/insights",
-			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
-			"revisionTime": "2018-07-03T19:15:42Z",
-			"version": "=v18.0.0",
-			"versionExact": "v18.0.0"
-		},
-		{
 			"checksumSHA1": "Juw5Pl5qUEN8CTEgDf+wgRfoYdc=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql",
 			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
@@ -181,6 +173,14 @@
 		{
 			"checksumSHA1": "3wqT8RCanN6aSM1HM2HWZp+MNAw=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns",
+			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
+			"revisionTime": "2018-07-03T19:15:42Z",
+			"version": "=v18.0.0",
+			"versionExact": "v18.0.0"
+		},
+		{
+			"checksumSHA1": "L16Pxc0aJF+bq2H9T6iIJsUK2G8=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights",
 			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
 			"revisionTime": "2018-07-03T19:15:42Z",
 			"version": "=v18.0.0",

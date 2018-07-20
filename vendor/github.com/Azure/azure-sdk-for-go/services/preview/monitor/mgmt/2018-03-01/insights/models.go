@@ -25,7 +25,6 @@ import (
 	"net/http"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AggregationType enumerates the values for aggregation type.
 type AggregationType string
 
@@ -44,13 +43,32 @@ const (
 	Total AggregationType = "Total"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // PossibleAggregationTypeValues returns an array of possible values for the AggregationType const type.
 func PossibleAggregationTypeValues() []AggregationType {
 	return []AggregationType{Average, Count, Maximum, Minimum, None, Total}
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
+// AlertSeverity enumerates the values for alert severity.
+type AlertSeverity string
+
+const (
+	// Four ...
+	Four AlertSeverity = "4"
+	// One ...
+	One AlertSeverity = "1"
+	// Three ...
+	Three AlertSeverity = "3"
+	// Two ...
+	Two AlertSeverity = "2"
+	// Zero ...
+	Zero AlertSeverity = "0"
+)
+
+// PossibleAlertSeverityValues returns an array of possible values for the AlertSeverity const type.
+func PossibleAlertSeverityValues() []AlertSeverity {
+	return []AlertSeverity{Four, One, Three, Two, Zero}
+}
+
 // CategoryType enumerates the values for category type.
 type CategoryType string
 
@@ -61,13 +79,11 @@ const (
 	Metrics CategoryType = "Metrics"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // PossibleCategoryTypeValues returns an array of possible values for the CategoryType const type.
 func PossibleCategoryTypeValues() []CategoryType {
 	return []CategoryType{Logs, Metrics}
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ComparisonOperationType enumerates the values for comparison operation type.
 type ComparisonOperationType string
 
@@ -86,13 +102,28 @@ const (
 	NotEquals ComparisonOperationType = "NotEquals"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // PossibleComparisonOperationTypeValues returns an array of possible values for the ComparisonOperationType const type.
 func PossibleComparisonOperationTypeValues() []ComparisonOperationType {
 	return []ComparisonOperationType{Equals, GreaterThan, GreaterThanOrEqual, LessThan, LessThanOrEqual, NotEquals}
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
+// ConditionalOperator enumerates the values for conditional operator.
+type ConditionalOperator string
+
+const (
+	// ConditionalOperatorEqual ...
+	ConditionalOperatorEqual ConditionalOperator = "Equal"
+	// ConditionalOperatorGreaterThan ...
+	ConditionalOperatorGreaterThan ConditionalOperator = "GreaterThan"
+	// ConditionalOperatorLessThan ...
+	ConditionalOperatorLessThan ConditionalOperator = "LessThan"
+)
+
+// PossibleConditionalOperatorValues returns an array of possible values for the ConditionalOperator const type.
+func PossibleConditionalOperatorValues() []ConditionalOperator {
+	return []ConditionalOperator{ConditionalOperatorEqual, ConditionalOperatorGreaterThan, ConditionalOperatorLessThan}
+}
+
 // ConditionOperator enumerates the values for condition operator.
 type ConditionOperator string
 
@@ -107,13 +138,26 @@ const (
 	ConditionOperatorLessThanOrEqual ConditionOperator = "LessThanOrEqual"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // PossibleConditionOperatorValues returns an array of possible values for the ConditionOperator const type.
 func PossibleConditionOperatorValues() []ConditionOperator {
 	return []ConditionOperator{ConditionOperatorGreaterThan, ConditionOperatorGreaterThanOrEqual, ConditionOperatorLessThan, ConditionOperatorLessThanOrEqual}
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
+// Enabled enumerates the values for enabled.
+type Enabled string
+
+const (
+	// False ...
+	False Enabled = "false"
+	// True ...
+	True Enabled = "true"
+)
+
+// PossibleEnabledValues returns an array of possible values for the Enabled const type.
+func PossibleEnabledValues() []Enabled {
+	return []Enabled{False, True}
+}
+
 // EventLevel enumerates the values for event level.
 type EventLevel string
 
@@ -130,13 +174,11 @@ const (
 	Warning EventLevel = "Warning"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // PossibleEventLevelValues returns an array of possible values for the EventLevel const type.
 func PossibleEventLevelValues() []EventLevel {
 	return []EventLevel{Critical, Error, Informational, Verbose, Warning}
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MetricStatisticType enumerates the values for metric statistic type.
 type MetricStatisticType string
 
@@ -151,13 +193,26 @@ const (
 	MetricStatisticTypeSum MetricStatisticType = "Sum"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // PossibleMetricStatisticTypeValues returns an array of possible values for the MetricStatisticType const type.
 func PossibleMetricStatisticTypeValues() []MetricStatisticType {
 	return []MetricStatisticType{MetricStatisticTypeAverage, MetricStatisticTypeMax, MetricStatisticTypeMin, MetricStatisticTypeSum}
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
+// MetricTriggerType enumerates the values for metric trigger type.
+type MetricTriggerType string
+
+const (
+	// MetricTriggerTypeConsecutive ...
+	MetricTriggerTypeConsecutive MetricTriggerType = "Consecutive"
+	// MetricTriggerTypeTotal ...
+	MetricTriggerTypeTotal MetricTriggerType = "Total"
+)
+
+// PossibleMetricTriggerTypeValues returns an array of possible values for the MetricTriggerType const type.
+func PossibleMetricTriggerTypeValues() []MetricTriggerType {
+	return []MetricTriggerType{MetricTriggerTypeConsecutive, MetricTriggerTypeTotal}
+}
+
 // OdataType enumerates the values for odata type.
 type OdataType string
 
@@ -170,13 +225,41 @@ const (
 	OdataTypeRuleDataSource OdataType = "RuleDataSource"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // PossibleOdataTypeValues returns an array of possible values for the OdataType const type.
 func PossibleOdataTypeValues() []OdataType {
 	return []OdataType{OdataTypeMicrosoftAzureManagementInsightsModelsRuleManagementEventDataSource, OdataTypeMicrosoftAzureManagementInsightsModelsRuleMetricDataSource, OdataTypeRuleDataSource}
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
+// OdataTypeBasicAction enumerates the values for odata type basic action.
+type OdataTypeBasicAction string
+
+const (
+	// OdataTypeAction ...
+	OdataTypeAction OdataTypeBasicAction = "Action"
+	// OdataTypeMicrosoftWindowsAzureManagementMonitoringAlertsModelsMicrosoftAppInsightsNexusDataContractsResourcesScheduledQueryRulesAlertingAction ...
+	OdataTypeMicrosoftWindowsAzureManagementMonitoringAlertsModelsMicrosoftAppInsightsNexusDataContractsResourcesScheduledQueryRulesAlertingAction OdataTypeBasicAction = "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.Microsoft.AppInsights.Nexus.DataContracts.Resources.ScheduledQueryRules.AlertingAction"
+)
+
+// PossibleOdataTypeBasicActionValues returns an array of possible values for the OdataTypeBasicAction const type.
+func PossibleOdataTypeBasicActionValues() []OdataTypeBasicAction {
+	return []OdataTypeBasicAction{OdataTypeAction, OdataTypeMicrosoftWindowsAzureManagementMonitoringAlertsModelsMicrosoftAppInsightsNexusDataContractsResourcesScheduledQueryRulesAlertingAction}
+}
+
+// OdataTypeBasicMetricAlertCriteria enumerates the values for odata type basic metric alert criteria.
+type OdataTypeBasicMetricAlertCriteria string
+
+const (
+	// OdataTypeMetricAlertCriteria ...
+	OdataTypeMetricAlertCriteria OdataTypeBasicMetricAlertCriteria = "MetricAlertCriteria"
+	// OdataTypeMicrosoftAzureMonitorSingleResourceMultipleMetricCriteria ...
+	OdataTypeMicrosoftAzureMonitorSingleResourceMultipleMetricCriteria OdataTypeBasicMetricAlertCriteria = "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+)
+
+// PossibleOdataTypeBasicMetricAlertCriteriaValues returns an array of possible values for the OdataTypeBasicMetricAlertCriteria const type.
+func PossibleOdataTypeBasicMetricAlertCriteriaValues() []OdataTypeBasicMetricAlertCriteria {
+	return []OdataTypeBasicMetricAlertCriteria{OdataTypeMetricAlertCriteria, OdataTypeMicrosoftAzureMonitorSingleResourceMultipleMetricCriteria}
+}
+
 // OdataTypeBasicRuleAction enumerates the values for odata type basic rule action.
 type OdataTypeBasicRuleAction string
 
@@ -189,13 +272,11 @@ const (
 	OdataTypeRuleAction OdataTypeBasicRuleAction = "RuleAction"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // PossibleOdataTypeBasicRuleActionValues returns an array of possible values for the OdataTypeBasicRuleAction const type.
 func PossibleOdataTypeBasicRuleActionValues() []OdataTypeBasicRuleAction {
 	return []OdataTypeBasicRuleAction{OdataTypeMicrosoftAzureManagementInsightsModelsRuleEmailAction, OdataTypeMicrosoftAzureManagementInsightsModelsRuleWebhookAction, OdataTypeRuleAction}
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // OdataTypeBasicRuleCondition enumerates the values for odata type basic rule condition.
 type OdataTypeBasicRuleCondition string
 
@@ -210,32 +291,60 @@ const (
 	OdataTypeRuleCondition OdataTypeBasicRuleCondition = "RuleCondition"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // PossibleOdataTypeBasicRuleConditionValues returns an array of possible values for the OdataTypeBasicRuleCondition const type.
 func PossibleOdataTypeBasicRuleConditionValues() []OdataTypeBasicRuleCondition {
 	return []OdataTypeBasicRuleCondition{OdataTypeMicrosoftAzureManagementInsightsModelsLocationThresholdRuleCondition, OdataTypeMicrosoftAzureManagementInsightsModelsManagementEventRuleCondition, OdataTypeMicrosoftAzureManagementInsightsModelsThresholdRuleCondition, OdataTypeRuleCondition}
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
+// ProvisioningState enumerates the values for provisioning state.
+type ProvisioningState string
+
+const (
+	// Canceled ...
+	Canceled ProvisioningState = "Canceled"
+	// Deploying ...
+	Deploying ProvisioningState = "Deploying"
+	// Failed ...
+	Failed ProvisioningState = "Failed"
+	// Succeeded ...
+	Succeeded ProvisioningState = "Succeeded"
+)
+
+// PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
+func PossibleProvisioningStateValues() []ProvisioningState {
+	return []ProvisioningState{Canceled, Deploying, Failed, Succeeded}
+}
+
+// QueryType enumerates the values for query type.
+type QueryType string
+
+const (
+	// ResultCount ...
+	ResultCount QueryType = "ResultCount"
+)
+
+// PossibleQueryTypeValues returns an array of possible values for the QueryType const type.
+func PossibleQueryTypeValues() []QueryType {
+	return []QueryType{ResultCount}
+}
+
 // ReceiverStatus enumerates the values for receiver status.
 type ReceiverStatus string
 
 const (
-	// Disabled ...
-	Disabled ReceiverStatus = "Disabled"
-	// Enabled ...
-	Enabled ReceiverStatus = "Enabled"
-	// NotSpecified ...
-	NotSpecified ReceiverStatus = "NotSpecified"
+	// ReceiverStatusDisabled ...
+	ReceiverStatusDisabled ReceiverStatus = "Disabled"
+	// ReceiverStatusEnabled ...
+	ReceiverStatusEnabled ReceiverStatus = "Enabled"
+	// ReceiverStatusNotSpecified ...
+	ReceiverStatusNotSpecified ReceiverStatus = "NotSpecified"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // PossibleReceiverStatusValues returns an array of possible values for the ReceiverStatus const type.
 func PossibleReceiverStatusValues() []ReceiverStatus {
-	return []ReceiverStatus{Disabled, Enabled, NotSpecified}
+	return []ReceiverStatus{ReceiverStatusDisabled, ReceiverStatusEnabled, ReceiverStatusNotSpecified}
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // RecurrenceFrequency enumerates the values for recurrence frequency.
 type RecurrenceFrequency string
 
@@ -258,13 +367,11 @@ const (
 	RecurrenceFrequencyYear RecurrenceFrequency = "Year"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // PossibleRecurrenceFrequencyValues returns an array of possible values for the RecurrenceFrequency const type.
 func PossibleRecurrenceFrequencyValues() []RecurrenceFrequency {
 	return []RecurrenceFrequency{RecurrenceFrequencyDay, RecurrenceFrequencyHour, RecurrenceFrequencyMinute, RecurrenceFrequencyMonth, RecurrenceFrequencyNone, RecurrenceFrequencySecond, RecurrenceFrequencyWeek, RecurrenceFrequencyYear}
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ResultType enumerates the values for result type.
 type ResultType string
 
@@ -275,13 +382,11 @@ const (
 	Metadata ResultType = "Metadata"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // PossibleResultTypeValues returns an array of possible values for the ResultType const type.
 func PossibleResultTypeValues() []ResultType {
 	return []ResultType{Data, Metadata}
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ScaleDirection enumerates the values for scale direction.
 type ScaleDirection string
 
@@ -294,13 +399,11 @@ const (
 	ScaleDirectionNone ScaleDirection = "None"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // PossibleScaleDirectionValues returns an array of possible values for the ScaleDirection const type.
 func PossibleScaleDirectionValues() []ScaleDirection {
 	return []ScaleDirection{ScaleDirectionDecrease, ScaleDirectionIncrease, ScaleDirectionNone}
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ScaleType enumerates the values for scale type.
 type ScaleType string
 
@@ -313,13 +416,11 @@ const (
 	PercentChangeCount ScaleType = "PercentChangeCount"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // PossibleScaleTypeValues returns an array of possible values for the ScaleType const type.
 func PossibleScaleTypeValues() []ScaleType {
 	return []ScaleType{ChangeCount, ExactCount, PercentChangeCount}
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Sensitivity enumerates the values for sensitivity.
 type Sensitivity string
 
@@ -332,13 +433,11 @@ const (
 	Medium Sensitivity = "Medium"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // PossibleSensitivityValues returns an array of possible values for the Sensitivity const type.
 func PossibleSensitivityValues() []Sensitivity {
 	return []Sensitivity{High, Low, Medium}
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // TimeAggregationOperator enumerates the values for time aggregation operator.
 type TimeAggregationOperator string
 
@@ -355,13 +454,11 @@ const (
 	TimeAggregationOperatorTotal TimeAggregationOperator = "Total"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // PossibleTimeAggregationOperatorValues returns an array of possible values for the TimeAggregationOperator const type.
 func PossibleTimeAggregationOperatorValues() []TimeAggregationOperator {
 	return []TimeAggregationOperator{TimeAggregationOperatorAverage, TimeAggregationOperatorLast, TimeAggregationOperatorMaximum, TimeAggregationOperatorMinimum, TimeAggregationOperatorTotal}
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // TimeAggregationType enumerates the values for time aggregation type.
 type TimeAggregationType string
 
@@ -378,13 +475,11 @@ const (
 	TimeAggregationTypeTotal TimeAggregationType = "Total"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // PossibleTimeAggregationTypeValues returns an array of possible values for the TimeAggregationType const type.
 func PossibleTimeAggregationTypeValues() []TimeAggregationType {
 	return []TimeAggregationType{TimeAggregationTypeAverage, TimeAggregationTypeCount, TimeAggregationTypeMaximum, TimeAggregationTypeMinimum, TimeAggregationTypeTotal}
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Unit enumerates the values for unit.
 type Unit string
 
@@ -409,13 +504,85 @@ const (
 	UnitUnspecified Unit = "Unspecified"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // PossibleUnitValues returns an array of possible values for the Unit const type.
 func PossibleUnitValues() []Unit {
 	return []Unit{UnitBytes, UnitByteSeconds, UnitBytesPerSecond, UnitCount, UnitCountPerSecond, UnitMilliSeconds, UnitPercent, UnitSeconds, UnitUnspecified}
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
+// BasicAction action descriptor.
+type BasicAction interface {
+	AsAlertingAction() (*AlertingAction, bool)
+	AsAction() (*Action, bool)
+}
+
+// Action action descriptor.
+type Action struct {
+	// OdataType - Possible values include: 'OdataTypeAction', 'OdataTypeMicrosoftWindowsAzureManagementMonitoringAlertsModelsMicrosoftAppInsightsNexusDataContractsResourcesScheduledQueryRulesAlertingAction'
+	OdataType OdataTypeBasicAction `json:"odata.type,omitempty"`
+}
+
+func unmarshalBasicAction(body []byte) (BasicAction, error) {
+	var m map[string]interface{}
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return nil, err
+	}
+
+	switch m["odata.type"] {
+	case string(OdataTypeMicrosoftWindowsAzureManagementMonitoringAlertsModelsMicrosoftAppInsightsNexusDataContractsResourcesScheduledQueryRulesAlertingAction):
+		var aa AlertingAction
+		err := json.Unmarshal(body, &aa)
+		return aa, err
+	default:
+		var a Action
+		err := json.Unmarshal(body, &a)
+		return a, err
+	}
+}
+func unmarshalBasicActionArray(body []byte) ([]BasicAction, error) {
+	var rawMessages []*json.RawMessage
+	err := json.Unmarshal(body, &rawMessages)
+	if err != nil {
+		return nil, err
+	}
+
+	aArray := make([]BasicAction, len(rawMessages))
+
+	for index, rawMessage := range rawMessages {
+		a, err := unmarshalBasicAction(*rawMessage)
+		if err != nil {
+			return nil, err
+		}
+		aArray[index] = a
+	}
+	return aArray, nil
+}
+
+// MarshalJSON is the custom marshaler for Action.
+func (a Action) MarshalJSON() ([]byte, error) {
+	a.OdataType = OdataTypeAction
+	objectMap := make(map[string]interface{})
+	if a.OdataType != "" {
+		objectMap["odata.type"] = a.OdataType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAlertingAction is the BasicAction implementation for Action.
+func (a Action) AsAlertingAction() (*AlertingAction, bool) {
+	return nil, false
+}
+
+// AsAction is the BasicAction implementation for Action.
+func (a Action) AsAction() (*Action, bool) {
+	return &a, true
+}
+
+// AsBasicAction is the BasicAction implementation for Action.
+func (a Action) AsBasicAction() (BasicAction, bool) {
+	return &a, true
+}
+
 // ActionGroup an Azure action group.
 type ActionGroup struct {
 	// GroupShortName - The short name of the action group. This will be used in SMS messages.
@@ -442,7 +609,6 @@ type ActionGroup struct {
 	AzureFunctionReceivers *[]AzureFunctionReceiver `json:"azureFunctionReceivers,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ActionGroupList a list of action groups.
 type ActionGroupList struct {
 	autorest.Response `json:"-"`
@@ -452,14 +618,12 @@ type ActionGroupList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ActionGroupPatch an Azure action group for patch operations.
 type ActionGroupPatch struct {
 	// Enabled - Indicates whether this action group is enabled. If an action group is not enabled, then none of its actions will be activated.
 	Enabled *bool `json:"enabled,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ActionGroupPatchBody an action group object for the body of patch operations.
 type ActionGroupPatchBody struct {
 	// Tags - Resource tags
@@ -468,7 +632,6 @@ type ActionGroupPatchBody struct {
 	*ActionGroupPatch `json:"properties,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MarshalJSON is the custom marshaler for ActionGroupPatchBody.
 func (agpb ActionGroupPatchBody) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
@@ -481,7 +644,6 @@ func (agpb ActionGroupPatchBody) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // UnmarshalJSON is the custom unmarshaler for ActionGroupPatchBody struct.
 func (agpb *ActionGroupPatchBody) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
@@ -515,7 +677,6 @@ func (agpb *ActionGroupPatchBody) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ActionGroupResource an action group resource.
 type ActionGroupResource struct {
 	autorest.Response `json:"-"`
@@ -533,7 +694,6 @@ type ActionGroupResource struct {
 	Tags map[string]*string `json:"tags"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MarshalJSON is the custom marshaler for ActionGroupResource.
 func (agr ActionGroupResource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
@@ -558,7 +718,6 @@ func (agr ActionGroupResource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // UnmarshalJSON is the custom unmarshaler for ActionGroupResource struct.
 func (agr *ActionGroupResource) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
@@ -628,7 +787,6 @@ func (agr *ActionGroupResource) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ActivityLogAlert an Azure activity log alert.
 type ActivityLogAlert struct {
 	// Scopes - A list of resourceIds that will be used as prefixes. The alert will only apply to activityLogs with resourceIds that fall under one of these prefixes. This list must include at least one item.
@@ -643,7 +801,6 @@ type ActivityLogAlert struct {
 	Description *string `json:"description,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ActivityLogAlertActionGroup a pointer to an Azure Action Group.
 type ActivityLogAlertActionGroup struct {
 	// ActionGroupID - The resourceId of the action group. This cannot be null or empty.
@@ -652,7 +809,6 @@ type ActivityLogAlertActionGroup struct {
 	WebhookProperties map[string]*string `json:"webhookProperties"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MarshalJSON is the custom marshaler for ActivityLogAlertActionGroup.
 func (alaag ActivityLogAlertActionGroup) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
@@ -665,14 +821,12 @@ func (alaag ActivityLogAlertActionGroup) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ActivityLogAlertActionList a list of activity log alert actions.
 type ActivityLogAlertActionList struct {
 	// ActionGroups - The list of activity log alerts.
 	ActionGroups *[]ActivityLogAlertActionGroup `json:"actionGroups,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ActivityLogAlertAllOfCondition an Activity Log alert condition that is met when all its member conditions are
 // met.
 type ActivityLogAlertAllOfCondition struct {
@@ -680,7 +834,6 @@ type ActivityLogAlertAllOfCondition struct {
 	AllOf *[]ActivityLogAlertLeafCondition `json:"allOf,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ActivityLogAlertLeafCondition an Activity Log alert condition that is met by comparing an activity log field and
 // value.
 type ActivityLogAlertLeafCondition struct {
@@ -690,7 +843,6 @@ type ActivityLogAlertLeafCondition struct {
 	Equals *string `json:"equals,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ActivityLogAlertList a list of activity log alerts.
 type ActivityLogAlertList struct {
 	autorest.Response `json:"-"`
@@ -700,14 +852,12 @@ type ActivityLogAlertList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ActivityLogAlertPatch an Azure activity log alert for patch operations.
 type ActivityLogAlertPatch struct {
 	// Enabled - Indicates whether this activity log alert is enabled. If an activity log alert is not enabled, then none of its actions will be activated.
 	Enabled *bool `json:"enabled,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ActivityLogAlertPatchBody an activity log alert object for the body of patch operations.
 type ActivityLogAlertPatchBody struct {
 	// Tags - Resource tags
@@ -716,7 +866,6 @@ type ActivityLogAlertPatchBody struct {
 	*ActivityLogAlertPatch `json:"properties,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MarshalJSON is the custom marshaler for ActivityLogAlertPatchBody.
 func (alapb ActivityLogAlertPatchBody) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
@@ -729,7 +878,6 @@ func (alapb ActivityLogAlertPatchBody) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // UnmarshalJSON is the custom unmarshaler for ActivityLogAlertPatchBody struct.
 func (alapb *ActivityLogAlertPatchBody) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
@@ -763,7 +911,6 @@ func (alapb *ActivityLogAlertPatchBody) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ActivityLogAlertResource an activity log alert resource.
 type ActivityLogAlertResource struct {
 	autorest.Response `json:"-"`
@@ -781,7 +928,6 @@ type ActivityLogAlertResource struct {
 	Tags map[string]*string `json:"tags"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MarshalJSON is the custom marshaler for ActivityLogAlertResource.
 func (alar ActivityLogAlertResource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
@@ -806,7 +952,6 @@ func (alar ActivityLogAlertResource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // UnmarshalJSON is the custom unmarshaler for ActivityLogAlertResource struct.
 func (alar *ActivityLogAlertResource) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
@@ -876,7 +1021,57 @@ func (alar *ActivityLogAlertResource) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
+// AlertingAction specifiy action need to be taken when rule type is Alert
+type AlertingAction struct {
+	// Severity - Severity of the alert. Possible values include: 'Zero', 'One', 'Two', 'Three', 'Four'
+	Severity AlertSeverity `json:"severity,omitempty"`
+	// AznsAction - Azure action group reference.
+	AznsAction *AzNsActionGroup `json:"aznsAction,omitempty"`
+	// ThrottlingInMin - time (in minutes) for which Alerts should be throttled or suppressed.
+	ThrottlingInMin *int32 `json:"throttlingInMin,omitempty"`
+	// Trigger - The trigger condition that results in the alert rule being.
+	Trigger *TriggerCondition `json:"trigger,omitempty"`
+	// OdataType - Possible values include: 'OdataTypeAction', 'OdataTypeMicrosoftWindowsAzureManagementMonitoringAlertsModelsMicrosoftAppInsightsNexusDataContractsResourcesScheduledQueryRulesAlertingAction'
+	OdataType OdataTypeBasicAction `json:"odata.type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AlertingAction.
+func (aa AlertingAction) MarshalJSON() ([]byte, error) {
+	aa.OdataType = OdataTypeMicrosoftWindowsAzureManagementMonitoringAlertsModelsMicrosoftAppInsightsNexusDataContractsResourcesScheduledQueryRulesAlertingAction
+	objectMap := make(map[string]interface{})
+	if aa.Severity != "" {
+		objectMap["severity"] = aa.Severity
+	}
+	if aa.AznsAction != nil {
+		objectMap["aznsAction"] = aa.AznsAction
+	}
+	if aa.ThrottlingInMin != nil {
+		objectMap["throttlingInMin"] = aa.ThrottlingInMin
+	}
+	if aa.Trigger != nil {
+		objectMap["trigger"] = aa.Trigger
+	}
+	if aa.OdataType != "" {
+		objectMap["odata.type"] = aa.OdataType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAlertingAction is the BasicAction implementation for AlertingAction.
+func (aa AlertingAction) AsAlertingAction() (*AlertingAction, bool) {
+	return &aa, true
+}
+
+// AsAction is the BasicAction implementation for AlertingAction.
+func (aa AlertingAction) AsAction() (*Action, bool) {
+	return nil, false
+}
+
+// AsBasicAction is the BasicAction implementation for AlertingAction.
+func (aa AlertingAction) AsBasicAction() (BasicAction, bool) {
+	return &aa, true
+}
+
 // AlertRule an alert rule.
 type AlertRule struct {
 	// Name - the name of the alert rule.
@@ -893,7 +1088,6 @@ type AlertRule struct {
 	LastUpdatedTime *date.Time `json:"lastUpdatedTime,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // UnmarshalJSON is the custom unmarshaler for AlertRule struct.
 func (ar *AlertRule) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
@@ -961,7 +1155,6 @@ func (ar *AlertRule) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AlertRuleResource the alert rule resource.
 type AlertRuleResource struct {
 	autorest.Response `json:"-"`
@@ -979,7 +1172,6 @@ type AlertRuleResource struct {
 	Tags map[string]*string `json:"tags"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MarshalJSON is the custom marshaler for AlertRuleResource.
 func (arr AlertRuleResource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
@@ -1004,7 +1196,6 @@ func (arr AlertRuleResource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // UnmarshalJSON is the custom unmarshaler for AlertRuleResource struct.
 func (arr *AlertRuleResource) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
@@ -1074,7 +1265,6 @@ func (arr *AlertRuleResource) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AlertRuleResourceCollection represents a collection of alert rule resources.
 type AlertRuleResourceCollection struct {
 	autorest.Response `json:"-"`
@@ -1082,7 +1272,6 @@ type AlertRuleResourceCollection struct {
 	Value *[]AlertRuleResource `json:"value,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AlertRuleResourcePatch the alert rule object for patch operations.
 type AlertRuleResourcePatch struct {
 	// Tags - Resource tags
@@ -1091,7 +1280,6 @@ type AlertRuleResourcePatch struct {
 	*AlertRule `json:"properties,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MarshalJSON is the custom marshaler for AlertRuleResourcePatch.
 func (arrp AlertRuleResourcePatch) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
@@ -1104,7 +1292,6 @@ func (arrp AlertRuleResourcePatch) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // UnmarshalJSON is the custom unmarshaler for AlertRuleResourcePatch struct.
 func (arrp *AlertRuleResourcePatch) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
@@ -1138,7 +1325,6 @@ func (arrp *AlertRuleResourcePatch) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AutomationRunbookReceiver the Azure Automation Runbook notification receiver.
 type AutomationRunbookReceiver struct {
 	// AutomationAccountID - The Azure automation account Id which holds this runbook and authenticate to Azure resource.
@@ -1155,7 +1341,6 @@ type AutomationRunbookReceiver struct {
 	ServiceURI *string `json:"serviceUri,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AutoscaleNotification autoscale notification.
 type AutoscaleNotification struct {
 	// Operation - the operation associated with the notification and its value must be "scale"
@@ -1166,7 +1351,6 @@ type AutoscaleNotification struct {
 	Webhooks *[]WebhookNotification `json:"webhooks,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AutoscaleProfile autoscale profile.
 type AutoscaleProfile struct {
 	// Name - the name of the profile.
@@ -1181,7 +1365,6 @@ type AutoscaleProfile struct {
 	Recurrence *Recurrence `json:"recurrence,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AutoscaleSetting a setting that contains all of the configuration for the automatic scaling of a resource.
 type AutoscaleSetting struct {
 	// Profiles - the collection of automatic scaling profiles that specify different scaling parameters for different time periods. A maximum of 20 profiles can be specified.
@@ -1196,7 +1379,6 @@ type AutoscaleSetting struct {
 	TargetResourceURI *string `json:"targetResourceUri,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AutoscaleSettingResource the autoscale setting resource.
 type AutoscaleSettingResource struct {
 	autorest.Response `json:"-"`
@@ -1214,7 +1396,6 @@ type AutoscaleSettingResource struct {
 	Tags map[string]*string `json:"tags"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MarshalJSON is the custom marshaler for AutoscaleSettingResource.
 func (asr AutoscaleSettingResource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
@@ -1239,7 +1420,6 @@ func (asr AutoscaleSettingResource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // UnmarshalJSON is the custom unmarshaler for AutoscaleSettingResource struct.
 func (asr *AutoscaleSettingResource) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
@@ -1309,7 +1489,6 @@ func (asr *AutoscaleSettingResource) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AutoscaleSettingResourceCollection represents a collection of autoscale setting resources.
 type AutoscaleSettingResourceCollection struct {
 	autorest.Response `json:"-"`
@@ -1319,7 +1498,6 @@ type AutoscaleSettingResourceCollection struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AutoscaleSettingResourceCollectionIterator provides access to a complete listing of AutoscaleSettingResource
 // values.
 type AutoscaleSettingResourceCollectionIterator struct {
@@ -1327,7 +1505,6 @@ type AutoscaleSettingResourceCollectionIterator struct {
 	page AutoscaleSettingResourceCollectionPage
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Next advances to the next value.  If there was an error making
 // the request the iterator does not advance and the error is returned.
 func (iter *AutoscaleSettingResourceCollectionIterator) Next() error {
@@ -1344,19 +1521,16 @@ func (iter *AutoscaleSettingResourceCollectionIterator) Next() error {
 	return nil
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // NotDone returns true if the enumeration should be started or is not yet complete.
 func (iter AutoscaleSettingResourceCollectionIterator) NotDone() bool {
 	return iter.page.NotDone() && iter.i < len(iter.page.Values())
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Response returns the raw server response from the last page request.
 func (iter AutoscaleSettingResourceCollectionIterator) Response() AutoscaleSettingResourceCollection {
 	return iter.page.Response()
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Value returns the current value or a zero-initialized value if the
 // iterator has advanced beyond the end of the collection.
 func (iter AutoscaleSettingResourceCollectionIterator) Value() AutoscaleSettingResource {
@@ -1366,7 +1540,6 @@ func (iter AutoscaleSettingResourceCollectionIterator) Value() AutoscaleSettingR
 	return iter.page.Values()[iter.i]
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // IsEmpty returns true if the ListResult contains no values.
 func (asrc AutoscaleSettingResourceCollection) IsEmpty() bool {
 	return asrc.Value == nil || len(*asrc.Value) == 0
@@ -1384,14 +1557,12 @@ func (asrc AutoscaleSettingResourceCollection) autoscaleSettingResourceCollectio
 		autorest.WithBaseURL(to.String(asrc.NextLink)))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AutoscaleSettingResourceCollectionPage contains a page of AutoscaleSettingResource values.
 type AutoscaleSettingResourceCollectionPage struct {
 	fn   func(AutoscaleSettingResourceCollection) (AutoscaleSettingResourceCollection, error)
 	asrc AutoscaleSettingResourceCollection
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Next advances to the next page of values.  If there was an error making
 // the request the page does not advance and the error is returned.
 func (page *AutoscaleSettingResourceCollectionPage) Next() error {
@@ -1403,19 +1574,16 @@ func (page *AutoscaleSettingResourceCollectionPage) Next() error {
 	return nil
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // NotDone returns true if the page enumeration should be started or is not yet complete.
 func (page AutoscaleSettingResourceCollectionPage) NotDone() bool {
 	return !page.asrc.IsEmpty()
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Response returns the raw server response from the last page request.
 func (page AutoscaleSettingResourceCollectionPage) Response() AutoscaleSettingResourceCollection {
 	return page.asrc
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Values returns the slice of values for the current page or nil if there are no values.
 func (page AutoscaleSettingResourceCollectionPage) Values() []AutoscaleSettingResource {
 	if page.asrc.IsEmpty() {
@@ -1424,7 +1592,6 @@ func (page AutoscaleSettingResourceCollectionPage) Values() []AutoscaleSettingRe
 	return *page.asrc.Value
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AutoscaleSettingResourcePatch the autoscale setting object for patch operations.
 type AutoscaleSettingResourcePatch struct {
 	// Tags - Resource tags
@@ -1433,7 +1600,6 @@ type AutoscaleSettingResourcePatch struct {
 	*AutoscaleSetting `json:"properties,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MarshalJSON is the custom marshaler for AutoscaleSettingResourcePatch.
 func (asrp AutoscaleSettingResourcePatch) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
@@ -1446,7 +1612,6 @@ func (asrp AutoscaleSettingResourcePatch) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // UnmarshalJSON is the custom unmarshaler for AutoscaleSettingResourcePatch struct.
 func (asrp *AutoscaleSettingResourcePatch) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
@@ -1480,7 +1645,16 @@ func (asrp *AutoscaleSettingResourcePatch) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
+// AzNsActionGroup azure action group
+type AzNsActionGroup struct {
+	// ActionGroup - Azure Action Group reference.
+	ActionGroup *[]string `json:"actionGroup,omitempty"`
+	// EmailSubject - Custom subject override for all email ids in Azure action group
+	EmailSubject *string `json:"emailSubject,omitempty"`
+	// CustomWebhookPayload - Custom payload to be sent for all webook URI in Azure action group
+	CustomWebhookPayload *string `json:"customWebhookPayload,omitempty"`
+}
+
 // AzureAppPushReceiver the Azure mobile App push notification receiver.
 type AzureAppPushReceiver struct {
 	// Name - The name of the Azure mobile app push receiver. Names must be unique across all receivers within an action group.
@@ -1489,7 +1663,6 @@ type AzureAppPushReceiver struct {
 	EmailAddress *string `json:"emailAddress,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AzureFunctionReceiver an azure function receiver.
 type AzureFunctionReceiver struct {
 	// Name - The name of the azure function receiver. Names must be unique across all receivers within an action group.
@@ -1502,7 +1675,6 @@ type AzureFunctionReceiver struct {
 	HTTPTriggerURL *string `json:"httpTriggerUrl,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Baseline the baseline values for a single sensitivity value.
 type Baseline struct {
 	// Sensitivity - the sensitivity of the baseline. Possible values include: 'Low', 'Medium', 'High'
@@ -1513,7 +1685,6 @@ type Baseline struct {
 	HighThresholds *[]float64 `json:"highThresholds,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // BaselineMetadataValue represents a baseline metadata value.
 type BaselineMetadataValue struct {
 	// Name - the name of the metadata.
@@ -1522,7 +1693,6 @@ type BaselineMetadataValue struct {
 	Value *string `json:"value,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // BaselineProperties the baseline properties class.
 type BaselineProperties struct {
 	// Timespan - The timespan for which the data was retrieved. Its value consists of two datatimes concatenated, separated by '/'.  This may be adjusted in the future and returned back from what was originally requested.
@@ -1539,7 +1709,6 @@ type BaselineProperties struct {
 	Metadata *[]BaselineMetadataValue `json:"metadata,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // BaselineResponse the response to a baseline query.
 type BaselineResponse struct {
 	autorest.Response `json:"-"`
@@ -1553,7 +1722,6 @@ type BaselineResponse struct {
 	*BaselineProperties `json:"properties,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MarshalJSON is the custom marshaler for BaselineResponse.
 func (br BaselineResponse) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
@@ -1572,7 +1740,6 @@ func (br BaselineResponse) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // UnmarshalJSON is the custom unmarshaler for BaselineResponse struct.
 func (br *BaselineResponse) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
@@ -1624,7 +1791,6 @@ func (br *BaselineResponse) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // CalculateBaselineResponse the response to a calcualte baseline call.
 type CalculateBaselineResponse struct {
 	autorest.Response `json:"-"`
@@ -1636,11 +1802,12 @@ type CalculateBaselineResponse struct {
 	Baseline *[]Baseline `json:"baseline,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // DiagnosticSettings the diagnostic settings.
 type DiagnosticSettings struct {
 	// StorageAccountID - The resource ID of the storage account to which you would like to send Diagnostic Logs.
 	StorageAccountID *string `json:"storageAccountId,omitempty"`
+	// ServiceBusRuleID - The service bus rule Id of the diagnostic setting. This is here to maintain backwards compatibility.
+	ServiceBusRuleID *string `json:"serviceBusRuleId,omitempty"`
 	// EventHubAuthorizationRuleID - The resource Id for the event hub authorization rule.
 	EventHubAuthorizationRuleID *string `json:"eventHubAuthorizationRuleId,omitempty"`
 	// EventHubName - The name of the event hub. If none is specified, the default event hub will be selected.
@@ -1653,17 +1820,16 @@ type DiagnosticSettings struct {
 	WorkspaceID *string `json:"workspaceId,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // DiagnosticSettingsCategory the diagnostic settings Category.
 type DiagnosticSettingsCategory struct {
 	// CategoryType - The type of the diagnostic settings category. Possible values include: 'Metrics', 'Logs'
 	CategoryType CategoryType `json:"categoryType,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // DiagnosticSettingsCategoryResource the diagnostic settings category resource.
 type DiagnosticSettingsCategoryResource struct {
-	autorest.Response           `json:"-"`
+	autorest.Response `json:"-"`
+	// DiagnosticSettingsCategory - The properties of a Diagnostic Settings Category.
 	*DiagnosticSettingsCategory `json:"properties,omitempty"`
 	// ID - Azure resource Id
 	ID *string `json:"id,omitempty"`
@@ -1673,7 +1839,6 @@ type DiagnosticSettingsCategoryResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MarshalJSON is the custom marshaler for DiagnosticSettingsCategoryResource.
 func (dscr DiagnosticSettingsCategoryResource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
@@ -1692,7 +1857,6 @@ func (dscr DiagnosticSettingsCategoryResource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // UnmarshalJSON is the custom unmarshaler for DiagnosticSettingsCategoryResource struct.
 func (dscr *DiagnosticSettingsCategoryResource) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
@@ -1744,7 +1908,6 @@ func (dscr *DiagnosticSettingsCategoryResource) UnmarshalJSON(body []byte) error
 	return nil
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // DiagnosticSettingsCategoryResourceCollection represents a collection of diagnostic setting category resources.
 type DiagnosticSettingsCategoryResourceCollection struct {
 	autorest.Response `json:"-"`
@@ -1752,10 +1915,10 @@ type DiagnosticSettingsCategoryResourceCollection struct {
 	Value *[]DiagnosticSettingsCategoryResource `json:"value,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // DiagnosticSettingsResource the diagnostic setting resource.
 type DiagnosticSettingsResource struct {
-	autorest.Response   `json:"-"`
+	autorest.Response `json:"-"`
+	// DiagnosticSettings - Properties of a Diagnostic Settings Resource.
 	*DiagnosticSettings `json:"properties,omitempty"`
 	// ID - Azure resource Id
 	ID *string `json:"id,omitempty"`
@@ -1765,7 +1928,6 @@ type DiagnosticSettingsResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MarshalJSON is the custom marshaler for DiagnosticSettingsResource.
 func (dsr DiagnosticSettingsResource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
@@ -1784,7 +1946,6 @@ func (dsr DiagnosticSettingsResource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // UnmarshalJSON is the custom unmarshaler for DiagnosticSettingsResource struct.
 func (dsr *DiagnosticSettingsResource) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
@@ -1836,7 +1997,6 @@ func (dsr *DiagnosticSettingsResource) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // DiagnosticSettingsResourceCollection represents a collection of alert rule resources.
 type DiagnosticSettingsResourceCollection struct {
 	autorest.Response `json:"-"`
@@ -1844,7 +2004,6 @@ type DiagnosticSettingsResourceCollection struct {
 	Value *[]DiagnosticSettingsResource `json:"value,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // EmailNotification email notification of an autoscale event.
 type EmailNotification struct {
 	// SendToSubscriptionAdministrator - a value indicating whether to send email to subscription administrator.
@@ -1855,25 +2014,22 @@ type EmailNotification struct {
 	CustomEmails *[]string `json:"customEmails,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // EmailReceiver an email receiver.
 type EmailReceiver struct {
 	// Name - The name of the email receiver. Names must be unique across all receivers within an action group.
 	Name *string `json:"name,omitempty"`
 	// EmailAddress - The email address of this receiver.
 	EmailAddress *string `json:"emailAddress,omitempty"`
-	// Status - The receiver status of the e-mail. Possible values include: 'NotSpecified', 'Enabled', 'Disabled'
+	// Status - The receiver status of the e-mail. Possible values include: 'ReceiverStatusNotSpecified', 'ReceiverStatusEnabled', 'ReceiverStatusDisabled'
 	Status ReceiverStatus `json:"status,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // EnableRequest describes a receiver that should be resubscribed.
 type EnableRequest struct {
 	// ReceiverName - The name of the receiver to resubscribe.
 	ReceiverName *string `json:"receiverName,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ErrorResponse describes the format of Error response.
 type ErrorResponse struct {
 	// Code - Error code
@@ -1882,7 +2038,6 @@ type ErrorResponse struct {
 	Message *string `json:"message,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // EventCategoryCollection a collection of event categories. Currently possible values are: Administrative,
 // Security, ServiceHealth, Alert, Recommendation, Policy.
 type EventCategoryCollection struct {
@@ -1891,9 +2046,9 @@ type EventCategoryCollection struct {
 	Value *[]LocalizableString `json:"value,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // EventData the Azure event log entries are of type EventData
 type EventData struct {
+	// Authorization - The sender authorization information.
 	Authorization *SenderAuthorization `json:"authorization,omitempty"`
 	// Claims - key value pairs to identify ARM permissions.
 	Claims map[string]*string `json:"claims"`
@@ -1943,7 +2098,6 @@ type EventData struct {
 	TenantID *string `json:"tenantId,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MarshalJSON is the custom marshaler for EventData.
 func (ed EventData) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
@@ -2022,7 +2176,6 @@ func (ed EventData) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // EventDataCollection represents collection of events.
 type EventDataCollection struct {
 	autorest.Response `json:"-"`
@@ -2032,14 +2185,12 @@ type EventDataCollection struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // EventDataCollectionIterator provides access to a complete listing of EventData values.
 type EventDataCollectionIterator struct {
 	i    int
 	page EventDataCollectionPage
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Next advances to the next value.  If there was an error making
 // the request the iterator does not advance and the error is returned.
 func (iter *EventDataCollectionIterator) Next() error {
@@ -2056,19 +2207,16 @@ func (iter *EventDataCollectionIterator) Next() error {
 	return nil
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // NotDone returns true if the enumeration should be started or is not yet complete.
 func (iter EventDataCollectionIterator) NotDone() bool {
 	return iter.page.NotDone() && iter.i < len(iter.page.Values())
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Response returns the raw server response from the last page request.
 func (iter EventDataCollectionIterator) Response() EventDataCollection {
 	return iter.page.Response()
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Value returns the current value or a zero-initialized value if the
 // iterator has advanced beyond the end of the collection.
 func (iter EventDataCollectionIterator) Value() EventData {
@@ -2078,7 +2226,6 @@ func (iter EventDataCollectionIterator) Value() EventData {
 	return iter.page.Values()[iter.i]
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // IsEmpty returns true if the ListResult contains no values.
 func (edc EventDataCollection) IsEmpty() bool {
 	return edc.Value == nil || len(*edc.Value) == 0
@@ -2096,14 +2243,12 @@ func (edc EventDataCollection) eventDataCollectionPreparer() (*http.Request, err
 		autorest.WithBaseURL(to.String(edc.NextLink)))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // EventDataCollectionPage contains a page of EventData values.
 type EventDataCollectionPage struct {
 	fn  func(EventDataCollection) (EventDataCollection, error)
 	edc EventDataCollection
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Next advances to the next page of values.  If there was an error making
 // the request the page does not advance and the error is returned.
 func (page *EventDataCollectionPage) Next() error {
@@ -2115,19 +2260,16 @@ func (page *EventDataCollectionPage) Next() error {
 	return nil
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // NotDone returns true if the page enumeration should be started or is not yet complete.
 func (page EventDataCollectionPage) NotDone() bool {
 	return !page.edc.IsEmpty()
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Response returns the raw server response from the last page request.
 func (page EventDataCollectionPage) Response() EventDataCollection {
 	return page.edc
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Values returns the slice of values for the current page or nil if there are no values.
 func (page EventDataCollectionPage) Values() []EventData {
 	if page.edc.IsEmpty() {
@@ -2136,7 +2278,6 @@ func (page EventDataCollectionPage) Values() []EventData {
 	return *page.edc.Value
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // HTTPRequestInfo the Http request info.
 type HTTPRequestInfo struct {
 	// ClientRequestID - the client request id.
@@ -2149,7 +2290,6 @@ type HTTPRequestInfo struct {
 	URI *string `json:"uri,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Incident an alert incident indicates the activation status of an alert rule.
 type Incident struct {
 	autorest.Response `json:"-"`
@@ -2165,7 +2305,6 @@ type Incident struct {
 	ResolvedTime *date.Time `json:"resolvedTime,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // IncidentListResult the List incidents operation response.
 type IncidentListResult struct {
 	autorest.Response `json:"-"`
@@ -2173,7 +2312,6 @@ type IncidentListResult struct {
 	Value *[]Incident `json:"value,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ItsmReceiver an Itsm receiver.
 type ItsmReceiver struct {
 	// Name - The name of the Itsm receiver. Names must be unique across all receivers within an action group.
@@ -2188,7 +2326,6 @@ type ItsmReceiver struct {
 	Region *string `json:"region,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // LocalizableString the localizable string class.
 type LocalizableString struct {
 	// Value - the invariant value.
@@ -2197,7 +2334,6 @@ type LocalizableString struct {
 	LocalizedValue *string `json:"localizedValue,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // LocationThresholdRuleCondition a rule condition based on a certain number of locations failing.
 type LocationThresholdRuleCondition struct {
 	// WindowSize - the period of time (in ISO 8601 duration format) that is used to monitor alert activity based on the threshold. If specified then it must be between 5 minutes and 1 day.
@@ -2210,7 +2346,6 @@ type LocationThresholdRuleCondition struct {
 	OdataType OdataTypeBasicRuleCondition `json:"odata.type,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MarshalJSON is the custom marshaler for LocationThresholdRuleCondition.
 func (ltrc LocationThresholdRuleCondition) MarshalJSON() ([]byte, error) {
 	ltrc.OdataType = OdataTypeMicrosoftAzureManagementInsightsModelsLocationThresholdRuleCondition
@@ -2228,37 +2363,31 @@ func (ltrc LocationThresholdRuleCondition) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsThresholdRuleCondition is the BasicRuleCondition implementation for LocationThresholdRuleCondition.
 func (ltrc LocationThresholdRuleCondition) AsThresholdRuleCondition() (*ThresholdRuleCondition, bool) {
 	return nil, false
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsLocationThresholdRuleCondition is the BasicRuleCondition implementation for LocationThresholdRuleCondition.
 func (ltrc LocationThresholdRuleCondition) AsLocationThresholdRuleCondition() (*LocationThresholdRuleCondition, bool) {
 	return &ltrc, true
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsManagementEventRuleCondition is the BasicRuleCondition implementation for LocationThresholdRuleCondition.
 func (ltrc LocationThresholdRuleCondition) AsManagementEventRuleCondition() (*ManagementEventRuleCondition, bool) {
 	return nil, false
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsRuleCondition is the BasicRuleCondition implementation for LocationThresholdRuleCondition.
 func (ltrc LocationThresholdRuleCondition) AsRuleCondition() (*RuleCondition, bool) {
 	return nil, false
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsBasicRuleCondition is the BasicRuleCondition implementation for LocationThresholdRuleCondition.
 func (ltrc LocationThresholdRuleCondition) AsBasicRuleCondition() (BasicRuleCondition, bool) {
 	return &ltrc, true
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // UnmarshalJSON is the custom unmarshaler for LocationThresholdRuleCondition struct.
 func (ltrc *LocationThresholdRuleCondition) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
@@ -2309,7 +2438,6 @@ func (ltrc *LocationThresholdRuleCondition) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // LogicAppReceiver a logic app receiver.
 type LogicAppReceiver struct {
 	// Name - The name of the logic app receiver. Names must be unique across all receivers within an action group.
@@ -2320,7 +2448,18 @@ type LogicAppReceiver struct {
 	CallbackURL *string `json:"callbackUrl,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
+// LogMetricTrigger a log metrics trigger descriptor.
+type LogMetricTrigger struct {
+	// ThresholdOperator - Evaluation operation for Metric -'GreaterThan' or 'LessThan' or 'Equal'. Possible values include: 'ConditionalOperatorGreaterThan', 'ConditionalOperatorLessThan', 'ConditionalOperatorEqual'
+	ThresholdOperator ConditionalOperator `json:"thresholdOperator,omitempty"`
+	// Threshold - The threshold of the metric trigger.
+	Threshold *float64 `json:"threshold,omitempty"`
+	// MetricTriggerType - Metric Trigger Type - 'Consecutive' or 'Total'. Possible values include: 'MetricTriggerTypeConsecutive', 'MetricTriggerTypeTotal'
+	MetricTriggerType MetricTriggerType `json:"metricTriggerType,omitempty"`
+	// MetricColumn - Evaluation of metric on a particular column
+	MetricColumn *string `json:"metricColumn,omitempty"`
+}
+
 // LogProfileCollection represents a collection of log profiles.
 type LogProfileCollection struct {
 	autorest.Response `json:"-"`
@@ -2328,7 +2467,6 @@ type LogProfileCollection struct {
 	Value *[]LogProfileResource `json:"value,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // LogProfileProperties the log profile properties.
 type LogProfileProperties struct {
 	// StorageAccountID - the resource id of the storage account to which you would like to send the Activity Log.
@@ -2343,7 +2481,6 @@ type LogProfileProperties struct {
 	RetentionPolicy *RetentionPolicy `json:"retentionPolicy,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // LogProfileResource the log profile resource.
 type LogProfileResource struct {
 	autorest.Response `json:"-"`
@@ -2361,7 +2498,6 @@ type LogProfileResource struct {
 	Tags map[string]*string `json:"tags"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MarshalJSON is the custom marshaler for LogProfileResource.
 func (lpr LogProfileResource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
@@ -2386,7 +2522,6 @@ func (lpr LogProfileResource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // UnmarshalJSON is the custom unmarshaler for LogProfileResource struct.
 func (lpr *LogProfileResource) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
@@ -2456,7 +2591,6 @@ func (lpr *LogProfileResource) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // LogProfileResourcePatch the log profile resource for patch operations.
 type LogProfileResourcePatch struct {
 	// Tags - Resource tags
@@ -2465,7 +2599,6 @@ type LogProfileResourcePatch struct {
 	*LogProfileProperties `json:"properties,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MarshalJSON is the custom marshaler for LogProfileResourcePatch.
 func (lprp LogProfileResourcePatch) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
@@ -2478,7 +2611,6 @@ func (lprp LogProfileResourcePatch) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // UnmarshalJSON is the custom unmarshaler for LogProfileResourcePatch struct.
 func (lprp *LogProfileResourcePatch) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
@@ -2512,7 +2644,277 @@ func (lprp *LogProfileResourcePatch) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
+// LogSearchRule log Search Rule Definition
+type LogSearchRule struct {
+	// Description - The description of the Log Search rule.
+	Description *string `json:"description,omitempty"`
+	// Enabled - The flag which indicates whether the Log Search rule is enabled. Value should be true or false. Possible values include: 'True', 'False'
+	Enabled Enabled `json:"enabled,omitempty"`
+	// LastUpdatedTime - Last time the rule was updated in IS08601 format.
+	LastUpdatedTime *date.Time `json:"lastUpdatedTime,omitempty"`
+	// ProvisioningState - Provisioning state of the scheduledquery rule. Possible values include: 'Succeeded', 'Deploying', 'Canceled', 'Failed'
+	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
+	// Source - Data Source against which rule will Query Data
+	Source *Source `json:"source,omitempty"`
+	// Schedule - Schedule (Frequnecy, Time Window) for rule.
+	Schedule *Schedule `json:"schedule,omitempty"`
+	// Action - Action needs to be taken on rule execution.
+	Action BasicAction `json:"action,omitempty"`
+}
+
+// UnmarshalJSON is the custom unmarshaler for LogSearchRule struct.
+func (lsr *LogSearchRule) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "description":
+			if v != nil {
+				var description string
+				err = json.Unmarshal(*v, &description)
+				if err != nil {
+					return err
+				}
+				lsr.Description = &description
+			}
+		case "enabled":
+			if v != nil {
+				var enabled Enabled
+				err = json.Unmarshal(*v, &enabled)
+				if err != nil {
+					return err
+				}
+				lsr.Enabled = enabled
+			}
+		case "lastUpdatedTime":
+			if v != nil {
+				var lastUpdatedTime date.Time
+				err = json.Unmarshal(*v, &lastUpdatedTime)
+				if err != nil {
+					return err
+				}
+				lsr.LastUpdatedTime = &lastUpdatedTime
+			}
+		case "provisioningState":
+			if v != nil {
+				var provisioningState ProvisioningState
+				err = json.Unmarshal(*v, &provisioningState)
+				if err != nil {
+					return err
+				}
+				lsr.ProvisioningState = provisioningState
+			}
+		case "source":
+			if v != nil {
+				var source Source
+				err = json.Unmarshal(*v, &source)
+				if err != nil {
+					return err
+				}
+				lsr.Source = &source
+			}
+		case "schedule":
+			if v != nil {
+				var schedule Schedule
+				err = json.Unmarshal(*v, &schedule)
+				if err != nil {
+					return err
+				}
+				lsr.Schedule = &schedule
+			}
+		case "action":
+			if v != nil {
+				action, err := unmarshalBasicAction(*v)
+				if err != nil {
+					return err
+				}
+				lsr.Action = action
+			}
+		}
+	}
+
+	return nil
+}
+
+// LogSearchRulePatch log Search Rule Definition for Patching
+type LogSearchRulePatch struct {
+	// Enabled - The flag which indicates whether the Log Search rule is enabled. Value should be true or false. Possible values include: 'True', 'False'
+	Enabled Enabled `json:"enabled,omitempty"`
+}
+
+// LogSearchRuleResource the Log Search Rule resource.
+type LogSearchRuleResource struct {
+	autorest.Response `json:"-"`
+	// LogSearchRule - The rule properties of the resource.
+	*LogSearchRule `json:"properties,omitempty"`
+	// ID - Azure resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - Azure resource name
+	Name *string `json:"name,omitempty"`
+	// Type - Azure resource type
+	Type *string `json:"type,omitempty"`
+	// Location - Resource location
+	Location *string `json:"location,omitempty"`
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for LogSearchRuleResource.
+func (lsrr LogSearchRuleResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if lsrr.LogSearchRule != nil {
+		objectMap["properties"] = lsrr.LogSearchRule
+	}
+	if lsrr.ID != nil {
+		objectMap["id"] = lsrr.ID
+	}
+	if lsrr.Name != nil {
+		objectMap["name"] = lsrr.Name
+	}
+	if lsrr.Type != nil {
+		objectMap["type"] = lsrr.Type
+	}
+	if lsrr.Location != nil {
+		objectMap["location"] = lsrr.Location
+	}
+	if lsrr.Tags != nil {
+		objectMap["tags"] = lsrr.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for LogSearchRuleResource struct.
+func (lsrr *LogSearchRuleResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var logSearchRule LogSearchRule
+				err = json.Unmarshal(*v, &logSearchRule)
+				if err != nil {
+					return err
+				}
+				lsrr.LogSearchRule = &logSearchRule
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				lsrr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				lsrr.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				lsrr.Type = &typeVar
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				lsrr.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				lsrr.Tags = tags
+			}
+		}
+	}
+
+	return nil
+}
+
+// LogSearchRuleResourceCollection represents a collection of Log Search rule resources.
+type LogSearchRuleResourceCollection struct {
+	autorest.Response `json:"-"`
+	// Value - The values for the Log Search Rule resources.
+	Value *[]LogSearchRuleResource `json:"value,omitempty"`
+}
+
+// LogSearchRuleResourcePatch the log search rule resource for patch operations.
+type LogSearchRuleResourcePatch struct {
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
+	// LogSearchRulePatch - The log search rule properties of the resource.
+	*LogSearchRulePatch `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for LogSearchRuleResourcePatch.
+func (lsrrp LogSearchRuleResourcePatch) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if lsrrp.Tags != nil {
+		objectMap["tags"] = lsrrp.Tags
+	}
+	if lsrrp.LogSearchRulePatch != nil {
+		objectMap["properties"] = lsrrp.LogSearchRulePatch
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for LogSearchRuleResourcePatch struct.
+func (lsrrp *LogSearchRuleResourcePatch) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				lsrrp.Tags = tags
+			}
+		case "properties":
+			if v != nil {
+				var logSearchRulePatch LogSearchRulePatch
+				err = json.Unmarshal(*v, &logSearchRulePatch)
+				if err != nil {
+					return err
+				}
+				lsrrp.LogSearchRulePatch = &logSearchRulePatch
+			}
+		}
+	}
+
+	return nil
+}
+
 // LogSettings part of MultiTenantDiagnosticSettings. Specifies the settings for a particular log.
 type LogSettings struct {
 	// Category - Name of a Diagnostic Log category for a resource type this setting is applied to. To obtain the list of Diagnostic Log categories for a resource, first perform a GET diagnostic settings operation.
@@ -2523,7 +2925,6 @@ type LogSettings struct {
 	RetentionPolicy *RetentionPolicy `json:"retentionPolicy,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ManagementEventAggregationCondition how the data that is collected should be combined over time.
 type ManagementEventAggregationCondition struct {
 	// Operator - the condition operator. Possible values include: 'ConditionOperatorGreaterThan', 'ConditionOperatorGreaterThanOrEqual', 'ConditionOperatorLessThan', 'ConditionOperatorLessThanOrEqual'
@@ -2534,7 +2935,6 @@ type ManagementEventAggregationCondition struct {
 	WindowSize *string `json:"windowSize,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ManagementEventRuleCondition a management event rule condition.
 type ManagementEventRuleCondition struct {
 	// Aggregation - How the data that is collected should be combined over time and when the alert is activated. Note that for management event alerts aggregation is optional – if it is not provided then any event will cause the alert to activate.
@@ -2545,7 +2945,6 @@ type ManagementEventRuleCondition struct {
 	OdataType OdataTypeBasicRuleCondition `json:"odata.type,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MarshalJSON is the custom marshaler for ManagementEventRuleCondition.
 func (merc ManagementEventRuleCondition) MarshalJSON() ([]byte, error) {
 	merc.OdataType = OdataTypeMicrosoftAzureManagementInsightsModelsManagementEventRuleCondition
@@ -2560,37 +2959,31 @@ func (merc ManagementEventRuleCondition) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsThresholdRuleCondition is the BasicRuleCondition implementation for ManagementEventRuleCondition.
 func (merc ManagementEventRuleCondition) AsThresholdRuleCondition() (*ThresholdRuleCondition, bool) {
 	return nil, false
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsLocationThresholdRuleCondition is the BasicRuleCondition implementation for ManagementEventRuleCondition.
 func (merc ManagementEventRuleCondition) AsLocationThresholdRuleCondition() (*LocationThresholdRuleCondition, bool) {
 	return nil, false
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsManagementEventRuleCondition is the BasicRuleCondition implementation for ManagementEventRuleCondition.
 func (merc ManagementEventRuleCondition) AsManagementEventRuleCondition() (*ManagementEventRuleCondition, bool) {
 	return &merc, true
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsRuleCondition is the BasicRuleCondition implementation for ManagementEventRuleCondition.
 func (merc ManagementEventRuleCondition) AsRuleCondition() (*RuleCondition, bool) {
 	return nil, false
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsBasicRuleCondition is the BasicRuleCondition implementation for ManagementEventRuleCondition.
 func (merc ManagementEventRuleCondition) AsBasicRuleCondition() (BasicRuleCondition, bool) {
 	return &merc, true
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // UnmarshalJSON is the custom unmarshaler for ManagementEventRuleCondition struct.
 func (merc *ManagementEventRuleCondition) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
@@ -2632,7 +3025,6 @@ func (merc *ManagementEventRuleCondition) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MetadataValue represents a metric metadata value.
 type MetadataValue struct {
 	// Name - the name of the metadata.
@@ -2641,7 +3033,6 @@ type MetadataValue struct {
 	Value *string `json:"value,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Metric the result data of a query.
 type Metric struct {
 	// ID - the metric Id.
@@ -2656,7 +3047,489 @@ type Metric struct {
 	Timeseries *[]TimeSeriesElement `json:"timeseries,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
+// MetricAlertAction an alert action.
+type MetricAlertAction struct {
+	// ActionGroupID - the id of the action group to use.
+	ActionGroupID *string `json:"actionGroupId,omitempty"`
+	// WebhookProperties - The properties of a webhook object.
+	WebhookProperties map[string]*string `json:"webhookProperties"`
+}
+
+// MarshalJSON is the custom marshaler for MetricAlertAction.
+func (maa MetricAlertAction) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if maa.ActionGroupID != nil {
+		objectMap["actionGroupId"] = maa.ActionGroupID
+	}
+	if maa.WebhookProperties != nil {
+		objectMap["webhookProperties"] = maa.WebhookProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// BasicMetricAlertCriteria the rule criteria that defines the conditions of the alert rule.
+type BasicMetricAlertCriteria interface {
+	AsMetricAlertSingleResourceMultipleMetricCriteria() (*MetricAlertSingleResourceMultipleMetricCriteria, bool)
+	AsMetricAlertCriteria() (*MetricAlertCriteria, bool)
+}
+
+// MetricAlertCriteria the rule criteria that defines the conditions of the alert rule.
+type MetricAlertCriteria struct {
+	// AdditionalProperties - Unmatched properties from the message are deserialized this collection
+	AdditionalProperties map[string]interface{} `json:""`
+	// OdataType - Possible values include: 'OdataTypeMetricAlertCriteria', 'OdataTypeMicrosoftAzureMonitorSingleResourceMultipleMetricCriteria'
+	OdataType OdataTypeBasicMetricAlertCriteria `json:"odata.type,omitempty"`
+}
+
+func unmarshalBasicMetricAlertCriteria(body []byte) (BasicMetricAlertCriteria, error) {
+	var m map[string]interface{}
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return nil, err
+	}
+
+	switch m["odata.type"] {
+	case string(OdataTypeMicrosoftAzureMonitorSingleResourceMultipleMetricCriteria):
+		var masrmmc MetricAlertSingleResourceMultipleMetricCriteria
+		err := json.Unmarshal(body, &masrmmc)
+		return masrmmc, err
+	default:
+		var mac MetricAlertCriteria
+		err := json.Unmarshal(body, &mac)
+		return mac, err
+	}
+}
+func unmarshalBasicMetricAlertCriteriaArray(body []byte) ([]BasicMetricAlertCriteria, error) {
+	var rawMessages []*json.RawMessage
+	err := json.Unmarshal(body, &rawMessages)
+	if err != nil {
+		return nil, err
+	}
+
+	macArray := make([]BasicMetricAlertCriteria, len(rawMessages))
+
+	for index, rawMessage := range rawMessages {
+		mac, err := unmarshalBasicMetricAlertCriteria(*rawMessage)
+		if err != nil {
+			return nil, err
+		}
+		macArray[index] = mac
+	}
+	return macArray, nil
+}
+
+// MarshalJSON is the custom marshaler for MetricAlertCriteria.
+func (mac MetricAlertCriteria) MarshalJSON() ([]byte, error) {
+	mac.OdataType = OdataTypeMetricAlertCriteria
+	objectMap := make(map[string]interface{})
+	if mac.OdataType != "" {
+		objectMap["odata.type"] = mac.OdataType
+	}
+	for k, v := range mac.AdditionalProperties {
+		objectMap[k] = v
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsMetricAlertSingleResourceMultipleMetricCriteria is the BasicMetricAlertCriteria implementation for MetricAlertCriteria.
+func (mac MetricAlertCriteria) AsMetricAlertSingleResourceMultipleMetricCriteria() (*MetricAlertSingleResourceMultipleMetricCriteria, bool) {
+	return nil, false
+}
+
+// AsMetricAlertCriteria is the BasicMetricAlertCriteria implementation for MetricAlertCriteria.
+func (mac MetricAlertCriteria) AsMetricAlertCriteria() (*MetricAlertCriteria, bool) {
+	return &mac, true
+}
+
+// AsBasicMetricAlertCriteria is the BasicMetricAlertCriteria implementation for MetricAlertCriteria.
+func (mac MetricAlertCriteria) AsBasicMetricAlertCriteria() (BasicMetricAlertCriteria, bool) {
+	return &mac, true
+}
+
+// MetricAlertProperties an alert rule.
+type MetricAlertProperties struct {
+	// Description - the description of the metric alert that will be included in the alert email.
+	Description *string `json:"description,omitempty"`
+	// Severity - Alert severity {0, 1, 2, 3, 4}
+	Severity *int32 `json:"severity,omitempty"`
+	// Enabled - the flag that indicates whether the metric alert is enabled.
+	Enabled *bool `json:"enabled,omitempty"`
+	// Scopes - the list of resource id's that this metric alert is scoped to.
+	Scopes *[]string `json:"scopes,omitempty"`
+	// EvaluationFrequency - how often the metric alert is evaluated represented in ISO 8601 duration format.
+	EvaluationFrequency *string `json:"evaluationFrequency,omitempty"`
+	// WindowSize - the period of time (in ISO 8601 duration format) that is used to monitor alert activity based on the threshold.
+	WindowSize *string `json:"windowSize,omitempty"`
+	// Criteria - defines the specific alert criteria information.
+	Criteria BasicMetricAlertCriteria `json:"criteria,omitempty"`
+	// AutoMitigate - the flag that indicates whether the alert should be auto resolved or not.
+	AutoMitigate *bool `json:"autoMitigate,omitempty"`
+	// Actions - the array of actions that are performed when the alert rule becomes active, and when an alert condition is resolved.
+	Actions *[]MetricAlertAction `json:"actions,omitempty"`
+	// LastUpdatedTime - Last time the rule was updated in ISO8601 format.
+	LastUpdatedTime *date.Time `json:"lastUpdatedTime,omitempty"`
+}
+
+// UnmarshalJSON is the custom unmarshaler for MetricAlertProperties struct.
+func (mapVar *MetricAlertProperties) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "description":
+			if v != nil {
+				var description string
+				err = json.Unmarshal(*v, &description)
+				if err != nil {
+					return err
+				}
+				mapVar.Description = &description
+			}
+		case "severity":
+			if v != nil {
+				var severity int32
+				err = json.Unmarshal(*v, &severity)
+				if err != nil {
+					return err
+				}
+				mapVar.Severity = &severity
+			}
+		case "enabled":
+			if v != nil {
+				var enabled bool
+				err = json.Unmarshal(*v, &enabled)
+				if err != nil {
+					return err
+				}
+				mapVar.Enabled = &enabled
+			}
+		case "scopes":
+			if v != nil {
+				var scopes []string
+				err = json.Unmarshal(*v, &scopes)
+				if err != nil {
+					return err
+				}
+				mapVar.Scopes = &scopes
+			}
+		case "evaluationFrequency":
+			if v != nil {
+				var evaluationFrequency string
+				err = json.Unmarshal(*v, &evaluationFrequency)
+				if err != nil {
+					return err
+				}
+				mapVar.EvaluationFrequency = &evaluationFrequency
+			}
+		case "windowSize":
+			if v != nil {
+				var windowSize string
+				err = json.Unmarshal(*v, &windowSize)
+				if err != nil {
+					return err
+				}
+				mapVar.WindowSize = &windowSize
+			}
+		case "criteria":
+			if v != nil {
+				criteria, err := unmarshalBasicMetricAlertCriteria(*v)
+				if err != nil {
+					return err
+				}
+				mapVar.Criteria = criteria
+			}
+		case "autoMitigate":
+			if v != nil {
+				var autoMitigate bool
+				err = json.Unmarshal(*v, &autoMitigate)
+				if err != nil {
+					return err
+				}
+				mapVar.AutoMitigate = &autoMitigate
+			}
+		case "actions":
+			if v != nil {
+				var actions []MetricAlertAction
+				err = json.Unmarshal(*v, &actions)
+				if err != nil {
+					return err
+				}
+				mapVar.Actions = &actions
+			}
+		case "lastUpdatedTime":
+			if v != nil {
+				var lastUpdatedTime date.Time
+				err = json.Unmarshal(*v, &lastUpdatedTime)
+				if err != nil {
+					return err
+				}
+				mapVar.LastUpdatedTime = &lastUpdatedTime
+			}
+		}
+	}
+
+	return nil
+}
+
+// MetricAlertResource the metric alert resource.
+type MetricAlertResource struct {
+	autorest.Response `json:"-"`
+	// MetricAlertProperties - The alert rule properties of the resource.
+	*MetricAlertProperties `json:"properties,omitempty"`
+	// ID - Azure resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - Azure resource name
+	Name *string `json:"name,omitempty"`
+	// Type - Azure resource type
+	Type *string `json:"type,omitempty"`
+	// Location - Resource location
+	Location *string `json:"location,omitempty"`
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for MetricAlertResource.
+func (mar MetricAlertResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mar.MetricAlertProperties != nil {
+		objectMap["properties"] = mar.MetricAlertProperties
+	}
+	if mar.ID != nil {
+		objectMap["id"] = mar.ID
+	}
+	if mar.Name != nil {
+		objectMap["name"] = mar.Name
+	}
+	if mar.Type != nil {
+		objectMap["type"] = mar.Type
+	}
+	if mar.Location != nil {
+		objectMap["location"] = mar.Location
+	}
+	if mar.Tags != nil {
+		objectMap["tags"] = mar.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for MetricAlertResource struct.
+func (mar *MetricAlertResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var metricAlertProperties MetricAlertProperties
+				err = json.Unmarshal(*v, &metricAlertProperties)
+				if err != nil {
+					return err
+				}
+				mar.MetricAlertProperties = &metricAlertProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				mar.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				mar.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				mar.Type = &typeVar
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				mar.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				mar.Tags = tags
+			}
+		}
+	}
+
+	return nil
+}
+
+// MetricAlertResourceCollection represents a collection of alert rule resources.
+type MetricAlertResourceCollection struct {
+	autorest.Response `json:"-"`
+	// Value - the values for the alert rule resources.
+	Value *[]MetricAlertResource `json:"value,omitempty"`
+}
+
+// MetricAlertResourcePatch the metric alert resource for patch operations.
+type MetricAlertResourcePatch struct {
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
+	// MetricAlertProperties - The alert rule properties of the resource.
+	*MetricAlertProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MetricAlertResourcePatch.
+func (marp MetricAlertResourcePatch) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if marp.Tags != nil {
+		objectMap["tags"] = marp.Tags
+	}
+	if marp.MetricAlertProperties != nil {
+		objectMap["properties"] = marp.MetricAlertProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for MetricAlertResourcePatch struct.
+func (marp *MetricAlertResourcePatch) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				marp.Tags = tags
+			}
+		case "properties":
+			if v != nil {
+				var metricAlertProperties MetricAlertProperties
+				err = json.Unmarshal(*v, &metricAlertProperties)
+				if err != nil {
+					return err
+				}
+				marp.MetricAlertProperties = &metricAlertProperties
+			}
+		}
+	}
+
+	return nil
+}
+
+// MetricAlertSingleResourceMultipleMetricCriteria specifies the metric alert criteria for a single resource that
+// has multiple metric criteria.
+type MetricAlertSingleResourceMultipleMetricCriteria struct {
+	// AllOf - The list of metric criteria for this 'all of' operation.
+	AllOf *[]MetricCriteria `json:"allOf,omitempty"`
+	// AdditionalProperties - Unmatched properties from the message are deserialized this collection
+	AdditionalProperties map[string]interface{} `json:""`
+	// OdataType - Possible values include: 'OdataTypeMetricAlertCriteria', 'OdataTypeMicrosoftAzureMonitorSingleResourceMultipleMetricCriteria'
+	OdataType OdataTypeBasicMetricAlertCriteria `json:"odata.type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MetricAlertSingleResourceMultipleMetricCriteria.
+func (masrmmc MetricAlertSingleResourceMultipleMetricCriteria) MarshalJSON() ([]byte, error) {
+	masrmmc.OdataType = OdataTypeMicrosoftAzureMonitorSingleResourceMultipleMetricCriteria
+	objectMap := make(map[string]interface{})
+	if masrmmc.AllOf != nil {
+		objectMap["allOf"] = masrmmc.AllOf
+	}
+	if masrmmc.OdataType != "" {
+		objectMap["odata.type"] = masrmmc.OdataType
+	}
+	for k, v := range masrmmc.AdditionalProperties {
+		objectMap[k] = v
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsMetricAlertSingleResourceMultipleMetricCriteria is the BasicMetricAlertCriteria implementation for MetricAlertSingleResourceMultipleMetricCriteria.
+func (masrmmc MetricAlertSingleResourceMultipleMetricCriteria) AsMetricAlertSingleResourceMultipleMetricCriteria() (*MetricAlertSingleResourceMultipleMetricCriteria, bool) {
+	return &masrmmc, true
+}
+
+// AsMetricAlertCriteria is the BasicMetricAlertCriteria implementation for MetricAlertSingleResourceMultipleMetricCriteria.
+func (masrmmc MetricAlertSingleResourceMultipleMetricCriteria) AsMetricAlertCriteria() (*MetricAlertCriteria, bool) {
+	return nil, false
+}
+
+// AsBasicMetricAlertCriteria is the BasicMetricAlertCriteria implementation for MetricAlertSingleResourceMultipleMetricCriteria.
+func (masrmmc MetricAlertSingleResourceMultipleMetricCriteria) AsBasicMetricAlertCriteria() (BasicMetricAlertCriteria, bool) {
+	return &masrmmc, true
+}
+
+// MetricAlertStatus an alert status.
+type MetricAlertStatus struct {
+	// Name - The status name.
+	Name *string `json:"name,omitempty"`
+	// ID - The alert rule arm id.
+	ID *string `json:"id,omitempty"`
+	// Type - The extended resource type name.
+	Type *string `json:"type,omitempty"`
+	// Properties - The alert status properties of the metric alert status.
+	Properties *MetricAlertStatusProperties `json:"properties,omitempty"`
+}
+
+// MetricAlertStatusCollection represents a collection of alert rule resources.
+type MetricAlertStatusCollection struct {
+	autorest.Response `json:"-"`
+	// Value - the values for the alert rule resources.
+	Value *[]MetricAlertStatus `json:"value,omitempty"`
+}
+
+// MetricAlertStatusProperties an alert status properties.
+type MetricAlertStatusProperties struct {
+	// Dimensions - An object describing the type of the dimensions.
+	Dimensions map[string]*string `json:"dimensions"`
+	// Status - status value
+	Status *string `json:"status,omitempty"`
+	// Timestamp - UTC time when the status was checked.
+	Timestamp *date.Time `json:"timestamp,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MetricAlertStatusProperties.
+func (masp MetricAlertStatusProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if masp.Dimensions != nil {
+		objectMap["dimensions"] = masp.Dimensions
+	}
+	if masp.Status != nil {
+		objectMap["status"] = masp.Status
+	}
+	if masp.Timestamp != nil {
+		objectMap["timestamp"] = masp.Timestamp
+	}
+	return json.Marshal(objectMap)
+}
+
 // MetricAvailability metric availability specifies the time grain (aggregation interval or frequency) and the
 // retention period for that time grain.
 type MetricAvailability struct {
@@ -2666,19 +3539,40 @@ type MetricAvailability struct {
 	Retention *string `json:"retention,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
+// MetricCriteria criterion to filter metrics.
+type MetricCriteria struct {
+	// Name - Name of the criteria.
+	Name *string `json:"name,omitempty"`
+	// MetricName - Name of the metric.
+	MetricName *string `json:"metricName,omitempty"`
+	// MetricNamespace - Namespace of the metric.
+	MetricNamespace *string `json:"metricNamespace,omitempty"`
+	// Operator - the criteria operator.
+	Operator interface{} `json:"operator,omitempty"`
+	// TimeAggregation - the criteria time aggregation types.
+	TimeAggregation interface{} `json:"timeAggregation,omitempty"`
+	// Threshold - the criteria threshold value that activates the alert.
+	Threshold *float64 `json:"threshold,omitempty"`
+	// Dimensions - List of dimension conditions.
+	Dimensions *[]MetricDimension `json:"dimensions,omitempty"`
+}
+
 // MetricDefinition metric definition class specifies the metadata for a metric.
 type MetricDefinition struct {
 	// IsDimensionRequired - Flag to indicate whether the dimension is required.
 	IsDimensionRequired *bool `json:"isDimensionRequired,omitempty"`
 	// ResourceID - the resource identifier of the resource that emitted the metric.
 	ResourceID *string `json:"resourceId,omitempty"`
+	// Namespace - the namespace the metric blongs to.
+	Namespace *string `json:"namespace,omitempty"`
 	// Name - the name and the display name of the metric, i.e. it is a localizable string.
 	Name *LocalizableString `json:"name,omitempty"`
 	// Unit - the unit of the metric. Possible values include: 'UnitCount', 'UnitBytes', 'UnitSeconds', 'UnitCountPerSecond', 'UnitBytesPerSecond', 'UnitPercent', 'UnitMilliSeconds', 'UnitByteSeconds', 'UnitUnspecified'
 	Unit Unit `json:"unit,omitempty"`
 	// PrimaryAggregationType - the primary aggregation type value defining how to use the values for display. Possible values include: 'None', 'Average', 'Count', 'Minimum', 'Maximum', 'Total'
 	PrimaryAggregationType AggregationType `json:"primaryAggregationType,omitempty"`
+	// SupportedAggregationTypes - the collection of what aggregation types are supported.
+	SupportedAggregationTypes *[]AggregationType `json:"supportedAggregationTypes,omitempty"`
 	// MetricAvailabilities - the collection of what aggregation intervals are available to be queried.
 	MetricAvailabilities *[]MetricAvailability `json:"metricAvailabilities,omitempty"`
 	// ID - the resource identifier of the metric definition.
@@ -2687,7 +3581,6 @@ type MetricDefinition struct {
 	Dimensions *[]LocalizableString `json:"dimensions,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MetricDefinitionCollection represents collection of metric definitions.
 type MetricDefinitionCollection struct {
 	autorest.Response `json:"-"`
@@ -2695,7 +3588,16 @@ type MetricDefinitionCollection struct {
 	Value *[]MetricDefinition `json:"value,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
+// MetricDimension specifies a metric dimension.
+type MetricDimension struct {
+	// Name - Name of the dimension.
+	Name *string `json:"name,omitempty"`
+	// Operator - the dimension operator.
+	Operator *string `json:"operator,omitempty"`
+	// Values - list of dimension values.
+	Values *[]string `json:"values,omitempty"`
+}
+
 // MetricSettings part of MultiTenantDiagnosticSettings. Specifies the settings for a particular metric.
 type MetricSettings struct {
 	// TimeGrain - the timegrain of the metric in ISO8601 format.
@@ -2708,7 +3610,6 @@ type MetricSettings struct {
 	RetentionPolicy *RetentionPolicy `json:"retentionPolicy,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MetricTrigger the trigger that results in a scaling action.
 type MetricTrigger struct {
 	// MetricName - the name of the metric that defines what the rule monitors.
@@ -2729,7 +3630,6 @@ type MetricTrigger struct {
 	Threshold *float64 `json:"threshold,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MetricValue represents a metric value.
 type MetricValue struct {
 	// TimeStamp - the timestamp for the metric value in ISO 8601 format.
@@ -2746,7 +3646,6 @@ type MetricValue struct {
 	Count *int64 `json:"count,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Operation microsoft Insights API operation definition.
 type Operation struct {
 	// Name - Operation name: {provider}/{resource}/{operation}
@@ -2755,7 +3654,6 @@ type Operation struct {
 	Display *OperationDisplay `json:"display,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // OperationDisplay display metadata associated with the operation.
 type OperationDisplay struct {
 	// Provider - Service provider: Microsoft.Insights
@@ -2766,7 +3664,6 @@ type OperationDisplay struct {
 	Operation *string `json:"operation,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // OperationListResult result of the request to list Microsoft.Insights operations. It contains a list of
 // operations and a URL link to get the next set of results.
 type OperationListResult struct {
@@ -2777,7 +3674,6 @@ type OperationListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ProxyOnlyResource a proxy only azure resource object
 type ProxyOnlyResource struct {
 	// ID - Azure resource Id
@@ -2788,7 +3684,6 @@ type ProxyOnlyResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Recurrence the repeating times at which this profile begins. This element is not used if the FixedDate element
 // is used.
 type Recurrence struct {
@@ -2798,7 +3693,6 @@ type Recurrence struct {
 	Schedule *RecurrentSchedule `json:"schedule,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // RecurrentSchedule the scheduling constraints for when the profile begins.
 type RecurrentSchedule struct {
 	// TimeZone - the timezone for the hours of the profile. Some examples of valid timezones are: Dateline Standard Time, UTC-11, Hawaiian Standard Time, Alaskan Standard Time, Pacific Standard Time (Mexico), Pacific Standard Time, US Mountain Standard Time, Mountain Standard Time (Mexico), Mountain Standard Time, Central America Standard Time, Central Standard Time, Central Standard Time (Mexico), Canada Central Standard Time, SA Pacific Standard Time, Eastern Standard Time, US Eastern Standard Time, Venezuela Standard Time, Paraguay Standard Time, Atlantic Standard Time, Central Brazilian Standard Time, SA Western Standard Time, Pacific SA Standard Time, Newfoundland Standard Time, E. South America Standard Time, Argentina Standard Time, SA Eastern Standard Time, Greenland Standard Time, Montevideo Standard Time, Bahia Standard Time, UTC-02, Mid-Atlantic Standard Time, Azores Standard Time, Cape Verde Standard Time, Morocco Standard Time, UTC, GMT Standard Time, Greenwich Standard Time, W. Europe Standard Time, Central Europe Standard Time, Romance Standard Time, Central European Standard Time, W. Central Africa Standard Time, Namibia Standard Time, Jordan Standard Time, GTB Standard Time, Middle East Standard Time, Egypt Standard Time, Syria Standard Time, E. Europe Standard Time, South Africa Standard Time, FLE Standard Time, Turkey Standard Time, Israel Standard Time, Kaliningrad Standard Time, Libya Standard Time, Arabic Standard Time, Arab Standard Time, Belarus Standard Time, Russian Standard Time, E. Africa Standard Time, Iran Standard Time, Arabian Standard Time, Azerbaijan Standard Time, Russia Time Zone 3, Mauritius Standard Time, Georgian Standard Time, Caucasus Standard Time, Afghanistan Standard Time, West Asia Standard Time, Ekaterinburg Standard Time, Pakistan Standard Time, India Standard Time, Sri Lanka Standard Time, Nepal Standard Time, Central Asia Standard Time, Bangladesh Standard Time, N. Central Asia Standard Time, Myanmar Standard Time, SE Asia Standard Time, North Asia Standard Time, China Standard Time, North Asia East Standard Time, Singapore Standard Time, W. Australia Standard Time, Taipei Standard Time, Ulaanbaatar Standard Time, Tokyo Standard Time, Korea Standard Time, Yakutsk Standard Time, Cen. Australia Standard Time, AUS Central Standard Time, E. Australia Standard Time, AUS Eastern Standard Time, West Pacific Standard Time, Tasmania Standard Time, Magadan Standard Time, Vladivostok Standard Time, Russia Time Zone 10, Central Pacific Standard Time, Russia Time Zone 11, New Zealand Standard Time, UTC+12, Fiji Standard Time, Kamchatka Standard Time, Tonga Standard Time, Samoa Standard Time, Line Islands Standard Time
@@ -2811,7 +3705,6 @@ type RecurrentSchedule struct {
 	Minutes *[]int32 `json:"minutes,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Resource an azure resource object
 type Resource struct {
 	// ID - Azure resource Id
@@ -2826,7 +3719,6 @@ type Resource struct {
 	Tags map[string]*string `json:"tags"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MarshalJSON is the custom marshaler for Resource.
 func (r Resource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
@@ -2848,7 +3740,6 @@ func (r Resource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Response the response to a metrics query.
 type Response struct {
 	autorest.Response `json:"-"`
@@ -2858,11 +3749,14 @@ type Response struct {
 	Timespan *string `json:"timespan,omitempty"`
 	// Interval - The interval (window size) for which the metric data was returned in.  This may be adjusted in the future and returned back from what was originally requested.  This is not present if a metadata request was made.
 	Interval *string `json:"interval,omitempty"`
+	// Namespace - The namespace of the metrics been queried
+	Namespace *string `json:"namespace,omitempty"`
+	// Resourceregion - The region of the resource been queried for metrics.
+	Resourceregion *string `json:"resourceregion,omitempty"`
 	// Value - the value of the collection.
 	Value *[]Metric `json:"value,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // RetentionPolicy specifies the retention policy for the log.
 type RetentionPolicy struct {
 	// Enabled - a value indicating whether the retention policy is enabled.
@@ -2871,7 +3765,6 @@ type RetentionPolicy struct {
 	Days *int32 `json:"days,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // BasicRuleAction the action that is performed when the alert rule becomes active, and when an alert condition is
 // resolved.
 type BasicRuleAction interface {
@@ -2880,7 +3773,6 @@ type BasicRuleAction interface {
 	AsRuleAction() (*RuleAction, bool)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // RuleAction the action that is performed when the alert rule becomes active, and when an alert condition is
 // resolved.
 type RuleAction struct {
@@ -2929,7 +3821,6 @@ func unmarshalBasicRuleActionArray(body []byte) ([]BasicRuleAction, error) {
 	return raArray, nil
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MarshalJSON is the custom marshaler for RuleAction.
 func (ra RuleAction) MarshalJSON() ([]byte, error) {
 	ra.OdataType = OdataTypeRuleAction
@@ -2940,31 +3831,26 @@ func (ra RuleAction) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsRuleEmailAction is the BasicRuleAction implementation for RuleAction.
 func (ra RuleAction) AsRuleEmailAction() (*RuleEmailAction, bool) {
 	return nil, false
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsRuleWebhookAction is the BasicRuleAction implementation for RuleAction.
 func (ra RuleAction) AsRuleWebhookAction() (*RuleWebhookAction, bool) {
 	return nil, false
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsRuleAction is the BasicRuleAction implementation for RuleAction.
 func (ra RuleAction) AsRuleAction() (*RuleAction, bool) {
 	return &ra, true
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsBasicRuleAction is the BasicRuleAction implementation for RuleAction.
 func (ra RuleAction) AsBasicRuleAction() (BasicRuleAction, bool) {
 	return &ra, true
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // BasicRuleCondition the condition that results in the alert rule being activated.
 type BasicRuleCondition interface {
 	AsThresholdRuleCondition() (*ThresholdRuleCondition, bool)
@@ -2973,7 +3859,6 @@ type BasicRuleCondition interface {
 	AsRuleCondition() (*RuleCondition, bool)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // RuleCondition the condition that results in the alert rule being activated.
 type RuleCondition struct {
 	// DataSource - the resource from which the rule collects its data. For this type dataSource will always be of type RuleMetricDataSource.
@@ -3027,7 +3912,6 @@ func unmarshalBasicRuleConditionArray(body []byte) ([]BasicRuleCondition, error)
 	return rcArray, nil
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MarshalJSON is the custom marshaler for RuleCondition.
 func (rc RuleCondition) MarshalJSON() ([]byte, error) {
 	rc.OdataType = OdataTypeRuleCondition
@@ -3039,37 +3923,31 @@ func (rc RuleCondition) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsThresholdRuleCondition is the BasicRuleCondition implementation for RuleCondition.
 func (rc RuleCondition) AsThresholdRuleCondition() (*ThresholdRuleCondition, bool) {
 	return nil, false
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsLocationThresholdRuleCondition is the BasicRuleCondition implementation for RuleCondition.
 func (rc RuleCondition) AsLocationThresholdRuleCondition() (*LocationThresholdRuleCondition, bool) {
 	return nil, false
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsManagementEventRuleCondition is the BasicRuleCondition implementation for RuleCondition.
 func (rc RuleCondition) AsManagementEventRuleCondition() (*ManagementEventRuleCondition, bool) {
 	return nil, false
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsRuleCondition is the BasicRuleCondition implementation for RuleCondition.
 func (rc RuleCondition) AsRuleCondition() (*RuleCondition, bool) {
 	return &rc, true
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsBasicRuleCondition is the BasicRuleCondition implementation for RuleCondition.
 func (rc RuleCondition) AsBasicRuleCondition() (BasicRuleCondition, bool) {
 	return &rc, true
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // UnmarshalJSON is the custom unmarshaler for RuleCondition struct.
 func (rc *RuleCondition) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
@@ -3102,7 +3980,6 @@ func (rc *RuleCondition) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // BasicRuleDataSource the resource from which the rule collects its data.
 type BasicRuleDataSource interface {
 	AsRuleMetricDataSource() (*RuleMetricDataSource, bool)
@@ -3110,7 +3987,6 @@ type BasicRuleDataSource interface {
 	AsRuleDataSource() (*RuleDataSource, bool)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // RuleDataSource the resource from which the rule collects its data.
 type RuleDataSource struct {
 	// ResourceURI - the resource identifier of the resource the rule monitors. **NOTE**: this property cannot be updated for an existing rule.
@@ -3160,7 +4036,6 @@ func unmarshalBasicRuleDataSourceArray(body []byte) ([]BasicRuleDataSource, erro
 	return rdsArray, nil
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MarshalJSON is the custom marshaler for RuleDataSource.
 func (rds RuleDataSource) MarshalJSON() ([]byte, error) {
 	rds.OdataType = OdataTypeRuleDataSource
@@ -3174,31 +4049,26 @@ func (rds RuleDataSource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsRuleMetricDataSource is the BasicRuleDataSource implementation for RuleDataSource.
 func (rds RuleDataSource) AsRuleMetricDataSource() (*RuleMetricDataSource, bool) {
 	return nil, false
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsRuleManagementEventDataSource is the BasicRuleDataSource implementation for RuleDataSource.
 func (rds RuleDataSource) AsRuleManagementEventDataSource() (*RuleManagementEventDataSource, bool) {
 	return nil, false
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsRuleDataSource is the BasicRuleDataSource implementation for RuleDataSource.
 func (rds RuleDataSource) AsRuleDataSource() (*RuleDataSource, bool) {
 	return &rds, true
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsBasicRuleDataSource is the BasicRuleDataSource implementation for RuleDataSource.
 func (rds RuleDataSource) AsBasicRuleDataSource() (BasicRuleDataSource, bool) {
 	return &rds, true
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // RuleEmailAction specifies the action to send email when the rule condition is evaluated. The discriminator is
 // always RuleEmailAction in this case.
 type RuleEmailAction struct {
@@ -3210,7 +4080,6 @@ type RuleEmailAction struct {
 	OdataType OdataTypeBasicRuleAction `json:"odata.type,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MarshalJSON is the custom marshaler for RuleEmailAction.
 func (rea RuleEmailAction) MarshalJSON() ([]byte, error) {
 	rea.OdataType = OdataTypeMicrosoftAzureManagementInsightsModelsRuleEmailAction
@@ -3227,38 +4096,32 @@ func (rea RuleEmailAction) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsRuleEmailAction is the BasicRuleAction implementation for RuleEmailAction.
 func (rea RuleEmailAction) AsRuleEmailAction() (*RuleEmailAction, bool) {
 	return &rea, true
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsRuleWebhookAction is the BasicRuleAction implementation for RuleEmailAction.
 func (rea RuleEmailAction) AsRuleWebhookAction() (*RuleWebhookAction, bool) {
 	return nil, false
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsRuleAction is the BasicRuleAction implementation for RuleEmailAction.
 func (rea RuleEmailAction) AsRuleAction() (*RuleAction, bool) {
 	return nil, false
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsBasicRuleAction is the BasicRuleAction implementation for RuleEmailAction.
 func (rea RuleEmailAction) AsBasicRuleAction() (BasicRuleAction, bool) {
 	return &rea, true
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // RuleManagementEventClaimsDataSource the claims for a rule management event data source.
 type RuleManagementEventClaimsDataSource struct {
 	// EmailAddress - the email address.
 	EmailAddress *string `json:"emailAddress,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // RuleManagementEventDataSource a rule management event data source. The discriminator fields is always
 // RuleManagementEventDataSource in this case.
 type RuleManagementEventDataSource struct {
@@ -3286,7 +4149,6 @@ type RuleManagementEventDataSource struct {
 	OdataType OdataType `json:"odata.type,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MarshalJSON is the custom marshaler for RuleManagementEventDataSource.
 func (rmeds RuleManagementEventDataSource) MarshalJSON() ([]byte, error) {
 	rmeds.OdataType = OdataTypeMicrosoftAzureManagementInsightsModelsRuleManagementEventDataSource
@@ -3327,31 +4189,26 @@ func (rmeds RuleManagementEventDataSource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsRuleMetricDataSource is the BasicRuleDataSource implementation for RuleManagementEventDataSource.
 func (rmeds RuleManagementEventDataSource) AsRuleMetricDataSource() (*RuleMetricDataSource, bool) {
 	return nil, false
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsRuleManagementEventDataSource is the BasicRuleDataSource implementation for RuleManagementEventDataSource.
 func (rmeds RuleManagementEventDataSource) AsRuleManagementEventDataSource() (*RuleManagementEventDataSource, bool) {
 	return &rmeds, true
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsRuleDataSource is the BasicRuleDataSource implementation for RuleManagementEventDataSource.
 func (rmeds RuleManagementEventDataSource) AsRuleDataSource() (*RuleDataSource, bool) {
 	return nil, false
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsBasicRuleDataSource is the BasicRuleDataSource implementation for RuleManagementEventDataSource.
 func (rmeds RuleManagementEventDataSource) AsBasicRuleDataSource() (BasicRuleDataSource, bool) {
 	return &rmeds, true
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // RuleMetricDataSource a rule metric data source. The discriminator value is always RuleMetricDataSource in this
 // case.
 type RuleMetricDataSource struct {
@@ -3363,7 +4220,6 @@ type RuleMetricDataSource struct {
 	OdataType OdataType `json:"odata.type,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MarshalJSON is the custom marshaler for RuleMetricDataSource.
 func (rmds RuleMetricDataSource) MarshalJSON() ([]byte, error) {
 	rmds.OdataType = OdataTypeMicrosoftAzureManagementInsightsModelsRuleMetricDataSource
@@ -3380,31 +4236,26 @@ func (rmds RuleMetricDataSource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsRuleMetricDataSource is the BasicRuleDataSource implementation for RuleMetricDataSource.
 func (rmds RuleMetricDataSource) AsRuleMetricDataSource() (*RuleMetricDataSource, bool) {
 	return &rmds, true
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsRuleManagementEventDataSource is the BasicRuleDataSource implementation for RuleMetricDataSource.
 func (rmds RuleMetricDataSource) AsRuleManagementEventDataSource() (*RuleManagementEventDataSource, bool) {
 	return nil, false
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsRuleDataSource is the BasicRuleDataSource implementation for RuleMetricDataSource.
 func (rmds RuleMetricDataSource) AsRuleDataSource() (*RuleDataSource, bool) {
 	return nil, false
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsBasicRuleDataSource is the BasicRuleDataSource implementation for RuleMetricDataSource.
 func (rmds RuleMetricDataSource) AsBasicRuleDataSource() (BasicRuleDataSource, bool) {
 	return &rmds, true
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // RuleWebhookAction specifies the action to post to service when the rule condition is evaluated. The
 // discriminator is always RuleWebhookAction in this case.
 type RuleWebhookAction struct {
@@ -3416,7 +4267,6 @@ type RuleWebhookAction struct {
 	OdataType OdataTypeBasicRuleAction `json:"odata.type,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MarshalJSON is the custom marshaler for RuleWebhookAction.
 func (rwa RuleWebhookAction) MarshalJSON() ([]byte, error) {
 	rwa.OdataType = OdataTypeMicrosoftAzureManagementInsightsModelsRuleWebhookAction
@@ -3433,31 +4283,26 @@ func (rwa RuleWebhookAction) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsRuleEmailAction is the BasicRuleAction implementation for RuleWebhookAction.
 func (rwa RuleWebhookAction) AsRuleEmailAction() (*RuleEmailAction, bool) {
 	return nil, false
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsRuleWebhookAction is the BasicRuleAction implementation for RuleWebhookAction.
 func (rwa RuleWebhookAction) AsRuleWebhookAction() (*RuleWebhookAction, bool) {
 	return &rwa, true
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsRuleAction is the BasicRuleAction implementation for RuleWebhookAction.
 func (rwa RuleWebhookAction) AsRuleAction() (*RuleAction, bool) {
 	return nil, false
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsBasicRuleAction is the BasicRuleAction implementation for RuleWebhookAction.
 func (rwa RuleWebhookAction) AsBasicRuleAction() (BasicRuleAction, bool) {
 	return &rwa, true
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ScaleAction the parameters for the scaling action.
 type ScaleAction struct {
 	// Direction - the scale direction. Whether the scaling action increases or decreases the number of instances. Possible values include: 'ScaleDirectionNone', 'ScaleDirectionIncrease', 'ScaleDirectionDecrease'
@@ -3470,7 +4315,6 @@ type ScaleAction struct {
 	Cooldown *string `json:"cooldown,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ScaleCapacity the number of instances that can be used during this profile.
 type ScaleCapacity struct {
 	// Minimum - the minimum number of instances for the resource.
@@ -3481,7 +4325,6 @@ type ScaleCapacity struct {
 	Default *string `json:"default,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ScaleRule a rule that provide the triggers and parameters for the scaling action.
 type ScaleRule struct {
 	// MetricTrigger - the trigger that results in a scaling action.
@@ -3490,7 +4333,14 @@ type ScaleRule struct {
 	ScaleAction *ScaleAction `json:"scaleAction,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
+// Schedule defines how often to run the search and the time interval.
+type Schedule struct {
+	// FrequencyInMinutes - frequency (in minutes) at which rule condition should be evaluated.
+	FrequencyInMinutes *int32 `json:"frequencyInMinutes,omitempty"`
+	// TimeWindowInMinutes - Time window for which data needs to be fetched for query (should be greater than or equal to frequencyInMinutes).
+	TimeWindowInMinutes *int32 `json:"timeWindowInMinutes,omitempty"`
+}
+
 // SenderAuthorization the authorization used by the user who has performed the operation that led to this event.
 // This captures the RBAC properties of the event. These usually include the 'action', 'role' and the 'scope'
 type SenderAuthorization struct {
@@ -3502,7 +4352,6 @@ type SenderAuthorization struct {
 	Scope *string `json:"scope,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // SmsReceiver an SMS receiver.
 type SmsReceiver struct {
 	// Name - The name of the SMS receiver. Names must be unique across all receivers within an action group.
@@ -3511,11 +4360,22 @@ type SmsReceiver struct {
 	CountryCode *string `json:"countryCode,omitempty"`
 	// PhoneNumber - The phone number of the SMS receiver.
 	PhoneNumber *string `json:"phoneNumber,omitempty"`
-	// Status - The status of the receiver. Possible values include: 'NotSpecified', 'Enabled', 'Disabled'
+	// Status - The status of the receiver. Possible values include: 'ReceiverStatusNotSpecified', 'ReceiverStatusEnabled', 'ReceiverStatusDisabled'
 	Status ReceiverStatus `json:"status,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
+// Source specifies the log search query.
+type Source struct {
+	// Query - Log search query.
+	Query *string `json:"query,omitempty"`
+	// AuthorizedResources - List of  Resource referred into query
+	AuthorizedResources *[]string `json:"authorizedResources,omitempty"`
+	// DataSourceID - The resource uri over which log search query is to be run.
+	DataSourceID *string `json:"dataSourceId,omitempty"`
+	// QueryType - Set value to 'ResultCount'. Possible values include: 'ResultCount'
+	QueryType QueryType `json:"queryType,omitempty"`
+}
+
 // ThresholdRuleCondition a rule condition based on a metric crossing a threshold.
 type ThresholdRuleCondition struct {
 	// Operator - the operator used to compare the data and the threshold. Possible values include: 'ConditionOperatorGreaterThan', 'ConditionOperatorGreaterThanOrEqual', 'ConditionOperatorLessThan', 'ConditionOperatorLessThanOrEqual'
@@ -3532,7 +4392,6 @@ type ThresholdRuleCondition struct {
 	OdataType OdataTypeBasicRuleCondition `json:"odata.type,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MarshalJSON is the custom marshaler for ThresholdRuleCondition.
 func (trc ThresholdRuleCondition) MarshalJSON() ([]byte, error) {
 	trc.OdataType = OdataTypeMicrosoftAzureManagementInsightsModelsThresholdRuleCondition
@@ -3556,37 +4415,31 @@ func (trc ThresholdRuleCondition) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsThresholdRuleCondition is the BasicRuleCondition implementation for ThresholdRuleCondition.
 func (trc ThresholdRuleCondition) AsThresholdRuleCondition() (*ThresholdRuleCondition, bool) {
 	return &trc, true
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsLocationThresholdRuleCondition is the BasicRuleCondition implementation for ThresholdRuleCondition.
 func (trc ThresholdRuleCondition) AsLocationThresholdRuleCondition() (*LocationThresholdRuleCondition, bool) {
 	return nil, false
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsManagementEventRuleCondition is the BasicRuleCondition implementation for ThresholdRuleCondition.
 func (trc ThresholdRuleCondition) AsManagementEventRuleCondition() (*ManagementEventRuleCondition, bool) {
 	return nil, false
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsRuleCondition is the BasicRuleCondition implementation for ThresholdRuleCondition.
 func (trc ThresholdRuleCondition) AsRuleCondition() (*RuleCondition, bool) {
 	return nil, false
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AsBasicRuleCondition is the BasicRuleCondition implementation for ThresholdRuleCondition.
 func (trc ThresholdRuleCondition) AsBasicRuleCondition() (BasicRuleCondition, bool) {
 	return &trc, true
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // UnmarshalJSON is the custom unmarshaler for ThresholdRuleCondition struct.
 func (trc *ThresholdRuleCondition) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
@@ -3655,7 +4508,6 @@ func (trc *ThresholdRuleCondition) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // TimeSeriesElement a time series result type. The discriminator value is always TimeSeries in this case.
 type TimeSeriesElement struct {
 	// Metadatavalues - the metadata values returned if $filter was specified in the call.
@@ -3664,7 +4516,6 @@ type TimeSeriesElement struct {
 	Data *[]MetricValue `json:"data,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // TimeSeriesInformation the time series info needed for calculating the baseline.
 type TimeSeriesInformation struct {
 	// Sensitivities - the list of sensitivities for calculating the baseline.
@@ -3675,7 +4526,6 @@ type TimeSeriesInformation struct {
 	Timestamps *[]date.Time `json:"timestamps,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // TimeWindow a specific date-time for the profile.
 type TimeWindow struct {
 	// TimeZone - the timezone of the start and end times for the profile. Some examples of valid timezones are: Dateline Standard Time, UTC-11, Hawaiian Standard Time, Alaskan Standard Time, Pacific Standard Time (Mexico), Pacific Standard Time, US Mountain Standard Time, Mountain Standard Time (Mexico), Mountain Standard Time, Central America Standard Time, Central Standard Time, Central Standard Time (Mexico), Canada Central Standard Time, SA Pacific Standard Time, Eastern Standard Time, US Eastern Standard Time, Venezuela Standard Time, Paraguay Standard Time, Atlantic Standard Time, Central Brazilian Standard Time, SA Western Standard Time, Pacific SA Standard Time, Newfoundland Standard Time, E. South America Standard Time, Argentina Standard Time, SA Eastern Standard Time, Greenland Standard Time, Montevideo Standard Time, Bahia Standard Time, UTC-02, Mid-Atlantic Standard Time, Azores Standard Time, Cape Verde Standard Time, Morocco Standard Time, UTC, GMT Standard Time, Greenwich Standard Time, W. Europe Standard Time, Central Europe Standard Time, Romance Standard Time, Central European Standard Time, W. Central Africa Standard Time, Namibia Standard Time, Jordan Standard Time, GTB Standard Time, Middle East Standard Time, Egypt Standard Time, Syria Standard Time, E. Europe Standard Time, South Africa Standard Time, FLE Standard Time, Turkey Standard Time, Israel Standard Time, Kaliningrad Standard Time, Libya Standard Time, Arabic Standard Time, Arab Standard Time, Belarus Standard Time, Russian Standard Time, E. Africa Standard Time, Iran Standard Time, Arabian Standard Time, Azerbaijan Standard Time, Russia Time Zone 3, Mauritius Standard Time, Georgian Standard Time, Caucasus Standard Time, Afghanistan Standard Time, West Asia Standard Time, Ekaterinburg Standard Time, Pakistan Standard Time, India Standard Time, Sri Lanka Standard Time, Nepal Standard Time, Central Asia Standard Time, Bangladesh Standard Time, N. Central Asia Standard Time, Myanmar Standard Time, SE Asia Standard Time, North Asia Standard Time, China Standard Time, North Asia East Standard Time, Singapore Standard Time, W. Australia Standard Time, Taipei Standard Time, Ulaanbaatar Standard Time, Tokyo Standard Time, Korea Standard Time, Yakutsk Standard Time, Cen. Australia Standard Time, AUS Central Standard Time, E. Australia Standard Time, AUS Eastern Standard Time, West Pacific Standard Time, Tasmania Standard Time, Magadan Standard Time, Vladivostok Standard Time, Russia Time Zone 10, Central Pacific Standard Time, Russia Time Zone 11, New Zealand Standard Time, UTC+12, Fiji Standard Time, Kamchatka Standard Time, Tonga Standard Time, Samoa Standard Time, Line Islands Standard Time
@@ -3686,7 +4536,16 @@ type TimeWindow struct {
 	End *date.Time `json:"end,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
+// TriggerCondition the condition that results in the Log Search rule.
+type TriggerCondition struct {
+	// ThresholdOperator - Evaluation operation for rule - 'GreaterThan' or 'LessThan. Possible values include: 'ConditionalOperatorGreaterThan', 'ConditionalOperatorLessThan', 'ConditionalOperatorEqual'
+	ThresholdOperator ConditionalOperator `json:"thresholdOperator,omitempty"`
+	// Threshold - Result or count threshold based on which rule should be triggered.
+	Threshold *float64 `json:"threshold,omitempty"`
+	// MetricTrigger - Trigger condition for metric query rule
+	MetricTrigger *LogMetricTrigger `json:"metricTrigger,omitempty"`
+}
+
 // VoiceReceiver a voice receiver.
 type VoiceReceiver struct {
 	// Name - The name of the voice receiver. Names must be unique across all receivers within an action group.
@@ -3697,7 +4556,6 @@ type VoiceReceiver struct {
 	PhoneNumber *string `json:"phoneNumber,omitempty"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // WebhookNotification webhook notification of an autoscale event.
 type WebhookNotification struct {
 	// ServiceURI - the service address to receive the notification.
@@ -3706,7 +4564,6 @@ type WebhookNotification struct {
 	Properties map[string]*string `json:"properties"`
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // MarshalJSON is the custom marshaler for WebhookNotification.
 func (wn WebhookNotification) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
@@ -3719,7 +4576,6 @@ func (wn WebhookNotification) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // WebhookReceiver a webhook receiver.
 type WebhookReceiver struct {
 	// Name - The name of the webhook receiver. Names must be unique across all receivers within an action group.
