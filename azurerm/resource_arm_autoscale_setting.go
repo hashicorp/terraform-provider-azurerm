@@ -935,6 +935,7 @@ func flattenAzureRmAutoScaleSettingNotification(notifications *[]insights.Autosc
 }
 
 func validateAutoScaleSettingsTimeZone() schema.SchemaValidateFunc {
+	// from https://docs.microsoft.com/en-us/rest/api/monitor/autoscalesettings/createorupdate#timewindow
 	timeZones := []string{
 		"Dateline Standard Time",
 		"UTC-11",
