@@ -201,16 +201,17 @@ func resourceArmAutoScaleSetting() *schema.Resource {
 								},
 							},
 						},
+						// TODO: does this want a ConflictsWith or a CustomizeDiff?
 						"fixed_date": {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									// TODO: to `timezone`?
-									"time_zone": {
-										Type:         schema.TypeString,
-										Required:     true,
+									"timezone": {
+										Type:     schema.TypeString,
+										Required: true,
+										// TODO: should we default this to UTC?
 										ValidateFunc: validateAutoScaleSettingsTimeZone(),
 									},
 									"start": {
@@ -232,29 +233,13 @@ func resourceArmAutoScaleSetting() *schema.Resource {
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"frequency": {
+									"timezone": {
 										Type:     schema.TypeString,
 										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(insights.RecurrenceFrequencyDay),
-											string(insights.RecurrenceFrequencyHour),
-											string(insights.RecurrenceFrequencyMinute),
-											string(insights.RecurrenceFrequencyMonth),
-											string(insights.RecurrenceFrequencyNone),
-											string(insights.RecurrenceFrequencySecond),
-											string(insights.RecurrenceFrequencyWeek),
-											string(insights.RecurrenceFrequencyYear),
-										}, true),
-										DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-									},
-									// TODO: to `timezone`?
-									"time_zone": {
-										Type:         schema.TypeString,
-										Required:     true,
+										// TODO: should we default this to UTC?
 										ValidateFunc: validateAutoScaleSettingsTimeZone(),
 									},
 									"days": {
-										// TODO: does this then become Optional?
 										Type:     schema.TypeList,
 										Required: true,
 										Elem: &schema.Schema{
@@ -575,7 +560,7 @@ func expandAzureRmAutoScaleSettingFixedDate(input []interface{}) (*insights.Time
 		return nil, fmt.Errorf("Failed to parse `end` time %q as an RFC3339 date: %+v", endString, err)
 	}
 
-	timeZone := raw["time_zone"].(string)
+	timeZone := raw["timezone"].(string)
 	timeWindow := insights.TimeWindow{
 		TimeZone: utils.String(timeZone),
 		Start: &date.Time{
@@ -595,9 +580,7 @@ func expandAzureRmAutoScaleSettingRecurrence(input []interface{}) *insights.Recu
 
 	recurrenceRaw := input[0].(map[string]interface{})
 
-	frequency := recurrenceRaw["frequency"].(string)
-
-	timeZone := recurrenceRaw["time_zone"].(string)
+	timeZone := recurrenceRaw["timezone"].(string)
 	days := make([]string, 0)
 	for _, dayItem := range recurrenceRaw["days"].([]interface{}) {
 		days = append(days, dayItem.(string))
@@ -614,7 +597,8 @@ func expandAzureRmAutoScaleSettingRecurrence(input []interface{}) *insights.Recu
 	}
 
 	return &insights.Recurrence{
-		Frequency: insights.RecurrenceFrequency(frequency),
+		// API docs say this has to be `Week`.
+		Frequency: insights.RecurrenceFrequencyWeek,
 		Schedule: &insights.RecurrentSchedule{
 			TimeZone: utils.String(timeZone),
 			Days:     &days,
@@ -837,7 +821,7 @@ func flattenAzureRmAutoScaleSettingFixedDate(input *insights.TimeWindow) []inter
 	result := make(map[string]interface{})
 
 	if timezone := input.TimeZone; timezone != nil {
-		result["time_zone"] = *timezone
+		result["timezone"] = *timezone
 	}
 
 	if start := input.Start; start != nil {
@@ -858,12 +842,10 @@ func flattenAzureRmAutoScaleSettingRecurrence(input *insights.Recurrence) []inte
 
 	result := make(map[string]interface{})
 
-	result["frequency"] = input.Frequency
-
 	if schedule := input.Schedule; schedule != nil {
 
 		if timezone := schedule.TimeZone; timezone != nil {
-			result["time_zone"] = *timezone
+			result["timezone"] = *timezone
 		}
 
 		days := make([]string, 0)

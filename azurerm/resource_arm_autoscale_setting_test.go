@@ -504,7 +504,7 @@ resource "azurerm_autoscale_setting" "test" {
 
     recurrence {
       frequency = "Week"
-      time_zone = "Pacific Standard Time"
+      timezone = "Pacific Standard Time"
       days      = [
         "Monday",
         "Wednesday",
@@ -548,7 +548,7 @@ resource "azurerm_autoscale_setting" "test" {
 
     recurrence {
       frequency = "Week"
-      time_zone = "Pacific Standard Time"
+      timezone = "Pacific Standard Time"
       days      = [
         "Monday",
         "Tuesday",
@@ -589,7 +589,7 @@ resource "azurerm_autoscale_setting" "test" {
     }
 
     fixed_date {
-      time_zone = "Pacific Standard Time"
+      timezone = "Pacific Standard Time"
       start     = "2020-06-18T00:00:00Z"
       end       = "2020-06-18T23:59:59Z"
     }
