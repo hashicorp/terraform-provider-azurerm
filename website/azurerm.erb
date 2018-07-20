@@ -27,10 +27,6 @@
             <li<%= sidebar_current("docs-azurerm-datasource") %>>
               <a href="#">Data Sources</a>
               <ul class="nav nav-visible">
-                <li<%= sidebar_current("docs-azurerm-datasource-azuread-application") %>>
-                  <a href="/docs/providers/azurerm/d/azuread_application.html">azurerm_azuread_application</a>
-                </li>
-
                 <li<%= sidebar_current("docs-azurerm-datasource-network-application-security-group") %>>
                     <a href="/docs/providers/azurerm/d/application_security_group.html">azurerm_application_security_group</a>
                 </li>
@@ -41,6 +37,14 @@
 
                 <li<%= sidebar_current("docs-azurerm-datasource-app-service-plan") %>>
                     <a href="/docs/providers/azurerm/d/app_service_plan.html">azurerm_app_service_plan</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-datasource-azuread-application") %>>
+                  <a href="/docs/providers/azurerm/d/azuread_application.html">azurerm_azuread_application</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-datasource-azuread-application") %>>
+                  <a href="/docs/providers/azurerm/d/azuread_service_principal.html">azurerm_azuread_service_principal</a>
                 </li>
 
                 <li<%= sidebar_current("docs-azurerm-datasource-builtin-role-definition") %>>
@@ -58,7 +62,6 @@
                 <li<%= sidebar_current("docs-azurerm-cosmosdb-account") %>>
                     <a href="/docs/providers/azurerm/d/cosmosdb_account.html">azurerm_cosmosdb_account</a>
                 </li>
-
 
                 <li<%= sidebar_current("docs-azurerm-datasource-dns-zone") %>>
                     <a href="/docs/providers/azurerm/d/dns_zone.html">azurerm_dns_zone</a>
@@ -106,6 +109,10 @@
 
                 <li<%= sidebar_current("docs-azurerm-datasource-network-security-group") %>>
                     <a href="/docs/providers/azurerm/d/network_security_group.html">azurerm_network_security_group</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-datasource-notification-hub-namespace") %>>
+                    <a href="/docs/providers/azurerm/d/notification_hub_namespace.html">azurerm_notification_hub_namespace</a>
                 </li>
 
                 <li<%= sidebar_current("docs-azurerm-datasource-platform-image") %>>
@@ -235,6 +242,12 @@
               <ul class="nav nav-visible">
                 <li<%= sidebar_current("docs-azurerm-resource-azuread-application") %>>
                   <a href="/docs/providers/azurerm/r/azuread_application.html">azurerm_azuread_application</a>
+                </li>
+                <li<%= sidebar_current("docs-azurerm-resource-azuread-service-principal-x") %>>
+                  <a href="/docs/providers/azurerm/r/azuread_service_principal.html">azurerm_azuread_service_principal</a>
+                </li>
+                <li<%= sidebar_current("docs-azurerm-resource-azuread-service-principal-password") %>>
+                  <a href="/docs/providers/azurerm/r/azuread_service_principal_password.html">azurerm_azuread_service_principal_password</a>
                 </li>
               </ul>
             </li>
@@ -434,6 +447,14 @@
                   <a href="/docs/providers/azurerm/r/data_lake_store_firewall_rule.html">azurerm_data_lake_store_firewall_rule</a>
                 </li>
 
+                <li<%= sidebar_current("docs-azurerm-resource-data-lake-analytics-account-x") %>>
+                  <a href="/docs/providers/azurerm/r/data_lake_analytics_account.html">azurerm_data_lake_analytics_account</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-data-lake-analytics-firewall-rule") %>>
+                  <a href="/docs/providers/azurerm/r/data_lake_analytics_firewall_rule.html">azurerm_data_lake_analytics_firewall_rule</a>
+                </li>
+
               </ul>
             </li>
 
@@ -582,75 +603,92 @@
               </ul>
             </li>
 
-            <li<%= sidebar_current("docs-azurerm-resource-eventhub") %>>
+            <li<%= sidebar_current("docs-azurerm-resource-messaging") %>>
               <a href="#">Messaging Resources</a>
               <ul class="nav nav-visible">
-                <li<%= sidebar_current("docs-azurerm-resource-eventgrid-topic") %>>
+                <li<%= sidebar_current("docs-azurerm-resource-messaging-eventgrid-topic") %>>
                   <a href="/docs/providers/azurerm/r/eventgrid_topic.html">azurerm_eventgrid_topic</a>
                 </li>
 
-                <li<%= sidebar_current("docs-azurerm-resource-eventhub") %>>
+                <li<%= sidebar_current("docs-azurerm-resource-messaging-eventhub") %>>
                   <a href="/docs/providers/azurerm/r/eventhub.html">azurerm_eventhub</a>
                 </li>
 
-                <li<%= sidebar_current("docs-azurerm-resource-eventhub-authorization-rule") %>>
+                <li<%= sidebar_current("docs-azurerm-resource-messaging-eventhub-authorization-rule") %>>
                   <a href="/docs/providers/azurerm/r/eventhub_authorization_rule.html">azurerm_eventhub_authorization_rule</a>
                 </li>
 
-                <li<%= sidebar_current("docs-azurerm-resource-eventhub-consumer-group") %>>
+                <li<%= sidebar_current("docs-azurerm-resource-messaging-eventhub-consumer-group") %>>
                   <a href="/docs/providers/azurerm/r/eventhub_consumer_group.html">azurerm_eventhub_consumer_group</a>
                 </li>
 
-                <li<%= sidebar_current("docs-azurerm-resource-eventhub-namespace") %>>
+                <li<%= sidebar_current("docs-azurerm-resource-messaging-eventhub-namespace") %>>
                   <a href="/docs/providers/azurerm/r/eventhub_namespace.html">azurerm_eventhub_namespace</a>
                 </li>
 
-                <li<%= sidebar_current("docs-azurerm-resource-iothub") %>>
+                <li<%= sidebar_current("docs-azurerm-resource-messaging-iothub") %>>
                   <a href="/docs/providers/azurerm/r/iothub.html">azurerm_iothub</a>
                 </li>
 
-                <li<%= sidebar_current("docs-azurerm-resource-relay-namespace") %>>
+                <li<%= sidebar_current("docs-azurerm-resource-messaging-notification-hub-x") %>>
+                  <a href="/docs/providers/azurerm/r/notification_hub.html">azurerm_notification_hub</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-messaging-notification-hub-authorization-rule") %>>
+                  <a href="/docs/providers/azurerm/r/notification_hub_authorization_rule.html">azurerm_notification_hub_authorization_rule</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-messaging-notification-hub-namespace") %>>
+                  <a href="/docs/providers/azurerm/r/notification_hub_namespace.html">azurerm_notification_hub_namespace</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-messaging-relay-namespace") %>>
                   <a href="/docs/providers/azurerm/r/relay_namespace.html">azurerm_relay_namespace</a>
                 </li>
 
-                <li<%= sidebar_current("docs-azurerm-resource-servicebus-namespace") %>>
+                <li<%= sidebar_current("docs-azurerm-resource-messaging-servicebus-namespace") %>>
                   <a href="/docs/providers/azurerm/r/servicebus_namespace.html">azurerm_servicebus_namespace</a>
                 </li>
 
-                <li<%= sidebar_current("docs-azurerm-resource-servicebus-namespace-authorization-rule") %>>
+                <li<%= sidebar_current("docs-azurerm-resource-messaging-servicebus-namespace-authorization-rule") %>>
                   <a href="/docs/providers/azurerm/r/servicebus_namespace_authorization_rule.html">azurerm_servicebus_namespace_authorization_rule</a>
                 </li>
 
-                <li<%= sidebar_current("docs-azurerm-resource-servicebus-queue") %>>
+                <li<%= sidebar_current("docs-azurerm-resource-messaging-servicebus-queue") %>>
                   <a href="/docs/providers/azurerm/r/servicebus_queue.html">azurerm_servicebus_queue</a>
                 </li>
 
-                <li<%= sidebar_current("docs-azurerm-resource-servicebus-queue-authorization-rule") %>>
+                <li<%= sidebar_current("docs-azurerm-resource-messaging-servicebus-queue-authorization-rule") %>>
                   <a href="/docs/providers/azurerm/r/servicebus_queue_authorization_rule.html">azurerm_servicebus_queue_authorization_rule</a>
                 </li>
 
-                <li<%= sidebar_current("docs-azurerm-resource-servicebus-subscription") %>>
+                <li<%= sidebar_current("docs-azurerm-resource-messaging-servicebus-subscription") %>>
                   <a href="/docs/providers/azurerm/r/servicebus_subscription.html">azurerm_servicebus_subscription</a>
                 </li>
 
-                <li<%= sidebar_current("docs-azurerm-resource-servicebus-subscription-rule") %>>
+                <li<%= sidebar_current("docs-azurerm-resource-messaging-servicebus-subscription-rule") %>>
                   <a href="/docs/providers/azurerm/r/servicebus_subscription_rule.html">azurerm_servicebus_subscription_rule</a>
                 </li>
 
-                <li<%= sidebar_current("docs-azurerm-resource-servicebus-topic") %>>
+                <li<%= sidebar_current("docs-azurerm-resource-messaging-servicebus-topic") %>>
                   <a href="/docs/providers/azurerm/r/servicebus_topic.html">azurerm_servicebus_topic</a>
                 </li>
 
-                <li<%= sidebar_current("docs-azurerm-resource-servicebus-topic-authorization-rule") %>>
+                <li<%= sidebar_current("docs-azurerm-resource-messaging-servicebus-topic-authorization-rule") %>>
                   <a href="/docs/providers/azurerm/r/servicebus_topic_authorization_rule.html">azurerm_servicebus_topic_authorization_rule</a>
                 </li>
               </ul>
             </li>
 
-            <li<%= sidebar_current("docs-azurerm-resource-monitor") %>>
+
+            <li<%= sidebar_current("docs-azurerm-resource-autoscale-setting") %>>
               <a href="#">Monitor Resources</a>
               <ul class="nav nav-visible">
-                <li<%= sidebar_current("docs-azurerm-resource-metric-alertrule") %>>
+                <li<%= sidebar_current("docs-azurerm-resource-monitor-autoscale-setting") %>>
+                  <a href="/docs/providers/azurerm/r/autoscale_setting.html">azurerm_autoscale_setting</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-monitor-metric-alertrule") %>>
                   <a href="/docs/providers/azurerm/r/metric_alertrule.html">azurerm_metric_alertrule</a>
                 </li>
               </ul>

@@ -13,23 +13,23 @@ Manage a Azure Data Lake Store Firewall Rule.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "test"
+resource "azurerm_resource_group" "example" {
+  name     = "example"
   location = "northeurope"
 }
 
-resource "azurerm_data_lake_store" "test" {
+resource "azurerm_data_lake_store" "example" {
   name                = "consumptiondatalake"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
 }
 
-resource "azurerm_data_lake_store_firewall_rule" "test" {
-  name = "office-ip-range"
-  account_name = "${azurerm_data_lake_store.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  start_ip_address = "1.2.3.4"
-  end_ip_address = "2.3.4.5"
+resource "azurerm_data_lake_store_firewall_rule" "example" {
+  name                = "office-ip-range"
+  account_name        = "${azurerm_data_lake_store.example.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  start_ip_address    = "1.2.3.4"
+  end_ip_address      = "2.3.4.5"
 }
 ```
 

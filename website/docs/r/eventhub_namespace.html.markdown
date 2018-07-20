@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventhub_namespace"
-sidebar_current: "docs-azurerm-resource-eventhub-namespace"
+sidebar_current: "docs-azurerm-resource-messaging-eventhub-namespace"
 description: |-
   Create an EventHub Namespace.
 ---

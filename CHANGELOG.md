@@ -4,6 +4,12 @@ FEATURES:
 
 * **New Data Source:** `azurerm_azuread_application` [GH-1552]
 * **New Data Source:** `azurerm_logic_app_workflow` [GH-1266]
+* **New Data Source:** `azurerm_notification_hub` [GH-1589]
+* **New Data Source:** `azurerm_notification_hub_namespace` [GH-1589]
+* **New Data Source:** `azurerm_service_principal` [GH-1564]
+* **New Resource:** `azurerm_autoscale_setting` [GH-1140]
+* **New Resource:** `azurerm_data_lake_analytics_account` [GH-1618]
+* **New Resource:** `azurerm_data_lake_analytics_firewall_rule` [GH-1618]
 * **New Resource:** `azurerm_eventhub_namespace_authorization_rule` [GH-1572]
 * **New Resource:** `azurerm_logic_app_action_custom` [GH-1266]
 * **New Resource:** `azurerm_logic_app_action_http` [GH-1266]
@@ -11,7 +17,12 @@ FEATURES:
 * **New Resource:** `azurerm_logic_app_trigger_http_request` [GH-1266]
 * **New Resource:** `azurerm_logic_app_trigger_recurrence` [GH-1266]
 * **New Resource:** `azurerm_logic_app_workflow` [GH-1266]
+* **New Resource:** `azurerm_notification_hub` [GH-1589]
+* **New Resource:** `azurerm_notification_hub_authorization_rule` [GH-1589]
+* **New Resource:** `azurerm_notification_hub_namespace ` [GH-1589]
 * **New Resource:** `azurerm_servicebus_queue_authorization_rule` [GH-1543]
+* **New Resource:** `azurerm_service_principal` [GH-1564]
+* **New Resource:** `azurerm_service_principal_password` [GH-1564]
 
 IMPROVEMENTS:
 
@@ -24,7 +35,9 @@ IMPROVEMENTS:
 * `azurerm_container_group` - support for images hosted in a private registry [GH-1529]
 * `azurerm_function_app` - adding support for the `site_credential` block [GH-1567]
 * `azurerm_function_app` - only setting `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` for Consumption Apps [GH-1515]
+* `azurerm_mysql_server` - changing `tier` or `family` in `sku` property no longer destroys existing resource [GH-1598]
 * `azurerm_network_security_rule` - a maximum of 1 Application Security Group can be set per Security Rule  [GH-1587]
+* `azurerm_postgresql_server` - changing `tier` or `family` in `sku` property no longer destroys existing resource [GH-1598]
 * `azurerm_virtual_machine_scale_set` - `sku` property is now a list #1558 [GH-1558]
 
 BUG FIXES:

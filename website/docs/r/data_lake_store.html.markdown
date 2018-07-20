@@ -13,15 +13,15 @@ Manage an Azure Data Lake Store.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "test"
+resource "azurerm_resource_group" "example" {
+  name     = "example"
   location = "northeurope"
 }
 
-resource "azurerm_data_lake_store" "consumption" {
+resource "azurerm_data_lake_store" "example" {
   name                = "consumptiondatalake"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
 }
 ```
 

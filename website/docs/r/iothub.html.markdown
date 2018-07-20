@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iothub"
-sidebar_current: "docs-azurerm-resource-iothub"
+sidebar_current: "docs-azurerm-resource-messaging-iothub"
 description: |-
   Manages a IotHub resource 
 ---
