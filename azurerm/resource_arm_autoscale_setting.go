@@ -209,9 +209,9 @@ func resourceArmAutoScaleSetting() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"timezone": {
-										Type:     schema.TypeString,
-										Required: true,
-										// TODO: should we default this to UTC?
+										Type:         schema.TypeString,
+										Optional:     true,
+										Default:      "UTC",
 										ValidateFunc: validateAutoScaleSettingsTimeZone(),
 									},
 									"start": {
@@ -234,9 +234,9 @@ func resourceArmAutoScaleSetting() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"timezone": {
-										Type:     schema.TypeString,
-										Required: true,
-										// TODO: should we default this to UTC?
+										Type:         schema.TypeString,
+										Optional:     true,
+										Default:      "UTC",
 										ValidateFunc: validateAutoScaleSettingsTimeZone(),
 									},
 									"days": {
@@ -304,7 +304,6 @@ func resourceArmAutoScaleSetting() *schema.Resource {
 										Default:  false,
 									},
 									"custom_emails": {
-										// TODO: does this want to be a Set?
 										Type:     schema.TypeList,
 										Optional: true,
 										Elem: &schema.Schema{
@@ -898,9 +897,13 @@ func flattenAzureRmAutoScaleSettingNotification(notifications *[]insights.Autosc
 				result["send_to_subscription_co_administrator"] = *send
 			}
 
+			customEmails := make([]interface{}, 0)
 			if custom := email.CustomEmails; custom != nil {
-				result["custom_emails"] = *custom
+				for _, v := range *custom {
+					customEmails = append(customEmails, v)
+				}
 			}
+			result["custom_emails"] = customEmails
 
 			emails = append(emails, result)
 		}

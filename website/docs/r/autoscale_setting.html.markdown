@@ -303,11 +303,11 @@ A `capacity` block supports the following:
 
 * `default` - (Required) The number of instances that are available for scaling if metrics are not available for evaluation. The default is only used if the current instance count is lower than the default.
 
-* `minimum` - (Required) The minimum number of instances for this resource. Valid values are between `1` and `40`.
-
 * `maximum` - (Required) The maximum number of instances for this resource. Valid values are between `1` and `40`.
 
 -> **NOTE:** The maximum number of instances is also limited by the amount of Cores available in the subscription.
+
+* `minimum` - (Required) The minimum number of instances for this resource. Valid values are between `1` and `40`.
 
 ---
 
@@ -357,13 +357,13 @@ A `fixed_date` block supports the following:
 
 * `start` - (Required) Specifies the start date for the profile, formatted as an RFC3339 date string.
 
-* `timezone` (Required) The Time Zone of the `start` and `end` times. A list of [possible values can be found here](https://msdn.microsoft.com/en-us/library/azure/dn931928.aspx).
+* `timezone` (Optional) The Time Zone of the `start` and `end` times. A list of [possible values can be found here](https://msdn.microsoft.com/en-us/library/azure/dn931928.aspx). Defaults to `UTC`.
 
 ---
 
 A `recurrence` block supports the following:
 
-* `timezone` - (Required) The Time Zone used for the `hours` field. A list of [possible values can be found here](https://msdn.microsoft.com/en-us/library/azure/dn931928.aspx).
+* `timezone` - (Required) The Time Zone used for the `hours` field. A list of [possible values can be found here](https://msdn.microsoft.com/en-us/library/azure/dn931928.aspx). Defaults to `UTC`.
 
 * `days` - (Required) A list of days that this profile takes effect on. Possible values include `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday` and `Sunday`.
 
