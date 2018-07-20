@@ -6,10 +6,15 @@ import (
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"strings"
 )
 
 func resourceArmDataLakeStore() *schema.Resource {
@@ -18,6 +23,7 @@ func resourceArmDataLakeStore() *schema.Resource {
 		Read:   resourceArmDateLakeStoreRead,
 		Update: resourceArmDateLakeStoreUpdate,
 		Delete: resourceArmDateLakeStoreDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -41,7 +47,7 @@ func resourceArmDataLakeStore() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Default:          string(account.Consumption),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(account.Consumption),
 					string(account.Commitment1TB),
@@ -53,7 +59,71 @@ func resourceArmDataLakeStore() *schema.Resource {
 				}, true),
 			},
 
+			"encryption": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true, //true by default, so allow read to set this
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+							ForceNew: true,
+						},
+
+						"type": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  string(account.ServiceManaged),
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(account.ServiceManaged),
+								string(account.UserManaged),
+							}, true),
+							DiffSuppressFunc: suppress.CaseDifference,
+						},
+
+						//the follow are required if UserManaged is selected
+						"key_vault_id": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+
+						"key_name": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.NoZeroValues,
+						},
+
+						"key_version": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.NoZeroValues,
+						},
+					},
+				},
+			},
+
 			"tags": tagsSchema(),
+		},
+
+		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
+
+			encryptionType, hasEncryptionType := d.GetOk("encryption.0.type")
+
+			if hasEncryptionType && strings.EqualFold(encryptionType.(string), string(account.UserManaged)) {
+				if _, hasKeyValueId := d.GetOk("encryption.0.key_vault_id"); !hasKeyValueId {
+					//return fmt.Errorf("encryption key_vault_id must be specified if encryption type is UserManaged")
+				}
+				if _, hasKeyName := d.GetOk("encryption.0.key_name"); !hasKeyName {
+					return fmt.Errorf("encryption key_name must be specified if encryption type is UserManaged")
+				}
+			}
+
+			return nil
 		},
 	}
 }
@@ -74,8 +144,17 @@ func resourceArmDateLakeStoreCreate(d *schema.ResourceData, meta interface{}) er
 		Location: &location,
 		Tags:     expandTags(tags),
 		CreateDataLakeStoreAccountProperties: &account.CreateDataLakeStoreAccountProperties{
-			NewTier: account.TierType(tier),
+			NewTier:          account.TierType(tier),
+			EncryptionConfig: expandAzureRmDataLakeStoreEncryptionConfig(d),
 		},
+	}
+
+	if encryptionEnabled, ok := d.GetOk("encryption.0.enabled"); ok {
+		if encryptionEnabled.(bool) {
+			dateLakeStore.CreateDataLakeStoreAccountProperties.EncryptionState = account.Enabled
+		} else {
+			dateLakeStore.CreateDataLakeStoreAccountProperties.EncryptionState = account.Disabled
+		}
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, dateLakeStore)
@@ -113,7 +192,8 @@ func resourceArmDateLakeStoreUpdate(d *schema.ResourceData, meta interface{}) er
 	props := account.UpdateDataLakeStoreAccountParameters{
 		Tags: expandTags(newTags),
 		UpdateDataLakeStoreAccountProperties: &account.UpdateDataLakeStoreAccountProperties{
-			NewTier: account.TierType(newTier),
+			NewTier:          account.TierType(newTier),
+			EncryptionConfig: expandAzureRmDataLakeStoreUpdateEncryptionConfig(d),
 		},
 	}
 
@@ -157,8 +237,10 @@ func resourceArmDateLakeStoreRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	if tier := resp.DataLakeStoreAccountProperties; tier != nil {
-		d.Set("tier", string(tier.CurrentTier))
+	if properties := resp.DataLakeStoreAccountProperties; properties != nil {
+		d.Set("tier", string(properties.CurrentTier))
+		d.Set("encryption", flattenAzureRmDataLakeStoreEncryption(properties))
+
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -194,4 +276,69 @@ func resourceArmDateLakeStoreDelete(d *schema.ResourceData, meta interface{}) er
 	}
 
 	return nil
+}
+
+func expandAzureRmDataLakeStoreEncryptionConfig(d *schema.ResourceData) *account.EncryptionConfig {
+	blocks, ok := d.GetOk("encryption")
+	if !ok {
+		return nil
+	}
+
+	block := blocks.([]interface{})[0].(map[string]interface{})
+	config := account.EncryptionConfig{
+		Type: account.EncryptionConfigType(block["type"].(string)),
+	}
+
+	if config.Type == account.UserManaged {
+		config.KeyVaultMetaInfo = &account.KeyVaultMetaInfo{
+			KeyVaultResourceID: utils.String(block["key_vault_id"].(string)),
+			EncryptionKeyName:  utils.String(block["key_name"].(string)),
+		}
+
+		if v, ok := block["key_version"]; ok {
+			config.KeyVaultMetaInfo.EncryptionKeyVersion = utils.String(v.(string))
+		}
+	}
+
+	return &config
+}
+
+func expandAzureRmDataLakeStoreUpdateEncryptionConfig(d *schema.ResourceData) *account.UpdateEncryptionConfig {
+	blocks, ok := d.GetOk("encryption")
+	if !ok {
+		return nil
+	}
+
+	block := blocks.([]interface{})[0].(map[string]interface{})
+	config := account.UpdateEncryptionConfig{}
+	if itemType, ok := block["type"]; ok && strings.EqualFold(itemType.(string), string(account.UserManaged)) {
+		if v, ok := block["key_version"]; ok {
+			config.KeyVaultMetaInfo.EncryptionKeyVersion = utils.String(v.(string))
+		}
+	}
+
+	return &config
+}
+
+func flattenAzureRmDataLakeStoreEncryption(properties *account.DataLakeStoreAccountProperties) interface{} {
+	block := map[string]interface{}{
+		"enabled": bool(properties.EncryptionState == account.Enabled),
+	}
+
+	if config := properties.EncryptionConfig; config != nil {
+		block["type"] = string(config.Type)
+		if keyVault := config.KeyVaultMetaInfo; keyVault != nil {
+			if v := keyVault.KeyVaultResourceID; v != nil {
+				block["key_vault_id"] = *v
+			}
+			if v := keyVault.EncryptionKeyName; v != nil {
+				block["key_name"] = *v
+			}
+			if v := keyVault.EncryptionKeyName; v != nil {
+				block["key_version"] = *v
+			}
+		}
+	}
+
+	return []interface{}{block}
 }

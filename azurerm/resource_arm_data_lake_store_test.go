@@ -26,6 +26,8 @@ func TestAccAzureRMDataLakeStore_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeStoreExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tier", "Consumption"),
+					resource.TestCheckResourceAttr(resourceName, "encryption.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "encryption.0.type", "ServiceManaged"),
 				),
 			},
 			{
@@ -53,6 +55,92 @@ func TestAccAzureRMDataLakeStore_tier(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeStoreExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tier", "Commitment_1TB"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMDataLakeStore_encryptionDefault(t *testing.T) {
+	resourceName := "azurerm_data_lake_store.test"
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	config := testAccAzureRMDataLakeStore_encryptionDefault(ri, rs, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataLakeStoreExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "encryption.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "encryption.0.type", "ServiceManaged"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMDataLakeStore_encryptionDisabled(t *testing.T) {
+	resourceName := "azurerm_data_lake_store.test"
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	config := testAccAzureRMDataLakeStore_encryptionDisabled(ri, rs, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataLakeStoreExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "encryption.0.enabled", "false"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMDataLakeStore_encryptionUserManaged(t *testing.T) {
+	resourceName := "azurerm_data_lake_store.test"
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	config := testAccAzureRMDataLakeStore_encryptionUserManaged(ri, rs, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataLakeStoreExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "encryption.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "encryption.0.type", "ServiceManaged"),
+					resource.TestCheckResourceAttrSet(resourceName, "encryption.0.key_vault_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "encryption.0.key_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "encryption.0.key_version"),
 				),
 			},
 			{
@@ -186,6 +274,112 @@ resource "azurerm_data_lake_store" "test" {
   tier                = "Commitment_1TB"
 }
 `, rInt, location, rs, location)
+}
+
+func testAccAzureRMDataLakeStore_encryptionDefault(rInt int, rs string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_lake_store" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "%s"
+  
+  encryption {
+    type = "ServiceManaged"
+  }
+}
+`, rInt, location, rs, location)
+}
+
+func testAccAzureRMDataLakeStore_encryptionDisabled(rInt int, rs string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_lake_store" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "%s"
+  
+  encryption {
+    enabled = false
+  }
+}
+`, rInt, location, rs, location)
+}
+
+func testAccAzureRMDataLakeStore_encryptionUserManaged(rInt int, rs string, location string) string {
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctestkv-%[3]s"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+
+  sku {
+    name = "premium"
+  }
+
+  access_policy {
+    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+
+    key_permissions = [
+      "create",
+      "delete",
+      "get",
+    ]
+
+    secret_permissions = [
+      "get",
+      "delete",
+      "set",
+    ]
+  }
+
+  tags {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name      = "datastorekey"
+  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  key_type  = "EC"
+  key_size  = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+}
+
+resource "azurerm_data_lake_store" "test" {
+  name                = "unlikely23exst2acct%[3]s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "%[2]s"
+  
+  encryption {
+    type         = "UserManaged"
+    key_vault_id = "${azurerm_key_vault.test.id}"
+    key_name     = "${azurerm_key_vault_key.test.name}"
+    key_version  = "${azurerm_key_vault_key.test.version}"
+  }
+}
+`, rInt, location, rs)
 }
 
 func testAccAzureRMDataLakeStore_withTags(rInt int, rs string, location string) string {
