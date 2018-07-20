@@ -144,6 +144,8 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_container_service":                       resourceArmContainerService(),
 			"azurerm_container_group":                         resourceArmContainerGroup(),
 			"azurerm_cosmosdb_account":                        resourceArmCosmosDBAccount(),
+			"azurerm_data_lake_analytics_account":             resourceArmDataLakeAnalyticsAccount(),
+			"azurerm_data_lake_analytics_firewall_rule":       resourceArmDataLakeAnalyticsFirewallRule(),
 			"azurerm_data_lake_store":                         resourceArmDataLakeStore(),
 			"azurerm_data_lake_store_firewall_rule":           resourceArmDataLakeStoreFirewallRule(),
 			"azurerm_dns_a_record":                            resourceArmDnsARecord(),
