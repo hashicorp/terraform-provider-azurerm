@@ -184,6 +184,17 @@ func AppServiceSiteConfigSchema() *schema.Schema {
 					Optional: true,
 					Computed: true,
 				},
+
+				"min_tls_version": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(web.OneFullStopZero),
+						string(web.OneFullStopOne),
+						string(web.OneFullStopTwo),
+					}, false),
+				},
 			},
 		},
 	}
@@ -305,6 +316,10 @@ func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 		siteConfig.FtpsState = web.FtpsState(v.(string))
 	}
 
+	if v, ok := config["min_tls_version"]; ok {
+		siteConfig.MinTLSVersion = web.SupportedTLSVersions(v.(string))
+	}
+
 	return siteConfig
 }
 
@@ -409,6 +424,7 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 
 	result["scm_type"] = string(input.ScmType)
 	result["ftps_state"] = string(input.FtpsState)
+	result["min_tls_version"] = string(input.MinTLSVersion)
 
 	return append(results, result)
 }
