@@ -66,8 +66,6 @@ func TestAccAzureRMDataLakeStore_tier(t *testing.T) {
 func TestAccAzureRMDataLakeStore_encryptionDefault(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
 	ri := acctest.RandInt()
-	rs := acctest.RandString(4)
-	config := testAccAzureRMDataLakeStore_encryptionDefault(ri, rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -75,7 +73,7 @@ func TestAccAzureRMDataLakeStore_encryptionDefault(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDataLakeStore_encryptionDefault(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeStoreExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "encryption.0.enabled", "true"),
@@ -94,8 +92,6 @@ func TestAccAzureRMDataLakeStore_encryptionDefault(t *testing.T) {
 func TestAccAzureRMDataLakeStore_encryptionDisabled(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
 	ri := acctest.RandInt()
-	rs := acctest.RandString(4)
-	config := testAccAzureRMDataLakeStore_encryptionDisabled(ri, rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -103,7 +99,7 @@ func TestAccAzureRMDataLakeStore_encryptionDisabled(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDataLakeStore_encryptionDisabled(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeStoreExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "encryption.0.enabled", "false"),
@@ -121,8 +117,6 @@ func TestAccAzureRMDataLakeStore_encryptionDisabled(t *testing.T) {
 func TestAccAzureRMDataLakeStore_encryptionUserManaged(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
 	ri := acctest.RandInt()
-	rs := acctest.RandString(4)
-	config := testAccAzureRMDataLakeStore_encryptionUserManaged(ri, rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -130,7 +124,7 @@ func TestAccAzureRMDataLakeStore_encryptionUserManaged(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDataLakeStore_encryptionUserManaged(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeStoreExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "encryption.0.enabled", "true"),
@@ -256,7 +250,7 @@ resource "azurerm_data_lake_store" "test" {
 func testAccAzureRMDataLakeStore_tier(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-name     = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -270,7 +264,7 @@ resource "azurerm_data_lake_store" "test" {
 `, rInt, location, strconv.Itoa(rInt)[0:15])
 }
 
-func testAccAzureRMDataLakeStore_encryptionDefault(rInt int, rs string, location string) string {
+func testAccAzureRMDataLakeStore_encryptionDefault(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -278,18 +272,18 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_data_lake_store" "test" {
-  name                = "unlikely23exst2acct%s"
+  name                = "acctest%s"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "%s"
-  
+  location            = "${azurerm_resource_group.test.location}"
+
   encryption {
     type = "ServiceManaged"
   }
 }
-`, rInt, location, rs, location)
+`, rInt, location, strconv.Itoa(rInt)[0:15])
 }
 
-func testAccAzureRMDataLakeStore_encryptionDisabled(rInt int, rs string, location string) string {
+func testAccAzureRMDataLakeStore_encryptionDisabled(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -297,18 +291,18 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_data_lake_store" "test" {
-  name                = "unlikely23exst2acct%s"
+  name                = "acctest%s"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "%s"
+  location            = "${azurerm_resource_group.test.location}"
   
   encryption {
     enabled = false
   }
 }
-`, rInt, location, rs, location)
+`, rInt, location, strconv.Itoa(rInt)[0:15])
 }
 
-func testAccAzureRMDataLakeStore_encryptionUserManaged(rInt int, rs string, location string) string {
+func testAccAzureRMDataLakeStore_encryptionUserManaged(rInt int, location string) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -318,7 +312,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%[3]s"
+  name                = "acctestkv%[3]s"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
@@ -362,9 +356,9 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_data_lake_store" "test" {
-  name                = "unlikely23exst2acct%[3]s"
+  name                = "acctest%[3]s"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "%[2]s"
+  location            = "${azurerm_resource_group.test.location}"
   
   encryption {
     type         = "UserManaged"
@@ -373,10 +367,10 @@ resource "azurerm_data_lake_store" "test" {
     key_version  = "${azurerm_key_vault_key.test.version}"
   }
 }
-`, rInt, location, rs)
+`, rInt, location, strconv.Itoa(rInt)[0:15])
 }
 
-func testAccAzureRMDataLakeStore_withTags(rInt int, rs string, location string) string {
+func testAccAzureRMDataLakeStore_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
 name     = "acctestRG-%d"

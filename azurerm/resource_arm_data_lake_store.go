@@ -72,7 +72,7 @@ func resourceArmDataLakeStore() *schema.Resource {
 						"type": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  string(account.ServiceManaged),
+							Computed: true, //so the user can leave it blank
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(account.ServiceManaged),
@@ -145,7 +145,7 @@ func resourceArmDateLakeStoreCreate(d *schema.ResourceData, meta interface{}) er
 		},
 	}
 
-	if encryptionEnabled, ok := d.GetOk("encryption.0.enabled"); ok {
+	if encryptionEnabled, ok := d.GetOkExists("encryption.0.enabled"); ok {
 		if encryptionEnabled.(bool) {
 			dateLakeStore.CreateDataLakeStoreAccountProperties.EncryptionState = account.Enabled
 		} else {
