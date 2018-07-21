@@ -1,53 +1,53 @@
-## 1.10.0 (Unreleased)
+## 1.10.0 (July 21, 2018)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_azuread_application` [GH-1552]
-* **New Data Source:** `azurerm_logic_app_workflow` [GH-1266]
-* **New Data Source:** `azurerm_notification_hub` [GH-1589]
-* **New Data Source:** `azurerm_notification_hub_namespace` [GH-1589]
-* **New Data Source:** `azurerm_service_principal` [GH-1564]
-* **New Resource:** `azurerm_autoscale_setting` [GH-1140]
-* **New Resource:** `azurerm_data_lake_analytics_account` [GH-1618]
-* **New Resource:** `azurerm_data_lake_analytics_firewall_rule` [GH-1618]
-* **New Resource:** `azurerm_eventhub_namespace_authorization_rule` [GH-1572]
-* **New Resource:** `azurerm_logic_app_action_custom` [GH-1266]
-* **New Resource:** `azurerm_logic_app_action_http` [GH-1266]
-* **New Resource:** `azurerm_logic_app_trigger_custom` [GH-1266]
-* **New Resource:** `azurerm_logic_app_trigger_http_request` [GH-1266]
-* **New Resource:** `azurerm_logic_app_trigger_recurrence` [GH-1266]
-* **New Resource:** `azurerm_logic_app_workflow` [GH-1266]
-* **New Resource:** `azurerm_notification_hub` [GH-1589]
-* **New Resource:** `azurerm_notification_hub_authorization_rule` [GH-1589]
-* **New Resource:** `azurerm_notification_hub_namespace ` [GH-1589]
-* **New Resource:** `azurerm_servicebus_queue_authorization_rule` [GH-1543]
-* **New Resource:** `azurerm_service_principal` [GH-1564]
-* **New Resource:** `azurerm_service_principal_password` [GH-1564]
+* **New Data Source:** `azurerm_azuread_application` ([#1552](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1552))
+* **New Data Source:** `azurerm_logic_app_workflow` ([#1266](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1266))
+* **New Data Source:** `azurerm_notification_hub` ([#1589](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1589))
+* **New Data Source:** `azurerm_notification_hub_namespace` ([#1589](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1589))
+* **New Data Source:** `azurerm_service_principal` ([#1564](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1564))
+* **New Resource:** `azurerm_autoscale_setting` ([#1140](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1140))
+* **New Resource:** `azurerm_data_lake_analytics_account` ([#1618](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1618))
+* **New Resource:** `azurerm_data_lake_analytics_firewall_rule` ([#1618](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1618))
+* **New Resource:** `azurerm_eventhub_namespace_authorization_rule` ([#1572](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1572))
+* **New Resource:** `azurerm_logic_app_action_custom` ([#1266](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1266))
+* **New Resource:** `azurerm_logic_app_action_http` ([#1266](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1266))
+* **New Resource:** `azurerm_logic_app_trigger_custom` ([#1266](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1266))
+* **New Resource:** `azurerm_logic_app_trigger_http_request` ([#1266](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1266))
+* **New Resource:** `azurerm_logic_app_trigger_recurrence` ([#1266](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1266))
+* **New Resource:** `azurerm_logic_app_workflow` ([#1266](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1266))
+* **New Resource:** `azurerm_notification_hub` ([#1589](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1589))
+* **New Resource:** `azurerm_notification_hub_authorization_rule` ([#1589](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1589))
+* **New Resource:** `azurerm_notification_hub_namespace ` ([#1589](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1589))
+* **New Resource:** `azurerm_servicebus_queue_authorization_rule` ([#1543](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1543))
+* **New Resource:** `azurerm_service_principal` ([#1564](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1564))
+* **New Resource:** `azurerm_service_principal_password` ([#1564](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1564))
 
 IMPROVEMENTS:
 
-* authentication: Refreshing the Service Principal Token before using it [GH-1544]
-* dependencies: updating to`2018-02-01` of the App Service SDK [GH-1436]
-* `azurerm_app_service` - support for setting `ftps_settings` in the `site_config` block [GH-1577]
-* `azurerm_app_service` - support for running containers [GH-1578]
-* `azurerm_app_service_slot` - support for Managed Service Identity [GH-1579]
-* `azurerm_app_service_slot` - Slots can now be updated in-place [GH-1436]
-* `azurerm_container_group` - support for images hosted in a private registry [GH-1529]
-* `azurerm_function_app` - adding support for the `site_credential` block [GH-1567]
-* `azurerm_function_app` - only setting `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` for Consumption Apps [GH-1515]
-* `azurerm_mysql_server` - changing `tier` or `family` in `sku` property no longer destroys existing resource [GH-1598]
-* `azurerm_network_security_rule` - a maximum of 1 Application Security Group can be set per Security Rule  [GH-1587]
-* `azurerm_postgresql_server` - changing `tier` or `family` in `sku` property no longer destroys existing resource [GH-1598]
-* `azurerm_virtual_machine_scale_set` - `sku` property is now a list #1558 [GH-1558]
+* authentication: Refreshing the Service Principal Token before using it ([#1544](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1544))
+* dependencies: updating to`2018-02-01` of the App Service SDK ([#1436](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1436))
+* `azurerm_app_service` - support for setting `ftps_settings` in the `site_config` block ([#1577](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1577))
+* `azurerm_app_service` - support for running containers ([#1578](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1578))
+* `azurerm_app_service_slot` - support for Managed Service Identity ([#1579](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1579))
+* `azurerm_app_service_slot` - Slots can now be updated in-place ([#1436](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1436))
+* `azurerm_container_group` - support for images hosted in a private registry ([#1529](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1529))
+* `azurerm_function_app` - adding support for the `site_credential` block ([#1567](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1567))
+* `azurerm_function_app` - only setting `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` for Consumption Apps ([#1515](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1515))
+* `azurerm_mysql_server` - changing `tier` or `family` in `sku` property no longer destroys existing resource ([#1598](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1598))
+* `azurerm_network_security_rule` - a maximum of 1 Application Security Group can be set per Security Rule  ([#1587](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1587))
+* `azurerm_postgresql_server` - changing `tier` or `family` in `sku` property no longer destroys existing resource ([#1598](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1598))
+* `azurerm_virtual_machine_scale_set` - `sku` property is now a list #1558 ([#1558](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1558))
 
 BUG FIXES:
 
-* `azurerm_application_insights` - fixing a bug where `application_type` was set to `other` [GH-1563]
-* `azurerm_lb` - allow `subnet_id` to be set to an empty value [GH-1588]
-* `azurerm_servicebus_subscription` - only sending `correlation_filter` values if they're set [GH-1565]
-* `azurerm_servicebus_subscription` - setting the `default_message_ttl` field [GH-1568]
-* `azurerm_snapshot` - allowing dashes in the `name` field [GH-1574]
-* `azurerm_traffic_manager_endpoint` - working around a bug in the API by setting `target` to nil when a `target_resource_id` is specified [GH-1546]
+* `azurerm_application_insights` - fixing a bug where `application_type` was set to `other` ([#1563](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1563))
+* `azurerm_lb` - allow `subnet_id` to be set to an empty value ([#1588](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1588))
+* `azurerm_servicebus_subscription` - only sending `correlation_filter` values if they're set ([#1565](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1565))
+* `azurerm_servicebus_subscription` - setting the `default_message_ttl` field ([#1568](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1568))
+* `azurerm_snapshot` - allowing dashes in the `name` field ([#1574](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1574))
+* `azurerm_traffic_manager_endpoint` - working around a bug in the API by setting `target` to nil when a `target_resource_id` is specified ([#1546](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1546))
 
 ## 1.9.0 (July 11, 2018)
 
