@@ -9,12 +9,17 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+var azureFirewallResourceName = "azurerm_azure_firewall"
+
 func resourceArmAzureFirewall() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmAzureFirewallCreateUpdate,
 		Read:   resourceArmAzureFirewallRead,
 		Update: resourceArmAzureFirewallCreateUpdate,
 		Delete: resourceArmAzureFirewallDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
