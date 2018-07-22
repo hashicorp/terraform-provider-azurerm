@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
@@ -15,6 +16,7 @@ func TestAccAzureRMAzureFirewall_basic(t *testing.T) {
 	resourceName := "azurerm_azure_firewall.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMAzureFirewall_basic(ri, testLocation())
+	match := regexp.MustCompile("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -26,14 +28,14 @@ func TestAccAzureRMAzureFirewall_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAzureFirewallExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "ip_configuration.0.name", "configuration"),
-					resource.TestCheckResourceAttrSet(resourceName, "ip_configuration.0.name", "private_ip_address"),
+					resource.TestMatchResourceAttr(resourceName, "ip_configuration.0.private_ip_address", match),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMAzureFirewall_withTags(t * testing.T) {
+func TestAccAzureRMAzureFirewall_withTags(t *testing.T) {
 	resourceName := "azurerm_azure_firewall.test"
 	ri := acctest.RandInt()
 	preConfig := testAccAzureRMAzureFirewall_withTags(ri, testLocation())
@@ -68,7 +70,7 @@ func TestAccAzureRMAzureFirewall_withTags(t * testing.T) {
 func TestAccAzureRMAzureFirewall_disappears(t *testing.T) {
 	resourceName := "azurerm_azure_firewall.test"
 	ri := acctest.RandInt()
-	config:= testAccAzureRMAzureFirewall_basic(ri, testLocation())
+	config := testAccAzureRMAzureFirewall_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -77,7 +79,7 @@ func TestAccAzureRMAzureFirewall_disappears(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: config,
-				Check:  resource.ComposeTestCheckFunc(
+				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAzureFirewallExists(resourceName),
 					testCheckAzureRMAzureFirewallDisappears(resourceName),
 				),
@@ -253,11 +255,13 @@ func testCheckAzureRMAzureFirewallDisappears(name string) resource.TestCheckFunc
 
 		client := testAccProvider.Meta().(*ArmClient).azureFirewallsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		resp, err := cli4ent.Delete(ctx, resourceGroup, name)
+		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Delete on azureFirewallsClient: %+v", err)
-			}
+			return fmt.Errorf("Bad: Delete on azureFirewallsClient: %+v", err)
+		}
+		err = future.WaitForCompletion(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("Bad: Delete on azureFirewallsClient: %+v", err)
 		}
 
 		return nil
@@ -265,6 +269,9 @@ func testCheckAzureRMAzureFirewallDisappears(name string) resource.TestCheckFunc
 }
 
 func testCheckAzureRMAzureFirewallDestroy(s *terraform.State) error {
+	client := testAccProvider.Meta().(*ArmClient).azureFirewallsClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_azure_firewall" {
 			continue
@@ -282,7 +289,7 @@ func testCheckAzureRMAzureFirewallDestroy(s *terraform.State) error {
 			return err
 		}
 
-		return fmt.Errorf("Azure Firewall still exists:\n%#v", resp.InterfacePropertiesFormat)
+		return fmt.Errorf("Azure Firewall still exists:\n%#v", resp.AzureFirewallPropertiesFormat)
 	}
 
 	return nil
