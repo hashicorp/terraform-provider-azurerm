@@ -5,6 +5,8 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
+
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -13,6 +15,7 @@ import (
 )
 
 func TestAccAzureRMAzureFirewall_basic(t *testing.T) {
+	var firewall network.AzureFirewall
 	resourceName := "azurerm_azure_firewall.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMAzureFirewall_basic(ri, testLocation())
@@ -26,7 +29,7 @@ func TestAccAzureRMAzureFirewall_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAzureFirewallExists(resourceName),
+					testCheckAzureRMAzureFirewallExists(resourceName, &firewall),
 					resource.TestCheckResourceAttr(resourceName, "ip_configuration.0.name", "configuration"),
 					resource.TestMatchResourceAttr(resourceName, "ip_configuration.0.private_ip_address", match),
 				),
@@ -36,6 +39,7 @@ func TestAccAzureRMAzureFirewall_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAzureFirewall_withTags(t *testing.T) {
+	var firewall network.AzureFirewall
 	resourceName := "azurerm_azure_firewall.test"
 	ri := acctest.RandInt()
 	preConfig := testAccAzureRMAzureFirewall_withTags(ri, testLocation())
@@ -49,7 +53,7 @@ func TestAccAzureRMAzureFirewall_withTags(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAzureFirewallExists(resourceName),
+					testCheckAzureRMAzureFirewallExists(resourceName, &firewall),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
 					resource.TestCheckResourceAttr(resourceName, "tags.cost_center", "MSFT"),
@@ -58,7 +62,7 @@ func TestAccAzureRMAzureFirewall_withTags(t *testing.T) {
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAzureFirewallExists(resourceName),
+					testCheckAzureRMAzureFirewallExists(resourceName, &firewall),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "staging"),
 				),
@@ -68,6 +72,7 @@ func TestAccAzureRMAzureFirewall_withTags(t *testing.T) {
 }
 
 func TestAccAzureRMAzureFirewall_disappears(t *testing.T) {
+	var firewall network.AzureFirewall
 	resourceName := "azurerm_azure_firewall.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMAzureFirewall_basic(ri, testLocation())
@@ -80,7 +85,7 @@ func TestAccAzureRMAzureFirewall_disappears(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAzureFirewallExists(resourceName),
+					testCheckAzureRMAzureFirewallExists(resourceName, &firewall),
 					testCheckAzureRMAzureFirewallDisappears(resourceName),
 				),
 				ExpectNonEmptyPlan: true,
@@ -210,7 +215,7 @@ resource "azurerm_azure_firewall" "test" {
 `, rInt, location, rInt, rInt, rInt)
 }
 
-func testCheckAzureRMAzureFirewallExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMAzureFirewallExists(name string, firewall *network.AzureFirewall) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
@@ -234,6 +239,8 @@ func testCheckAzureRMAzureFirewallExists(name string) resource.TestCheckFunc {
 
 			return fmt.Errorf("Bad: Get on azureFirewallsClient: %+v", err)
 		}
+
+		*firewall = resp
 
 		return nil
 	}

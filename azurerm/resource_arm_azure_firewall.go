@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -69,6 +70,8 @@ func resourceArmAzureFirewall() *schema.Resource {
 func resourceArmAzureFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).azureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
+
+	log.Printf("[INFO] preparing arguments for AzureRM Azure Firewall creation")
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
