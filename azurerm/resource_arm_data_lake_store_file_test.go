@@ -28,12 +28,6 @@ func TestAccAzureRMDataLakeStoreFile_basic(t *testing.T) {
 					testCheckAzureRMDataLakeStoreFileExists(resourceName),
 				),
 			},
-			/* TODO Test import
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},*/
 		},
 	})
 }

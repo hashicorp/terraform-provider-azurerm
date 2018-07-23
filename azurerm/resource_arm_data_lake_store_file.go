@@ -18,9 +18,6 @@ func resourceArmDataLakeStoreFile() *schema.Resource {
 		Create: resourceArmDataLakeStoreFileCreate,
 		Read:   resourceArmDataLakeStoreFileRead,
 		Delete: resourceArmDataLakeStoreFileDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Schema: map[string]*schema.Schema{
 			"account_name": {
@@ -30,9 +27,10 @@ func resourceArmDataLakeStoreFile() *schema.Resource {
 			},
 
 			"remote_file_path": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateFilePath(),
 			},
 
 			"local_file_path": {
