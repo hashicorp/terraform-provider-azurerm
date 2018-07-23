@@ -19,7 +19,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
-	"github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
+	analyticsAccount "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
+	storeAccount "github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2018-01-01/eventgrid"
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
@@ -148,9 +149,14 @@ type ArmClient struct {
 	sqlVirtualNetworkRulesClient         sql.VirtualNetworkRulesClient
 
 	// Data Lake Store
-	dataLakeStoreAccountClient       account.AccountsClient
-	dataLakeStoreFirewallRulesClient account.FirewallRulesClient
-	dataLakeStoreFilesClient         filesystem.Client
+	dataLakeStoreAccountClient       storeAccount.AccountsClient
+	dataLakeStoreFirewallRulesClient storeAccount.FirewallRulesClient
+  dataLakeStoreFilesClient         filesystem.Client
+
+
+	// Data Lake Analytics
+	dataLakeAnalyticsAccountClient       analyticsAccount.AccountsClient
+	dataLakeAnalyticsFirewallRulesClient analyticsAccount.FirewallRulesClient
 
 	// KeyVault
 	keyVaultClient           keyvault.VaultsClient
@@ -675,17 +681,25 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 }
 
 func (c *ArmClient) registerDataLakeStoreClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
-	accountClient := account.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&accountClient.Client, auth)
-	c.dataLakeStoreAccountClient = accountClient
+	storeAccountClient := storeAccount.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&storeAccountClient.Client, auth)
+	c.dataLakeStoreAccountClient = storeAccountClient
 
-	firewallRulesClient := account.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&firewallRulesClient.Client, auth)
-	c.dataLakeStoreFirewallRulesClient = firewallRulesClient
+	storeFirewallRulesClient := storeAccount.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&storeFirewallRulesClient.Client, auth)
+	c.dataLakeStoreFirewallRulesClient = storeFirewallRulesClient
+
+	analyticsAccountClient := analyticsAccount.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&analyticsAccountClient.Client, auth)
+	c.dataLakeAnalyticsAccountClient = analyticsAccountClient
 
 	filesClient := filesystem.NewClient()
 	c.configureClient(&filesClient.Client, auth)
 	c.dataLakeStoreFilesClient = filesClient
+
+  analyticsFirewallRulesClient := analyticsAccount.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&analyticsFirewallRulesClient.Client, auth)
+	c.dataLakeAnalyticsFirewallRulesClient = analyticsFirewallRulesClient
 }
 
 func (c *ArmClient) registerDeviceClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
@@ -1035,22 +1049,22 @@ func (armClient *ArmClient) getKeyForStorageAccount(ctx context.Context, resourc
 		}
 		if err != nil {
 			// We assume this is a transient error rather than a 404 (which is caught above),  so assume the
-			// account still exists.
-			return "", true, fmt.Errorf("Error retrieving keys for storage account %q: %s", storageAccountName, err)
+			// storeAccount still exists.
+			return "", true, fmt.Errorf("Error retrieving keys for storage storeAccount %q: %s", storageAccountName, err)
 		}
 
 		if accountKeys.Keys == nil {
-			return "", false, fmt.Errorf("Nil key returned for storage account %q", storageAccountName)
+			return "", false, fmt.Errorf("Nil key returned for storage storeAccount %q", storageAccountName)
 		}
 
 		keys := *accountKeys.Keys
 		if len(keys) <= 0 {
-			return "", false, fmt.Errorf("No keys returned for storage account %q", storageAccountName)
+			return "", false, fmt.Errorf("No keys returned for storage storeAccount %q", storageAccountName)
 		}
 
 		keyPtr := keys[0].Value
 		if keyPtr == nil {
-			return "", false, fmt.Errorf("The first key returned is nil for storage account %q", storageAccountName)
+			return "", false, fmt.Errorf("The first key returned is nil for storage storeAccount %q", storageAccountName)
 		}
 
 		key = *keyPtr
@@ -1072,7 +1086,7 @@ func (armClient *ArmClient) getBlobStorageClientForStorageAccount(ctx context.Co
 	storageClient, err := mainStorage.NewClient(storageAccountName, key, armClient.environment.StorageEndpointSuffix,
 		mainStorage.DefaultAPIVersion, true)
 	if err != nil {
-		return nil, true, fmt.Errorf("Error creating storage client for storage account %q: %s", storageAccountName, err)
+		return nil, true, fmt.Errorf("Error creating storage client for storage storeAccount %q: %s", storageAccountName, err)
 	}
 
 	blobClient := storageClient.GetBlobService()
@@ -1091,7 +1105,7 @@ func (armClient *ArmClient) getFileServiceClientForStorageAccount(ctx context.Co
 	storageClient, err := mainStorage.NewClient(storageAccountName, key, armClient.environment.StorageEndpointSuffix,
 		mainStorage.DefaultAPIVersion, true)
 	if err != nil {
-		return nil, true, fmt.Errorf("Error creating storage client for storage account %q: %s", storageAccountName, err)
+		return nil, true, fmt.Errorf("Error creating storage client for storage storeAccount %q: %s", storageAccountName, err)
 	}
 
 	fileClient := storageClient.GetFileService()
@@ -1110,7 +1124,7 @@ func (armClient *ArmClient) getTableServiceClientForStorageAccount(ctx context.C
 	storageClient, err := mainStorage.NewClient(storageAccountName, key, armClient.environment.StorageEndpointSuffix,
 		mainStorage.DefaultAPIVersion, true)
 	if err != nil {
-		return nil, true, fmt.Errorf("Error creating storage client for storage account %q: %s", storageAccountName, err)
+		return nil, true, fmt.Errorf("Error creating storage client for storage storeAccount %q: %s", storageAccountName, err)
 	}
 
 	tableClient := storageClient.GetTableService()
@@ -1129,7 +1143,7 @@ func (armClient *ArmClient) getQueueServiceClientForStorageAccount(ctx context.C
 	storageClient, err := mainStorage.NewClient(storageAccountName, key, armClient.environment.StorageEndpointSuffix,
 		mainStorage.DefaultAPIVersion, true)
 	if err != nil {
-		return nil, true, fmt.Errorf("Error creating storage client for storage account %q: %s", storageAccountName, err)
+		return nil, true, fmt.Errorf("Error creating storage client for storage storeAccount %q: %s", storageAccountName, err)
 	}
 
 	queueClient := storageClient.GetQueueService()
