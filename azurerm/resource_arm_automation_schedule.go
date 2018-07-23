@@ -118,8 +118,16 @@ func resourceArmAutomationSchedule() *schema.Resource {
 							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: validateScheduleDay(),
+								Type: schema.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(automation.Monday),
+									string(automation.Tuesday),
+									string(automation.Wednesday),
+									string(automation.Thursday),
+									string(automation.Friday),
+									string(automation.Saturday),
+									string(automation.Sunday),
+								}, true),
 							},
 							Set: set.HashStringIgnoreCase,
 						},
@@ -142,7 +150,15 @@ func resourceArmAutomationSchedule() *schema.Resource {
 										Type:             schema.TypeString,
 										Required:         true,
 										DiffSuppressFunc: suppress.CaseDifference,
-										ValidateFunc:     validateScheduleDay(),
+										ValidateFunc: validation.StringInSlice([]string{
+											string(automation.Monday),
+											string(automation.Tuesday),
+											string(automation.Wednesday),
+											string(automation.Thursday),
+											string(automation.Friday),
+											string(automation.Saturday),
+											string(automation.Sunday),
+										}, true),
 									},
 									"occurrence": {
 										Type:         schema.TypeInt,
@@ -167,7 +183,7 @@ func resourceArmAutomationSchedule() *schema.Resource {
 
 			advancedSchedules, hasAdvancedSchedule := diff.GetOk("advanced_schedule")
 			if hasAdvancedSchedule {
-				if asl := advancedSchedules.([]interface{}); len(asl) > 0 && asl[0] != nil {
+				if asl := advancedSchedules.([]interface{}); len(asl) > 0 {
 					if frequency != "week" && frequency != "month" {
 						return fmt.Errorf("`advanced_schedule` can only be set when frequency is `Week` or `Month`")
 					}
@@ -262,7 +278,7 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 	//only pay attention to the advanced schedule if frequency is either Week or Month
 	if properties.Frequency == automation.Week || properties.Frequency == automation.Month {
 		if v, ok := d.GetOk("advanced_schedule"); ok {
-			if vl := v.([]interface{}); len(vl) > 0 && vl[0] != nil {
+			if vl := v.([]interface{}); len(vl) > 0 {
 				advancedRef, err := expandArmAutomationScheduleAdvanced(vl)
 				if err != nil {
 					return err
@@ -336,8 +352,8 @@ func resourceArmAutomationScheduleRead(d *schema.ResourceData, meta interface{})
 	if v := resp.TimeZone; v != nil {
 		d.Set("timezone", v)
 	}
-	if v := resp.AdvancedSchedule; v != nil {
-		d.Set("advanced_schedule", flattenArmAutomationScheduleAdvanced(v))
+	if err := d.Set("advanced_schedule", flattenArmAutomationScheduleAdvanced(resp.AdvancedSchedule)); err != nil {
+		return fmt.Errorf("Error setting `advanced_schedule`: %+v", err)
 	}
 	return nil
 }
@@ -375,6 +391,8 @@ func expandArmAutomationScheduleAdvanced(v []interface{}) (*automation.AdvancedS
 
 	expandedAdvancedSchedule := automation.AdvancedSchedule{}
 
+	// If frequency is set to `Month` the `week_days` array cannot be set (even empty), otherwise the API returns an error.
+	// Interestingly enough, during update it can be set and it will not return an error.
 	if len(weekDays) > 0 {
 		expandedWeekDays := make([]string, len(weekDays))
 		for i := range weekDays {
@@ -383,6 +401,7 @@ func expandArmAutomationScheduleAdvanced(v []interface{}) (*automation.AdvancedS
 		expandedAdvancedSchedule.WeekDays = &expandedWeekDays
 	}
 
+	// Same as above with `week_days`
 	if len(monthDays) > 0 {
 		expandedMonthDays := make([]int32, len(monthDays))
 		for i := range monthDays {
@@ -391,63 +410,54 @@ func expandArmAutomationScheduleAdvanced(v []interface{}) (*automation.AdvancedS
 		expandedAdvancedSchedule.MonthDays = &expandedMonthDays
 	}
 
-	if len(monthlyOccurrences) > 0 {
-		expandedMonthlyOccurrences := make([]automation.AdvancedScheduleMonthlyOccurrence, len(monthlyOccurrences))
-		for i := range monthlyOccurrences {
-			m := monthlyOccurrences[i].(map[string]interface{})
-			occurrence := int32(m["occurrence"].(int))
+	expandedMonthlyOccurrences := make([]automation.AdvancedScheduleMonthlyOccurrence, len(monthlyOccurrences))
+	for i := range monthlyOccurrences {
+		m := monthlyOccurrences[i].(map[string]interface{})
+		occurrence := int32(m["occurrence"].(int))
 
-			expandedMonthlyOccurrences[i] = automation.AdvancedScheduleMonthlyOccurrence{
-				Occurrence: &occurrence,
-				Day:        automation.ScheduleDay(m["day"].(string)),
-			}
+		expandedMonthlyOccurrences[i] = automation.AdvancedScheduleMonthlyOccurrence{
+			Occurrence: &occurrence,
+			Day:        automation.ScheduleDay(m["day"].(string)),
 		}
-		expandedAdvancedSchedule.MonthlyOccurrences = &expandedMonthlyOccurrences
 	}
+	expandedAdvancedSchedule.MonthlyOccurrences = &expandedMonthlyOccurrences
 
 	return &expandedAdvancedSchedule, nil
 }
 
 func flattenArmAutomationScheduleAdvanced(v *automation.AdvancedSchedule) []interface{} {
+	if v == nil {
+		return []interface{}{}
+	}
+
 	result := make(map[string]interface{})
 
+	flattenedWeekDays := schema.NewSet(set.HashStringIgnoreCase, []interface{}{})
 	if v.WeekDays != nil {
-		flattenedWeekDays := schema.NewSet(set.HashStringIgnoreCase, []interface{}{})
 		for i := range *v.WeekDays {
 			flattenedWeekDays.Add((*v.WeekDays)[i])
 		}
-		result["week_days"] = flattenedWeekDays
 	}
+	result["week_days"] = flattenedWeekDays
+
+	flattenedMonthDays := schema.NewSet(set.HashInt, []interface{}{})
 	if v.MonthDays != nil {
-		flattenedMonthDays := schema.NewSet(set.HashInt, []interface{}{})
 		for i := range *v.MonthDays {
 			flattenedMonthDays.Add(int(((*v.MonthDays)[i])))
 		}
-		result["month_days"] = flattenedMonthDays
 	}
+	result["month_days"] = flattenedMonthDays
+
+	flattenedMonthlyOccurrences := make([]map[string]interface{}, 0)
 	if v.MonthlyOccurrences != nil {
-		flattenedMonthlyOccurrences := make([]map[string]interface{}, len(*v.MonthlyOccurrences))
 		for i := range *v.MonthlyOccurrences {
 			f := make(map[string]interface{})
 			f["day"] = (*v.MonthlyOccurrences)[i].Day
 			f["occurrence"] = int(*(*v.MonthlyOccurrences)[i].Occurrence)
-			flattenedMonthlyOccurrences[i] = f
+			flattenedMonthlyOccurrences = append(flattenedMonthlyOccurrences, f)
 		}
-		result["monthly_occurrence"] = flattenedMonthlyOccurrences
 	}
+	result["monthly_occurrence"] = flattenedMonthlyOccurrences
 
 	return []interface{}{result}
-}
-
-func validateScheduleDay() schema.SchemaValidateFunc {
-
-	return validation.StringInSlice([]string{
-		string(automation.Monday),
-		string(automation.Tuesday),
-		string(automation.Wednesday),
-		string(automation.Thursday),
-		string(automation.Friday),
-		string(automation.Saturday),
-		string(automation.Sunday),
-	}, true)
 }

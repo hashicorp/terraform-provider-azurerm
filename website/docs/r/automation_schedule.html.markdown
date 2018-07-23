@@ -67,6 +67,8 @@ The following arguments are supported:
 
 * `advanced_schedule` - (Optional) Advanced fine-grained schedule frequency configuration. The `advanced_schedule` block supports fields documented below.
 
+---
+
 The `advanced_schedule` block supports:
 
 * `week_days` - (Optional) List of days of the week that the job should execute on.
@@ -74,6 +76,8 @@ The `advanced_schedule` block supports:
 * `month_days` - (Optional) List of days of the month that the job should execute on. Must be between 1 and 31. 0 for last day of the month.
 
 * `monthly_occurrence` - (Optional) List of occurrences of days within a month. The `monthly_occurrence` block supports fields documented below.
+
+---
 
 The `monthly_occurrence` block supports:
 
