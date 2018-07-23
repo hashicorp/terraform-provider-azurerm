@@ -275,7 +275,7 @@ func resourceArmSqlDatabase() *schema.Resource {
 
 			threatDetection, hasThreatDetection := diff.GetOk("threat_detection_policy")
 			if hasThreatDetection {
-				if tl := threatDetection.([]interface{}); len(tl) > 0 && tl[0] != nil {
+				if tl := threatDetection.([]interface{}); len(tl) > 0 {
 					t := tl[0].(map[string]interface{})
 
 					state := strings.ToLower(t["state"].(string))
@@ -610,7 +610,7 @@ func expandArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, location st
 		return nil, nil
 	}
 
-	if tdl := v.([]interface{}); len(tdl) > 0 && tdl[0] != nil {
+	if tdl := v.([]interface{}); len(tdl) > 0 {
 		threadDetection := tdl[0].(map[string]interface{})
 
 		state := threadDetection["state"].(string)
