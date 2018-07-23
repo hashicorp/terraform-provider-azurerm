@@ -19,6 +19,7 @@ Gets information about a Service Principal associated with an Application within
 data "azurerm_azuread_service_principal" "test" {
   display_name = "my-awesome-application"
 }
+```
 
 ## Example Usage (by Application ID)
 
