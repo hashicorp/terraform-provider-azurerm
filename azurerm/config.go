@@ -18,8 +18,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
-	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
 	analyticsAccount "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
+	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
 	storeAccount "github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2018-01-01/eventgrid"
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
@@ -151,8 +151,7 @@ type ArmClient struct {
 	// Data Lake Store
 	dataLakeStoreAccountClient       storeAccount.AccountsClient
 	dataLakeStoreFirewallRulesClient storeAccount.FirewallRulesClient
-  dataLakeStoreFilesClient         filesystem.Client
-
+	dataLakeStoreFilesClient         filesystem.Client
 
 	// Data Lake Analytics
 	dataLakeAnalyticsAccountClient       analyticsAccount.AccountsClient
@@ -697,7 +696,7 @@ func (c *ArmClient) registerDataLakeStoreClients(endpoint, subscriptionId string
 	c.configureClient(&filesClient.Client, auth)
 	c.dataLakeStoreFilesClient = filesClient
 
-  analyticsFirewallRulesClient := analyticsAccount.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
+	analyticsFirewallRulesClient := analyticsAccount.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&analyticsFirewallRulesClient.Client, auth)
 	c.dataLakeAnalyticsFirewallRulesClient = analyticsFirewallRulesClient
 }
