@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/satori/go.uuid"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -196,7 +197,97 @@ func resourceArmSqlDatabase() *schema.Resource {
 				Computed: true,
 			},
 
+			"threat_detection_policy": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"disabled_alerts": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
+						},
+
+						"email_account_admins": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
+							Default:          string(sql.SecurityAlertPolicyEmailAccountAdminsDisabled),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(sql.SecurityAlertPolicyEmailAccountAdminsDisabled),
+								string(sql.SecurityAlertPolicyEmailAccountAdminsEnabled),
+							}, true),
+						},
+
+						"email_addresses": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
+						"retention_days": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(0),
+						},
+
+						"state": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
+							Default:          string(sql.SecurityAlertPolicyStateDisabled),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(sql.SecurityAlertPolicyStateDisabled),
+								string(sql.SecurityAlertPolicyStateEnabled),
+								string(sql.SecurityAlertPolicyStateNew),
+							}, true),
+						},
+
+						"storage_account_access_key": {
+							Type:      schema.TypeString,
+							Optional:  true,
+							Sensitive: true,
+						},
+
+						"storage_endpoint": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
+						"use_server_default": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
+							Default:          string(sql.SecurityAlertPolicyUseServerDefaultDisabled),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(sql.SecurityAlertPolicyUseServerDefaultDisabled),
+								string(sql.SecurityAlertPolicyUseServerDefaultEnabled),
+							}, true),
+						},
+					},
+				},
+			},
+
 			"tags": tagsSchema(),
+		},
+
+		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+
+			threatDetection, hasThreatDetection := diff.GetOk("threat_detection_policy")
+			if hasThreatDetection {
+				if tl := threatDetection.([]interface{}); len(tl) > 0 && tl[0] != nil {
+					t := tl[0].(map[string]interface{})
+
+					state := strings.ToLower(t["state"].(string))
+					_, hasStorageEndpoint := t["storage_endpoint"]
+					_, hasStorageAccountAccessKey := t["storage_account_access_key"]
+					if state == "enabled" && !hasStorageEndpoint && !hasStorageAccountAccessKey {
+						return fmt.Errorf("`storage_endpoint` and `storage_account_access_key` are required when `state` is `Enabled`")
+					}
+				}
+			}
+
+			return nil
 		},
 	}
 }
@@ -211,6 +302,11 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	createMode := d.Get("create_mode").(string)
 	tags := d.Get("tags").(map[string]interface{})
+
+	threatDetection, err := expandArmSqlServerThreatDetectionPolicy(d, location)
+	if err != nil {
+		return fmt.Errorf("Error parsing the database threat detection policy: %+v", err)
+	}
 
 	properties := sql.Database{
 		Location: utils.String(location),
@@ -327,6 +423,14 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*resp.ID)
 
+	if threatDetection != nil {
+		threatDetectionClient := meta.(*ArmClient).sqlDatabaseThreatDetectionPoliciesClient
+		_, err = threatDetectionClient.CreateOrUpdate(ctx, resourceGroup, serverName, name, *threatDetection)
+		if err != nil {
+			return fmt.Errorf("Error setting database threat detection policy: %+v", err)
+		}
+	}
+
 	return resourceArmSqlDatabaseRead(d, meta)
 }
 
@@ -352,6 +456,19 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 		}
 
 		return fmt.Errorf("Error making Read request on Sql Database %s: %+v", name, err)
+	}
+
+	oldThreatDetection, hasOldThreatDetection := d.GetOk("threat_detection_policy")
+	if hasOldThreatDetection {
+		threatDetectionClient := meta.(*ArmClient).sqlDatabaseThreatDetectionPoliciesClient
+
+		threatDetection, err := threatDetectionClient.Get(ctx, resourceGroup, serverName, name)
+		if err == nil {
+			flattenedThreatDetection := flattenArmSqlServerThreatDetectionPolicy(threatDetection, oldThreatDetection.([]interface{}))
+			if err := d.Set("threat_detection_policy", flattenedThreatDetection); err != nil {
+				return fmt.Errorf("Error setting `threat_detection_policy`: %+v", err)
+			}
+		}
 	}
 
 	d.Set("name", resp.Name)
@@ -439,6 +556,36 @@ func flattenEncryptionStatus(encryption *[]sql.TransparentDataEncryption) string
 	return ""
 }
 
+func flattenArmSqlServerThreatDetectionPolicy(policy sql.DatabaseSecurityAlertPolicy, oldThreatDetection []interface{}) []interface{} {
+
+	properties := policy.DatabaseSecurityAlertPolicyProperties
+	threatDetectionPolicy := make(map[string]interface{})
+
+	threatDetectionPolicy["state"] = string(properties.State)
+	threatDetectionPolicy["email_account_admins"] = string(properties.EmailAccountAdmins)
+	threatDetectionPolicy["use_server_default"] = string(properties.UseServerDefault)
+
+	if properties.DisabledAlerts != nil {
+		threatDetectionPolicy["disabled_alerts"] = *properties.DisabledAlerts
+	}
+	if properties.EmailAddresses != nil {
+		threatDetectionPolicy["email_addresses"] = *properties.EmailAddresses
+	}
+	if properties.StorageEndpoint != nil {
+		threatDetectionPolicy["storage_endpoint"] = *properties.StorageEndpoint
+	}
+	if properties.RetentionDays != nil {
+		threatDetectionPolicy["retention_days"] = int(*properties.RetentionDays)
+	}
+
+	// If storage account access key is in state readd it to the new state, as the API does not return it for security reasons
+	if t, ok := oldThreatDetection[0].(map[string]interface{})["storage_account_access_key"]; ok {
+		threatDetectionPolicy["storage_account_access_key"] = t.(string)
+	}
+
+	return []interface{}{threatDetectionPolicy}
+}
+
 func expandAzureRmSqlDatabaseImport(d *schema.ResourceData) sql.ImportExtensionRequest {
 	v := d.Get("import")
 	dbimportRefs := v.([]interface{})
@@ -455,4 +602,49 @@ func expandAzureRmSqlDatabaseImport(d *schema.ResourceData) sql.ImportExtensionR
 			OperationMode:              utils.String(dbimportRef["operation_mode"].(string)),
 		},
 	}
+}
+
+func expandArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, location string) (*sql.DatabaseSecurityAlertPolicy, error) {
+	v, ok := d.GetOk("threat_detection_policy")
+	if !ok {
+		return nil, nil
+	}
+
+	if tdl := v.([]interface{}); len(tdl) > 0 && tdl[0] != nil {
+		threadDetection := tdl[0].(map[string]interface{})
+
+		state := threadDetection["state"].(string)
+		emailAccountAdmins := threadDetection["email_account_admins"].(string)
+		useServerDefault := threadDetection["use_server_default"].(string)
+
+		policy := sql.DatabaseSecurityAlertPolicy{
+			Location: utils.String(location),
+			DatabaseSecurityAlertPolicyProperties: &sql.DatabaseSecurityAlertPolicyProperties{
+				State:              sql.SecurityAlertPolicyState(state),
+				EmailAccountAdmins: sql.SecurityAlertPolicyEmailAccountAdmins(emailAccountAdmins),
+				UseServerDefault:   sql.SecurityAlertPolicyUseServerDefault(useServerDefault),
+			},
+		}
+		properties := policy.DatabaseSecurityAlertPolicyProperties
+
+		if v, ok := threadDetection["disabled_alerts"]; ok {
+			properties.DisabledAlerts = utils.String(v.(string))
+		}
+		if v, ok := threadDetection["email_addresses"]; ok {
+			properties.EmailAddresses = utils.String(v.(string))
+		}
+		if v, ok := threadDetection["retention_days"]; ok {
+			properties.RetentionDays = utils.Int32(int32(v.(int)))
+		}
+		if v, ok := threadDetection["storage_account_access_key"]; ok {
+			properties.StorageAccountAccessKey = utils.String(v.(string))
+		}
+		if v, ok := threadDetection["storage_endpoint"]; ok {
+			properties.StorageEndpoint = utils.String(v.(string))
+		}
+
+		return &policy, nil
+	}
+
+	return nil, nil
 }

@@ -127,20 +127,21 @@ type ArmClient struct {
 	iothubResourceClient devices.IotHubResourceClient
 
 	// Databases
-	mysqlConfigurationsClient            mysql.ConfigurationsClient
-	mysqlDatabasesClient                 mysql.DatabasesClient
-	mysqlFirewallRulesClient             mysql.FirewallRulesClient
-	mysqlServersClient                   mysql.ServersClient
-	postgresqlConfigurationsClient       postgresql.ConfigurationsClient
-	postgresqlDatabasesClient            postgresql.DatabasesClient
-	postgresqlFirewallRulesClient        postgresql.FirewallRulesClient
-	postgresqlServersClient              postgresql.ServersClient
-	sqlDatabasesClient                   sql.DatabasesClient
-	sqlElasticPoolsClient                sql.ElasticPoolsClient
-	sqlFirewallRulesClient               sql.FirewallRulesClient
-	sqlServersClient                     sql.ServersClient
-	sqlServerAzureADAdministratorsClient sql.ServerAzureADAdministratorsClient
-	sqlVirtualNetworkRulesClient         sql.VirtualNetworkRulesClient
+	mysqlConfigurationsClient                mysql.ConfigurationsClient
+	mysqlDatabasesClient                     mysql.DatabasesClient
+	mysqlFirewallRulesClient                 mysql.FirewallRulesClient
+	mysqlServersClient                       mysql.ServersClient
+	postgresqlConfigurationsClient           postgresql.ConfigurationsClient
+	postgresqlDatabasesClient                postgresql.DatabasesClient
+	postgresqlFirewallRulesClient            postgresql.FirewallRulesClient
+	postgresqlServersClient                  postgresql.ServersClient
+	sqlDatabasesClient                       sql.DatabasesClient
+	sqlDatabaseThreatDetectionPoliciesClient sql.DatabaseThreatDetectionPoliciesClient
+	sqlElasticPoolsClient                    sql.ElasticPoolsClient
+	sqlFirewallRulesClient                   sql.FirewallRulesClient
+	sqlServersClient                         sql.ServersClient
+	sqlServerAzureADAdministratorsClient     sql.ServerAzureADAdministratorsClient
+	sqlVirtualNetworkRulesClient             sql.VirtualNetworkRulesClient
 
 	// Data Lake Store
 	dataLakeStoreAccountClient       account.AccountsClient
@@ -629,6 +630,13 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	sqlDBClient.Sender = sender
 	sqlDBClient.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.sqlDatabasesClient = sqlDBClient
+
+	sqlDTDPClient := sql.NewDatabaseThreatDetectionPoliciesClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&sqlDTDPClient.Client)
+	sqlDTDPClient.Authorizer = auth
+	sqlDTDPClient.Sender = sender
+	sqlDTDPClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.sqlDatabaseThreatDetectionPoliciesClient = sqlDTDPClient
 
 	sqlFWClient := sql.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
 	setUserAgent(&sqlFWClient.Client)

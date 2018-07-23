@@ -73,6 +73,8 @@ The following arguments are supported:
 
 * `elastic_pool_name` - (Optional) The name of the elastic database pool.
 
+* `threat_detection_policy` - (Optional) Threat detection policy configuration. The `threat_detection_policy` block supports fields documented below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 `import` supports the following:
@@ -84,6 +86,17 @@ The following arguments are supported:
 * `administrator_login_password` - (Required) Specifies the password of the SQL administrator.
 * `authentication_type` - (Required) Specifies the type of authentication used to access the server. Valid values are `SQL` or `ADPassword`.
 * `operation_mode` - (Optional) Specifies the type of import operation being performed. The only allowable value is `Import`.
+
+`threat_detection_policy` supports  the following:
+
+* `state` - (Required) Specifies the state of the policy. If state is Enabled, storageEndpoint and storageAccountAccessKey are required.
+* `disabled_alerts` - (Optional) Specifies the semicolon-separated list of alerts that are disabled, or empty string to disable no alerts. Possible values: Sql_Injection; Sql_Injection_Vulnerability; Access_Anomaly; Usage_Anomaly.
+* `email_account_admins` - (Optional) Specifies that the alert is sent to the account administrators.
+* `email_addresses` - (Optional) Specifies the semicolon-separated list of e-mail addresses to which the alert is sent.
+* `retention_days` - (Optional) Specifies the number of days to keep in the Threat Detection audit logs.
+* `storage_account_access_key` - (Optional) Specifies the identifier key of the Threat Detection audit storage account. If state is Enabled, storageAccountAccessKey is required.
+* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). This blob storage will hold all Threat Detection audit logs. If state is Enabled, storageEndpoint is required.
+* `use_server_default` - (Optional) Specifies whether to use the default server policy.
 
 ## Attributes Reference
 

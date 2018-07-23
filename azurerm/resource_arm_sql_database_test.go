@@ -215,6 +215,44 @@ func TestAccAzureRMSqlDatabase_requestedServiceObjectiveName(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSqlDatabase_threatDetectionPolicy(t *testing.T) {
+	resourceName := "azurerm_sql_database.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+	preConfig := testAccAzureRMSqlDatabase_threatDetectionPolicy(ri, location, "Enabled", "Sql_Injection", "Enabled", "", "Disabled", 15)
+	postConfig := testAccAzureRMSqlDatabase_threatDetectionPolicy(ri, location, "Enabled", "Sql_Injection", "Enabled", "", "Disabled", 15)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlDatabaseExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.0.state", "Enabled"),
+					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.0.retention_days", "15"),
+					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.0.disabled_alerts", "Sql_Injection"),
+					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.0.email_account_admins", "Enabled"),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlDatabaseExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.0.state", "Enabled"),
+					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.0.retention_days", "15"),
+					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.0.disabled_alerts", "Sql_Injection"),
+					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.0.email_account_admins", "Enabled"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMSqlDatabaseExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
@@ -643,4 +681,52 @@ resource "azurerm_sql_database" "test" {
     requested_service_objective_name = %q
 }
 `, rInt, location, rInt, rInt, requestedServiceObjectiveName)
+}
+
+func testAccAzureRMSqlDatabase_threatDetectionPolicy(rInt int, location, state, disabledAlerts, emailAccountAdmins, emailAddresses,
+	useServerDefault string, retentionDays int) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+	name                     = "test%d"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "GRS"
+  }
+
+resource "azurerm_sql_server" "test" {
+    name = "acctestsqlserver%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    location = "${azurerm_resource_group.test.location}"
+    version = "12.0"
+    administrator_login = "mradministrator"
+    administrator_login_password = "thisIsDog11"
+}
+
+resource "azurerm_sql_database" "test" {
+    name = "acctestdb%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    server_name = "${azurerm_sql_server.test.name}"
+    location = "${azurerm_resource_group.test.location}"
+    edition = "Standard"
+    collation = "SQL_Latin1_General_CP1_CI_AS"
+	max_size_bytes = "1073741824"
+	
+	threat_detection_policy {
+		retention_days             = %d
+		state                      = "%s"
+		disabled_alerts            = "%s"
+		email_account_admins       = "%s"
+		email_addresses            = "%s"
+		storage_account_access_key = "${azurerm_storage_account.test.primary_access_key}"
+    	storage_endpoint           = "${azurerm_storage_account.test.primary_blob_endpoint}"
+		use_server_default         = "%s"
+	}
+}
+`, rInt, location, rInt, rInt, rInt, retentionDays, state, disabledAlerts, emailAccountAdmins, emailAddresses, useServerDefault)
 }
