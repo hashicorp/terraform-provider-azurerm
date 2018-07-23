@@ -7,7 +7,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -45,8 +44,7 @@ func resourceArmAzureFirewallNetworkRuleCollection() *schema.Resource {
 					string(network.AzureFirewallRCActionTypeAllow),
 					string(network.AzureFirewallRCActionTypeDeny),
 				}, true),
-				StateFunc:        ignoreCaseStateFunc,
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"rule": {
@@ -93,7 +91,8 @@ func resourceArmAzureFirewallNetworkRuleCollection() *schema.Resource {
 									string(network.UDP),
 								}, true),
 							},
-							Set: schema.HashString,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							Set:              schema.HashString,
 						},
 					},
 				},
@@ -180,6 +179,10 @@ func resourceArmAzureFirewallNetworkRuleCollectionRead(d *schema.ResourceData, m
 
 	firewall, err := client.Get(ctx, resourceGroup, fwName)
 	if err != nil {
+		if utils.ResponseWasNotFound(firewall.Response) {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("Error retrieving Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -195,7 +198,7 @@ func resourceArmAzureFirewallNetworkRuleCollectionRead(d *schema.ResourceData, m
 	if rules := collection.AzureFirewallNetworkRuleCollectionPropertiesFormat.Rules; rules != nil {
 		flattenedRules := flattenArmAzureFirewallNetworkRules(rules)
 		if err := d.Set("rule", flattenedRules); err != nil {
-			return fmt.Errorf("Error flattening `rules`: %+v", err)
+			return fmt.Errorf("Error setting `rule`: %+v", err)
 		}
 	}
 
@@ -272,15 +275,13 @@ func findArmAzureFirewallNetworkRuleCollectionByName(firewall *network.AzureFire
 }
 
 func removeArmAzureFirewallNetworkRuleCollectionByName(firewall *network.AzureFirewall, name string) *[]network.AzureFirewallNetworkRuleCollection {
-	var index int
 	collections := *firewall.AzureFirewallPropertiesFormat.NetworkRuleCollections
 	for i, collection := range collections {
 		if collection.Name != nil && *collection.Name == name {
-			index = i
+			collections = append(collections[:i], collections[i+1:]...)
 			continue
 		}
 	}
-	collections = append(collections[:index], collections[index+1:]...)
 	return &collections
 }
 
@@ -292,29 +293,24 @@ func expandArmAzureFirewallNetworkRules(d *schema.ResourceData) []network.AzureF
 		rule := nwRule.(map[string]interface{})
 
 		name := rule["name"].(string)
+		description := rule["description"].(string)
+		sourceAddresses := rule["source_addresses"].(*schema.Set)
+		destinationAddresses := rule["destination_addresses"].(*schema.Set)
+		destinationPorts := rule["destination_ports"].(*schema.Set)
+		protocols := rule["protocols"].(*schema.Set)
 		ruleToAdd := network.AzureFirewallNetworkRule{
 			Name: &name,
 		}
-		if description := rule["description"].(string); description != "" {
-			ruleToAdd.Description = &description
+		ruleToAdd.Description = &description
+		ruleToAdd.SourceAddresses = expandArmAzureFirewallSet(sourceAddresses)
+		ruleToAdd.DestinationAddresses = expandArmAzureFirewallSet(destinationAddresses)
+		ruleToAdd.DestinationPorts = expandArmAzureFirewallSet(destinationPorts)
+		nrProtocols := make([]network.AzureFirewallNetworkRuleProtocol, 0)
+		for _, v := range protocols.List() {
+			s := network.AzureFirewallNetworkRuleProtocol(v.(string))
+			nrProtocols = append(nrProtocols, s)
 		}
-		if r, ok := rule["source_addresses"].(*schema.Set); ok && r.Len() > 0 {
-			ruleToAdd.SourceAddresses = expandArmAzureFirewallSet(r)
-		}
-		if r, ok := rule["destination_addresses"].(*schema.Set); ok && r.Len() > 0 {
-			ruleToAdd.DestinationAddresses = expandArmAzureFirewallSet(r)
-		}
-		if r, ok := rule["destination_ports"].(*schema.Set); ok && r.Len() > 0 {
-			ruleToAdd.DestinationPorts = expandArmAzureFirewallSet(r)
-		}
-		if r, ok := rule["protocols"].(*schema.Set); ok && r.Len() > 0 {
-			var protocols []network.AzureFirewallNetworkRuleProtocol
-			for _, v := range r.List() {
-				s := network.AzureFirewallNetworkRuleProtocol(v.(string))
-				protocols = append(protocols, s)
-			}
-			ruleToAdd.Protocols = &protocols
-		}
+		ruleToAdd.Protocols = &nrProtocols
 		rules = append(rules, ruleToAdd)
 	}
 
@@ -323,33 +319,34 @@ func expandArmAzureFirewallNetworkRules(d *schema.ResourceData) []network.AzureF
 
 func flattenArmAzureFirewallNetworkRules(rules *[]network.AzureFirewallNetworkRule) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0)
-
-	if rules != nil {
-		for _, rule := range *rules {
-			fwRule := make(map[string]interface{})
-			fwRule["name"] = *rule.Name
-			if rule.Description != nil {
-				fwRule["description"] = *rule.Description
-			}
-			if rule.SourceAddresses != nil {
-				fwRule["source_addresses"] = sliceToSet(*rule.SourceAddresses)
-			}
-			if rule.DestinationAddresses != nil {
-				fwRule["destination_addresses"] = sliceToSet(*rule.DestinationAddresses)
-			}
-			if rule.DestinationPorts != nil {
-				fwRule["destination_ports"] = sliceToSet(*rule.DestinationPorts)
-			}
-			protocols := make([]string, 0)
-			if rule.Protocols != nil {
-				for _, protocol := range *rule.Protocols {
-					protocols = append(protocols, string(protocol))
-				}
-			}
-			fwRule["protocols"] = sliceToSet(protocols)
-			result = append(result, fwRule)
-		}
+	if rules == nil {
+		return result
 	}
-
+	for _, rule := range *rules {
+		fwRule := make(map[string]interface{})
+		if rule.Name != nil {
+			fwRule["name"] = *rule.Name
+		}
+		if rule.Description != nil {
+			fwRule["description"] = *rule.Description
+		}
+		if rule.SourceAddresses != nil {
+			fwRule["source_addresses"] = sliceToSet(*rule.SourceAddresses)
+		}
+		if rule.DestinationAddresses != nil {
+			fwRule["destination_addresses"] = sliceToSet(*rule.DestinationAddresses)
+		}
+		if rule.DestinationPorts != nil {
+			fwRule["destination_ports"] = sliceToSet(*rule.DestinationPorts)
+		}
+		protocols := make([]string, 0)
+		if rule.Protocols != nil {
+			for _, protocol := range *rule.Protocols {
+				protocols = append(protocols, string(protocol))
+			}
+		}
+		fwRule["protocols"] = sliceToSet(protocols)
+		result = append(result, fwRule)
+	}
 	return result
 }

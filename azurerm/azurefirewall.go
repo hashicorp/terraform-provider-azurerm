@@ -30,7 +30,7 @@ func fixArmAzureFirewallIPConfiguration(firewall *network.AzureFirewall) []netwo
 }
 
 func expandArmAzureFirewallSet(r *schema.Set) *[]string {
-	var result []string
+	result := make([]string, 0)
 	for _, v := range r.List() {
 		s := v.(string)
 		result = append(result, s)
