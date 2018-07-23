@@ -279,11 +279,18 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 	if properties.Frequency == automation.Week || properties.Frequency == automation.Month {
 		if v, ok := d.GetOk("advanced_schedule"); ok {
 			if vl := v.([]interface{}); len(vl) > 0 {
-				advancedRef, err := expandArmAutomationScheduleAdvanced(vl)
+				advancedRef, err := expandArmAutomationScheduleAdvanced(vl, d.Id() != "")
 				if err != nil {
 					return err
 				}
 				properties.AdvancedSchedule = advancedRef
+			}
+		} else {
+			// To make sure all the properties are unset in the event of removal, pass in an empty skeleton object
+			properties.AdvancedSchedule = &automation.AdvancedSchedule{
+				WeekDays:           &[]string{},
+				MonthDays:          &[]int32{},
+				MonthlyOccurrences: &[]automation.AdvancedScheduleMonthlyOccurrence{},
 			}
 		}
 	}
@@ -381,7 +388,7 @@ func resourceArmAutomationScheduleDelete(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func expandArmAutomationScheduleAdvanced(v []interface{}) (*automation.AdvancedSchedule, error) {
+func expandArmAutomationScheduleAdvanced(v []interface{}, update bool) (*automation.AdvancedSchedule, error) {
 
 	// Get the one and only advance schedule configuration
 	advancedSchedule := v[0].(map[string]interface{})
@@ -392,8 +399,8 @@ func expandArmAutomationScheduleAdvanced(v []interface{}) (*automation.AdvancedS
 	expandedAdvancedSchedule := automation.AdvancedSchedule{}
 
 	// If frequency is set to `Month` the `week_days` array cannot be set (even empty), otherwise the API returns an error.
-	// Interestingly enough, during update it can be set and it will not return an error.
-	if len(weekDays) > 0 {
+	// During update it can be set and it will not return an error. Workaround for the APIs behavior
+	if len(weekDays) > 0 || update {
 		expandedWeekDays := make([]string, len(weekDays))
 		for i := range weekDays {
 			expandedWeekDays[i] = weekDays[i].(string)
@@ -402,7 +409,7 @@ func expandArmAutomationScheduleAdvanced(v []interface{}) (*automation.AdvancedS
 	}
 
 	// Same as above with `week_days`
-	if len(monthDays) > 0 {
+	if len(monthDays) > 0 || update {
 		expandedMonthDays := make([]int32, len(monthDays))
 		for i := range monthDays {
 			expandedMonthDays[i] = int32(monthDays[i].(int))
