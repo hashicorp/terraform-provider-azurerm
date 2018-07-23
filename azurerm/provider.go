@@ -147,6 +147,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_data_lake_analytics_account":             resourceArmDataLakeAnalyticsAccount(),
 			"azurerm_data_lake_analytics_firewall_rule":       resourceArmDataLakeAnalyticsFirewallRule(),
 			"azurerm_data_lake_store":                         resourceArmDataLakeStore(),
+			"azurerm_data_lake_store_file":                    resourceArmDataLakeStoreFile(),
 			"azurerm_data_lake_store_firewall_rule":           resourceArmDataLakeStoreFirewallRule(),
 			"azurerm_dns_a_record":                            resourceArmDnsARecord(),
 			"azurerm_dns_aaaa_record":                         resourceArmDnsAAAARecord(),
