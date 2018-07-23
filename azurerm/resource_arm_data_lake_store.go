@@ -5,15 +5,12 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
-
+	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
-	"strings"
 )
 
 func resourceArmDataLakeStore() *schema.Resource {
@@ -55,71 +52,52 @@ func resourceArmDataLakeStore() *schema.Resource {
 				}, true),
 			},
 
-			"encryption": {
-				Type:     schema.TypeList,
+			"encryption_state": {
+				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true, //true by default, so allow read to set this
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"enabled": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  true,
-							ForceNew: true,
-						},
+				Default:  string(account.Enabled),
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(account.Enabled),
+					string(account.Disabled),
+				}, true),
+				DiffSuppressFunc: suppress.CaseDifference,
+			},
 
-						"type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true, //so the user can leave it blank
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(account.ServiceManaged),
-								string(account.UserManaged),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
-						},
+			"encryption_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(account.ServiceManaged),
+				}, true),
+				DiffSuppressFunc: suppress.CaseDifference,
+			},
 
-						//the follow are required if UserManaged is selected
-						"key_vault_id": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
+			"firewall_state": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(account.FirewallStateEnabled),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(account.FirewallStateEnabled),
+					string(account.FirewallStateDisabled),
+				}, true),
+				DiffSuppressFunc: suppress.CaseDifference,
+			},
 
-						"key_name": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.NoZeroValues,
-						},
-
-						"key_version": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.NoZeroValues,
-						},
-					},
-				},
+			"firewall_allow_azure_ips": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(account.FirewallAllowAzureIpsStateEnabled),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(account.FirewallAllowAzureIpsStateEnabled),
+					string(account.FirewallAllowAzureIpsStateDisabled),
+				}, true),
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"tags": tagsSchema(),
-		},
-
-		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
-
-			encryptionType, hasEncryptionType := d.GetOk("encryption.0.type")
-
-			if hasEncryptionType && strings.EqualFold(encryptionType.(string), string(account.UserManaged)) {
-				if _, hasKeyValueId := d.GetOk("encryption.0.key_vault_id"); !hasKeyValueId {
-					//return fmt.Errorf("encryption key_vault_id must be specified if encryption type is UserManaged")
-				}
-				if _, hasKeyName := d.GetOk("encryption.0.key_name"); !hasKeyName {
-					return fmt.Errorf("encryption key_name must be specified if encryption type is UserManaged")
-				}
-			}
-
-			return nil
 		},
 	}
 }
@@ -132,25 +110,27 @@ func resourceArmDateLakeStoreCreate(d *schema.ResourceData, meta interface{}) er
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 	tier := d.Get("tier").(string)
+
+	encryptionState := account.EncryptionState(d.Get("encryption_state").(string))
+	encryptionType := account.EncryptionConfigType(d.Get("encryption_type").(string))
+	firewallState := account.FirewallState(d.Get("firewall_state").(string))
+	firewallAllowAzureIPs := account.FirewallAllowAzureIpsState(d.Get("firewall_allow_azure_ips").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Date Lake Store creation %q (Resource Group %q)", name, resourceGroup)
+	log.Printf("[INFO] preparing arguments for Data Lake Store creation %q (Resource Group %q)", name, resourceGroup)
 
 	dateLakeStore := account.CreateDataLakeStoreAccountParameters{
 		Location: &location,
 		Tags:     expandTags(tags),
 		CreateDataLakeStoreAccountProperties: &account.CreateDataLakeStoreAccountProperties{
-			NewTier:          account.TierType(tier),
-			EncryptionConfig: expandAzureRmDataLakeStoreEncryptionConfig(d),
+			NewTier:               account.TierType(tier),
+			FirewallState:         firewallState,
+			FirewallAllowAzureIps: firewallAllowAzureIPs,
+			EncryptionState:       encryptionState,
+			EncryptionConfig: &account.EncryptionConfig{
+				Type: encryptionType,
+			},
 		},
-	}
-
-	if encryptionEnabled, ok := d.GetOkExists("encryption.0.enabled"); ok {
-		if encryptionEnabled.(bool) {
-			dateLakeStore.CreateDataLakeStoreAccountProperties.EncryptionState = account.Enabled
-		} else {
-			dateLakeStore.CreateDataLakeStoreAccountProperties.EncryptionState = account.Disabled
-		}
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, dateLakeStore)
@@ -158,7 +138,7 @@ func resourceArmDateLakeStoreCreate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error issuing create request for Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error creating Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -182,15 +162,18 @@ func resourceArmDateLakeStoreUpdate(d *schema.ResourceData, meta interface{}) er
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	newTags := d.Get("tags").(map[string]interface{})
-	newTier := d.Get("tier").(string)
+	tier := d.Get("tier").(string)
+	firewallState := account.FirewallState(d.Get("firewall_state").(string))
+	firewallAllowAzureIPs := account.FirewallAllowAzureIpsState(d.Get("firewall_allow_azure_ips").(string))
+	tags := d.Get("tags").(map[string]interface{})
 
 	props := account.UpdateDataLakeStoreAccountParameters{
-		Tags: expandTags(newTags),
 		UpdateDataLakeStoreAccountProperties: &account.UpdateDataLakeStoreAccountProperties{
-			NewTier:          account.TierType(newTier),
-			EncryptionConfig: expandAzureRmDataLakeStoreUpdateEncryptionConfig(d),
+			NewTier:               account.TierType(tier),
+			FirewallState:         firewallState,
+			FirewallAllowAzureIps: firewallAllowAzureIPs,
 		},
+		Tags: expandTags(tags),
 	}
 
 	future, err := client.Update(ctx, resourceGroup, name, props)
@@ -198,7 +181,7 @@ func resourceArmDateLakeStoreUpdate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error issuing update request for Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for the update of Data Lake Store %q (Resource Group %q) to commplete: %+v", name, resourceGroup, err)
 	}
@@ -220,10 +203,11 @@ func resourceArmDateLakeStoreRead(d *schema.ResourceData, meta interface{}) erro
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] DataLakeStoreAccount '%s' was not found (resource group '%s')", name, resourceGroup)
+			log.Printf("[WARN] Data Lake Store Account %q was not found (Resource Group %q)", name, resourceGroup)
 			d.SetId("")
 			return nil
 		}
+
 		return fmt.Errorf("Error making Read request on Azure Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -235,8 +219,14 @@ func resourceArmDateLakeStoreRead(d *schema.ResourceData, meta interface{}) erro
 
 	if properties := resp.DataLakeStoreAccountProperties; properties != nil {
 		d.Set("tier", string(properties.CurrentTier))
-		d.Set("encryption", flattenAzureRmDataLakeStoreEncryption(properties))
 
+		d.Set("encryption_state", string(properties.EncryptionState))
+		d.Set("firewall_state", string(properties.FirewallState))
+		d.Set("firewall_allow_azure_ips", string(properties.FirewallAllowAzureIps))
+
+		if config := properties.EncryptionConfig; config != nil {
+			d.Set("encryption_type", string(config.Type))
+		}
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -272,69 +262,4 @@ func resourceArmDateLakeStoreDelete(d *schema.ResourceData, meta interface{}) er
 	}
 
 	return nil
-}
-
-func expandAzureRmDataLakeStoreEncryptionConfig(d *schema.ResourceData) *account.EncryptionConfig {
-	blocks, ok := d.GetOk("encryption")
-	if !ok {
-		return nil
-	}
-
-	block := blocks.([]interface{})[0].(map[string]interface{})
-	config := account.EncryptionConfig{
-		Type: account.EncryptionConfigType(block["type"].(string)),
-	}
-
-	if config.Type == account.UserManaged {
-		config.KeyVaultMetaInfo = &account.KeyVaultMetaInfo{
-			KeyVaultResourceID: utils.String(block["key_vault_id"].(string)),
-			EncryptionKeyName:  utils.String(block["key_name"].(string)),
-		}
-
-		if v, ok := block["key_version"]; ok {
-			config.KeyVaultMetaInfo.EncryptionKeyVersion = utils.String(v.(string))
-		}
-	}
-
-	return &config
-}
-
-func expandAzureRmDataLakeStoreUpdateEncryptionConfig(d *schema.ResourceData) *account.UpdateEncryptionConfig {
-	blocks, ok := d.GetOk("encryption")
-	if !ok {
-		return nil
-	}
-
-	block := blocks.([]interface{})[0].(map[string]interface{})
-	config := account.UpdateEncryptionConfig{}
-	if itemType, ok := block["type"]; ok && strings.EqualFold(itemType.(string), string(account.UserManaged)) {
-		if v, ok := block["key_version"]; ok {
-			config.KeyVaultMetaInfo.EncryptionKeyVersion = utils.String(v.(string))
-		}
-	}
-
-	return &config
-}
-
-func flattenAzureRmDataLakeStoreEncryption(properties *account.DataLakeStoreAccountProperties) interface{} {
-	block := map[string]interface{}{
-		"enabled": bool(properties.EncryptionState == account.Enabled),
-	}
-
-	if config := properties.EncryptionConfig; config != nil {
-		block["type"] = string(config.Type)
-		if keyVault := config.KeyVaultMetaInfo; keyVault != nil {
-			if v := keyVault.KeyVaultResourceID; v != nil {
-				block["key_vault_id"] = *v
-			}
-			if v := keyVault.EncryptionKeyName; v != nil {
-				block["key_name"] = *v
-			}
-			if v := keyVault.EncryptionKeyName; v != nil {
-				block["key_version"] = *v
-			}
-		}
-	}
-
-	return []interface{}{block}
 }

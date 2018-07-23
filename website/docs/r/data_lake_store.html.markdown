@@ -44,22 +44,18 @@ The following arguments are supported:
 
 * `tier` - (Optional) The monthly commitment tier for Data Lake Store. Accepted values are `Consumption`, `Commitment_1TB`, `Commitment_10TB`, `Commitment_100TB`, `Commitment_500TB`, `Commitment_1PB` or `Commitment_5PB`.
 
-* `encryption` - (Optional/Computed) A block detailing the current encryption settings.
+* `encryption_state` - (Optional) Is Encryption enabled on this Data Lake Store Account? Possible values are `Enabled` or `Disabled`. Defaults to `Enabled`.
+
+* `encryption_type` - (Optional) The Encryption Type used for this Data Lake Store Account. Defaults to `SystemManaged` which is the only supported value at this time.
+
+-> **NOTE:** Support for User Managed encryption will be supported in the future once a bug in the API is fixed.
+
+* `firewall_allow_azure_ips` - are Azure Service IP's allowed through the firewall? Possible values are `Enabled` and `Disabled`. Defaults to `Enabled.`
+
+* `firewall_state` - the state of the Firewall. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled.`
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-`encryption` block supports the following:
-
-* `enabled` - (Optional) Sets if encryption is enabled or disabled for this store. Defaults to `false` 
-
-* `type` - (Optional) This property determins the source of the encryption keys used, can be one of `ServiceManaged` or `UserManaged`. Defaults to `ServiceManaged`.
-    
-* `key_vault_id` - (Optional) The id of a key vault to get an encryption key from. This must be specified when the encryption type is `UserManaged`
-
-* `key_name` - (Optional) The name of a key in the key vault to use for encryption. This must be specified when the encryption type is `UserManaged`
-
-* `key_version` - (Optional) The version of the key to use. This must be specified when the encryption type is `UserManaged`
-    
 ## Attributes Reference
 
 The following attributes are exported:
