@@ -16,6 +16,8 @@ Create an Azure Firewall.
 
 ~> **NOTE** The firewall subnet must be called `AzureFirewallSubnet` and the subnet mask must be at least `/25`
 
+~> **NOTE** The public IP must have a `Static` allocation and `Standard` sku
+
 ```hcl
 resource "azurerm_resource_group" "test" {
   name     = "afwrg"
@@ -67,4 +69,8 @@ The following arguments are supported:
 * `ip_configuration` - (Required) An ip configuration block as documented below.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-`ip_configuration`
+`ip_configuration` supports the following:
+
+* `name` - (Required) Specifies the name of the ip configuration.
+* `subnet_id` - (Required) Reference to the subnet associated with the ip configuration.
+* `internal_public_ip_address_id` - (Required) Reference to the public IP address associated with the firewall.

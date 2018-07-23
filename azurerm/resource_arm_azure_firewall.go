@@ -36,7 +36,6 @@ func resourceArmAzureFirewall() *schema.Resource {
 			"ip_configuration": {
 				Type:     schema.TypeList,
 				Required: true,
-				MinItems: 1,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -131,27 +130,27 @@ func resourceArmAzureFirewallRead(d *schema.ResourceData, meta interface{}) erro
 	resourceGroup := id.ResourceGroup
 	name := id.Path["azureFirewalls"]
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	firewall, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(firewall.Response) {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("Error making Read request on Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if resp.IPConfigurations != nil {
-		ipConfigs := flattenArmAzureFirewallIPConfigurations(resp.IPConfigurations)
-		d.Set("ip_configuration", ipConfigs)
+	ipConfigs := flattenArmAzureFirewallIPConfigurations(firewall.AzureFirewallPropertiesFormat.IPConfigurations)
+	if err := d.Set("ip_configuration", ipConfigs); err != nil {
+		return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
 	}
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
-	if location := resp.Location; location != nil {
+	if location := firewall.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	flattenAndSetTags(d, resp.Tags)
+	flattenAndSetTags(d, firewall.Tags)
 
 	return nil
 }
@@ -256,15 +255,36 @@ func expandArmAzureFirewallIPConfigurations(d *schema.ResourceData) ([]network.A
 }
 
 func flattenArmAzureFirewallIPConfigurations(ipConfigs *[]network.AzureFirewallIPConfiguration) []interface{} {
-	result := make([]interface{}, 0, len(*ipConfigs))
+	result := make([]interface{}, 0)
+	if ipConfigs == nil {
+		return result
+	}
 	for _, ipConfig := range *ipConfigs {
 		afIPConfig := make(map[string]interface{})
 		props := ipConfig.AzureFirewallIPConfigurationPropertiesFormat
+		if props == nil {
+			continue
+		}
 
-		afIPConfig["name"] = *ipConfig.Name
-		afIPConfig["subnet_id"] = *props.Subnet.ID
-		afIPConfig["private_ip_address"] = *props.PrivateIPAddress
-		afIPConfig["internal_public_ip_address_id"] = *props.PublicIPAddress.ID
+		if name := ipConfig.Name; name != nil {
+			afIPConfig["name"] = *name
+		}
+
+		if subnet := ipConfig.Subnet; subnet != nil {
+			if id := subnet.ID; id != nil {
+				afIPConfig["subnet_id"] = *id
+			}
+		}
+
+		if ipAddress := ipConfig.PrivateIPAddress; ipAddress != nil {
+			afIPConfig["private_ip_address"] = *ipAddress
+		}
+
+		if pip := ipConfig.PublicIPAddress; pip != nil {
+			if id := pip.ID; id != nil {
+				afIPConfig["internal_public_ip_address_id"] = *id
+			}
+		}
 		result = append(result, afIPConfig)
 	}
 
