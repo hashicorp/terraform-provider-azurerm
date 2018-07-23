@@ -15,9 +15,8 @@ import (
 
 func resourceArmDataLakeStoreFile() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataLakeStoreFileCreateUpdate,
+		Create: resourceArmDataLakeStoreFileCreate,
 		Read:   resourceArmDataLakeStoreFileRead,
-		Update: resourceArmDataLakeStoreFileCreateUpdate,
 		Delete: resourceArmDataLakeStoreFileDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -39,12 +38,13 @@ func resourceArmDataLakeStoreFile() *schema.Resource {
 			"local_file_path": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 		},
 	}
 }
 
-func resourceArmDataLakeStoreFileCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dataLakeStoreFilesClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -71,7 +71,7 @@ func resourceArmDataLakeStoreFileCreateUpdate(d *schema.ResourceData, meta inter
 		return err
 	}
 
-	_, err = client.ConcurrentAppend(ctx, accountName, remoteFilePath, ioutil.NopCloser(bytes.NewReader(fileContents)), filesystem.Autocreate, filesystem.CLOSE)
+	_, err = client.Create(ctx, accountName, remoteFilePath, ioutil.NopCloser(bytes.NewReader(fileContents)), utils.Bool(false), filesystem.CLOSE, nil, nil)
 	if err != nil {
 		return fmt.Errorf("Error issuing create request for Data Lake Store File %q : %+v", remoteFilePath, err)
 	}
