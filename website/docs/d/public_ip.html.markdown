@@ -99,6 +99,7 @@ output "public_ip_address" {
 
 * `name` - (Required) Specifies the name of the public IP address.
 * `resource_group_name` - (Required) Specifies the name of the resource group.
+* `sku` - (Optional) The SKU of the Azure Public IP. Accepted values are Basic and Standard. Defaults to Basic.
 
 
 ## Attributes Reference
