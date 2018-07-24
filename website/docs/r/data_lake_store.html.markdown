@@ -1,3 +1,4 @@
+
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_lake_store"
@@ -22,7 +23,7 @@ resource "azurerm_data_lake_store" "example" {
   name                = "consumptiondatalake"
   resource_group_name = "${azurerm_resource_group.example.name}"
   location            = "${azurerm_resource_group.example.location}"
-  
+
   encrytpion {
     type = "UserManaged"
     key_vault_id = "${azurerm_key_vault.example.id}"
@@ -46,7 +47,7 @@ The following arguments are supported:
 
 * `encryption_state` - (Optional) Is Encryption enabled on this Data Lake Store Account? Possible values are `Enabled` or `Disabled`. Defaults to `Enabled`.
 
-* `encryption_type` - (Optional) The Encryption Type used for this Data Lake Store Account. Defaults to `SystemManaged` which is the only supported value at this time.
+* `encryption_type` - (Optional) The Encryption Type used for this Data Lake Store Account. Currently can be set to `SystemManaged` when `encryption_state` is `Enabled` - and must be a blank string when it's Disabled.
 
 -> **NOTE:** Support for User Managed encryption will be supported in the future once a bug in the API is fixed.
 
