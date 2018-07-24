@@ -4,6 +4,8 @@ IMPROVEMENTS:
 
 * `azurerm_app_service` - support for `min_tls_version` in the `site_config` block [GH-1601]
 * `azurerm_app_service_slot` - support for `min_tls_version` in the `site_config` block [GH-1601]
+* `azurerm_data_lake_store` - support for enabling/disabling encryption [GH-1623]
+* `azurerm_data_lake_store` - support for managing the firewall state [GH-1623]
 
 ## 1.10.0 (July 21, 2018)
 
