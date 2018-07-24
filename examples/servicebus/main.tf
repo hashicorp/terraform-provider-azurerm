@@ -26,7 +26,7 @@ resource "azurerm_servicebus_namespace_authorization_rule" "example" {
 }
 
 resource "azurerm_servicebus_topic" "source" {
-  name                = "tfex_servicebus${random_integer.ri.result}_topic"
+  name                = "tfex_servicebus${random_integer.ri.result}~topic"
   resource_group_name = "${azurerm_resource_group.example.name}"
   namespace_name      = "${azurerm_servicebus_namespace.example.name}"
 
