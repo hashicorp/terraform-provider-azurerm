@@ -1,5 +1,9 @@
 ## 1.11.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_data_lake_store_file` [GH-1261]
+
 IMPROVEMENTS:
 
 * `azurerm_app_service` - support for `min_tls_version` in the `site_config` block [GH-1601]
