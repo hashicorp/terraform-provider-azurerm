@@ -536,7 +536,7 @@ resource "azurerm_azure_firewall_network_rule_collection" "test" {
 
 func testCheckAzureRMAzureFirewallNetworkRuleCollectionExists(name string, firewall *network.AzureFirewall) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		_, exists := findArmAzureFirewallNetworkRuleCollectionByName(firewall, name)
+		_, _, exists := findArmAzureFirewallNetworkRuleCollectionByName(firewall, name)
 		if !exists {
 			return fmt.Errorf("A Network Rule Collection with name %q cannot be found", name)
 		}
@@ -547,7 +547,7 @@ func testCheckAzureRMAzureFirewallNetworkRuleCollectionExists(name string, firew
 
 func testCheckAzureRMAzureFirewallNetworkRuleCollectionNotExists(name string, firewall *network.AzureFirewall) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		_, exists := findArmAzureFirewallNetworkRuleCollectionByName(firewall, name)
+		_, _, exists := findArmAzureFirewallNetworkRuleCollectionByName(firewall, name)
 		if exists {
 			return fmt.Errorf("A Network Rule Collection with name %q has been found", name)
 		}
@@ -561,7 +561,7 @@ func testCheckAzureRMAzureFirewallNetworkRuleCollectionDisappears(name string, f
 		client := testAccProvider.Meta().(*ArmClient).azureFirewallsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, exists := findArmAzureFirewallNetworkRuleCollectionByName(firewall, name)
+		_, _, exists := findArmAzureFirewallNetworkRuleCollectionByName(firewall, name)
 		if !exists {
 			return fmt.Errorf("A Network Rule Collection with name %q cannot be found", name)
 		}
