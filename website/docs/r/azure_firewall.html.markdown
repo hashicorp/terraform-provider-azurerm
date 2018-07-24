@@ -75,3 +75,18 @@ The following arguments are supported:
 * `internal_public_ip_address_id` - (Required) Reference to the public IP address associated with the firewall.
 
 ~> **NOTE** The public IP must have a `Static` allocation and `Standard` sku
+
+## Attributes Reference
+
+The following attributes are exported:
+
+* `id` - The Azure Firewall ID.
+* `private_ip_address` - The private IP address of the Azure Firewall.
+
+## Import
+
+Azure Firewalls can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_azure_firewall.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/azureFirewalls/testfirewall
+```
