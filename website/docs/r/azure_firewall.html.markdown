@@ -3,20 +3,16 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_azure_firewall"
 sidebar_current: "docs-azurerm-resource-azurefirewall-x"
 description: |-
-  Create an Azure Firewall.
+  Manages an Azure Firewall.
 ---
 
 # azurerm_azure_firewall
 
-Create an Azure Firewall.
+Manages an Azure Firewall.
 
 ~> **NOTE** This resource is currently in public preview.
 
 ## Example Usage
-
-~> **NOTE** The firewall subnet must be called `AzureFirewallSubnet` and the subnet mask must be at least `/25`
-
-~> **NOTE** The public IP must have a `Static` allocation and `Standard` sku
 
 ```hcl
 resource "azurerm_resource_group" "test" {
@@ -73,4 +69,9 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the ip configuration.
 * `subnet_id` - (Required) Reference to the subnet associated with the ip configuration.
+
+~> **NOTE** The firewall subnet must be called `AzureFirewallSubnet` and the subnet mask must be at least `/25`
+
 * `internal_public_ip_address_id` - (Required) Reference to the public IP address associated with the firewall.
+
+~> **NOTE** The public IP must have a `Static` allocation and `Standard` sku

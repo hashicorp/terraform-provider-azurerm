@@ -131,12 +131,12 @@ func resourceArmAzureFirewallNetworkRuleCollectionCreateUpdate(d *schema.Resourc
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, firewallName, firewall)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating Azure Firewall %q (Resource Group %q): %+v", firewallName, resourceGroup, err)
+		return fmt.Errorf("Error creating/updating network rule collection %q in Azure Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
 	}
 
 	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error waiting for creation/update of Azure Firewall %q (Resource Group %q): %+v", firewallName, resourceGroup, err)
+		return fmt.Errorf("Error waiting for creation/update of network rule collection %q in Azure Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, firewallName)
@@ -226,12 +226,12 @@ func resourceArmAzureFirewallNetworkRuleCollectionDelete(d *schema.ResourceData,
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, firewallName, firewall)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating Azure Firewall %q (Resource Group %q): %+v", firewallName, resourceGroup, err)
+		return fmt.Errorf("Error deleting network rule collection %q from Azure Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
 	}
 
 	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error waiting for creation/update of Azure Firewall %q (Resource Group %q): %+v", firewallName, resourceGroup, err)
+		return fmt.Errorf("Error waiting for deletion of network rule collection %q from Azure Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
 	}
 
 	return nil
@@ -289,12 +289,12 @@ func expandArmAzureFirewallNetworkRules(d *schema.ResourceData) []network.AzureF
 		destinationPorts := rule["destination_ports"].(*schema.Set)
 		protocols := rule["protocols"].(*schema.Set)
 		ruleToAdd := network.AzureFirewallNetworkRule{
-			Name: &name,
+			Name:                 &name,
+			Description:          utils.String(description),
+			SourceAddresses:      expandArmAzureFirewallSet(sourceAddresses),
+			DestinationAddresses: expandArmAzureFirewallSet(destinationAddresses),
+			DestinationPorts:     expandArmAzureFirewallSet(destinationPorts),
 		}
-		ruleToAdd.Description = &description
-		ruleToAdd.SourceAddresses = expandArmAzureFirewallSet(sourceAddresses)
-		ruleToAdd.DestinationAddresses = expandArmAzureFirewallSet(destinationAddresses)
-		ruleToAdd.DestinationPorts = expandArmAzureFirewallSet(destinationPorts)
 		nrProtocols := make([]network.AzureFirewallNetworkRuleProtocol, 0)
 		for _, v := range protocols.List() {
 			s := network.AzureFirewallNetworkRuleProtocol(v.(string))

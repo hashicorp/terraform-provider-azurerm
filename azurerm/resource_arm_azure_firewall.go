@@ -76,9 +76,9 @@ func resourceArmAzureFirewallCreateUpdate(d *schema.ResourceData, meta interface
 	name := d.Get("name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
-	ipConfigs, subnetToLock, vnetToLock, sgErr := expandArmAzureFirewallIPConfigurations(d)
-	if sgErr != nil {
-		return fmt.Errorf("Error Building list of Azure Firewall IP Configurations: %+v", sgErr)
+	ipConfigs, subnetToLock, vnetToLock, err := expandArmAzureFirewallIPConfigurations(d)
+	if err != nil {
+		return fmt.Errorf("Error Building list of Azure Firewall IP Configurations: %+v", err)
 	}
 
 	azureRMLockMultipleByName(subnetToLock, subnetResourceName)
@@ -91,7 +91,7 @@ func resourceArmAzureFirewallCreateUpdate(d *schema.ResourceData, meta interface
 		Location: &location,
 		Tags:     expandTags(tags),
 		AzureFirewallPropertiesFormat: &network.AzureFirewallPropertiesFormat{
-			IPConfigurations: &ipConfigs,
+			IPConfigurations: ipConfigs,
 		},
 	}
 
@@ -139,9 +139,11 @@ func resourceArmAzureFirewallRead(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error making Read request on Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	ipConfigs := flattenArmAzureFirewallIPConfigurations(firewall.AzureFirewallPropertiesFormat.IPConfigurations)
-	if err := d.Set("ip_configuration", ipConfigs); err != nil {
-		return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
+	if props := firewall.AzureFirewallPropertiesFormat; props != nil {
+		ipConfigs := flattenArmAzureFirewallIPConfigurations(props.IPConfigurations)
+		if err := d.Set("ip_configuration", ipConfigs); err != nil {
+			return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
+		}
 	}
 
 	d.Set("name", name)
@@ -208,7 +210,7 @@ func resourceArmAzureFirewallDelete(d *schema.ResourceData, meta interface{}) er
 	return err
 }
 
-func expandArmAzureFirewallIPConfigurations(d *schema.ResourceData) ([]network.AzureFirewallIPConfiguration, *[]string, *[]string, error) {
+func expandArmAzureFirewallIPConfigurations(d *schema.ResourceData) (*[]network.AzureFirewallIPConfiguration, *[]string, *[]string, error) {
 	configs := d.Get("ip_configuration").([]interface{})
 	ipConfigs := make([]network.AzureFirewallIPConfiguration, 0, len(configs))
 	subnetNamesToLock := make([]string, 0)
@@ -231,7 +233,7 @@ func expandArmAzureFirewallIPConfigurations(d *schema.ResourceData) ([]network.A
 
 		subnetID, err := parseAzureResourceID(subnet_id)
 		if err != nil {
-			return []network.AzureFirewallIPConfiguration{}, nil, nil, err
+			return nil, nil, nil, err
 		}
 
 		subnetName := subnetID.Path["subnets"]
@@ -251,7 +253,7 @@ func expandArmAzureFirewallIPConfigurations(d *schema.ResourceData) ([]network.A
 		}
 		ipConfigs = append(ipConfigs, ipConfig)
 	}
-	return ipConfigs, &subnetNamesToLock, &virtualNetworkNamesToLock, nil
+	return &ipConfigs, &subnetNamesToLock, &virtualNetworkNamesToLock, nil
 }
 
 func flattenArmAzureFirewallIPConfigurations(ipConfigs *[]network.AzureFirewallIPConfiguration) []interface{} {
@@ -270,17 +272,17 @@ func flattenArmAzureFirewallIPConfigurations(ipConfigs *[]network.AzureFirewallI
 			afIPConfig["name"] = *name
 		}
 
-		if subnet := ipConfig.Subnet; subnet != nil {
+		if subnet := props.Subnet; subnet != nil {
 			if id := subnet.ID; id != nil {
 				afIPConfig["subnet_id"] = *id
 			}
 		}
 
-		if ipAddress := ipConfig.PrivateIPAddress; ipAddress != nil {
+		if ipAddress := props.PrivateIPAddress; ipAddress != nil {
 			afIPConfig["private_ip_address"] = *ipAddress
 		}
 
-		if pip := ipConfig.PublicIPAddress; pip != nil {
+		if pip := props.PublicIPAddress; pip != nil {
 			if id := pip.ID; id != nil {
 				afIPConfig["internal_public_ip_address_id"] = *id
 			}
