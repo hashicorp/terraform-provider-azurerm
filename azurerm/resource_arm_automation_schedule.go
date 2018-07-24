@@ -277,16 +277,17 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 
 	//only pay attention to the advanced schedule if frequency is either Week or Month
 	if properties.Frequency == automation.Week || properties.Frequency == automation.Month {
+		isUpdate := d.Id() != ""
 		if v, ok := d.GetOk("advanced_schedule"); ok {
 			if vl := v.([]interface{}); len(vl) > 0 {
-				advancedRef, err := expandArmAutomationScheduleAdvanced(vl, d.Id() != "")
+				advancedRef, err := expandArmAutomationScheduleAdvanced(vl, isUpdate)
 				if err != nil {
 					return err
 				}
 				properties.AdvancedSchedule = advancedRef
 			}
-		} else {
-			// To make sure all the properties are unset in the event of removal, pass in an empty skeleton object
+		} else if isUpdate {
+			// To make sure all the properties are unset in the event of removal update, pass in an empty skeleton object
 			properties.AdvancedSchedule = &automation.AdvancedSchedule{
 				WeekDays:           &[]string{},
 				MonthDays:          &[]int32{},
@@ -388,7 +389,7 @@ func resourceArmAutomationScheduleDelete(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func expandArmAutomationScheduleAdvanced(v []interface{}, update bool) (*automation.AdvancedSchedule, error) {
+func expandArmAutomationScheduleAdvanced(v []interface{}, isUpdate bool) (*automation.AdvancedSchedule, error) {
 
 	// Get the one and only advance schedule configuration
 	advancedSchedule := v[0].(map[string]interface{})
@@ -400,7 +401,7 @@ func expandArmAutomationScheduleAdvanced(v []interface{}, update bool) (*automat
 
 	// If frequency is set to `Month` the `week_days` array cannot be set (even empty), otherwise the API returns an error.
 	// During update it can be set and it will not return an error. Workaround for the APIs behavior
-	if len(weekDays) > 0 || update {
+	if len(weekDays) > 0 || isUpdate {
 		expandedWeekDays := make([]string, len(weekDays))
 		for i := range weekDays {
 			expandedWeekDays[i] = weekDays[i].(string)
@@ -409,7 +410,7 @@ func expandArmAutomationScheduleAdvanced(v []interface{}, update bool) (*automat
 	}
 
 	// Same as above with `week_days`
-	if len(monthDays) > 0 || update {
+	if len(monthDays) > 0 || isUpdate {
 		expandedMonthDays := make([]int32, len(monthDays))
 		for i := range monthDays {
 			expandedMonthDays[i] = int32(monthDays[i].(int))
@@ -433,7 +434,8 @@ func expandArmAutomationScheduleAdvanced(v []interface{}, update bool) (*automat
 }
 
 func flattenArmAutomationScheduleAdvanced(v *automation.AdvancedSchedule) []interface{} {
-	if v == nil {
+	// If all the elements in the advanced schedule are `nil` it's assumed it doesn't exist
+	if v == nil || (v.WeekDays == nil && v.MonthDays == nil && v.MonthlyOccurrences == nil) {
 		return []interface{}{}
 	}
 
