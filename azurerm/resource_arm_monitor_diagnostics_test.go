@@ -146,7 +146,7 @@ func testCheckAzureRMMonitorDiagnosticsExists(name, objectName string) resource.
 	}
 }
 
-func testAccAzureRMMonitorDiagnostics_basic(randomInt int, location string) string {
+func testAccAzureRMMonitorDiagnostics_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 	data "azurerm_client_config" "current" {}
 
@@ -179,10 +179,10 @@ func testAccAzureRMMonitorDiagnostics_basic(randomInt int, location string) stri
 		target_resource_id = "${azurerm_key_vault.test_vault.id}"
 		storage_account_id = "${azurerm_storage_account.test_storage_logs.id}"
 		disabled_settings  = ["AuditEvent"]
-	}`, randomInt, location, randomInt, randomInt, randomInt)
+	}`, rInt, location, rInt, rInt, rInt)
 }
 
-func testAccAzureRMMonitorDiagnostics_complete(randomInt int, location string) string {
+func testAccAzureRMMonitorDiagnostics_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 	data "azurerm_client_config" "current" {}
 
@@ -224,10 +224,10 @@ func testAccAzureRMMonitorDiagnostics_complete(randomInt int, location string) s
 		storage_account_id = "${azurerm_storage_account.test_storage_logs.id}"
 		workspace_id 	   = "${azurerm_log_analytics_workspace.analytics.id}"
 		retention_days     = 90
-	}`, randomInt, location, randomInt, randomInt, randomInt, randomInt)
+	}`, rInt, location, rInt, rInt, rInt, rInt)
 }
 
-func testAccAzureRMMonitorDiagnostics_update(randomInt int, location string) string {
+func testAccAzureRMMonitorDiagnostics_update(rInt int, location string) string {
 	return fmt.Sprintf(`
 	data "azurerm_client_config" "current" {}
 
@@ -260,5 +260,5 @@ func testAccAzureRMMonitorDiagnostics_update(randomInt int, location string) str
 		target_resource_id = "${azurerm_key_vault.test_vault.id}"
 		storage_account_id = "${azurerm_storage_account.test_storage_logs.id}"
 		retention_days 	   = 30
-	}`, randomInt, location, randomInt, randomInt, randomInt)
+	}`, rInt, location, rInt, rInt, rInt)
 }

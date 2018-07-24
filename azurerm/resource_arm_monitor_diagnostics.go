@@ -3,11 +3,18 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+type monitorDiagnosticId struct {
+	resourceID string
+	name       string
+}
 
 func resourceArmMonitorDiagnostics() *schema.Resource {
 	return &schema.Resource{
@@ -84,6 +91,7 @@ func resourceArmMonitorDiagnosticsCreateUpdate(d *schema.ResourceData, meta inte
 	disabledSettings := d.Get("disabled_settings").([]interface{})
 	retentionDays := d.Get("retention_days").(int)
 
+	// TODO: I think this wants to be a Data Source?
 	allMetricSettings, allLogSettings, err := getAllDiagnosticSettings(targetResourceId, meta)
 	if err != nil {
 		return err
@@ -94,10 +102,12 @@ func resourceArmMonitorDiagnosticsCreateUpdate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Invalid value for disabled settings provided, use one or multiple of: %q", allSettings)
 	}
 
+	// TODO: remove this
 	if len(allSettings) == len(disabledSettings) {
 		return fmt.Errorf("You can not disable all settings, rather delete diagnostic logging")
 	}
 
+	// TODO: fix the schema
 	diagnosticSettings := &insights.DiagnosticSettings{}
 	diagnosticSettings.Metrics = expandMetricsConfiguration(*allMetricSettings, disabledSettings, retentionDays)
 	diagnosticSettings.Logs = expandLogConfiguration(*allLogSettings, disabledSettings, retentionDays)
@@ -115,13 +125,11 @@ func resourceArmMonitorDiagnosticsCreateUpdate(d *schema.ResourceData, meta inte
 		diagnosticSettings.EventHubName = &eventHubName
 	}
 
-	_, err = client.CreateOrUpdate(
-		ctx,
-		targetResourceId,
-		insights.DiagnosticSettingsResource{
-			DiagnosticSettings: diagnosticSettings,
-		},
-		name)
+	resource := insights.DiagnosticSettingsResource{
+		DiagnosticSettings: diagnosticSettings,
+	}
+
+	_, err = client.CreateOrUpdate(ctx, targetResourceId, resource, name)
 	if err != nil {
 		return fmt.Errorf("Error creating Diagnostics Setting %q (Resource ID %q): %+v", name, targetResourceId, err)
 	}
@@ -131,10 +139,10 @@ func resourceArmMonitorDiagnosticsCreateUpdate(d *schema.ResourceData, meta inte
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read ID for Monitor Diagnostics %q", name)
+		return fmt.Errorf("Cannot read ID for Monitor Diagnostics %q for Resource ID %q", name, targetResourceId)
 	}
 
-	d.SetId(*read.ID)
+	d.SetId(fmt.Sprintf("%s|%s", targetResourceId, name))
 
 	return resourceArmMonitorDiagnosticsRead(d, meta)
 }
@@ -143,92 +151,52 @@ func resourceArmMonitorDiagnosticsRead(d *schema.ResourceData, meta interface{})
 	client := meta.(*ArmClient).monitorDiagnosticSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	monitoringId := parseMonitorDiagnosticId(d.Id())
+	id, err := parseMonitorDiagnosticId(d.Id())
+	if err != nil {
+		return err
+	}
 
-	resp, err := client.Get(ctx, monitoringId.ResourceID, monitoringId.Name)
+	resp, err := client.Get(ctx, id.resourceID, id.name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[WARN] Monitor Diagnostics Setting %q was not found for Resource ID %q - removing from state!", id.name, id.resourceID)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Diagnostic Setting %s: %+v", monitoringId.Name, err)
+		return fmt.Errorf("Error retrieving Monitor Diagnostics Setting %q for Resource ID %q: %+v", id.name, id.resourceID, err)
 	}
 
-	d.Set("name", *resp.Name)
+	d.Set("name", id.name)
+	d.Set("target_resource_id", id.resourceID)
+	d.Set("storage_account_id", resp.StorageAccountID)
+	d.Set("event_hub_name", resp.EventHubName)
+	d.Set("event_hub_authorization_rule_id", resp.EventHubAuthorizationRuleID)
+	d.Set("workspace_id", resp.WorkspaceID)
 
-	// ID of base resource is not returned by API, so we have to guess here
-	monitoringId = parseMonitorDiagnosticId(d.Id())
-	d.Set("target_resource_id", monitoringId.ResourceID)
-
-	if resp.StorageAccountID != nil {
-		d.Set("storage_account_id", *resp.StorageAccountID)
-	}
-
-	if resp.EventHubName != nil {
-		d.Set("event_hub_name", *resp.EventHubName)
-	}
-
-	if resp.EventHubAuthorizationRuleID != nil {
-		d.Set("event_hub_authorization_rule_id", *resp.EventHubAuthorizationRuleID)
-	}
-
-	if resp.WorkspaceID != nil {
-		d.Set("workspace_id", *resp.WorkspaceID)
-	}
-
+	// TODO: handle crashes/set errors here
 	d.Set("disabled_settings", flattenDisabledSettings(*resp.Metrics, *resp.Logs))
 	d.Set("retention_days", flattenRetentionDays(*resp.Metrics, *resp.Logs))
 
 	return nil
 }
 
-func flattenDisabledSettings(metricSettings []insights.MetricSettings, logSettings []insights.LogSettings) []interface{} {
-	disabledSettings := make([]interface{}, 0)
-
-	for _, setting := range metricSettings {
-		category := *setting.Category
-		if !*setting.Enabled {
-			disabledSettings = append(disabledSettings, category)
-		}
-	}
-
-	for _, setting := range logSettings {
-		category := *setting.Category
-		if !*setting.Enabled {
-			disabledSettings = append(disabledSettings, category)
-		}
-	}
-	return disabledSettings
-}
-
-func flattenRetentionDays(metricSettings []insights.MetricSettings, logSettings []insights.LogSettings) int32 {
-	returnSetting := int32(0)
-
-	for _, setting := range metricSettings {
-		if *setting.Enabled {
-			returnSetting = *setting.RetentionPolicy.Days
-		}
-	}
-
-	for _, setting := range logSettings {
-		if *setting.Enabled {
-			returnSetting = *setting.RetentionPolicy.Days
-		}
-	}
-
-	return returnSetting
-}
-
 func resourceArmMonitorDiagnosticsDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).monitorDiagnosticSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	name := d.Get("name").(string)
-	targetResoureId := d.Get("target_resource_id").(string)
+	id, err := parseMonitorDiagnosticId(d.Id())
+	if err != nil {
+		return err
+	}
 
-	_, err := client.Delete(ctx, targetResoureId, name)
+	resp, err := client.Delete(ctx, id.resourceID, id.name)
+	if err != nil {
+		if !response.WasNotFound(resp.Response) {
+			return fmt.Errorf("Error deleting Monitor Diagnostics Setting %q for Resource Id %q: %+v", id.name, id.resourceID, err)
+		}
+	}
 
-	return err
+	return nil
 }
 
 func expandMetricsConfiguration(allMetricSettings, disabledSettings []interface{}, retentionDays int) *[]insights.MetricSettings {
@@ -281,4 +249,54 @@ func expandLogConfiguration(allLogSettings, disabledSettings []interface{}, rete
 		returnLogSettings = append(returnLogSettings, logSetting)
 	}
 	return &returnLogSettings
+}
+
+func flattenDisabledSettings(metricSettings []insights.MetricSettings, logSettings []insights.LogSettings) []interface{} {
+	disabledSettings := make([]interface{}, 0)
+
+	for _, setting := range metricSettings {
+		category := *setting.Category
+		if !*setting.Enabled {
+			disabledSettings = append(disabledSettings, category)
+		}
+	}
+
+	for _, setting := range logSettings {
+		category := *setting.Category
+		if !*setting.Enabled {
+			disabledSettings = append(disabledSettings, category)
+		}
+	}
+	return disabledSettings
+}
+
+func flattenRetentionDays(metricSettings []insights.MetricSettings, logSettings []insights.LogSettings) int32 {
+	returnSetting := int32(0)
+
+	for _, setting := range metricSettings {
+		if *setting.Enabled {
+			returnSetting = *setting.RetentionPolicy.Days
+		}
+	}
+
+	for _, setting := range logSettings {
+		if *setting.Enabled {
+			returnSetting = *setting.RetentionPolicy.Days
+		}
+	}
+
+	return returnSetting
+}
+
+func parseMonitorDiagnosticId(monitorId string) (*monitorDiagnosticId, error) {
+	v := strings.Split(monitorId, "|")
+	if len(v) != 2 {
+		return nil, fmt.Errorf("Expected the Monitor Diagnostics ID to be in the format `{resourceId}|{name}` but got %d segments", len(v))
+	}
+
+	identifier := monitorDiagnosticId{
+		resourceID: v[0],
+		name:       v[1],
+	}
+	return &identifier, nil
 }
