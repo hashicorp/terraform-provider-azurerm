@@ -286,7 +286,7 @@ The `http_listener` block supports:
 * `require_sni` - (Optional) Applicable only if protocol is https. Enables SNI for multi-hosting.
   Valid values are:
 * true
-* false
+* false (default)
 
 The `probe` block supports:
 
