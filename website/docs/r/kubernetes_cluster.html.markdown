@@ -88,13 +88,13 @@ resource "azurerm_resource_group" "test" {
 
 resource azurerm_network_security_group "test_advanced_network" {
   name                = "akc-1-nsg"
-  location            = "East US"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_virtual_network" "test_advanced_network" {
   name                = "akc-1-vnet"
-  location            = "East US"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space       = ["10.1.0.0/16"]
 }
@@ -109,7 +109,7 @@ resource "azurerm_subnet" "test_subnet" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name       = "akc-1"
-  location   = "East US"
+  location   = "${azurerm_resource_group.test.location}"
   dns_prefix = "akc-1"
 
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -138,10 +138,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-    network_plugin     = "azure"
-    dns_service_ip     = "10.0.0.10"
-    docker_bridge_cidr = "172.17.0.1/16"
-    service_cidr       = "10.0.0.0/16"
+    network_plugin = "azure"
   }
 }
 
