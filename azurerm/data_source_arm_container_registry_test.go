@@ -39,8 +39,8 @@ func testAccDataSourceAzureRMContainerRegistry_basic(rInt int) string {
 %s
 
 data "azurerm_container_registry" "test" {
-  name                = "testacccr%d"
-  resource_group_name = "testAccRg-%d"
+  name                = "${azurerm_container_registry.test.name}"
+  resource_group_name = "${azurerm_container_registry.test.resource_group_name}"
 }
-`, resource, rInt, rInt)
+`, resource)
 }

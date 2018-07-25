@@ -10,10 +10,7 @@ import (
 
 func dataSourceArmContainerRegistry() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmContainerRegistryRead,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Read:          dataSourceArmContainerRegistryRead,
 		MigrateState:  resourceAzureRMContainerRegistryMigrateState,
 		SchemaVersion: 2,
 
@@ -25,7 +22,32 @@ func dataSourceArmContainerRegistry() *schema.Resource {
 				ValidateFunc: validateAzureRMContainerRegistryName,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"location":            locationForDataSourceSchema(),
+			"admin_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"admin_password": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"admin_username": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"login_server": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"sku": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"storage_account_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
