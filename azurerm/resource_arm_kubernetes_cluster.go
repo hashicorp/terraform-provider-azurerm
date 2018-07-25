@@ -23,6 +23,32 @@ func resourceArmKubernetesCluster() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+			if v, exists := diff.GetOk("network_profile"); exists {
+				rawProfiles := v.([]interface{})
+				if len(rawProfiles) == 0 {
+					return nil
+				}
+
+				// ensure all Agent Pool Profiles are attached to a network
+				if rawAgentPools, exists := diff.GetOk("agent_pool_profile"); exists {
+					attachedToASubnet := false
+					for _, ap := range rawAgentPools.([]interface{}) {
+						agentPool := ap.(map[string]interface{})
+						if subnetId, ok := agentPool["vnet_subnet_id"]; ok && subnetId != "" {
+							attachedToASubnet = true
+							break
+						}
+					}
+
+					if !attachedToASubnet {
+						return fmt.Errorf("If a `network_profile` block is specified, the Agent Pools must be attached to a Subnet")
+					}
+				}
+			}
+
+			return nil
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
