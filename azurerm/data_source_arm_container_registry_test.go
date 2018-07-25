@@ -12,7 +12,7 @@ func TestAccDataSourceAzureRMContainerRegistry_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccDataSourceAzureRMContainerRegistry_basic(ri)
 
-	acrName := "azurerm_container_registry.test"
+	dataSourceName := "data.azurerm_container_registry.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -22,11 +22,11 @@ func TestAccDataSourceAzureRMContainerRegistry_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(acrName, "name"),
-					resource.TestCheckResourceAttrSet(acrName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(acrName, "location"),
-					resource.TestCheckResourceAttrSet(acrName, "admin_enabled"),
-					resource.TestCheckResourceAttrSet(acrName, "login_server"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "resource_group_name"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "location"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "admin_enabled"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "login_server"),
 				),
 			},
 		},
