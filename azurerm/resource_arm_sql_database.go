@@ -204,9 +204,17 @@ func resourceArmSqlDatabase() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"disabled_alerts": {
-							Type:             schema.TypeString,
-							Optional:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									"Sql_Injection",
+									"Sql_Injection_Vulnerability",
+									"Access_Anomaly",
+								}, true),
+							},
+							Set: schema.HashString,
 						},
 
 						"email_account_admins": {
@@ -221,8 +229,12 @@ func resourceArmSqlDatabase() *schema.Resource {
 						},
 
 						"email_addresses": {
-							Type:     schema.TypeString,
+							Type:     schema.TypeSet,
 							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+							Set: schema.HashString,
 						},
 
 						"retention_days": {
@@ -423,12 +435,10 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*resp.ID)
 
-	if threatDetection != nil {
-		threatDetectionClient := meta.(*ArmClient).sqlDatabaseThreatDetectionPoliciesClient
-		_, err = threatDetectionClient.CreateOrUpdate(ctx, resourceGroup, serverName, name, *threatDetection)
-		if err != nil {
-			return fmt.Errorf("Error setting database threat detection policy: %+v", err)
-		}
+	threatDetectionClient := meta.(*ArmClient).sqlDatabaseThreatDetectionPoliciesClient
+	_, err = threatDetectionClient.CreateOrUpdate(ctx, resourceGroup, serverName, name, *threatDetection)
+	if err != nil {
+		return fmt.Errorf("Error setting database threat detection policy: %+v", err)
 	}
 
 	return resourceArmSqlDatabaseRead(d, meta)
@@ -565,11 +575,21 @@ func flattenArmSqlServerThreatDetectionPolicy(policy sql.DatabaseSecurityAlertPo
 	threatDetectionPolicy["email_account_admins"] = string(properties.EmailAccountAdmins)
 	threatDetectionPolicy["use_server_default"] = string(properties.UseServerDefault)
 
-	if properties.DisabledAlerts != nil {
-		threatDetectionPolicy["disabled_alerts"] = *properties.DisabledAlerts
+	if properties.DisabledAlerts != nil && *properties.DisabledAlerts != "" {
+		alerts := strings.Split(*properties.DisabledAlerts, ";")
+		flattenedAlerts := make([]interface{}, len(alerts))
+		for i := range alerts {
+			flattenedAlerts[i] = alerts[i]
+		}
+		threatDetectionPolicy["disabled_alerts"] = schema.NewSet(schema.HashString, flattenedAlerts)
 	}
-	if properties.EmailAddresses != nil {
-		threatDetectionPolicy["email_addresses"] = *properties.EmailAddresses
+	if properties.EmailAddresses != nil && *properties.EmailAddresses != "" {
+		emails := strings.Split(*properties.EmailAddresses, ";")
+		flattenedEmails := make([]interface{}, len(emails))
+		for i := range emails {
+			flattenedEmails[i] = emails[i]
+		}
+		threatDetectionPolicy["email_addresses"] = schema.NewSet(schema.HashString, flattenedEmails)
 	}
 	if properties.StorageEndpoint != nil {
 		threatDetectionPolicy["storage_endpoint"] = *properties.StorageEndpoint
@@ -605,33 +625,41 @@ func expandAzureRmSqlDatabaseImport(d *schema.ResourceData) sql.ImportExtensionR
 }
 
 func expandArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, location string) (*sql.DatabaseSecurityAlertPolicy, error) {
+	policy := sql.DatabaseSecurityAlertPolicy{
+		Location: utils.String(location),
+		DatabaseSecurityAlertPolicyProperties: &sql.DatabaseSecurityAlertPolicyProperties{
+			State: sql.SecurityAlertPolicyStateDisabled,
+		},
+	}
+	properties := policy.DatabaseSecurityAlertPolicyProperties
+
 	v, ok := d.GetOk("threat_detection_policy")
 	if !ok {
-		return nil, nil
+		return &policy, nil
 	}
 
 	if tdl := v.([]interface{}); len(tdl) > 0 {
 		threadDetection := tdl[0].(map[string]interface{})
 
-		state := threadDetection["state"].(string)
-		emailAccountAdmins := threadDetection["email_account_admins"].(string)
-		useServerDefault := threadDetection["use_server_default"].(string)
-
-		policy := sql.DatabaseSecurityAlertPolicy{
-			Location: utils.String(location),
-			DatabaseSecurityAlertPolicyProperties: &sql.DatabaseSecurityAlertPolicyProperties{
-				State:              sql.SecurityAlertPolicyState(state),
-				EmailAccountAdmins: sql.SecurityAlertPolicyEmailAccountAdmins(emailAccountAdmins),
-				UseServerDefault:   sql.SecurityAlertPolicyUseServerDefault(useServerDefault),
-			},
-		}
-		properties := policy.DatabaseSecurityAlertPolicyProperties
+		properties.State = sql.SecurityAlertPolicyState(threadDetection["state"].(string))
+		properties.EmailAccountAdmins = sql.SecurityAlertPolicyEmailAccountAdmins(threadDetection["email_account_admins"].(string))
+		properties.UseServerDefault = sql.SecurityAlertPolicyUseServerDefault(threadDetection["use_server_default"].(string))
 
 		if v, ok := threadDetection["disabled_alerts"]; ok {
-			properties.DisabledAlerts = utils.String(v.(string))
+			alerts := v.(*schema.Set).List()
+			expandedAlerts := make([]string, len(alerts))
+			for i := range alerts {
+				expandedAlerts[i] = alerts[i].(string)
+			}
+			properties.DisabledAlerts = utils.String(strings.Join(expandedAlerts, ";"))
 		}
 		if v, ok := threadDetection["email_addresses"]; ok {
-			properties.EmailAddresses = utils.String(v.(string))
+			emails := v.(*schema.Set).List()
+			expandedEmails := make([]string, len(emails))
+			for i := range emails {
+				expandedEmails[i] = emails[i].(string)
+			}
+			properties.EmailAddresses = utils.String(strings.Join(expandedEmails, ";"))
 		}
 		if v, ok := threadDetection["retention_days"]; ok {
 			properties.RetentionDays = utils.Int32(int32(v.(int)))
@@ -646,5 +674,5 @@ func expandArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, location st
 		return &policy, nil
 	}
 
-	return nil, nil
+	return &policy, nil
 }

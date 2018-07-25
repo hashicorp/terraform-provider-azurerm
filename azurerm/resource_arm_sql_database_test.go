@@ -219,8 +219,8 @@ func TestAccAzureRMSqlDatabase_threatDetectionPolicy(t *testing.T) {
 	resourceName := "azurerm_sql_database.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	preConfig := testAccAzureRMSqlDatabase_threatDetectionPolicy(ri, location, "Enabled", "Sql_Injection", "Enabled", "", "Disabled", 15)
-	postConfig := testAccAzureRMSqlDatabase_threatDetectionPolicy(ri, location, "Enabled", "Sql_Injection", "Enabled", "", "Disabled", 15)
+	preConfig := testAccAzureRMSqlDatabase_threatDetectionPolicy(ri, location)
+	postConfig := testAccAzureRMSqlDatabase_basic(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -234,7 +234,7 @@ func TestAccAzureRMSqlDatabase_threatDetectionPolicy(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.0.state", "Enabled"),
 					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.0.retention_days", "15"),
-					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.0.disabled_alerts", "Sql_Injection"),
+					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.0.disabled_alerts.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.0.email_account_admins", "Enabled"),
 				),
 			},
@@ -242,11 +242,7 @@ func TestAccAzureRMSqlDatabase_threatDetectionPolicy(t *testing.T) {
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlDatabaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.0.state", "Enabled"),
-					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.0.retention_days", "15"),
-					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.0.disabled_alerts", "Sql_Injection"),
-					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.0.email_account_admins", "Enabled"),
+					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.#", "0"),
 				),
 			},
 		},
@@ -683,8 +679,7 @@ resource "azurerm_sql_database" "test" {
 `, rInt, location, rInt, rInt, requestedServiceObjectiveName)
 }
 
-func testAccAzureRMSqlDatabase_threatDetectionPolicy(rInt int, location, state, disabledAlerts, emailAccountAdmins, emailAddresses,
-	useServerDefault string, retentionDays int) string {
+func testAccAzureRMSqlDatabase_threatDetectionPolicy(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
@@ -718,15 +713,14 @@ resource "azurerm_sql_database" "test" {
 	max_size_bytes = "1073741824"
 	
 	threat_detection_policy {
-		retention_days             = %d
-		state                      = "%s"
-		disabled_alerts            = "%s"
-		email_account_admins       = "%s"
-		email_addresses            = "%s"
+		retention_days             = 15
+		state                      = "Enabled"
+		disabled_alerts            = ["Sql_Injection"]
+		email_account_admins       = "Enabled"
 		storage_account_access_key = "${azurerm_storage_account.test.primary_access_key}"
-    	storage_endpoint           = "${azurerm_storage_account.test.primary_blob_endpoint}"
-		use_server_default         = "%s"
+		storage_endpoint           = "${azurerm_storage_account.test.primary_blob_endpoint}"
+		use_server_default         = "Disabled"
 	}
 }
-`, rInt, location, rInt, rInt, rInt, retentionDays, state, disabledAlerts, emailAccountAdmins, emailAddresses, useServerDefault)
+`, rInt, location, rInt, rInt, rInt)
 }

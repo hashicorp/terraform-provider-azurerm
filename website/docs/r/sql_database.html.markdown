@@ -87,16 +87,18 @@ The following arguments are supported:
 * `authentication_type` - (Required) Specifies the type of authentication used to access the server. Valid values are `SQL` or `ADPassword`.
 * `operation_mode` - (Optional) Specifies the type of import operation being performed. The only allowable value is `Import`.
 
-`threat_detection_policy` supports  the following:
+---
 
-* `state` - (Required) Specifies the state of the policy. If state is Enabled, storageEndpoint and storageAccountAccessKey are required.
-* `disabled_alerts` - (Optional) Specifies the semicolon-separated list of alerts that are disabled, or empty string to disable no alerts. Possible values: Sql_Injection; Sql_Injection_Vulnerability; Access_Anomaly; Usage_Anomaly.
-* `email_account_admins` - (Optional) Specifies that the alert is sent to the account administrators.
-* `email_addresses` - (Optional) Specifies the semicolon-separated list of e-mail addresses to which the alert is sent.
+`threat_detection_policy` supports the following:
+
+* `state` - (Required) The State of the Policy. Possible values are `Enabled`, `Disabled` or `New`.
+* `disabled_alerts` - (Optional) Specifies a list of alerts which should be disabled. Possible values include `Access_Anomaly`, `Sql_Injection` and `Sql_Injection_Vulnerability`.
+* `email_account_admins` - (Optional) Should the account administrators be emailed when this alert is triggered?
+* `email_addresses` - (Optional) A list of email addresses which alerts should be sent to.
 * `retention_days` - (Optional) Specifies the number of days to keep in the Threat Detection audit logs.
 * `storage_account_access_key` - (Optional) Specifies the identifier key of the Threat Detection audit storage account. If state is Enabled, storageAccountAccessKey is required.
-* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). This blob storage will hold all Threat Detection audit logs. If state is Enabled, storageEndpoint is required.
-* `use_server_default` - (Optional) Specifies whether to use the default server policy.
+* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). This blob storage will hold all Threat Detection audit logs. Required if `state` is `Enabled`.
+* `use_server_default` - (Optional) Should the default server policy be used? Defaults to `Disabled`.
 
 ## Attributes Reference
 
