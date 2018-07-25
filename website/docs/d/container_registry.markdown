@@ -1,15 +1,15 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_container_registry"
-sidebar_current: "docs-azurerm-datasource-image"
+sidebar_current: "docs-azurerm-datasource-container-registry"
 description: |-
-  Get information about an Image
+  Get information about an Container Registry
 
 ---
 
 # Data Source: azurerm_container_registry
 
-Use this data source to access information about a Container Registry.
+Use this data source to access information about a Container Registry
 
 ## Example Usage
 
@@ -19,8 +19,8 @@ data "azurerm_container_registry" "test" {
   resource_group_name = "test"
 }
 
-output "image_id" {
-  value = "${data.azurerm_container_registry.test.id}"
+output "login_server" {
+  value = "${data.azurerm_container_registry.test.login_server}"
 }
 ```
 
@@ -40,3 +40,13 @@ The following attributes are exported:
 * `admin_username` - The Username associated with the Container Registry Admin account - if the admin account is enabled.
 
 * `admin_password` - The Password associated with the Container Registry Admin account - if the admin account is enabled.
+
+* `location` - The Azure Region in which this Container Registry exists.
+
+* `admin_enabled` - Is the Administrator account enabled for this Container Registry.
+
+* `sku` - The SKU of this Container Registry, such as `Basic`.
+
+* `storage_account_id` - The ID of the Storage Account used for this Container Registry. This is only returned for `Classic` SKU's.
+
+* `tags` - A map of tags assigned to the Container Registry.
