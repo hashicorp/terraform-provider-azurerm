@@ -30,22 +30,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 					return nil
 				}
 
-				// ensure all Agent Pool Profiles are attached to a network
-				if rawAgentPools, exists := diff.GetOk("agent_pool_profile"); exists {
-					attachedToASubnet := false
-					for _, ap := range rawAgentPools.([]interface{}) {
-						agentPool := ap.(map[string]interface{})
-						if subnetId, ok := agentPool["vnet_subnet_id"]; ok && subnetId != "" {
-							attachedToASubnet = true
-							break
-						}
-					}
-
-					if !attachedToASubnet {
-						return fmt.Errorf("If a `network_profile` block is specified, the Agent Pools must be attached to a Subnet")
-					}
-				}
-
 				// then ensure the conditionally-required fields are set
 				profile := rawProfiles[0].(map[string]interface{})
 				networkPlugin := profile["network_plugin"].(string)
@@ -262,8 +246,8 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Required: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"azure",
-								"kubenet",
+								string(containerservice.Azure),
+								string(containerservice.Kubenet),
 							}, false),
 						},
 
@@ -321,6 +305,18 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	networkProfile := expandAzureRmKubernetesClusterNetworkProfile(d)
 
 	tags := d.Get("tags").(map[string]interface{})
+
+	// we can't do this in the CustomizeDiff since the interpolations aren't evaluated at that point
+	if networkProfile != nil {
+		// ensure there's a Subnet ID attached
+		if networkProfile.NetworkPlugin == containerservice.Azure {
+			for _, profile := range agentProfiles {
+				if profile.VnetSubnetID == nil {
+					return fmt.Errorf("A `vnet_subnet_id` must be specified when the `network_plugin` is set to `azure`.")
+				}
+			}
+		}
+	}
 
 	parameters := containerservice.ManagedCluster{
 		Name:     &name,

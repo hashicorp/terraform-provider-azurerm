@@ -194,7 +194,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "network_profile.0.network_plugin", "azure"),
+					resource.TestCheckResourceAttr(resourceName, "network_profile.0.network_plugin", "kubenet"),
 				),
 			},
 		},
@@ -217,7 +217,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingKubenetComplete(t *testin
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "network_profile.0.network_plugin", "azure"),
+					resource.TestCheckResourceAttr(resourceName, "network_profile.0.network_plugin", "kubenet"),
 				),
 			},
 		},
@@ -229,7 +229,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 	ri := acctest.RandInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_advancedNetworkingKubenet(ri, clientId, clientSecret, testLocation())
+	config := testAccAzureRMKubernetesCluster_advancedNetworkingAzure(ri, clientId, clientSecret, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
