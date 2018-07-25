@@ -8,11 +8,13 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"golang.org/x/net/context"
 )
 
 var virtualMachineResourceName = "azurerm_virtual_machine"
@@ -651,6 +653,24 @@ func resourceArmVirtualMachineCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	d.SetId(*read.ID)
+
+	ipAddress, err := determineVirtualMachineIPAddress(ctx, meta, read.VirtualMachineProperties)
+	if err != nil {
+		return fmt.Errorf("Error determining IP Address for Virtual Machine %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	provisionerType := "ssh"
+	if props := read.VirtualMachineProperties; props != nil {
+		if profile := props.OsProfile; profile != nil {
+			if profile.WindowsConfiguration != nil {
+				provisionerType = "winrm"
+			}
+		}
+	}
+	d.SetConnInfo(map[string]string{
+		"type": provisionerType,
+		"host": ipAddress,
+	})
 
 	return resourceArmVirtualMachineRead(d, meta)
 }
@@ -1741,4 +1761,81 @@ func resourceArmVirtualMachineGetManagedDiskInfo(disk *compute.ManagedDiskParame
 	}
 
 	return &diskResp, nil
+}
+func determineVirtualMachineIPAddress(ctx context.Context, meta interface{}, props *compute.VirtualMachineProperties) (string, error) {
+	nicClient := meta.(*ArmClient).ifaceClient
+	pipClient := meta.(*ArmClient).publicIPClient
+
+	if props == nil {
+		return "", nil
+	}
+
+	var networkInterface *network.Interface
+
+	if profile := props.NetworkProfile; profile != nil {
+		if nicReferences := profile.NetworkInterfaces; nicReferences != nil {
+			for _, nicReference := range *nicReferences {
+				// pick out the primary if multiple NIC's are assigned
+				if len(*nicReferences) > 1 {
+					if nicReference.Primary == nil || !*nicReference.Primary {
+						continue
+					}
+				}
+
+				id, err := parseAzureResourceID(*nicReference.ID)
+				if err != nil {
+					return "", err
+				}
+
+				resourceGroup := id.ResourceGroup
+				name := id.Path["networkInterfaces"]
+
+				nic, err := nicClient.Get(ctx, resourceGroup, name, "")
+				if err != nil {
+					return "", fmt.Errorf("Error obtaining NIC %q (Resource Group %q): %+v", name, resourceGroup, err)
+				}
+
+				networkInterface = &nic
+				break
+			}
+		}
+	}
+
+	if networkInterface == nil {
+		return "", fmt.Errorf("A Network Interface wasn't found on the Virtual Machine")
+	}
+
+	if props := networkInterface.InterfacePropertiesFormat; props != nil {
+		if configs := props.IPConfigurations; configs != nil {
+			for _, config := range *configs {
+
+				if config.PublicIPAddress != nil {
+					id, err := parseAzureResourceID(*config.PublicIPAddress.ID)
+					if err != nil {
+						return "", err
+					}
+
+					resourceGroup := id.ResourceGroup
+					name := id.Path["publicIPAddresses"]
+
+					pip, err := pipClient.Get(ctx, resourceGroup, name, "")
+					if err != nil {
+						return "", fmt.Errorf("Error obtaining Public IP %q (Resource Group %q): %+v", name, resourceGroup, err)
+					}
+
+					if pipProps := pip.PublicIPAddressPropertiesFormat; props != nil {
+						if ip := pipProps.IPAddress; ip != nil {
+							return *ip, nil
+						}
+					}
+				}
+
+				if ip := config.PrivateIPAddress; ip != nil {
+					return *ip, nil
+				}
+			}
+		}
+	}
+
+	return "", fmt.Errorf("No Public or Private IP Address found on the Primary Network Interface")
 }
