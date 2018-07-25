@@ -45,6 +45,20 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						return fmt.Errorf("If a `network_profile` block is specified, the Agent Pools must be attached to a Subnet")
 					}
 				}
+
+				// then ensure the conditionally-required fields are set
+				profile := rawProfiles[0].(map[string]interface{})
+				networkPlugin := profile["network_plugin"].(string)
+
+				if networkPlugin == "kubenet" {
+					dockerBridgeCidr := profile["docker_bridge_cidr"].(string)
+					dnsServiceIP := profile["dns_service_ip"].(string)
+					serviceCidr := profile["service_cidr"].(string)
+
+					if dockerBridgeCidr == "" || dnsServiceIP == "" || serviceCidr == "" {
+						return fmt.Errorf("If the `network_plugin` is set to `kubenet` then the fields `docker_bridge_cidr`, `dns_service_ip` and `service_cidr` must not be empty.")
+					}
+				}
 			}
 
 			return nil
@@ -247,6 +261,10 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"azure",
+								"kubenet",
+							}, false),
 						},
 
 						"dns_service_ip": {
