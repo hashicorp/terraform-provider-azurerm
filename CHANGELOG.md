@@ -1,19 +1,19 @@
-## 1.11.0 (Unreleased)
+## 1.11.0 (July 25, 2018)
 
 FEATURES:
 
-* **New Resource:** `azurerm_data_lake_store_file` [GH-1261]
+* **New Resource:** `azurerm_data_lake_store_file` ([#1261](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1261))
 
 IMPROVEMENTS:
 
-* `azurerm_app_service` - support for `min_tls_version` in the `site_config` block [GH-1601]
-* `azurerm_app_service_slot` - support for `min_tls_version` in the `site_config` block [GH-1601]
-* `azurerm_data_lake_store` - support for enabling/disabling encryption [GH-1623]
-* `azurerm_data_lake_store` - support for managing the firewall state [GH-1623]
+* `azurerm_app_service` - support for `min_tls_version` in the `site_config` block ([#1601](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1601))
+* `azurerm_app_service_slot` - support for `min_tls_version` in the `site_config` block ([#1601](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1601))
+* `azurerm_data_lake_store` - support for enabling/disabling encryption ([#1623](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1623))
+* `azurerm_data_lake_store` - support for managing the firewall state ([#1623](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1623))
 
 BUG FIXES:
 
-* `azurerm_servicebus_topic` - the `name` property now allows the ~ character [GH-1640]
+* `azurerm_servicebus_topic` - the `name` property now allows the ~ character ([#1640](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1640))
 
 ## 1.10.0 (July 21, 2018)
 
