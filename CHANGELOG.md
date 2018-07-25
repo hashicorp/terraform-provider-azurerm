@@ -11,6 +11,10 @@ IMPROVEMENTS:
 * `azurerm_data_lake_store` - support for enabling/disabling encryption [GH-1623]
 * `azurerm_data_lake_store` - support for managing the firewall state [GH-1623]
 
+BUG FIXES:
+
+* `azurerm_servicebus_topic` - the `name` property now allows the ~ character [GH-1640]
+
 ## 1.10.0 (July 21, 2018)
 
 FEATURES:
