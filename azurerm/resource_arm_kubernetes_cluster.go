@@ -217,14 +217,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-
 						"network_plugin": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
-						},
-
-						"service_cidr": {
 							Type:     schema.TypeString,
 							Required: true,
 							ForceNew: true,
@@ -232,21 +225,29 @@ func resourceArmKubernetesCluster() *schema.Resource {
 
 						"dns_service_ip": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
+							Computed: true,
 							ForceNew: true,
 						},
 
 						"docker_bridge_cidr": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  "172.17.0.1/16",
+							Computed: true,
 							ForceNew: true,
 						},
 
 						"pod_cidr": {
 							Type:     schema.TypeString,
-							Default:  "10.244.0.0/24",
 							Optional: true,
+							Computed: true,
+							ForceNew: true,
+						},
+
+						"service_cidr": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
 							ForceNew: true,
 						},
 					},
@@ -370,8 +371,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	networkProfile := flattenKubernetesClusterDataSourceNetworkProfile(resp.NetworkProfile)
-
+	networkProfile := flattenAzureRmKubernetesClusterNetworkProfile(resp.NetworkProfile)
 	if err := d.Set("network_profile", networkProfile); err != nil {
 		return fmt.Errorf("Error setting `network_profile`: %+v", err)
 	}
@@ -650,18 +650,30 @@ func expandAzureRmKubernetesClusterNetworkProfile(d *schema.ResourceData) *conta
 
 	config := configs[0].(map[string]interface{})
 
-	dnsServiceIP := config["dns_service_ip"].(string)
-	dockerBridgeCidr := config["docker_bridge_cidr"].(string)
 	networkPlugin := config["network_plugin"].(string)
-	podCidr := config["pod_cidr"].(string)
-	serviceCidr := config["service_cidr"].(string)
 
 	networkProfile := containerservice.NetworkProfile{
-		DNSServiceIP:     utils.String(dnsServiceIP),
-		DockerBridgeCidr: utils.String(dockerBridgeCidr),
-		NetworkPlugin:    containerservice.NetworkPlugin(networkPlugin),
-		PodCidr:          utils.String(podCidr),
-		ServiceCidr:      utils.String(serviceCidr),
+		NetworkPlugin: containerservice.NetworkPlugin(networkPlugin),
+	}
+
+	if v, ok := config["dns_service_ip"]; ok && v.(string) != "" {
+		dnsServiceIP := v.(string)
+		networkProfile.DNSServiceIP = utils.String(dnsServiceIP)
+	}
+
+	if v, ok := config["pod_cidr"]; ok && v.(string) != "" {
+		podCidr := v.(string)
+		networkProfile.PodCidr = utils.String(podCidr)
+	}
+
+	if v, ok := config["docker_bridge_cidr"]; ok && v.(string) != "" {
+		dockerBridgeCidr := v.(string)
+		networkProfile.DockerBridgeCidr = utils.String(dockerBridgeCidr)
+	}
+
+	if v, ok := config["service_cidr"]; ok && v.(string) != "" {
+		serviceCidr := v.(string)
+		networkProfile.ServiceCidr = utils.String(serviceCidr)
 	}
 
 	return &networkProfile
