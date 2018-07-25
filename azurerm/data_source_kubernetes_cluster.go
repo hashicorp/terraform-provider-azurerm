@@ -161,6 +161,39 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			"network_profile": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"network_plugin": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"service_cidr": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"dns_service_ip": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"docker_bridge_cidr": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"pod_cidr": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": tagsForDataSourceSchema(),
 		},
 	}
@@ -215,6 +248,12 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 		if err := d.Set("service_principal", servicePrincipal); err != nil {
 			return fmt.Errorf("Error setting `service_principal`: %+v", err)
 		}
+	}
+
+	networkProfile := flattenKubernetesClusterDataSourceNetworkProfile(resp.NetworkProfile)
+
+	if err := d.Set("network_profile", networkProfile); err != nil {
+		return fmt.Errorf("Error setting `network_profile`: %+v", err)
 	}
 
 	kubeConfigRaw, kubeConfig := flattenKubernetesClusterDataSourceAccessProfile(&profile)
@@ -347,6 +386,30 @@ func flattenKubernetesClusterDataSourceKubeConfig(config kubernetes.KubeConfig) 
 	values["client_certificate"] = user.ClientCertificteData
 	values["client_key"] = user.ClientKeyData
 	values["cluster_ca_certificate"] = cluster.ClusterAuthorityData
+
+	return []interface{}{values}
+}
+
+func flattenKubernetesClusterDataSourceNetworkProfile(profile *containerservice.NetworkProfile) []interface{} {
+	values := make(map[string]interface{})
+
+	values["network_plugin"] = profile.NetworkPlugin
+
+	if profile.ServiceCidr != nil {
+		values["service_cidr"] = *profile.ServiceCidr
+	}
+
+	if profile.DNSServiceIP != nil {
+		values["dns_service_ip"] = *profile.DNSServiceIP
+	}
+
+	if profile.DockerBridgeCidr != nil {
+		values["docker_bridge_cidr"] = *profile.DockerBridgeCidr
+	}
+
+	if profile.PodCidr != nil {
+		values["pod_cidr"] = *profile.PodCidr
+	}
 
 	return []interface{}{values}
 }

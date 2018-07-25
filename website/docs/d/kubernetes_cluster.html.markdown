@@ -55,6 +55,8 @@ The following attributes are exported:
 
 * `service_principal` - A `service_principal` block as documented below.
 
+* `network_profile` - A `network_profile` block as documented below.
+
 * `tags` - A mapping of tags assigned to this resource.
 
 ---
@@ -107,3 +109,11 @@ provider "kubernetes" {
 `service_principal` supports the following:
 
 * `client_id` - The Client ID of the Service Principal used by this Managed Kubernetes Cluster.
+
+`network_profile` exports the following:
+
+* `network_plugin` - Network plugin used such as `azure` or `kubenet`.
+* `service_cidr` - Network range used by the Kubernetes service.
+* `dns_service_ip` - IP address within the Kubernetes service address range used by cluster service discovery (kube-dns).
+* `docker_bridge_cidr` - IP address (in CIDR notation) used as the Docker bridge IP address on nodes.
+* `pod_cidr` - The CIDR used for pod IP addresses.
