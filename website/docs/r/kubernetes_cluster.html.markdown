@@ -211,7 +211,7 @@ The following arguments are supported:
 * `vm_size` - (Required) The size of each VM in the Agent Pool (e.g. `Standard_F1`). Changing this forces a new resource to be created.
 * `os_disk_size_gb` - (Optional) The Agent Operating System disk size in GB. Changing this forces a new resource to be created.
 * `os_type` - (Optional) The Operating System used for the Agents. Possible values are `Linux` and `Windows`.  Changing this forces a new resource to be created. Defaults to `Linux`.
-* ``vnet_subnet_id`` - (Optional) The ID of the Subnet where the Agents in the Pool should be provisioned. Changing this forces a new resource to be created.
+* `vnet_subnet_id` - (Optional) The ID of the Subnet where the Agents in the Pool should be provisioned. Changing this forces a new resource to be created.
 
 `service_principal` supports the following:
 
@@ -224,11 +224,40 @@ The following arguments are supported:
 
 -> **NOTE:** When `network_plugin` is set to `azure` - the `vnet_subnet_id` field in the `agent_pool_profile` block must be set.
 
-* `service_cidr` - (Required) Network range used by the Kubernetes service.  Changing this forces a new resource to be created. *Note: This range should not be used by any network element on or connected to this VNet. Service address CIDR must be smaller than /12.*
-* `dns_service_ip` - (Required) IP address within the Kubernetes service address range that will be used by cluster service discovery (kube-dns).  Changing this forces a new resource to be created.
-* `docker_bridge_cidr` - (Optional) IP address (in CIDR notation) used as the Docker bridge IP address on nodes. Default: 172.17.0.1/16.  Changing this forces a new resource to be created.
-* `pod_cidr` - (Optional) The CIDR to use for pod IP addresses. Default: 10.244.0.0/24. Changing this forces a new resource to be created.
+* `service_cidr` - (Optional) The Network Range used by the Kubernetes service. This is required when `network_plugin` is set to `kubenet`. Changing this forces a new resource to be created.
 
+~> **NOTE:** This range should not be used by any network element on or connected to this VNet. Service address CIDR must be smaller than /12.
+
+* `dns_service_ip` - (Optional) IP address within the Kubernetes service address range that will be used by cluster service discovery (kube-dns). This is required when `network_plugin` is set to `kubenet`. Changing this forces a new resource to be created.
+
+* `docker_bridge_cidr` - (Optional) IP address (in CIDR notation) used as the Docker bridge IP address on nodes. This is required when `network_plugin` is set to `kubenet`. Changing this forces a new resource to be created.
+
+* `pod_cidr` - (Optional) The CIDR to use for pod IP addresses. Changing this forces a new resource to be created.
+
+Here's an example of configuring the `kubenet` Networking Profile:
+
+```
+resource "azurerm_subnet" "test" {
+  # ...
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  # ...
+
+  agent_pool_profile {
+    # ...
+    vnet_subnet_id = "${azurerm_subnet.test.id}"
+  }
+
+  network_profile {
+    network_plugin     = "kubenet"
+    pod_cidr           = "10.244.0.0/24"
+    dns_service_ip     = "10.10.0.10"
+    docker_bridge_cidr = "172.17.0.1/16"
+    service_cidr       = "10.10.0.0/16"
+  }
+}
+```
 
 
 [**Find out more about AKS Advanced Networking**](https://docs.microsoft.com/en-us/azure/aks/networking-overview#advanced-networking)
