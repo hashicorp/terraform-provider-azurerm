@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -10,9 +9,7 @@ import (
 
 func dataSourceArmContainerRegistry() *schema.Resource {
 	return &schema.Resource{
-		Read:          dataSourceArmContainerRegistryRead,
-		MigrateState:  resourceAzureRMContainerRegistryMigrateState,
-		SchemaVersion: 2,
+		Read: dataSourceArmContainerRegistryRead,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -62,9 +59,7 @@ func dataSourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Container Registry %q was not found in Resource Group %q", name, resourceGroup)
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Container Registry %q was not found in Resource Group %q", name, resourceGroup)
 		}
 
 		return fmt.Errorf("Error making Read request on Azure Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
