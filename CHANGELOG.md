@@ -1,4 +1,9 @@
 ## 1.12.0 (Unreleased)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_container_registry` [GH-1642]
+
 ## 1.11.0 (July 25, 2018)
 
 FEATURES:
