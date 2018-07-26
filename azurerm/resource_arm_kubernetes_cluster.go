@@ -291,20 +291,19 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Type:     schema.TypeList,
 				MaxItems: 1,
 				Optional: true,
-				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"http_application_routing": {
 							Type:     schema.TypeList,
 							MaxItems: 1,
-							Optional: true,
 							ForceNew: true,
+							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
 										Type:     schema.TypeBool,
-										Required: true,
 										ForceNew: true,
+										Required: true,
 									},
 									"config": {
 										Type:     schema.TypeMap,
@@ -314,6 +313,32 @@ func resourceArmKubernetesCluster() *schema.Resource {
 												"http_application_routing_zone_name": {
 													Type:     schema.TypeString,
 													Computed: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+
+						"oms_agent": {
+							Type:     schema.TypeList,
+							MaxItems: 1,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enabled": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+									"config": {
+										Type:     schema.TypeMap,
+										Required: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"log_analytics_workspace_resource_id": {
+													Type:     schema.TypeString,
+													Required: true,
 												},
 											},
 										},
@@ -641,17 +666,37 @@ func flattenAzureRmKubernetesClusterAddonProfiles(profile map[string]*containers
 
 	if httpApplicationRouting := profile["httpApplicationRouting"]; httpApplicationRouting != nil {
 		enabled := false
-		config := make(map[string]string)
-
 		if enabledVal := httpApplicationRouting.Enabled; enabledVal != nil {
 			enabled = *enabledVal
 		}
+
+		config := make(map[string]string)
 
 		if zoneName := httpApplicationRouting.Config["HTTPApplicationRoutingZoneName"]; zoneName != nil {
 			config["http_application_routing_zone_name"] = *zoneName
 		}
 
 		values["http_application_routing"] = []interface{}{
+			map[string]interface{}{
+				"enabled": enabled,
+				"config":  config,
+			},
+		}
+	}
+
+	if omsAgent := profile["omsAgent"]; omsAgent != nil {
+		enabled := false
+		if enabledVal := omsAgent.Enabled; enabledVal != nil {
+			enabled = *enabledVal
+		}
+
+		config := make(map[string]string)
+
+		if workspaceResourceID := omsAgent.Config["logAnalyticsWorkspaceResourceID"]; workspaceResourceID != nil {
+			config["log_analytics_workspace_resource_id"] = *workspaceResourceID
+		}
+
+		values["oms_agent"] = []interface{}{
 			map[string]interface{}{
 				"enabled": enabled,
 				"config":  config,
@@ -803,12 +848,19 @@ func expandAzureRmKubernetesClusterAddonProfiles(d *schema.ResourceData) map[str
 		return nil
 	}
 
-	config := profiles[0].(map[string]interface{})
+	profile := profiles[0].(map[string]interface{})
 	addonProfiles := map[string]*containerservice.ManagedClusterAddonProfile{}
 
-	if httpApplicationRouting := config["http_application_routing"].([]interface{}); httpApplicationRouting != nil {
+	httpApplicationRouting := profile["http_application_routing"].([]interface{})
+	if len(httpApplicationRouting) > 0 {
 		value := httpApplicationRouting[0].(map[string]interface{})
 		addonProfiles["httpApplicationRouting"] = expandAzureRmKubernetesClusterAddonProfile(value)
+	}
+
+	omsAgent := profile["oms_agent"].([]interface{})
+	if len(omsAgent) > 0 {
+		value := omsAgent[0].(map[string]interface{})
+		addonProfiles["omsAgent"] = expandAzureRmKubernetesClusterAddonProfile(value)
 	}
 
 	return addonProfiles
@@ -820,10 +872,10 @@ func expandAzureRmKubernetesClusterAddonProfile(v map[string]interface{}) *conta
 		Enabled: utils.Bool(enabled),
 	}
 
-	if v["config"] != nil {
+	if c, ok := v["config"]; ok == true {
 		config := make(map[string]*string)
 
-		for key, val := range v["config"].(map[string]interface{}) {
+		for key, val := range c.(map[string]interface{}) {
 			config[key] = utils.String(val.(string))
 		}
 
