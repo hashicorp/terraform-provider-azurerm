@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_queue"
-sidebar_current: "docs-azurerm-resource-servicebus-queue"
+sidebar_current: "docs-azurerm-resource-messaging-servicebus-queue"
 description: |-
   Create a ServiceBus Queue.
 ---

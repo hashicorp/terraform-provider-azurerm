@@ -31,6 +31,49 @@ func TestAccAzureRMKeyVaultCertificate_basicImportPFX(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKeyVaultCertificate_disappears(t *testing.T) {
+	resourceName := "azurerm_key_vault_certificate.test"
+	rs := acctest.RandString(6)
+	config := testAccAzureRMKeyVaultCertificate_basicGenerate(rs, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultCertificateExists(resourceName),
+					testCheckAzureRMKeyVaultCertificateDisappears(resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMKeyVaultCertificate_disappearsWhenParentKeyVaultDeleted(t *testing.T) {
+	rs := acctest.RandString(6)
+	config := testAccAzureRMKeyVaultCertificate_basicGenerate(rs, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultCertificateExists("azurerm_key_vault_certificate.test"),
+					testCheckAzureRMKeyVaultDisappears("azurerm_key_vault.test"),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMKeyVaultCertificate_basicGenerate(t *testing.T) {
 	resourceName := "azurerm_key_vault_certificate.test"
 	rs := acctest.RandString(6)
@@ -123,6 +166,32 @@ func testCheckAzureRMKeyVaultCertificateExists(name string) resource.TestCheckFu
 			}
 
 			return fmt.Errorf("Bad: Get on keyVaultManagementClient: %+v", err)
+		}
+
+		return nil
+	}
+}
+
+func testCheckAzureRMKeyVaultCertificateDisappears(name string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return fmt.Errorf("Not found: %s", name)
+		}
+		name := rs.Primary.Attributes["name"]
+		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
+
+		client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		resp, err := client.DeleteCertificate(ctx, vaultBaseUrl, name)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return nil
+			}
+
+			return fmt.Errorf("Bad: Delete on keyVaultManagementClient: %+v", err)
 		}
 
 		return nil

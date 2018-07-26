@@ -169,10 +169,6 @@ The `vpn_client_configuration` block supports:
 * `address_space` - (Required) The address space out of which ip addresses for
     vpn clients will be taken. You can provide more than one address space, e.g.
     in CIDR notation.
-
-* `vpn_client_protocols` - (Optional) List of the protocols supported by the vpn client.
-    The supported values are "SSTP" and "IkeV2".
-
 * `root_certificate` - (Optional) One or more `root_certificate` blocks which are
     defined below. These root certificates are used to sign the client certificate
     used by the VPN clients to connect to the gateway.
@@ -187,6 +183,9 @@ The `vpn_client_configuration` block supports:
 
 * `radius_server_secret` - (Optional) The secret used by the Radius server.
     This setting is incompatible with the use of `root_certificate` and `revoked_certificate`.
+
+* `vpn_client_protocols` - (Optional) List of the protocols supported by the vpn client.
+    The supported values are `SSTP` and `IkeV2`.
 
 The `bgp_settings` block supports:
 

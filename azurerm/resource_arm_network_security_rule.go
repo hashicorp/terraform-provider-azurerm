@@ -109,6 +109,7 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 
 			"source_application_security_group_ids": {
 				Type:     schema.TypeSet,
+				MaxItems: 1,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,
@@ -116,6 +117,7 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 
 			"destination_application_security_group_ids": {
 				Type:     schema.TypeSet,
+				MaxItems: 1,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,

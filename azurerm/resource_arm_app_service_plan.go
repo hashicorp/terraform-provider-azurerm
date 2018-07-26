@@ -5,7 +5,7 @@ import (
 	"log"
 	"regexp"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2016-09-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -267,9 +267,7 @@ func flattenAppServicePlanSku(profile *web.SkuDescription) []interface{} {
 
 func expandAppServicePlanProperties(d *schema.ResourceData, name string) *web.AppServicePlanProperties {
 	configs := d.Get("properties").([]interface{})
-	properties := web.AppServicePlanProperties{
-		Name: &name,
-	}
+	properties := web.AppServicePlanProperties{}
 	if len(configs) == 0 {
 		return &properties
 	}

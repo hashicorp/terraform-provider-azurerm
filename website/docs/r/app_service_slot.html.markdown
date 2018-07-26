@@ -158,15 +158,17 @@ The following arguments are supported:
 
 * `connection_string` - (Optional) An `connection_string` block as defined below.
 
-* `client_affinity_enabled` - (Optional) Should the App Service Slot send session affinity cookies, which route client requests in the same session to the same instance? Changing this forces a new resource to be created.
+* `client_affinity_enabled` - (Optional) Should the App Service Slot send session affinity cookies, which route client requests in the same session to the same instance?
 
-* `enabled` - (Optional) Is the App Service Slot Enabled? Changing this forces a new resource to be created.
+* `enabled` - (Optional) Is the App Service Slot Enabled?
 
-* `https_only` - (Optional) Can the App Service Slot only be accessed via HTTPS? Defaults to `false`. Changing this forces a new resource to be created.
+* `https_only` - (Optional) Can the App Service Slot only be accessed via HTTPS? Defaults to `false`.
 
 * `site_config` - (Optional) A `site_config` object as defined below.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
+* `identity` - (Optional) A Managed Service Identity block as defined below.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
@@ -194,6 +196,7 @@ The following arguments are supported:
 ~> **NOTE:** MySQL In App is not intended for production environments and will not scale beyond a single instance. Instead you may wish [to use Azure Database for MySQL](/docs/providers/azurerm/r/mysql_database.html).
 
 * `managed_pipeline_mode` - (Optional) The Managed Pipeline Mode. Possible values are `Integrated` and `Classic`. Defaults to `Integrated`.
+* `min_tls_version` - (Optional) The minimum supported TLS version for the app service. Possible values are `1.0`, `1.1`, and `1.2`. Defaults to `1.2` for new app services.
 * `php_version` - (Optional) The version of PHP to use in this App Service Slot. Possible values are `5.5`, `5.6`, `7.0` and `7.1`.
 * `python_version` - (Optional) The version of Python to use in this App Service Slot. Possible values are `2.7` and `3.4`.
 * `remote_debugging_enabled` - (Optional) Is Remote Debugging Enabled? Defaults to `false`.
@@ -211,6 +214,12 @@ The following arguments are supported:
 * `ip_address` - (Required) The IP Address used for this IP Restriction.
 
 * `subnet_mask` - (Optional) The Subnet mask used for this IP Restriction. Defaults to `255.255.255.255`.
+
+`identity` supports the following:
+
+* `type` - (Required) Specifies the identity type of the App Service. At this time the only allowed value is `SystemAssigned`.
+
+~> The assigned `principal_id` and `tenant_id` can be retrieved after the App Service Slot has been created.
 
 ## Attributes Reference
 
