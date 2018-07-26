@@ -8,7 +8,9 @@ FEATURES:
 IMPROVEMENTS:
 
 * Data Source: `azurerm_kubernetes_cluster` - support for specifying the `network_profile` block [GH-1479]
+* Data Source: `azurerm_kubernetes_cluster` - outputting the `node_resource_group` field [GH-1649]
 * `azurerm_kubernetes_cluster` - support for specifying the `network_profile` block [GH-1479]
+* `azurerm_kubernetes_cluster` - outputting the `node_resource_group` field [GH-1649]
 
 ## 1.11.0 (July 25, 2018)
 
