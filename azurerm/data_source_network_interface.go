@@ -10,9 +10,6 @@ import (
 func dataSourceArmNetworkInterface() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmNetworkInterfaceRead,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
