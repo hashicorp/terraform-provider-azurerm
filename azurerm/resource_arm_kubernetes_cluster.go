@@ -306,6 +306,18 @@ func resourceArmKubernetesCluster() *schema.Resource {
 										Required: true,
 										ForceNew: true,
 									},
+									"config": {
+										Type:     schema.TypeMap,
+										Computed: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"http_application_routing_zone_name": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+											},
+										},
+									},
 								},
 							},
 						},
@@ -628,9 +640,21 @@ func flattenAzureRmKubernetesClusterAddonProfiles(profile map[string]*containers
 	values := make(map[string]interface{}, 0)
 
 	if httpApplicationRouting := profile["httpApplicationRouting"]; httpApplicationRouting != nil {
+		enabled := false
+		config := make(map[string]string)
+
+		if enabledVal := httpApplicationRouting.Enabled; enabledVal != nil {
+			enabled = *enabledVal
+		}
+
+		if zoneName := httpApplicationRouting.Config["HTTPApplicationRoutingZoneName"]; zoneName != nil {
+			config["http_application_routing_zone_name"] = *zoneName
+		}
+
 		values["http_application_routing"] = []interface{}{
 			map[string]interface{}{
-				"enabled": *httpApplicationRouting.Enabled,
+				"enabled": enabled,
+				"config":  config,
 			},
 		}
 	}
@@ -797,7 +821,13 @@ func expandAzureRmKubernetesClusterAddonProfile(v map[string]interface{}) *conta
 	}
 
 	if v["config"] != nil {
-		value.Config = v["config"].(map[string]*string)
+		config := make(map[string]*string)
+
+		for key, val := range v["config"].(map[string]interface{}) {
+			config[key] = utils.String(val.(string))
+		}
+
+		value.Config = config
 	}
 
 	return &value
