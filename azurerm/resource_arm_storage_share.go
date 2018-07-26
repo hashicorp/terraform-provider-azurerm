@@ -21,6 +21,8 @@ func resourceArmStorageShare() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+		MigrateState:  resourceStorageShareMigrateState,
+		SchemaVersion: 1,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
