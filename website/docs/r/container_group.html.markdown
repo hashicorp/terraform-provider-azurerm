@@ -154,3 +154,11 @@ The following attributes are exported:
 * `ip_address` - The IP address allocated to the container group.
 
 * `fqdn` - The FQDN of the container group derived from `dns_name_label`.
+
+## Import
+
+Container Group's can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_container_group.containerGroup1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ContainerInstance/containerGroups/myContainerGroup1
+```
