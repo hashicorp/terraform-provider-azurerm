@@ -35,6 +35,15 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentials(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.1.password", "acrpassword"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"image_registry_credential.0.password",
+					"image_registry_credential.1.password",
+				},
+			},
 		},
 	})
 }
@@ -96,6 +105,15 @@ func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Linux"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"image_registry_credential.0.password",
+					"image_registry_credential.1.password",
+				},
 			},
 		},
 	})
@@ -159,6 +177,14 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "restart_policy", "OnFailure"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"container.0.volume.0.storage_account_key",
+				},
+			},
 		},
 	})
 }
@@ -181,6 +207,11 @@ func TestAccAzureRMContainerGroup_windowsBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Windows"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -209,6 +240,11 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Windows"),
 					resource.TestCheckResourceAttr(resourceName, "restart_policy", "Never"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
