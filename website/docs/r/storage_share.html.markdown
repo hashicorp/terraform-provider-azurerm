@@ -48,7 +48,7 @@ The following arguments are supported:
 * `storage_account_name` - (Required) Specifies the storage account in which to create the share.
  Changing this forces a new resource to be created.
 
-* `quota` - (Optional) The maximum size of the share, in gigabytes. Must be greater than 0, and less than or equal to 5 TB (5120 GB). Default is 0, which results in setting the quota to 5 TB.
+* `quota` - (Optional) The maximum size of the share, in gigabytes. Must be greater than 0, and less than or equal to 5 TB (5120 GB). Default is 5120.
 
 
 ## Attributes Reference
@@ -57,3 +57,11 @@ The following attributes are exported in addition to the arguments listed above:
 
 * `id` - The storage share Resource ID.
 * `url` - The URL of the share
+
+## Import
+
+Storage Shares can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_storage_share.testShare storageShareName/resourceGroupName/storageAccoutName
+```

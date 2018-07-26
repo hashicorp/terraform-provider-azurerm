@@ -3,7 +3,9 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"regexp"
+	"strings"
+
+	"github.com/hashicorp/terraform/helper/validation"
 
 	"github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -13,8 +15,12 @@ func resourceArmStorageShare() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmStorageShareCreate,
 		Read:   resourceArmStorageShareRead,
+		Update: resourceArmStorageShareUpdate,
 		Exists: resourceArmStorageShareExists,
 		Delete: resourceArmStorageShareDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -30,10 +36,10 @@ func resourceArmStorageShare() *schema.Resource {
 				ForceNew: true,
 			},
 			"quota": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				ForceNew: true,
-				Default:  0,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      5120,
+				ValidateFunc: validation.IntBetween(1, 5120),
 			},
 			"url": {
 				Type:     schema.TypeString,
@@ -75,7 +81,7 @@ func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) err
 	}
 	reference.SetProperties(options)
 
-	d.SetId(name)
+	d.SetId(fmt.Sprintf("%s/%s/%s", name, resourceGroupName, storageAccountName))
 	return resourceArmStorageShareRead(d, meta)
 }
 
@@ -83,8 +89,10 @@ func resourceArmStorageShareRead(d *schema.ResourceData, meta interface{}) error
 	armClient := meta.(*ArmClient)
 	ctx := armClient.StopContext
 
-	resourceGroupName := d.Get("resource_group_name").(string)
-	storageAccountName := d.Get("storage_account_name").(string)
+	id := strings.Split(d.Id(), "/")
+	name := id[0]
+	resourceGroupName := id[1]
+	storageAccountName := id[2]
 
 	fileClient, accountExists, err := armClient.getFileServiceClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
@@ -106,24 +114,60 @@ func resourceArmStorageShareRead(d *schema.ResourceData, meta interface{}) error
 		return nil
 	}
 
-	name := d.Get("name").(string)
-
 	reference := fileClient.GetShareReference(name)
 	url := reference.URL()
 	if url == "" {
 		log.Printf("[INFO] URL for %q is empty", name)
 	}
+	d.Set("name", name)
+	d.Set("resource_group_name", resourceGroupName)
+	d.Set("storage_account_name", storageAccountName)
 	d.Set("url", url)
 
+	reference.FetchAttributes(nil)
+	d.Set("quota", reference.Properties.Quota)
+
 	return nil
+}
+
+func resourceArmStorageShareUpdate(d *schema.ResourceData, meta interface{}) error {
+	armClient := meta.(*ArmClient)
+	ctx := armClient.StopContext
+
+	id := strings.Split(d.Id(), "/")
+	name := id[0]
+	resourceGroupName := id[1]
+	storageAccountName := id[2]
+
+	fileClient, accountExists, err := armClient.getFileServiceClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
+	if err != nil {
+		return err
+	}
+	if !accountExists {
+		return fmt.Errorf("Storage Account %q Not Found", storageAccountName)
+	}
+
+	options := &storage.FileRequestOptions{}
+
+	reference := fileClient.GetShareReference(name)
+
+	log.Printf("[INFO] Setting share %q properties in storage account %q", name, storageAccountName)
+	reference.Properties = storage.ShareProperties{
+		Quota: d.Get("quota").(int),
+	}
+	reference.SetProperties(options)
+
+	return resourceArmStorageShareRead(d, meta)
 }
 
 func resourceArmStorageShareExists(d *schema.ResourceData, meta interface{}) (bool, error) {
 	armClient := meta.(*ArmClient)
 	ctx := armClient.StopContext
 
-	resourceGroupName := d.Get("resource_group_name").(string)
-	storageAccountName := d.Get("storage_account_name").(string)
+	id := strings.Split(d.Id(), "/")
+	name := id[0]
+	resourceGroupName := id[1]
+	storageAccountName := id[2]
 
 	fileClient, accountExists, err := armClient.getFileServiceClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
@@ -134,8 +178,6 @@ func resourceArmStorageShareExists(d *schema.ResourceData, meta interface{}) (bo
 		d.SetId("")
 		return false, nil
 	}
-
-	name := d.Get("name").(string)
 
 	log.Printf("[INFO] Checking for existence of share %q.", name)
 	reference := fileClient.GetShareReference(name)
@@ -156,8 +198,10 @@ func resourceArmStorageShareDelete(d *schema.ResourceData, meta interface{}) err
 	armClient := meta.(*ArmClient)
 	ctx := armClient.StopContext
 
-	resourceGroupName := d.Get("resource_group_name").(string)
-	storageAccountName := d.Get("storage_account_name").(string)
+	id := strings.Split(d.Id(), "/")
+	name := id[0]
+	resourceGroupName := id[1]
+	storageAccountName := id[2]
 
 	fileClient, accountExists, err := armClient.getFileServiceClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
@@ -168,8 +212,6 @@ func resourceArmStorageShareDelete(d *schema.ResourceData, meta interface{}) err
 		return nil
 	}
 
-	name := d.Get("name").(string)
-
 	reference := fileClient.GetShareReference(name)
 	options := &storage.FileRequestOptions{}
 
@@ -179,27 +221,4 @@ func resourceArmStorageShareDelete(d *schema.ResourceData, meta interface{}) err
 
 	d.SetId("")
 	return nil
-}
-
-//Following the naming convention as laid out in the docs https://msdn.microsoft.com/library/azure/dn167011.aspx
-func validateArmStorageShareName(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(string)
-	if !regexp.MustCompile(`^[0-9a-z-]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"only lowercase alphanumeric characters and hyphens allowed in %q: %q",
-			k, value))
-	}
-	if len(value) < 3 || len(value) > 63 {
-		errors = append(errors, fmt.Errorf(
-			"%q must be between 3 and 63 characters: %q", k, value))
-	}
-	if regexp.MustCompile(`^-`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"%q cannot begin with a hyphen: %q", k, value))
-	}
-	if regexp.MustCompile(`[-]{2,}`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"%q does not allow consecutive hyphens: %q", k, value))
-	}
-	return
 }
