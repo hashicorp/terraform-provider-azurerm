@@ -41,7 +41,7 @@ The following attributes are exported:
 
 * `kube_config_raw` - Base64 encoded Kubernetes configuration.
 
-* `node_resource_group` - Auto-generated Resource Group for AKS Cluster resources.
+* `node_resource_group` - Auto-generated Resource Group containing AKS Cluster resources.
 
 * `kube_config` - A `kube_config` block as defined below.
 
