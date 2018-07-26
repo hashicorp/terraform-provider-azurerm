@@ -16,13 +16,13 @@ func resourceArmStorageShare() *schema.Resource {
 		Create: resourceArmStorageShareCreate,
 		Read:   resourceArmStorageShareRead,
 		Update: resourceArmStorageShareUpdate,
-		Exists: resourceArmStorageShareExists,
+		// Exists: resourceArmStorageShareExists,
 		Delete: resourceArmStorageShareDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-		MigrateState:  resourceStorageShareMigrateState,
 		SchemaVersion: 1,
+		MigrateState:  resourceStorageShareMigrateState,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -106,17 +106,17 @@ func resourceArmStorageShareRead(d *schema.ResourceData, meta interface{}) error
 		return nil
 	}
 
-	exists, err := resourceArmStorageShareExists(d, meta)
+	reference := fileClient.GetShareReference(name)
+	exists, err := reference.Exists()
 	if err != nil {
-		return err
+		return fmt.Errorf("Error testing existence of share %q: %s", name, err)
 	}
 
 	if !exists {
-		// Exists already removed this from state
-		return nil
+		log.Printf("[INFO] Share %q no longer exists, removing from state...", name)
+		d.SetId("")
 	}
 
-	reference := fileClient.GetShareReference(name)
 	url := reference.URL()
 	if url == "" {
 		log.Printf("[INFO] URL for %q is empty", name)

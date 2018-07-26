@@ -29,7 +29,9 @@ func migrateStorageShareStateV0toV1(is *terraform.InstanceState) (*terraform.Ins
 	name := is.Attributes["name"]
 	resourceGroupName := is.Attributes["resource_group_name"]
 	storageAccountName := is.Attributes["storage_account_name"]
-	is.Attributes["id"] = fmt.Sprintf("%s/%s/%s", name, resourceGroupName, storageAccountName)
+	newID := fmt.Sprintf("%s/%s/%s", name, resourceGroupName, storageAccountName)
+	is.Attributes["id"] = newID
+	is.ID = newID
 
 	log.Printf("[DEBUG] ARM Storage Share Attributes after State Migration: %#v", is.Attributes)
 
