@@ -16,7 +16,6 @@ func resourceArmStorageShare() *schema.Resource {
 		Create: resourceArmStorageShareCreate,
 		Read:   resourceArmStorageShareRead,
 		Update: resourceArmStorageShareUpdate,
-		// Exists: resourceArmStorageShareExists,
 		Delete: resourceArmStorageShareDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
