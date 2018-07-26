@@ -75,6 +75,11 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"node_resource_group": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"kube_config": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -394,6 +399,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("dns_prefix", props.DNSPrefix)
 		d.Set("fqdn", props.Fqdn)
 		d.Set("kubernetes_version", props.KubernetesVersion)
+		d.Set("node_resource_group", props.NodeResourceGroup)
 
 		linuxProfile := flattenAzureRmKubernetesClusterLinuxProfile(props.LinuxProfile)
 		if err := d.Set("linux_profile", linuxProfile); err != nil {

@@ -267,6 +267,8 @@ The following attributes are exported:
 
 * `fqdn` - The FQDN of the Azure Kubernetes Managed Cluster.
 
+* `node_resource_group` - Auto-generated Resource Group containing AKS Cluster resources.
+
 * `kube_config_raw` - Base64 encoded Kubernetes configuration
 
 * `kube_config` - Kubernetes configuration, sub-attributes defined below:
