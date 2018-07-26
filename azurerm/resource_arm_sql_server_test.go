@@ -52,7 +52,7 @@ func testSweepSQLServer(region string) error {
 			return err
 		}
 
-		err = future.WaitForCompletion(ctx, client.Client)
+		err = future.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
 			return err
 		}
@@ -208,7 +208,7 @@ func testCheckAzureRMSqlServerDisappears(name string) resource.TestCheckFunc {
 			return err
 		}
 
-		err = future.WaitForCompletion(ctx, client.Client)
+		err = future.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
 			return err
 		}

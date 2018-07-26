@@ -131,7 +131,7 @@ func resourceArmResourceGroupDelete(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error deleting Resource Group %q: %+v", name, err)
 	}
 
-	err = deleteFuture.WaitForCompletion(ctx, client.Client)
+	err = deleteFuture.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		if response.WasNotFound(deleteFuture.Response()) {
 			return nil
