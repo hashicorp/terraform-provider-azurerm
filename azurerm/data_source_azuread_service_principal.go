@@ -11,9 +11,6 @@ import (
 func dataSourceArmActiveDirectoryServicePrincipal() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmActiveDirectoryServicePrincipalRead,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Schema: map[string]*schema.Schema{
 			"object_id": {

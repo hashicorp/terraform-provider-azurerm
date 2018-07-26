@@ -10,9 +10,6 @@ import (
 func dataSourceAppServicePlan() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceAppServicePlanRead,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
