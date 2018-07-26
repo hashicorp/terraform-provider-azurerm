@@ -107,7 +107,7 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 		},
 	}
 
-	err := resource.Retry(180*time.Second, retryRoleAssignmentsClient(scope, name, properties, meta))
+	err := resource.Retry(300*time.Second, retryRoleAssignmentsClient(scope, name, properties, meta))
 	if err != nil {
 		return err
 	}
