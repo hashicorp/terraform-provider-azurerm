@@ -4,7 +4,6 @@ FEATURES:
 
 * **New Data Source:** `azurerm_container_registry` [GH-1642]
 
-
 IMPROVEMENTS:
 
 * Data Source: `azurerm_kubernetes_cluster` - support for specifying the `network_profile` block [GH-1479]
