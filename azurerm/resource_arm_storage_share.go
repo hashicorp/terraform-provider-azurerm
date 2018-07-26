@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 
 	"github.com/hashicorp/terraform/helper/validation"
@@ -91,6 +92,9 @@ func resourceArmStorageShareRead(d *schema.ResourceData, meta interface{}) error
 	ctx := armClient.StopContext
 
 	id := strings.Split(d.Id(), "/")
+	if len(id) != 3 {
+		return fmt.Errorf("ID was not in the expected format - expected `{name}/{resourceGroup}/{storageAccountName}` got %q", id)
+	}
 	name := id[0]
 	resourceGroupName := id[1]
 	storageAccountName := id[2]
@@ -114,6 +118,7 @@ func resourceArmStorageShareRead(d *schema.ResourceData, meta interface{}) error
 	if !exists {
 		log.Printf("[INFO] Share %q no longer exists, removing from state...", name)
 		d.SetId("")
+		return nil
 	}
 
 	url := reference.URL()
@@ -136,6 +141,9 @@ func resourceArmStorageShareUpdate(d *schema.ResourceData, meta interface{}) err
 	ctx := armClient.StopContext
 
 	id := strings.Split(d.Id(), "/")
+	if len(id) != 3 {
+		return fmt.Errorf("ID was not in the expected format - expected `{name}/{resourceGroup}/{storageAccountName}` got %q", id)
+	}
 	name := id[0]
 	resourceGroupName := id[1]
 	storageAccountName := id[2]
@@ -161,45 +169,14 @@ func resourceArmStorageShareUpdate(d *schema.ResourceData, meta interface{}) err
 	return resourceArmStorageShareRead(d, meta)
 }
 
-func resourceArmStorageShareExists(d *schema.ResourceData, meta interface{}) (bool, error) {
-	armClient := meta.(*ArmClient)
-	ctx := armClient.StopContext
-
-	id := strings.Split(d.Id(), "/")
-	name := id[0]
-	resourceGroupName := id[1]
-	storageAccountName := id[2]
-
-	fileClient, accountExists, err := armClient.getFileServiceClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
-	if err != nil {
-		return false, err
-	}
-	if !accountExists {
-		log.Printf("[DEBUG] Storage account %q not found, removing share %q from state", storageAccountName, d.Id())
-		d.SetId("")
-		return false, nil
-	}
-
-	log.Printf("[INFO] Checking for existence of share %q.", name)
-	reference := fileClient.GetShareReference(name)
-	exists, err := reference.Exists()
-	if err != nil {
-		return false, fmt.Errorf("Error testing existence of share %q: %s", name, err)
-	}
-
-	if !exists {
-		log.Printf("[INFO] Share %q no longer exists, removing from state...", name)
-		d.SetId("")
-	}
-
-	return exists, nil
-}
-
 func resourceArmStorageShareDelete(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
 	ctx := armClient.StopContext
 
 	id := strings.Split(d.Id(), "/")
+	if len(id) != 3 {
+		return fmt.Errorf("ID was not in the expected format - expected `{name}/{resourceGroup}/{storageAccountName}` got %q", id)
+	}
 	name := id[0]
 	resourceGroupName := id[1]
 	storageAccountName := id[2]
@@ -222,4 +199,27 @@ func resourceArmStorageShareDelete(d *schema.ResourceData, meta interface{}) err
 
 	d.SetId("")
 	return nil
+}
+
+//Following the naming convention as laid out in the docs https://msdn.microsoft.com/library/azure/dn167011.aspx
+func validateArmStorageShareName(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+	if !regexp.MustCompile(`^[0-9a-z-]+$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"only lowercase alphanumeric characters and hyphens allowed in %q: %q",
+			k, value))
+	}
+	if len(value) < 3 || len(value) > 63 {
+		errors = append(errors, fmt.Errorf(
+			"%q must be between 3 and 63 characters: %q", k, value))
+	}
+	if regexp.MustCompile(`^-`).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"%q cannot begin with a hyphen: %q", k, value))
+	}
+	if regexp.MustCompile(`[-]{2,}`).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"%q does not allow consecutive hyphens: %q", k, value))
+	}
+	return
 }

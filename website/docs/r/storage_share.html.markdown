@@ -65,3 +65,5 @@ Storage Shares can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_storage_share.testShare storageShareName/resourceGroupName/storageAccoutName
 ```
+
+-> **NOTE:** This identifier is unique to Terraform
