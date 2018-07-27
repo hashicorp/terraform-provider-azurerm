@@ -10,6 +10,7 @@ IMPROVEMENTS:
 * Data Source: `azurerm_kubernetes_cluster` - outputting the `node_resource_group` field [GH-1649]
 * `azurerm_kubernetes_cluster` - support for specifying the `network_profile` block [GH-1479]
 * `azurerm_kubernetes_cluster` - outputting the `node_resource_group` field [GH-1649]
+* `azurerm_virtual_machine` - setting the connection information for Provisioners [GH-1646]
 
 ## 1.11.0 (July 25, 2018)
 
