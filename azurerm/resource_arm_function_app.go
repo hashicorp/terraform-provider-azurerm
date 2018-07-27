@@ -269,7 +269,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	err = createFuture.WaitForCompletion(ctx, client.Client)
+	err = createFuture.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -340,7 +340,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -418,7 +418,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 	if err != nil {
 		return err
 	}
-	err = siteCredFuture.WaitForCompletion(ctx, client.Client)
+	err = siteCredFuture.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return err
 	}

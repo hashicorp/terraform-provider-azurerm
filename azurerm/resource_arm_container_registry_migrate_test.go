@@ -124,7 +124,7 @@ func createStorageAccount(client *ArmClient, resourceGroupName, storageAccountNa
 		return nil, fmt.Errorf("Error creating Storage Account %q: %+v", resourceGroupName, err)
 	}
 
-	err = future.WaitForCompletion(ctx, storageClient.Client)
+	err = future.WaitForCompletionRef(ctx, storageClient.Client)
 	if err != nil {
 		return nil, fmt.Errorf("Error waiting for creation of Storage Account %q: %+v", resourceGroupName, err)
 	}

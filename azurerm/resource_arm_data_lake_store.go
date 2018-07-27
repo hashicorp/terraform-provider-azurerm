@@ -253,7 +253,7 @@ func resourceArmDateLakeStoreDelete(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error issuing delete request for Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil

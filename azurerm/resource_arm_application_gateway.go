@@ -755,7 +755,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error Creating/Updating ApplicationGateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error Creating/Updating ApplicationGateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
@@ -857,7 +857,7 @@ func resourceArmApplicationGatewayDelete(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error deleting for AppGateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for deletion of AppGateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}

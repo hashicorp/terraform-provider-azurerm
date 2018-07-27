@@ -343,7 +343,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, kubernetesClustersClient.Client)
+	err = future.WaitForCompletionRef(ctx, kubernetesClustersClient.Client)
 	if err != nil {
 		return err
 	}
@@ -451,7 +451,7 @@ func resourceArmKubernetesClusterDelete(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error issuing AzureRM delete request of AKS Managed Cluster %q (resource Group %q): %+v", name, resGroup, err)
 	}
 
-	return future.WaitForCompletion(ctx, kubernetesClustersClient.Client)
+	return future.WaitForCompletionRef(ctx, kubernetesClustersClient.Client)
 }
 
 func flattenAzureRmKubernetesClusterLinuxProfile(input *containerservice.LinuxProfile) []interface{} {
