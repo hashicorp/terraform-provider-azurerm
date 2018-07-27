@@ -199,23 +199,59 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
-			"addon_profile": {
+			"addon_profiles": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
+						"http_application_routing": {
+							Type:     schema.TypeList,
 							Computed: true,
-						},
-						"enabled": {
-							Type:     schema.TypeBool,
-							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enabled": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+									"config": {
+										Type:     schema.TypeMap,
+										Computed: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"http_application_routing_zone_name": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+											},
+										},
+									},
+								},
+							},
 						},
 
-						"config": {
-							Type:     schema.TypeMap,
+						"oms_agent": {
+							Type:     schema.TypeList,
 							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enabled": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+									"config": {
+										Type:     schema.TypeMap,
+										Computed: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"log_analytics_workspace_resource_id": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+											},
+										},
+									},
+								},
+							},
 						},
 					},
 				},
@@ -278,8 +314,8 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 		}
 
 		addonProfiles := flattenKubernetesClusterAddonProfiles(resp.ManagedClusterProperties.AddonProfiles)
-		if err := d.Set("addon_profile", addonProfiles); err != nil {
-			return fmt.Errorf("Error setting `addon_profile`: %+v", err)
+		if err := d.Set("addon_profiles", addonProfiles); err != nil {
+			return fmt.Errorf("Error setting `addon_profiles`: %+v", err)
 		}
 	}
 
@@ -405,26 +441,7 @@ func flattenKubernetesClusterDataSourceAccessProfile(profile *containerservice.M
 
 	return nil, []interface{}{}
 }
-func flattenKubernetesClusterAddonProfiles(profile map[string]*containerservice.ManagedClusterAddonProfile) []interface{} {
-	values := make([]interface{}, 0)
-	for k, v := range profile {
-		addonProfile := make(map[string]interface{})
-		addonProfile["name"] = k
 
-		if enabled := v.Enabled; enabled != nil {
-			addonProfile["enabled"] = *enabled
-		}
-
-		config := make(map[string]string)
-		for k, v := range v.Config {
-			config[k] = *v
-		}
-		addonProfile["config"] = config
-
-		values = append(values, addonProfile)
-	}
-	return values
-}
 func flattenKubernetesClusterDataSourceKubeConfig(config kubernetes.KubeConfig) []interface{} {
 	values := make(map[string]interface{})
 
@@ -461,6 +478,52 @@ func flattenKubernetesClusterDataSourceNetworkProfile(profile *containerservice.
 
 	if profile.PodCidr != nil {
 		values["pod_cidr"] = *profile.PodCidr
+	}
+
+	return []interface{}{values}
+}
+
+func flattenKubernetesClusterAddonProfiles(profile map[string]*containerservice.ManagedClusterAddonProfile) []interface{} {
+	values := make(map[string]interface{}, 0)
+
+	if httpApplicationRouting := profile["httpApplicationRouting"]; httpApplicationRouting != nil {
+		enabled := false
+		if enabledVal := httpApplicationRouting.Enabled; enabledVal != nil {
+			enabled = *enabledVal
+		}
+
+		config := make(map[string]string)
+
+		if zoneName := httpApplicationRouting.Config["HTTPApplicationRoutingZoneName"]; zoneName != nil {
+			config["http_application_routing_zone_name"] = *zoneName
+		}
+
+		values["http_application_routing"] = []interface{}{
+			map[string]interface{}{
+				"enabled": enabled,
+				"config":  config,
+			},
+		}
+	}
+
+	if omsAgent := profile["omsAgent"]; omsAgent != nil {
+		enabled := false
+		if enabledVal := omsAgent.Enabled; enabledVal != nil {
+			enabled = *enabledVal
+		}
+
+		config := make(map[string]string)
+
+		if workspaceResourceID := omsAgent.Config["logAnalyticsWorkspaceResourceID"]; workspaceResourceID != nil {
+			config["log_analytics_workspace_resource_id"] = *workspaceResourceID
+		}
+
+		values["oms_agent"] = []interface{}{
+			map[string]interface{}{
+				"enabled": enabled,
+				"config":  config,
+			},
+		}
 	}
 
 	return []interface{}{values}
