@@ -512,7 +512,7 @@ resource "azurerm_virtual_machine" "test" {
   location              = "${azurerm_resource_group.test.location}"
   resource_group_name   = "${azurerm_resource_group.test.name}"
   network_interface_ids = ["${azurerm_network_interface.test.id}"]
-  vm_size               = "Standard_A0"
+  vm_size               = "Standard_F2"
   delete_os_disk_on_termination = true
 
   storage_image_reference {
