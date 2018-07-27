@@ -325,20 +325,24 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Type:     schema.TypeList,
 							MaxItems: 1,
 							Optional: true,
+							ForceNew: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
 										Type:     schema.TypeBool,
 										Required: true,
+										ForceNew: true,
 									},
 									"config": {
 										Type:     schema.TypeMap,
 										Required: true,
+										ForceNew: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"log_analytics_workspace_resource_id": {
 													Type:     schema.TypeString,
 													Required: true,
+													ForceNew: true,
 												},
 											},
 										},
@@ -854,35 +858,37 @@ func expandAzureRmKubernetesClusterAddonProfiles(d *schema.ResourceData) map[str
 	httpApplicationRouting := profile["http_application_routing"].([]interface{})
 	if len(httpApplicationRouting) > 0 {
 		value := httpApplicationRouting[0].(map[string]interface{})
-		addonProfiles["httpApplicationRouting"] = expandAzureRmKubernetesClusterAddonProfile(value)
+		enabled := value["enabled"].(bool)
+		addonProfiles["httpApplicationRouting"] = &containerservice.ManagedClusterAddonProfile{
+			Enabled: utils.Bool(enabled),
+		}
 	}
 
 	omsAgent := profile["oms_agent"].([]interface{})
 	if len(omsAgent) > 0 {
 		value := omsAgent[0].(map[string]interface{})
-		addonProfiles["omsAgent"] = expandAzureRmKubernetesClusterAddonProfile(value)
+		enabled := value["enabled"].(bool)
+		config := value["config"].(map[string]interface{})
+
+		configEx := make(map[string]*string)
+
+		log.Printf("\n\n\n!!!!!CONFIG MAP!!!!!\n")
+		for key, val := range config {
+			log.Printf(fmt.Sprintf("%s = %s", key, val))
+		}
+		log.Printf("\n!!!!!CONFIG MAP!!!!!\n\n\n")
+
+		if val, ok := config["log_analytics_workspace_resource_id"]; ok {
+			configEx["logAnalyticsWorkspaceResourceID"] = utils.String(val.(string))
+		}
+
+		addonProfiles["omsAgent"] = &containerservice.ManagedClusterAddonProfile{
+			Enabled: utils.Bool(enabled),
+			Config:  configEx,
+		}
 	}
 
 	return addonProfiles
-}
-
-func expandAzureRmKubernetesClusterAddonProfile(v map[string]interface{}) *containerservice.ManagedClusterAddonProfile {
-	enabled := v["enabled"].(bool)
-	value := containerservice.ManagedClusterAddonProfile{
-		Enabled: utils.Bool(enabled),
-	}
-
-	if c, ok := v["config"]; ok == true {
-		config := make(map[string]*string)
-
-		for key, val := range c.(map[string]interface{}) {
-			config[key] = utils.String(val.(string))
-		}
-
-		value.Config = config
-	}
-
-	return &value
 }
 
 func resourceAzureRMKubernetesClusterServicePrincipalProfileHash(v interface{}) int {
