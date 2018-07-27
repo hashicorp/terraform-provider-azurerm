@@ -6,6 +6,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* sdk: switching from `WaitForCompletion` -> `WaitForCompletionRef` when polling Future's [GH-1660]
 * Data Source: `azurerm_kubernetes_cluster` - support for specifying the `network_profile` block [GH-1479]
 * Data Source: `azurerm_kubernetes_cluster` - outputting the `node_resource_group` field [GH-1649]
 * `azurerm_kubernetes_cluster` - support for specifying the `network_profile` block [GH-1479]
