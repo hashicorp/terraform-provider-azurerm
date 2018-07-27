@@ -263,9 +263,8 @@ func TestAccAzureRMKubernetesCluster_addonProfile(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "addon_profile.0.name"),
-					resource.TestCheckResourceAttrSet(resourceName, "addon_profile.0.enabled"),
-					resource.TestCheckResourceAttrSet(resourceName, "addon_profile.0.config.HTTPApplicationRoutingZoneName"),
+					resource.TestCheckResourceAttrSet(resourceName, "addon_profile.0.http_application_routing.0.enabled"),
+					resource.TestCheckResourceAttrSet(resourceName, "addon_profile.0.http_application_routing.0.config.HTTPApplicationRoutingZoneName"),
 				),
 			},
 		},
@@ -651,9 +650,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     client_secret = "%s"
 	}
 	
-	addon_profile {
-		name = "httpApplicationRouting"
-	}
+	addon_profiles
+    http_application_routing {
+      enabled = true
+    }
+  }
 }
 `, rInt, location, rInt, rInt, rInt, clientId, clientSecret)
 }
