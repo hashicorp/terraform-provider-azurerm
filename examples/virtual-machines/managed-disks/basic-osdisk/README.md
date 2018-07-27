@@ -1,6 +1,6 @@
 ## Example: Basic Virtual Machine using a Managed Disk
 
-This example provisions a Virtual Machine with no OS disks with a Managed Disk as the main OS Disk.
+This example provisions a Virtual Machine with no Data Disks with a Managed Disk as the main OS Disk.
 
 Notes:
 
