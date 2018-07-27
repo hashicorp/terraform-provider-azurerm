@@ -872,12 +872,6 @@ func expandAzureRmKubernetesClusterAddonProfiles(d *schema.ResourceData) map[str
 
 		configEx := make(map[string]*string)
 
-		log.Printf("\n\n\n!!!!!CONFIG MAP!!!!!\n")
-		for key, val := range config {
-			log.Printf(fmt.Sprintf("%s = %s", key, val))
-		}
-		log.Printf("\n!!!!!CONFIG MAP!!!!!\n\n\n")
-
 		if val, ok := config["log_analytics_workspace_resource_id"]; ok {
 			configEx["logAnalyticsWorkspaceResourceID"] = utils.String(val.(string))
 		}
