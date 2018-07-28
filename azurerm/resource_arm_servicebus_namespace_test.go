@@ -53,7 +53,7 @@ func testSweepServiceBusNamespace(region string) error {
 			return err
 		}
 
-		err = deleteFuture.WaitForCompletion(ctx, client.Client)
+		err = deleteFuture.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
 			return err
 		}

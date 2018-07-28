@@ -15,6 +15,9 @@ func resourceArmContainerGroup() *schema.Resource {
 		Create: resourceArmContainerGroupCreate,
 		Read:   resourceArmContainerGroupRead,
 		Delete: resourceArmContainerGroupDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -464,12 +467,14 @@ func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, cont
 
 		// find corresponding volume in config
 		// and use the data
-		for _, cvr := range *containerVolumesConfig {
-			cv := cvr.(map[string]interface{})
-			rawName := cv["name"].(string)
-			if *vm.Name == rawName {
-				storageAccountKey := cv["storage_account_key"].(string)
-				volumeConfig["storage_account_key"] = storageAccountKey
+		if containerVolumesConfig != nil {
+			for _, cvr := range *containerVolumesConfig {
+				cv := cvr.(map[string]interface{})
+				rawName := cv["name"].(string)
+				if *vm.Name == rawName {
+					storageAccountKey := cv["storage_account_key"].(string)
+					volumeConfig["storage_account_key"] = storageAccountKey
+				}
 			}
 		}
 
@@ -605,11 +610,13 @@ func flattenContainerImageRegistryCredentials(d *schema.ResourceData, credsPtr *
 			credConfig["username"] = *cred.Username
 		}
 
-		data := configsOld[i].(map[string]interface{})
-		oldServer := data["server"].(string)
-		if cred.Server != nil && *cred.Server == oldServer {
-			if v, ok := d.GetOk(fmt.Sprintf("image_registry_credential.%d.password", i)); ok {
-				credConfig["password"] = v.(string)
+		if len(configsOld) > i {
+			data := configsOld[i].(map[string]interface{})
+			oldServer := data["server"].(string)
+			if cred.Server != nil && *cred.Server == oldServer {
+				if v, ok := d.GetOk(fmt.Sprintf("image_registry_credential.%d.password", i)); ok {
+					credConfig["password"] = v.(string)
+				}
 			}
 		}
 

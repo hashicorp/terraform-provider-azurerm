@@ -399,7 +399,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error creating Azure Storage Account %q: %+v", storageAccountName, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for Azure Storage Account %q to be created: %+v", storageAccountName, err)
 	}

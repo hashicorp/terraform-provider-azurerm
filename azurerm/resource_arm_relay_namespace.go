@@ -114,7 +114,7 @@ func resourceArmRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interfac
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return err
 	}

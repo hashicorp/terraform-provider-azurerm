@@ -63,7 +63,7 @@ func testSweepNetworkInterfaces(region string) error {
 			return err
 		}
 
-		err = future.WaitForCompletion(ctx, client.Client)
+		err = future.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
 			if response.WasNotFound(future.Response()) {
 				continue
@@ -469,7 +469,7 @@ func testCheckAzureRMNetworkInterfaceDisappears(name string) resource.TestCheckF
 			return fmt.Errorf("Error deleting Network Interface %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
-		err = future.WaitForCompletion(ctx, client.Client)
+		err = future.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
 			return fmt.Errorf("Error waiting for the deletion of Network Interface %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}

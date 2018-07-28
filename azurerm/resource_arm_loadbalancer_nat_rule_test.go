@@ -263,7 +263,7 @@ func testCheckAzureRMLoadBalancerNatRuleDisappears(natRuleName string, lb *netwo
 			return fmt.Errorf("Error Creating/Updating LoadBalancer %+v", err)
 		}
 
-		err = future.WaitForCompletion(ctx, client.Client)
+		err = future.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
 			return fmt.Errorf("Error waiting for the completion of LoadBalancer %q (Resource Group %q): %+v", *lb.Name, id.ResourceGroup, err)
 		}

@@ -145,7 +145,7 @@ func resourceArmLoadBalancerRuleCreate(d *schema.ResourceData, meta interface{})
 		return errwrap.Wrapf("Error Creating/Updating LoadBalancer {{err}}", err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for completion for LoadBalancer updates: %+v", err)
 	}
@@ -285,7 +285,7 @@ func resourceArmLoadBalancerRuleDelete(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error Creating/Updating LoadBalancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for completion of LoadBalancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
 	}

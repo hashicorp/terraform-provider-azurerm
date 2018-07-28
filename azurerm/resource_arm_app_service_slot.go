@@ -197,7 +197,7 @@ func resourceArmAppServiceSlotCreate(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	err = createFuture.WaitForCompletion(ctx, client.Client)
+	err = createFuture.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -253,7 +253,7 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	err = createFuture.WaitForCompletion(ctx, client.Client)
+	err = createFuture.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return err
 	}

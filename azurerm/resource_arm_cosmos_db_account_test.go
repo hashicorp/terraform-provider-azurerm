@@ -53,7 +53,7 @@ func testSweepCosmosDBAccount(region string) error {
 		if err != nil {
 			return err
 		}
-		err = future.WaitForCompletion(ctx, client.Client)
+		err = future.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
 			return err
 		}

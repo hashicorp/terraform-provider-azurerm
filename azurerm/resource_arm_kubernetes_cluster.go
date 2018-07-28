@@ -75,6 +75,11 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"node_resource_group": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"kube_config": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -338,7 +343,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, kubernetesClustersClient.Client)
+	err = future.WaitForCompletionRef(ctx, kubernetesClustersClient.Client)
 	if err != nil {
 		return err
 	}
@@ -394,6 +399,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("dns_prefix", props.DNSPrefix)
 		d.Set("fqdn", props.Fqdn)
 		d.Set("kubernetes_version", props.KubernetesVersion)
+		d.Set("node_resource_group", props.NodeResourceGroup)
 
 		linuxProfile := flattenAzureRmKubernetesClusterLinuxProfile(props.LinuxProfile)
 		if err := d.Set("linux_profile", linuxProfile); err != nil {
@@ -445,7 +451,7 @@ func resourceArmKubernetesClusterDelete(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error issuing AzureRM delete request of AKS Managed Cluster %q (resource Group %q): %+v", name, resGroup, err)
 	}
 
-	return future.WaitForCompletion(ctx, kubernetesClustersClient.Client)
+	return future.WaitForCompletionRef(ctx, kubernetesClustersClient.Client)
 }
 
 func flattenAzureRmKubernetesClusterLinuxProfile(input *containerservice.LinuxProfile) []interface{} {

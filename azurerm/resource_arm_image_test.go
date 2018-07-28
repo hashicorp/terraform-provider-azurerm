@@ -174,7 +174,7 @@ func testGeneralizeVMImage(resourceGroup string, vmName string, userName string,
 			return fmt.Errorf("Bad: Deallocating error %+v", err)
 		}
 
-		err = future.WaitForCompletion(ctx, vmClient.Client)
+		err = future.WaitForCompletionRef(ctx, vmClient.Client)
 		if err != nil {
 			return fmt.Errorf("Bad: Deallocating error %+v", err)
 		}

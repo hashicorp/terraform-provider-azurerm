@@ -294,7 +294,7 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -314,7 +314,7 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 		// for most imports
 		client.Client.PollingDuration = 60 * time.Minute
 
-		err = importFuture.WaitForCompletion(ctx, client.Client)
+		err = importFuture.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
 			return err
 		}

@@ -11,9 +11,6 @@ import (
 func dataSourceArmAzureADApplication() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmAzureADApplicationRead,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Schema: map[string]*schema.Schema{
 			"object_id": {
