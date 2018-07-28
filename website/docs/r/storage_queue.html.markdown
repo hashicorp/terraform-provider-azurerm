@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_queue"
 sidebar_current: "docs-azurerm-resource-storage-queue"
 description: |-
-  Create a Azure Storage Queue.
+  Manages a Azure Storage Queue.
 ---
 
 # azurerm_storage_queue

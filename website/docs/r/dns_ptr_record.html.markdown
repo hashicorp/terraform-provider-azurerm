@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_ptr_record"
 sidebar_current: "docs-azurerm-resource-dns-ptr-record"
 description: |-
-  Create a DNS PTR Record.
+  Manages a DNS PTR Record.
 ---
 
 # azurerm_dns_ptr_record

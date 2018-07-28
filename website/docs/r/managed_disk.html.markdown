@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_managed_disk"
 sidebar_current: "docs-azurerm-resource-compute-managed-disk"
 description: |-
-  Create a Managed Disk.
+  Manages a Managed Disk.
 ---
 
 # azurerm_managed_disk
