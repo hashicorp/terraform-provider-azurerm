@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_a_record"
 sidebar_current: "docs-azurerm-resource-dns-a-record"
 description: |-
-  Create a DNS A Record.
+  Manages a DNS A Record.
 ---
 
 # azurerm_dns_a_record

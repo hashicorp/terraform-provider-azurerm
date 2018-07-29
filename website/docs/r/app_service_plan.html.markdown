@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_plan"
 sidebar_current: "docs-azurerm-resource-app-service-plan"
 description: |-
-  Create an App Service Plan component.
+  Manages an App Service Plan component.
 ---
 
 # azurerm_app_service_plan

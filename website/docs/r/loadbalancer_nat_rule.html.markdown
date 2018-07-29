@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_lb_nat_rule"
 sidebar_current: "docs-azurerm-resource-loadbalancer-nat-rule"
 description: |-
-  Create a LoadBalancer NAT Rule.
+  Manages a LoadBalancer NAT Rule.
 ---
 
 # azurerm_lb_nat_rule

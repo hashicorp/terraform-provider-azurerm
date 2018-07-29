@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_machine_scale_set"
 sidebar_current: "docs-azurerm-resource-compute-virtualmachine-scale-set"
 description: |-
-  Create a Virtual Machine scale set.
+  Manages a Virtual Machine scale set.
 ---
 
 # azurerm\_virtual\_machine\_scale\_set

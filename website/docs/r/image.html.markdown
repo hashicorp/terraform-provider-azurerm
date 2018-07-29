@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_image"
 sidebar_current: "docs-azurerm-resource-compute-image"
 description: |-
-  Create a custom virtual machine image that can be used to create virtual machines.
+  Manages a custom virtual machine image that can be used to create virtual machines.
 ---
 
 # azurerm_image
