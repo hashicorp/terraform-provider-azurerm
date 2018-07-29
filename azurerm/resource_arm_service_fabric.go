@@ -3,19 +3,19 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net/http"
 
-	"github.com/Azure/azure-sdk-for-go/arm/servicefabric"
+	"github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2018-02-01/servicefabric"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/jen20/riviera/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmServiceFabric() *schema.Resource {
+func resourceArmServiceFabricCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceFabricCreate,
-		Read:   resourceArmServiceFabricRead,
-		Update: resourceArmServiceFabricUpdate,
-		Delete: resourceArmServiceFabricDelete,
+		Create: resourceArmServiceFabricClusterCreate,
+		Read:   resourceArmServiceFabricClusterRead,
+		Update: resourceArmServiceFabricClusterUpdate,
+		Delete: resourceArmServiceFabricClusterDelete,
 
 		Schema: map[string]*schema.Schema{
 			"resource_group_name": {
@@ -106,22 +106,22 @@ func resourceArmServiceFabric() *schema.Resource {
 	}
 }
 
-func resourceArmServiceFabricCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	ServiceFabricClient := client.serviceFabricClient
+func resourceArmServiceFabricClusterCreate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).serviceFabricClustersClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Service Fabric creation.")
 
-	resGroup := d.Get("resource_group_name").(string)
-	clusterName := d.Get("cluster_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+	name := d.Get("cluster_name").(string)
 	reliabilityLevel := d.Get("reliability_level").(string)
 	upgradeMode := d.Get("upgrade_mode").(string)
 	managementEndpoint := d.Get("management_endpoint").(string)
 	nodeName := d.Get("node_name").(string)
-	instanceCount := azure.Int32(int32(d.Get("instance_count").(int)))
+	instanceCount := utils.Int32(int32(d.Get("instance_count").(int)))
 	isPrimary := true
-	clientEndpointPort := azure.Int32(int32(d.Get("client_endpoint_port").(int)))
-	httpEndpointPort := azure.Int32(int32(d.Get("http_endpoint_port").(int)))
+	clientEndpointPort := utils.Int32(int32(d.Get("client_endpoint_port").(int)))
+	httpEndpointPort := utils.Int32(int32(d.Get("http_endpoint_port").(int)))
 	vmImage := d.Get("vm_image").(string)
 	location := d.Get("location").(string)
 	tags := d.Get("tags").(map[string]interface{})
@@ -132,8 +132,6 @@ func resourceArmServiceFabricCreate(d *schema.ResourceData, meta interface{}) er
 	queueEndpoint := d.Get("queue_endpoint").(string)
 	tableEndpoint := d.Get("table_endpoint").(string)
 
-	log.Printf("[INFO] clusterName is %s.", clusterName)
-
 	nodeTypeDescription := servicefabric.NodeTypeDescription{
 		Name:                         &nodeName,
 		VMInstanceCount:              instanceCount,
@@ -141,8 +139,6 @@ func resourceArmServiceFabricCreate(d *schema.ResourceData, meta interface{}) er
 		ClientConnectionEndpointPort: clientEndpointPort,
 		HTTPGatewayEndpointPort:      httpEndpointPort,
 	}
-
-	log.Printf("[INFO] instanceCount is %s.", instanceCount)
 
 	nodeTypes := make([]servicefabric.NodeTypeDescription, 0)
 	nodeTypes = append(nodeTypes, nodeTypeDescription)
@@ -215,52 +211,50 @@ func resourceArmServiceFabricCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	cluster := servicefabric.Cluster{
-		Location:          &location,
+		Location:          utils.String(location),
 		ClusterProperties: &clusterProperties,
 		Tags:              expandTags(tags),
 	}
 
-	log.Printf("[INFO] creating Service Fabric")
-
-	_, error := ServiceFabricClient.Create(resGroup, clusterName, cluster, make(chan struct{}))
-	err := <-error
+	future, err := client.Create(ctx, resourceGroup, name, cluster)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	log.Printf("[INFO] reading Service Fabric")
-
-	read, err := ServiceFabricClient.Get(resGroup, clusterName)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error waiting for creation of Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	read, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Service Fabric %s (resource group %s) ID", clusterName, resGroup)
+		return fmt.Errorf("Cannot read Service Fabric %s (resource group %s) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
 
-	return resourceArmServiceFabricRead(d, meta)
+	return resourceArmServiceFabricClusterRead(d, meta)
 }
 
-func resourceArmServiceFabricUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	ServiceFabricClient := client.serviceFabricClient
+func resourceArmServiceFabricClusterUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).serviceFabricClustersClient
+	ctx := meta.(*ArmClient).StopContext
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Service Fabric creation.")
+	log.Printf("[INFO] preparing arguments for Service Fabric Cluster update.")
 
-	resGroup := d.Get("resource_group_name").(string)
-	clusterName := d.Get("cluster_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+	name := d.Get("cluster_name").(string)
 	reliabilityLevel := d.Get("reliability_level").(string)
 	upgradeMode := d.Get("upgrade_mode").(string)
 	nodeName := d.Get("node_name").(string)
-	instanceCount := azure.Int32(int32(d.Get("instance_count").(int)))
-	clientEndpointPort := azure.Int32(int32(d.Get("client_endpoint_port").(int)))
-	httpEndpointPort := azure.Int32(int32(d.Get("http_endpoint_port").(int)))
+	instanceCount := utils.Int32(int32(d.Get("instance_count").(int)))
+	clientEndpointPort := utils.Int32(int32(d.Get("client_endpoint_port").(int)))
+	httpEndpointPort := utils.Int32(int32(d.Get("http_endpoint_port").(int)))
 	tags := d.Get("tags").(map[string]interface{})
 	isPrimary := true
-
-	log.Printf("[INFO] clusterName is %s.", clusterName)
 
 	nodeTypeDescription := servicefabric.NodeTypeDescription{
 		Name:                         &nodeName,
@@ -270,15 +264,13 @@ func resourceArmServiceFabricUpdate(d *schema.ResourceData, meta interface{}) er
 		HTTPGatewayEndpointPort:      httpEndpointPort,
 	}
 
-	log.Printf("[INFO] instanceCount is %s.", instanceCount)
-
 	nodeTypes := make([]servicefabric.NodeTypeDescription, 0)
 
 	nodeTypes = append(nodeTypes, nodeTypeDescription)
 
 	clusterProperties := servicefabric.ClusterPropertiesUpdateParameters{
-		ReliabilityLevel: servicefabric.ReliabilityLevel(reliabilityLevel),
-		UpgradeMode:      servicefabric.UpgradeMode(upgradeMode),
+		ReliabilityLevel: servicefabric.ReliabilityLevel1(reliabilityLevel),
+		UpgradeMode:      servicefabric.UpgradeMode1(upgradeMode),
 		NodeTypes:        &nodeTypes,
 	}
 
@@ -287,31 +279,32 @@ func resourceArmServiceFabricUpdate(d *schema.ResourceData, meta interface{}) er
 		Tags: expandTags(tags),
 	}
 
-	log.Printf("[INFO] creating Service Fabric")
-
-	_, error := ServiceFabricClient.Update(resGroup, clusterName, clusterUpdateParameters, make(chan struct{}))
-	err := <-error
+	future, err := client.Update(ctx, resourceGroup, name, clusterUpdateParameters)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error updating Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	log.Printf("[INFO] reading Service Fabric")
-
-	read, err := ServiceFabricClient.Get(resGroup, clusterName)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error waiting for update of Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	read, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Service Fabric %s (resource group %s) ID", clusterName, resGroup)
+		return fmt.Errorf("Cannot ID of Service Fabric Cluster %q (Resource Group %q)", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
 
-	return resourceArmServiceFabricRead(d, meta)
+	return resourceArmServiceFabricClusterRead(d, meta)
 }
 
-func resourceArmServiceFabricRead(d *schema.ResourceData, meta interface{}) error {
-	ServiceFabricClient := meta.(*ArmClient).serviceFabricClient
+func resourceArmServiceFabricClusterRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).serviceFabricClustersClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -320,40 +313,49 @@ func resourceArmServiceFabricRead(d *schema.ResourceData, meta interface{}) erro
 
 	log.Printf("[DEBUG] Reading service fabric cluster %s", id)
 
-	resGroup := id.ResourceGroup
-	clusterName := id.Path["clusters"]
+	resourceGroup := id.ResourceGroup
+	name := id.Path["clusters"]
 
-	resp, err := ServiceFabricClient.Get(resGroup, clusterName)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[WARN] Service Fabric Cluster %q (Resource Group %q) was not found - removing from state!", name, resourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure Service Fabric %s: %s", clusterName, err)
+
+		return fmt.Errorf("Error retrieving Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	// TODO: set all the other properties here
 	clusterEndpoint := resp.ClusterProperties.ClusterEndpoint
 
-	d.Set("cluster_name", clusterName)
-	d.Set("resource_group_name", resGroup)
+	d.Set("cluster_name", name)
+	d.Set("resource_group_name", resourceGroup)
 	d.Set("cluster_endpoint", clusterEndpoint)
 
 	return nil
 }
 
-func resourceArmServiceFabricDelete(d *schema.ResourceData, meta interface{}) error {
-	ServiceFabricClient := meta.(*ArmClient).serviceFabricClient
+func resourceArmServiceFabricClusterDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).serviceFabricClustersClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Path["clusters"]
 
-	log.Printf("[DEBUG] Deleting service fabric cluster %s: %s", resGroup, name)
+	log.Printf("[DEBUG] Deleting Service Fabric Cluster %q (Resource Group %q)", name, resourceGroup)
 
-	_, err = ServiceFabricClient.Delete(resGroup, name)
+	resp, err := client.Delete(ctx, resourceGroup, name)
+	if err != nil {
+		if !response.WasNotFound(resp.Response) {
+			return fmt.Errorf("Error deleting Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	}
 
-	return err
+	return nil
 }
