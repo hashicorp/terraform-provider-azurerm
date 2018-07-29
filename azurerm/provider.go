@@ -387,6 +387,7 @@ func determineAzureResourceProvidersToRegister(providerList []resources.Provider
 		"Microsoft.Resources":           {},
 		"Microsoft.Search":              {},
 		"Microsoft.ServiceBus":          {},
+		"Microsoft.ServiceFabric":       {},
 		"Microsoft.Sql":                 {},
 		"Microsoft.Storage":             {},
 	}
