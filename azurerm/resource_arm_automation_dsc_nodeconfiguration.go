@@ -28,7 +28,7 @@ func resourceArmAutomationDscNodeConfiguration() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"account_name": {
+			"automation_account_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -52,7 +52,7 @@ func resourceArmAutomationDscNodeConfigurationCreateUpdate(d *schema.ResourceDat
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	accName := d.Get("account_name").(string)
+	accName := d.Get("automation_account_name").(string)
 	content := d.Get("content").(string)
 
 	s := strings.Split(name, ".")
@@ -111,7 +111,7 @@ func resourceArmAutomationDscNodeConfigurationRead(d *schema.ResourceData, meta 
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("account_name", accName)
+	d.Set("automation_account_name", accName)
 
 	return nil
 }

@@ -45,7 +45,7 @@ func testCheckAzureRMAutomationModuleDestroy(s *terraform.State) error {
 		}
 
 		name := rs.Primary.Attributes["name"]
-		accName := rs.Primary.Attributes["account_name"]
+		accName := rs.Primary.Attributes["automation_account_name"]
 
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
@@ -79,7 +79,7 @@ func testCheckAzureRMAutomationModuleExists(name string) resource.TestCheckFunc 
 		}
 
 		name := rs.Primary.Attributes["name"]
-		accName := rs.Primary.Attributes["account_name"]
+		accName := rs.Primary.Attributes["automation_account_name"]
 
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
@@ -120,9 +120,9 @@ resource "azurerm_automation_account" "test" {
 }
 
 resource "azurerm_automation_module" "test" {
-  name                = "xActiveDirectory"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  account_name        = "${azurerm_automation_account.test.name}"
+  name                    = "xActiveDirectory"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  automation_account_name = "${azurerm_automation_account.test.name}"
 
   module_link = {
 	uri = "https://devopsgallerystorage.blob.core.windows.net/packages/xactivedirectory.2.19.0.nupkg"

@@ -45,7 +45,7 @@ func testCheckAzureRMAutomationDscNodeConfigurationDestroy(s *terraform.State) e
 		}
 
 		name := rs.Primary.Attributes["name"]
-		accName := rs.Primary.Attributes["account_name"]
+		accName := rs.Primary.Attributes["automation_account_name"]
 
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
@@ -79,7 +79,7 @@ func testCheckAzureRMAutomationDscNodeConfigurationExists(name string) resource.
 		}
 
 		name := rs.Primary.Attributes["name"]
-		accName := rs.Primary.Attributes["account_name"]
+		accName := rs.Primary.Attributes["automation_account_name"]
 
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
@@ -120,19 +120,19 @@ resource "azurerm_automation_account" "test" {
 }
 
 resource "azurerm_automation_dsc_configuration" "test" {
-  name                = "test"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  account_name        = "${azurerm_automation_account.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  name                    = "test"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  automation_account_name = "${azurerm_automation_account.test.name}"
+  location                = "${azurerm_resource_group.test.location}"
 	content             = "configuration test {}"
   }
 
 resource "azurerm_automation_dsc_nodeconfiguration" "test" {
-  name                = "test.localhost"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  account_name        = "${azurerm_automation_account.test.name}"
-  depends_on          = ["azurerm_automation_dsc_configuration.test"]
-  content             = <<mofcontent
+  name                    = "test.localhost"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  automation_account_name = "${azurerm_automation_account.test.name}"
+  depends_on              = ["azurerm_automation_dsc_configuration.test"]
+  content                 = <<mofcontent
 instance of MSFT_FileDirectoryConfiguration as $MSFT_FileDirectoryConfiguration1ref
 {
   ResourceID = "[File]bla";
