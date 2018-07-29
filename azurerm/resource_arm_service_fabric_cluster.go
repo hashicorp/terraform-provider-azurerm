@@ -17,6 +17,9 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 		Read:   resourceArmServiceFabricClusterRead,
 		Update: resourceArmServiceFabricClusterUpdate,
 		Delete: resourceArmServiceFabricClusterDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -33,11 +36,11 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(servicefabric.ReliabilityLevelBronze),
-					string(servicefabric.ReliabilityLevelGold),
 					string(servicefabric.ReliabilityLevelNone),
-					string(servicefabric.ReliabilityLevelPlatinum),
+					string(servicefabric.ReliabilityLevelBronze),
 					string(servicefabric.ReliabilityLevelSilver),
+					string(servicefabric.ReliabilityLevelGold),
+					string(servicefabric.ReliabilityLevelPlatinum),
 				}, false),
 			},
 
@@ -64,7 +67,7 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 
 			"add_on_features": {
 				Type:     schema.TypeSet,
-				Computed: true,
+				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,
 			},
@@ -109,7 +112,6 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 				},
 			},
 
-			// TODO: should this be Required?
 			"diagnostics_config": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -120,22 +122,27 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 						"storage_account_name": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 						},
 						"protected_account_key_name": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 						},
 						"blob_endpoint": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 						},
 						"queue_endpoint": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 						},
 						"table_endpoint": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 						},
 					},
 				},
@@ -152,13 +159,12 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 						},
 						"parameters": {
 							Type:     schema.TypeMap,
-							Required: true,
+							Optional: true,
 						},
 					},
 				},
 			},
 
-			// TODO: can you have multiple node-types, or should this be limited?
 			"node_type": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -167,6 +173,7 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 						},
 						"instance_count": {
 							Type:     schema.TypeInt,
@@ -175,24 +182,72 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 						"is_primary": {
 							Type:     schema.TypeBool,
 							Required: true,
+							ForceNew: true,
 						},
 						"client_endpoint_port": {
 							Type:     schema.TypeInt,
 							Required: true,
+							ForceNew: true,
 						},
 						"http_endpoint_port": {
 							Type:     schema.TypeInt,
 							Required: true,
+							ForceNew: true,
 						},
 						"durability_level": {
 							Type:     schema.TypeString,
 							Optional: true,
 							Default:  string(servicefabric.Bronze),
+							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(servicefabric.Bronze),
 								string(servicefabric.Gold),
 								string(servicefabric.Silver),
 							}, false),
+						},
+
+						"application_ports": {
+							Type:     schema.TypeList,
+							Optional: true,
+							ForceNew: true,
+							Computed: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"start_port": {
+										Type:     schema.TypeInt,
+										Required: true,
+										ForceNew: true,
+									},
+									"end_port": {
+										Type:     schema.TypeInt,
+										Required: true,
+										ForceNew: true,
+									},
+								},
+							},
+						},
+
+						"ephemeral_ports": {
+							Type:     schema.TypeList,
+							Optional: true,
+							ForceNew: true,
+							Computed: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"start_port": {
+										Type:     schema.TypeInt,
+										Required: true,
+										ForceNew: true,
+									},
+									"end_port": {
+										Type:     schema.TypeInt,
+										Required: true,
+										ForceNew: true,
+									},
+								},
+							},
 						},
 					},
 				},
@@ -223,7 +278,7 @@ func resourceArmServiceFabricClusterCreate(d *schema.ResourceData, meta interfac
 	vmImage := d.Get("vm_image").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
-	addOnFeaturesRaw := d.Get("add_on_features").([]interface{})
+	addOnFeaturesRaw := d.Get("add_on_features").(*schema.Set).List()
 	addOnFeatures := expandServiceFabricClusterAddOnFeatures(addOnFeaturesRaw)
 
 	certificateRaw := d.Get("certificate").([]interface{})
@@ -241,23 +296,21 @@ func resourceArmServiceFabricClusterCreate(d *schema.ResourceData, meta interfac
 	nodeTypesRaw := d.Get("node_type").([]interface{})
 	nodeTypes := expandServiceFabricClusterNodeTypes(nodeTypesRaw)
 
-	clusterProperties := servicefabric.ClusterProperties{
-		AddOnFeatures:                   addOnFeatures,
-		Certificate:                     certificate,
-		ClientCertificateThumbprints:    clientCertificateThumbprints,
-		DiagnosticsStorageAccountConfig: diagnostics,
-		FabricSettings:                  fabricSettings,
-		ManagementEndpoint:              utils.String(managementEndpoint),
-		NodeTypes:                       nodeTypes,
-		ReliabilityLevel:                servicefabric.ReliabilityLevel(reliabilityLevel),
-		UpgradeMode:                     servicefabric.UpgradeMode(upgradeMode),
-		VMImage:                         utils.String(vmImage),
-	}
-
 	cluster := servicefabric.Cluster{
-		Location:          utils.String(location),
-		ClusterProperties: &clusterProperties,
-		Tags:              expandTags(tags),
+		Location: utils.String(location),
+		Tags:     expandTags(tags),
+		ClusterProperties: &servicefabric.ClusterProperties{
+			AddOnFeatures:                   addOnFeatures,
+			Certificate:                     certificate,
+			ClientCertificateThumbprints:    clientCertificateThumbprints,
+			DiagnosticsStorageAccountConfig: diagnostics,
+			FabricSettings:                  fabricSettings,
+			ManagementEndpoint:              utils.String(managementEndpoint),
+			NodeTypes:                       nodeTypes,
+			ReliabilityLevel:                servicefabric.ReliabilityLevel(reliabilityLevel),
+			UpgradeMode:                     servicefabric.UpgradeMode(upgradeMode),
+			VMImage:                         utils.String(vmImage),
+		},
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, cluster)
@@ -295,7 +348,7 @@ func resourceArmServiceFabricClusterUpdate(d *schema.ResourceData, meta interfac
 	upgradeMode := d.Get("upgrade_mode").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
-	addOnFeaturesRaw := d.Get("add_on_features").([]interface{})
+	addOnFeaturesRaw := d.Get("add_on_features").(*schema.Set).List()
 	addOnFeatures := expandServiceFabricClusterAddOnFeatures(addOnFeaturesRaw)
 
 	certificateRaw := d.Get("certificate").([]interface{})
@@ -450,7 +503,7 @@ func flattenServiceFabricClusterAddOnFeatures(input *[]string) []interface{} {
 		}
 	}
 
-	return nil
+	return output
 }
 
 func expandServiceFabricClusterCertificate(input []interface{}) *servicefabric.CertificateDescription {
@@ -646,6 +699,7 @@ func flattenServiceFabricClusterFabricSettings(input *[]servicefabric.SettingsSe
 			}
 		}
 		result["parameters"] = parameters
+		results = append(results, result)
 	}
 
 	return results
@@ -664,9 +718,6 @@ func expandServiceFabricClusterNodeTypes(input []interface{}) *[]servicefabric.N
 		isPrimary := node["is_primary"].(bool)
 		durabilityLevel := node["durability_level"].(string)
 
-		// TODO: Application Ports - Optional?
-		// TODO: Ephemeral Ports - Optional?
-
 		result := servicefabric.NodeTypeDescription{
 			Name:                         utils.String(name),
 			VMInstanceCount:              utils.Int32(int32(instanceCount)),
@@ -675,6 +726,33 @@ func expandServiceFabricClusterNodeTypes(input []interface{}) *[]servicefabric.N
 			HTTPGatewayEndpointPort:      utils.Int32(int32(httpEndpointPort)),
 			DurabilityLevel:              servicefabric.DurabilityLevel(durabilityLevel),
 		}
+
+		applicationPortsRaw := node["application_ports"].([]interface{})
+		if len(applicationPortsRaw) > 0 {
+			portsRaw := applicationPortsRaw[0].(map[string]interface{})
+
+			startPort := portsRaw["start_port"].(int)
+			endPort := portsRaw["end_port"].(int)
+
+			result.ApplicationPorts = &servicefabric.EndpointRangeDescription{
+				StartPort: utils.Int32(int32(startPort)),
+				EndPort:   utils.Int32(int32(endPort)),
+			}
+		}
+
+		ephemeralPortsRaw := node["ephemeral_ports"].([]interface{})
+		if len(ephemeralPortsRaw) > 0 {
+			portsRaw := ephemeralPortsRaw[0].(map[string]interface{})
+
+			startPort := portsRaw["start_port"].(int)
+			endPort := portsRaw["end_port"].(int)
+
+			result.EphemeralPorts = &servicefabric.EndpointRangeDescription{
+				StartPort: utils.Int32(int32(startPort)),
+				EndPort:   utils.Int32(int32(endPort)),
+			}
+		}
+
 		results = append(results, result)
 	}
 
@@ -712,6 +790,32 @@ func flattenServiceFabricClusterNodeTypes(input *[]servicefabric.NodeTypeDescrip
 		}
 
 		output["durability_level"] = string(v.DurabilityLevel)
+
+		applicationPorts := make([]interface{}, 0)
+		if ports := v.ApplicationPorts; ports != nil {
+			r := make(map[string]interface{}, 0)
+			if start := ports.StartPort; start != nil {
+				r["start_port"] = int(*start)
+			}
+			if end := ports.EndPort; end != nil {
+				r["end_port"] = int(*end)
+			}
+			applicationPorts = append(applicationPorts, r)
+		}
+		output["application_ports"] = applicationPorts
+
+		ephermeralPorts := make([]interface{}, 0)
+		if ports := v.EphemeralPorts; ports != nil {
+			r := make(map[string]interface{}, 0)
+			if start := ports.StartPort; start != nil {
+				r["start_port"] = int(*start)
+			}
+			if end := ports.EndPort; end != nil {
+				r["end_port"] = int(*end)
+			}
+			ephermeralPorts = append(ephermeralPorts, r)
+		}
+		output["ephemeral_ports"] = ephermeralPorts
 
 		results = append(results, output)
 	}
