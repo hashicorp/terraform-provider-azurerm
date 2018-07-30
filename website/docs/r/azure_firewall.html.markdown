@@ -1,12 +1,12 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_azure_firewall"
+page_title: "Azure Resource Manager: azurerm_firewall"
 sidebar_current: "docs-azurerm-resource-azurefirewall-x"
 description: |-
   Manages an Azure Firewall.
 ---
 
-# azurerm_azure_firewall
+# azurerm_firewall
 
 Manages an Azure Firewall.
 
@@ -42,7 +42,7 @@ resource "azurerm_public_ip" "test" {
   sku                          = "Standard"
 }
 
-resource "azurerm_azure_firewall" "test" {
+resource "azurerm_firewall" "test" {
   name                = "testfirewall"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -88,5 +88,5 @@ The following attributes are exported:
 Azure Firewalls can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_azure_firewall.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/azureFirewalls/testfirewall
+terraform import azurerm_firewall.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/azureFirewalls/testfirewall
 ```

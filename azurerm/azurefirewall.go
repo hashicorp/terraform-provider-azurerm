@@ -8,7 +8,7 @@ import (
 // The API requires InternalPublicIPAddress to be set when for a CreateOrUpdate
 // operation, but Get operations return the property as PublicIPAddress
 // so we need to go through and copy the value to the correct property.
-func fixArmAzureFirewallIPConfiguration(firewall *network.AzureFirewall) []network.AzureFirewallIPConfiguration {
+func fixArmFirewallIPConfiguration(firewall *network.AzureFirewall) []network.AzureFirewallIPConfiguration {
 	current := *firewall.IPConfigurations
 	ipConfigs := make([]network.AzureFirewallIPConfiguration, 0, len(current))
 	for _, config := range current {
@@ -29,7 +29,7 @@ func fixArmAzureFirewallIPConfiguration(firewall *network.AzureFirewall) []netwo
 	return ipConfigs
 }
 
-func expandArmAzureFirewallSet(r *schema.Set) *[]string {
+func expandArmFirewallSet(r *schema.Set) *[]string {
 	result := make([]string, 0)
 	for _, v := range r.List() {
 		s := v.(string)

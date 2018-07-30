@@ -7,15 +7,15 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccAzureRMAzureFirewall_importBasic(t *testing.T) {
-	resourceName := "azurerm_azure_firewall.test"
+func TestAccAzureRMFirewall_importBasic(t *testing.T) {
+	resourceName := "azurerm_firewall.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMAzureFirewall_basic(ri, testLocation())
+	config := testAccAzureRMFirewall_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMAzureFirewallDestroy,
+		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,

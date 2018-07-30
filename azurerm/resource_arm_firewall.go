@@ -10,14 +10,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-var azureFirewallResourceName = "azurerm_azure_firewall"
+var azureFirewallResourceName = "azurerm_firewall"
 
-func resourceArmAzureFirewall() *schema.Resource {
+func resourceArmFirewall() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAzureFirewallCreateUpdate,
-		Read:   resourceArmAzureFirewallRead,
-		Update: resourceArmAzureFirewallCreateUpdate,
-		Delete: resourceArmAzureFirewallDelete,
+		Create: resourceArmFirewallCreateUpdate,
+		Read:   resourceArmFirewallRead,
+		Update: resourceArmFirewallCreateUpdate,
+		Delete: resourceArmFirewallDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -66,7 +66,7 @@ func resourceArmAzureFirewall() *schema.Resource {
 	}
 }
 
-func resourceArmAzureFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).azureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -76,7 +76,7 @@ func resourceArmAzureFirewallCreateUpdate(d *schema.ResourceData, meta interface
 	name := d.Get("name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
-	ipConfigs, subnetToLock, vnetToLock, err := expandArmAzureFirewallIPConfigurations(d)
+	ipConfigs, subnetToLock, vnetToLock, err := expandArmFirewallIPConfigurations(d)
 	if err != nil {
 		return fmt.Errorf("Error Building list of Azure Firewall IP Configurations: %+v", err)
 	}
@@ -116,10 +116,10 @@ func resourceArmAzureFirewallCreateUpdate(d *schema.ResourceData, meta interface
 
 	d.SetId(*read.ID)
 
-	return resourceArmAzureFirewallRead(d, meta)
+	return resourceArmFirewallRead(d, meta)
 }
 
-func resourceArmAzureFirewallRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).azureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -140,7 +140,7 @@ func resourceArmAzureFirewallRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if props := firewall.AzureFirewallPropertiesFormat; props != nil {
-		ipConfigs := flattenArmAzureFirewallIPConfigurations(props.IPConfigurations)
+		ipConfigs := flattenArmFirewallIPConfigurations(props.IPConfigurations)
 		if err := d.Set("ip_configuration", ipConfigs); err != nil {
 			return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
 		}
@@ -157,7 +157,7 @@ func resourceArmAzureFirewallRead(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceArmAzureFirewallDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmFirewallDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).azureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -210,7 +210,7 @@ func resourceArmAzureFirewallDelete(d *schema.ResourceData, meta interface{}) er
 	return err
 }
 
-func expandArmAzureFirewallIPConfigurations(d *schema.ResourceData) (*[]network.AzureFirewallIPConfiguration, *[]string, *[]string, error) {
+func expandArmFirewallIPConfigurations(d *schema.ResourceData) (*[]network.AzureFirewallIPConfiguration, *[]string, *[]string, error) {
 	configs := d.Get("ip_configuration").([]interface{})
 	ipConfigs := make([]network.AzureFirewallIPConfiguration, 0, len(configs))
 	subnetNamesToLock := make([]string, 0)
@@ -256,7 +256,7 @@ func expandArmAzureFirewallIPConfigurations(d *schema.ResourceData) (*[]network.
 	return &ipConfigs, &subnetNamesToLock, &virtualNetworkNamesToLock, nil
 }
 
-func flattenArmAzureFirewallIPConfigurations(ipConfigs *[]network.AzureFirewallIPConfiguration) []interface{} {
+func flattenArmFirewallIPConfigurations(ipConfigs *[]network.AzureFirewallIPConfiguration) []interface{} {
 	result := make([]interface{}, 0)
 	if ipConfigs == nil {
 		return result
