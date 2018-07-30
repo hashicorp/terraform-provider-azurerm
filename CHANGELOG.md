@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_container_registry` [GH-1642]
+* **New Resource:** `azurerm_service_fabric_cluster` [GH-4]
 
 IMPROVEMENTS:
 
