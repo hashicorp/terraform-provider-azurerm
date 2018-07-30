@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_machine_state"
 sidebar_current: "docs-azurerm-resource-compute-virtualmachine-state"
 description: |-
-    Manages a Virtual Machine state to allow for a machine to be Started,
+    Manages a Virtual Machine state to allow for a machine to be Running,
     Powered Off and Deallocated without destroying/re-creating
 ---
 
