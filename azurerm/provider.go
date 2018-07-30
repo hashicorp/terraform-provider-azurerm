@@ -233,6 +233,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_servicebus_subscription_rule":            resourceArmServiceBusSubscriptionRule(),
 			"azurerm_servicebus_topic":                        resourceArmServiceBusTopic(),
 			"azurerm_servicebus_topic_authorization_rule":     resourceArmServiceBusTopicAuthorizationRule(),
+			"azurerm_service_fabric_cluster":                  resourceArmServiceFabricCluster(),
 			"azurerm_snapshot":                                resourceArmSnapshot(),
 			"azurerm_scheduler_job":                           resourceArmSchedulerJob(),
 			"azurerm_scheduler_job_collection":                resourceArmSchedulerJobCollection(),
@@ -386,6 +387,7 @@ func determineAzureResourceProvidersToRegister(providerList []resources.Provider
 		"Microsoft.Resources":           {},
 		"Microsoft.Search":              {},
 		"Microsoft.ServiceBus":          {},
+		"Microsoft.ServiceFabric":       {},
 		"Microsoft.Sql":                 {},
 		"Microsoft.Storage":             {},
 	}
