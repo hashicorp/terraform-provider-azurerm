@@ -4,10 +4,11 @@
 	"package": [
 		{
 			"checksumSHA1": "MX5F5vTZ/zykt0UcvCEgNSCe9rw=",
-			"origin": "github.com/terraform-providers/terraform-provider-azurerm/vendor/github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2017-03-01/apimanagement",
 			"path": "github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2017-03-01/apimanagement",
-			"revision": "2dc26e01914c8cbb383e1895c779704877365792",
-			"revisionTime": "2018-06-26T15:31:47Z"
+			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
+			"revisionTime": "2018-07-03T19:15:42Z",
+			"version": "=v18.0.0",
+			"versionExact": "v18.0.0"
 		},
 		{
 			"checksumSHA1": "xeK+ux8fKSSJJVW04/TE9yQFfGs=",
