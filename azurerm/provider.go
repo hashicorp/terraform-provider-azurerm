@@ -258,6 +258,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_virtual_machine_data_disk_attachment":    resourceArmVirtualMachineDataDiskAttachment(),
 			"azurerm_virtual_machine_extension":               resourceArmVirtualMachineExtensions(),
 			"azurerm_virtual_machine_scale_set":               resourceArmVirtualMachineScaleSet(),
+			"azurerm_virtual_machine_state":                   resourceArmVirtualMachineState(),
 			"azurerm_virtual_network":                         resourceArmVirtualNetwork(),
 			"azurerm_virtual_network_gateway":                 resourceArmVirtualNetworkGateway(),
 			"azurerm_virtual_network_gateway_connection":      resourceArmVirtualNetworkGatewayConnection(),
