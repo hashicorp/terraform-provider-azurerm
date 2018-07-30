@@ -1,4 +1,3 @@
-
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_lake_store"

@@ -6,7 +6,7 @@ description: |-
   Manages a Virtual Machine scale set.
 ---
 
-# azurerm\_virtual\_machine\_scale\_set
+# azurerm_virtual_machine_scale_set
 
 Create a virtual machine scale set.
 
