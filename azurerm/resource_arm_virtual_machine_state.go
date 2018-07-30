@@ -33,8 +33,8 @@ func resourceArmVirtualMachineState() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"started",
-					"poweredoff",
+					"running",
+					"stopped",
 					"deallocated",
 				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
@@ -55,7 +55,7 @@ func resourceArmVirtualMachineStateCreate(d *schema.ResourceData, meta interface
 
 	if vmState == "deallocated" {
 		err = resourceArmVirtualMachineStateDeallocate(resGroup, vmName, vmState, meta)
-	} else if vmState == "poweredoff" {
+	} else if vmState == "stopped" {
 		err = resourceArmVirtualMachineStatePowerOff(resGroup, vmName, vmState, meta)
 	} else if vmState == "started" {
 		err = resourceArmVirtualMachineStateStart(resGroup, vmName, vmState, meta)
@@ -93,12 +93,6 @@ func resourceArmVirtualMachineStateRead(d *schema.ResourceData, meta interface{}
 	}
 	resGroup := id.ResourceGroup
 	vmName := id.Path["virtualMachines"]
-
-	//vmName := d.Get("virtual_machine_name").(string)
-	//resGroup := d.Get("resource_group_name").(string)
-
-	//resp, err := client.InstanceView(ctx, resGroup, vmName)
-
 	vm, err := client.Get(ctx, resGroup, vmName, compute.InstanceView)
 	if err != nil {
 		if utils.ResponseWasNotFound(vm.Response) {
@@ -109,8 +103,6 @@ func resourceArmVirtualMachineStateRead(d *schema.ResourceData, meta interface{}
 
 	if vm.InstanceView != nil {
 		for _, statGet := range *vm.InstanceView.Statuses {
-			//d.Set("state", *statGet.Code)
-			//d.Set("state", strings.Split("/", *statGet.Code))
 			statusSplit := strings.Split(*statGet.Code, "/")
 			d.Set("state", statusSplit[1])
 		}
