@@ -122,7 +122,7 @@ func resourceArmSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -207,7 +207,7 @@ func resourceArmSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error deleting Snapshot: %+v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error deleting Snapshot: %+v", err)
 	}
@@ -216,10 +216,10 @@ func resourceArmSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
 }
 
 func validateSnapshotName(v interface{}, k string) (ws []string, errors []error) {
-	// a-z, A-Z, 0-9 and _. The max name length is 80
+	// a-z, A-Z, 0-9, _ and -. The max name length is 80
 	value := v.(string)
 
-	r, _ := regexp.Compile("^[A-Za-z0-9_]+$")
+	r, _ := regexp.Compile("^[A-Za-z0-9_-]+$")
 	if !r.MatchString(value) {
 		errors = append(errors, fmt.Errorf("Snapshot Names can only contain alphanumeric characters and underscores."))
 	}

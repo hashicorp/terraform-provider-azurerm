@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sql_firewall_rule"
 sidebar_current: "docs-azurerm-resource-database-sql-firewall_rule"
 description: |-
-  Create a SQL Firewall Rule.
+  Manages a SQL Firewall Rule.
 ---
 
 # azurerm_sql_firewall_rule

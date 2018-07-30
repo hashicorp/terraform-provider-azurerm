@@ -10,10 +10,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmServiceAuthRuleSchemaFrom(schema map[string]*schema.Schema) map[string]*schema.Schema {
-	return schema
-}
-
 func resourceArmServiceBusNamespaceAuthorizationRule() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmServiceBusNamespaceAuthorizationRuleCreateUpdate,
@@ -25,7 +21,8 @@ func resourceArmServiceBusNamespaceAuthorizationRule() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		Schema: resourceArmServiceAuthRuleSchemaFrom(map[string]*schema.Schema{
+		//function takes a schema map and adds the authorization rule properties to it
+		Schema: azure.ServiceBusAuthorizationRuleSchemaFrom(map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -41,48 +38,6 @@ func resourceArmServiceBusNamespaceAuthorizationRule() *schema.Resource {
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
-
-			"listen": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"send": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"manage": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"primary_key": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"primary_connection_string": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"secondary_key": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"secondary_connection_string": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
 		}),
 
 		CustomizeDiff: azure.ServiceBusAuthorizationRuleCustomizeDiff,
@@ -96,7 +51,7 @@ func resourceArmServiceBusNamespaceAuthorizationRuleCreateUpdate(d *schema.Resou
 	log.Printf("[INFO] preparing arguments for AzureRM ServiceBus Namespace Authorization Rule creation.")
 
 	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 	namespaceName := d.Get("namespace_name").(string)
 
 	parameters := servicebus.SBAuthorizationRule{
@@ -106,18 +61,17 @@ func resourceArmServiceBusNamespaceAuthorizationRuleCreateUpdate(d *schema.Resou
 		},
 	}
 
-	_, err := client.CreateOrUpdateAuthorizationRule(ctx, resGroup, namespaceName, name, parameters)
-	if err != nil {
-		return err
+	if _, err := client.CreateOrUpdateAuthorizationRule(ctx, resourceGroup, namespaceName, name, parameters); err != nil {
+		return fmt.Errorf("Error creating/updating ServiceBus Namespace Authorization Rule %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	read, err := client.GetAuthorizationRule(ctx, resGroup, namespaceName, name)
+	read, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, name)
 	if err != nil {
 		return err
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read ServiceBus Namespace Authorization Rule %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read ServiceBus Namespace Authorization Rule %s (resource group %s) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -182,7 +136,7 @@ func resourceArmServiceBusNamespaceAuthorizationRuleDelete(d *schema.ResourceDat
 
 	resGroup := id.ResourceGroup
 	namespaceName := id.Path["namespaces"]
-	name := id.Path["AuthorizationRules"] //this is slightly different then topic (Authorization vs authorization)
+	name := id.Path["AuthorizationRules"] //this is slightly different then topic/queue (Authorization vs authorization)
 
 	if _, err = client.DeleteAuthorizationRule(ctx, resGroup, namespaceName, name); err != nil {
 		return fmt.Errorf("Error issuing Azure ARM delete request of ServiceBus Namespace Authorization Rule %q (Resource Group %q): %+v", name, resGroup, err)

@@ -1,9 +1,9 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_topic"
-sidebar_current: "docs-azurerm-resource-servicebus-topic"
+sidebar_current: "docs-azurerm-resource-messaging-servicebus-topic"
 description: |-
-  Create a ServiceBus Topic.
+  Manages a ServiceBus Topic.
 ---
 
 # azurerm_servicebus_topic

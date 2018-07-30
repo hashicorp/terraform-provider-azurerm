@@ -30,6 +30,26 @@ func TestAccAzureRMServiceBusSubscription_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMServiceBusSubscription_defaultTtl(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMServiceBusSubscription_withDefaultTtl(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusSubscriptionExists("azurerm_servicebus_subscription.test"),
+					resource.TestCheckResourceAttr("azurerm_servicebus_subscription.test", "default_message_ttl", "PT1H"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMServiceBusSubscription_updateEnableBatched(t *testing.T) {
 	resourceName := "azurerm_servicebus_subscription.test"
 	ri := acctest.RandInt()
@@ -209,6 +229,11 @@ resource "azurerm_servicebus_subscription" "test" {
 
 func testAccAzureRMServiceBusSubscription_basic(rInt int, location string) string {
 	return fmt.Sprintf(testAccAzureRMServiceBusSubscription_tfTemplate, rInt, location, rInt, rInt, rInt, "")
+}
+
+func testAccAzureRMServiceBusSubscription_withDefaultTtl(rInt int, location string) string {
+	return fmt.Sprintf(testAccAzureRMServiceBusSubscription_tfTemplate, rInt, location, rInt, rInt, rInt,
+		"default_message_ttl = \"PT1H\"\n")
 }
 
 func testAccAzureRMServiceBusSubscription_updateEnableBatched(rInt int, location string) string {

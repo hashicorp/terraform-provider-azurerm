@@ -2,8 +2,10 @@ package schema
 
 import (
 	"log"
+	"net"
+	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2016-09-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -166,6 +168,33 @@ func AppServiceSiteConfigSchema() *schema.Schema {
 					Optional: true,
 					Computed: true,
 				},
+
+				"ftps_state": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(web.AllAllowed),
+						string(web.Disabled),
+						string(web.FtpsOnly),
+					}, false),
+				},
+				"linux_fx_version": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
+				},
+
+				"min_tls_version": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(web.OneFullStopZero),
+						string(web.OneFullStopOne),
+						string(web.OneFullStopTwo),
+					}, false),
+				},
 			},
 		},
 	}
@@ -212,6 +241,10 @@ func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 		siteConfig.JavaContainerVersion = utils.String(v.(string))
 	}
 
+	if v, ok := config["linux_fx_version"]; ok {
+		siteConfig.LinuxFxVersion = utils.String(v.(string))
+	}
+
 	if v, ok := config["http2_enabled"]; ok {
 		siteConfig.HTTP20Enabled = utils.Bool(v.(bool))
 	}
@@ -219,16 +252,25 @@ func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 	if v, ok := config["ip_restriction"]; ok {
 		ipSecurityRestrictions := v.([]interface{})
 		restrictions := make([]web.IPSecurityRestriction, 0)
-
 		for _, ipSecurityRestriction := range ipSecurityRestrictions {
 			restriction := ipSecurityRestriction.(map[string]interface{})
 
 			ipAddress := restriction["ip_address"].(string)
 			mask := restriction["subnet_mask"].(string)
+			// the 2018-02-01 API expects a blank subnet mask and an IP address in CIDR format: a.b.c.d/x
+			// so translate the IP and mask if necessary
+			restrictionMask := ""
+			cidrAddress := ipAddress
+			if mask != "" {
+				ipNet := net.IPNet{IP: net.ParseIP(ipAddress), Mask: net.IPMask(net.ParseIP(mask))}
+				cidrAddress = ipNet.String()
+			} else if !strings.Contains(ipAddress, "/") {
+				cidrAddress += "/32"
+			}
 
 			restrictions = append(restrictions, web.IPSecurityRestriction{
-				IPAddress:  &ipAddress,
-				SubnetMask: &mask,
+				IPAddress:  &cidrAddress,
+				SubnetMask: &restrictionMask,
 			})
 		}
 		siteConfig.IPSecurityRestrictions = &restrictions
@@ -268,6 +310,14 @@ func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 
 	if v, ok := config["scm_type"]; ok {
 		siteConfig.ScmType = web.ScmType(v.(string))
+	}
+
+	if v, ok := config["ftps_state"]; ok {
+		siteConfig.FtpsState = web.FtpsState(v.(string))
+	}
+
+	if v, ok := config["min_tls_version"]; ok {
+		siteConfig.MinTLSVersion = web.SupportedTLSVersions(v.(string))
 	}
 
 	return siteConfig
@@ -324,7 +374,15 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 		for _, v := range *vs {
 			result := make(map[string]interface{}, 0)
 			if ip := v.IPAddress; ip != nil {
-				result["ip_address"] = *ip
+				// the 2018-02-01 API uses CIDR format (a.b.c.d/x), so translate that back to IP and mask
+				if strings.Contains(*ip, "/") {
+					ipAddr, ipNet, _ := net.ParseCIDR(*ip)
+					result["ip_address"] = ipAddr.String()
+					mask := net.IP(ipNet.Mask)
+					result["subnet_mask"] = mask.String()
+				} else {
+					result["ip_address"] = *ip
+				}
 			}
 			if subnet := v.SubnetMask; subnet != nil {
 				result["subnet_mask"] = *subnet
@@ -360,7 +418,13 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 		result["websockets_enabled"] = *input.WebSocketsEnabled
 	}
 
+	if input.LinuxFxVersion != nil {
+		result["linux_fx_version"] = *input.LinuxFxVersion
+	}
+
 	result["scm_type"] = string(input.ScmType)
+	result["ftps_state"] = string(input.FtpsState)
+	result["min_tls_version"] = string(input.MinTLSVersion)
 
 	return append(results, result)
 }

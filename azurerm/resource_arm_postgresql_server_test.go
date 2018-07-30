@@ -124,7 +124,7 @@ func TestAccAzureRMPostgreSQLServer_generalPurpose(t *testing.T) {
 func TestAccAzureRMPostgreSQLServer_memoryOptimized(t *testing.T) {
 	resourceName := "azurerm_postgresql_server.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMPostgreSQLServer_memoryOptimized(ri, testLocation())
+	config := testAccAzureRMPostgreSQLServer_memoryOptimizedGeoRedundant(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -205,6 +205,48 @@ func TestAccAzureRMPostgreSQLServer_updated(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPostgreSQLServer_updateSKU(t *testing.T) {
+	resourceName := "azurerm_postgresql_server.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+	config := testAccAzureRMPostgreSQLServer_generalPurpose(ri, location)
+	updatedConfig := testAccAzureRMPostgreSQLServer_memoryOptimized(ri, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "GP_Gen4_32"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "32"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "GeneralPurpose"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.family", "Gen4"),
+					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "640000"),
+					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "MO_Gen5_16"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "16"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "MemoryOptimized"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.family", "Gen5"),
+					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "4194304"),
+					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
+				),
+			},
+		},
+	})
+}
+
+//
+
 func testCheckAzureRMPostgreSQLServerExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -283,9 +325,9 @@ resource "azurerm_postgresql_server" "test" {
   }
 
   storage_profile {
-    storage_mb = 51200
+    storage_mb            = 51200
     backup_retention_days = 7
-    geo_redundant_backup = "Disabled"
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"
@@ -316,9 +358,9 @@ resource "azurerm_postgresql_server" "test" {
   }
 
   storage_profile {
-    storage_mb = 51200
+    storage_mb            = 51200
     backup_retention_days = 7
-    geo_redundant_backup = "Disabled"
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"
@@ -349,9 +391,9 @@ resource "azurerm_postgresql_server" "test" {
   }
 
   storage_profile {
-    storage_mb = 51200
+    storage_mb            = 51200
     backup_retention_days = 7
-    geo_redundant_backup = "Disabled"
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"
@@ -382,9 +424,9 @@ resource "azurerm_postgresql_server" "test" {
   }
 
   storage_profile {
-    storage_mb = 51200
+    storage_mb            = 51200
     backup_retention_days = 7
-    geo_redundant_backup = "Disabled"
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"
@@ -416,9 +458,9 @@ resource "azurerm_postgresql_server" "test" {
   }
 
   storage_profile {
-    storage_mb = 640000
+    storage_mb            = 640000
     backup_retention_days = 7
-    geo_redundant_backup = "Disabled"
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"
@@ -449,9 +491,9 @@ resource "azurerm_postgresql_server" "test" {
   }
 
   storage_profile {
-    storage_mb = 947200
+    storage_mb            = 947200
     backup_retention_days = 7
-    geo_redundant_backup = "Disabled"
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"
@@ -475,16 +517,16 @@ resource "azurerm_postgresql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name     = "GP_Gen5_32"
+    name     = "GP_Gen4_32"
     capacity = 32
     tier     = "GeneralPurpose"
-    family   = "Gen5"
+    family   = "Gen4"
   }
 
   storage_profile {
-    storage_mb = 640000
+    storage_mb            = 640000
     backup_retention_days = 7
-    geo_redundant_backup = "Disabled"
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"
@@ -515,9 +557,42 @@ resource "azurerm_postgresql_server" "test" {
   }
 
   storage_profile {
-    storage_mb = 4194304
+    storage_mb            = 4194304
     backup_retention_days = 7
-    geo_redundant_backup = "Enabled"
+    geo_redundant_backup  = "Disabled"
+  }
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+  version                      = "9.6"
+  ssl_enforcement              = "Enabled"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMPostgreSQLServer_memoryOptimizedGeoRedundant(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_postgresql_server" "test" {
+  name                = "acctestpsqlsvr-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name     = "MO_Gen5_16"
+    capacity = 16
+    tier     = "MemoryOptimized"
+    family   = "Gen5"
+  }
+
+  storage_profile {
+    storage_mb            = 4194304
+    backup_retention_days = 7
+    geo_redundant_backup  = "Enabled"
   }
 
   administrator_login          = "acctestun"

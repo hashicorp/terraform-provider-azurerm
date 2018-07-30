@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sql_database"
 sidebar_current: "docs-azurerm-resource-database-sql-database"
 description: |-
-  Create a SQL Database.
+  Manages a SQL Database.
 ---
 
 # azurerm_sql_database
@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_sql_server" "test" {
-    name = "mysqlserver" 
+    name = "mysqlserver"
     resource_group_name = "${azurerm_resource_group.test.name}"
     location = "West US"
     version = "12.0"
@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `edition` - (Optional) The edition of the database to be created. Applies only if `create_mode` is `Default`. Valid values are: `Basic`, `Standard`, `Premium`, or `DataWarehouse`. Please see [Azure SQL Database Service Tiers](https://azure.microsoft.com/en-gb/documentation/articles/sql-database-service-tiers/).
 
-* `collation` - (Optional) The name of the collation. Applies only if `create_mode` is `Default`.  Azure default is `SQL_LATIN1_GENERAL_CP1_CI_AS`. Changing this forces a new resource to be created. 
+* `collation` - (Optional) The name of the collation. Applies only if `create_mode` is `Default`.  Azure default is `SQL_LATIN1_GENERAL_CP1_CI_AS`. Changing this forces a new resource to be created.
 
 * `max_size_bytes` - (Optional) The maximum size that the database can grow to. Applies only if `create_mode` is `Default`.  Please see [Azure SQL Database Service Tiers](https://azure.microsoft.com/en-gb/documentation/articles/sql-database-service-tiers/).
 
@@ -90,7 +90,7 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The SQL Database ID.
-* `creation_data` - The creation date of the SQL Database.
+* `creation_date` - The creation date of the SQL Database.
 * `default_secondary_location` - The default secondary location of the SQL Database.
 
 ## Import

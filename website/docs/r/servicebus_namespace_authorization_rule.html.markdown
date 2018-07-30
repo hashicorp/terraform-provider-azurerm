@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_namespace_authorization_rule"
-sidebar_current: "docs-azurerm-resource-servicebus-namespace-authorization-rule"
+sidebar_current: "docs-azurerm-resource-messaging-servicebus-namespace-authorization-rule"
 description: |-
   Manages a ServiceBus Namespace authorization Rule within a ServiceBus.
 ---
@@ -34,7 +34,7 @@ resource "azurerm_servicebus_namespace_authorization_rule" "example" {
   name                = "examplerule"
   namespace_name      = "${azurerm_servicebus_namespace.example.name}"
   resource_group_name = "${azurerm_resource_group.example.name}"
-  
+
   listen = true
   send   = true
   manage = false

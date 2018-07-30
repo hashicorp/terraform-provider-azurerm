@@ -13,9 +13,6 @@ import (
 func dataSourceArmCosmosDBAccount() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmCosmosDBAccountRead,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {

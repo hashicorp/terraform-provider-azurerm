@@ -22,9 +22,10 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateServiceBusSubscriptionName(),
 			},
 
 			"namespace_name": {
@@ -35,9 +36,10 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 			},
 
 			"topic_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateServiceBusTopicName(),
 			},
 
 			"location": deprecatedLocationSchema(),
@@ -133,6 +135,10 @@ func resourceArmServiceBusSubscriptionCreate(d *schema.ResourceData, meta interf
 
 	if forwardTo := d.Get("forward_to").(string); forwardTo != "" {
 		parameters.SBSubscriptionProperties.ForwardTo = &forwardTo
+	}
+
+	if defaultMessageTtl := d.Get("default_message_ttl").(string); defaultMessageTtl != "" {
+		parameters.DefaultMessageTimeToLive = &defaultMessageTtl
 	}
 
 	_, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, topicName, name, parameters)

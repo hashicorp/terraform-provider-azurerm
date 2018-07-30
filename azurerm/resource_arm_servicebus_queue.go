@@ -22,9 +22,10 @@ func resourceArmServiceBusQueue() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateServiceBusQueueName(),
 			},
 
 			"namespace_name": {
@@ -107,6 +108,7 @@ func resourceArmServiceBusQueue() *schema.Resource {
 				Optional:   true,
 				Deprecated: "This field has been removed by Azure.",
 			},
+
 			"support_ordering": {
 				Type:       schema.TypeBool,
 				Optional:   true,
