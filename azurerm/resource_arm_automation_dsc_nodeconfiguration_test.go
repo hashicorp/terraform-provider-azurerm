@@ -106,8 +106,8 @@ func testCheckAzureRMAutomationDscNodeConfigurationExists(name string) resource.
 func testAccAzureRMAutomationDscNodeConfiguration_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
- name = "acctestRG-%d"
- location = "%s"
+  name = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_automation_account" "test" {
@@ -115,7 +115,7 @@ resource "azurerm_automation_account" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku {
-	name = "Basic"
+    name = "Basic"
   }
 }
 
@@ -124,8 +124,8 @@ resource "azurerm_automation_dsc_configuration" "test" {
   resource_group_name     = "${azurerm_resource_group.test.name}"
   automation_account_name = "${azurerm_automation_account.test.name}"
   location                = "${azurerm_resource_group.test.location}"
-	content             = "configuration test {}"
-  }
+  content                 = "configuration test {}"
+}
 
 resource "azurerm_automation_dsc_nodeconfiguration" "test" {
   name                    = "test.localhost"
