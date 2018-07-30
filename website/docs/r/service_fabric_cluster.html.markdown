@@ -157,6 +157,8 @@ The following attributes are exported:
 
 * `id` - The ID of the Service Fabric Cluster.
 
+* `cluster_endpoint` - The Cluster Endpoint for this Service Fabric Cluster.
+
 ## Import
 
 Service Fabric Clusters can be imported using the `resource id`, e.g.
