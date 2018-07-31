@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 
@@ -219,11 +220,16 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 		flattenAndSetTags(d, tags)
 	}
 
-	content, err := client.GetContent(ctx, resGroup, accName, name)
+	response, err := client.GetContent(ctx, resGroup, accName, name)
 	if err != nil {
 		return err
 	}
-	d.Set("content", content)
+	if contentBytes := *response.Value; contentBytes != nil {
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(contentBytes)
+		content := buf.String()
+		d.Set("content", content)
+	}
 
 	return nil
 }
