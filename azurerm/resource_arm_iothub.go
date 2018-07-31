@@ -328,7 +328,7 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 
 		routes := flattenIoTHubRoute(properties.Routing)
 		if err := d.Set("route", routes); err != nil {
-			return fmt.Errorf("Error flattening `routes` in IoTHub %q: %+v", name, err)
+			return fmt.Errorf("Error flattening `route` in IoTHub %q: %+v", name, err)
 		}
 	}
 
