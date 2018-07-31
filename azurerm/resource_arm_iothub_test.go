@@ -90,6 +90,21 @@ resource "azurerm_resource_group" "foo" {
   location = "%s"
 }
 
+resource "azurerm_storage_account" "test" {
+  name                      = "acctestRG%dsta"
+  resource_group_name       = "${azurerm_resource_group.foo.name}"
+  location                  = "${azurerm_resource_group.foo.location}"
+  account_tier              = "Standard"
+  account_replication_type  = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                      = "test"
+  resource_group_name       = "${azurerm_resource_group.foo.name}"
+  storage_account_name      = "${azurerm_storage_account.test.name}"
+  container_access_type     = "private"
+}
+
 resource "azurerm_iothub" "test" {
   name                = "acctestIoTHub-%d"
   resource_group_name = "${azurerm_resource_group.foo.name}"
@@ -100,9 +115,28 @@ resource "azurerm_iothub" "test" {
     capacity = "1"
   }
 
+  endpoint {
+    type                        = "AzureIotHub.StorageContainer"
+    connection_string           = "${azurerm_storage_account.test.primary_blob_connection_string}"
+    name                        = "export"
+    batch_frequency_in_seconds  = 60
+    max_chunk_size_in_bytes     = 10485760
+    container_name              = "test"
+    encoding                    = "Avro"
+    file_name_format            = "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"
+  }
+
+  route {
+    name            = "export"
+    source          = "DeviceMessages"
+    condition       = "true"
+    endpoint_names  = ["export"]
+    is_enabled      = true
+  }
+
   tags {
     "purpose" = "testing"
   }
 }
-`, rInt, location, rInt)
+`, rInt, location, rInt, rInt)
 }
