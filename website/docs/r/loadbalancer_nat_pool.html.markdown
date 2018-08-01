@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_lb_nat_pool"
 sidebar_current: "docs-azurerm-resource-loadbalancer-nat-pool"
 description: |-
-  Create a LoadBalancer NAT Pool.
+  Manages a LoadBalancer NAT Pool.
 ---
 
 # azurerm_lb_nat_pool

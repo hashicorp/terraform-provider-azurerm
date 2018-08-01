@@ -12,8 +12,8 @@ import (
 )
 
 func TestAccAzureRMRouteTable_basic(t *testing.T) {
+	resourceName := "azurerm_route_table.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMRouteTable_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -21,9 +21,61 @@ func TestAccAzureRMRouteTable_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMRouteTable_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRouteTableExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "disable_bgp_route_propagation", "false"),
+					resource.TestCheckResourceAttr(resourceName, "route.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMRouteTable_complete(t *testing.T) {
+	resourceName := "azurerm_route_table.test"
+	ri := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRouteTableDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRouteTable_complete(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteTableExists("azurerm_route_table.test"),
+					resource.TestCheckResourceAttr(resourceName, "disable_bgp_route_propagation", "true"),
+					resource.TestCheckResourceAttr(resourceName, "route.#", "1"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMRouteTable_update(t *testing.T) {
+	resourceName := "azurerm_route_table.test"
+	ri := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRouteTableDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRouteTable_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRouteTableExists("azurerm_route_table.test"),
+					resource.TestCheckResourceAttr(resourceName, "disable_bgp_route_propagation", "false"),
+					resource.TestCheckResourceAttr(resourceName, "route.#", "0"),
+				),
+			},
+			{
+				Config: testAccAzureRMRouteTable_complete(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRouteTableExists("azurerm_route_table.test"),
+					resource.TestCheckResourceAttr(resourceName, "disable_bgp_route_propagation", "true"),
+					resource.TestCheckResourceAttr(resourceName, "route.#", "1"),
 				),
 			},
 		},
@@ -253,7 +305,7 @@ func testCheckAzureRMRouteTableDisappears(name string) resource.TestCheckFunc {
 			}
 		}
 
-		err = future.WaitForCompletion(ctx, client.Client)
+		err = future.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
 			return fmt.Errorf("Error waiting for deletion of Route Table %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
@@ -292,14 +344,37 @@ func testCheckAzureRMRouteTableDestroy(s *terraform.State) error {
 func testAccAzureRMRouteTable_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
+    name     = "acctestRG-%d"
     location = "%s"
 }
 
 resource "azurerm_route_table" "test" {
-    name = "acctestrt%d"
-    location = "${azurerm_resource_group.test.location}"
+    name                = "acctestrt%d"
+    location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMRouteTable_complete(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name     = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_route_table" "test" {
+    name                = "acctestrt%d"
+    location            = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+
+    route {
+    	name           = "acctestRoute"
+		address_prefix = "10.1.0.0/16"
+		next_hop_type  = "vnetlocal"
+    }
+
+    disable_bgp_route_propagation = true
 }
 `, rInt, location, rInt)
 }
@@ -442,7 +517,7 @@ resource "azurerm_virtual_network" "test" {
   
 resource "azurerm_subnet" "subnet1" {
 	name                 = "subnet1"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+	resource_group_name  = "${azurerm_resource_group.test.name}"
 	virtual_network_name = "${azurerm_virtual_network.test.name}"
 	address_prefix       = "10.0.1.0/24"
 	route_table_id       = "${azurerm_route_table.test.id}"

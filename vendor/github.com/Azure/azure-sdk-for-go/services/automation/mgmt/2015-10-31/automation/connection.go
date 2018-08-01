@@ -41,14 +41,17 @@ func NewConnectionClientWithBaseURI(baseURI string, subscriptionID string) Conne
 }
 
 // CreateOrUpdate create or update a connection.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name.
-// connectionName is the parameters supplied to the create or update connection operation. parameters is the
-// parameters supplied to the create or update connection operation.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// connectionName - the parameters supplied to the create or update connection operation.
+// parameters - the parameters supplied to the create or update connection operation.
 func (client ConnectionClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, automationAccountName string, connectionName string, parameters ConnectionCreateOrUpdateParameters) (result Connection, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.Name", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "parameters.ConnectionCreateOrUpdateProperties", Name: validation.Null, Rule: true,
@@ -122,13 +125,16 @@ func (client ConnectionClient) CreateOrUpdateResponder(resp *http.Response) (res
 }
 
 // Delete delete the connection.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name.
-// connectionName is the name of connection.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// connectionName - the name of connection.
 func (client ConnectionClient) Delete(ctx context.Context, resourceGroupName string, automationAccountName string, connectionName string) (result Connection, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.ConnectionClient", "Delete", err.Error())
 	}
 
@@ -196,13 +202,16 @@ func (client ConnectionClient) DeleteResponder(resp *http.Response) (result Conn
 }
 
 // Get retrieve the connection identified by connection name.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name.
-// connectionName is the name of connection.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// connectionName - the name of connection.
 func (client ConnectionClient) Get(ctx context.Context, resourceGroupName string, automationAccountName string, connectionName string) (result Connection, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.ConnectionClient", "Get", err.Error())
 	}
 
@@ -270,12 +279,15 @@ func (client ConnectionClient) GetResponder(resp *http.Response) (result Connect
 }
 
 // ListByAutomationAccount retrieve a list of connections.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
 func (client ConnectionClient) ListByAutomationAccount(ctx context.Context, resourceGroupName string, automationAccountName string) (result ConnectionListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.ConnectionClient", "ListByAutomationAccount", err.Error())
 	}
 
@@ -370,14 +382,17 @@ func (client ConnectionClient) ListByAutomationAccountComplete(ctx context.Conte
 }
 
 // Update update a connection.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name.
-// connectionName is the parameters supplied to the update a connection operation. parameters is the parameters
-// supplied to the update a connection operation.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// connectionName - the parameters supplied to the update a connection operation.
+// parameters - the parameters supplied to the update a connection operation.
 func (client ConnectionClient) Update(ctx context.Context, resourceGroupName string, automationAccountName string, connectionName string, parameters ConnectionUpdateParameters) (result Connection, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.ConnectionClient", "Update", err.Error())
 	}
 

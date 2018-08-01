@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_managed_disk"
 sidebar_current: "docs-azurerm-resource-compute-managed-disk"
 description: |-
-  Create a Managed Disk.
+  Manages a Managed Disk.
 ---
 
 # azurerm_managed_disk
@@ -14,7 +14,7 @@ Create a managed disk.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name = "acctestrg"
+  name = "acctestRG"
   location = "West US 2"
 }
 
@@ -36,7 +36,7 @@ resource "azurerm_managed_disk" "test" {
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name = "acctestrg"
+  name = "acctestRG"
   location = "West US 2"
 }
 

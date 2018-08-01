@@ -8,12 +8,16 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"golang.org/x/net/context"
 )
+
+var virtualMachineResourceName = "azurerm_virtual_machine"
 
 func resourceArmVirtualMachine() *schema.Resource {
 	return &schema.Resource{
@@ -84,12 +88,20 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Required:         true,
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc: validation.StringInSlice([]string{
-								"SystemAssigned",
-							}, true),
+								string(compute.ResourceIdentityTypeSystemAssigned),
+								string(compute.ResourceIdentityTypeUserAssigned),
+							}, false),
 						},
 						"principal_id": {
 							Type:     schema.TypeString,
 							Computed: true,
+						},
+						"identity_ids": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 					},
 				},
@@ -248,6 +260,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 			"storage_data_disk": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -386,6 +399,13 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Optional: true,
 							Default:  false,
 						},
+						"timezone": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							ForceNew:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc:     validateAzureVirtualMachineTimeZone(),
+						},
 						"winrm": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -394,6 +414,11 @@ func resourceArmVirtualMachine() *schema.Resource {
 									"protocol": {
 										Type:     schema.TypeString,
 										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"HTTP",
+											"HTTPS",
+										}, true),
+										DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 									},
 									"certificate_url": {
 										Type:     schema.TypeString,
@@ -407,21 +432,33 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
+									// TODO: should we make `pass` and `component` Optional + Defaulted?
 									"pass": {
 										Type:     schema.TypeString,
 										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"oobeSystem",
+										}, false),
 									},
 									"component": {
 										Type:     schema.TypeString,
 										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"Microsoft-Windows-Shell-Setup",
+										}, false),
 									},
 									"setting_name": {
 										Type:     schema.TypeString,
 										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"AutoLogon",
+											"FirstLogonCommands",
+										}, false),
 									},
 									"content": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:      schema.TypeString,
+										Required:  true,
+										Sensitive: true,
 									},
 								},
 							},
@@ -453,7 +490,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 									},
 									"key_data": {
 										Type:     schema.TypeString,
-										Optional: true,
+										Required: true,
 									},
 								},
 							},
@@ -610,12 +647,15 @@ func resourceArmVirtualMachineCreate(d *schema.ResourceData, meta interface{}) e
 		vm.Plan = plan
 	}
 
+	azureRMLockByName(name, virtualMachineResourceName)
+	defer azureRMUnlockByName(name, virtualMachineResourceName)
+
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, vm)
 	if err != nil {
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -629,6 +669,24 @@ func resourceArmVirtualMachineCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	d.SetId(*read.ID)
+
+	ipAddress, err := determineVirtualMachineIPAddress(ctx, meta, read.VirtualMachineProperties)
+	if err != nil {
+		return fmt.Errorf("Error determining IP Address for Virtual Machine %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	provisionerType := "ssh"
+	if props := read.VirtualMachineProperties; props != nil {
+		if profile := props.OsProfile; profile != nil {
+			if profile.WindowsConfiguration != nil {
+				provisionerType = "winrm"
+			}
+		}
+	}
+	d.SetConnInfo(map[string]string{
+		"type": provisionerType,
+		"host": ipAddress,
+	})
 
 	return resourceArmVirtualMachineRead(d, meta)
 }
@@ -767,12 +825,15 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 	resGroup := id.ResourceGroup
 	name := id.Path["virtualMachines"]
 
+	azureRMLockByName(name, virtualMachineResourceName)
+	defer azureRMUnlockByName(name, virtualMachineResourceName)
+
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -827,9 +888,18 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmVirtualMachineDeleteVhd(uri string, meta interface{}) error {
+	armClient := meta.(*ArmClient)
+	ctx := armClient.StopContext
+	environment := armClient.environment
+
 	vhdURL, err := url.Parse(uri)
 	if err != nil {
 		return fmt.Errorf("Cannot parse Disk VHD URI: %s", err)
+	}
+
+	blobDomainSuffix := environment.StorageEndpointSuffix
+	if !strings.HasSuffix(strings.ToLower(vhdURL.Host), strings.ToLower(blobDomainSuffix)) {
+		return fmt.Errorf("Error: Disk VHD URI %q doesn't appear to be a Blob Storage URI (%q) - expected a suffix of %q)", uri, vhdURL.Host, blobDomainSuffix)
 	}
 
 	// VHD URI is in the form: https://storageAccountName.blob.core.windows.net/containerName/blobName
@@ -838,21 +908,18 @@ func resourceArmVirtualMachineDeleteVhd(uri string, meta interface{}) error {
 	containerName := path[0]
 	blobName := path[1]
 
-	storageAccountResourceGroupName, err := findStorageAccountResourceGroup(meta, storageAccountName)
+	resourceGroupName, err := findStorageAccountResourceGroup(meta, storageAccountName)
 	if err != nil {
 		return fmt.Errorf("Error finding resource group for storage account %s: %+v", storageAccountName, err)
 	}
 
-	armClient := meta.(*ArmClient)
-	ctx := armClient.StopContext
-
-	blobClient, saExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, storageAccountResourceGroupName, storageAccountName)
+	blobClient, saExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return fmt.Errorf("Error creating blob store client for VHD deletion: %+v", err)
 	}
 
 	if !saExists {
-		log.Printf("[INFO] Storage Account %q in resource group %q doesn't exist so the VHD blob won't exist", storageAccountName, storageAccountResourceGroupName)
+		log.Printf("[INFO] Storage Account %q in resource group %q doesn't exist so the VHD blob won't exist", storageAccountName, resourceGroupName)
 		return nil
 	}
 
@@ -884,7 +951,7 @@ func resourceArmVirtualMachineDeleteManagedDisk(managedDiskID string, meta inter
 		return fmt.Errorf("Error deleting Managed Disk (%s %s) %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error deleting Managed Disk (%s %s) %+v", name, resGroup, err)
 	}
@@ -932,6 +999,14 @@ func flattenAzureRmVirtualMachineIdentity(identity *compute.VirtualMachineIdenti
 	if identity.PrincipalID != nil {
 		result["principal_id"] = *identity.PrincipalID
 	}
+
+	identity_ids := make([]string, 0)
+	if identity.IdentityIds != nil {
+		for _, id := range *identity.IdentityIds {
+			identity_ids = append(identity_ids, id)
+		}
+	}
+	result["identity_ids"] = identity_ids
 
 	return []interface{}{result}
 }
@@ -1033,6 +1108,10 @@ func flattenAzureRmVirtualMachineOsProfileWindowsConfiguration(config *compute.W
 
 	if config.EnableAutomaticUpdates != nil {
 		result["enable_automatic_upgrades"] = *config.EnableAutomaticUpdates
+	}
+
+	if config.TimeZone != nil {
+		result["timezone"] = *config.TimeZone
 	}
 
 	if config.WinRM != nil {
@@ -1155,10 +1234,22 @@ func expandAzureRmVirtualMachineIdentity(d *schema.ResourceData) *compute.Virtua
 	v := d.Get("identity")
 	identities := v.([]interface{})
 	identity := identities[0].(map[string]interface{})
-	identityType := identity["type"].(string)
-	return &compute.VirtualMachineIdentity{
-		Type: compute.ResourceIdentityType(identityType),
+	identityType := compute.ResourceIdentityType(identity["type"].(string))
+
+	identityIds := []string{}
+	for _, id := range identity["identity_ids"].([]interface{}) {
+		identityIds = append(identityIds, id.(string))
 	}
+
+	vmIdentity := compute.VirtualMachineIdentity{
+		Type: identityType,
+	}
+
+	if vmIdentity.Type == compute.ResourceIdentityTypeUserAssigned {
+		vmIdentity.IdentityIds = &identityIds
+	}
+
+	return &vmIdentity
 }
 
 func expandAzureRmVirtualMachineOsProfile(d *schema.ResourceData) (*compute.OSProfile, error) {
@@ -1309,6 +1400,10 @@ func expandAzureRmVirtualMachineOsProfileWindowsConfig(d *schema.ResourceData) (
 	if v := osProfileConfig["enable_automatic_upgrades"]; v != nil {
 		update := v.(bool)
 		config.EnableAutomaticUpdates = &update
+	}
+
+	if v := osProfileConfig["timezone"]; v != nil && v.(string) != "" {
+		config.TimeZone = utils.String(v.(string))
 	}
 
 	if v := osProfileConfig["winrm"]; v != nil {
@@ -1621,6 +1716,9 @@ func resourceArmVirtualMachineStorageOsProfileWindowsConfigHash(v interface{}) i
 		if v, ok := m["enable_automatic_upgrades"]; ok {
 			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
 		}
+		if v, ok := m["timezone"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(v.(string))))
+		}
 	}
 
 	return hashcode.String(buf.String())
@@ -1679,4 +1777,81 @@ func resourceArmVirtualMachineGetManagedDiskInfo(disk *compute.ManagedDiskParame
 	}
 
 	return &diskResp, nil
+}
+func determineVirtualMachineIPAddress(ctx context.Context, meta interface{}, props *compute.VirtualMachineProperties) (string, error) {
+	nicClient := meta.(*ArmClient).ifaceClient
+	pipClient := meta.(*ArmClient).publicIPClient
+
+	if props == nil {
+		return "", nil
+	}
+
+	var networkInterface *network.Interface
+
+	if profile := props.NetworkProfile; profile != nil {
+		if nicReferences := profile.NetworkInterfaces; nicReferences != nil {
+			for _, nicReference := range *nicReferences {
+				// pick out the primary if multiple NIC's are assigned
+				if len(*nicReferences) > 1 {
+					if nicReference.Primary == nil || !*nicReference.Primary {
+						continue
+					}
+				}
+
+				id, err := parseAzureResourceID(*nicReference.ID)
+				if err != nil {
+					return "", err
+				}
+
+				resourceGroup := id.ResourceGroup
+				name := id.Path["networkInterfaces"]
+
+				nic, err := nicClient.Get(ctx, resourceGroup, name, "")
+				if err != nil {
+					return "", fmt.Errorf("Error obtaining NIC %q (Resource Group %q): %+v", name, resourceGroup, err)
+				}
+
+				networkInterface = &nic
+				break
+			}
+		}
+	}
+
+	if networkInterface == nil {
+		return "", fmt.Errorf("A Network Interface wasn't found on the Virtual Machine")
+	}
+
+	if props := networkInterface.InterfacePropertiesFormat; props != nil {
+		if configs := props.IPConfigurations; configs != nil {
+			for _, config := range *configs {
+
+				if config.PublicIPAddress != nil {
+					id, err := parseAzureResourceID(*config.PublicIPAddress.ID)
+					if err != nil {
+						return "", err
+					}
+
+					resourceGroup := id.ResourceGroup
+					name := id.Path["publicIPAddresses"]
+
+					pip, err := pipClient.Get(ctx, resourceGroup, name, "")
+					if err != nil {
+						return "", fmt.Errorf("Error obtaining Public IP %q (Resource Group %q): %+v", name, resourceGroup, err)
+					}
+
+					if pipProps := pip.PublicIPAddressPropertiesFormat; props != nil {
+						if ip := pipProps.IPAddress; ip != nil {
+							return *ip, nil
+						}
+					}
+				}
+
+				if ip := config.PrivateIPAddress; ip != nil {
+					return *ip, nil
+				}
+			}
+		}
+	}
+
+	return "", fmt.Errorf("No Public or Private IP Address found on the Primary Network Interface")
 }

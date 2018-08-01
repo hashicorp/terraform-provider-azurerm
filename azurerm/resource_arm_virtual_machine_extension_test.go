@@ -142,7 +142,7 @@ func testCheckAzureRMVirtualMachineExtensionDestroy(s *terraform.State) error {
 func testAccAzureRMVirtualMachineExtension_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestrg-%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
@@ -196,7 +196,7 @@ resource "azurerm_virtual_machine" "test" {
     location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
-    vm_size = "Standard_A0"
+    vm_size = "Standard_F2"
 
     storage_image_reference {
 		publisher = "Canonical"
@@ -248,7 +248,7 @@ SETTINGS
 func testAccAzureRMVirtualMachineExtension_basicUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestrg-%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
@@ -302,7 +302,7 @@ resource "azurerm_virtual_machine" "test" {
     location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
-    vm_size = "Standard_A0"
+    vm_size = "Standard_F2"
 
     storage_image_reference {
 		publisher = "Canonical"
@@ -355,7 +355,7 @@ SETTINGS
 func testAccAzureRMVirtualMachineExtension_concurrent(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestrg-%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
@@ -409,7 +409,7 @@ resource "azurerm_virtual_machine" "test" {
     location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
-    vm_size = "Standard_A0"
+    vm_size = "Standard_F2"
 
     storage_image_reference {
 	publisher = "Canonical"
@@ -473,7 +473,7 @@ SETTINGS
 func testAccAzureRMVirtualMachineExtension_linuxDiagnostics(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestrg-%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
@@ -527,7 +527,7 @@ resource "azurerm_virtual_machine" "test" {
     location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
-    vm_size = "Standard_A0"
+    vm_size = "Standard_F2"
 
     storage_image_reference {
 	publisher = "Canonical"

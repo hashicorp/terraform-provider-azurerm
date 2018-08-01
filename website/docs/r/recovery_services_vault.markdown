@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_recovery_services_vault"
 sidebar_current: "docs-azurerm-resource-recovery-services-vault"
 description: |-
-  Create an Recovery Services Vault.
+  Manages a Recovery Services Vault.
 ---
 
 # azurerm_recovery_services_vault

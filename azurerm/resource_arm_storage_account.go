@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"regexp"
@@ -20,6 +21,7 @@ func resourceArmStorageAccount() *schema.Resource {
 		Read:   resourceArmStorageAccountRead,
 		Update: resourceArmStorageAccountUpdate,
 		Delete: resourceArmStorageAccountDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -260,9 +262,64 @@ func resourceArmStorageAccount() *schema.Resource {
 				Sensitive: true,
 			},
 
-			"tags": tagsSchema(),
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc: validation.StringInSlice([]string{
+								"SystemAssigned",
+							}, true),
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"tags": {
+				Type:         schema.TypeMap,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateAzureRMStorageAccountTags,
+			},
 		},
 	}
+}
+
+func validateAzureRMStorageAccountTags(v interface{}, _ string) (ws []string, es []error) {
+	tagsMap := v.(map[string]interface{})
+
+	if len(tagsMap) > 15 {
+		es = append(es, errors.New("a maximum of 15 tags can be applied to each ARM resource"))
+	}
+
+	for k, v := range tagsMap {
+		if len(k) > 128 {
+			es = append(es, fmt.Errorf("the maximum length for a tag key is 128 characters: %q is %d characters", k, len(k)))
+		}
+
+		value, err := tagValueToString(v)
+		if err != nil {
+			es = append(es, err)
+		} else if len(value) > 256 {
+			es = append(es, fmt.Errorf("the maximum length for a tag value is 256 characters: the value for %q is %d characters", k, len(value)))
+		}
+	}
+
+	return ws, es
 }
 
 func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
@@ -308,6 +365,11 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		},
 	}
 
+	if _, ok := d.GetOk("identity"); ok {
+		storageAccountIdentity := expandAzureRmStorageAccountIdentity(d)
+		parameters.Identity = storageAccountIdentity
+	}
+
 	if _, ok := d.GetOk("custom_domain"); ok {
 		parameters.CustomDomain = expandStorageAccountCustomDomain(d)
 	}
@@ -337,7 +399,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error creating Azure Storage Account %q: %+v", storageAccountName, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for Azure Storage Account %q to be created: %+v", storageAccountName, err)
 	}
@@ -495,6 +557,18 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		d.SetPartial("enable_https_traffic_only")
 	}
 
+	if d.HasChange("identity") {
+		storageAccountIdentity := expandAzureRmStorageAccountIdentity(d)
+
+		opts := storage.AccountUpdateParameters{
+			Identity: storageAccountIdentity,
+		}
+		_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
+		if err != nil {
+			return fmt.Errorf("Error updating Azure Storage Account identity %q: %+v", storageAccountName, err)
+		}
+	}
+
 	if d.HasChange("network_rules") {
 		networkRules := expandStorageAccountNetworkRules(d)
 
@@ -512,7 +586,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	d.Partial(false)
-	return nil
+	return resourceArmStorageAccountRead(d, meta)
 }
 
 func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
@@ -627,7 +701,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		}
 
 		networkRules := props.NetworkRuleSet
-		if networkRules != nil && len(*networkRules.IPRules) > 0 && len(*networkRules.VirtualNetworkRules) > 0 {
+		if networkRules != nil {
 			if err := d.Set("network_rules", flattenStorageAccountNetworkRules(networkRules)); err != nil {
 				return fmt.Errorf("Error flattening `network_rules`: %+v", err)
 			}
@@ -636,6 +710,11 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("primary_access_key", accessKeys[0].Value)
 	d.Set("secondary_access_key", accessKeys[1].Value)
+
+	identity := flattenAzureRmStorageAccountIdentity(resp.Identity)
+	if err := d.Set("identity", identity); err != nil {
+		return err
+	}
 
 	flattenAndSetTags(d, resp.Tags)
 
@@ -750,6 +829,9 @@ func expandStorageAccountBypass(networkRule map[string]interface{}) storage.Bypa
 }
 
 func flattenStorageAccountNetworkRules(input *storage.NetworkRuleSet) []interface{} {
+	if len(*input.IPRules) == 0 && len(*input.VirtualNetworkRules) == 0 {
+		return []interface{}{}
+	}
 	networkRules := make(map[string]interface{}, 0)
 
 	networkRules["ip_rules"] = schema.NewSet(schema.HashString, flattenStorageAccountIPRules(input.IPRules))
@@ -761,8 +843,10 @@ func flattenStorageAccountNetworkRules(input *storage.NetworkRuleSet) []interfac
 
 func flattenStorageAccountIPRules(input *[]storage.IPRule) []interface{} {
 	ipRules := make([]interface{}, len(*input))
-	for i, ipRule := range *input {
-		ipRules[i] = *ipRule.IPAddressOrRange
+	if input != nil {
+		for i, ipRule := range *input {
+			ipRules[i] = *ipRule.IPAddressOrRange
+		}
 	}
 
 	return ipRules
@@ -770,8 +854,11 @@ func flattenStorageAccountIPRules(input *[]storage.IPRule) []interface{} {
 
 func flattenStorageAccountVirtualNetworks(input *[]storage.VirtualNetworkRule) []interface{} {
 	virtualNetworks := make([]interface{}, len(*input))
-	for i, virtualNetwork := range *input {
-		virtualNetworks[i] = *virtualNetwork.VirtualNetworkResourceID
+
+	if input != nil {
+		for i, virtualNetwork := range *input {
+			virtualNetworks[i] = *virtualNetwork.VirtualNetworkResourceID
+		}
 	}
 
 	return virtualNetworks
@@ -812,4 +899,32 @@ func validateArmStorageAccountType(v interface{}, k string) (ws []string, es []e
 
 	es = append(es, fmt.Errorf("Invalid storage account type %q", input))
 	return
+}
+
+func expandAzureRmStorageAccountIdentity(d *schema.ResourceData) *storage.Identity {
+	identities := d.Get("identity").([]interface{})
+	identity := identities[0].(map[string]interface{})
+	identityType := identity["type"].(string)
+	return &storage.Identity{
+		Type: &identityType,
+	}
+}
+
+func flattenAzureRmStorageAccountIdentity(identity *storage.Identity) []interface{} {
+	if identity == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	if identity.Type != nil {
+		result["type"] = *identity.Type
+	}
+	if identity.PrincipalID != nil {
+		result["principal_id"] = *identity.PrincipalID
+	}
+	if identity.TenantID != nil {
+		result["tenant_id"] = *identity.TenantID
+	}
+
+	return []interface{}{result}
 }

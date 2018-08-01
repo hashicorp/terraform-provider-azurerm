@@ -1,14 +1,14 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azure_application_gateway"
+page_title: "Azure Resource Manager: azurerm_application_gateway"
 sidebar_current: "docs-azurerm-resource-application-gateway"
 description: |-
-  Manages a new application gateway based on a previously created virtual network with configured subnets.
+  Manages a application gateway based on a previously created virtual network with configured subnets.
 ---
 
 # azurerm_application_gateway
 
-Manages a new application gateway based on a previously created virtual network with configured subnets.
+Manages a application gateway based on a previously created virtual network with configured subnets.
 
 ## Example Usage
 
@@ -61,45 +61,90 @@ resource "azurerm_application_gateway" "network" {
   }
 
   gateway_ip_configuration {
-      name         = "my-gateway-ip-configuration"
-      subnet_id    = "${azurerm_virtual_network.vnet.id}/subnets/${azurerm_subnet.sub1.name}"
+    name         = "my-gateway-ip-configuration"
+    subnet_id    = "${azurerm_virtual_network.vnet.id}/subnets/${azurerm_subnet.sub1.name}"
   }
 
   frontend_port {
-      name         = "${azurerm_virtual_network.vnet.name}-feport"
-      port         = 80
+    name         = "${azurerm_virtual_network.vnet.name}-feport"
+    port         = 80
   }
 
   frontend_ip_configuration {
-      name         = "${azurerm_virtual_network.vnet.name}-feip"
-      public_ip_address_id = "${azurerm_public_ip.pip.id}"
+    name         = "${azurerm_virtual_network.vnet.name}-feip"
+    public_ip_address_id = "${azurerm_public_ip.pip.id}"
   }
 
   backend_address_pool {
-      name = "${azurerm_virtual_network.vnet.name}-beap"
+    name = "${azurerm_virtual_network.vnet.name}-beap"
   }
 
   backend_http_settings {
-      name                  = "${azurerm_virtual_network.vnet.name}-be-htst"
-      cookie_based_affinity = "Disabled"
-      port                  = 80
-      protocol              = "Http"
-     request_timeout        = 1
+    name                  = "${azurerm_virtual_network.vnet.name}-be-htst"
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 1
   }
 
   http_listener {
-        name                                  = "${azurerm_virtual_network.vnet.name}-httplstn"
-        frontend_ip_configuration_name        = "${azurerm_virtual_network.vnet.name}-feip"
-        frontend_port_name                    = "${azurerm_virtual_network.vnet.name}-feport"
-        protocol                              = "Http"
+    name                            = "${azurerm_virtual_network.vnet.name}-httplstn"
+    frontend_ip_configuration_name  = "${azurerm_virtual_network.vnet.name}-feip"
+    frontend_port_name              = "${azurerm_virtual_network.vnet.name}-feport"
+    protocol                        = "Http"
   }
 
   request_routing_rule {
-          name                       = "${azurerm_virtual_network.vnet.name}-rqrt"
-          rule_type                  = "Basic"
-          http_listener_name         = "${azurerm_virtual_network.vnet.name}-httplstn"
-          backend_address_pool_name  = "${azurerm_virtual_network.vnet.name}-beap"
-          backend_http_settings_name = "${azurerm_virtual_network.vnet.name}-be-htst"
+    name                       = "${azurerm_virtual_network.vnet.name}-rqrt"
+    rule_type                  = "Basic"
+    http_listener_name         = "${azurerm_virtual_network.vnet.name}-httplstn"
+    backend_address_pool_name  = "${azurerm_virtual_network.vnet.name}-beap"
+    backend_http_settings_name = "${azurerm_virtual_network.vnet.name}-be-htst"
+  }
+
+  // Path-based routing example
+  http_listener {
+    name                           = "${azurerm_virtual_network.vnet.name}-httplstn-pbr.contoso.com"
+    host_name                      = "pbr.contoso.com"
+    frontend_ip_configuration_name = "${azurerm_virtual_network.vnet.name}-feip"
+    frontend_port_name             = "${azurerm_virtual_network.vnet.name}-feport"
+    protocol                       = "Http"
+  }
+
+  backend_address_pool {
+    name = "${azurerm_virtual_network.vnet.name}-beap-fallback"
+  }
+  backend_address_pool {
+    name = "${azurerm_virtual_network.vnet.name}-beap-first"
+  }
+  backend_address_pool {
+    name = "${azurerm_virtual_network.vnet.name}-beap-second"
+  }
+
+  request_routing_rule {
+    name               = "${azurerm_virtual_network.vnet.name}-rqrt"
+    rule_type          = "PathBasedRouting"
+    http_listener_name = "${azurerm_virtual_network.vnet.name}-httplstn-pbr.contoso.com"
+    url_path_map       = "pbr.contoso.com"
+  }
+
+  url_path_map {
+    name = "pbr.contoso.com"
+    default_backend_address_pool_name = "${azurerm_virtual_network.vnet.name}-beap-fallback"
+    default_backend_http_settings_name = ${azurerm_virtual_network.vnet.name}-be-htst"
+
+    path_rule {
+      name = "pbr.contoso.com_first"
+      paths = ["/first/*"]
+      backend_address_pool_name = "${local.awg_clusters_name}-beap-first"
+      backend_http_settings_name = "${local.awg_clusters_name}-be-htst"
+    }
+    path_rule {
+      name = "pbr.contoso.com_second"
+      paths = ["/second/*"]
+      backend_address_pool_name = "${local.awg_clusters_name}-beap-second"
+      backend_http_settings_name = "${local.awg_clusters_name}-be-htst"
+    }
   }
 }
 ```
@@ -217,8 +262,8 @@ The `backend_http_settings` block supports:
 * `probe_name` - (Optional) Reference to URL probe.
 
 * `authentication_certificate` - (Optional) - A list of `authentication_certificate` references for the `backend_http_setting` to use. Each element consists of:
-  
-  * `name` (Required) 
+
+  * `name` (Required)
   * `id` (Calculated)
 
 The `http_listener` block supports:
@@ -241,7 +286,7 @@ The `http_listener` block supports:
 * `require_sni` - (Optional) Applicable only if protocol is https. Enables SNI for multi-hosting.
   Valid values are:
 * true
-* false
+* false (default)
 
 The `probe` block supports:
 
@@ -261,6 +306,13 @@ The `probe` block supports:
 * `timeout` - (Required) Probe timeout in seconds. Probe marked as failed if valid response is not received with this timeout period. Minimum 1 second and Maximum 86,400 secs.
 
 * `unhealthy_threshold` - (Required) Probe retry count. Backend server is marked down after consecutive probe failure count reaches UnhealthyThreshold. Minimum 1 second and Maximum 20.
+
+* `minimum_servers` - (Optional) Minimum number of servers that are always marked healthy. Default value is 0.
+
+* `match` - (Optional) Probe health response match. 
+
+  * `body` - (Optional) Body that must be contained in the health response. Defaults to "*"
+  * `status_code` - (Optional) Allowed health response status codes.
 
 The `request_routing_rule` block supports:
 
@@ -287,7 +339,7 @@ The `url_path_map` block supports:
 
 * `default_backend_http_settings_name` - (Required) Reference to `backend_http_settings`.
 
-* `path_rule` - (Required) List of pathRules. pathRules are order sensitive. Are applied in order they are specified.
+* `path_rule` - (Required) One or more `path_rule` blocks. `path_rule`s are order sensitive. Are applied in order they are specified.
 
 The `path_rule` block supports:
 

@@ -6,7 +6,7 @@ import (
 	"log"
 	"regexp"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -22,6 +22,30 @@ func resourceArmKubernetesCluster() *schema.Resource {
 		Delete: resourceArmKubernetesClusterDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+			if v, exists := diff.GetOk("network_profile"); exists {
+				rawProfiles := v.([]interface{})
+				if len(rawProfiles) == 0 {
+					return nil
+				}
+
+				// then ensure the conditionally-required fields are set
+				profile := rawProfiles[0].(map[string]interface{})
+				networkPlugin := profile["network_plugin"].(string)
+
+				if networkPlugin == "kubenet" {
+					dockerBridgeCidr := profile["docker_bridge_cidr"].(string)
+					dnsServiceIP := profile["dns_service_ip"].(string)
+					serviceCidr := profile["service_cidr"].(string)
+
+					if dockerBridgeCidr == "" || dnsServiceIP == "" || serviceCidr == "" {
+						return fmt.Errorf("If the `network_plugin` is set to `kubenet` then the fields `docker_bridge_cidr`, `dns_service_ip` and `service_cidr` must not be empty.")
+					}
+				}
+			}
+
+			return nil
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -48,6 +72,11 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			"kubernetes_version": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
+			},
+
+			"node_resource_group": {
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
@@ -209,6 +238,55 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Set: resourceAzureRMKubernetesClusterServicePrincipalProfileHash,
 			},
 
+			"network_profile": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"network_plugin": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(containerservice.Azure),
+								string(containerservice.Kubenet),
+							}, false),
+						},
+
+						"dns_service_ip": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+						},
+
+						"docker_bridge_cidr": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+						},
+
+						"pod_cidr": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+						},
+
+						"service_cidr": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+						},
+					},
+				},
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -229,8 +307,21 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	linuxProfile := expandAzureRmKubernetesClusterLinuxProfile(d)
 	agentProfiles := expandAzureRmKubernetesClusterAgentProfiles(d)
 	servicePrincipalProfile := expandAzureRmKubernetesClusterServicePrincipal(d)
+	networkProfile := expandAzureRmKubernetesClusterNetworkProfile(d)
 
 	tags := d.Get("tags").(map[string]interface{})
+
+	// we can't do this in the CustomizeDiff since the interpolations aren't evaluated at that point
+	if networkProfile != nil {
+		// ensure there's a Subnet ID attached
+		if networkProfile.NetworkPlugin == containerservice.Azure {
+			for _, profile := range agentProfiles {
+				if profile.VnetSubnetID == nil {
+					return fmt.Errorf("A `vnet_subnet_id` must be specified when the `network_plugin` is set to `azure`.")
+				}
+			}
+		}
+	}
 
 	parameters := containerservice.ManagedCluster{
 		Name:     &name,
@@ -241,6 +332,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 			KubernetesVersion:       &kubernetesVersion,
 			LinuxProfile:            &linuxProfile,
 			ServicePrincipalProfile: servicePrincipalProfile,
+			NetworkProfile:          networkProfile,
 		},
 		Tags: expandTags(tags),
 	}
@@ -251,7 +343,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, kubernetesClustersClient.Client)
+	err = future.WaitForCompletionRef(ctx, kubernetesClustersClient.Client)
 	if err != nil {
 		return err
 	}
@@ -292,7 +384,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error making Read request on AKS Managed Cluster %q (resource group %q): %+v", name, resGroup, err)
 	}
 
-	profile, err := kubernetesClustersClient.GetAccessProfiles(ctx, resGroup, name, "clusterUser")
+	profile, err := kubernetesClustersClient.GetAccessProfile(ctx, resGroup, name, "clusterUser")
 	if err != nil {
 		return fmt.Errorf("Error getting access profile while making Read request on AKS Managed Cluster %q (resource group %q): %+v", name, resGroup, err)
 	}
@@ -307,6 +399,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("dns_prefix", props.DNSPrefix)
 		d.Set("fqdn", props.Fqdn)
 		d.Set("kubernetes_version", props.KubernetesVersion)
+		d.Set("node_resource_group", props.NodeResourceGroup)
 
 		linuxProfile := flattenAzureRmKubernetesClusterLinuxProfile(props.LinuxProfile)
 		if err := d.Set("linux_profile", linuxProfile); err != nil {
@@ -322,6 +415,11 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		if err := d.Set("service_principal", servicePrincipal); err != nil {
 			return fmt.Errorf("Error setting `service_principal`: %+v", err)
 		}
+	}
+
+	networkProfile := flattenAzureRmKubernetesClusterNetworkProfile(resp.NetworkProfile)
+	if err := d.Set("network_profile", networkProfile); err != nil {
+		return fmt.Errorf("Error setting `network_profile`: %+v", err)
 	}
 
 	kubeConfigRaw, kubeConfig := flattenAzureRmKubernetesClusterAccessProfile(&profile)
@@ -353,7 +451,7 @@ func resourceArmKubernetesClusterDelete(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error issuing AzureRM delete request of AKS Managed Cluster %q (resource Group %q): %+v", name, resGroup, err)
 	}
 
-	return future.WaitForCompletion(ctx, kubernetesClustersClient.Client)
+	return future.WaitForCompletionRef(ctx, kubernetesClustersClient.Client)
 }
 
 func flattenAzureRmKubernetesClusterLinuxProfile(input *containerservice.LinuxProfile) []interface{} {
@@ -382,7 +480,7 @@ func flattenAzureRmKubernetesClusterLinuxProfile(input *containerservice.LinuxPr
 	return []interface{}{values}
 }
 
-func flattenAzureRmKubernetesClusterAgentPoolProfiles(profiles *[]containerservice.AgentPoolProfile, fqdn *string) []interface{} {
+func flattenAzureRmKubernetesClusterAgentPoolProfiles(profiles *[]containerservice.ManagedClusterAgentPoolProfile, fqdn *string) []interface{} {
 	agentPoolProfiles := make([]interface{}, 0)
 
 	for _, profile := range *profiles {
@@ -469,6 +567,30 @@ func flattenAzureRmKubernetesClusterAccessProfile(profile *containerservice.Mana
 	return nil, []interface{}{}
 }
 
+func flattenAzureRmKubernetesClusterNetworkProfile(profile *containerservice.NetworkProfile) []interface{} {
+	values := make(map[string]interface{})
+
+	values["network_plugin"] = profile.NetworkPlugin
+
+	if profile.ServiceCidr != nil {
+		values["service_cidr"] = *profile.ServiceCidr
+	}
+
+	if profile.DNSServiceIP != nil {
+		values["dns_service_ip"] = *profile.DNSServiceIP
+	}
+
+	if profile.DockerBridgeCidr != nil {
+		values["docker_bridge_cidr"] = *profile.DockerBridgeCidr
+	}
+
+	if profile.PodCidr != nil {
+		values["pod_cidr"] = *profile.PodCidr
+	}
+
+	return []interface{}{values}
+}
+
 func flattenKubernetesClusterKubeConfig(config kubernetes.KubeConfig) []interface{} {
 	values := make(map[string]interface{})
 
@@ -534,10 +656,10 @@ func expandAzureRmKubernetesClusterServicePrincipal(d *schema.ResourceData) *con
 	return &principal
 }
 
-func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []containerservice.AgentPoolProfile {
+func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []containerservice.ManagedClusterAgentPoolProfile {
 	configs := d.Get("agent_pool_profile").([]interface{})
 	config := configs[0].(map[string]interface{})
-	profiles := make([]containerservice.AgentPoolProfile, 0, len(configs))
+	profiles := make([]containerservice.ManagedClusterAgentPoolProfile, 0, len(configs))
 
 	name := config["name"].(string)
 	count := int32(config["count"].(int))
@@ -546,7 +668,7 @@ func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []conta
 	osDiskSizeGB := int32(config["os_disk_size_gb"].(int))
 	osType := config["os_type"].(string)
 
-	profile := containerservice.AgentPoolProfile{
+	profile := containerservice.ManagedClusterAgentPoolProfile{
 		Name:           utils.String(name),
 		Count:          utils.Int32(count),
 		VMSize:         containerservice.VMSizeTypes(vmSize),
@@ -564,6 +686,43 @@ func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []conta
 	profiles = append(profiles, profile)
 
 	return profiles
+}
+
+func expandAzureRmKubernetesClusterNetworkProfile(d *schema.ResourceData) *containerservice.NetworkProfile {
+	configs := d.Get("network_profile").([]interface{})
+	if len(configs) == 0 {
+		return nil
+	}
+
+	config := configs[0].(map[string]interface{})
+
+	networkPlugin := config["network_plugin"].(string)
+
+	networkProfile := containerservice.NetworkProfile{
+		NetworkPlugin: containerservice.NetworkPlugin(networkPlugin),
+	}
+
+	if v, ok := config["dns_service_ip"]; ok && v.(string) != "" {
+		dnsServiceIP := v.(string)
+		networkProfile.DNSServiceIP = utils.String(dnsServiceIP)
+	}
+
+	if v, ok := config["pod_cidr"]; ok && v.(string) != "" {
+		podCidr := v.(string)
+		networkProfile.PodCidr = utils.String(podCidr)
+	}
+
+	if v, ok := config["docker_bridge_cidr"]; ok && v.(string) != "" {
+		dockerBridgeCidr := v.(string)
+		networkProfile.DockerBridgeCidr = utils.String(dockerBridgeCidr)
+	}
+
+	if v, ok := config["service_cidr"]; ok && v.(string) != "" {
+		serviceCidr := v.(string)
+		networkProfile.ServiceCidr = utils.String(serviceCidr)
+	}
+
+	return &networkProfile
 }
 
 func resourceAzureRMKubernetesClusterServicePrincipalProfileHash(v interface{}) int {

@@ -53,7 +53,7 @@ func testSweepCosmosDBAccount(region string) error {
 		if err != nil {
 			return err
 		}
-		err = future.WaitForCompletion(ctx, client.Client)
+		err = future.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
 			return err
 		}
@@ -262,6 +262,56 @@ func TestAccAzureRMCosmosDBAccount_mongoDB(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCosmosDBAccount_gremlin(t *testing.T) {
+	ri := acctest.RandInt()
+	resourceName := "azurerm_cosmosdb_account.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDBAccount_gremlin(ri, testLocation()),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
+					resource.TestCheckResourceAttr(resourceName, "kind", "GlobalDocumentDB"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMCosmosDBAccount_table(t *testing.T) {
+	ri := acctest.RandInt()
+	resourceName := "azurerm_cosmosdb_account.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDBAccount_table(ri, testLocation()),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
+					resource.TestCheckResourceAttr(resourceName, "kind", "GlobalDocumentDB"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAbcAzureRMCosmosDBAccount_updatePropertiesAndLocation(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_cosmosdb_account.test"
@@ -393,7 +443,7 @@ func TestAccAzureRMCosmosDBAccount_complete(t *testing.T) {
 				Config: testAccAzureRMCosmosDBAccount_complete(ri, testLocation(), testAltLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 2),
-					resource.TestCheckResourceAttr(resourceName, "ip_range_filter", "104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45,52.187.184.26"),
+					resource.TestCheckResourceAttr(resourceName, "ip_range_filter", "104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45,52.187.184.26,10.20.0.0/16"),
 					resource.TestCheckResourceAttr(resourceName, "enable_automatic_failover", "true"),
 				),
 			},
@@ -477,7 +527,7 @@ resource "azurerm_cosmosdb_account" "test" {
 
   consistency_policy {
     consistency_level = "%s"
-	%s
+    %s
   }
 
   geo_location {
@@ -504,6 +554,26 @@ func testAccAzureRMCosmosDBAccount_mongoDB(rInt int, location string) string {
     `)
 }
 
+func testAccAzureRMCosmosDBAccount_gremlin(rInt int, location string) string {
+	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", `
+        kind = "GlobalDocumentDB"
+ 
+        capabilities = {
+          name = "EnableGremlin"
+        }
+    `)
+}
+
+func testAccAzureRMCosmosDBAccount_table(rInt int, location string) string {
+	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", `
+        kind = "GlobalDocumentDB"
+
+        capabilities = {
+          name = "EnableTable"
+        }
+    `)
+}
+
 func testAccAzureRMCosmosDBAccount_geoReplicated(rInt int, location string, altLocation string) string {
 	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", fmt.Sprintf(`
         geo_location {
@@ -527,7 +597,7 @@ func testAccAzureRMCosmosDBAccount_geoReplicated_customId(rInt int, location str
 
 func testAccAzureRMCosmosDBAccount_complete(rInt int, location string, altLocation string) string {
 	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", fmt.Sprintf(`
-		ip_range_filter				= "104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45,52.187.184.26"
+		ip_range_filter				= "104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45,52.187.184.26,10.20.0.0/16"
 		enable_automatic_failover	= true
 
         geo_location {

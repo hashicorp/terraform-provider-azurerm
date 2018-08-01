@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_container"
 sidebar_current: "docs-azurerm-resource-storage-container"
 description: |-
-  Create a Azure Storage Container.
+  Manages a Azure Storage Container.
 ---
 
 # azurerm_storage_container
@@ -14,7 +14,7 @@ Create an Azure Storage Container.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg"
+  name     = "acctestRG"
   location = "westus"
 }
 

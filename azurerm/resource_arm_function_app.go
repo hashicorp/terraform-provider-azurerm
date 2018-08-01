@@ -1,10 +1,12 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2016-09-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -181,6 +183,25 @@ func resourceArmFunctionApp() *schema.Resource {
 					},
 				},
 			},
+
+			"site_credential": {
+				Type:     schema.TypeList,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"username": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"password": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -214,7 +235,13 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
 	tags := d.Get("tags").(map[string]interface{})
-	basicAppSettings := getBasicFunctionAppAppSettings(d)
+	appServiceTier, err := getFunctionAppServiceTier(ctx, appServicePlanID, meta)
+	if err != nil {
+		return err
+	}
+
+	basicAppSettings := getBasicFunctionAppAppSettings(d, appServiceTier)
+
 	siteConfig := expandFunctionAppSiteConfig(d)
 	siteConfig.AppSettings = &basicAppSettings
 
@@ -242,7 +269,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	err = createFuture.WaitForCompletion(ctx, client.Client)
+	err = createFuture.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -279,7 +306,13 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
 	tags := d.Get("tags").(map[string]interface{})
-	basicAppSettings := getBasicFunctionAppAppSettings(d)
+
+	appServiceTier, err := getFunctionAppServiceTier(ctx, appServicePlanID, meta)
+
+	if err != nil {
+		return err
+	}
+	basicAppSettings := getBasicFunctionAppAppSettings(d, appServiceTier)
 	siteConfig := expandFunctionAppSiteConfig(d)
 	siteConfig.AppSettings = &basicAppSettings
 
@@ -307,12 +340,12 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return err
 	}
 
-	appSettings := expandFunctionAppAppSettings(d)
+	appSettings := expandFunctionAppAppSettings(d, appServiceTier)
 	settings := web.StringDictionary{
 		Properties: appSettings,
 	}
@@ -381,6 +414,19 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error making Read request on AzureRM Function App ConnectionStrings %q: %+v", name, err)
 	}
 
+	siteCredFuture, err := client.ListPublishingCredentials(ctx, resGroup, name)
+	if err != nil {
+		return err
+	}
+	err = siteCredFuture.WaitForCompletionRef(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+	siteCredResp, err := siteCredFuture.Result(client)
+	if err != nil {
+		return fmt.Errorf("Error making Read request on AzureRM App Service Site Credential %q: %+v", name, err)
+	}
+
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
@@ -428,6 +474,11 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
+	siteCred := flattenFunctionAppSiteCredential(siteCredResp.UserProperties)
+	if err := d.Set("site_credential", siteCred); err != nil {
+		return err
+	}
+
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil
@@ -458,7 +509,7 @@ func resourceArmFunctionAppDelete(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func getBasicFunctionAppAppSettings(d *schema.ResourceData) []web.NameValuePair {
+func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier string) []web.NameValuePair {
 	dashboardPropName := "AzureWebJobsDashboard"
 	storagePropName := "AzureWebJobsStorage"
 	functionVersionPropName := "FUNCTIONS_EXTENSION_VERSION"
@@ -469,19 +520,50 @@ func getBasicFunctionAppAppSettings(d *schema.ResourceData) []web.NameValuePair 
 	functionVersion := d.Get("version").(string)
 	contentShare := d.Get("name").(string) + "-content"
 
-	return []web.NameValuePair{
+	basicSettings := []web.NameValuePair{
 		{Name: &dashboardPropName, Value: &storageConnection},
 		{Name: &storagePropName, Value: &storageConnection},
 		{Name: &functionVersionPropName, Value: &functionVersion},
+	}
+
+	consumptionSettings := []web.NameValuePair{
 		{Name: &contentSharePropName, Value: &contentShare},
 		{Name: &contentFileConnStringPropName, Value: &storageConnection},
 	}
+
+	// If the application plan is NOT dynamic (consumption plan), we do NOT want to include WEBSITE_CONTENT components
+	if !strings.EqualFold(appServiceTier, "dynamic") {
+		return basicSettings
+	}
+	return append(basicSettings, consumptionSettings...)
 }
 
-func expandFunctionAppAppSettings(d *schema.ResourceData) map[string]*string {
+func getFunctionAppServiceTier(ctx context.Context, appServicePlanId string, meta interface{}) (string, error) {
+	id, err := parseAzureResourceID(appServicePlanId)
+	if err != nil {
+		return "", fmt.Errorf("[ERROR] Unable to parse App Service Plan ID %q: %+v", appServicePlanId, err)
+	}
+
+	log.Printf("[DEBUG] Retrieving App Server Plan %s", id.Path["serverfarms"])
+
+	appServicePlansClient := meta.(*ArmClient).appServicePlansClient
+	appServicePlan, err := appServicePlansClient.Get(ctx, id.ResourceGroup, id.Path["serverfarms"])
+	if err != nil {
+		return "", fmt.Errorf("[ERROR] Could not retrieve App Service Plan ID %q: %+v", appServicePlanId, err)
+	}
+
+	if sku := appServicePlan.Sku; sku != nil {
+		if tier := sku.Tier; tier != nil {
+			return *tier, nil
+		}
+	}
+	return "", fmt.Errorf("No `sku` block was returned for App Service Plan ID %q", appServicePlanId)
+}
+
+func expandFunctionAppAppSettings(d *schema.ResourceData, appServiceTier string) map[string]*string {
 	output := expandAppServiceAppSettings(d)
 
-	basicAppSettings := getBasicFunctionAppAppSettings(d)
+	basicAppSettings := getBasicFunctionAppAppSettings(d, appServiceTier)
 	for _, p := range basicAppSettings {
 		output[*p.Name] = p.Value
 	}
@@ -589,4 +671,24 @@ func flattenFunctionAppIdentity(identity *web.ManagedServiceIdentity) interface{
 	}
 
 	return []interface{}{result}
+}
+
+func flattenFunctionAppSiteCredential(input *web.UserProperties) []interface{} {
+	results := make([]interface{}, 0)
+	result := make(map[string]interface{}, 0)
+
+	if input == nil {
+		log.Printf("[DEBUG] UserProperties is nil")
+		return results
+	}
+
+	if input.PublishingUserName != nil {
+		result["username"] = *input.PublishingUserName
+	}
+
+	if input.PublishingPassword != nil {
+		result["password"] = *input.PublishingPassword
+	}
+
+	return append(results, result)
 }

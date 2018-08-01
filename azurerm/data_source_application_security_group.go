@@ -10,9 +10,6 @@ import (
 func dataSourceArmApplicationSecurityGroup() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmApplicationSecurityGroupRead,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {

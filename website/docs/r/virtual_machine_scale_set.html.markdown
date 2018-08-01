@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_machine_scale_set"
 sidebar_current: "docs-azurerm-resource-compute-virtualmachine-scale-set"
 description: |-
-  Create a Virtual Machine scale set.
+  Manages a Virtual Machine scale set.
 ---
 
 # azurerm_virtual_machine_scale_set
@@ -17,7 +17,7 @@ Create a virtual machine scale set.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg"
+  name     = "acctestRG"
   location = "West US 2"
 }
 
@@ -104,7 +104,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
       
 
   sku {
-    name     = "Standard_A0"
+    name     = "Standard_F2"
     tier     = "Standard"
     capacity = 2
   }
@@ -167,7 +167,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg"
+  name     = "acctestRG"
   location = "West US"
 }
 
@@ -211,7 +211,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   upgrade_policy_mode  = "Manual"
 
   sku {
-    name     = "Standard_A0"
+    name     = "Standard_F2"
     tier     = "Standard"
     capacity = 2
   }
@@ -305,7 +305,9 @@ The following arguments are supported:
 
 `identity` supports the following:
 
-* `type` - (Required) Specifies the identity type to be assigned to the scale set. The only allowable value is `SystemAssigned`. To enable Managed Service Identity (MSI) on all machines in the scale set, an extension with the type "ManagedIdentityExtensionForWindows" or "ManagedIdentityExtensionForLinux" must also be added. The scale set's Service Principal ID (SPN) can be retrieved after the scale set has been created.
+* `type` - (Required) Specifies the identity type to be assigned to the scale set. Allowable values are `SystemAssigned` and `UserAssigned`. To enable Managed Service Identity (MSI) on all machines in the scale set, an extension with the type "ManagedIdentityExtensionForWindows" or "ManagedIdentityExtensionForLinux" must also be added. For the `SystemAssigned` identity the scale set's Service Principal ID (SPN) can be retrieved after the scale set has been created. See [documentation](https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/overview) for more information.
+
+* `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned to the VMSS. Required if `type` is `UserAssigned`.
 
 ```hcl
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -330,10 +332,12 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     type_handler_version = "1.0"
     settings             = "{\"port\": 50342}"
   }
+  # ...
+}
 
-  output "principal_id" {
-    value = "${lookup(azurerm_virtual_machine.test.identity[0], "principal_id")}"
-  }
+output "principal_id" {
+  value = "${lookup(azurerm_virtual_machine_scale_set.test.identity[0], "principal_id")}"
+}
 ```
 
 `os_profile` supports the following:
@@ -464,18 +468,19 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 ```hcl
 resource "azurerm_image" "test" {
 	name = "test"
-  ...
+  # ...
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
 	name = "test"
-  ...
+  # ...
 
 	storage_profile_image_reference {
 		id = "${azurerm_image.test.id}"
 	}
 
-...
+  # ...
+}
 ```
 
 ## Attributes Reference

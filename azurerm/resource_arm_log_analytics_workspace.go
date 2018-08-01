@@ -44,6 +44,7 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 					string(operationalinsights.Standalone),
 					string(operationalinsights.Standard),
 					string(operationalinsights.Unlimited),
+					string(operationalinsights.PerGB2018),
 				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
@@ -115,7 +116,7 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return err
 	}

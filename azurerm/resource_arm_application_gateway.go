@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -68,8 +68,8 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Required:         true,
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.Standard),
-								string(network.WAF),
+								string(network.ApplicationGatewayTierStandard),
+								string(network.ApplicationGatewayTierWAF),
 							}, true),
 						},
 
@@ -457,6 +457,35 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Type:     schema.TypeInt,
 							Required: true,
 						},
+
+						"minimum_servers": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Default:  0,
+						},
+
+						"match": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"body": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Default:  "*",
+									},
+
+									"status_code": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -726,7 +755,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error Creating/Updating ApplicationGateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error Creating/Updating ApplicationGateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
@@ -828,7 +857,7 @@ func resourceArmApplicationGatewayDelete(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error deleting for AppGateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for deletion of AppGateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
@@ -1149,6 +1178,7 @@ func expandApplicationGatewayProbes(d *schema.ResourceData) *[]network.Applicati
 		interval := int32(data["interval"].(int))
 		timeout := int32(data["timeout"].(int))
 		unhealthyThreshold := int32(data["unhealthy_threshold"].(int))
+		minServers := int32(data["minimum_servers"].(int))
 
 		setting := network.ApplicationGatewayProbe{
 			Name: &name,
@@ -1159,7 +1189,24 @@ func expandApplicationGatewayProbes(d *schema.ResourceData) *[]network.Applicati
 				Interval:           &interval,
 				Timeout:            &timeout,
 				UnhealthyThreshold: &unhealthyThreshold,
+				MinServers:         &minServers,
 			},
+		}
+
+		matchConfigs := data["match"].([]interface{})
+		if len(matchConfigs) > 0 {
+			match := matchConfigs[0].(map[string]interface{})
+			matchBody := match["body"].(string)
+
+			statusCodes := make([]string, 0)
+			for _, statusCode := range match["status_code"].([]interface{}) {
+				statusCodes = append(statusCodes, statusCode.(string))
+			}
+
+			setting.ApplicationGatewayProbePropertiesFormat.Match = &network.ApplicationGatewayProbeHealthResponseMatch{
+				Body:        &matchBody,
+				StatusCodes: &statusCodes,
+			}
 		}
 
 		backendSettings = append(backendSettings, setting)
@@ -1607,6 +1654,26 @@ func flattenApplicationGatewayProbes(input *[]network.ApplicationGatewayProbe) [
 
 				if threshold := props.UnhealthyThreshold; threshold != nil {
 					settings["unhealthy_threshold"] = int(*threshold)
+				}
+
+				if minServers := props.MinServers; minServers != nil {
+					settings["minimum_servers"] = int(*minServers)
+				}
+
+				if match := props.Match; match != nil {
+					matchConfig := map[string]interface{}{}
+					if body := match.Body; body != nil {
+						matchConfig["body"] = *body
+					}
+
+					statusCodes := make([]interface{}, 0)
+					if match.StatusCodes != nil {
+						for _, status := range *match.StatusCodes {
+							statusCodes = append(statusCodes, status)
+						}
+						matchConfig["status_code"] = statusCodes
+					}
+					settings["match"] = matchConfig
 				}
 			}
 

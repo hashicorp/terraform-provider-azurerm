@@ -42,14 +42,17 @@ func NewDscCompilationJobClientWithBaseURI(baseURI string, subscriptionID string
 }
 
 // Create creates the Dsc compilation job of the configuration.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name.
-// compilationJobID is the the DSC configuration Id. parameters is the parameters supplied to the create
-// compilation job operation.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// compilationJobID - the the DSC configuration Id.
+// parameters - the parameters supplied to the create compilation job operation.
 func (client DscCompilationJobClient) Create(ctx context.Context, resourceGroupName string, automationAccountName string, compilationJobID uuid.UUID, parameters DscCompilationJobCreateParameters) (result DscCompilationJob, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.DscCompilationJobCreateProperties", Name: validation.Null, Rule: true,
 				Chain: []validation.Constraint{{Target: "parameters.DscCompilationJobCreateProperties.Configuration", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
@@ -122,13 +125,16 @@ func (client DscCompilationJobClient) CreateResponder(resp *http.Response) (resu
 }
 
 // Get retrieve the Dsc configuration compilation job identified by job id.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name.
-// compilationJobID is the Dsc configuration compilation job id.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// compilationJobID - the Dsc configuration compilation job id.
 func (client DscCompilationJobClient) Get(ctx context.Context, resourceGroupName string, automationAccountName string, compilationJobID uuid.UUID) (result DscCompilationJob, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.DscCompilationJobClient", "Get", err.Error())
 	}
 
@@ -196,13 +202,17 @@ func (client DscCompilationJobClient) GetResponder(resp *http.Response) (result 
 }
 
 // GetStream retrieve the job stream identified by job stream id.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. jobID is the
-// job id. jobStreamID is the job stream id.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// jobID - the job id.
+// jobStreamID - the job stream id.
 func (client DscCompilationJobClient) GetStream(ctx context.Context, resourceGroupName string, automationAccountName string, jobID uuid.UUID, jobStreamID string) (result JobStream, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.DscCompilationJobClient", "GetStream", err.Error())
 	}
 
@@ -271,13 +281,16 @@ func (client DscCompilationJobClient) GetStreamResponder(resp *http.Response) (r
 }
 
 // ListByAutomationAccount retrieve a list of dsc compilation jobs.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. filter is
-// the filter to apply on the operation.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// filter - the filter to apply on the operation.
 func (client DscCompilationJobClient) ListByAutomationAccount(ctx context.Context, resourceGroupName string, automationAccountName string, filter string) (result DscCompilationJobListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.DscCompilationJobClient", "ListByAutomationAccount", err.Error())
 	}
 

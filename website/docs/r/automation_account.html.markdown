@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_account"
 sidebar_current: "docs-azurerm-resource-automation-account"
 description: |-
-  Manages a new Automation Account.
+  Manages a Automation Account.
 ---
 
 # azurerm_automation_account
 
-Manages a new Automation Account.
+Manages a Automation Account.
 
 ## Example Usage
 

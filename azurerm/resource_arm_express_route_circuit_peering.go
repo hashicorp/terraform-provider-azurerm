@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -121,12 +121,12 @@ func resourceArmExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, m
 
 	parameters := network.ExpressRouteCircuitPeering{
 		ExpressRouteCircuitPeeringPropertiesFormat: &network.ExpressRouteCircuitPeeringPropertiesFormat{
-			PeeringType:                network.ExpressRouteCircuitPeeringType(peeringType),
+			PeeringType:                network.ExpressRoutePeeringType(peeringType),
 			SharedKey:                  utils.String(sharedKey),
 			PrimaryPeerAddressPrefix:   utils.String(primaryPeerAddressPrefix),
 			SecondaryPeerAddressPrefix: utils.String(secondaryPeerAddressPrefix),
 			AzureASN:                   utils.Int32(int32(azureASN)),
-			PeerASN:                    utils.Int32(int32(peerASN)),
+			PeerASN:                    utils.Int64(int64(peerASN)),
 			VlanID:                     utils.Int32(int32(vlanId)),
 		},
 	}
@@ -149,7 +149,7 @@ func resourceArmExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, m
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -231,7 +231,7 @@ func resourceArmExpressRouteCircuitPeeringDelete(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error issuing delete request for Express Route Circuit Peering %q (Circuit %q / Resource Group %q): %+v", peeringType, circuitName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil

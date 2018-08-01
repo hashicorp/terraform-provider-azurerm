@@ -44,13 +44,17 @@ func PossibleActionTypeValues() []ActionType {
 type DeletionRecoveryLevel string
 
 const (
-	// Purgeable ...
+	// Purgeable Soft-delete is not enabled for this vault. A DELETE operation results in immediate and
+	// irreversible data loss.
 	Purgeable DeletionRecoveryLevel = "Purgeable"
-	// Recoverable ...
+	// Recoverable Soft-delete is enabled for this vault and purge has been disabled. A deleted entity will
+	// remain in this state until recovered, or the end of the retention interval.
 	Recoverable DeletionRecoveryLevel = "Recoverable"
-	// RecoverableProtectedSubscription ...
+	// RecoverableProtectedSubscription Soft-delete is enabled for this vault, and the subscription is
+	// protected against immediate deletion.
 	RecoverableProtectedSubscription DeletionRecoveryLevel = "Recoverable+ProtectedSubscription"
-	// RecoverablePurgeable ...
+	// RecoverablePurgeable Soft-delete is enabled for this vault; A priveleged user may trigger an immediate,
+	// irreversible deletion(purge) of a deleted entity.
 	RecoverablePurgeable DeletionRecoveryLevel = "Recoverable+Purgeable"
 )
 
@@ -63,13 +67,13 @@ func PossibleDeletionRecoveryLevelValues() []DeletionRecoveryLevel {
 type JSONWebKeyCurveName string
 
 const (
-	// P256 ...
+	// P256 The NIST P-256 elliptic curve, AKA SECG curve SECP256R1.
 	P256 JSONWebKeyCurveName = "P-256"
-	// P384 ...
+	// P384 The NIST P-384 elliptic curve, AKA SECG curve SECP384R1.
 	P384 JSONWebKeyCurveName = "P-384"
-	// P521 ...
+	// P521 The NIST P-521 elliptic curve, AKA SECG curve SECP521R1.
 	P521 JSONWebKeyCurveName = "P-521"
-	// SECP256K1 ...
+	// SECP256K1 The SECG SECP256K1 elliptic curve.
 	SECP256K1 JSONWebKeyCurveName = "SECP256K1"
 )
 
@@ -236,14 +240,14 @@ type Attributes struct {
 // BackupKeyResult the backup key result, containing the backup blob.
 type BackupKeyResult struct {
 	autorest.Response `json:"-"`
-	// Value - The backup blob containing the backed up key.
+	// Value - The backup blob containing the backed up key. (a URL-encoded base64 string)
 	Value *string `json:"value,omitempty"`
 }
 
 // BackupSecretResult the backup secret result, containing the backup blob.
 type BackupSecretResult struct {
 	autorest.Response `json:"-"`
-	// Value - The backup blob containing the backed up secret.
+	// Value - The backup blob containing the backed up secret. (a URL-encoded base64 string)
 	Value *string `json:"value,omitempty"`
 }
 
@@ -272,7 +276,7 @@ type CertificateBundle struct {
 	Kid *string `json:"kid,omitempty"`
 	// Sid - The secret id.
 	Sid *string `json:"sid,omitempty"`
-	// X509Thumbprint - Thumbprint of the certificate.
+	// X509Thumbprint - Thumbprint of the certificate. (a URL-encoded base64 string)
 	X509Thumbprint *string `json:"x5t,omitempty"`
 	// Policy - The management policy.
 	Policy *CertificatePolicy `json:"policy,omitempty"`
@@ -521,7 +525,7 @@ type CertificateItem struct {
 	Attributes *CertificateAttributes `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs.
 	Tags map[string]*string `json:"tags"`
-	// X509Thumbprint - Thumbprint of the certificate.
+	// X509Thumbprint - Thumbprint of the certificate. (a URL-encoded base64 string)
 	X509Thumbprint *string `json:"x5t,omitempty"`
 }
 
@@ -778,7 +782,7 @@ type DeletedCertificateBundle struct {
 	Kid *string `json:"kid,omitempty"`
 	// Sid - The secret id.
 	Sid *string `json:"sid,omitempty"`
-	// X509Thumbprint - Thumbprint of the certificate.
+	// X509Thumbprint - Thumbprint of the certificate. (a URL-encoded base64 string)
 	X509Thumbprint *string `json:"x5t,omitempty"`
 	// Policy - The management policy.
 	Policy *CertificatePolicy `json:"policy,omitempty"`
@@ -848,7 +852,7 @@ type DeletedCertificateItem struct {
 	Attributes *CertificateAttributes `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs.
 	Tags map[string]*string `json:"tags"`
-	// X509Thumbprint - Thumbprint of the certificate.
+	// X509Thumbprint - Thumbprint of the certificate. (a URL-encoded base64 string)
 	X509Thumbprint *string `json:"x5t,omitempty"`
 }
 
@@ -1450,31 +1454,31 @@ type JSONWebKey struct {
 	// Kty - JsonWebKey key type (kty). Possible values include: 'EC', 'ECHSM', 'RSA', 'RSAHSM', 'Oct'
 	Kty    JSONWebKeyType `json:"kty,omitempty"`
 	KeyOps *[]string      `json:"key_ops,omitempty"`
-	// N - RSA modulus.
+	// N - RSA modulus. (a URL-encoded base64 string)
 	N *string `json:"n,omitempty"`
-	// E - RSA public exponent.
+	// E - RSA public exponent. (a URL-encoded base64 string)
 	E *string `json:"e,omitempty"`
-	// D - RSA private exponent, or the D component of an EC private key.
+	// D - RSA private exponent, or the D component of an EC private key. (a URL-encoded base64 string)
 	D *string `json:"d,omitempty"`
-	// DP - RSA private key parameter.
+	// DP - RSA private key parameter. (a URL-encoded base64 string)
 	DP *string `json:"dp,omitempty"`
-	// DQ - RSA private key parameter.
+	// DQ - RSA private key parameter. (a URL-encoded base64 string)
 	DQ *string `json:"dq,omitempty"`
-	// QI - RSA private key parameter.
+	// QI - RSA private key parameter. (a URL-encoded base64 string)
 	QI *string `json:"qi,omitempty"`
-	// P - RSA secret prime.
+	// P - RSA secret prime. (a URL-encoded base64 string)
 	P *string `json:"p,omitempty"`
-	// Q - RSA secret prime, with p < q.
+	// Q - RSA secret prime, with p < q. (a URL-encoded base64 string)
 	Q *string `json:"q,omitempty"`
-	// K - Symmetric key.
+	// K - Symmetric key. (a URL-encoded base64 string)
 	K *string `json:"k,omitempty"`
-	// T - HSM Token, used with 'Bring Your Own Key'.
+	// T - HSM Token, used with 'Bring Your Own Key'. (a URL-encoded base64 string)
 	T *string `json:"key_hsm,omitempty"`
 	// Crv - Elliptic curve name. For valid values, see JsonWebKeyCurveName. Possible values include: 'P256', 'P384', 'P521', 'SECP256K1'
 	Crv JSONWebKeyCurveName `json:"crv,omitempty"`
-	// X - X component of an EC public key.
+	// X - X component of an EC public key. (a URL-encoded base64 string)
 	X *string `json:"x,omitempty"`
-	// Y - Y component of an EC public key.
+	// Y - Y component of an EC public key. (a URL-encoded base64 string)
 	Y *string `json:"y,omitempty"`
 }
 
@@ -1529,7 +1533,7 @@ func (kb KeyBundle) MarshalJSON() ([]byte, error) {
 type KeyCreateParameters struct {
 	// Kty - The type of key to create. For valid values, see JsonWebKeyType. Possible values include: 'EC', 'ECHSM', 'RSA', 'RSAHSM', 'Oct'
 	Kty JSONWebKeyType `json:"kty,omitempty"`
-	// KeySize - The key size in bytes. For example, 1024 or 2048.
+	// KeySize - The key size in bits. For example: 2048, 3072, or 4096 for RSA.
 	KeySize       *int32                 `json:"key_size,omitempty"`
 	KeyOps        *[]JSONWebKeyOperation `json:"key_ops,omitempty"`
 	KeyAttributes *KeyAttributes         `json:"attributes,omitempty"`
@@ -1729,7 +1733,8 @@ func (page KeyListResultPage) Values() []KeyItem {
 type KeyOperationResult struct {
 	autorest.Response `json:"-"`
 	// Kid - Key identifier
-	Kid    *string `json:"kid,omitempty"`
+	Kid *string `json:"kid,omitempty"`
+	// Result - a URL-encoded base64 string
 	Result *string `json:"value,omitempty"`
 }
 
@@ -1737,7 +1742,8 @@ type KeyOperationResult struct {
 type KeyOperationsParameters struct {
 	// Algorithm - algorithm identifier. Possible values include: 'RSAOAEP', 'RSAOAEP256', 'RSA15'
 	Algorithm JSONWebKeyEncryptionAlgorithm `json:"alg,omitempty"`
-	Value     *string                       `json:"value,omitempty"`
+	// Value - a URL-encoded base64 string
+	Value *string `json:"value,omitempty"`
 }
 
 // KeyProperties properties of the key pair backing a certificate.
@@ -1746,7 +1752,7 @@ type KeyProperties struct {
 	Exportable *bool `json:"exportable,omitempty"`
 	// KeyType - The key type.
 	KeyType *string `json:"kty,omitempty"`
-	// KeySize - The key size in bytes. For example;  1024 or 2048.
+	// KeySize - The key size in bits. For example: 2048, 3072, or 4096 for RSA.
 	KeySize *int32 `json:"key_size,omitempty"`
 	// ReuseKey - Indicates if the same key pair will be used on certificate renewal.
 	ReuseKey *bool `json:"reuse_key,omitempty"`
@@ -1754,7 +1760,7 @@ type KeyProperties struct {
 
 // KeyRestoreParameters the key restore parameters.
 type KeyRestoreParameters struct {
-	// KeyBundleBackup - The backup blob associated with a key bundle.
+	// KeyBundleBackup - The backup blob associated with a key bundle. (a URL-encoded base64 string)
 	KeyBundleBackup *string `json:"value,omitempty"`
 }
 
@@ -1762,7 +1768,8 @@ type KeyRestoreParameters struct {
 type KeySignParameters struct {
 	// Algorithm - The signing/verification algorithm identifier. For more information on possible algorithm types, see JsonWebKeySignatureAlgorithm. Possible values include: 'PS256', 'PS384', 'PS512', 'RS256', 'RS384', 'RS512', 'RSNULL', 'ES256', 'ES384', 'ES512', 'ECDSA256'
 	Algorithm JSONWebKeySignatureAlgorithm `json:"alg,omitempty"`
-	Value     *string                      `json:"value,omitempty"`
+	// Value - a URL-encoded base64 string
+	Value *string `json:"value,omitempty"`
 }
 
 // KeyUpdateParameters the key update parameters.
@@ -1793,9 +1800,9 @@ func (kup KeyUpdateParameters) MarshalJSON() ([]byte, error) {
 type KeyVerifyParameters struct {
 	// Algorithm - The signing/verification algorithm. For more information on possible algorithm types, see JsonWebKeySignatureAlgorithm. Possible values include: 'PS256', 'PS384', 'PS512', 'RS256', 'RS384', 'RS512', 'RSNULL', 'ES256', 'ES384', 'ES512', 'ECDSA256'
 	Algorithm JSONWebKeySignatureAlgorithm `json:"alg,omitempty"`
-	// Digest - The digest used for signing.
+	// Digest - The digest used for signing. (a URL-encoded base64 string)
 	Digest *string `json:"digest,omitempty"`
-	// Signature - The signature to be verified.
+	// Signature - The signature to be verified. (a URL-encoded base64 string)
 	Signature *string `json:"value,omitempty"`
 }
 
@@ -2263,7 +2270,7 @@ type SecretProperties struct {
 
 // SecretRestoreParameters the secret restore parameters.
 type SecretRestoreParameters struct {
-	// SecretBundleBackup - The backup blob associated with a secret bundle.
+	// SecretBundleBackup - The backup blob associated with a secret bundle. (a URL-encoded base64 string)
 	SecretBundleBackup *string `json:"value,omitempty"`
 }
 

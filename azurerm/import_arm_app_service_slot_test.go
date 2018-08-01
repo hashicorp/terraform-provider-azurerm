@@ -29,3 +29,26 @@ func TestAccAzureRMAppServiceSlot_importBasic(t *testing.T) {
 		},
 	})
 }
+
+func TestAccAzureRMAppServiceSlot_importMinTls(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_minTls(ri, testLocation(), "1.1")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}

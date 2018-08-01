@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -79,7 +80,6 @@ func resourceArmMySqlServer() *schema.Resource {
 						"tier": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(mysql.Basic),
 								string(mysql.GeneralPurpose),
@@ -91,7 +91,6 @@ func resourceArmMySqlServer() *schema.Resource {
 						"family": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Gen4",
 								"Gen5",
@@ -134,8 +133,7 @@ func resourceArmMySqlServer() *schema.Resource {
 						"storage_mb": {
 							Type:         schema.TypeInt,
 							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: validateIntBetweenDivisibleBy(5120, 1048576, 1024),
+							ValidateFunc: validateIntBetweenDivisibleBy(5120, 4194304, 1024),
 						},
 						"backup_retention_days": {
 							Type:         schema.TypeInt,
@@ -171,6 +169,18 @@ func resourceArmMySqlServer() *schema.Resource {
 			},
 
 			"tags": tagsSchema(),
+		},
+
+		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+
+			tier, _ := diff.GetOk("sku.0.tier")
+			storageMB, _ := diff.GetOk("storage_profile.0.storage_mb")
+
+			if strings.ToLower(tier.(string)) == "basic" && storageMB.(int) > 1048576 {
+				return fmt.Errorf("basic pricing tier only supports upto 1,048,576 MB (1TB) of storage")
+			}
+
+			return nil
 		},
 	}
 }
@@ -214,7 +224,7 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error creating MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for creation of MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -265,7 +275,7 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error updating MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for MySQL Server %q (Resource Group %q) to finish updating: %+v", name, resourceGroup, err)
 	}
@@ -348,7 +358,7 @@ func resourceArmMySqlServerDelete(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error deleting MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for deletion of MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}

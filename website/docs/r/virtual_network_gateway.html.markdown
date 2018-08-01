@@ -1,14 +1,14 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azure_virtual_network_gateway"
+page_title: "Azure Resource Manager: azurerm_virtual_network_gateway"
 sidebar_current: "docs-azurerm-resource-network-virtual-network-gateway-x"
 description: |-
-  Manages a new virtual network gateway to establish secure, cross-premises connectivity.
+  Manages a virtual network gateway to establish secure, cross-premises connectivity.
 ---
 
 # azurerm_virtual_network_gateway
 
-Manages a new Virtual Network Gateway to establish secure, cross-premises connectivity.
+Manages a Virtual Network Gateway to establish secure, cross-premises connectivity.
 
 -> **Note:** Please be aware that provisioning a Virtual Network Gateway takes a long time (between 30 minutes and 1 hour)
 
@@ -169,13 +169,23 @@ The `vpn_client_configuration` block supports:
 * `address_space` - (Required) The address space out of which ip addresses for
     vpn clients will be taken. You can provide more than one address space, e.g.
     in CIDR notation.
-
-* `root_certificate` - (Required) One or more `root_certificate` blocks which are
+* `root_certificate` - (Optional) One or more `root_certificate` blocks which are
     defined below. These root certificates are used to sign the client certificate
     used by the VPN clients to connect to the gateway.
+    This setting is incompatible with the use of `radius_server_address` and `radius_server_secret`.
 
 * `revoked_certificate` - (Optional) One or more `revoked_certificate` blocks which
     are defined below.
+    This setting is incompatible with the use of `radius_server_address` and `radius_server_secret`.
+
+* `radius_server_address` - (Optional) The address of the Radius server.
+    This setting is incompatible with the use of `root_certificate` and `revoked_certificate`.
+
+* `radius_server_secret` - (Optional) The secret used by the Radius server.
+    This setting is incompatible with the use of `root_certificate` and `revoked_certificate`.
+
+* `vpn_client_protocols` - (Optional) List of the protocols supported by the vpn client.
+    The supported values are `SSTP` and `IkeV2`.
 
 The `bgp_settings` block supports:
 
