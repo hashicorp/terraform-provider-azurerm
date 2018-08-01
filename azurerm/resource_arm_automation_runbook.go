@@ -3,6 +3,7 @@ package azurerm
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
@@ -155,8 +156,9 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 
 	if v, ok := d.GetOk("content"); ok {
 		content := v.(string)
+		reader := ioutil.NopCloser(bytes.NewBufferString(content))
 		draftClient := meta.(*ArmClient).automationRunbookDraftClient
-		_, err := draftClient.ReplaceContent(ctx, resGroup, accName, name, content)
+		_, err := draftClient.ReplaceContent(ctx, resGroup, accName, name, reader)
 		if err != nil {
 			return err
 		}
