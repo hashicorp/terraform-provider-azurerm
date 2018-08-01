@@ -68,6 +68,8 @@ The following arguments are supported:
 
 ~> **NOTE** The Azure API requires a `publish_content_link` to be supplied even when specifying your own `content`.
 
+~> **NOTE** Setting `content` to an empty string will revert the runbook to the `publish_content_link`.
+
 `publish_content_link` supports the following:
 
 * `uri` - (Required) The uri of the runbook content.
