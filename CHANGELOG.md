@@ -4,7 +4,7 @@ FEATURES:
 
 * **New Data Source:** `azurerm_container_registry` [GH-1642]
 * **New Resource:** `azurerm_service_fabric_cluster` [GH-4]
-* **New Resource:** `azurerm_action_group` - collection of notification preferences [GH-1419]
+* **New Resource:** `azurerm_action_group` [GH-1419]
 
 IMPROVEMENTS:
 
