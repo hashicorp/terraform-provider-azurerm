@@ -192,6 +192,8 @@ func resourceArmIotHub() *schema.Resource {
 							}, false),
 						},
 						"condition": {
+							// The condition is a string value representing device-to-cloud message routes query expression
+							// https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
 							Type:     schema.TypeString,
 							Optional: true,
 							Default:  "true",
@@ -244,6 +246,10 @@ func resourceArmIotHubCreateAndUpdate(d *schema.ResourceData, meta interface{}) 
 	tags := d.Get("tags").(map[string]interface{})
 
 	endpoints, err := expandIoTHubEndpoints(d, subscriptionID)
+	if err != nil {
+		return fmt.Errorf("Error expanding `endpoints`: %+v", err)
+	}
+
 	routes := expandIoTHubRoutes(d)
 
 	routingProperties := devices.RoutingProperties{
@@ -416,7 +422,7 @@ func expandIoTHubRoutes(d *schema.ResourceData) *[]devices.RouteProperties {
 		condition := route["condition"].(string)
 
 		endpointNamesRaw := route["endpoint_names"].([]interface{})
-		endpointsNames := make([]string, 0, len(endpointNamesRaw))
+		endpointsNames := make([]string, 0)
 		for _, n := range endpointNamesRaw {
 			endpointsNames = append(endpointsNames, n.(string))
 		}
@@ -570,71 +576,83 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 
 	if input != nil && input.Endpoints != nil {
 
-		for _, container := range *input.Endpoints.StorageContainers {
-			output := make(map[string]interface{}, 0)
+		storageContainers := *input.Endpoints.StorageContainers
+		if storageContainers != nil {
+			for _, container := range storageContainers {
+				output := make(map[string]interface{}, 0)
 
-			if connString := container.ConnectionString; connString != nil {
-				output["connection_string"] = *connString
-			}
-			if name := container.Name; name != nil {
-				output["name"] = *name
-			}
-			if containerName := container.ContainerName; containerName != nil {
-				output["container_name"] = *containerName
-			}
-			if fileNameFmt := container.FileNameFormat; fileNameFmt != nil {
-				output["file_name_format"] = *fileNameFmt
-			}
-			if batchFreq := container.BatchFrequencyInSeconds; batchFreq != nil {
-				output["batch_frequency_in_seconds"] = *batchFreq
-			}
-			if chunkSize := container.MaxChunkSizeInBytes; chunkSize != nil {
-				output["max_chunk_size_in_bytes"] = *chunkSize
-			}
-			if encoding := container.Encoding; encoding != nil {
-				output["encoding"] = *encoding
-			}
+				if connString := container.ConnectionString; connString != nil {
+					output["connection_string"] = *connString
+				}
+				if name := container.Name; name != nil {
+					output["name"] = *name
+				}
+				if containerName := container.ContainerName; containerName != nil {
+					output["container_name"] = *containerName
+				}
+				if fileNameFmt := container.FileNameFormat; fileNameFmt != nil {
+					output["file_name_format"] = *fileNameFmt
+				}
+				if batchFreq := container.BatchFrequencyInSeconds; batchFreq != nil {
+					output["batch_frequency_in_seconds"] = *batchFreq
+				}
+				if chunkSize := container.MaxChunkSizeInBytes; chunkSize != nil {
+					output["max_chunk_size_in_bytes"] = *chunkSize
+				}
+				if encoding := container.Encoding; encoding != nil {
+					output["encoding"] = *encoding
+				}
 
-			results = append(results, output)
+				results = append(results, output)
+			}
 		}
 
-		for _, queue := range *input.Endpoints.ServiceBusQueues {
-			output := make(map[string]interface{}, 0)
+		sbQueues := *input.Endpoints.ServiceBusQueues
+		if sbQueues != nil {
+			for _, queue := range sbQueues {
+				output := make(map[string]interface{}, 0)
 
-			if connString := queue.ConnectionString; connString != nil {
-				output["connection_string"] = *connString
-			}
-			if name := queue.Name; name != nil {
-				output["name"] = *name
-			}
+				if connString := queue.ConnectionString; connString != nil {
+					output["connection_string"] = *connString
+				}
+				if name := queue.Name; name != nil {
+					output["name"] = *name
+				}
 
-			results = append(results, output)
+				results = append(results, output)
+			}
 		}
 
-		for _, topic := range *input.Endpoints.ServiceBusTopics {
-			output := make(map[string]interface{}, 0)
+		sbTopics := *input.Endpoints.ServiceBusTopics
+		if sbTopics != nil {
+			for _, topic := range sbTopics {
+				output := make(map[string]interface{}, 0)
 
-			if connString := topic.ConnectionString; connString != nil {
-				output["connection_string"] = *connString
-			}
-			if name := topic.Name; name != nil {
-				output["name"] = *name
-			}
+				if connString := topic.ConnectionString; connString != nil {
+					output["connection_string"] = *connString
+				}
+				if name := topic.Name; name != nil {
+					output["name"] = *name
+				}
 
-			results = append(results, output)
+				results = append(results, output)
+			}
 		}
 
-		for _, eventHub := range *input.Endpoints.EventHubs {
-			output := make(map[string]interface{}, 0)
+		eventHubs := *input.Endpoints.EventHubs
+		if eventHubs != nil {
+			for _, eventHub := range eventHubs {
+				output := make(map[string]interface{}, 0)
 
-			if connString := eventHub.ConnectionString; connString != nil {
-				output["connection_string"] = *connString
-			}
-			if name := eventHub.Name; name != nil {
-				output["name"] = *name
-			}
+				if connString := eventHub.ConnectionString; connString != nil {
+					output["connection_string"] = *connString
+				}
+				if name := eventHub.Name; name != nil {
+					output["name"] = *name
+				}
 
-			results = append(results, output)
+				results = append(results, output)
+			}
 		}
 	}
 

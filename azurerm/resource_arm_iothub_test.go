@@ -26,7 +26,24 @@ func TestAccAzureRMIotHub_basicStandard(t *testing.T) {
 			},
 		},
 	})
+}
 
+func TestAccAzureRMIotHub_customRoutes(t *testing.T) {
+	rInt := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMIotHubDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMIotHub_customRoutes(rInt, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMIotHubExists("azurerm_iothub.test"),
+				),
+			},
+		},
+	})
 }
 
 func testCheckAzureRMIotHubDestroy(s *terraform.State) error {
@@ -84,6 +101,30 @@ func testCheckAzureRMIotHubExists(name string) resource.TestCheckFunc {
 }
 
 func testAccAzureRMIotHub_basicStandard(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "foo" {
+  name = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%d"
+  resource_group_name = "${azurerm_resource_group.foo.name}"
+  location            = "${azurerm_resource_group.foo.location}"
+  sku {
+    name = "S1"
+    tier = "Standard"
+    capacity = "1"
+  }
+
+  tags {
+    "purpose" = "testing"
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMIotHub_customRoutes(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "foo" {
   name = "acctestRG-%d"
