@@ -247,7 +247,7 @@ func resourceArmIotHubCreateAndUpdate(d *schema.ResourceData, meta interface{}) 
 
 	endpoints, err := expandIoTHubEndpoints(d, subscriptionID)
 	if err != nil {
-		return fmt.Errorf("Error expanding `endpoints`: %+v", err)
+		return fmt.Errorf("Error expanding `endpoint`: %+v", err)
 	}
 
 	routes := expandIoTHubRoutes(d)
