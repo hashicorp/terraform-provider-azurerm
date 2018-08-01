@@ -58,11 +58,15 @@ The following arguments are supported:
 
 * `log_progress` - (Required) Progress log option.
 
-* `log_verbose` -  (Required) Verbose log option.
+* `log_verbose` - (Required) Verbose log option.
 
 * `publish_content_link` - (Required) The published runbook content link.
 
-* `description` -  (Optional) A description for this credential.
+* `description` - (Optional) A description for this credential.
+
+* `content` - (Optional) The desired content of the runbook.
+
+~> **NOTE** The Azure API requires a `publish_content_link` to be supplied even when specifying your own `content`.
 
 `publish_content_link` supports the following:
 
