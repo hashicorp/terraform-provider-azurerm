@@ -30,6 +30,7 @@ func TestAccAzureRMIotHub_basicStandard(t *testing.T) {
 
 func TestAccAzureRMIotHub_customRoutes(t *testing.T) {
 	rInt := acctest.RandInt()
+	rStr := acctest.RandString(5)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -37,7 +38,7 @@ func TestAccAzureRMIotHub_customRoutes(t *testing.T) {
 		CheckDestroy: testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHub_customRoutes(rInt, testLocation()),
+				Config: testAccAzureRMIotHub_customRoutes(rInt, rStr, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubExists("azurerm_iothub.test"),
 				),
@@ -124,7 +125,7 @@ resource "azurerm_iothub" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMIotHub_customRoutes(rInt int, location string) string {
+func testAccAzureRMIotHub_customRoutes(rInt int, rStr string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "foo" {
   name = "acctestRG-%d"
@@ -132,7 +133,7 @@ resource "azurerm_resource_group" "foo" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                      = "acctestRG%dsta"
+  name                      = "acctestsa%s"
   resource_group_name       = "${azurerm_resource_group.foo.name}"
   location                  = "${azurerm_resource_group.foo.location}"
   account_tier              = "Standard"
@@ -172,12 +173,12 @@ resource "azurerm_iothub" "test" {
     source          = "DeviceMessages"
     condition       = "true"
     endpoint_names  = ["export"]
-    is_enabled      = true
+    enabled      = true
   }
 
   tags {
     "purpose" = "testing"
   }
 }
-`, rInt, location, rInt, rInt)
+`, rInt, location, rStr, rInt)
 }
