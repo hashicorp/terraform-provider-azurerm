@@ -132,7 +132,7 @@ func resourceArmIotHub() *schema.Resource {
 							Required: true,
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 								// As Azure API masks the connection string key suppress diff for this property
-								if old != "" && strings.HasSuffix(old, "****"){
+								if old != "" && strings.HasSuffix(old, "****") {
 									return true
 								}
 
