@@ -59,7 +59,6 @@ func TestAccAzureRMIotHub_customRoutes(t *testing.T) {
 				Config: testAccAzureRMIotHub_customRoutes(rInt, rStr, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubExists("azurerm_iothub.test"),
-
 				),
 			},
 		},
