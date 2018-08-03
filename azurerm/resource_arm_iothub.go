@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2018-04-01/devices"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -233,6 +234,7 @@ func resourceArmIotHub() *schema.Resource {
 func resourceArmIotHubCreateAndUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).iothubResourceClient
 	ctx := meta.(*ArmClient).StopContext
+	subscriptionID := meta.(*ArmClient).subscriptionId
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -272,11 +274,11 @@ func resourceArmIotHubCreateAndUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	properties := devices.IotHubDescription{
-		Name:     utils.String(name),
-		Location: utils.String(location),
-		Sku:      &skuInfo,
-		Tags:     expandTags(tags),
-    Properties:     &iotHubProperties,
+		Name:       utils.String(name),
+		Location:   utils.String(location),
+		Sku:        &skuInfo,
+		Tags:       expandTags(tags),
+		Properties: &iotHubProperties,
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties, "")
