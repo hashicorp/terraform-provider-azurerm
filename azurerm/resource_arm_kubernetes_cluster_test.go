@@ -442,8 +442,8 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func testAccAzureRMKubernetesCluster_advancedNetworking(rInt int, clientId string, clientSecret string, location string,
-														networkProfile string, dnsServiceIp string, dockerBridgeCidr string,
-														serviceCidr string) string {
+	networkProfile string, dnsServiceIp string, dockerBridgeCidr string,
+	serviceCidr string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
