@@ -387,7 +387,7 @@ func determineAzureResourceProvidersToRegister(providerList []resources.Provider
 		"Microsoft.ContainerInstance":   {},
 		"Microsoft.ContainerRegistry":   {},
 		"Microsoft.ContainerService":    {},
-		"Microsoft.Databricks": 		 {},
+		"Microsoft.Databricks":          {},
 		"Microsoft.DataLakeStore":       {},
 		"Microsoft.DBforMySQL":          {},
 		"Microsoft.DBforPostgreSQL":     {},
