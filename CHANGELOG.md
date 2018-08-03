@@ -1,4 +1,10 @@
 ## 1.13.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* dependencies: upgrading to `2018-04-01` of the IoTHub SDK [GH-1717]
+* `azurerm_iothub` - support for the `Basic` SKU [GH-1717] 
+
 ## 1.12.0 (August 03, 2018)
 
 UPGRADE NOTES:
