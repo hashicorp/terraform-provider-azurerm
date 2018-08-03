@@ -115,8 +115,8 @@
 			"versionExact": "v18.0.0"
 		},
 		{
-			"checksumSHA1": "UllFPDJZazs7Vy9wdcfKPe0r1u0=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2017-07-01/devices",
+			"checksumSHA1": "kVhbkr1IPBMGfJbFHY4fbr/c2wU=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2018-04-01/devices",
 			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
 			"revisionTime": "2018-07-03T19:15:42Z",
 			"version": "=v18.0.0",
