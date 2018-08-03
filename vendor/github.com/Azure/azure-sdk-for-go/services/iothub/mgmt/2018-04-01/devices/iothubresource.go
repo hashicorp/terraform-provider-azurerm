@@ -78,7 +78,7 @@ func (client IotHubResourceClient) CheckNameAvailabilityPreparer(ctx context.Con
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-07-01"
+	const APIVersion = "2018-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -151,7 +151,7 @@ func (client IotHubResourceClient) CreateEventHubConsumerGroupPreparer(ctx conte
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-07-01"
+	const APIVersion = "2018-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -196,34 +196,31 @@ func (client IotHubResourceClient) CreateEventHubConsumerGroupResponder(resp *ht
 func (client IotHubResourceClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, resourceName string, iotHubDescription IotHubDescription, ifMatch string) (result IotHubResourceCreateOrUpdateFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: iotHubDescription,
-			Constraints: []validation.Constraint{{Target: "iotHubDescription.Subscriptionid", Name: validation.Null, Rule: true, Chain: nil},
-				{Target: "iotHubDescription.Resourcegroup", Name: validation.Null, Rule: true, Chain: nil},
-				{Target: "iotHubDescription.Properties", Name: validation.Null, Rule: false,
-					Chain: []validation.Constraint{{Target: "iotHubDescription.Properties.Routing", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "iotHubDescription.Properties.Routing.FallbackRoute", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "iotHubDescription.Properties.Routing.FallbackRoute.Source", Name: validation.Null, Rule: true, Chain: nil},
-								{Target: "iotHubDescription.Properties.Routing.FallbackRoute.EndpointNames", Name: validation.Null, Rule: true,
-									Chain: []validation.Constraint{{Target: "iotHubDescription.Properties.Routing.FallbackRoute.EndpointNames", Name: validation.MaxItems, Rule: 1, Chain: nil},
-										{Target: "iotHubDescription.Properties.Routing.FallbackRoute.EndpointNames", Name: validation.MinItems, Rule: 1, Chain: nil},
-									}},
-								{Target: "iotHubDescription.Properties.Routing.FallbackRoute.IsEnabled", Name: validation.Null, Rule: true, Chain: nil},
-							}},
-						}},
-						{Target: "iotHubDescription.Properties.CloudToDevice", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "iotHubDescription.Properties.CloudToDevice.MaxDeliveryCount", Name: validation.Null, Rule: false,
-								Chain: []validation.Constraint{{Target: "iotHubDescription.Properties.CloudToDevice.MaxDeliveryCount", Name: validation.InclusiveMaximum, Rule: int64(100), Chain: nil},
-									{Target: "iotHubDescription.Properties.CloudToDevice.MaxDeliveryCount", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
+			Constraints: []validation.Constraint{{Target: "iotHubDescription.Properties", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "iotHubDescription.Properties.Routing", Name: validation.Null, Rule: false,
+					Chain: []validation.Constraint{{Target: "iotHubDescription.Properties.Routing.FallbackRoute", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{{Target: "iotHubDescription.Properties.Routing.FallbackRoute.Source", Name: validation.Null, Rule: true, Chain: nil},
+							{Target: "iotHubDescription.Properties.Routing.FallbackRoute.EndpointNames", Name: validation.Null, Rule: true,
+								Chain: []validation.Constraint{{Target: "iotHubDescription.Properties.Routing.FallbackRoute.EndpointNames", Name: validation.MaxItems, Rule: 1, Chain: nil},
+									{Target: "iotHubDescription.Properties.Routing.FallbackRoute.EndpointNames", Name: validation.MinItems, Rule: 1, Chain: nil},
 								}},
-								{Target: "iotHubDescription.Properties.CloudToDevice.Feedback", Name: validation.Null, Rule: false,
-									Chain: []validation.Constraint{{Target: "iotHubDescription.Properties.CloudToDevice.Feedback.MaxDeliveryCount", Name: validation.Null, Rule: false,
-										Chain: []validation.Constraint{{Target: "iotHubDescription.Properties.CloudToDevice.Feedback.MaxDeliveryCount", Name: validation.InclusiveMaximum, Rule: int64(100), Chain: nil},
-											{Target: "iotHubDescription.Properties.CloudToDevice.Feedback.MaxDeliveryCount", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
-										}},
-									}},
-							}},
+							{Target: "iotHubDescription.Properties.Routing.FallbackRoute.IsEnabled", Name: validation.Null, Rule: true, Chain: nil},
+						}},
 					}},
-				{Target: "iotHubDescription.Sku", Name: validation.Null, Rule: true,
-					Chain: []validation.Constraint{{Target: "iotHubDescription.Sku.Capacity", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
+					{Target: "iotHubDescription.Properties.CloudToDevice", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{{Target: "iotHubDescription.Properties.CloudToDevice.MaxDeliveryCount", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "iotHubDescription.Properties.CloudToDevice.MaxDeliveryCount", Name: validation.InclusiveMaximum, Rule: int64(100), Chain: nil},
+								{Target: "iotHubDescription.Properties.CloudToDevice.MaxDeliveryCount", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
+							}},
+							{Target: "iotHubDescription.Properties.CloudToDevice.Feedback", Name: validation.Null, Rule: false,
+								Chain: []validation.Constraint{{Target: "iotHubDescription.Properties.CloudToDevice.Feedback.MaxDeliveryCount", Name: validation.Null, Rule: false,
+									Chain: []validation.Constraint{{Target: "iotHubDescription.Properties.CloudToDevice.Feedback.MaxDeliveryCount", Name: validation.InclusiveMaximum, Rule: int64(100), Chain: nil},
+										{Target: "iotHubDescription.Properties.CloudToDevice.Feedback.MaxDeliveryCount", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
+									}},
+								}},
+						}},
+				}},
+				{Target: "iotHubDescription.Sku", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("devices.IotHubResourceClient", "CreateOrUpdate", err.Error())
 	}
 
@@ -250,7 +247,7 @@ func (client IotHubResourceClient) CreateOrUpdatePreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-07-01"
+	const APIVersion = "2018-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -327,7 +324,7 @@ func (client IotHubResourceClient) DeletePreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-07-01"
+	const APIVersion = "2018-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -408,7 +405,7 @@ func (client IotHubResourceClient) DeleteEventHubConsumerGroupPreparer(ctx conte
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-07-01"
+	const APIVersion = "2018-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -484,7 +481,7 @@ func (client IotHubResourceClient) ExportDevicesPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-07-01"
+	const APIVersion = "2018-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -553,7 +550,7 @@ func (client IotHubResourceClient) GetPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-07-01"
+	const APIVersion = "2018-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -583,6 +580,98 @@ func (client IotHubResourceClient) GetResponder(resp *http.Response) (result Iot
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetEndpointHealth get the health for routing endpoints.
+func (client IotHubResourceClient) GetEndpointHealth(ctx context.Context, resourceGroupName string, iotHubName string) (result EndpointHealthDataListResultPage, err error) {
+	result.fn = client.getEndpointHealthNextResults
+	req, err := client.GetEndpointHealthPreparer(ctx, resourceGroupName, iotHubName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "devices.IotHubResourceClient", "GetEndpointHealth", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetEndpointHealthSender(req)
+	if err != nil {
+		result.ehdlr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "devices.IotHubResourceClient", "GetEndpointHealth", resp, "Failure sending request")
+		return
+	}
+
+	result.ehdlr, err = client.GetEndpointHealthResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "devices.IotHubResourceClient", "GetEndpointHealth", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// GetEndpointHealthPreparer prepares the GetEndpointHealth request.
+func (client IotHubResourceClient) GetEndpointHealthPreparer(ctx context.Context, resourceGroupName string, iotHubName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"iotHubName":        autorest.Encode("path", iotHubName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-04-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Devices/IotHubs/{iotHubName}/routingEndpointsHealth", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetEndpointHealthSender sends the GetEndpointHealth request. The method will close the
+// http.Response Body if it receives an error.
+func (client IotHubResourceClient) GetEndpointHealthSender(req *http.Request) (*http.Response, error) {
+	return autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetEndpointHealthResponder handles the response to the GetEndpointHealth request. The method always
+// closes the http.Response Body.
+func (client IotHubResourceClient) GetEndpointHealthResponder(resp *http.Response) (result EndpointHealthDataListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// getEndpointHealthNextResults retrieves the next set of results, if any.
+func (client IotHubResourceClient) getEndpointHealthNextResults(lastResults EndpointHealthDataListResult) (result EndpointHealthDataListResult, err error) {
+	req, err := lastResults.endpointHealthDataListResultPreparer()
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "devices.IotHubResourceClient", "getEndpointHealthNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.GetEndpointHealthSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "devices.IotHubResourceClient", "getEndpointHealthNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.GetEndpointHealthResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "devices.IotHubResourceClient", "getEndpointHealthNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// GetEndpointHealthComplete enumerates all values, automatically crossing page boundaries as required.
+func (client IotHubResourceClient) GetEndpointHealthComplete(ctx context.Context, resourceGroupName string, iotHubName string) (result EndpointHealthDataListResultIterator, err error) {
+	result.page, err = client.GetEndpointHealth(ctx, resourceGroupName, iotHubName)
 	return
 }
 
@@ -624,7 +713,7 @@ func (client IotHubResourceClient) GetEventHubConsumerGroupPreparer(ctx context.
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-07-01"
+	const APIVersion = "2018-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -694,7 +783,7 @@ func (client IotHubResourceClient) GetJobPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-07-01"
+	const APIVersion = "2018-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -764,7 +853,7 @@ func (client IotHubResourceClient) GetKeysForKeyNamePreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-07-01"
+	const APIVersion = "2018-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -832,7 +921,7 @@ func (client IotHubResourceClient) GetQuotaMetricsPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-07-01"
+	const APIVersion = "2018-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -926,7 +1015,7 @@ func (client IotHubResourceClient) GetStatsPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-07-01"
+	const APIVersion = "2018-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -994,7 +1083,7 @@ func (client IotHubResourceClient) GetValidSkusPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-07-01"
+	const APIVersion = "2018-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1098,7 +1187,7 @@ func (client IotHubResourceClient) ImportDevicesPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-07-01"
+	const APIVersion = "2018-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1166,7 +1255,7 @@ func (client IotHubResourceClient) ListByResourceGroupPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-07-01"
+	const APIVersion = "2018-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1256,7 +1345,7 @@ func (client IotHubResourceClient) ListBySubscriptionPreparer(ctx context.Contex
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-07-01"
+	const APIVersion = "2018-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1354,7 +1443,7 @@ func (client IotHubResourceClient) ListEventHubConsumerGroupsPreparer(ctx contex
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-07-01"
+	const APIVersion = "2018-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1450,7 +1539,7 @@ func (client IotHubResourceClient) ListJobsPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-07-01"
+	const APIVersion = "2018-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1546,7 +1635,7 @@ func (client IotHubResourceClient) ListKeysPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-07-01"
+	const APIVersion = "2018-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1603,5 +1692,233 @@ func (client IotHubResourceClient) listKeysNextResults(lastResults SharedAccessS
 // ListKeysComplete enumerates all values, automatically crossing page boundaries as required.
 func (client IotHubResourceClient) ListKeysComplete(ctx context.Context, resourceGroupName string, resourceName string) (result SharedAccessSignatureAuthorizationRuleListResultIterator, err error) {
 	result.page, err = client.ListKeys(ctx, resourceGroupName, resourceName)
+	return
+}
+
+// TestAllRoutes test all routes configured in this Iot Hub
+// Parameters:
+// input - input for testing all routes
+// iotHubName - iotHub to be tested
+// resourceGroupName - resource group which Iot Hub belongs to
+func (client IotHubResourceClient) TestAllRoutes(ctx context.Context, input TestAllRoutesInput, iotHubName string, resourceGroupName string) (result TestAllRoutesResult, err error) {
+	req, err := client.TestAllRoutesPreparer(ctx, input, iotHubName, resourceGroupName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "devices.IotHubResourceClient", "TestAllRoutes", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.TestAllRoutesSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "devices.IotHubResourceClient", "TestAllRoutes", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.TestAllRoutesResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "devices.IotHubResourceClient", "TestAllRoutes", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// TestAllRoutesPreparer prepares the TestAllRoutes request.
+func (client IotHubResourceClient) TestAllRoutesPreparer(ctx context.Context, input TestAllRoutesInput, iotHubName string, resourceGroupName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"iotHubName":        autorest.Encode("path", iotHubName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-04-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Devices/IotHubs/{iotHubName}/routing/routes/$testall", pathParameters),
+		autorest.WithJSON(input),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// TestAllRoutesSender sends the TestAllRoutes request. The method will close the
+// http.Response Body if it receives an error.
+func (client IotHubResourceClient) TestAllRoutesSender(req *http.Request) (*http.Response, error) {
+	return autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+}
+
+// TestAllRoutesResponder handles the response to the TestAllRoutes request. The method always
+// closes the http.Response Body.
+func (client IotHubResourceClient) TestAllRoutesResponder(resp *http.Response) (result TestAllRoutesResult, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// TestRoute test the new route for this Iot Hub
+// Parameters:
+// input - route that needs to be tested
+// iotHubName - iotHub to be tested
+// resourceGroupName - resource group which Iot Hub belongs to
+func (client IotHubResourceClient) TestRoute(ctx context.Context, input TestRouteInput, iotHubName string, resourceGroupName string) (result TestRouteResult, err error) {
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: input,
+			Constraints: []validation.Constraint{{Target: "input.Route", Name: validation.Null, Rule: true,
+				Chain: []validation.Constraint{{Target: "input.Route.Name", Name: validation.Null, Rule: true,
+					Chain: []validation.Constraint{{Target: "input.Route.Name", Name: validation.Pattern, Rule: `^[A-Za-z0-9-._]{1,64}$`, Chain: nil}}},
+					{Target: "input.Route.EndpointNames", Name: validation.Null, Rule: true,
+						Chain: []validation.Constraint{{Target: "input.Route.EndpointNames", Name: validation.MaxItems, Rule: 1, Chain: nil},
+							{Target: "input.Route.EndpointNames", Name: validation.MinItems, Rule: 1, Chain: nil},
+						}},
+					{Target: "input.Route.IsEnabled", Name: validation.Null, Rule: true, Chain: nil},
+				}}}}}); err != nil {
+		return result, validation.NewError("devices.IotHubResourceClient", "TestRoute", err.Error())
+	}
+
+	req, err := client.TestRoutePreparer(ctx, input, iotHubName, resourceGroupName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "devices.IotHubResourceClient", "TestRoute", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.TestRouteSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "devices.IotHubResourceClient", "TestRoute", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.TestRouteResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "devices.IotHubResourceClient", "TestRoute", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// TestRoutePreparer prepares the TestRoute request.
+func (client IotHubResourceClient) TestRoutePreparer(ctx context.Context, input TestRouteInput, iotHubName string, resourceGroupName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"iotHubName":        autorest.Encode("path", iotHubName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-04-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Devices/IotHubs/{iotHubName}/routing/routes/$testnew", pathParameters),
+		autorest.WithJSON(input),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// TestRouteSender sends the TestRoute request. The method will close the
+// http.Response Body if it receives an error.
+func (client IotHubResourceClient) TestRouteSender(req *http.Request) (*http.Response, error) {
+	return autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+}
+
+// TestRouteResponder handles the response to the TestRoute request. The method always
+// closes the http.Response Body.
+func (client IotHubResourceClient) TestRouteResponder(resp *http.Response) (result TestRouteResult, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// Update update an existing IoT Hub tags. to update other fields use the CreateOrUpdate method
+// Parameters:
+// resourceGroupName - resource group identifier.
+// resourceName - name of iot hub to update.
+// iotHubTags - updated tag information to set into the iot hub instance.
+func (client IotHubResourceClient) Update(ctx context.Context, resourceGroupName string, resourceName string, iotHubTags TagsResource) (result IotHubResourceUpdateFuture, err error) {
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, resourceName, iotHubTags)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "devices.IotHubResourceClient", "Update", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.UpdateSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "devices.IotHubResourceClient", "Update", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// UpdatePreparer prepares the Update request.
+func (client IotHubResourceClient) UpdatePreparer(ctx context.Context, resourceGroupName string, resourceName string, iotHubTags TagsResource) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"resourceName":      autorest.Encode("path", resourceName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-04-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPatch(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Devices/IotHubs/{resourceName}", pathParameters),
+		autorest.WithJSON(iotHubTags),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// UpdateSender sends the Update request. The method will close the
+// http.Response Body if it receives an error.
+func (client IotHubResourceClient) UpdateSender(req *http.Request) (future IotHubResourceUpdateFuture, err error) {
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// UpdateResponder handles the response to the Update request. The method always
+// closes the http.Response Body.
+func (client IotHubResourceClient) UpdateResponder(resp *http.Response) (result IotHubDescription, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
 	return
 }
