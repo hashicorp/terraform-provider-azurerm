@@ -1,28 +1,28 @@
-## 1.12.0 (Unreleased)
+## 1.12.0 (August 03, 2018)
 
 UPGRADE NOTES:
 
-* **Please Note:** When upgrading to v1.12.0 of the Azure Provider, you may need to specify the `priority` of any VM Scale Sets created between v1.6 of the Provider and v1.12. [GH-1586]
+* **Please Note:** When upgrading to v1.12.0 of the Azure Provider, you may need to specify the `priority` of any VM Scale Sets created between v1.6 of the Provider and v1.12. ([#1586](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1586))
 
 FEATURES:
 
-* **New Data Source:** `azurerm_container_registry` [GH-1642]
-* **New Resource:** `azurerm_service_fabric_cluster` [GH-4]
+* **New Data Source:** `azurerm_container_registry` ([#1642](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1642))
+* **New Resource:** `azurerm_service_fabric_cluster` ([#4](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4))
 
 IMPROVEMENTS:
 
-* sdk: switching from `WaitForCompletion` -> `WaitForCompletionRef` when polling Future's [GH-1660]
-* Data Source: `azurerm_kubernetes_cluster` - support for specifying the `network_profile` block [GH-1479]
-* Data Source: `azurerm_kubernetes_cluster` - outputting the `node_resource_group` field [GH-1649]
-* `azurerm_kubernetes_cluster` - support for specifying the `network_profile` block [GH-1479]
-* `azurerm_kubernetes_cluster` - outputting the `node_resource_group` field [GH-1649]
-* `azurerm_role_assignment` - retrying resource creation to match the Azure CLI's behaviour [GH-1647]
-* `azurerm_virtual_machine` - setting the connection information for Provisioners [GH-1646]
+* sdk: switching from `WaitForCompletion` -> `WaitForCompletionRef` when polling Future's ([#1660](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1660))
+* Data Source: `azurerm_kubernetes_cluster` - support for specifying the `network_profile` block ([#1479](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1479))
+* Data Source: `azurerm_kubernetes_cluster` - outputting the `node_resource_group` field ([#1649](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1649))
+* `azurerm_kubernetes_cluster` - support for specifying the `network_profile` block ([#1479](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1479))
+* `azurerm_kubernetes_cluster` - outputting the `node_resource_group` field ([#1649](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1649))
+* `azurerm_role_assignment` - retrying resource creation to match the Azure CLI's behaviour ([#1647](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1647))
+* `azurerm_virtual_machine` - setting the connection information for Provisioners ([#1646](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1646))
 
 
 BUG FIXES:
 
-* `azurerm_virtual_machine_scale_set` - removing the default of `priority`, since this isn't set on older instances. [GH-1586]
+* `azurerm_virtual_machine_scale_set` - removing the default of `priority`, since this isn't set on older instances. ([#1586](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1586))
 
 ## 1.11.0 (July 25, 2018)
 
