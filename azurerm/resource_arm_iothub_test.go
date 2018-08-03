@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccAzureRMIotHub_basicStandard(t *testing.T) {
+func TestAccAzureRMIotHub_basic(t *testing.T) {
 	rInt := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
@@ -19,14 +19,31 @@ func TestAccAzureRMIotHub_basicStandard(t *testing.T) {
 		CheckDestroy: testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHub_basicStandard(rInt, testLocation()),
+				Config: testAccAzureRMIotHub_basic(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubExists("azurerm_iothub.test"),
 				),
 			},
 		},
 	})
+}
 
+func TestAccAzureRMIotHub_standard(t *testing.T) {
+	rInt := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMIotHubDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMIotHub_standard(rInt, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMIotHubExists("azurerm_iothub.test"),
+				),
+			},
+		},
+	})
 }
 
 func testCheckAzureRMIotHubDestroy(s *terraform.State) error {
@@ -83,7 +100,31 @@ func testCheckAzureRMIotHubExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testAccAzureRMIotHub_basicStandard(rInt int, location string) string {
+func testAccAzureRMIotHub_basic(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "foo" {
+  name = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%d"
+  resource_group_name = "${azurerm_resource_group.foo.name}"
+  location            = "${azurerm_resource_group.foo.location}"
+  sku {
+    name = "B1"
+    tier = "Basic"
+    capacity = "1"
+  }
+
+  tags {
+    "purpose" = "testing"
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMIotHub_standard(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "foo" {
   name = "acctestRG-%d"
