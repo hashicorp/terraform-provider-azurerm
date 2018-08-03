@@ -67,7 +67,7 @@ func testCheckAzureRMDatabricksWorkspaceExists(name string) resource.TestCheckFu
 			return fmt.Errorf("Bad: Not found: %s", name)
 		}
 
-		name := rs.Primary.Attributes["workspace_name"]
+		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: No resource group found in state for Databricks Workspace: %s", name)
@@ -97,7 +97,7 @@ func testCheckAzureRMDatabricksWorkspaceDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["workspace_name"]
+		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
@@ -122,9 +122,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_databricks_workspace" "test" {
-  workspace_name               = "databricks-test-%d"
+  name               = "databricks-test-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location = "%s"
+
+  sku = "Standard"
 }
 `, rInt, location, rInt, location)
 }
@@ -137,15 +139,17 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_databricks_workspace" "test" {
-	workspace_name               = "databricks-test-%d"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	location = "%s"
+  name               = "databricks-test-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location = "%s"
 
-	tags {
-		environment = "Production"
-		pricing = "Standard"
-	  }
+  sku = "Standard"
+
+  tags {
+    environment = "Production"
+    pricing = "Standard"
   }
+}
 `, rInt, location, rInt, location)
 }
 
@@ -157,13 +161,15 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_databricks_workspace" "test" {
-	workspace_name               = "databricks-test-%d"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	location = "%s"
+  name               = "databricks-test-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location = "%s"
 
-	tags {
-		pricing = "Premium"
-	  }
+  sku = "Standard"
+
+  tags {
+    pricing = "Premium"
   }
+}
 `, rInt, location, rInt, location)
 }
