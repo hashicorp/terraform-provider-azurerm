@@ -7,8 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
-	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2017-07-01/devices"
+	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2018-04-01/devices"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -49,6 +48,9 @@ func resourceArmIotHub() *schema.Resource {
 							Required:         true,
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc: validation.StringInSlice([]string{
+								string(devices.B1),
+								string(devices.B2),
+								string(devices.B3),
 								string(devices.F1),
 								string(devices.S1),
 								string(devices.S2),
@@ -61,6 +63,7 @@ func resourceArmIotHub() *schema.Resource {
 							Required:         true,
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc: validation.StringInSlice([]string{
+								string(devices.Basic),
 								string(devices.Free),
 								string(devices.Standard),
 							}, true),
@@ -230,7 +233,6 @@ func resourceArmIotHub() *schema.Resource {
 func resourceArmIotHubCreateAndUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).iothubResourceClient
 	ctx := meta.(*ArmClient).StopContext
-	subscriptionID := meta.(*ArmClient).subscriptionId
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -270,13 +272,11 @@ func resourceArmIotHubCreateAndUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	properties := devices.IotHubDescription{
-		Name:           utils.String(name),
-		Location:       utils.String(location),
-		Resourcegroup:  utils.String(resourceGroup),
-		Subscriptionid: utils.String(subscriptionID),
-		Sku:            &skuInfo,
-		Tags:           expandTags(tags),
-		Properties:     &iotHubProperties,
+		Name:     utils.String(name),
+		Location: utils.String(location),
+		Sku:      &skuInfo,
+		Tags:     expandTags(tags),
+    Properties:     &iotHubProperties,
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties, "")
@@ -528,7 +528,7 @@ func expandIoTHubEndpoints(d *schema.ResourceData, subscriptionId string) (*devi
 func expandIoTHubSku(d *schema.ResourceData) devices.IotHubSkuInfo {
 	skuList := d.Get("sku").([]interface{})
 	skuMap := skuList[0].(map[string]interface{})
-	cap := int64(skuMap["capacity"].(int))
+	capacity := int64(skuMap["capacity"].(int))
 
 	name := skuMap["name"].(string)
 	tier := skuMap["tier"].(string)
@@ -536,7 +536,7 @@ func expandIoTHubSku(d *schema.ResourceData) devices.IotHubSkuInfo {
 	return devices.IotHubSkuInfo{
 		Name:     devices.IotHubSku(name),
 		Tier:     devices.IotHubSkuTier(tier),
-		Capacity: &cap,
+		Capacity: utils.Int64(capacity),
 	}
 }
 

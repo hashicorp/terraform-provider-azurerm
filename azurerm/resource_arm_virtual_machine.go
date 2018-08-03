@@ -414,6 +414,11 @@ func resourceArmVirtualMachine() *schema.Resource {
 									"protocol": {
 										Type:     schema.TypeString,
 										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"HTTP",
+											"HTTPS",
+										}, true),
+										DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 									},
 									"certificate_url": {
 										Type:     schema.TypeString,
@@ -427,17 +432,28 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
+									// TODO: should we make `pass` and `component` Optional + Defaulted?
 									"pass": {
 										Type:     schema.TypeString,
 										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"oobeSystem",
+										}, false),
 									},
 									"component": {
 										Type:     schema.TypeString,
 										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"Microsoft-Windows-Shell-Setup",
+										}, false),
 									},
 									"setting_name": {
 										Type:     schema.TypeString,
 										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"AutoLogon",
+											"FirstLogonCommands",
+										}, false),
 									},
 									"content": {
 										Type:      schema.TypeString,
@@ -474,7 +490,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 									},
 									"key_data": {
 										Type:     schema.TypeString,
-										Optional: true,
+										Required: true,
 									},
 								},
 							},

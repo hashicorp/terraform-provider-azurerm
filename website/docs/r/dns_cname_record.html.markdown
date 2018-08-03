@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_cname_record"
 sidebar_current: "docs-azurerm-resource-dns-cname-record"
 description: |-
-  Create a DNS CNAME Record.
+  Manages a DNS CNAME Record.
 ---
 
 # azurerm_dns_cname_record

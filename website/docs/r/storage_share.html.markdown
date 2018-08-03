@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_share"
 sidebar_current: "docs-azurerm-resource-storage-share"
 description: |-
-  Create an Azure Storage Share.
+  Manages an Azure Storage Share.
 ---
 
 # azurerm_storage_share
