@@ -15,9 +15,9 @@ We recommend [using a Service Principal when running in a shared environment](au
 
 ~> **NOTE:** Authenticating via the Azure CLI is only supported when using a User Account. If you're using a Service Principal (e.g. via `az login --service-principal`) you should instead [authenticate via the Service Principal directly](authenticating_via_service_principal.html).
 
-~> **NOTE:** Take note that when `az login` fetches access_tokens, these are interpreted (and stored) according to the timezone settings the azure-cli runs in.
+~> **NOTE:** Take note that when `az login` fetches the access tokens, these are interpreted (and stored) according to the timezone settings the azure-cli runs in.
   
-  When the timezones `az` and `terraform` run in differ (because `az` is run inside docker, which defaults to UTC, and `terraform` on some host, not UTC), `terraform` interprets the token differently from what `az` intended and may incorrectly determines the token to be stale and invalid.
+  When the timezones `az` and `terraform` run in differ (for example when `az` is run inside docker, which defaults to UTC, and the system timezone where `terraform` runs is not UTC), `terraform` interprets the token differently from what `az` intended and may incorrectly determine the token to be stale and invalid.
   
   When `terraform`  and `az` are run on hosts / containers with different timezones, the variable $TZ should be set on the host.  
 
