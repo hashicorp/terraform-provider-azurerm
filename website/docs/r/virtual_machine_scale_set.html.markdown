@@ -359,7 +359,8 @@ output "principal_id" {
 * `primary` - (Required) Indicates whether network interfaces created from the network interface configuration will be the primary NIC of the VM.
 * `ip_configuration` - (Required) An ip_configuration block as documented below.
 * `accelerated_networking` - (Optional) Specifies whether to enable accelerated networking or not. Defaults to `false`.
-* `dns_settings` - (Optional) An dns_settings block as documented below.
+* `dns_settings` - (Optional) A dns_settings block as documented below.
+* `ip_forwarding` - (Optional) Whether IP forwarding is enabled on this NIC. Defaults to `false`.
 * `network_security_group_id` - (Optional) Specifies the identifier for the network security group.
 
 `dns_settings` supports the following:
