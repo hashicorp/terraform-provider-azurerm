@@ -24,6 +24,32 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+			if v, exists := diff.GetOk("network_profile"); exists {
+				rawProfiles := v.([]interface{})
+				if len(rawProfiles) == 0 {
+					return nil
+				}
+
+				// then ensure the conditionally-required fields are set
+				profile := rawProfiles[0].(map[string]interface{})
+				networkPlugin := profile["network_plugin"].(string)
+
+				if networkPlugin == "kubenet" || networkPlugin == "azure" {
+					dockerBridgeCidr := profile["docker_bridge_cidr"].(string)
+					dnsServiceIP := profile["dns_service_ip"].(string)
+					serviceCidr := profile["service_cidr"].(string)
+
+					if !((dockerBridgeCidr == "" && dnsServiceIP == "" && serviceCidr == "") ||
+					     (dockerBridgeCidr != "" && dnsServiceIP != "" && serviceCidr != "")) {
+						return fmt.Errorf("`docker_bridge_cidr`, `dns_service_ip` and `service_cidr` should all be empty or neither should be empty.")
+					}
+				}
+			}
+
+			return nil
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
