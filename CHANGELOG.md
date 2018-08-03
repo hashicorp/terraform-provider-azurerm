@@ -1,5 +1,9 @@
 ## 1.12.0 (Unreleased)
 
+UPGRADE NOTES:
+
+* **Please Note:** When upgrading to v1.12.0 of the Azure Provider, you may need to specify the `priority` of any VM Scale Sets created between v1.6 of the Provider and v1.12. [GH-1586]
+
 FEATURES:
 
 * **New Data Source:** `azurerm_container_registry` [GH-1642]
@@ -14,6 +18,11 @@ IMPROVEMENTS:
 * `azurerm_kubernetes_cluster` - outputting the `node_resource_group` field [GH-1649]
 * `azurerm_role_assignment` - retrying resource creation to match the Azure CLI's behaviour [GH-1647]
 * `azurerm_virtual_machine` - setting the connection information for Provisioners [GH-1646]
+
+
+BUG FIXES:
+
+* `azurerm_virtual_machine_scale_set` - removing the default of `priority`, since this isn't set on older instances. [GH-1586]
 
 ## 1.11.0 (July 25, 2018)
 
