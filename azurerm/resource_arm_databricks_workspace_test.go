@@ -124,11 +124,11 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_databricks_workspace" "test" {
   name               = "databricks-test-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location = "%s"
+  location            = "${azurerm_resource_group.test.location}"
 
   sku = "Standard"
 }
-`, rInt, location, rInt, location)
+`, rInt, location, rInt)
 }
 
 func testAccAzureRMDatabricksWorkspace_withTags(rInt int, location string) string {

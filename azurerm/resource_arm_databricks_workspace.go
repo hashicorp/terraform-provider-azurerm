@@ -77,13 +77,14 @@ func resourceArmDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	future, err := client.CreateOrUpdate(ctx, workspace, resGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error creating Databricks Workspace %q (Resource Group %q): %+v", name, resGroup, err)
+	// Azure Databricks API for some reason returns 202 response that is treated as an error right now
+	if err != nil && future.Response().StatusCode != 202 {
+		return fmt.Errorf("Error creating/updating Databricks Workspace %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error waiting for creation of Databricks Workspace %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error waiting for the completion of the creating/updating of Databricks Workspace %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
@@ -158,7 +159,7 @@ func resourceArmDatabricksWorkspaceDelete(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error deleting Databricks Workspace %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
