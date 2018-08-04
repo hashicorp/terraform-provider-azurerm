@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"path/filepath"
 	"testing"
 
 	"github.com/google/uuid"
@@ -117,11 +118,11 @@ func testCheckAzureRMRoleDefinitionExists(name string) resource.TestCheckFunc {
 		}
 
 		scope := rs.Primary.Attributes["scope"]
-		roleDefinitionId := rs.Primary.Attributes["role_definition_id"]
+		roleDefinitionId := rs.Primary.Attributes["id"]
 
 		client := testAccProvider.Meta().(*ArmClient).roleDefinitionsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		resp, err := client.Get(ctx, scope, roleDefinitionId)
+		resp, err := client.Get(ctx, scope, filepath.Base(roleDefinitionId))
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -141,11 +142,11 @@ func testCheckAzureRMRoleDefinitionDestroy(s *terraform.State) error {
 		}
 
 		scope := rs.Primary.Attributes["scope"]
-		roleDefinitionId := rs.Primary.Attributes["role_definition_id"]
+		roleDefinitionId := rs.Primary.Attributes["id"]
 
 		client := testAccProvider.Meta().(*ArmClient).roleDefinitionsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		resp, err := client.Get(ctx, scope, roleDefinitionId)
+		resp, err := client.Get(ctx, scope, filepath.Base(roleDefinitionId))
 
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
