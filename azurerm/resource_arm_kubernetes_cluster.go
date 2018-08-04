@@ -42,7 +42,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 
 					if !((dockerBridgeCidr == "" && dnsServiceIP == "" && serviceCidr == "") ||
 						(dockerBridgeCidr != "" && dnsServiceIP != "" && serviceCidr != "")) {
-						return fmt.Errorf("`docker_bridge_cidr`, `dns_service_ip` and `service_cidr` should all be empty or neither should be empty.")
+						return fmt.Errorf("`docker_bridge_cidr`, `dns_service_ip` and `service_cidr` should all be empty or all should be set.")
 					}
 				}
 			}
