@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/structure"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,7 +21,6 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 		Read:   resourceArmVirtualMachineScaleSetRead,
 		Update: resourceArmVirtualMachineScaleSetCreate,
 		Delete: resourceArmVirtualMachineScaleSetDelete,
-
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -115,6 +115,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 					string(compute.Manual),
 					string(compute.Rolling),
 				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"automatic_os_upgrade": {
@@ -146,14 +147,15 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 						"max_unhealthy_upgraded_instance_percent": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							Default:      5,
+							Default:      20,
 							ValidateFunc: validation.IntBetween(5, 100),
 						},
 
 						"pause_time_between_batches": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  "PT0S",
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "PT0S",
+							ValidateFunc: validateIso8601Duration(),
 						},
 					},
 				},
@@ -339,11 +341,6 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				Set: resourceArmVirtualMachineScaleSetOsProfileLinuxConfigHash,
 			},
 
-			"health_probe_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-
 			"network_profile": {
 				Type:     schema.TypeSet,
 				Required: true,
@@ -462,6 +459,12 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 					},
 				},
 				Set: resourceArmVirtualMachineScaleSetNetworkConfigurationHash,
+			},
+
+			"health_probe_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"boot_diagnostics": {
@@ -742,7 +745,7 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 		return err
 	}
 
-	updatePolicy := d.Get("upgrade_policy_mode").(string)
+	upgradePolicy := d.Get("upgrade_policy_mode").(string)
 	automaticOsUpgrade := d.Get("automatic_os_upgrade").(bool)
 	overprovision := d.Get("overprovision").(bool)
 	singlePlacementGroup := d.Get("single_placement_group").(bool)
@@ -750,7 +753,7 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 
 	scaleSetProps := compute.VirtualMachineScaleSetProperties{
 		UpgradePolicy: &compute.UpgradePolicy{
-			Mode:                 compute.UpgradeMode(updatePolicy),
+			Mode:                 compute.UpgradeMode(upgradePolicy),
 			AutomaticOSUpgrade:   &automaticOsUpgrade,
 			RollingUpgradePolicy: expandAzureRmRollingUpgradePolicy(d),
 		},
@@ -863,10 +866,6 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 	}
 
 	if properties := resp.VirtualMachineScaleSetProperties; properties != nil {
-
-		d.Set("overprovision", properties.Overprovision)
-		d.Set("single_placement_group", properties.SinglePlacementGroup)
-
 		if upgradePolicy := properties.UpgradePolicy; upgradePolicy != nil {
 			d.Set("upgrade_policy_mode", upgradePolicy.Mode)
 			d.Set("automatic_os_upgrade", upgradePolicy.AutomaticOSUpgrade)
@@ -875,6 +874,8 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 				return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Rolling Upgrade Policy error: %#v", err)
 			}
 		}
+		d.Set("overprovision", properties.Overprovision)
+		d.Set("single_placement_group", properties.SinglePlacementGroup)
 
 		if profile := properties.VirtualMachineProfile; profile != nil {
 			d.Set("license_type", profile.LicenseType)
@@ -1526,7 +1527,6 @@ func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *
 
 		name := config["name"].(string)
 		primary := config["primary"].(bool)
-
 		acceleratedNetworking := config["accelerated_networking"].(bool)
 		ipForwarding := config["ip_forwarding"].(bool)
 

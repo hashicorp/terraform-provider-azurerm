@@ -205,10 +205,10 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
-  name                 = "mytestscaleset-1"
-  location             = "West US"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  upgrade_policy_mode  = "Manual"
+  name                = "mytestscaleset-1"
+  location            = "West US"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  upgrade_policy_mode = "Manual"
 
   sku {
     name     = "Standard_F2"
@@ -300,7 +300,7 @@ The following arguments are supported:
 
 * `max_batch_instance_percent` - (Optional) The maximum percent of total virtual machine instances that will be upgraded simultaneously by the rolling upgrade in one batch. As this is a maximum, unhealthy instances in previous or future batches can cause the percentage of instances in a batch to decrease to ensure higher reliability. Defaults to `20`.
 * `max_unhealthy_instance_percent` - (Optional) The maximum percentage of the total virtual machine instances in the scale set that can be simultaneously unhealthy, either as a result of being upgraded, or by being found in an unhealthy state by the virtual machine health checks before the rolling upgrade aborts. This constraint will be checked prior to starting any batch. Defaults to `20`.
-* `max_unhealthy_upgraded_instance_percent` - (Optional) The maximum percentage of upgraded virtual machine instances that can be found to be in an unhealthy state. This check will happen after each batch is upgraded. If this percentage is ever exceeded, the rolling update aborts. Defaults to `5`.
+* `max_unhealthy_upgraded_instance_percent` - (Optional) The maximum percentage of upgraded virtual machine instances that can be found to be in an unhealthy state. This check will happen after each batch is upgraded. If this percentage is ever exceeded, the rolling update aborts. Defaults to `20`.
 * `pause_time_between_batches` - (Optional) The wait time between completing the update for all virtual machines in one batch and starting the next batch. The time duration should be specified in ISO 8601 format for duration (https://en.wikipedia.org/wiki/ISO_8601#Durations). Defaults to `0` seconds represented as `PT0S`.
 
 `identity` supports the following:
@@ -357,6 +357,7 @@ output "principal_id" {
 * `certificate_url` - (Required) It is the Base64 encoding of a JSON Object that which is encoded in UTF-8 of which the contents need to be `data`, `dataType` and `password`.
 * `certificate_store` - (Required, on windows machines) Specifies the certificate store on the Virtual Machine where the certificate should be added to.
 
+
 `os_profile_windows_config` supports the following:
 
 * `provision_vm_agent` - (Optional) Indicates whether virtual machine agent should be provisioned on the virtual machines in the scale set.
@@ -406,7 +407,7 @@ output "principal_id" {
 * `load_balancer_inbound_nat_rules_ids` - (Optional) Specifies an array of references to inbound NAT rules for load balancers.
 * `primary` - (Optional) Specifies if this ip_configuration is the primary one.
 * `public_ip_address_configuration` - (Optional) describes a virtual machines scale set IP Configuration's
-  PublicIPAddress configuration. The public_ip_address_configuration is documented below.
+ PublicIPAddress configuration. The public_ip_address_configuration is documented below.
 
 `public_ip_address_configuration` supports the following:
 
@@ -422,8 +423,8 @@ output "principal_id" {
 * `create_option` - (Required) Specifies how the virtual machine should be created. The only possible option is `FromImage`.
 * `caching` - (Optional) Specifies the caching requirements. Possible values include: `None` (default), `ReadOnly`, `ReadWrite`.
 * `image` - (Optional) Specifies the blob uri for user image. A virtual machine scale set creates an os disk in the same container as the user image.
-  Updating the osDisk image causes the existing disk to be deleted and a new one created with the new image. If the VM scale set is in Manual upgrade mode then the virtual machines are not updated until they have manualUpgrade applied to them.
-  When setting this field `os_type` needs to be specified. Cannot be used when `vhd_containers`, `managed_disk_type` or `storage_profile_image_reference` are specified.
+                       Updating the osDisk image causes the existing disk to be deleted and a new one created with the new image. If the VM scale set is in Manual upgrade mode then the virtual machines are not updated until they have manualUpgrade applied to them.
+                       When setting this field `os_type` needs to be specified. Cannot be used when `vhd_containers`, `managed_disk_type` or `storage_profile_image_reference` are specified.
 * `os_type` - (Optional) Specifies the operating system Type, valid values are windows, linux.
 
 `storage_profile_data_disk` supports the following:
@@ -437,7 +438,7 @@ output "principal_id" {
 `storage_profile_image_reference` supports the following:
 
 * `id` - (Optional) Specifies the ID of the (custom) image to use to create the virtual
-  machine scale set, as in the [example below](#example-of-storage_profile_image_reference-with-id).
+machine scale set, as in the [example below](#example-of-storage_profile_image_reference-with-id).
 * `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines.
 * `offer` - (Optional) Specifies the offer of the image used to create the virtual machines.
 * `sku` - (Optional) Specifies the SKU of the image used to create the virtual machines.
@@ -447,6 +448,7 @@ output "principal_id" {
 
 * `enabled`: (Required) Whether to enable boot diagnostics for the virtual machine.
 * `storage_uri`: (Required) Blob endpoint for the storage account to hold the virtual machine's diagnostic files. This must be the root of a storage account, and not a storage container.
+
 
 `extension` supports the following:
 
