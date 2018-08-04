@@ -118,6 +118,12 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
+			"health_probe_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
 			"automatic_os_upgrade": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -459,12 +465,6 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 					},
 				},
 				Set: resourceArmVirtualMachineScaleSetNetworkConfigurationHash,
-			},
-
-			"health_probe_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"boot_diagnostics": {
