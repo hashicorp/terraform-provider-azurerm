@@ -67,6 +67,14 @@
 			"versionExact": "v18.0.0"
 		},
 		{
+			"checksumSHA1": "xr02+mRDzE3j8/LZH3KRjBszUiw=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory",
+			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
+			"revisionTime": "2018-07-03T19:15:42Z",
+			"version": "=v18.0.0",
+			"versionExact": "v18.0.0"
+		},
+		{
 			"checksumSHA1": "9oNfXIzF5S8ninqAOSfpVf5rNEY=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account",
 			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
@@ -1611,5 +1619,5 @@
 			"versionExact": "v1.6.1"
 		}
 	],
-	"rootPath": "github.com/terraform-providers/terraform-provider-azurerm"
+	"rootPath": "github.com/hiscox/terraform-provider-azurerm"
 }
