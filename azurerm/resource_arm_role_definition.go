@@ -85,12 +85,15 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 
 	roleDefinitionId := filepath.Base(d.Id())
 	if roleDefinitionId == "." {
-		uuid, err := uuid.GenerateUUID()
-		if err != nil {
-			return fmt.Errorf("Error generating UUID for Role Assignment: %+v", err)
-		}
+		roleDefinitionId = d.Get("role_definition_id").(string)
+		if roleDefinitionId == "" {
+			uuid, err := uuid.GenerateUUID()
+			if err != nil {
+				return fmt.Errorf("Error generating UUID for Role Assignment: %+v", err)
+			}
 
-		roleDefinitionId = uuid
+			roleDefinitionId = uuid
+		}
 	}
 
 	name := d.Get("name").(string)
