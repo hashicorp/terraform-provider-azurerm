@@ -14,38 +14,19 @@ Manages a Hostname Binding within an App Service.
 ## Example Usage
 
 ```hcl
-resource "random_id" "server" {
-  keepers = {
-    azi_id = 1
-  }
-
-  byte_length = 8
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "some-resource-group"
-  location = "West Europe"
+resource "azurerm_app_service_plan" "example" {
+  # ...
 }
 
-resource "azurerm_app_service_plan" "test" {
-  name                = "some-app-service-plan"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
+resource "azurerm_app_service" "example" {
+  # ...
 }
 
-resource "azurerm_app_service" "test" {
-  name                = "${random_id.server.hex}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-}
-
-resource "azurerm_app_service_custom_hostname_binding" "test" {
+resource "azurerm_app_service_custom_hostname_binding" "example" {
   hostname            = "www.mywebsite.com"
   app_service_name    = "${azurerm_app_service.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"

@@ -14,38 +14,30 @@ Manages an App Service Slot (within an App Service).
 -> **Note:** When using Slots - the `app_settings`, `connection_string` and `site_config` blocks on the `azurerm_app_service` resource will be overwritten when promoting a Slot using the `azurerm_app_service_active_slot` resource.
 
 
-## Example Usage (.net 4.x)
+## Example Usage
+
+Complete examples of how to use the `azurerm_app_service_slot` resource can be found [in the `./examples/app-service/slots` folder within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/app-service/slots)
+
 
 ```hcl
-resource "random_id" "server" {
-  keepers = {
-    azi_id = 1
-  }
-
-  byte_length = 8
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "some-resource-group"
-  location = "West Europe"
+resource "azurerm_app_service_plan" "example" {
+  # ...
 }
 
-resource "azurerm_app_service_plan" "test" {
-  name                = "some-app-service-plan"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
+resource "azurerm_app_service" "example" {
+  # ...
 }
 
-resource "azurerm_app_service" "test" {
-  name                = "${random_id.server.hex}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+resource "azurerm_app_service_slot" "example" {
+  name                = "primary"
+  app_service_name    = "${azurerm_app_service.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.example.id}"
 
   site_config {
     dotnet_framework_version = "v4.0"
@@ -59,83 +51,6 @@ resource "azurerm_app_service" "test" {
     name  = "Database"
     type  = "SQLServer"
     value = "Server=some-server.mydomain.com;Integrated Security=SSPI"
-  }
-}
-
-resource "azurerm_app_service_slot" "test" {
-  name                = "${random_id.server.hex}"
-  app_service_name    = "${azurerm_app_service.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-
-  site_config {
-    dotnet_framework_version = "v4.0"
-  }
-
-  app_settings {
-    "SOME_KEY" = "some-value"
-  }
-
-  connection_string {
-    name  = "Database"
-    type  = "SQLServer"
-    value = "Server=some-server.mydomain.com;Integrated Security=SSPI"
-  }
-}
-```
-
-## Example Usage (Java 1.8)
-
-```hcl
-resource "random_id" "server" {
-  keepers = {
-    azi_id = 1
-  }
-
-  byte_length = 8
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "some-resource-group"
-  location = "West Europe"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "some-app-service-plan"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
-resource "azurerm_app_service" "test" {
-  name                = "${random_id.server.hex}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-
-  site_config {
-    java_version           = "1.8"
-    java_container         = "JETTY"
-    java_container_version = "9.3"
-  }
-}
-
-resource "azurerm_app_service_slot" "test" {
-  name                = "${random_id.server.hex}"
-  app_service_name    = "${azurerm_app_service.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-
-  site_config {
-    java_version           = "1.8"
-    java_container         = "JETTY"
-    java_container_version = "9.3"
   }
 }
 ```

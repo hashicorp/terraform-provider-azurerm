@@ -10,15 +10,16 @@ description: |-
 
 Create an App Service Plan component.
 
-## Example Usage (Dedicated)
+## Example Usage
+
+Complete examples of how to use the `azurerm_app_service_plan` resource can be found [in the `./examples/app-service/plans` folder within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/app-service/plans)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "api-rg-pro"
-  location = "West Europe"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_app_service_plan" "test" {
+resource "azurerm_app_service_plan" "example" {
   name                = "api-appserviceplan-pro"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -30,51 +31,6 @@ resource "azurerm_app_service_plan" "test" {
 }
 ```
 
-## Example Usage (Shared / Consumption Plan)
-
-```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "api-rg-pro"
-  location = "West Europe"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "api-appserviceplan-pro"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  kind                = "FunctionApp"
-
-  sku {
-    tier = "Dynamic"
-    size = "Y1"
-  }
-}
-```
-
-## Example Usage (Linux)
-
-```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "api-rg-pro"
-  location = "West Europe"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "api-appserviceplan-pro"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  kind                = "Linux"
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-
-  properties {
-    reserved = true
-  }
-}
-```
 
 ## Argument Reference
 

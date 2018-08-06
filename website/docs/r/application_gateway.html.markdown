@@ -12,6 +12,8 @@ Manages a application gateway based on a previously created virtual network with
 
 ## Example Usage
 
+<!-- TODO: (@tombuildsstuff) rewrite this entire thing -->
+
 ```hcl
 # Create a resource group
 resource "azurerm_resource_group" "rg" {
@@ -309,7 +311,7 @@ The `probe` block supports:
 
 * `minimum_servers` - (Optional) Minimum number of servers that are always marked healthy. Default value is 0.
 
-* `match` - (Optional) Probe health response match. 
+* `match` - (Optional) Probe health response match.
 
   * `body` - (Optional) Body that must be contained in the health response. Defaults to "*"
   * `status_code` - (Optional) Allowed health response status codes.
