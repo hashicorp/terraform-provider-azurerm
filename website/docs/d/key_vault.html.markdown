@@ -13,13 +13,13 @@ Gets information about a Key Vault.
 ## Example Usage
 
 ```hcl
-data "azurerm_key_vault" "test" {
+data "azurerm_key_vault" "example" {
   name                = "mykeyvault"
-  resource_group_name = "some-resource-group"
+  resource_group_name = "example-resources"
 }
 
 output "vault_uri" {
-  value = "${data.azurerm_key_vault.test.vault_uri}"
+  value = "${data.azurerm_key_vault.example.vault_uri}"
 }
 ```
 

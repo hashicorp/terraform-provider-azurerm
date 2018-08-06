@@ -14,9 +14,9 @@ Gets information about a Route Table
 ## Example Usage
 
 ```hcl
-data "azurerm_route_table" "test" {
-  name                = "myroutetable"
-  resource_group_name = "some-resource-group"
+data "azurerm_route_table" "example" {
+  name                = "example-routetable"
+  resource_group_name = "example-resources"
 }
 ```
 
@@ -51,4 +51,3 @@ The `route` block exports the following:
 * `next_hop_type` - The type of Azure hop the packet should be sent to.
 
 * `next_hop_in_ip_address` - Contains the IP address packets should be forwarded to.
-

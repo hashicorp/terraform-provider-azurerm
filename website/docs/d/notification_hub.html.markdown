@@ -13,14 +13,14 @@ Gets information about the specified Notification Hub within a Notification Hub 
 ## Example Usage
 
 ```hcl
-data "azurerm_notification_hub" "test" {
-  name                = "notification-hub"
-  namespace_name      = "namespace-name"
-  resource_group_name = "resource-group-name"
+data "azurerm_notification_hub" "example" {
+  name                = "example-notification-hub"
+  namespace_name      = "example-namespace"
+  resource_group_name = "example-resources"
 }
 
 output "id" {
-  value = "${data.azurerm_notification_hub.test.id}"
+  value = "${data.azurerm_notification_hub.example.id}"
 }
 ```
 

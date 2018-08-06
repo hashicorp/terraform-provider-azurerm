@@ -17,9 +17,13 @@ Gets information about a managed Kubernetes Cluster (AKS)
 ## Example Usage
 
 ```hcl
-data "azurerm_kubernetes_cluster" "test" {
-  name                = "myakscluster"
-  resource_group_name = "my-example-resource-group"
+data "azurerm_kubernetes_cluster" "example" {
+  name                = "example-aks"
+  resource_group_name = "example-resources"
+}
+
+output "host" {
+  value = "${data.azurerm_kubernetes_cluster.example.kube_config.0.host}"
 }
 ```
 

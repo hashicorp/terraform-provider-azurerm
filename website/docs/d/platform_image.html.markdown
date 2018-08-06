@@ -13,7 +13,7 @@ Use this data source to access the properties of an Azure Platform Image.
 ## Example Usage
 
 ```hcl
-data "azurerm_platform_image" "test" {
+data "azurerm_platform_image" "example" {
   location  = "West Europe"
   publisher = "Canonical"
   offer     = "UbuntuServer"
@@ -21,7 +21,7 @@ data "azurerm_platform_image" "test" {
 }
 
 output "version" {
-  value = "${data.azurerm_platform_image.test.version}"
+  value = "${data.azurerm_platform_image.example.version}"
 }
 ```
 

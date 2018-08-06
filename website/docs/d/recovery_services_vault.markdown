@@ -14,8 +14,8 @@ Use this data source to access the properties of a Recovery Services Vault.
 
 ```hcl
 data "azurerm_recovery_services_vault" "vault" {
-  name                = "tfex-recovery_vault"
-  resource_group_name = "tfex-resource_group"
+  name                = "example-recoveryvault"
+  resource_group_name = "example-resources"
 }
 ```
 
@@ -23,7 +23,7 @@ data "azurerm_recovery_services_vault" "vault" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Recovery Services Vault. 
+* `name` - (Required) Specifies the name of the Recovery Services Vault.
 
 * `resource_group_name` - (Required) The name of the resource group in which the Recovery Services Vault resides.
 
@@ -33,7 +33,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Recovery Services Vault.
 
-* `location` - The Azure location where the resource resides. 
+* `location` - The Azure location where the resource resides.
 
 * `tags` - A mapping of tags assigned to the resource.
 

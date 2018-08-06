@@ -13,10 +13,10 @@ Use this data source to access the properties of an Azure subscription.
 ## Example Usage
 
 ```hcl
-data "azurerm_subscription" "current" {}
+data "azurerm_subscription" "example" {}
 
 output "current_subscription_display_name" {
-  value = "${data.azurerm_subscription.current.display_name}"
+  value = "${data.azurerm_subscription.example.display_name}"
 }
 ```
 

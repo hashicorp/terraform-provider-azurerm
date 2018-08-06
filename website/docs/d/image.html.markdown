@@ -14,13 +14,13 @@ Use this data source to access information about an Image.
 ## Example Usage
 
 ```hcl
-data "azurerm_image" "search" {
+data "azurerm_image" "example" {
   name                = "search-api"
-  resource_group_name = "packerimages"
+  resource_group_name = "example-resources"
 }
 
 output "image_id" {
-  value = "${data.azurerm_image.search.id}"
+  value = "${data.azurerm_image.example.id}"
 }
 ```
 

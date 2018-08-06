@@ -13,14 +13,14 @@ Use this data source to access the properties of an Azure Subnet located within 
 ## Example Usage
 
 ```hcl
-data "azurerm_subnet" "test" {
-  name                 = "backend"
-  virtual_network_name = "production"
-  resource_group_name  = "networking"
+data "azurerm_subnet" "example" {
+  name                 = "internal"
+  virtual_network_name = "example-network"
+  resource_group_name  = "example-resources"
 }
 
 output "subnet_id" {
-  value = "${data.azurerm_subnet.test.id}"
+  value = "${data.azurerm_subnet.example.id}"
 }
 ```
 

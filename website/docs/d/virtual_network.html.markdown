@@ -13,13 +13,13 @@ Use this data source to access the properties of an Azure Virtual Network.
 ## Example Usage
 
 ```hcl
-data "azurerm_virtual_network" "test" {
-  name                 = "production"
-  resource_group_name  = "networking"
+data "azurerm_virtual_network" "example" {
+  name                 = "example-network"
+  resource_group_name  = "example-resources"
 }
 
 output "virtual_network_id" {
-  value = "${data.azurerm_virtual_network.test.id}"
+  value = "${data.azurerm_virtual_network.example.id}"
 }
 ```
 

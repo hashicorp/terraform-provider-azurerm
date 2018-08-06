@@ -13,13 +13,13 @@ Use this data source to access the properties of an Azure CosmosDB (formally Doc
 ## Example Usage
 
 ```hcl
-data "azurerm_cosmosdb_account" "test" {
-  name                = "tfex-cosmosdb-account"
-  resource_group_name = "tfex-cosmosdb-account-rg"
+data "azurerm_cosmosdb_account" "example" {
+  name                = "example-cosmosdb"
+  resource_group_name = "example-resources"
 }
 
 output "cosmosdb_account_endpoint" {
-  value = "${data.azurerm_cosmosdb_account.jobs.endpoint}"
+  value = "${data.azurerm_cosmosdb_account.example.endpoint}"
 }
 ```
 
@@ -27,9 +27,9 @@ output "cosmosdb_account_endpoint" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the CosmosDB Account. 
+* `name` - (Required) Specifies the name of the CosmosDB Account.
 
-* `resource_group_name` - (Required) Specifies the name of the resource group in which the CosmosDB Account resides. 
+* `resource_group_name` - (Required) Specifies the name of the resource group in which the CosmosDB Account resides.
 
 ## Attributes Reference
 
@@ -37,7 +37,7 @@ The following attributes are exported:
 
 * `id` - The ID of the CosmosDB Account.
 
-* `location` - The Azure location where the resource exists. 
+* `location` - The Azure location where the resource exists.
 
 * `tags` - A mapping of tags assigned to the resource.
 
@@ -53,8 +53,8 @@ The following attributes are exported:
 
 `consistency_policy` The current consistency Settings for this CosmosDB account with the following properties:
 
-* `consistency_level` - The Consistency Level used by this CosmosDB Account. 
-* `max_interval_in_seconds` - The amount of staleness (in seconds) tolerated when the consistency level is Bounded Staleness. 
+* `consistency_level` - The Consistency Level used by this CosmosDB Account.
+* `max_interval_in_seconds` - The amount of staleness (in seconds) tolerated when the consistency level is Bounded Staleness.
 * `max_staleness_prefix` - The number of stale requests tolerated when the consistency level is Bounded Staleness.  
 
 

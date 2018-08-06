@@ -15,13 +15,14 @@ Use this data source to access the properties of a custom Role Definition. To ac
 ```hcl
 data "azurerm_subscription" "primary" {}
 
-data "azurerm_role_definition" "custom" {
+data "azurerm_role_definition" "example" {
+  # this is the same as /subscriptions/00000000-0000-0000-0000-000000000000
+  scope              = "${data.azurerm_subscription.primary.id}"
   role_definition_id = "00000000-0000-0000-0000-000000000000"
-  scope              = "${data.azurerm_subscription.primary.id}" # /subscriptions/00000000-0000-0000-0000-000000000000
 }
 
 output "custom_role_definition_id" {
-  value = "${data.azurerm_role_definition.custom.id}"
+  value = "${data.azurerm_role_definition.example.id}"
 }
 ```
 
@@ -38,6 +39,8 @@ output "custom_role_definition_id" {
 * `type` - the Type of the Role.
 * `permissions` - a `permissions` block as documented below.
 * `assignable_scopes` - One or more assignable scopes for this Role Definition, such as `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333`, `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup`, or `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM`.
+
+-> **NOTE:** We highly recommend using the `id` field from a Data Source/Resource where possible rather than hard-coding ID's, since this both makes this easier to read; and ensures the casing of the ID's are correct. Foe example: `${azurerm_virtual_machine.test.id}`.
 
 A `permissions` block contains:
 

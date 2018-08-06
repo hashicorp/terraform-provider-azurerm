@@ -19,53 +19,43 @@ and *not* a [Service SAS](https://docs.microsoft.com/en-us/rest/api/storageservi
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "testrg" {
-  name     = "resourceGroupName"
-  location = "westus"
+data "azurerm_storage_account" "example" {
+  # ...
 }
 
-resource "azurerm_storage_account" "testsa" {
-  name                     = "storageaccountname"
-  resource_group_name      = "${azurerm_resource_group.testrg.name}"
-  location                 = "westus"
-  account_tier             = "Standard"
-  account_replication_type = "GRS"
+data "azurerm_storage_account_sas" "example" {
+  connection_string = "${data.azurerm_storage_account.example.primary_connection_string}"
+  https_only        = true
+  start             = "2018-03-21"
+  expiry            = "2020-03-21"
 
-  tags {
-    environment = "staging"
+  resource_types {
+    service   = true
+    container = false
+    object    = false
+  }
+
+  services {
+    blob  = true
+    queue = false
+    table = false
+    file  = false
+  }
+
+  permissions {
+    read    = true
+    write   = true
+    delete  = false
+    list    = false
+    add     = true
+    create  = true
+    update  = false
+    process = false
   }
 }
 
-data "azurerm_storage_account_sas" "test" {
-    connection_string = "${azurerm_storage_account.testsa.primary_connection_string}"
-    https_only        = true
-    resource_types {
-        service   = true
-        container = false
-        object    = false
-    }
-    services {
-        blob  = true
-        queue = false
-        table = false
-        file  = false
-    }
-    start   = "2018-03-21"
-    expiry  = "2020-03-21"
-    permissions {
-        read    = true
-        write   = true
-        delete  = false
-        list    = false
-        add     = true
-        create  = true
-        update  = false
-        process = false
-    }
-}
-
 output "sas_url_query_string" {
-  value = "${data.azurerm_storage_account_sas.test.sas}"
+  value = "${data.azurerm_storage_account_sas.example.sas}"
 }
 ```
 
@@ -73,7 +63,7 @@ output "sas_url_query_string" {
 
 * `connection_string` - (Required) The connection string for the storage account to which this SAS applies. Typically directly from the `primary_connection_string` attribute of a terraform created `azurerm_storage_account` resource.
 * `https_only` - (Optional) Only permit `https` access. If `false`, both `http` and `https` are permitted. Defaults to `true`.
-* `resource_types` - (Required) A `resource_types` block as defined below. 
+* `resource_types` - (Required) A `resource_types` block as defined below.
 * `services` - (Required) A `services` block as defined below.
 * `start` - (Required) The starting time and date of validity of this SAS. Must be a valid ISO-8601 format time/date string.
 * `expiry` - (Required) The expiration time and date of this SAS. Must be a valid ISO-8601 format time/date string.
@@ -81,7 +71,7 @@ output "sas_url_query_string" {
 
 ---
 
-`resource_types` is a set of `true`/`false` flags which define the storage account resource types that are granted 
+`resource_types` is a set of `true`/`false` flags which define the storage account resource types that are granted
 access by this SAS. This can be thought of as the scope over which the permissions apply. A `service` will have
 larger scope (affecting all sub-resources) than `object`.
 
@@ -120,4 +110,4 @@ for additional details on the fields above.
 
 ## Attributes Reference
 
-* `sas` - The computed Account Shared Access Signature (SAS). 
+* `sas` - The computed Account Shared Access Signature (SAS).

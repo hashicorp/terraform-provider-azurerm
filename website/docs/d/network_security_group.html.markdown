@@ -13,13 +13,13 @@ Use this data source to access the properties of a Network Security Group.
 ## Example Usage
 
 ```hcl
-data "azurerm_network_security_group" "test" {
-  name                = "${azurerm_network_security_group.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+data "azurerm_network_security_group" "example" {
+  name                = "example-security-group"
+  resource_group_name = "example-resources"
 }
 
 output "location" {
-  value = "${data.azurerm_network_security_group.test.location}"
+  value = "${data.azurerm_network_security_group.example.location}"
 }
 ```
 

@@ -13,12 +13,12 @@ Use this data source to access information about the permissions from the Manage
 ## Example Usage
 
 ```hcl
-data "azurerm_key_vault_access_policy" "contributor" {
+data "azurerm_key_vault_access_policy" "example" {
   name = "Key Management"
 }
 
 output "access_policy_key_permissions" {
-  value = "${data.azurerm_key_vault_access_policy.key_permissions}"
+  value = "${data.azurerm_key_vault_access_policy.example.key_permissions}"
 }
 ```
 

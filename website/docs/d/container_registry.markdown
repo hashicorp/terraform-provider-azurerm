@@ -14,13 +14,13 @@ Use this data source to access information about a Container Registry
 ## Example Usage
 
 ```hcl
-data "azurerm_container_registry" "test" {
-  name                = "testacr"
-  resource_group_name = "test"
+data "azurerm_container_registry" "example" {
+  name                = "example-registry"
+  resource_group_name = "example-resources"
 }
 
 output "login_server" {
-  value = "${data.azurerm_container_registry.test.login_server}"
+  value = "${data.azurerm_container_registry.example.login_server}"
 }
 ```
 
