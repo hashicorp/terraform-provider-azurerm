@@ -10,12 +10,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmActionGroup() *schema.Resource {
+func resourceArmMonitorActionGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmActionGroupCreateOrUpdate,
-		Read:   resourceArmActionGroupRead,
-		Update: resourceArmActionGroupCreateOrUpdate,
-		Delete: resourceArmActionGroupDelete,
+		Create: resourceArmMonitorActionGroupCreateOrUpdate,
+		Read:   resourceArmMonitorActionGroupRead,
+		Update: resourceArmMonitorActionGroupCreateOrUpdate,
+		Delete: resourceArmMonitorActionGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -111,7 +111,7 @@ func resourceArmActionGroup() *schema.Resource {
 	}
 }
 
-func resourceArmActionGroupCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMonitorActionGroupCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).actionGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -135,15 +135,15 @@ func resourceArmActionGroupCreateOrUpdate(d *schema.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("email_receiver"); ok {
-		parameters.ActionGroup.EmailReceivers = expandActionGroupEmailReceiver(v.([]interface{}))
+		parameters.ActionGroup.EmailReceivers = expandMonitorActionGroupEmailReceiver(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("sms_receiver"); ok {
-		parameters.ActionGroup.SmsReceivers = expandActionGroupSmsReceiver(v.([]interface{}))
+		parameters.ActionGroup.SmsReceivers = expandMonitorActionGroupSmsReceiver(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("webhook_receiver"); ok {
-		parameters.ActionGroup.WebhookReceivers = expandActionGroupWebHookReceiver(v.([]interface{}))
+		parameters.ActionGroup.WebhookReceivers = expandMonitorActionGroupWebHookReceiver(v.([]interface{}))
 	}
 
 	_, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
@@ -161,10 +161,10 @@ func resourceArmActionGroupCreateOrUpdate(d *schema.ResourceData, meta interface
 
 	d.SetId(*read.ID)
 
-	return resourceArmActionGroupRead(d, meta)
+	return resourceArmMonitorActionGroupRead(d, meta)
 }
 
-func resourceArmActionGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMonitorActionGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).actionGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -193,15 +193,15 @@ func resourceArmActionGroupRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("short_name", *resp.GroupShortName)
 	d.Set("enabled", *resp.Enabled)
 
-	if err = d.Set("email_receiver", flattenActionGroupEmailReceiver(resp.EmailReceivers)); err != nil {
+	if err = d.Set("email_receiver", flattenMonitorActionGroupEmailReceiver(resp.EmailReceivers)); err != nil {
 		return fmt.Errorf("Error setting `email_receiver` of action group %s (resource group %s): %+v", name, resGroup, err)
 	}
 
-	if err = d.Set("sms_receiver", flattenActionGroupSmsReceiver(resp.SmsReceivers)); err != nil {
+	if err = d.Set("sms_receiver", flattenMonitorActionGroupSmsReceiver(resp.SmsReceivers)); err != nil {
 		return fmt.Errorf("Error setting `sms_receiver` of action group %s (resource group %s): %+v", name, resGroup, err)
 	}
 
-	if err = d.Set("webhook_receiver", flattenActionGroupWebHookReceiver(resp.WebhookReceivers)); err != nil {
+	if err = d.Set("webhook_receiver", flattenMonitorActionGroupWebHookReceiver(resp.WebhookReceivers)); err != nil {
 		return fmt.Errorf("Error setting `webhook_receiver` of action group %s (resource group %s): %+v", name, resGroup, err)
 	}
 
@@ -210,7 +210,7 @@ func resourceArmActionGroupRead(d *schema.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func resourceArmActionGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMonitorActionGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).actionGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -232,7 +232,7 @@ func resourceArmActionGroupDelete(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func expandActionGroupEmailReceiver(v []interface{}) *[]insights.EmailReceiver {
+func expandMonitorActionGroupEmailReceiver(v []interface{}) *[]insights.EmailReceiver {
 	receivers := make([]insights.EmailReceiver, 0)
 	for _, receiverValue := range v {
 		val := receiverValue.(map[string]interface{})
@@ -245,7 +245,7 @@ func expandActionGroupEmailReceiver(v []interface{}) *[]insights.EmailReceiver {
 	return &receivers
 }
 
-func expandActionGroupSmsReceiver(v []interface{}) *[]insights.SmsReceiver {
+func expandMonitorActionGroupSmsReceiver(v []interface{}) *[]insights.SmsReceiver {
 	receivers := make([]insights.SmsReceiver, 0)
 	for _, receiverValue := range v {
 		val := receiverValue.(map[string]interface{})
@@ -259,7 +259,7 @@ func expandActionGroupSmsReceiver(v []interface{}) *[]insights.SmsReceiver {
 	return &receivers
 }
 
-func expandActionGroupWebHookReceiver(v []interface{}) *[]insights.WebhookReceiver {
+func expandMonitorActionGroupWebHookReceiver(v []interface{}) *[]insights.WebhookReceiver {
 	receivers := make([]insights.WebhookReceiver, 0)
 	for _, receiverValue := range v {
 		val := receiverValue.(map[string]interface{})
@@ -272,7 +272,7 @@ func expandActionGroupWebHookReceiver(v []interface{}) *[]insights.WebhookReceiv
 	return &receivers
 }
 
-func flattenActionGroupEmailReceiver(receivers *[]insights.EmailReceiver) []interface{} {
+func flattenMonitorActionGroupEmailReceiver(receivers *[]insights.EmailReceiver) []interface{} {
 	result := make([]interface{}, 0)
 	if receivers != nil {
 		for _, receiver := range *receivers {
@@ -285,7 +285,7 @@ func flattenActionGroupEmailReceiver(receivers *[]insights.EmailReceiver) []inte
 	return result
 }
 
-func flattenActionGroupSmsReceiver(receivers *[]insights.SmsReceiver) []interface{} {
+func flattenMonitorActionGroupSmsReceiver(receivers *[]insights.SmsReceiver) []interface{} {
 	result := make([]interface{}, 0)
 	if receivers != nil {
 		for _, receiver := range *receivers {
@@ -299,7 +299,7 @@ func flattenActionGroupSmsReceiver(receivers *[]insights.SmsReceiver) []interfac
 	return result
 }
 
-func flattenActionGroupWebHookReceiver(receivers *[]insights.WebhookReceiver) []interface{} {
+func flattenMonitorActionGroupWebHookReceiver(receivers *[]insights.WebhookReceiver) []interface{} {
 	result := make([]interface{}, 0)
 	if receivers != nil {
 		for _, receiver := range *receivers {

@@ -10,20 +10,20 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccAzureRMActionGroup_basic(t *testing.T) {
-	resourceName := "azurerm_action_group.test"
+func TestAccAzureRMMonitorActionGroup_basic(t *testing.T) {
+	resourceName := "azurerm_monitor_action_group.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMActionGroup_basic(ri, testLocation())
+	config := testAccAzureRMMonitorActionGroup_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMActionGroupDestroy,
+		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "email_receiver.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "email_receiver.0.email_address", "admin@contoso.com"),
@@ -44,20 +44,20 @@ func TestAccAzureRMActionGroup_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMActionGroup_empty(t *testing.T) {
-	resourceName := "azurerm_action_group.test"
+func TestAccAzureRMMonitorActionGroup_empty(t *testing.T) {
+	resourceName := "azurerm_monitor_action_group.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMActionGroup_empty(ri, testLocation())
+	config := testAccAzureRMMonitorActionGroup_empty(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMActionGroupDestroy,
+		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "email_receiver.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "sms_receiver.#", "0"),
@@ -73,36 +73,36 @@ func TestAccAzureRMActionGroup_empty(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMActionGroup_disabledEmpty(t *testing.T) {
-	resourceName := "azurerm_action_group.test"
+func TestAccAzureRMMonitorActionGroup_disabledEmpty(t *testing.T) {
+	resourceName := "azurerm_monitor_action_group.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	preConfig := testAccAzureRMActionGroup_disabledEmpty(ri, location)
-	postConfig := testAccAzureRMActionGroup_empty(ri, location)
+	preConfig := testAccAzureRMMonitorActionGroup_disabledEmpty(ri, location)
+	postConfig := testAccAzureRMMonitorActionGroup_empty(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMActionGroupDestroy,
+		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 				),
 			},
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
 				),
 			},
@@ -115,14 +115,14 @@ func TestAccAzureRMActionGroup_disabledEmpty(t *testing.T) {
 	})
 }
 
-func testAccAzureRMActionGroup_basic(rInt int, location string) string {
+func testAccAzureRMMonitorActionGroup_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
 
-resource "azurerm_action_group" "test" {
+resource "azurerm_monitor_action_group" "test" {
   name                = "acctestActionGroup-%d"
   location            = "Global"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -152,14 +152,14 @@ resource "azurerm_action_group" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMActionGroup_empty(rInt int, location string) string {
+func testAccAzureRMMonitorActionGroup_empty(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
 
-resource "azurerm_action_group" "test" {
+resource "azurerm_monitor_action_group" "test" {
   name                = "acctestActionGroup-%d"
   location            = "Global"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -168,14 +168,14 @@ resource "azurerm_action_group" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMActionGroup_disabledEmpty(rInt int, location string) string {
+func testAccAzureRMMonitorActionGroup_disabledEmpty(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
 
-resource "azurerm_action_group" "test" {
+resource "azurerm_monitor_action_group" "test" {
   name                = "acctestActionGroup-%d"
   location            = "Global"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -185,12 +185,12 @@ resource "azurerm_action_group" "test" {
 `, rInt, location, rInt)
 }
 
-func testCheckAzureRMActionGroupDestroy(s *terraform.State) error {
+func testCheckAzureRMMonitorActionGroupDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).actionGroupsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_action_group" {
+		if rs.Type != "azurerm_monitor_action_group" {
 			continue
 		}
 
@@ -211,7 +211,7 @@ func testCheckAzureRMActionGroupDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMActionGroupExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMMonitorActionGroupExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]

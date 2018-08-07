@@ -1,13 +1,13 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_action_group"
-sidebar_current: "docs-azurerm-resource-action-group"
+page_title: "Azure Resource Manager: azurerm_monitor_action_group"
+sidebar_current: "docs-azurerm-resource-monitor-action-group"
 description: |-
   Manages an Action Group of Azure monitoring service
 
 ---
 
-# azurerm_action_group
+# azurerm_monitor_action_group
 
 Manages an Action Group of Azure monitoring service.
 
@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "test" {
   location = "West US"
 }
 
-resource "azurerm_action_group" "test" {
+resource "azurerm_monitor_action_group" "test" {
   name                = "CriticalAlertsAction"
   location            = "Global"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -88,12 +88,12 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Route ID.
+* `id` - The Action Group ID.
 
 ## Import
 
 Action Groups can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_action_group.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Insights/actionGroups/myagname
+terraform import azurerm_monitor_action_group.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Insights/actionGroups/myagname
 ```
