@@ -25,40 +25,6 @@ func TestAccAzureRMMonitorActionGroup_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorActionGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "email_receiver.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "email_receiver.0.email_address", "admin@contoso.com"),
-					resource.TestCheckResourceAttr(resourceName, "email_receiver.1.email_address", "devops@contoso.com"),
-					resource.TestCheckResourceAttr(resourceName, "sms_receiver.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "sms_receiver.0.country_code", "1"),
-					resource.TestCheckResourceAttr(resourceName, "sms_receiver.0.phone_number", "1231231234"),
-					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.0.service_uri", "http://example.com/alert"),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func TestAccAzureRMMonitorActionGroup_empty(t *testing.T) {
-	resourceName := "azurerm_monitor_action_group.test"
-	ri := acctest.RandInt()
-	config := testAccAzureRMMonitorActionGroup_empty(ri, testLocation())
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActionGroupExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "email_receiver.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "sms_receiver.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.#", "0"),
@@ -73,12 +39,140 @@ func TestAccAzureRMMonitorActionGroup_empty(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMonitorActionGroup_disabledEmpty(t *testing.T) {
+func TestAccAzureRMMonitorActionGroup_emailReceiver(t *testing.T) {
+	resourceName := "azurerm_monitor_action_group.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMMonitorActionGroup_emailReceiver(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "email_receiver.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "email_receiver.0.email_address", "admin@contoso.com"),
+					resource.TestCheckResourceAttr(resourceName, "sms_receiver.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.#", "0"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMMonitorActionGroup_smsReceiver(t *testing.T) {
+	resourceName := "azurerm_monitor_action_group.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMMonitorActionGroup_smsReceiver(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "email_receiver.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "sms_receiver.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "sms_receiver.0.country_code", "1"),
+					resource.TestCheckResourceAttr(resourceName, "sms_receiver.0.phone_number", "1231231234"),
+					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.#", "0"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMMonitorActionGroup_webhookReceiver(t *testing.T) {
+	resourceName := "azurerm_monitor_action_group.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMMonitorActionGroup_webhookReceiver(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "email_receiver.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "sms_receiver.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.0.service_uri", "http://example.com/alert"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMMonitorActionGroup_complete(t *testing.T) {
+	resourceName := "azurerm_monitor_action_group.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMMonitorActionGroup_complete(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "email_receiver.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "email_receiver.0.email_address", "admin@contoso.com"),
+					resource.TestCheckResourceAttr(resourceName, "email_receiver.1.email_address", "devops@contoso.com"),
+					resource.TestCheckResourceAttr(resourceName, "sms_receiver.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "sms_receiver.0.country_code", "1"),
+					resource.TestCheckResourceAttr(resourceName, "sms_receiver.0.phone_number", "1231231234"),
+					resource.TestCheckResourceAttr(resourceName, "sms_receiver.1.country_code", "86"),
+					resource.TestCheckResourceAttr(resourceName, "sms_receiver.1.phone_number", "13888888888"),
+					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.0.service_uri", "http://example.com/alert"),
+					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.1.service_uri", "https://backup.example.com/warning"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMMonitorActionGroup_disabledUpdate(t *testing.T) {
 	resourceName := "azurerm_monitor_action_group.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	preConfig := testAccAzureRMMonitorActionGroup_disabledEmpty(ri, location)
-	postConfig := testAccAzureRMMonitorActionGroup_empty(ri, location)
+	preConfig := testAccAzureRMMonitorActionGroup_disabledBasic(ri, location)
+	postConfig := testAccAzureRMMonitorActionGroup_basic(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -106,10 +200,110 @@ func TestAccAzureRMMonitorActionGroup_disabledEmpty(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
 				),
 			},
+		},
+	})
+}
+
+func TestAccAzureRMMonitorActionGroup_singleReceiverUpdate(t *testing.T) {
+	resourceName := "azurerm_monitor_action_group.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+	emailConfig := testAccAzureRMMonitorActionGroup_emailReceiver(ri, location)
+	smsConfig := testAccAzureRMMonitorActionGroup_smsReceiver(ri, location)
+	webhookConfig := testAccAzureRMMonitorActionGroup_webhookReceiver(ri, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
+		Steps: []resource.TestStep{
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				Config: emailConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "email_receiver.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "email_receiver.0.email_address", "admin@contoso.com"),
+					resource.TestCheckResourceAttr(resourceName, "sms_receiver.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.#", "0"),
+				),
+			},
+			{
+				Config: smsConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "email_receiver.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "sms_receiver.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "sms_receiver.0.country_code", "1"),
+					resource.TestCheckResourceAttr(resourceName, "sms_receiver.0.phone_number", "1231231234"),
+					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.#", "0"),
+				),
+			},
+			{
+				Config: webhookConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "email_receiver.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "sms_receiver.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.0.service_uri", "http://example.com/alert"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMMonitorActionGroup_multipleReceiversUpdate(t *testing.T) {
+	resourceName := "azurerm_monitor_action_group.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+	basicConfig := testAccAzureRMMonitorActionGroup_basic(ri, location)
+	completeConfig := testAccAzureRMMonitorActionGroup_complete(ri, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: basicConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "email_receiver.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "sms_receiver.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.#", "0"),
+				),
+			},
+			{
+				Config: completeConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "email_receiver.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "email_receiver.0.email_address", "admin@contoso.com"),
+					resource.TestCheckResourceAttr(resourceName, "email_receiver.1.email_address", "devops@contoso.com"),
+					resource.TestCheckResourceAttr(resourceName, "sms_receiver.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "sms_receiver.0.country_code", "1"),
+					resource.TestCheckResourceAttr(resourceName, "sms_receiver.0.phone_number", "1231231234"),
+					resource.TestCheckResourceAttr(resourceName, "sms_receiver.1.country_code", "86"),
+					resource.TestCheckResourceAttr(resourceName, "sms_receiver.1.phone_number", "13888888888"),
+					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.0.service_uri", "http://example.com/alert"),
+					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.1.service_uri", "https://backup.example.com/warning"),
+				),
+			},
+			{
+				Config: basicConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "email_receiver.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "sms_receiver.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.#", "0"),
+				),
 			},
 		},
 	})
@@ -124,7 +318,82 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_monitor_action_group" "test" {
   name                = "acctestActionGroup-%d"
-  location            = "Global"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  short_name          = "acctestag"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMMonitorActionGroup_emailReceiver(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_monitor_action_group" "test" {
+  name                = "acctestActionGroup-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  short_name          = "acctestag"
+
+  email_receiver {
+    name          = "sendtoadmin"
+    email_address = "admin@contoso.com"
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMMonitorActionGroup_smsReceiver(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_monitor_action_group" "test" {
+  name                = "acctestActionGroup-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  short_name          = "acctestag"
+
+  sms_receiver {
+    name         = "oncallmsg"
+    country_code = "1"
+    phone_number = "1231231234"
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMMonitorActionGroup_webhookReceiver(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_monitor_action_group" "test" {
+  name                = "acctestActionGroup-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  short_name          = "acctestag"
+
+  webhook_receiver {
+    name        = "callmyapiaswell"
+    service_uri = "http://example.com/alert"
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMMonitorActionGroup_complete(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_monitor_action_group" "test" {
+  name                = "acctestActionGroup-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   short_name          = "acctestag"
 
@@ -144,15 +413,26 @@ resource "azurerm_monitor_action_group" "test" {
     phone_number = "1231231234"
   }
 
+  sms_receiver {
+    name         = "remotesupport"
+    country_code = "86"
+    phone_number = "13888888888"
+  }
+
   webhook_receiver {
     name        = "callmyapiaswell"
     service_uri = "http://example.com/alert"
+  }
+
+  webhook_receiver {
+    name        = "callmybackupapi"
+    service_uri = "https://backup.example.com/warning"
   }
 }
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMMonitorActionGroup_empty(rInt int, location string) string {
+func testAccAzureRMMonitorActionGroup_disabledBasic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -161,23 +441,6 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_monitor_action_group" "test" {
   name                = "acctestActionGroup-%d"
-  location            = "Global"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  short_name          = "acctestag"
-}
-`, rInt, location, rInt)
-}
-
-func testAccAzureRMMonitorActionGroup_disabledEmpty(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_monitor_action_group" "test" {
-  name                = "acctestActionGroup-%d"
-  location            = "Global"
   resource_group_name = "${azurerm_resource_group.test.name}"
   short_name          = "acctestag"
   enabled             = false
