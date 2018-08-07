@@ -28,8 +28,6 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
-			"location": locationSchema(),
-
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"short_name": {
@@ -116,34 +114,28 @@ func resourceArmMonitorActionGroupCreateOrUpdate(d *schema.ResourceData, meta in
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 
 	shortName := d.Get("short_name").(string)
 	enabled := d.Get("enabled").(bool)
 
+	emailReceiversRaw := d.Get("email_receiver").([]interface{})
+	smsReceiversRaw := d.Get("sms_receiver").([]interface{})
+	webhookReceiversRaw := d.Get("webhook_receiver").([]interface{})
+
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
 
 	parameters := insights.ActionGroupResource{
-		Location: &location,
+		Location: utils.String(azureRMNormalizeLocation("Global")),
 		ActionGroup: &insights.ActionGroup{
-			GroupShortName: &shortName,
-			Enabled:        &enabled,
+			GroupShortName:   &shortName,
+			Enabled:          &enabled,
+			EmailReceivers:   expandMonitorActionGroupEmailReceiver(emailReceiversRaw),
+			SmsReceivers:     expandMonitorActionGroupSmsReceiver(smsReceiversRaw),
+			WebhookReceivers: expandMonitorActionGroupWebHookReceiver(webhookReceiversRaw),
 		},
 		Tags: expandedTags,
-	}
-
-	if v, ok := d.GetOk("email_receiver"); ok {
-		parameters.ActionGroup.EmailReceivers = expandMonitorActionGroupEmailReceiver(v.([]interface{}))
-	}
-
-	if v, ok := d.GetOk("sms_receiver"); ok {
-		parameters.ActionGroup.SmsReceivers = expandMonitorActionGroupSmsReceiver(v.([]interface{}))
-	}
-
-	if v, ok := d.GetOk("webhook_receiver"); ok {
-		parameters.ActionGroup.WebhookReceivers = expandMonitorActionGroupWebHookReceiver(v.([]interface{}))
 	}
 
 	_, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
@@ -186,22 +178,19 @@ func resourceArmMonitorActionGroupRead(d *schema.ResourceData, meta interface{})
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
-	}
 
-	d.Set("short_name", *resp.GroupShortName)
-	d.Set("enabled", *resp.Enabled)
+	d.Set("short_name", resp.ActionGroup.GroupShortName)
+	d.Set("enabled", resp.ActionGroup.Enabled)
 
-	if err = d.Set("email_receiver", flattenMonitorActionGroupEmailReceiver(resp.EmailReceivers)); err != nil {
+	if err = d.Set("email_receiver", flattenMonitorActionGroupEmailReceiver(resp.ActionGroup.EmailReceivers)); err != nil {
 		return fmt.Errorf("Error setting `email_receiver` of action group %q (resource group %q): %+v", name, resGroup, err)
 	}
 
-	if err = d.Set("sms_receiver", flattenMonitorActionGroupSmsReceiver(resp.SmsReceivers)); err != nil {
+	if err = d.Set("sms_receiver", flattenMonitorActionGroupSmsReceiver(resp.ActionGroup.SmsReceivers)); err != nil {
 		return fmt.Errorf("Error setting `sms_receiver` of action group %q (resource group %q): %+v", name, resGroup, err)
 	}
 
-	if err = d.Set("webhook_receiver", flattenMonitorActionGroupWebHookReceiver(resp.WebhookReceivers)); err != nil {
+	if err = d.Set("webhook_receiver", flattenMonitorActionGroupWebHookReceiver(resp.ActionGroup.WebhookReceivers)); err != nil {
 		return fmt.Errorf("Error setting `webhook_receiver` of action group %q (resource group %q): %+v", name, resGroup, err)
 	}
 
@@ -223,10 +212,9 @@ func resourceArmMonitorActionGroupDelete(d *schema.ResourceData, meta interface{
 
 	resp, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
-		if response.WasNotFound(resp.Response) {
-			return nil
+		if !response.WasNotFound(resp.Response) {
+			return fmt.Errorf("Error deleting action group %q (resource group %q): %+v", name, resGroup, err)
 		}
-		return fmt.Errorf("Error deleting action group %q (resource group %q): %+v", name, resGroup, err)
 	}
 
 	return nil
@@ -277,8 +265,12 @@ func flattenMonitorActionGroupEmailReceiver(receivers *[]insights.EmailReceiver)
 	if receivers != nil {
 		for _, receiver := range *receivers {
 			val := make(map[string]interface{}, 0)
-			val["name"] = *receiver.Name
-			val["email_address"] = *receiver.EmailAddress
+			if receiver.Name != nil {
+				val["name"] = *receiver.Name
+			}
+			if receiver.EmailAddress != nil {
+				val["email_address"] = *receiver.EmailAddress
+			}
 			result = append(result, val)
 		}
 	}
@@ -290,9 +282,15 @@ func flattenMonitorActionGroupSmsReceiver(receivers *[]insights.SmsReceiver) []i
 	if receivers != nil {
 		for _, receiver := range *receivers {
 			val := make(map[string]interface{}, 0)
-			val["name"] = *receiver.Name
-			val["country_code"] = *receiver.CountryCode
-			val["phone_number"] = *receiver.PhoneNumber
+			if receiver.Name != nil {
+				val["name"] = *receiver.Name
+			}
+			if receiver.CountryCode != nil {
+				val["country_code"] = *receiver.CountryCode
+			}
+			if receiver.PhoneNumber != nil {
+				val["phone_number"] = *receiver.PhoneNumber
+			}
 			result = append(result, val)
 		}
 	}
@@ -304,8 +302,12 @@ func flattenMonitorActionGroupWebHookReceiver(receivers *[]insights.WebhookRecei
 	if receivers != nil {
 		for _, receiver := range *receivers {
 			val := make(map[string]interface{}, 0)
-			val["name"] = *receiver.Name
-			val["service_uri"] = *receiver.ServiceURI
+			if receiver.Name != nil {
+				val["name"] = *receiver.Name
+			}
+			if receiver.ServiceURI != nil {
+				val["service_uri"] = *receiver.ServiceURI
+			}
 			result = append(result, val)
 		}
 	}

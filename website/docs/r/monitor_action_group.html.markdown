@@ -21,7 +21,6 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_monitor_action_group" "test" {
   name                = "CriticalAlertsAction"
-  location            = "Global"
   resource_group_name = "${azurerm_resource_group.test.name}"
   short_name          = "p0action"
 
@@ -53,7 +52,6 @@ resource "azurerm_monitor_action_group" "test" {
 The following arguments are supported:
 
 * `name` - (Required) The name of the Action Group. Changing this forces a new resource to be created.
-* `location` - (Required) The location of this Action Group. The only possible value is `Global`.
 * `resource_group_name` - (Required) The name of the resource group in which to create the Action Group instance.
 * `short_name` - (Required) The short name of the action group. This will be used in SMS messages.
 * `enabled` - (Optional) Whether this action group is enabled. If an action group is not enabled, then none of its receivers will receive communications. Defaults to `true`.
