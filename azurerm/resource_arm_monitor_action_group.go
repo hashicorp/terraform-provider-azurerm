@@ -148,15 +148,15 @@ func resourceArmMonitorActionGroupCreateOrUpdate(d *schema.ResourceData, meta in
 
 	_, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating or updating action group %s (resource group %s): %+v", name, resGroup, err)
+		return fmt.Errorf("Error creating or updating action group %q (resource group %q): %+v", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error getting action group %s (resource group %s) after creation: %+v", name, resGroup, err)
+		return fmt.Errorf("Error getting action group %q (resource group %q) after creation: %+v", name, resGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Action group %s (resource group %s) ID is empty", name, resGroup)
+		return fmt.Errorf("Action group %q (resource group %q) ID is empty", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -170,7 +170,7 @@ func resourceArmMonitorActionGroupRead(d *schema.ResourceData, meta interface{})
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error parsing action group resource ID \"%s\" during get: %+v", d.Id(), err)
+		return err
 	}
 	resGroup := id.ResourceGroup
 	name := id.Path["actionGroups"]
@@ -181,7 +181,7 @@ func resourceArmMonitorActionGroupRead(d *schema.ResourceData, meta interface{})
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error getting action group %s (resource group %s): %+v", name, resGroup, err)
+		return fmt.Errorf("Error getting action group %q (resource group %q): %+v", name, resGroup, err)
 	}
 
 	d.Set("name", name)
@@ -194,15 +194,15 @@ func resourceArmMonitorActionGroupRead(d *schema.ResourceData, meta interface{})
 	d.Set("enabled", *resp.Enabled)
 
 	if err = d.Set("email_receiver", flattenMonitorActionGroupEmailReceiver(resp.EmailReceivers)); err != nil {
-		return fmt.Errorf("Error setting `email_receiver` of action group %s (resource group %s): %+v", name, resGroup, err)
+		return fmt.Errorf("Error setting `email_receiver` of action group %q (resource group %q): %+v", name, resGroup, err)
 	}
 
 	if err = d.Set("sms_receiver", flattenMonitorActionGroupSmsReceiver(resp.SmsReceivers)); err != nil {
-		return fmt.Errorf("Error setting `sms_receiver` of action group %s (resource group %s): %+v", name, resGroup, err)
+		return fmt.Errorf("Error setting `sms_receiver` of action group %q (resource group %q): %+v", name, resGroup, err)
 	}
 
 	if err = d.Set("webhook_receiver", flattenMonitorActionGroupWebHookReceiver(resp.WebhookReceivers)); err != nil {
-		return fmt.Errorf("Error setting `webhook_receiver` of action group %s (resource group %s): %+v", name, resGroup, err)
+		return fmt.Errorf("Error setting `webhook_receiver` of action group %q (resource group %q): %+v", name, resGroup, err)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -216,7 +216,7 @@ func resourceArmMonitorActionGroupDelete(d *schema.ResourceData, meta interface{
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error parsing action group resource ID \"%s\" during delete: %+v", d.Id(), err)
+		return err
 	}
 	resGroup := id.ResourceGroup
 	name := id.Path["actionGroups"]
@@ -226,7 +226,7 @@ func resourceArmMonitorActionGroupDelete(d *schema.ResourceData, meta interface{
 		if response.WasNotFound(resp.Response) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting action group %s (resource group %s): %+v", name, resGroup, err)
+		return fmt.Errorf("Error deleting action group %q (resource group %q): %+v", name, resGroup, err)
 	}
 
 	return nil

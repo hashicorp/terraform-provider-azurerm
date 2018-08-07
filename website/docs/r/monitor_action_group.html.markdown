@@ -57,9 +57,9 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group in which to create the Action Group instance.
 * `short_name` - (Required) The short name of the action group. This will be used in SMS messages.
 * `enabled` - (Optional) Whether this action group is enabled. If an action group is not enabled, then none of its receivers will receive communications. Defaults to `true`.
-* `email_receiver` - (Optional) The list of `email_receiver` blocks as defined below that are part of this action group.
-* `sms_receiver` - (Optional) The list of `sms_receiver` blocks as defined below that are part of this action group.
-* `webhook_receiver` - (Optional) The list of `webhook_receiver` blocks as defined below that are part of this action group.
+* `email_receiver` - (Optional) One or more `email_receiver` blocks as defined below.
+* `sms_receiver` - (Optional) One or more `sms_receiver ` blocks as defined below.
+* `webhook_receiver` - (Optional) One or more `webhook_receiver ` blocks as defined below.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -88,7 +88,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Action Group ID.
+* `id` - The ID of the Monitor Action Group.
 
 ## Import
 
