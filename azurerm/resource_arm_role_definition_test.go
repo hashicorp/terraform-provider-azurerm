@@ -13,8 +13,8 @@ import (
 )
 
 func TestAccAzureRMRoleDefinition_basic(t *testing.T) {
+	resourceName := "azurerm_role_definition.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMRoleDefinition_basic(uuid.New().String(), ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -22,9 +22,13 @@ func TestAccAzureRMRoleDefinition_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRoleDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMRoleDefinition_basic(uuid.New().String(), ri),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRoleDefinitionExists("azurerm_role_definition.test"),
+					resource.TestCheckResourceAttr(resourceName, "permissions.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "permissions.0.actions.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "permissions.0.actions.0", "*"),
+					resource.TestCheckResourceAttr(resourceName, "permissions.0.not_actions.#", "0"),
 				),
 			},
 		},
@@ -32,8 +36,8 @@ func TestAccAzureRMRoleDefinition_basic(t *testing.T) {
 }
 
 func TestAccAzureRMRoleDefinition_complete(t *testing.T) {
+	resourceName := "azurerm_role_definition.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMRoleDefinition_complete(uuid.New().String(), ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -41,9 +45,14 @@ func TestAccAzureRMRoleDefinition_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRoleDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMRoleDefinition_complete(uuid.New().String(), ri),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRoleDefinitionExists("azurerm_role_definition.test"),
+					testCheckAzureRMRoleDefinitionExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "permissions.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "permissions.0.actions.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "permissions.0.actions.0", "*"),
+					resource.TestCheckResourceAttr(resourceName, "permissions.0.not_actions.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "permissions.0.not_actions.0", "Microsoft.Authorization/*/read"),
 				),
 			},
 		},
@@ -90,7 +99,6 @@ func TestAccAzureRMRoleDefinition_update(t *testing.T) {
 
 func TestAccAzureRMRoleDefinition_emptyName(t *testing.T) {
 	resourceName := "azurerm_role_definition.test"
-
 	ri := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
