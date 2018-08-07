@@ -4006,22 +4006,22 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 func testAccAzureRMVirtualMachineScaleSet_RollingAutoUpdates(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestrg-%[1]d"
-    location = "%[2]s"
+  name     = "acctestrg-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_virtual_network" "test" {
-    name = "acctvn-%[1]d"
-    address_space = ["10.0.0.0/8"]
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctvn-%[1]d"
+  address_space       = ["10.0.0.0/8"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
-    name = "acctsub-%[1]d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_network_name = "${azurerm_virtual_network.test.name}"
-    address_prefix = "10.0.0.0/16"
+  name                 = "acctsub-%[1]d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.0.0/16"
 }
 
 resource "azurerm_public_ip" "test" {
@@ -4038,7 +4038,7 @@ resource "azurerm_lb" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   frontend_ip_configuration {
-    name                  = "PublicIPAddress"
+    name                 = "PublicIPAddress"
     public_ip_address_id = "${azurerm_public_ip.test.id}"
   }
 }
@@ -4052,7 +4052,7 @@ resource "azurerm_lb_rule" "test" {
   backend_port                   = 22
   frontend_ip_configuration_name = "PublicIPAddress"
   probe_id                       = "${azurerm_lb_probe.test.id}"
-  backend_address_pool_id = "${azurerm_lb_backend_address_pool.test.id}"
+  backend_address_pool_id        = "${azurerm_lb_backend_address_pool.test.id}"
 }
 
 resource "azurerm_lb_probe" "test" {
@@ -4070,44 +4070,43 @@ resource "azurerm_lb_backend_address_pool" "test" {
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
-  name = "acctvmss-%[1]d"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctvmss-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  upgrade_policy_mode = "Rolling"
-
+  upgrade_policy_mode  = "Rolling"
   automatic_os_upgrade = true
-  
+  health_probe_id      = "${azurerm_lb_probe.test.id}"
+  depends_on           = ["azurerm_lb_rule.test"]
+
   rolling_upgrade_policy {
-    max_batch_instance_percent = 20
-    max_unhealthy_instance_percent = 20
+    max_batch_instance_percent              = 20
+    max_unhealthy_instance_percent          = 20
     max_unhealthy_upgraded_instance_percent = 20
-    pause_time_between_batches = "PT0S"
+    pause_time_between_batches              = "PT0S"
   }
 
-  health_probe_id = "${azurerm_lb_probe.test.id}"
-
   sku {
-    name = "Standard_A0"
-    tier = "Standard"
+    name     = "Standard_A0"
+    tier     = "Standard"
     capacity = 1
   }
 
   os_profile {
     computer_name_prefix = "testvm-%[1]d"
-    admin_username = "myadmin"
-    admin_password = "Passwword1234"
+    admin_username       = "myadmin"
+    admin_password       = "Passwword1234"
   }
 
   network_profile {
-    name = "TestNetworkProfile"
+    name    = "TestNetworkProfile"
     primary = true
     
     ip_configuration {
       name                                   = "TestIPConfiguration"
       subnet_id                              = "${azurerm_subnet.test.id}"
       load_balancer_backend_address_pool_ids = ["${azurerm_lb_backend_address_pool.test.id}"]
-      primary = true
+      primary                                = true
     }
   }
 

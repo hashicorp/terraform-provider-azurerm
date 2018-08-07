@@ -98,6 +98,7 @@ resource "azurerm_virtual_machine_scale_set" "scaleset" {
   }
 
   health_probe_id = "${azurerm_lb_probe.prob.id}"
+  depends_on      = ["azurerm_lb_rule.lbr"]
 
   sku {
     name     = "${var.vm_sku}"
