@@ -35,16 +35,25 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				profile := rawProfiles[0].(map[string]interface{})
 				networkPlugin := profile["network_plugin"].(string)
 
-				if networkPlugin == "kubenet" || networkPlugin == "azure" {
-					dockerBridgeCidr := profile["docker_bridge_cidr"].(string)
-					dnsServiceIP := profile["dns_service_ip"].(string)
-					serviceCidr := profile["service_cidr"].(string)
-
-					if !((dockerBridgeCidr == "" && dnsServiceIP == "" && serviceCidr == "") ||
-						(dockerBridgeCidr != "" && dnsServiceIP != "" && serviceCidr != "")) {
-						return fmt.Errorf("`docker_bridge_cidr`, `dns_service_ip` and `service_cidr` should all be empty or all should be set.")
-					}
+				if networkPlugin != "kubenet" && networkPlugin != "azure" {
+					return nil
 				}
+
+				dockerBridgeCidr := profile["docker_bridge_cidr"].(string)
+				dnsServiceIP := profile["dns_service_ip"].(string)
+				serviceCidr := profile["service_cidr"].(string)
+
+				// All empty values.
+				if dockerBridgeCidr == "" && dnsServiceIP == "" && serviceCidr == "" {
+					return nil
+				}
+
+				// All set values.
+				if dockerBridgeCidr != "" && dnsServiceIP != "" && serviceCidr != "" {
+					return nil
+				}
+
+				return fmt.Errorf("`docker_bridge_cidr`, `dns_service_ip` and `service_cidr` should all be empty or all should be set.")
 			}
 
 			return nil
