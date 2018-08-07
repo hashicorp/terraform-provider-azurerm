@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccAzureRMKubernetesCluster_agentPoolName(t *testing.T) {
+func TestAzureRMKubernetesCluster_agentPoolName(t *testing.T) {
 	cases := []struct {
 		Input       string
 		ExpectError bool
