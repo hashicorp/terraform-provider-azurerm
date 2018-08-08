@@ -13,13 +13,13 @@ Use this data source to access information about a CDN Profile.
 ## Example Usage
 
 ```hcl
-data "azurerm_cdn_profile" "test" {
-  name = "myfirstcdnprofile"
+data "azurerm_cdn_profile" "example" {
+  name                = "example-cdn"
   resource_group_name = "example-resources"
 }
 
 output "cdn_profile_id" {
-  value = "${data.azurerm_cdn_profile.test.id}"
+  value = "${data.azurerm_cdn_profile.example.id}"
 }
 ```
 

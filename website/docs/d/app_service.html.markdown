@@ -13,13 +13,13 @@ Use this data source to obtain information about an App Service.
 ## Example Usage
 
 ```hcl
-data "azurerm_app_service" "test" {
+data "azurerm_app_service" "example" {
   name                = "search-app-service"
   resource_group_name = "search-service"
 }
 
 output "app_service_id" {
-  value = "${data.azurerm_app_service.test.id}"
+  value = "${data.azurerm_app_service.example.id}"
 }
 ```
 

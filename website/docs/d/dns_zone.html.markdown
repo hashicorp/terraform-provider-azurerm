@@ -14,13 +14,13 @@ Use this data source to obtain information about a DNS Zone.
 ## Example Usage
 
 ```hcl
-data "azurerm_dns_zone" "test" {
-  name                = "search-eventhubns"
+data "azurerm_dns_zone" "example" {
+  name                = "search-dnszone"
   resource_group_name = "search-service"
 }
 
 output "dns_zone_id" {
-  value = "${data.azurerm_dns_zone.test.id}"
+  value = "${data.azurerm_dns_zone.example.id}"
 }
 ```
 

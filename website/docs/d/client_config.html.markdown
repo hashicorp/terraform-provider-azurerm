@@ -14,10 +14,10 @@ provider.
 ## Example Usage
 
 ```hcl
-data "azurerm_client_config" "current" {}
+data "azurerm_client_config" "example" {}
 
 output "account_id" {
-  value = "${data.azurerm_client_config.current.service_principal_application_id}"
+  value = "${data.azurerm_client_config.example.service_principal_application_id}"
 }
 ```
 

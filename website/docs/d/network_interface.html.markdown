@@ -13,13 +13,13 @@ Use this data source to access the properties of an Azure Network Interface.
 ## Example Usage
 
 ```hcl
-data "azurerm_network_interface" "test" {
-  name                 = "acctest-nic"
-  resource_group_name  = "networking"
+data "azurerm_network_interface" "example" {
+  name                 = "example-nic"
+  resource_group_name  = "example-resources"
 }
 
 output "network_interface_id" {
-  value = "${data.azurerm_network_interface.test.id}"
+  value = "${data.azurerm_network_interface.example.id}"
 }
 ```
 

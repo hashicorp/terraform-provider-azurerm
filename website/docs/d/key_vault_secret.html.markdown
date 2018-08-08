@@ -17,13 +17,17 @@ Returns information about the specified Key Vault Secret.
 ## Example Usage
 
 ```hcl
-data "azurerm_key_vault_secret" "test" {
+data "azurerm_key_vault" "example" {
+  # ...
+}
+
+data "azurerm_key_vault_secret" "example" {
   name      = "secret-sauce"
-  vault_uri = "https://rickslab.vault.azure.net/"
+  vault_uri = "${data.azurerm_key_vault.example.vault_uri}"
 }
 
 output "secret_value" {
-  value = "${data.azurerm_key_vault_secret.test.value}"
+  value = "${data.azurerm_key_vault_secret.example.value}"
 }
 ```
 

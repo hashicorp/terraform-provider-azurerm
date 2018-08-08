@@ -13,13 +13,13 @@ Get information about an Application Security Group.
 ## Example Usage
 
 ```hcl
-data "azurerm_application_security_group" "test" {
-  name = "tf-appsecuritygroup"
+data "azurerm_application_security_group" "example" {
+  name                = "search-security"
   resource_group_name = "my-resource-group"
 }
 
 output "application_security_group_id" {
-  value = "${data.azurerm_application_security_group.test.id}"
+  value = "${data.azurerm_application_security_group.example.id}"
 }
 ```
 

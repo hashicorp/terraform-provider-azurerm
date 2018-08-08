@@ -13,13 +13,13 @@ Gets information about a Logic App Workflow.
 ## Example Usage
 
 ```hcl
-data "azurerm_logic_app_workflow" "test" {
-  name = "workflow1"
-  resource_group_name = "my-resource-group"
+data "azurerm_logic_app_workflow" "example" {
+  name                = "example-workflow"
+  resource_group_name = "example-resources"
 }
 
 output "access_endpoint" {
-  value = "${data.azurerm_logic_app_workflow.test.access_endpoint}"
+  value = "${data.azurerm_logic_app_workflow.example.access_endpoint}"
 }
 ```
 

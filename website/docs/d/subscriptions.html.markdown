@@ -13,14 +13,14 @@ Use this data source to access a list of all Azure subscriptions currently avail
 ## Example Usage
 
 ```hcl
-data "azurerm_subscriptions" "available" {}
+data "azurerm_subscriptions" "example" {}
 
 output "available_subscriptions" {
-  value = "${data.azurerm_subscriptions.current.subscriptions}"
+  value = "${data.azurerm_subscriptions.example.subscriptions}"
 }
 
 output "first_available_subscription_display_name" {
-  value = "${data.azurerm_subscriptions.current.subscriptions.0.display_name}"
+  value = "${data.azurerm_subscriptions.example.subscriptions.0.display_name}"
 }
 ```
 

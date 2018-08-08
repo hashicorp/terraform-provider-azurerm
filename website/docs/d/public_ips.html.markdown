@@ -13,8 +13,8 @@ Use this data source to access a filtered list of Public IP Addresses
 ## Example Usage
 
 ```hcl
-data "azurerm_public_ips" "test" {
-  resource_group_name = "pip-test"
+data "azurerm_public_ips" "example" {
+  resource_group_name = "example-resources"
   attached            = false
 }
 ```

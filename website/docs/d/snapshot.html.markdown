@@ -13,9 +13,9 @@ Use this data source to access the properties of a Snapshot of an Disk.
 ## Example Usage
 
 ```hcl
-data "azurerm_snapshot" "test" {
-  name                = "my-snapshot"
-  resource_group_name = "my-resource-group"
+data "azurerm_snapshot" "example" {
+  name                = "example-snapshot"
+  resource_group_name = "example-resources"
 }
 ```
 

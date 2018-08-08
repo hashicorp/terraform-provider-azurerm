@@ -11,87 +11,16 @@ description: |-
 
 Use this data source to access the properties of an existing Azure Public IP Address.
 
-## Example Usage (reference an existing)
+## Example Usage
 
 ```hcl
-data "azurerm_public_ip" "test" {
-  name = "name_of_public_ip"
-  resource_group_name = "name_of_resource_group"
-}
-
-output "domain_name_label" {
-  value = "${data.azurerm_public_ip.test.domain_name_label}"
+data "azurerm_public_ip" "example" {
+  name                = "example-publicip"
+  resource_group_name = "example-resources"
 }
 
 output "public_ip_address" {
-  value = "${data.azurerm_public_ip.test.ip_address}"
-}
-```
-
-## Example Usage (Retrieve the Dynamic Public IP of a new VM)
-
-```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "test-resources"
-  location = "West US 2"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "test-network"
-  address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.0.2.0/24"
-}
-
-resource "azurerm_public_ip" "test" {
-  name                         = "test-pip"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
-  idle_timeout_in_minutes      = 30
-
-  tags {
-    environment = "test"
-  }
-}
-
-resource "azurerm_network_interface" "test" {
-  name                = "test-nic"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  ip_configuration {
-    name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "static"
-    private_ip_address            = "10.0.2.5"
-    public_ip_address_id          = "${azurerm_public_ip.test.id}"
-  }
-}
-
-resource "azurerm_virtual_machine" "test" {
-  name                  = "test-vm"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
-
-  # ...
-}
-
-data "azurerm_public_ip" "test" {
-  name                = "${azurerm_public_ip.test.name}"
-  resource_group_name = "${azurerm_virtual_machine.test.resource_group_name}"
-}
-
-output "public_ip_address" {
-  value = "${data.azurerm_public_ip.test.ip_address}"
+  value = "${data.azurerm_public_ip.example.ip_address}"
 }
 ```
 

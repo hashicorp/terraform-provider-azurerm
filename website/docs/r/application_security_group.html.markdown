@@ -13,17 +13,16 @@ Create an Application Security Group.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "tf-test"
-  location = "West Europe"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_application_security_group" "test" {
-  name                = "tf-appsecuritygroup"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_application_security_group" "example" {
+  name                = "example-app-security-group"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   tags {
-	"Hello" = "World"
+	   "Hello" = "World"
   }
 }
 ```

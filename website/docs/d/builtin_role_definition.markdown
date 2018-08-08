@@ -13,12 +13,12 @@ Use this data source to access the properties of a built-in Role Definition. To 
 ## Example Usage
 
 ```hcl
-data "azurerm_builtin_role_definition" "contributor" {
+data "azurerm_builtin_role_definition" "example" {
   name = "Contributor"
 }
 
 output "contributor_role_definition_id" {
-  value = "${data.azurerm_builtin_role_definition.contributor.id}"
+  value = "${data.azurerm_builtin_role_definition.example.id}"
 }
 ```
 

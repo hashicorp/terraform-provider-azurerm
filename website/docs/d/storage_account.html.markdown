@@ -14,13 +14,13 @@ Gets information about the specified Storage Account.
 ## Example Usage
 
 ```hcl
-data "azurerm_storage_account" "test" {
-  name                 = "packerimages"
-  resource_group_name  = "packer-storage"
+data "azurerm_storage_account" "example" {
+  name                 = "examplestoracc"
+  resource_group_name  = "example-resources"
 }
 
 output "storage_account_tier" {
-  value = "${data.azurerm_storage_account.test.account_tier}"
+  value = "${data.azurerm_storage_account.example.account_tier}"
 }
 ```
 

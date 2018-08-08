@@ -15,12 +15,12 @@ Gets information about an Application within Azure Active Directory.
 ## Example Usage
 
 ```hcl
-data "azurerm_azuread_application" "test" {
+data "azurerm_azuread_application" "example" {
   name = "My First AzureAD Application"
 }
 
 output "azure_active_directory_object_id" {
-  value = "${data.azurerm_azuread_application.test.id}"
+  value = "${data.azurerm_azuread_application.example.id}"
 }
 ```
 
@@ -47,4 +47,3 @@ output "azure_active_directory_object_id" {
 * `object_id` - the Object ID of the Azure Active Directory Application.
 
 * `reply_urls` - A list of URLs that user tokens are sent to for sign in, or the redirect URIs that OAuth 2.0 authorization codes and access tokens are sent to.
-
