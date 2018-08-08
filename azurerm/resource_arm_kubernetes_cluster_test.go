@@ -183,7 +183,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
 	ri := acctest.RandInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_advancedNetworkingMinimum(ri, clientId, clientSecret, testLocation(),"kubenet")
+	config := testAccAzureRMKubernetesCluster_advancedNetworkingMinimum(ri, clientId, clientSecret, testLocation(), "kubenet")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -206,7 +206,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingKubenetComplete(t *testin
 	ri := acctest.RandInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_advancedNetworkingComplete(ri, clientId, clientSecret, testLocation(),"kubenet")
+	config := testAccAzureRMKubernetesCluster_advancedNetworkingComplete(ri, clientId, clientSecret, testLocation(), "kubenet")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -229,7 +229,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 	ri := acctest.RandInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_advancedNetworkingMinimum(ri, clientId, clientSecret, testLocation(),"azure")
+	config := testAccAzureRMKubernetesCluster_advancedNetworkingMinimum(ri, clientId, clientSecret, testLocation(), "azure")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -252,7 +252,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureComplete(t *testing.
 	ri := acctest.RandInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_advancedNetworkingComplete(ri, clientId, clientSecret, testLocation(),"azure")
+	config := testAccAzureRMKubernetesCluster_advancedNetworkingComplete(ri, clientId, clientSecret, testLocation(), "azure")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -491,7 +491,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func testAccAzureRMKubernetesCluster_advancedNetworkingMinimum(rInt int, clientId string, clientSecret string, location string, networkPlugin string) string {
-	return fmt.Sprintf(testAccAzureRMKubernetesCluster_advancedNetworking(rInt, clientId, clientSecret, location,  `
+	return fmt.Sprintf(testAccAzureRMKubernetesCluster_advancedNetworking(rInt, clientId, clientSecret, location, `
   network_profile {
     network_plugin = "%s"
   }
@@ -499,7 +499,7 @@ func testAccAzureRMKubernetesCluster_advancedNetworkingMinimum(rInt int, clientI
 }
 
 func testAccAzureRMKubernetesCluster_advancedNetworkingComplete(rInt int, clientId string, clientSecret string, location string, networkPlugin string) string {
-	return fmt.Sprintf(testAccAzureRMKubernetesCluster_advancedNetworking(rInt, clientId, clientSecret, location,  `
+	return fmt.Sprintf(testAccAzureRMKubernetesCluster_advancedNetworking(rInt, clientId, clientSecret, location, `
   network_profile {
     network_plugin = "%s"
     dns_service_ip     = "10.10.0.10"

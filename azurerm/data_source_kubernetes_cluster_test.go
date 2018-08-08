@@ -145,9 +145,7 @@ data "azurerm_kubernetes_cluster" "test" {
 }
 
 func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzure(rInt int, clientId string, clientSecret string, location string) string {
-	resource := testAccAzureRMKubernetesCluster_advancedNetworking(
-		rInt, clientId, clientSecret, location,
-		"azure", "", "", "")
+	resource := testAccAzureRMKubernetesCluster_advancedNetworkingMinimum(rInt, clientId, clientSecret, location, "azure")
 	return fmt.Sprintf(`
 %s
 
@@ -159,9 +157,7 @@ data "azurerm_kubernetes_cluster" "test" {
 }
 
 func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenet(rInt int, clientId string, clientSecret string, location string) string {
-	resource := testAccAzureRMKubernetesCluster_advancedNetworking(
-		rInt, clientId, clientSecret, location,
-		"kubenet", "", "", "")
+	resource := testAccAzureRMKubernetesCluster_advancedNetworkingComplete(rInt, clientId, clientSecret, location, "kubenet")
 	return fmt.Sprintf(`
 %s
 
