@@ -169,9 +169,19 @@ func resourceArmContainerGroup() *schema.Resource {
 						},
 
 						"command": {
-							Type:     schema.TypeString,
+							Type:       schema.TypeString,
+							Optional:   true,
+							ForceNew:   true,
+							Computed:   true,
+							Deprecated: "Use `commands` instead.",
+						},
+
+						"commands": {
+							Type:     schema.TypeList,
 							Optional: true,
 							ForceNew: true,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 
 						"volume": {
@@ -327,8 +337,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 
 	if props := resp.ContainerGroupProperties; props != nil {
 		containerConfigs := flattenContainerGroupContainers(d, resp.Containers, props.IPAddress.Ports, props.Volumes)
-		err = d.Set("container", containerConfigs)
-		if err != nil {
+		if err = d.Set("container", containerConfigs); err != nil {
 			return fmt.Errorf("Error setting `container`: %+v", err)
 		}
 	}
@@ -400,9 +409,15 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 			}
 		}
 
+		commands := make([]string, 0)
 		if command := container.Command; command != nil {
 			containerConfig["command"] = strings.Join(*command, " ")
+
+			for _, v := range *command {
+				commands = append(commands, v)
+			}
 		}
+		containerConfig["commands"] = commands
 
 		if containerGroupVolumes != nil && container.VolumeMounts != nil {
 			// Also pass in the container volume config from schema
@@ -538,9 +553,21 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 			container.EnvironmentVariables = expandContainerEnvironmentVariables(v)
 		}
 
-		if v, _ := data["command"]; v != "" {
-			command := strings.Split(v.(string), " ")
+		if v, ok := data["commands"]; ok {
+			c := v.([]interface{})
+			command := make([]string, 0)
+			for _, v := range c {
+				command = append(command, v.(string))
+			}
+
 			container.Command = &command
+		}
+
+		if container.Command == nil {
+			if v, _ := data["command"]; v != "" {
+				command := strings.Split(v.(string), " ")
+				container.Command = &command
+			}
 		}
 
 		if v, ok := data["volume"]; ok {
