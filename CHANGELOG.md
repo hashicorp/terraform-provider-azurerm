@@ -4,7 +4,8 @@ IMPROVEMENTS:
 
 * dependencies: upgrading to `2018-04-01` of the IoTHub SDK [GH-1717]
 * Azure CLI Auth - using the `USERPROFILE` environment variable to locate the users home directory, if set [GH-1718]
-* `azurerm_iothub` - support for the `Basic` SKU [GH-1717] 
+* `azurerm_iothub` - support for the `Basic` SKU [GH-1717]
+* `azurerm_kubernetes_cluster` - `client_id` and `client_secret` in the `service_principal` block are now ForceNew [GH-1737]
 * `azurerm_lb_nat_rule` - `protocol` property now supports `All` [GH-1736] 
 
 
