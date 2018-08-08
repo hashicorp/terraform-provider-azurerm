@@ -183,9 +183,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
 	ri := acctest.RandInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_advancedNetworking(
-		ri, clientId, clientSecret, testLocation(),
-		"kubenet", "", "", "")
+	config := testAccAzureRMKubernetesCluster_advancedNetworkingMinimum(ri, clientId, clientSecret, testLocation(),"kubenet")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -208,9 +206,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingKubenetComplete(t *testin
 	ri := acctest.RandInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_advancedNetworking(
-		ri, clientId, clientSecret, testLocation(),
-		"kubenet", "10.10.0.10", "172.18.0.1/16", "10.10.0.0/16")
+	config := testAccAzureRMKubernetesCluster_advancedNetworkingComplete(ri, clientId, clientSecret, testLocation(),"kubenet")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -233,9 +229,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 	ri := acctest.RandInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_advancedNetworking(
-		ri, clientId, clientSecret, testLocation(),
-		"azure", "", "", "")
+	config := testAccAzureRMKubernetesCluster_advancedNetworkingMinimum(ri, clientId, clientSecret, testLocation(),"azure")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -258,9 +252,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureComplete(t *testing.
 	ri := acctest.RandInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_advancedNetworking(
-		ri, clientId, clientSecret, testLocation(),
-		"azure", "10.10.0.10", "172.18.0.1/16", "10.10.0.0/16")
+	config := testAccAzureRMKubernetesCluster_advancedNetworkingComplete(ri, clientId, clientSecret, testLocation(),"azure")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -441,9 +433,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, rInt, location, rInt, rInt, rInt, clientId, clientSecret)
 }
 
-func testAccAzureRMKubernetesCluster_advancedNetworking(rInt int, clientId string, clientSecret string, location string,
-	networkProfile string, dnsServiceIp string, dockerBridgeCidr string,
-	serviceCidr string) string {
+func testAccAzureRMKubernetesCluster_advancedNetworking(rInt int, clientId string, clientSecret string, location string, networkProfile string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -495,14 +485,28 @@ resource "azurerm_kubernetes_cluster" "test" {
     client_secret = "%s"
   }
 
-  network_profile {
-    network_plugin     = "%s"
-    dns_service_ip     = "%s"
-    docker_bridge_cidr = "%s"
-    service_cidr       = "%s"
-  }
+  %s
 }
-`, rInt, location, rInt, rInt, rInt, rInt, rInt, clientId, clientSecret, networkProfile, dnsServiceIp, dockerBridgeCidr, serviceCidr)
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, clientId, clientSecret, networkProfile)
+}
+
+func testAccAzureRMKubernetesCluster_advancedNetworkingMinimum(rInt int, clientId string, clientSecret string, location string, networkPlugin string) string {
+	return fmt.Sprintf(testAccAzureRMKubernetesCluster_advancedNetworking(rInt, clientId, clientSecret, location,  `
+  network_profile {
+    network_plugin = "%s"
+  }
+`), networkPlugin)
+}
+
+func testAccAzureRMKubernetesCluster_advancedNetworkingComplete(rInt int, clientId string, clientSecret string, location string, networkPlugin string) string {
+	return fmt.Sprintf(testAccAzureRMKubernetesCluster_advancedNetworking(rInt, clientId, clientSecret, location,  `
+  network_profile {
+    network_plugin = "%s"
+    dns_service_ip     = "10.10.0.10"
+    docker_bridge_cidr = "172.18.0.1/16"
+    service_cidr       = "10.10.0.0/16"
+  }
+`), networkPlugin)
 }
 
 func testCheckAzureRMKubernetesClusterExists(name string) resource.TestCheckFunc {
