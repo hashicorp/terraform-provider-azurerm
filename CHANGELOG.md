@@ -5,6 +5,8 @@ IMPROVEMENTS:
 * dependencies: upgrading to `2018-04-01` of the IoTHub SDK [GH-1717]
 * Azure CLI Auth - using the `USERPROFILE` environment variable to locate the users home directory, if set [GH-1718]
 * `azurerm_iothub` - support for the `Basic` SKU [GH-1717] 
+* `azurerm_lb_nat_rule` - `protocol` property now supports `All` [GH-1736] 
+
 
 ## 1.12.0 (August 03, 2018)
 
