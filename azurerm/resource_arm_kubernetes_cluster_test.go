@@ -247,6 +247,30 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKubernetesCluster_addonProfile(t *testing.T) {
+	resourceName := "azurerm_kubernetes_cluster.test"
+	ri := acctest.RandInt()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	config := testAccAzureRMKubernetesCluster_addonProfile(ri, clientId, clientSecret, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "addon_profile.0.http_application_routing.0.enabled"),
+					resource.TestCheckResourceAttrSet(resourceName, "addon_profile.0.http_application_routing.0.config.HTTPApplicationRoutingZoneName"),
+				),
+			},
+		},
+	})
+}
+
 func testAccAzureRMKubernetesCluster_basic(rInt int, clientId string, clientSecret string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -591,6 +615,48 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, clientId, clientSecret)
+}
+
+func testAccAzureRMKubernetesCluster_addonProfile(rInt int, clientId string, clientSecret string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  dns_prefix          = "acctestaks%d"
+  kubernetes_version  = "1.7.7"
+
+  linux_profile {
+    admin_username = "acctestuser%d"
+
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
+
+  agent_pool_profile {
+    name    = "default"
+    count   = "1"
+    vm_size = "Standard_DS2_v2"
+  }
+
+  service_principal {
+    client_id     = "%s"
+    client_secret = "%s"
+	}
+	
+	addon_profiles
+    http_application_routing {
+      enabled = true
+    }
+  }
+}
+`, rInt, location, rInt, rInt, rInt, clientId, clientSecret)
 }
 
 func testCheckAzureRMKubernetesClusterExists(name string) resource.TestCheckFunc {

@@ -29,3 +29,7 @@ output "username" {
 output "password" {
   value = "${azurerm_kubernetes_cluster.aks_container.kube_config.0.password}"
 }
+
+output "http_application_routing_zone_name" {
+  value = "${azurerm_kubernetes_cluster.aks_container.addon_profile.0.config.HTTPApplicationRoutingZoneName}"
+}

@@ -36,4 +36,9 @@ resource "azurerm_kubernetes_cluster" "aks_container" {
     client_id     = "${var.client_id}"
     client_secret = "${var.client_secret}"
   }
+
+  addon_profile {
+    name    = "httpApplicationRouting"
+    enabled = true
+  }
 }

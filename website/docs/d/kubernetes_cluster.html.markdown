@@ -59,6 +59,8 @@ The following attributes are exported:
 
 * `network_profile` - A `network_profile` block as documented below.
 
+* `addon_profile` - One or more `addon_profile` blocks as documented below.
+
 * `tags` - A mapping of tags assigned to this resource.
 
 ---
@@ -108,7 +110,7 @@ provider "kubernetes" {
 * `os_type` - The Operating System used for the Agents.
 * `vnet_subnet_id` - The ID of the Subnet where the Agents in the Pool are provisioned.
 
-`service_principal` supports the following:
+`service_principal` exports the following:
 
 * `client_id` - The Client ID of the Service Principal used by this Managed Kubernetes Cluster.
 
@@ -119,3 +121,9 @@ provider "kubernetes" {
 * `dns_service_ip` - IP address within the Kubernetes service address range used by cluster service discovery (kube-dns).
 * `docker_bridge_cidr` - IP address (in CIDR notation) used as the Docker bridge IP address on nodes.
 * `pod_cidr` - The CIDR used for pod IP addresses.
+
+`addon_profile` exports the following:
+
+* `name` - (Required) The name of the addon profile.
+* `enabled` - (Required) Whether the addon profile is enabled or disabled.
+* `config` - (Optional) Key/Value pair mapped to the addon config (addonProfile specific).

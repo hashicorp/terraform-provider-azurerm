@@ -120,6 +120,32 @@ func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenet(t *test
 	})
 }
 
+func TestAccDataSourceAzureRMKubernetesCluster_addonProfile(t *testing.T) {
+	dataSourceName := "data.azurerm_kubernetes_cluster.test"
+	ri := acctest.RandInt()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	location := testLocation()
+	config := testAccDataSourceAzureRMKubernetesCluster_addonProfile(ri, clientId, clientSecret, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(dataSourceName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "addon_profile.0.name"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "addon_profile.0.enabled"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "addon_profile.0.config.HTTPApplicationRoutingZoneName"),
+				),
+			},
+		},
+	})
+}
+
 func testAccDataSourceAzureRMKubernetesCluster_basic(rInt int, clientId string, clientSecret string, location string) string {
 	resource := testAccAzureRMKubernetesCluster_basic(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
@@ -158,6 +184,18 @@ data "azurerm_kubernetes_cluster" "test" {
 
 func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenet(rInt int, clientId string, clientSecret string, location string) string {
 	resource := testAccAzureRMKubernetesCluster_advancedNetworkingKubenet(rInt, clientId, clientSecret, location)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = "${azurerm_kubernetes_cluster.test.name}"
+  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+}
+`, resource)
+}
+
+func testAccDataSourceAzureRMKubernetesCluster_addonProfile(rInt int, clientId string, clientSecret string, location string) string {
+	resource := testAccAzureRMKubernetesCluster_addonProfile(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
 %s
 

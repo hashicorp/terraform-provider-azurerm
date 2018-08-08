@@ -289,6 +289,73 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			"addon_profiles": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"http_application_routing": {
+							Type:     schema.TypeList,
+							MaxItems: 1,
+							ForceNew: true,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enabled": {
+										Type:     schema.TypeBool,
+										ForceNew: true,
+										Required: true,
+									},
+									"config": {
+										Type:     schema.TypeMap,
+										Computed: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"http_application_routing_zone_name": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+
+						"oms_agent": {
+							Type:     schema.TypeList,
+							MaxItems: 1,
+							Optional: true,
+							ForceNew: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enabled": {
+										Type:     schema.TypeBool,
+										Required: true,
+										ForceNew: true,
+									},
+									"config": {
+										Type:     schema.TypeMap,
+										Required: true,
+										ForceNew: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"log_analytics_workspace_resource_id": {
+													Type:     schema.TypeString,
+													Required: true,
+													ForceNew: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -310,6 +377,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	agentProfiles := expandAzureRmKubernetesClusterAgentProfiles(d)
 	servicePrincipalProfile := expandAzureRmKubernetesClusterServicePrincipal(d)
 	networkProfile := expandAzureRmKubernetesClusterNetworkProfile(d)
+	addonProfiles := expandAzureRmKubernetesClusterAddonProfiles(d)
 
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -335,6 +403,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 			LinuxProfile:            &linuxProfile,
 			ServicePrincipalProfile: servicePrincipalProfile,
 			NetworkProfile:          networkProfile,
+			AddonProfiles:           addonProfiles,
 		},
 		Tags: expandTags(tags),
 	}
@@ -416,6 +485,11 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		servicePrincipal := flattenAzureRmKubernetesClusterServicePrincipalProfile(resp.ManagedClusterProperties.ServicePrincipalProfile)
 		if err := d.Set("service_principal", servicePrincipal); err != nil {
 			return fmt.Errorf("Error setting `service_principal`: %+v", err)
+		}
+
+		addonProfiles := flattenAzureRmKubernetesClusterAddonProfiles(resp.ManagedClusterProperties.AddonProfiles)
+		if err := d.Set("addon_profiles", addonProfiles); err != nil {
+			return fmt.Errorf("Error setting `addon_profiles`: %+v", err)
 		}
 	}
 
@@ -593,6 +667,52 @@ func flattenAzureRmKubernetesClusterNetworkProfile(profile *containerservice.Net
 	return []interface{}{values}
 }
 
+func flattenAzureRmKubernetesClusterAddonProfiles(profile map[string]*containerservice.ManagedClusterAddonProfile) []interface{} {
+	values := make(map[string]interface{}, 0)
+
+	if httpApplicationRouting := profile["httpApplicationRouting"]; httpApplicationRouting != nil {
+		enabled := false
+		if enabledVal := httpApplicationRouting.Enabled; enabledVal != nil {
+			enabled = *enabledVal
+		}
+
+		config := make(map[string]string)
+
+		if zoneName := httpApplicationRouting.Config["HTTPApplicationRoutingZoneName"]; zoneName != nil {
+			config["http_application_routing_zone_name"] = *zoneName
+		}
+
+		values["http_application_routing"] = []interface{}{
+			map[string]interface{}{
+				"enabled": enabled,
+				"config":  config,
+			},
+		}
+	}
+
+	if omsAgent := profile["omsAgent"]; omsAgent != nil {
+		enabled := false
+		if enabledVal := omsAgent.Enabled; enabledVal != nil {
+			enabled = *enabledVal
+		}
+
+		config := make(map[string]string)
+
+		if workspaceResourceID := omsAgent.Config["logAnalyticsWorkspaceResourceID"]; workspaceResourceID != nil {
+			config["log_analytics_workspace_resource_id"] = *workspaceResourceID
+		}
+
+		values["oms_agent"] = []interface{}{
+			map[string]interface{}{
+				"enabled": enabled,
+				"config":  config,
+			},
+		}
+	}
+
+	return []interface{}{values}
+}
+
 func flattenKubernetesClusterKubeConfig(config kubernetes.KubeConfig) []interface{} {
 	values := make(map[string]interface{})
 
@@ -725,6 +845,46 @@ func expandAzureRmKubernetesClusterNetworkProfile(d *schema.ResourceData) *conta
 	}
 
 	return &networkProfile
+}
+
+func expandAzureRmKubernetesClusterAddonProfiles(d *schema.ResourceData) map[string]*containerservice.ManagedClusterAddonProfile {
+	profiles := d.Get("addon_profiles").([]interface{})
+
+	if len(profiles) == 0 {
+		return nil
+	}
+
+	profile := profiles[0].(map[string]interface{})
+	addonProfiles := map[string]*containerservice.ManagedClusterAddonProfile{}
+
+	httpApplicationRouting := profile["http_application_routing"].([]interface{})
+	if len(httpApplicationRouting) > 0 {
+		value := httpApplicationRouting[0].(map[string]interface{})
+		enabled := value["enabled"].(bool)
+		addonProfiles["httpApplicationRouting"] = &containerservice.ManagedClusterAddonProfile{
+			Enabled: utils.Bool(enabled),
+		}
+	}
+
+	omsAgent := profile["oms_agent"].([]interface{})
+	if len(omsAgent) > 0 {
+		value := omsAgent[0].(map[string]interface{})
+		enabled := value["enabled"].(bool)
+		config := value["config"].(map[string]interface{})
+
+		configEx := make(map[string]*string)
+
+		if val, ok := config["log_analytics_workspace_resource_id"]; ok {
+			configEx["logAnalyticsWorkspaceResourceID"] = utils.String(val.(string))
+		}
+
+		addonProfiles["omsAgent"] = &containerservice.ManagedClusterAddonProfile{
+			Enabled: utils.Bool(enabled),
+			Config:  configEx,
+		}
+	}
+
+	return addonProfiles
 }
 
 func resourceAzureRMKubernetesClusterServicePrincipalProfileHash(v interface{}) int {
