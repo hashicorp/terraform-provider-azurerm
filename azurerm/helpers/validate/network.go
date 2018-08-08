@@ -45,3 +45,17 @@ func MACAddress(i interface{}, k string) (_ []string, errors []error) {
 
 	return
 }
+
+func PortNumber(i interface{}, k string) (_ []string, errors []error) {
+	v, ok := i.(int)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %q to be int", k))
+		return
+	}
+
+	if v < 0 || 65535 < v {
+		errors = append(errors, fmt.Errorf("%q is not a valid port number: %q", k, i))
+	}
+
+	return
+}

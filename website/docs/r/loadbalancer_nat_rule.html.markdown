@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_lb_nat_rule
 
-Create a LoadBalancer NAT Rule.
+Manages a LoadBalancer NAT Rule.
 
 ~> **NOTE** When using this resource, the LoadBalancer needs to have a FrontEnd IP Configuration Attached
 
@@ -57,7 +57,7 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group in which to create the resource.
 * `loadbalancer_id` - (Required) The ID of the LoadBalancer in which to create the NAT Rule.
 * `frontend_ip_configuration_name` - (Required) The name of the frontend IP configuration exposing this rule.
-* `protocol` - (Required) The transport protocol for the external endpoint. Possible values are `Udp` or `Tcp`.
+* `protocol` - (Required) The transport protocol for the external endpoint. Possible values are `Udp`, `Tcp` or `All`.
 * `frontend_port` - (Required) The port for the external endpoint. Port numbers for each Rule must be unique within the Load Balancer. Possible values range between 1 and 65534, inclusive.
 * `backend_port` - (Required) The port used for internal connections on the endpoint. Possible values range between 1 and 65535, inclusive.
 * `enable_floating_ip` - (Optional) Enables the Floating IP Capacity, required to configure a SQL AlwaysOn Availability Group.
