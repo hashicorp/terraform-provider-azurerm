@@ -10,57 +10,20 @@ description: |-
 
 Create a managed disk.
 
-## Example Usage with Create Empty
+## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name = "acctestRG"
-  location = "West US 2"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_managed_disk" "test" {
-  name = "acctestmd"
-  location = "West US 2"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_managed_disk" "example" {
+  name                 = "example-disk"
+  location             = "${azurerm_resource_group.example.location}"
+  resource_group_name  = "${azurerm_resource_group.example.name}"
   storage_account_type = "Standard_LRS"
-  create_option = "Empty"
-  disk_size_gb = "1"
-
-  tags {
-    environment = "staging"
-  }
-}
-```
-
-## Example Usage with Create Copy
-
-```hcl
-resource "azurerm_resource_group" "test" {
-  name = "acctestRG"
-  location = "West US 2"
-}
-
-resource "azurerm_managed_disk" "source" {
-  name = "acctestmd1"
-  location = "West US 2"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  storage_account_type = "Standard_LRS"
-  create_option = "Empty"
-  disk_size_gb = "1"
-
-  tags {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_managed_disk" "copy" {
-  name = "acctestmd2"
-  location = "West US 2"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  storage_account_type = "Standard_LRS"
-  create_option = "Copy"
-  source_resource_id = "${azurerm_managed_disk.source.id}"
-  disk_size_gb = "1"
+  create_option        = "Empty"
+  disk_size_gb         = "10"
 
   tags {
     environment = "staging"

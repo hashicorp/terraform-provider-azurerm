@@ -11,104 +11,25 @@ description: |-
 
 Manages a Redis Cache.
 
-## Example Usage (Basic)
+## Example Usage
+
+Complete examples of how to use the `azurerm_redis_cache` resource can be found [in the `./examples/redis-cache` folder within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/redis-cache)
+
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "redis-resources"
-  location = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-# NOTE: the Name used for Redis needs to be globally unique
-resource "azurerm_redis_cache" "test" {
-  name                = "tf-redis-basic"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  capacity            = 0
-  family              = "C"
-  sku_name            = "Basic"
-  enable_non_ssl_port = false
-}
-```
-
-## Example Usage (Standard)
-
-```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "redis-resources"
-  location = "West US"
-}
-
-# NOTE: the Name used for Redis needs to be globally unique
-resource "azurerm_redis_cache" "test" {
-  name                = "tf-redis-standard"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_redis_cache" "example" {
+  # NOTE: the Name used needs to be globally unique
+  name                = "example-redis"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   capacity            = 2
   family              = "C"
   sku_name            = "Standard"
   enable_non_ssl_port = false
-}
-```
-
-## Example Usage (Premium with Clustering)
-
-```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "redis-resources"
-  location = "West US"
-}
-
-# NOTE: the Name used for Redis needs to be globally unique
-resource "azurerm_redis_cache" "test" {
-  name                = "tf-redis-premium"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  capacity            = 1
-  family              = "P"
-  sku_name            = "Premium"
-  enable_non_ssl_port = false
-  shard_count         = 3
-
-  redis_configuration {
-    maxmemory_reserved = 2
-    maxmemory_delta    = 2
-    maxmemory_policy   = "allkeys-lru"
-  }
-}
-```
-
-## Example Usage (Premium with Backup)
-
-```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "redis-resources"
-  location = "West US"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "redissa"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "GRS"
-}
-
-# NOTE: the Name used for Redis needs to be globally unique
-resource "azurerm_redis_cache" "test" {
-  name                = "tf-redis-pbkup"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  capacity            = 3
-  family              = "P"
-  sku_name            = "Premium"
-  enable_non_ssl_port = false
-  redis_configuration {
-    rdb_backup_enabled            = true
-    rdb_backup_frequency          = 60
-    rdb_backup_max_snapshot_count = 1
-    rdb_storage_connection_string = "DefaultEndpointsProtocol=https;BlobEndpoint=${azurerm_storage_account.test.primary_blob_endpoint};AccountName=${azurerm_storage_account.test.name};AccountKey=${azurerm_storage_account.test.primary_access_key}"
-  }
 }
 ```
 

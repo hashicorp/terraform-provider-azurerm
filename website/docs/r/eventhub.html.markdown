@@ -13,27 +13,18 @@ Manages a Event Hubs as a nested resource within a Event Hubs namespace.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "resourceGroup1"
-  location = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_eventhub_namespace" "test" {
-  name                = "acceptanceTestEventHubNamespace"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "Standard"
-  capacity            = 1
-
-  tags {
-    environment = "Production"
-  }
+resource "azurerm_eventhub_namespace" "example" {
+  # ...
 }
 
-resource "azurerm_eventhub" "test" {
-  name                = "acceptanceTestEventHub"
-  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_eventhub" "example" {
+  name                = "example-eventhub"
+  namespace_name      = "${azurerm_eventhub_namespace.example.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   partition_count     = 2
   message_retention   = 1
 }

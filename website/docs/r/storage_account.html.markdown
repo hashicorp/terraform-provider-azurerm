@@ -3,25 +3,28 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_account"
 sidebar_current: "docs-azurerm-resource-storage-account"
 description: |-
-  Manages a Azure Storage Account.
+  Manages a Storage Account.
 ---
 
 # azurerm_storage_account
 
-Create an Azure Storage Account.
+Manages a Storage Account.
 
 ## Example Usage
 
+Complete examples of how to use the `azurerm_storage_account` resource can be found [in the `./examples/storage-accounts` folder within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/storage-accounts)
+
+
 ```hcl
-resource "azurerm_resource_group" "testrg" {
-  name     = "resourceGroupName"
-  location = "westus"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_storage_account" "testsa" {
-  name                     = "storageaccountname"
-  resource_group_name      = "${azurerm_resource_group.testrg.name}"
-  location                 = "westus"
+resource "azurerm_storage_account" "example" {
+  # NOTE: this name needs to be globally unique
+  name                     = "globallyuniquename"
+  resource_group_name      = "${azurerm_resource_group.example.name}"
+  location                 = "${azurerm_resource_group.example.location}"
   account_tier             = "Standard"
   account_replication_type = "GRS"
 
@@ -31,65 +34,19 @@ resource "azurerm_storage_account" "testsa" {
 }
 ```
 
-## Example Usage with Network Rules
-
-```hcl
-resource "azurerm_resource_group" "testrg" {
-  name     = "resourceGroupName"
-  location = "westus"
-}
-
-resource "azurerm_virtual_network" "test" {
-    name = "virtnetname"
-    address_space = ["10.0.0.0/16"]
-    location = "${azurerm_resource_group.testrg.location}"
-    resource_group_name = "${azurerm_resource_group.testrg.name}"
-}
-
-resource "azurerm_subnet" "test" {
-	name                 = "subnetname"
-	resource_group_name  = "${azurerm_resource_group.testrg.name}"
-	virtual_network_name = "${azurerm_virtual_network.test.name}"
-	address_prefix       = "10.0.2.0/24"
-	service_endpoints    = ["Microsoft.Sql","Microsoft.Storage"]
-  }
-
-resource "azurerm_storage_account" "testsa" {
-    name = "storageaccountname"
-    resource_group_name = "${azurerm_resource_group.testrg.name}"
-
-    location = "${azurerm_resource_group.testrg.location}"
-    account_tier = "Standard"
-    account_replication_type = "LRS"
-	
-    network_rules {
-        ip_rules = ["127.0.0.1"]
-        virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
-    }
-
-    tags {
-        environment = "staging"
-    }
-}
-```
-
 ## Argument Reference
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the storage account. Changing this forces a
-    new resource to be created. This must be unique across the entire Azure service,
-    not just within the resource group.
+* `name` - (Required) Specifies the name of the storage account. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the storage account. Changing this forces a new resource to be created.
+-> **NOTE:** The `name` used needs to be globally unique across Azure.
 
-* `location` - (Required) Specifies the supported Azure location where the
-    resource exists. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the storage account. Changing this forces a new resource to be created.
 
-* `account_kind` - (Optional) Defines the Kind of account. Valid options are `Storage`,
-    `StorageV2` and `BlobStorage`. Changing this forces a new resource to be created.
-    Defaults to `Storage`.
+* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
+
+* `account_kind` - (Optional) Defines the Kind of account. Valid options are `Storage`, `StorageV2` and `BlobStorage`. Changing this forces a new resource to be created. Defaults to `Storage`.
 
 * `account_tier` - (Required) Defines the Tier to use for this storage account. Valid options are `Standard` and `Premium`. Changing this forces a new resource to be created
 
@@ -116,17 +73,17 @@ The following arguments are supported:
 
 ---
 
-* `custom_domain` supports the following:
+A `custom_domain` block supports the following:
 
 * `name` - (Optional) The Custom Domain Name to use for the Storage Account, which will be validated by Azure.
 * `use_subdomain` - (Optional) Should the Custom Domain Name be validated by using indirect CNAME validation?
 
 ---
 
-* `network_rules` supports the following:
+A `network_rules` block supports the following:
 
 * `bypass` - (Optional)  Specifies whether traffic is bypassed for Logging/Metrics/AzureServices. Valid options are
-any combination of `Logging`, `Metrics`, `AzureServices`, or `None`. 
+any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 * `ip_rules` - (Optional) List of IP or IP ranges in CIDR Format. Only IPV4 addresses are allowed.
 * `virtual_network_subnet_ids` - (Optional) A list of resource ids for subnets.
 
@@ -134,7 +91,7 @@ any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 
 ---
 
-`identity` supports the following:
+A `identity` block supports the following:
 
 * `type` - (Required) Specifies the identity type of the Storage Account. At this time the only allowed value is `SystemAssigned`.
 
@@ -164,7 +121,7 @@ The following attributes are exported in addition to the arguments listed above:
 
 ---
 
-`identity` exports the following:
+A `identity` block exports the following:
 
 * `principal_id` - The Principal ID for the Service Principal associated with the Identity of this Storage Account.
 

@@ -13,44 +13,23 @@ Create a ServiceBus Subscription.
 ## Example Usage
 
 ```hcl
-variable "location" {
-  description = "Azure datacenter to deploy to."
-  default = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-variable "servicebus_name" {
-  description = "Input your unique Azure service bus name"
+resource "azurerm_servicebus_namespace" "example" {
+  # ...
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "terraform-servicebus"
-  location = "${var.location}"
+resource "azurerm_servicebus_topic" "example" {
+  # ...
 }
 
-resource "azurerm_servicebus_namespace" "test" {
-  name                = "${var.servicebus_name}"
-  location            = "${var.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "standard"
-
-  tags {
-    source = "terraform"
-  }
-}
-
-resource "azurerm_servicebus_topic" "test" {
-  name                = "testTopic"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-
-  enable_partitioning = true
-}
-
-resource "azurerm_servicebus_subscription" "test" {
-  name                = "testSubscription"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name          = "${azurerm_servicebus_topic.test.name}"
+resource "azurerm_servicebus_subscription" "example" {
+  name                = "example-subscription"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
+  topic_name          = "${azurerm_servicebus_topic.example.name}"
   max_delivery_count  = 1
 }
 ```
@@ -98,9 +77,9 @@ The following arguments are supported:
     supports the concept of a session. Defaults to false. Changing this forces a
     new resource to be created.
 
-* `forward_to` - (Optional) The name of a Queue or Topic to automatically forward 
+* `forward_to` - (Optional) The name of a Queue or Topic to automatically forward
     messages to.
-    
+
 ### TimeSpan Format
 
 Some arguments for this resource are required in the TimeSpan format which is

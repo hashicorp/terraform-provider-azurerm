@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iothub"
 sidebar_current: "docs-azurerm-resource-messaging-iothub"
 description: |-
-  Manages a IotHub resource 
+  Manages a IotHub resource
 ---
 
 # azurerm_iothub
@@ -13,23 +13,23 @@ Manages a IotHub
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "resourceGroup1"
-  location = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_iothub" "test" {
-  name                = "test"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+resource "azurerm_iothub" "example" {
+  name                = "example-iothub"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
+
   sku {
-    name = "S1"
-    tier = "Standard"
+    name     = "S1"
+    tier     = "Standard"
     capacity = "1"
   }
 
   tags {
-    "purpose" = "testing"
+    Environment = "Production"
   }
 }
 ```
@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource has to be createc. Changing this forces a new resource to be created.
 
-* `sku` - (Required) A `sku` block as defined below. 
+* `sku` - (Required) A `sku` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -56,7 +56,7 @@ A `sku` block supports the following:
 
 * `tier` - (Required) The billing tier for the IoT Hub. Possible values are `Free` or `Standard`.
 
-* `capacity` - (Required) The number of provisioned IoT Hub units. 
+* `capacity` - (Required) The number of provisioned IoT Hub units.
 
 ## Attributes Reference
 

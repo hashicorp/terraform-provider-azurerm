@@ -16,40 +16,18 @@ Manages a Firewall Rule associated with a Premium Redis Cache.
 ## Example Usage
 
 ```hcl
-resource "random_id" "server" {
-  keepers = {
-    azi_id = 1
-  }
-
-  byte_length = 8
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "redis-resourcegroup"
-  location = "West Europe"
+resource "azurerm_redis_cache" "example" {
+  # ...
 }
 
-resource "azurerm_redis_cache" "test" {
-  name                = "redis${random_id.server.hex}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  capacity            = 1
-  family              = "P"
-  sku_name            = "Premium"
-  enable_non_ssl_port = false
-
-  redis_configuration {
-    maxclients         = 256
-    maxmemory_reserved = 2
-    maxmemory_delta    = 2
-    maxmemory_policy   = "allkeys-lru"
-  }
-}
-
-resource "azurerm_redis_firewall_rule" "test" {
-  name                = "someIPrange"
-  redis_cache_name    = "${azurerm_redis_cache.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_redis_firewall_rule" "example" {
+  name                = "example-range"
+  redis_cache_name    = "${azurerm_redis_cache.example.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   start_ip            = "1.2.3.4"
   end_ip              = "2.3.4.5"
 }

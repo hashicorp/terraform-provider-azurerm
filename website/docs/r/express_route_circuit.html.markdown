@@ -13,18 +13,18 @@ Manages an ExpressRoute circuit.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "exprtTest"
-  location = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_express_route_circuit" "test" {
-  name                     = "expressRoute1"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+resource "azurerm_express_route_circuit" "example" {
+  name                     = "example-expressroute"
+  resource_group_name      = "${azurerm_resource_group.example.name}"
+  location                 = "${azurerm_resource_group.example.location}"
   service_provider_name    = "Equinix"
   peering_location         = "Silicon Valley"
   bandwidth_in_mbps        = 50
+
   sku {
     tier   = "Standard"
     family = "MeteredData"

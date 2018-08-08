@@ -11,129 +11,24 @@ description: |-
 
 Manages a Key Vault Certificate.
 
-## Example Usage (Importing a PFX)
+## Example Usage
 
-~> **Note:** this example assumed the PFX file is located in the same directory at `certificate-to-import.pfx`.
-
-```hcl
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_resource_group" "test" {
-  name     = "key-vault-certificate-example"
-  location = "West Europe"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "keyvaultcertexample"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
-
-  sku {
-    name = "standard"
-  }
-
-  access_policy {
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
-
-    certificate_permissions = [
-      "create","delete","deleteissuers",
-      "get","getissuers","import","list",
-      "listissuers","managecontacts","manageissuers",
-      "setissuers","update",
-    ]
-
-    key_permissions = [
-      "backup","create","decrypt","delete","encrypt","get",
-      "import","list","purge","recover","restore","sign",
-      "unwrapKey","update","verify","wrapKey",
-    ]
-
-    secret_permissions = [
-      "backup","delete","get","list","purge","recover","restore","set",
-    ]
-  }
-
-  tags {
-    environment = "Production"
-  }
-}
-
-
-resource "azurerm_key_vault_certificate" "test" {
-  name      = "imported-cert"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
-
-  certificate {
-    contents = "${base64encode(file("certificate-to-import.pfx"))}"
-    password = ""
-  }
-
-  certificate_policy {
-    issuer_parameters {
-      name = "Self"
-    }
-
-    key_properties {
-      exportable = true
-      key_size   = 2048
-      key_type   = "RSA"
-      reuse_key  = false
-    }
-
-    secret_properties {
-      content_type = "application/x-pkcs12"
-    }
-  }
-}
-```
-
-## Example Usage (Generating a new certificate)
+Complete examples of how to use the `azurerm_key_vault_certificate` resource can be found [in the `./examples/key-vault/certificate` folder within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/key-vault/certificate)
 
 ```hcl
 data "azurerm_client_config" "current" {}
 
-resource "azurerm_resource_group" "test" {
-  name     = "key-vault-certificate-example"
-  location = "West Europe"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_key_vault" "test" {
-  name                = "keyvaultcertexample"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
-
-  sku {
-    name = "standard"
-  }
-
-  access_policy {
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
-
-    certificate_permissions = [
-      "all",
-    ]
-
-    key_permissions = [
-      "all",
-    ]
-
-    secret_permissions = [
-      "all",
-    ]
-  }
-
-  tags {
-    environment = "Production"
-  }
+resource "azurerm_key_vault" "example" {
+  # ...
 }
 
-resource "azurerm_key_vault_certificate" "test" {
+resource "azurerm_key_vault_certificate" "example" {
   name      = "generated-cert"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  vault_uri = "${azurerm_key_vault.example.vault_uri}"
 
   certificate_policy {
     issuer_parameters {

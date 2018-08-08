@@ -13,20 +13,17 @@ Manages a Custom Action within a Logic App Workflow
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "workflow-resources"
-  location = "East US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_logic_app_workflow" "test" {
-  name = "workflow1"
-  location = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_logic_app_workflow" "example" {
+  # ...
 }
 
-resource "azurerm_logic_app_action_custom" "test" {
+resource "azurerm_logic_app_action_custom" "example" {
   name         = "example-action"
-  logic_app_id = "${azurerm_logic_app_workflow.test.id}"
+  logic_app_id = "${azurerm_logic_app_workflow.example.id}"
   body = <<BODY
 {
     "description": "A variable to configure the auto expiration age in days. Configured in negative number. Default is -30 (30 days old).",

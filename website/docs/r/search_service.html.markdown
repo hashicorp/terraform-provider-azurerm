@@ -3,25 +3,24 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_search_service"
 sidebar_current: "docs-azurerm-resource-search-service"
 description: |-
-  Manage a Search Service.
+  Manages a Search Service.
 ---
 
 # azurerm_search_service
 
-Allows you to manage an Azure Search Service
+Manages an Azure Search Service
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "acceptanceTestResourceGroup1"
-  location = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_search_service" "test" {
-  name                = "acceptanceTestSearchService1"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+resource "azurerm_search_service" "example" {
+  name                = "example-search"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
   sku                 = "standard"
 
   tags {
@@ -52,7 +51,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Search Service ID.
+* `id` - The ID of the Search Service.
 
 ## Import
 

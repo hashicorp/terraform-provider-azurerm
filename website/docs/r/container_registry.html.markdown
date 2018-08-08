@@ -17,26 +17,16 @@ Manages an Azure Container Registry.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "resourceGroup1"
-  location = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "storageaccount1"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "GRS"
-}
-
-resource "azurerm_container_registry" "test" {
-  name                = "containerRegistry1"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+resource "azurerm_container_registry" "example" {
+  name                = "example"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
   admin_enabled       = true
-  sku                 = "Classic"
-  storage_account_id  = "${azurerm_storage_account.test.id}"
+  sku                 = "Basic"
 }
 ```
 

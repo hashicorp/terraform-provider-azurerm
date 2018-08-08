@@ -3,25 +3,24 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_service_fabric_cluster"
 sidebar_current: "docs-azurerm-resource-service-fabric-cluster"
 description: |-
-  Manage a Service Fabric Cluster.
+  Manages a Service Fabric Cluster.
 ---
 
 # azurerm_service_fabric_cluster
 
-Manage a Service Fabric Cluster.
+Manages a Service Fabric Cluster.
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "example-resources"
-  location = "West Europe"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_service_fabric_cluster" "test" {
+resource "azurerm_service_fabric_cluster" "example" {
   name                = "example-servicefabric"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"

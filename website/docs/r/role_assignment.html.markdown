@@ -11,77 +11,19 @@ description: |-
 
 Assigns a given Principal (User or Application) to a given Role.
 
-## Example Usage (using a built-in Role)
+## Example Usage
+
+Complete examples of how to use the `azurerm_role_assignment` resource can be found [in the `./examples/roles` folder within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/roles)
 
 ```hcl
-data "azurerm_subscription" "primary" {}
+data "azurerm_subscription" "example" {}
 
-data "azurerm_client_config" "test" {}
+data "azurerm_client_config" "example" {}
 
-resource "azurerm_role_assignment" "test" {
-  scope                = "${data.azurerm_subscription.primary.id}"
+resource "azurerm_role_assignment" "example" {
+  scope                = "${data.azurerm_subscription.example.id}"
   role_definition_name = "Reader"
-  principal_id         = "${data.azurerm_client_config.test.service_principal_object_id}"
-}
-```
-
-## Example Usage (Custom Role & Service Principal)
-
-```hcl
-data "azurerm_subscription" "primary" {}
-
-data "azurerm_client_config" "test" {}
-
-resource "azurerm_role_definition" "test" {
-  role_definition_id = "00000000-0000-0000-0000-000000000000"
-  name               = "my-custom-role-definition"
-  scope              = "${data.azurerm_subscription.primary.id}"
-
-  permissions {
-    actions     = ["Microsoft.Resources/subscriptions/resourceGroups/read"]
-    not_actions = []
-  }
-
-  assignable_scopes = [
-    "${data.azurerm_subscription.primary.id}",
-  ]
-}
-
-resource "azurerm_role_assignment" "test" {
-  name               = "00000000-0000-0000-0000-000000000000"
-  scope              = "${data.azurerm_subscription.primary.id}"
-  role_definition_id = "${azurerm_role_definition.test.id}"
-  principal_id       = "${data.azurerm_client_config.test.service_principal_object_id}"
-}
-```
-
-## Example Usage (Custom Role & User)
-
-```hcl
-data "azurerm_subscription" "primary" {}
-
-data "azurerm_client_config" "test" {}
-
-resource "azurerm_role_definition" "test" {
-  role_definition_id = "00000000-0000-0000-0000-000000000000"
-  name               = "my-custom-role-definition"
-  scope              = "${data.azurerm_subscription.primary.id}"
-
-  permissions {
-    actions     = ["Microsoft.Resources/subscriptions/resourceGroups/read"]
-    not_actions = []
-  }
-
-  assignable_scopes = [
-    "${data.azurerm_subscription.primary.id}",
-  ]
-}
-
-resource "azurerm_role_assignment" "test" {
-  name               = "00000000-0000-0000-0000-000000000000"
-  scope              = "${data.azurerm_subscription.primary.id}"
-  role_definition_id = "${azurerm_role_definition.test.id}"
-  principal_id       = "${data.azurerm_client_config.test.client_id}"
+  principal_id         = "${data.azurerm_client_config.example.service_principal_object_id}"
 }
 ```
 
@@ -91,7 +33,9 @@ The following arguments are supported:
 
 * `name` - (Optional) A unique UUID/GUID for this Role Assignment - one will be generated if not specified. Changing this forces a new resource to be created.
 
-* `scope` - (Required) The scope at which the Role Assignment applies too, such as `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333`, `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup`, or `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM`. Changing this forces a new resource to be created.
+* `scope` - (Required) The scope at which the Role Assignment applies to. This can be the ID of a Subscription (e.g. `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333`), a Resource Group (e.g. `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup`) or a resource within a Resource Group (e.g. `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM`). Changing this forces a new resource to be created.
+
+-> **NOTE:** We recommend using [Interpolation Syntax](https://www.terraform.io/docs/configuration/interpolation.html) to pull this value from a Data Source or Resource where possible, rather than hard-coding the ID's.
 
 * `role_definition_id` - (Optional) The Scoped-ID of the Role Definition. Changing this forces a new resource to be created. Conflicts with `role_definition_name`.
 

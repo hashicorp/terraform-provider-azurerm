@@ -13,15 +13,14 @@ Create an Recovery Services Vault.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "rg" {
-  name     = "tfex-recovery_vault"
-  location = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_recovery_services_vault" "vault" {
-    name                = "example_recovery_vault"
-    location            = "${azurerm_resource_group.rg.location}"
-    resource_group_name = "${azurerm_resource_group.rg.name}"
+resource "azurerm_recovery_services_vault" "example" {
+    name                = "example-vault"
+    location            = "${azurerm_resource_group.example.location}"
+    resource_group_name = "${azurerm_resource_group.example.name}"
     sku                 = "standard"
 }
 

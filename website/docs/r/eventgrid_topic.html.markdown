@@ -16,15 +16,14 @@ Manages an EventGrid Topic
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "resourceGroup1"
-  location = "West US 2"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_eventgrid_topic" "test" {
-  name                = "my-eventgrid-topic"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_eventgrid_topic" "example" {
+  name                = "example-topic"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   tags {
     environment = "Production"

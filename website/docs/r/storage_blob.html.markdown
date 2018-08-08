@@ -3,45 +3,35 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_blob"
 sidebar_current: "docs-azurerm-resource-storage-blob"
 description: |-
-  Manages a Azure Storage Blob.
+  Manages a Storage Blob within a Storage Container.
 ---
 
 # azurerm_storage_blob
 
-Create an Azure Storage Blob.
+Manages a Storage Blob within a Storage Container.
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-d"
-  location = "westus"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestaccs"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "westus"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+resource "azurerm_storage_account" "example" {
+  # ...
 }
 
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
-  container_access_type = "private"
+resource "azurerm_storage_container" "example" {
+  # ...
 }
 
-resource "azurerm_storage_blob" "testsb" {
-  name = "sample.vhd"
-
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
-
-  type = "page"
-  size = 5120
+resource "azurerm_storage_blob" "example" {
+  name                   = "sample.vhd"
+  resource_group_name    = "${azurerm_resource_group.example.name}"
+  storage_account_name   = "${azurerm_storage_account.example.name}"
+  storage_container_name = "${azurerm_storage_container.example.name}"
+  type                   = "page"
+  size                   = 5120
 }
 ```
 
@@ -49,18 +39,17 @@ resource "azurerm_storage_blob" "testsb" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the storage blob. Must be unique within the storage container the blob is located.
+* `name` - (Required) The name of the storage blob. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the storage container. Changing this forces a new resource to be created.
+-> **NOTE:** The `name` must be unique within the Storage Account where the Blob is located.
 
-* `storage_account_name` - (Required) Specifies the storage account in which to create the storage container.
- Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the storage container. Changing this forces a new resource to be created.
+
+* `storage_account_name` - (Required) Specifies the storage account in which to create the storage container. Changing this forces a new resource to be created.
 
 * `storage_container_name` - (Required) The name of the storage container in which this blob should be created.
 
-* `type` - (Optional) The type of the storage blob to be created. One of either `block` or `page`. When not copying from an existing blob,
-    this becomes required.
+* `type` - (Optional) The type of the storage blob to be created. One of either `block` or `page`. When not copying from an existing blob, this becomes required.
 
 * `size` - (Optional) Used only for `page` blobs to specify the size in bytes of the blob to be created. Must be a multiple of 512. Defaults to 0.
 
@@ -79,5 +68,5 @@ The following arguments are supported:
 
 The following attributes are exported in addition to the arguments listed above:
 
-* `id` - The storage blob Resource ID.
+* `id` - The ID of the Storage Blob.
 * `url` - The URL of the blob

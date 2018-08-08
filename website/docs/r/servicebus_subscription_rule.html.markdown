@@ -10,116 +10,35 @@ description: |-
 
 Create a ServiceBus Subscription Rule.
 
-## Example Usage (SQL Filter)
+## Example Usage
+
+Complete examples of how to use the `azurerm_servicebus_subscription_rule` resource can be found [in the `./examples/servicebus/subscription-rule` folder within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/servicebus/subscription-rule)
 
 ```hcl
-variable "location" {
-  description = "Azure datacenter to deploy to."
-  default = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-variable "servicebus_name" {
-  description = "Input your unique Azure service bus name"
+resource "azurerm_servicebus_namespace" "example" {
+  # ...
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "terraform-servicebus"
-  location = "${var.location}"
+resource "azurerm_servicebus_topic" "example" {
+  # ...
 }
 
-resource "azurerm_servicebus_namespace" "test" {
-  name                = "${var.servicebus_name}"
-  location            = "${var.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "standard"
-
-  tags {
-    source = "terraform"
-  }
+resource "azurerm_servicebus_subscription" "example" {
+  # ...
 }
 
-resource "azurerm_servicebus_topic" "test" {
-  name                = "testTopic"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-
-  enable_partitioning = true
-}
-
-resource "azurerm_servicebus_subscription" "test" {
-  name                = "testSubscription"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name          = "${azurerm_servicebus_topic.test.name}"
-  max_delivery_count  = 1
-}
-
-resource "azurerm_servicebus_subscription_rule" "test" {
-  name                = "testSubscriptionRule"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name          = "${azurerm_servicebus_topic.test.name}"
-  subscription_name   = "${azurerm_servicebus_subscription.test.name}"
+resource "azurerm_servicebus_subscription_rule" "example" {
+  name                = "example-rule"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
+  topic_name          = "${azurerm_servicebus_topic.example.name}"
+  subscription_name   = "${azurerm_servicebus_subscription.example.name}"
   filter_type         = "SqlFilter"
   sql_filter          = "color = 'red'"
-}
-```
-
-## Example Usage (Correlation Filter)
-
-```hcl
-variable "location" {
-  description = "Azure datacenter to deploy to."
-  default = "West US"
-}
-
-variable "servicebus_name" {
-  description = "Input your unique Azure service bus name"
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "terraform-servicebus"
-  location = "${var.location}"
-}
-
-resource "azurerm_servicebus_namespace" "test" {
-  name                = "${var.servicebus_name}"
-  location            = "${var.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "standard"
-
-  tags {
-    source = "terraform"
-  }
-}
-
-resource "azurerm_servicebus_topic" "test" {
-  name                = "testTopic"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-
-  enable_partitioning = true
-}
-
-resource "azurerm_servicebus_subscription" "test" {
-  name                = "testSubscription"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name          = "${azurerm_servicebus_topic.test.name}"
-  max_delivery_count  = 1
-}
-
-resource "azurerm_servicebus_subscription_rule" "test" {
-  name                = "testSubscriptionRule"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name          = "${azurerm_servicebus_topic.test.name}"
-  subscription_name   = "${azurerm_servicebus_subscription.test.name}"
-  filter_type         = "CorrelationFilter"
-  correlation_filter  = {
-    correlation_id = "high"
-    label          = "red"
-  }
 }
 ```
 
@@ -145,7 +64,9 @@ The following arguments are supported:
 
 * `action` - (Optional) Represents set of actions written in SQL language-based syntax that is performed against a BrokeredMessage.
 
-`correlation_filter` supports the following:
+---
+
+A `correlation_filter` block supports the following:
 
 * `content_type` - (Optional) Content type of the message.
 
@@ -165,12 +86,11 @@ The following arguments are supported:
 
 ~> **NOTE:** When creating a subscription rule of type `CorrelationFilter` at least one property must be set in the `correlation_filter` block.
 
-
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The ServiceBus Subscription Rule ID.
+* `id` - The ID of the ServiceBus Subscription Rule.
 
 ## Import
 

@@ -15,25 +15,26 @@ Manages a Key Vault.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "resourceGroup1"
-  location = "West US"
+data "azurerm_client_config" "example" {}
+
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_key_vault" "test" {
-  name                = "testvault"
-  location            = "West US"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_key_vault" "example" {
+  name                = "examplekeyvault"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   sku {
     name = "standard"
   }
 
-  tenant_id = "d6e396d0-5584-41dc-9fc0-268df99bc610"
+  tenant_id = "${data.azurerm_client_config.example.tenant_id}"
 
   access_policy {
-    tenant_id = "d6e396d0-5584-41dc-9fc0-268df99bc610"
-    object_id = "d746815a-0433-4a21-b95d-fc437d2d475b"
+    tenant_id = "${data.azurerm_client_config.example.tenant_id}"
+    object_id = "00000000-0000-0000-0000-000000000000"
 
     key_permissions = [
       "get",
@@ -65,14 +66,14 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group in which to
     create the Key Vault. Changing this forces a new resource to be created.
 
-* `sku` - (Required) An SKU block as described below.
+* `sku` - (Required) A `sku` block as described below.
 
 * `tenant_id` - (Required) The Azure Active Directory tenant ID that should be
     used for authenticating requests to the key vault.
 
-* `access_policy` - (Optional) An access policy block as described below. A maximum of 16
+* `access_policy` - (Optional) One or more `access_policy` blocks as described below. A maximum of 16
     may be declared.
-    
+
 ~> **NOTE:** It's possible to define Key Vault Access Policies both within [the `azurerm_key_vault` resource](key_vault.html) via the `access_policy` block and by using [the `azurerm_key_vault_access_policy` resource](key_vault_access_policy.html). However it's not possible to use both methods to manage Access Policies within a KeyVault, since there'll be conflicts.
 
 * `enabled_for_deployment` - (Optional) Boolean flag to specify whether Azure Virtual
@@ -89,12 +90,15 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-`sku` supports the following:
+---
 
-* `name` - (Required) SKU name to specify whether the key vault is a `standard`
-    or `premium` vault.
+A `sku` block supports the following:
 
-`access_policy` supports the following:
+* `name` - (Required) The SKU of the Key Vault. Possible values are `Standard` and `Premium`.
+
+---
+
+A `access_policy` block supports the following:
 
 * `tenant_id` - (Required) The Azure Active Directory tenant ID that should be used
     for authenticating requests to the key vault. Must match the `tenant_id` used

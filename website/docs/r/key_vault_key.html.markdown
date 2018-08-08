@@ -14,52 +14,17 @@ Manages a Key Vault Key.
 ## Example Usage
 
 ```hcl
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_resource_group" "test" {
-  name     = "my-resource-group"
-  location = "West US"
-}
-
-resource "random_id" "server" {
-  keepers = {
-    ami_id = 1
-  }
-  byte_length = 8
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "${format("%s%s", "kv", random_id.server.hex)}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
-
-  sku {
-    name = "premium"
-  }
-
-  access_policy {
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
-
-    key_permissions = [
-      "create",
-      "get",
-    ]
-
-    secret_permissions = [
-      "set",
-    ]
-  }
-
-  tags {
-    environment = "Production"
-  }
+  # ...
 }
 
-resource "azurerm_key_vault_key" "generated" {
-  name      = "generated-certificate"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+resource "azurerm_key_vault_key" "example" {
+  name      = "example-key"
+  vault_uri = "${azurerm_key_vault.example.vault_uri}"
   key_type  = "RSA"
   key_size  = 2048
 

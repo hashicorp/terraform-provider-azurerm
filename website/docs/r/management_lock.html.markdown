@@ -11,56 +11,21 @@ description: |-
 
 Manages a Management Lock which is scoped to a Subscription, Resource Group or Resource.
 
-## Example Usage (Subscription Level Lock)
+## Example Usage
 
-```hcl
-data "azurerm_subscription" "current" {}
+Complete examples of how to use the `azurerm_management_lock` resource can be found [in the `./examples/management-locks` folder within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/management-locks)
 
-resource "azurerm_management_lock" "subscription-level" {
-  name       = "subscription-level"
-  scope      = "${data.azurerm_subscription.current.id}"
-  lock_level = "CanNotDelete"
-  notes      = "Items can't be deleted in this subscription!"
-}
-```
-
-## Example Usage (Resource Group Level Lock)
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "locked-resource-group"
-  location = "West Europe"
+  # ...
 }
 
-resource "azurerm_management_lock" "resource-group-level" {
+resource "azurerm_management_lock" "example" {
   name       = "resource-group-level"
-  scope      = "${azurerm_resource_group.test.id}"
+  scope      = "${azurerm_resource_group.example.id}"
   lock_level = "ReadOnly"
   notes      = "This Resource Group is Read-Only"
-}
-```
-
-## Example Usage (Resource Level Lock)
-
-```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "locked-resource-group"
-  location = "West Europe"
-}
-
-resource "azurerm_public_ip" "test" {
-  name = "locked-publicip"
-  location = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
-  idle_timeout_in_minutes = 30
-}
-
-resource "azurerm_management_lock" "public-ip" {
-  name       = "resource-ip"
-  scope      = "${azurerm_public_ip.test.id}"
-  lock_level = "CanNotDelete"
-  notes      = "Locked because it's needed by a third-party"
 }
 ```
 

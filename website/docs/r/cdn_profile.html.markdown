@@ -13,15 +13,14 @@ Create a CDN Profile to create a collection of CDN Endpoints.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "resourceGroup1"
-  location = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_cdn_profile" "test" {
-  name                = "exampleCdnProfile"
-  location            = "West US"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_cdn_profile" "example" {
+  name                = "exampleprofile"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   sku                 = "Standard_Verizon"
 
   tags {

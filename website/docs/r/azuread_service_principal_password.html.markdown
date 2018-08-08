@@ -16,20 +16,15 @@ Manages a Password associated with a Service Principal within Azure Active Direc
 ## Example Usage
 
 ```hcl
-resource "azurerm_azuread_application" "test" {
-  name                       = "example"
-  homepage                   = "http://homepage"
-  identifier_uris            = ["http://uri"]
-  reply_urls                 = ["http://replyurl"]
-  available_to_other_tenants = false
-  oauth2_allow_implicit_flow = true
+resource "azurerm_azuread_application" "example" {
+  # ...
 }
 
-resource "azurerm_azuread_service_principal" "test" {
-  application_id = "${azurerm_azuread_application.test.application_id}"
+resource "azurerm_azuread_service_principal" "example" {
+  # ...
 }
 
-resource "azurerm_azuread_service_principal_password" "test" {
+resource "azurerm_azuread_service_principal_password" "example" {
   service_principal_id = "${azurerm_azuread_service_principal.test.id}"
   value                = "VT=uSgbTanZhyz@%nL9Hpd+Tfay_MRV#"
   end_date             = "2020-01-01T01:02:03Z"

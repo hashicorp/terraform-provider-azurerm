@@ -17,12 +17,7 @@ Manages a Service Principal associated with an Application within Azure Active D
 
 ```hcl
 resource "azurerm_azuread_application" "test" {
-  name                       = "example"
-  homepage                   = "http://homepage"
-  identifier_uris            = ["http://uri"]
-  reply_urls                 = ["http://replyurl"]
-  available_to_other_tenants = false
-  oauth2_allow_implicit_flow = true
+  # ...
 }
 
 resource "azurerm_azuread_service_principal" "test" {

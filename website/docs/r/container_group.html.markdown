@@ -13,33 +13,22 @@ Create as an Azure Container Group instance.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "aci-rg" {
-  name     = "aci-test"
-  location = "west us"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_storage_account" "aci-sa" {
-  name                = "acistorageacct"
-  resource_group_name = "${azurerm_resource_group.aci-rg.name}"
-  location            = "${azurerm_resource_group.aci-rg.location}"
-  account_tier        = "Standard"
-  
-  account_replication_type = "LRS"
+resource "azurerm_storage_account" "example" {
+  # ...
 }
 
-resource "azurerm_storage_share" "aci-share" {
-  name = "aci-test-share"
-
-  resource_group_name  = "${azurerm_resource_group.aci-rg.name}"
-  storage_account_name = "${azurerm_storage_account.aci-sa.name}"
-
-  quota = 50
+resource "azurerm_storage_share" "example" {
+  # ...
 }
 
-resource "azurerm_container_group" "aci-helloworld" {
+resource "azurerm_container_group" "example" {
   name                = "aci-hw"
-  location            = "${azurerm_resource_group.aci-rg.location}"
-  resource_group_name = "${azurerm_resource_group.aci-rg.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   ip_address_type     = "public"
   dns_name_label      = "aci-label"
   os_type             = "linux"
@@ -61,10 +50,10 @@ resource "azurerm_container_group" "aci-helloworld" {
       name       = "logs"
       mount_path = "/aci/logs"
       read_only  = false
-      share_name = "${azurerm_storage_share.aci-share.name}"
-      
-      storage_account_name  = "${azurerm_storage_account.aci-sa.name}"
-      storage_account_key   = "${azurerm_storage_account.aci-sa.primary_access_key}"
+      share_name = "${azurerm_storage_share.example.name}"
+
+      storage_account_name  = "${azurerm_storage_account.example.name}"
+      storage_account_key   = "${azurerm_storage_account.example.primary_access_key}"
     }
   }
 
@@ -143,7 +132,7 @@ The `image_registry_credential` block supports:
 
 * `password` - (Required) The password with which to connect to the registry.
 
-* `server` - (Required) The address to use to connect to the registry without protocol ("https"/"http"). For example: "myacr.acr.io" 
+* `server` - (Required) The address to use to connect to the registry without protocol ("https"/"http"). For example: "myacr.acr.io"
 
 ## Attributes Reference
 

@@ -15,32 +15,21 @@ Create a LoadBalancer Backend Address Pool.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "LoadBalancerRG"
-  location = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_public_ip" "test" {
-  name                         = "PublicIPForLB"
-  location                     = "West US"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
+resource "azurerm_public_ip" "example" {
+  # ...
 }
 
-resource "azurerm_lb" "test" {
-  name                = "TestLoadBalancer"
-  location            = "West US"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  frontend_ip_configuration {
-    name                 = "PublicIPAddress"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
-  }
+resource "azurerm_lb" "example" {
+  # ...
 }
 
-resource "azurerm_lb_backend_address_pool" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  loadbalancer_id     = "${azurerm_lb.test.id}"
+resource "azurerm_lb_backend_address_pool" "example" {
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  loadbalancer_id     = "${azurerm_lb.example.id}"
   name                = "BackEndAddressPool"
 }
 ```

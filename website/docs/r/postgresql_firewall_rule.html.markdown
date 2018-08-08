@@ -10,45 +10,23 @@ description: |-
 
 Manages a Firewall Rule for a PostgreSQL Server
 
-## Example Usage (Single IP Address)
+## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "api-rg-pro"
-  location = "West Europe"
-}
-
-resource "azurerm_postgresql_server" "test" {
+resource "azurerm_resource_group" "example" {
   # ...
 }
 
-resource "azurerm_postgresql_firewall_rule" "test" {
+resource "azurerm_postgresql_server" "example" {
+  # ...
+}
+
+resource "azurerm_postgresql_firewall_rule" "example" {
   name                = "office"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_postgresql_server.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  server_name         = "${azurerm_postgresql_server.example.name}"
   start_ip_address    = "40.112.8.12"
   end_ip_address      = "40.112.8.12"
-}
-```
-
-## Example Usage (IP Range)
-
-```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "api-rg-pro"
-  location = "West Europe"
-}
-
-resource "azurerm_postgresql_server" "test" {
-  # ...
-}
-
-resource "azurerm_postgresql_firewall_rule" "test" {
-  name                = "office"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_postgresql_server.test.name}"
-  start_ip_address    = "40.112.0.0"
-  end_ip_address      = "40.112.255.255"
 }
 ```
 

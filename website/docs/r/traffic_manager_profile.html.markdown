@@ -15,13 +15,6 @@ Manages a Traffic Manager Profile to which multiple endpoints can be attached.
 
 
 ```hcl
-resource "random_id" "server" {
-  keepers = {
-    azi_id = 1
-  }
-  byte_length = 8
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "trafficmanagerProfile"
   location = "West US"
@@ -53,43 +46,40 @@ resource "azurerm_traffic_manager_profile" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the virtual network. Changing this forces a
-    new resource to be created.
+* `name` - (Required) The name of the virtual network. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the virtual network.
+* `resource_group_name` - (Required) The name of the resource group in which to create the virtual network.
 
-* `profile_status` - (Optional) The status of the profile, can be set to either
-    `Enabled` or `Disabled`. Defaults to `Enabled`.
+* `dns_config` - (Required) A `dns_config` block as defined below.
 
-* `traffic_routing_method` - (Required) Specifies the algorithm used to route
-    traffic, possible values are:
-    - `Geographic` - Traffic is routed based on Geographic regions specified in the Endpoint.
-    - `Performance` - Traffic is routed via the User's closest Endpoint
-    - `Weighted` - Traffic is spread across Endpoints proportional to their `weight` value.
-    - `Priority` - Traffic is routed to the Endpoint with the lowest `priority` value.
+* `monitor_config` - (Required) A `monitor_config` block as defined below.
 
-* `dns_config` - (Required) This block specifies the DNS configuration of the
-    Profile, it supports the fields documented below.
+* `traffic_routing_method` - (Required) Specifies the algorithm used to route traffic, possible values are:
 
-* `monitor_config` - (Required) This block specifies the Endpoint monitoring
-    configuration for the Profile, it supports the fields documented below.
+    - `Geographic` - where traffic is routed based on Geographic regions specified in the Endpoint.
+    - `Performance` - where traffic is routed via the User's closest Endpoint.
+    - `Priority` - where traffic is routed to the Endpoint with the lowest `priority` value.
+    - `Weighted` - where traffic is spread across Endpoints proportional to their `weight` value.
+
+---
+
+* `profile_status` - (Optional) The status of the profile. Possible values are `Enabled` or `Disabled`. Defaults to `Enabled`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-The `dns_config` block supports:
+---
 
-* `relative_name` - (Required) The relative domain name, this is combined with
-    the domain name used by Traffic Manager to form the FQDN which is exported
-    as documented below. Changing this forces a new resource to be created.
+The `dns_config` block supports the following:
 
-* `ttl` - (Required) The TTL value of the Profile used by Local DNS resolvers
-    and clients.
+* `relative_name` - (Required) The relative domain name, this is combined with the domain name used by Traffic Manager to form the FQDN which is exported as documented below. Changing this forces a new resource to be created.
 
-The `monitor_config` block supports:
+* `ttl` - (Required) The TTL value of the Profile used by Local DNS resolvers and clients.
 
-* `protocol` - (Required) The protocol used by the monitoring checks, supported
-    values are `HTTP`, `HTTPS` and `TCP`.
+---
+
+A `monitor_config` block supports the following:
+
+* `protocol` - (Required) The protocol used by the monitoring checks, supported values are `HTTP`, `HTTPS` and `TCP`.
 
 * `port` - (Required) The port number used by the monitoring checks.
 
@@ -99,12 +89,8 @@ The `monitor_config` block supports:
 
 The following attributes are exported:
 
-* `id` - The Traffic Manager Profile id.
+* `id` - The ID of the Traffic Manager Profile.
 * `fqdn` - The FQDN of the created Profile.
-
-## Notes
-
-The Traffic Manager is created with the location `global`.
 
 ## Import
 

@@ -12,51 +12,29 @@ Manages a Virtual Machine.
 
 ~> **NOTE:** Data Disks can be attached either directly on the `azurerm_virtual_machine` resource, or using the `azurerm_virtual_machine_data_disk_attachment` resource - but the two cannot be used together. If both are used against the same Virtual Machine, spurious changes will occur.
 
-## Example Usage (from an Azure Platform Image)
+## Example Usage
 
 This example provisions a Virtual Machine with Managed Disks. Other examples of the `azurerm_virtual_machine` resource can be found in [the `./examples/virtual-machines` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/virtual-machines)
 
 ```hcl
-variable "prefix" {
-  default = "tfvmex"
+resource "azurerm_resource_group" "example" {
+  # ...
+}
+resource "azurerm_virtual_network" "example" {
+  # ...
+}
+resource "azurerm_subnet" "example" {
+  # ...
+}
+resource "azurerm_network_interface" "example" {
+  # ...
 }
 
-resource "azurerm_resource_group" "main" {
-  name     = "${var.prefix}-resources"
-  location = "West US 2"
-}
-
-resource "azurerm_virtual_network" "main" {
-  name                = "${var.prefix}-network"
-  address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.main.location}"
-  resource_group_name = "${azurerm_resource_group.main.name}"
-}
-
-resource "azurerm_subnet" "internal" {
-  name                 = "internal"
-  resource_group_name  = "${azurerm_resource_group.main.name}"
-  virtual_network_name = "${azurerm_virtual_network.main.name}"
-  address_prefix       = "10.0.2.0/24"
-}
-
-resource "azurerm_network_interface" "main" {
-  name                = "${var.prefix}-nic"
-  location            = "${azurerm_resource_group.main.location}"
-  resource_group_name = "${azurerm_resource_group.main.name}"
-
-  ip_configuration {
-    name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.internal.id}"
-    private_ip_address_allocation = "dynamic"
-  }
-}
-
-resource "azurerm_virtual_machine" "main" {
-  name                  = "${var.prefix}-vm"
-  location              = "${azurerm_resource_group.main.location}"
-  resource_group_name   = "${azurerm_resource_group.main.name}"
-  network_interface_ids = ["${azurerm_network_interface.main.id}"]
+resource "azurerm_virtual_machine" "example" {
+  name                  = "example-vm"
+  location              = "${azurerm_resource_group.example.location}"
+  resource_group_name   = "${azurerm_resource_group.example.name}"
+  network_interface_ids = ["${azurerm_network_interface.example.id}"]
   vm_size               = "Standard_DS1_v2"
 
   # Uncomment this line to delete the OS disk automatically when deleting the VM
@@ -107,9 +85,9 @@ The following arguments are supported:
 
 * `network_interface_ids` - (Required) A list of Network Interface ID's which should be associated with the Virtual Machine.
 
-* `os_profile_linux_config` - (Required, when a Linux machine) A `os_profile_linux_config` block.
+* `os_profile_linux_config` - (Required, when a Linux machine) A `os_profile_linux_config` block as defined below
 
-* `os_profile_windows_config` - (Required, when a Windows machine) A `os_profile_windows_config` block.
+* `os_profile_windows_config` - (Required, when a Windows machine) A `os_profile_windows_config` block as defined below.
 
 * `vm_size` - (Required) Specifies the [size of the Virtual Machine](https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-size-specs/).
 
@@ -117,31 +95,31 @@ The following arguments are supported:
 
 * `availability_set_id` - (Optional) The ID of the Availability Set in which the Virtual Machine should exist. Changing this forces a new resource to be created.
 
-* `boot_diagnostics` - (Optional) A `boot_diagnostics` block.
+* `boot_diagnostics` - (Optional) A `boot_diagnostics` block as defined below.
 
 * `delete_os_disk_on_termination` - (Optional) Should the OS Disk (either the Managed Disk / VHD Blob) be deleted when the Virtual Machine is destroyed? Defaults to `false`.
 
 * `delete_data_disks_on_termination` - (Optional) Should the Data Disks (either the Managed Disks / VHD Blobs) be deleted when the Virtual Machine is destroyed? Defaults to `false`.
 
-* `identity` - (Optional) A `identity` block.
+* `identity` - (Optional) A `identity` block as defined below.
 
 * `license_type` - (Optional) Specifies the BYOL Type for this Virtual Machine. This is only applicable to Windows Virtual Machines. Possible values are `Windows_Client` and `Windows_Server`.
 
-* `os_profile` - (Optional) An `os_profile` block. Required when `create_option` in the `storage_os_disk` block is set to `FromImage`.
+* `os_profile` - (Optional) An `os_profile` block as defined below. Required when `create_option` in the `storage_os_disk` block is set to `FromImage`.
 
-* `os_profile_secrets` - (Optional) One or more `os_profile_secrets` blocks.
+* `os_profile_secrets` - (Optional) One or more `os_profile_secrets` blocks as defined below.
 
-* `plan` - (Optional) A `plan` block.
+* `plan` - (Optional) A `plan` block as defined below.
 
 * `primary_network_interface_id` - (Optional) The ID of the Network Interface (which must be attached to the Virtual Machine) which should be the Primary Network Interface for this Virtual Machine.
 
-* `storage_data_disk` - (Optional) One or more `storage_data_disk` blocks.
+* `storage_data_disk` - (Optional) One or more `storage_data_disk` blocks as defined below.
 
 ~> **Please Note:** Data Disks can also be attached either using this block or [the `azurerm_virtual_machine_data_disk_attachment` resource](virtual_machine_data_disk_attachment.html) - but not both.
 
-* `storage_image_reference` - (Optional) A `storage_image_reference` block.
+* `storage_image_reference` - (Optional) A `storage_image_reference` block as defined below.
 
-* `storage_os_disk` - (Required) A `storage_os_disk` block.
+* `storage_os_disk` - (Required) A `storage_os_disk` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the Virtual Machine.
 

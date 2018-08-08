@@ -14,12 +14,11 @@ Manages a Automation Account.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
- name = "resourceGroup1"
- location = "West Europe"
+  # ...
 }
 
 resource "azurerm_automation_account" "example" {
-  name                = "automationAccount1"
+  name                = "example-automation"
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
 

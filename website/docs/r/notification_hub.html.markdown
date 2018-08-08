@@ -14,27 +14,19 @@ Manages a Notification Hub within a Notification Hub Namespace.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name = "notificationhub-resources"
-  location = "Australia East"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_notification_hub_namespace" "test" {
-  name                = "myappnamespace"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  namespace_type      = "NotificationHub"
-
-  sku {
-    name = "Free"
-  }
+resource "azurerm_notification_hub_namespace" "example" {
+  # ...
 }
 
-resource "azurerm_notification_hub" "test" {
-  name                = "mynotificationhub"
-  namespace_name      = "${azurerm_notification_hub_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+resource "azurerm_notification_hub" "example" {
+  name                = "example-hub"
+  namespace_name      = "${azurerm_notification_hub_namespace.example.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
 }
 ```
 

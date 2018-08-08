@@ -8,29 +8,23 @@ description: |-
 
 # azurerm_sql_firewall_rule
 
-Allows you to manage an Azure SQL Firewall Rule
+Manages a SQL Firewall Rule
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "acceptanceTestResourceGroup1"
-  location = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_sql_server" "test" {
-    name = "mysqlserver"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "West US"
-    version = "12.0"
-    administrator_login = "4dm1n157r470r"
-    administrator_login_password = "4-v3ry-53cr37-p455w0rd"
+resource "azurerm_sql_server" "example" {
+  # ...
 }
 
-resource "azurerm_sql_firewall_rule" "test" {
-  name                = "FirewallRule1"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_sql_server.test.name}"
+resource "azurerm_sql_firewall_rule" "example" {
+  name                = "example-rule"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  server_name         = "${azurerm_sql_server.example.name}"
   start_ip_address    = "10.0.17.62"
   end_ip_address      = "10.0.17.62"
 }
@@ -41,8 +35,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the firewall rule.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the sql server.
+* `resource_group_name` - (Required) The name of the resource group in which to create the sql server.
 
 * `server_name` - (Required) The name of the SQL Server on which to create the Firewall Rule.
 
@@ -56,7 +49,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The SQL Firewall Rule ID.
+* `id` - The ID of the SQL Firewall Rule.
 
 ## Import
 

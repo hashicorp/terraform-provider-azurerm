@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventhub_namespace"
-sidebar_current: "docs-azurerm-resource-messaging-eventhub-namespace"
+sidebar_current: "docs-azurerm-resource-messaging-eventhub-namespace-x"
 description: |-
   Manages an EventHub Namespace.
 ---
@@ -13,15 +13,14 @@ Create an EventHub Namespace.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "resourceGroup1"
-  location = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_eventhub_namespace" "test" {
-  name                = "acceptanceTestEventHubNamespace"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_eventhub_namespace" "example" {
+  name                = "example-namespace"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   sku                 = "Standard"
   capacity            = 2
 

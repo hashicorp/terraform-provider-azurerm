@@ -18,22 +18,18 @@ At this time you cannot use a Virtual Network with in-line Subnets in conjunctio
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "acceptanceTestResourceGroup1"
-  location = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acceptanceTestVirtualNetwork1"
-  address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_virtual_network" "example" {
+  # ...
 }
 
-resource "azurerm_subnet" "test" {
-  name                 = "testsubnet"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+resource "azurerm_subnet" "example" {
+  name                 = "internal"
+  resource_group_name  = "${azurerm_resource_group.example.name}"
+  virtual_network_name = "${azurerm_virtual_network.example.name}"
   address_prefix       = "10.0.1.0/24"
 }
 ```
@@ -42,7 +38,9 @@ resource "azurerm_subnet" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the subnet. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Subnet. Changing this forces a new resource to be created.
+
+-> **NOTE:** This needs to be unique within the Virtual Network.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the subnet. Changing this forces a new resource to be created.
 
@@ -54,23 +52,20 @@ The following arguments are supported:
 
 * `route_table_id` - (Optional) The ID of the Route Table to associate with the subnet.
 
-* `service_endpoints` - (Optional) The list of Service endpoints to associate with the subnet. Possible values include: `Microsoft.Storage`, `Microsoft.Sql`.
+* `service_endpoints` - (Optional) The list of Service endpoints to associate with the subnet. Possible values include: `Microsoft.Storage` and `Microsoft.Sql`.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The subnet ID.
-* `ip_configurations` - The collection of IP Configurations with IPs within this subnet.
-* `name` - The name of the subnet.
-* `resource_group_name` - The name of the resource group in which the subnet is created in.
-* `virtual_network_name` - The name of the virtual network in which the subnet is created in
-* `address_prefix` - The address prefix for the subnet
+* `id` - The ID of the Subnet.
+
+* `ip_configurations` - A list of ID's of the IP Configurations attached to this subnet.
 
 ## Import
 
 Subnets can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_subnet.testSubnet /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/virtualNetworks/myvnet1/subnets/mysubnet1
+terraform import azurerm_subnet.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/virtualNetworks/myvnet1/subnets/mysubnet1
 ```

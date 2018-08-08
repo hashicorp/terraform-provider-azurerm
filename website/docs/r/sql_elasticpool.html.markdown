@@ -13,30 +13,24 @@ Allows you to manage an Azure SQL Elastic Pool.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name = "my-resource-group"
-  location = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_sql_server" "test" {
-    name = "my-sql-server" # NOTE: needs to be globally unique
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    version = "12.0"
-    administrator_login = "4dm1n157r470r"
-    administrator_login_password = "4-v3ry-53cr37-p455w0rd"
+resource "azurerm_sql_server" "example"
+  # ...
 }
 
-resource "azurerm_sql_elasticpool" "test" {
-    name = "test"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    server_name = "${azurerm_sql_server.test.name}"
-    edition = "Basic"
-    dtu = 50
-    db_dtu_min = 0
-    db_dtu_max = 5
-    pool_size = 5000
+resource "azurerm_sql_elasticpool" "example" {
+  name                = "example-pool"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  server_name         = "${azurerm_sql_server.example.name}"
+  edition             = "Basic"
+  dtu                 = 50
+  db_dtu_min          = 0
+  db_dtu_max          = 5
+  pool_size           = 5000
 }
 ```
 
@@ -70,6 +64,14 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The SQL Elastic Pool ID.
+* `id` - The ID of the SQL Elastic Pool.
 
 * `creation_date` - The creation date of the SQL Elastic Pool.
+
+## Import
+
+SQL Elastic Pool's can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_sql_elasticpool.pool1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Sql/servers/server1/elasticPools/pool1
+```

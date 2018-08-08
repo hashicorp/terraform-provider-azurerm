@@ -17,15 +17,14 @@ Manages a SQL Azure Database Server.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "database-rg"
-  location = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_sql_server" "test" {
-  name                         = "mysqlserver"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+resource "azurerm_sql_server" "example" {
+  name                         = "example-server"
+  resource_group_name          = "${azurerm_resource_group.example.name}"
+  location                     = "${azurerm_resource_group.example.location}"
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
@@ -57,7 +56,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The SQL Server ID.
+* `id` - The ID of the SQL Server.
 * `fully_qualified_domain_name` - The fully qualified domain name of the Azure SQL Server (e.g. myServerName.database.windows.net)
 
 ## Import

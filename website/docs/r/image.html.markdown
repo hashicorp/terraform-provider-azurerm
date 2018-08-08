@@ -10,41 +10,22 @@ description: |-
 
 Create a custom virtual machine image that can be used to create virtual machines.
 
-## Example Usage Creating from VHD
+## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name = "acctest"
-  location = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_image" "test" {
-  name = "acctest"
-  location = "West US"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  os_disk {
-    os_type = "Linux"
-    os_state = "Generalized"
-    blob_uri = "{blob_uri}"
-    size_gb = 30
-  }
-}
-```
-
-## Example Usage Creating from Virtual Machine (VM must be generalized beforehand)
-
-```hcl
-resource "azurerm_resource_group" "test" {
-  name = "acctest"
-  location = "West US"
+resource "azurerm_virtual_machine" "example" {
+  # ...
 }
 
-resource "azurerm_image" "test" {
-  name = "acctest"
-  location = "West US"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  source_virtual_machine_id = "{vm_id}"
+resource "azurerm_image" "example" {
+  name                      = "example-image"
+  location                  = "${azurerm_resource_group.example.location}"
+  resource_group_name       = "${azurerm_resource_group.example.name}"
+  source_virtual_machine_id = "${azurerm_virtual_machine.example.id}"
 }
 ```
 
@@ -59,6 +40,9 @@ The following arguments are supported:
 * `location` - (Required) Specified the supported Azure location where the resource exists.
     Changing this forces a new resource to be created.
 * `source_virtual_machine_id` - (Optional) The Virtual Machine ID from which to create the image.
+
+-> **NOTE:** The Virtual Machine must be Generalized prior to an image being taken - more information can be found for both [Linux](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/capture-image) and [Windows](https://docs.microsoft.com/en-gb/azure/virtual-machines/windows/sa-copy-generalized) respectively.
+
 * `os_disk` - (Optional) One or more `os_disk` elements as defined below.
 * `data_disk` - (Optional) One or more `data_disk` elements as defined below.
 * `tags` - (Optional) A mapping of tags to assign to the resource.

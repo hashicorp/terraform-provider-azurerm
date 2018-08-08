@@ -13,20 +13,18 @@ Enables you to manage DNS SRV Records within Azure DNS.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "acceptanceTestResourceGroup1"
-  location = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_dns_zone" "test" {
-  name                = "mydomain.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_dns_zone" "example" {
+  # ...
 }
 
-resource "azurerm_dns_srv_record" "test" {
-  name                = "test"
-  zone_name           = "${azurerm_dns_zone.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_dns_srv_record" "example" {
+  name                = "example"
+  zone_name           = "${azurerm_dns_zone.example.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   ttl                 = 300
 
   record {

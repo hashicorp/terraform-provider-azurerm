@@ -11,75 +11,29 @@ description: |-
 
 Manages a Function App.
 
-## Example Usage (with App Service Plan)
+## Example Usage
+
+Complete examples of how to use the `azurerm_function_app` resource can be found [in the `./examples/function-apps` folder within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/function-apps)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "azure-functions-test-rg"
-  location = "westus2"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "functionsapptestsa"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+resource "azurerm_storage_account" "example" {
+  # ...
 }
 
-resource "azurerm_app_service_plan" "test" {
-  name                = "azure-functions-test-service-plan"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
+resource "azurerm_app_service_plan" "example" {
+  # ...
 }
 
-resource "azurerm_function_app" "test" {
-  name                      = "test-azure-functions"
-  location                  = "${azurerm_resource_group.test.location}"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
-  storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
-}
-```
-## Example Usage (in a Consumption Plan)
-
-```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "azure-functions-cptest-rg"
-  location = "westus2"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "functionsapptestsa"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "azure-functions-test-service-plan"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  kind                = "FunctionApp"
-
-  sku {
-    tier = "Dynamic"
-    size = "Y1"
-  }
-}
-
-resource "azurerm_function_app" "test" {
-  name                      = "test-azure-functions"
-  location                  = "${azurerm_resource_group.test.location}"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
-  storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+resource "azurerm_function_app" "example" {
+  name                      = "example-function-app"
+  location                  = "${azurerm_resource_group.example.location}"
+  resource_group_name       = "${azurerm_resource_group.example.name}"
+  app_service_plan_id       = "${azurerm_app_service_plan.example.id}"
+  storage_connection_string = "${azurerm_storage_account.example.primary_connection_string}"
 }
 ```
 

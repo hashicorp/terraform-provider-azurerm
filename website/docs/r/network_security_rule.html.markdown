@@ -18,19 +18,16 @@ At this time you cannot use a Network Security Group with in-line Network Securi
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "acceptanceTestResourceGroup1"
-  location = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_network_security_group" "test" {
-  name                = "acceptanceTestSecurityGroup1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_network_security_group" "example" {
+  # ...
 }
 
-resource "azurerm_network_security_rule" "test" {
-  name                        = "test123"
+resource "azurerm_network_security_rule" "example" {
+  name                        = "example-rule"
   priority                    = 100
   direction                   = "Outbound"
   access                      = "Allow"
@@ -39,8 +36,8 @@ resource "azurerm_network_security_rule" "test" {
   destination_port_range      = "*"
   source_address_prefix       = "*"
   destination_address_prefix  = "*"
-  resource_group_name         = "${azurerm_resource_group.test.name}"
-  network_security_group_name = "${azurerm_network_security_group.test.name}"
+  resource_group_name         = "${azurerm_resource_group.example.name}"
+  network_security_group_name = "${azurerm_network_security_group.example.name}"
 }
 ```
 

@@ -11,60 +11,29 @@ description: |-
 
 Manages a [metric-based alert rule](https://docs.microsoft.com/en-us/azure/monitoring-and-diagnostics/monitor-quick-resource-metric-alert-portal) in Azure Monitor.
 
-## Example Usage (CPU Percentage of a virtual machine)
+## Example Usage
 
 ```hcl
-resource "azurerm_metric_alertrule" "test" {
-  name = "${azurerm_virtual_machine.test.name}-cpu"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location = "${azurerm_resource_group.test.location}"
-
-  description = "An alert rule to watch the metric Percentage CPU"
-
-  enabled = true
-
-  resource_id = "${azurerm_virtual_machine.test.id}"
-  metric_name = "Percentage CPU"
-  operator = "GreaterThan"
-  threshold = 75
-  aggregation = "Average"
-  period = "PT5M"
-
-  email_action {
-    send_to_service_owners = false
-    custom_emails = [
-      "some.user@example.com",
-    ]
-  }
-
-  webhook_action {
-    service_uri = "https://example.com/some-url"
-      properties = {
-        severity = "incredible"
-        acceptance_test = "true"
-      }
-  }
+resource "azurerm_resource_group" "example" {
+  # ...
 }
-```
 
-## Example Usage (Storage usage of a SQL Database)
+resource "azurerm_virtual_machine" "example" {
+  # ...
+}
 
-```hcl
-resource "azurerm_metric_alertrule" "test" {
-  name = "${azurerm_sql_database.test.name}-storage"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location = "${azurerm_resource_group.test.location}"
-
-  description = "An alert rule to watch the metric Storage"
-
-  enabled = true
-
-  resource_id = "${azurerm_sql_database.test.id}"
-  metric_name = "storage"
-  operator = "GreaterThan"
-  threshold = 1073741824
-  aggregation = "Maximum"
-  period = "PT10M"
+resource "azurerm_metric_alertrule" "example" {
+  name                = "${azurerm_virtual_machine.example.name}-cpu"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  description         = "An alert rule to watch the metric Percentage CPU"
+  enabled             = true
+  resource_id         = "${azurerm_virtual_machine.example.id}"
+  metric_name         = "Percentage CPU"
+  operator            = "GreaterThan"
+  threshold           = 75
+  aggregation         = "Average"
+  period              = "PT5M"
 
   email_action {
     send_to_service_owners = false
@@ -75,10 +44,10 @@ resource "azurerm_metric_alertrule" "test" {
 
   webhook_action {
     service_uri = "https://example.com/some-url"
-      properties = {
-        severity = "incredible"
-        acceptance_test = "true"
-      }
+    properties {
+      severity = "incredible"
+      acceptance_test = "true"
+    }
   }
 }
 ```
@@ -95,7 +64,7 @@ The following arguments are supported:
 
 * `description` - (Optional) A verbose description of the alert rule that will be included in the alert email.
 
-* `enabled` - (Optional) If `true`, the alert rule is enabled. Defaults to `true`.
+* `enabled` - (Optional) Is this alert rule enabled? Defaults to `true`.
 
 ---
 

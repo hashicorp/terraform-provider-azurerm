@@ -10,21 +10,18 @@ description: |-
 
 Manage a Azure Data Lake Store File.
 
-~> **Note:** If you want to change the data in the remote file without changing the `local_file_path`, then 
+~> **Note:** If you want to change the data in the remote file without changing the `local_file_path`, then
 taint the resource so the `azurerm_data_lake_store_file` gets recreated with the new data.
 
 ## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example"
-  location = "northeurope"
+  # ...
 }
 
 resource "azurerm_data_lake_store" "example" {
-  name                = "consumptiondatalake"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  # ...
 }
 
 resource "azurerm_data_lake_store_file" "example" {

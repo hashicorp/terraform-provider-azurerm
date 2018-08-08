@@ -13,15 +13,14 @@ Manages a Logic App Workflow.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "workflow-resources"
-  location = "East US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_logic_app_workflow" "test" {
-  name = "workflow1"
-  location = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_logic_app_workflow" "example" {
+  name                = "workflow1"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 }
 ```
 

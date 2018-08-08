@@ -13,20 +13,17 @@ Manages a Recurrence Trigger within a Logic App Workflow
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "workflow-resources"
-  location = "East US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_logic_app_workflow" "test" {
-  name = "workflow1"
-  location = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_logic_app_workflow" "example" {
+  # ...
 }
 
-resource "azurerm_logic_app_trigger_recurrence" "test" {
+resource "azurerm_logic_app_trigger_recurrence" "example" {
   name         = "run-every-day"
-  logic_app_id = "${azurerm_logic_app_workflow.test.id}"
+  logic_app_id = "${azurerm_logic_app_workflow.example.id}"
   frequency    = "Day"
   interval     = 1
 }

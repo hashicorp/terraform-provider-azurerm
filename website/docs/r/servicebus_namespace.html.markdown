@@ -8,28 +8,18 @@ description: |-
 
 # azurerm_servicebus_namespace
 
-Create a ServiceBus Namespace.
+Manages a ServiceBus Namespace.
 
 ## Example Usage
 
 ```hcl
-variable "location" {
-  description = "Azure datacenter to deploy to."
-  default = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-variable "servicebus_name" {
-  description = "Input your unique Azure service bus name"
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "terraform-servicebus"
-  location = "${var.location}"
-}
-
-resource "azurerm_servicebus_namespace" "test" {
-  name                = "${var.servicebus_name}"
-  location            = "${var.location}"
+resource "azurerm_servicebus_namespace" "example" {
+  name                = "example-namespace"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "basic"
 
@@ -61,7 +51,9 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ServiceBus Namespace ID.
+* `id` - The ID of the ServiceBus Namespace.
+
+---
 
 The following attributes are exported only if there is an authorization rule named
 `RootManageSharedAccessKey` which is created automatically by Azure.

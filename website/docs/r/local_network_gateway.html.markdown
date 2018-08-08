@@ -13,16 +13,14 @@ Manages a local network gateway connection over which specific connections can b
 ## Example Usage
 
 ```hcl
-
-resource "azurerm_resource_group" "test" {
-  name     = "localNetworkGWTest"
-  location = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_local_network_gateway" "home" {
+resource "azurerm_local_network_gateway" "example" {
   name                = "backHome"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
   gateway_address     = "12.13.14.15"
   address_space       = ["10.0.0.0/16"]
 }

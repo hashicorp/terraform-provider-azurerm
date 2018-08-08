@@ -13,28 +13,18 @@ Manages an Authorization Rule for an Event Hub Namespace.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "resourceGroup1"
-  location = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_eventhub_namespace" "test" {
-  name                = "acceptanceTestEventHubNamespace"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "Basic"
-  capacity            = 2
-
-  tags {
-    environment = "Production"
-  }
+resource "azurerm_eventhub_namespace" "example" {
+  # ...
 }
 
-resource "azurerm_eventhub_namespace_authorization_rule" "test" {
-  name                = "navi"
-  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  
+resource "azurerm_eventhub_namespace_authorization_rule" "example" {
+  name                = "example-auth-rule"
+  namespace_name      = "${azurerm_eventhub_namespace.example.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   listen              = true
   send                = false
   manage              = false

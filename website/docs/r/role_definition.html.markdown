@@ -14,11 +14,11 @@ Manages a custom Role Definition, used to assign Roles to Users/Principals.
 ## Example Usage
 
 ```hcl
-data "azurerm_subscription" "primary" {}
+data "azurerm_subscription" "example" {}
 
-resource "azurerm_role_definition" "test" {
-  name               = "my-custom-role"
-  scope              = "${data.azurerm_subscription.primary.id}"
+resource "azurerm_role_definition" "example" {
+  name               = "example-role"
+  scope              = "${data.azurerm_subscription.example.id}"
   description        = "This is a custom role created via Terraform"
 
   permissions {
@@ -27,7 +27,8 @@ resource "azurerm_role_definition" "test" {
   }
 
   assignable_scopes = [
-    "${data.azurerm_subscription.primary.id}", # /subscriptions/00000000-0000-0000-0000-000000000000
+    # /subscriptions/00000000-0000-0000-0000-000000000000
+    "${data.azurerm_subscription.example.id}",
   ]
 }
 ```
@@ -40,13 +41,18 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Role Definition. Changing this forces a new resource to be created.
 
-* `scope` - (Required) The scope at which the Role Definition applies too, such as `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333`, `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup`, or `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM`. Changing this forces a new resource to be created.
+* `scope` - (Required) The scope at which the Role Definition applies to. This can be the ID of a Subscription (e.g. `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333`), a Resource Group (e.g. `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup`) or a resource within a Resource Group (e.g. `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM`). Changing this forces a new resource to be created.
+
+-> **NOTE:** We recommend using [Interpolation Syntax](https://www.terraform.io/docs/configuration/interpolation.html) to pull this value from a Data Source or Resource where possible, rather than hard-coding the ID's.
+
 
 * `description` - (Optional) A description of the Role Definition.
 
 * `permissions` - (Required) A `permissions` block as defined below.
 
-* `assignable_scopes` - (Required) One or more assignable scopes for this Role Definition, such as `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333`, `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup`, or `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM`.
+* `assignable_scopes` - (Required) One or more assignable scopes for this Role Definition. This can be the ID of a Subscription (e.g. `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333`), a Resource Group (e.g. `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup`) or a resource within a Resource Group (e.g. `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM`). Changing this forces a new resource to be created.
+
+-> **NOTE:** We recommend using [Interpolation Syntax](https://www.terraform.io/docs/configuration/interpolation.html) to pull this value from a Data Source or Resource where possible, rather than hard-coding the ID's.
 
 A `permissions` block as the following properties:
 

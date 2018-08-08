@@ -13,20 +13,17 @@ Manages a HTTP Request Trigger within a Logic App Workflow
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "workflow-resources"
-  location = "East US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_logic_app_workflow" "test" {
-  name = "workflow1"
-  location = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_logic_app_workflow" "example" {
+  # ...
 }
 
-resource "azurerm_logic_app_trigger_http_request" "test" {
+resource "azurerm_logic_app_trigger_http_request" "example" {
   name         = "some-http-trigger"
-  logic_app_id = "${azurerm_logic_app_workflow.test.id}"
+  logic_app_id = "${azurerm_logic_app_workflow.example.id}"
 
   schema = <<SCHEMA
 {

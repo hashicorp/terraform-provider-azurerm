@@ -13,21 +13,18 @@ Manages a Route within a Route Table.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "acceptanceTestResourceGroup1"
-  location = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_route_table" "test" {
-  name                = "acceptanceTestRouteTable1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_route_table" "example" {
+  # ...
 }
 
-resource "azurerm_route" "test" {
-  name                = "acceptanceTestRoute1"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  route_table_name    = "${azurerm_route_table.test.name}"
+resource "azurerm_route" "example" {
+  name                = "example-route"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  route_table_name    = "${azurerm_route_table.example.name}"
   address_prefix      = "10.1.0.0/16"
   next_hop_type       = "vnetlocal"
 }
@@ -47,13 +44,13 @@ The following arguments are supported:
 
 * `next_hop_type` - (Required) The type of Azure hop the packet should be sent to. Possible values are `VirtualNetworkGateway`, `VnetLocal`, `Internet`, `VirtualAppliance` and `None`
 
-* `next_hop_in_ip_address` - (Optional) Contains the IP address packets should be forwarded to. Next hop values are only allowed in routes where the next hop type is `VirtualAppliance`.
+* `next_hop_in_ip_address` - (Optional) Contains the IP address packets should be forwarded to. This field can only be set when `next_hop_type` is set to `VirtualAppliance`.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The Route ID.
+* `id` - The ID of the Route.
 
 ## Import
 

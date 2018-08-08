@@ -10,21 +10,22 @@ description: |-
 
 Manages an Azure Container Service Instance
 
-~> **Note:** All arguments including the client secret will be stored in the raw state as plain-text.
+~> **NOTE:** All arguments including the client secret will be stored in the raw state as plain-text.
 [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
-## Example Usage (DCOS)
+## Example Usage
+
+~> **NOTE:** If you're working with Kubernetes - we'd recommend using [the `azurerm_kubernetes_cluster` resource](kubernetes_cluster.html) instead of this resource.
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG1"
-  location = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_container_service" "test" {
-  name                   = "acctestcontservice1"
-  location               = "${azurerm_resource_group.test.location}"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+resource "azurerm_container_service" "example" {
+  name                   = "dcoscontainersvc"
+  location               = "${azurerm_resource_group.example.location}"
+  resource_group_name    = "${azurerm_resource_group.example.name}"
   orchestration_platform = "DCOS"
 
   master_profile {
@@ -36,100 +37,7 @@ resource "azurerm_container_service" "test" {
     admin_username = "acctestuser1"
 
     ssh_key {
-      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-    }
-  }
-
-  agent_pool_profile {
-    name       = "default"
-    count      = 1
-    dns_prefix = "acctestagent1"
-    vm_size    = "Standard_F2"
-  }
-
-  diagnostics_profile {
-    enabled = false
-  }
-
-  tags {
-    Environment = "Production"
-  }
-}
-```
-
-## Example Usage (Kubernetes)
-
-```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG1"
-  location = "West US"
-}
-
-resource "azurerm_container_service" "test" {
-  name                   = "acctestcontservice1"
-  location               = "${azurerm_resource_group.test.location}"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  orchestration_platform = "Kubernetes"
-
-  master_profile {
-    count      = 1
-    dns_prefix = "acctestmaster1"
-  }
-
-  linux_profile {
-    admin_username = "acctestuser1"
-
-    ssh_key {
-      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-    }
-  }
-
-  agent_pool_profile {
-    name       = "default"
-    count      = 1
-    dns_prefix = "acctestagent1"
-    vm_size    = "Standard_F2"
-  }
-
-  service_principal {
-    client_id     = "00000000-0000-0000-0000-000000000000"
-    client_secret = "00000000000000000000000000000000"
-  }
-
-  diagnostics_profile {
-    enabled = false
-  }
-
-  tags {
-    Environment = "Production"
-  }
-}
-```
-
-## Example Usage (Swarm)
-
-```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG1"
-  location = "West US"
-}
-
-resource "azurerm_container_service" "test" {
-  name                   = "acctestcontservice1"
-  location               = "${azurerm_resource_group.test.location}"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  orchestration_platform = "Swarm"
-
-  master_profile {
-    count      = 1
-    dns_prefix = "acctestmaster1"
-  }
-
-  linux_profile {
-    admin_username = "acctestuser1"
-
-    ssh_key {
-      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+      key_data = "ssh-rsa public-key-goes-here terraform@demo.tld"
     }
   }
 
@@ -162,15 +70,17 @@ The following arguments are supported:
 
 * `orchestration_platform` - (Required) Specifies the Container Orchestration Platform to use. Currently can be either `DCOS`, `Kubernetes` or `Swarm`. Changing this forces a new resource to be created.
 
-* `master_profile` - (Required) A Master Profile block as documented below.
+~> **NOTE:** If you're working with Kubernetes - we'd recommend using [the `azurerm_kubernetes_cluster` resource](kubernetes_cluster.html) instead of this resource.
 
-* `linux_profile` - (Required) A Linux Profile block as documented below.
+* `master_profile` - (Required) A `master_profile` block as documented below.
 
-* `agent_pool_profile` - (Required) One or more Agent Pool Profile's block as documented below.
+* `linux_profile` - (Required) A `linux_profile` block as documented below.
+
+* `agent_pool_profile` - (Required) One or more `agent_pool_profile` blocks as documented below.
 
 * `service_principal` - (only Required when you're using `Kubernetes` as an Orchestration Platform) A Service Principal block as documented below.
 
-* `diagnostics_profile` - (Required) A VM Diagnostics Profile block as documented below.
+* `diagnostics_profile` - (Required) A `diagnostics_profile` block as documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -211,8 +121,8 @@ The following attributes are exported:
 
 * `id` - The Container Service ID.
 
-* `master_profile.fqdn` - FDQN for the master.
+* `master_profile.0.fqdn` - FDQN for the master.
 
-* `agent_pool_profile.fqdn` - FDQN for the agent pool.
+* `agent_pool_profile.0.fqdn` - FDQN for the agent pool.
 
-* `diagnostics_profile.storage_uri` - The URI of the storage account where diagnostics are stored.
+* `diagnostics_profile.0.storage_uri` - The URI of the storage account where diagnostics are stored.

@@ -13,15 +13,14 @@ Create a Public IP Address.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "resourceGroup1"
-  location = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_public_ip" "test" {
-  name                         = "acceptanceTestPublicIp1"
-  location                     = "West US"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
+resource "azurerm_public_ip" "example" {
+  name                         = "example-publicip"
+  location                     = "${azurerm_resource_group.example.location}"
+  resource_group_name          = "${azurerm_resource_group.example.name}"
   public_ip_address_allocation = "static"
 
   tags {

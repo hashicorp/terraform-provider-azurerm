@@ -13,44 +13,18 @@ Manages a Traffic Manager Endpoint.
 ## Example Usage
 
 ```hcl
-resource "random_id" "server" {
-  keepers = {
-    azi_id = 1
-  }
-  byte_length = 8
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "trafficmanagerendpointTest"
-  location = "West US"
+resource "azurerm_traffic_manager_profile" "example" {
+  # ...
 }
 
-resource "azurerm_traffic_manager_profile" "test" {
-  name                = "${random_id.server.hex}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  traffic_routing_method = "Weighted"
-
-  dns_config {
-    relative_name = "${random_id.server.hex}"
-    ttl           = 100
-  }
-
-  monitor_config {
-    protocol = "http"
-    port     = 80
-    path     = "/"
-  }
-
-  tags {
-    environment = "Production"
-  }
-}
-
-resource "azurerm_traffic_manager_endpoint" "test" {
-  name                = "${random_id.server.hex}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
+resource "azurerm_traffic_manager_endpoint" "example" {
+  name                = "example"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  profile_name        = "${azurerm_traffic_manager_profile.example.name}"
   target              = "terraform.io"
   type                = "externalEndpoints"
   weight              = 100
@@ -61,51 +35,27 @@ resource "azurerm_traffic_manager_endpoint" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Traffic Manager endpoint. Changing this forces a
-    new resource to be created.
+* `name` - (Required) The name of the Traffic Manager endpoint. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the Traffic Manager endpoint.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Traffic Manager endpoint.
 
-* `profile_name` - (Required) The name of the Traffic Manager Profile to attach
-    create the Traffic Manager endpoint.
+* `profile_name` - (Required) The name of the Traffic Manager Profile to attach create the Traffic Manager endpoint.
 
-* `endpoint_status` - (Optional) The status of the Endpoint, can be set to
-    either `Enabled` or `Disabled`. Defaults to `Enabled`.
+* `endpoint_status` - (Optional) The status of the Endpoint. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled`.
 
-* `type` - (Required) The Endpoint type, must be one of:
-    - `azureEndpoints`
-    - `externalEndpoints`
-    - `nestedEndpoints`
+* `type` - (Required) The Endpoint type. Possible values are `azureEndpoints`, `externalEndpoints` and `nestedEndpoints`.
 
-* `target` - (Optional) The FQDN DNS name of the target. This argument must be
-    provided for an endpoint of type `externalEndpoints`, for other types it
-    will be computed.
+* `target` - (Optional) The FQDN DNS name of the target. This argument must be provided for an endpoint of type `externalEndpoints`, for other types it will be computed.
 
-* `target_resource_id` - (Optional) The resource id of an Azure resource to
-    target. This argument must be provided for an endpoint of type
-    `azureEndpoints` or `nestedEndpoints`.
+* `target_resource_id` - (Optional) The resource id of an Azure resource to target. This argument must be provided for an endpoint of type `azureEndpoints` or `nestedEndpoints`.
 
-* `weight` - (Optional) Specifies how much traffic should be distributed to this
-    endpoint, this must be specified for Profiles using the  `Weighted` traffic
-    routing method. Supports values between 1 and 1000.
+* `weight` - (Optional) Specifies how much traffic should be distributed to this endpoint, this must be specified for Profiles using the  `Weighted` traffic routing method. Supports values between 1 and 1000.
 
-* `priority` - (Optional) Specifies the priority of this Endpoint, this must be
-    specified for Profiles using the `Priority` traffic routing method. Supports
-    values between 1 and 1000, with no Endpoints sharing the same value. If
-    omitted the value will be computed in order of creation.
+* `priority` - (Optional) Specifies the priority of this Endpoint, this must be specified for Profiles using the `Priority` traffic routing method. Supports values between 1 and 1000, with no Endpoints sharing the same value. If omitted the value will be computed in order of creation.
 
-* `endpoint_location` - (Optional) Specifies the Azure location of the Endpoint,
-    this must be specified for Profiles using the `Performance` routing method
-    if the Endpoint is of either type `nestedEndpoints` or `externalEndpoints`.
-    For Endpoints of type `azureEndpoints` the value will be taken from the
-    location of the Azure target resource.
+* `endpoint_location` - (Optional) Specifies the Azure location of the Endpoint, this must be specified for Profiles using the `Performance` routing method if the Endpoint is of either type `nestedEndpoints` or `externalEndpoints`. For Endpoints of type `azureEndpoints` the value will be taken from the location of the Azure target resource.
 
-* `min_child_endpoints` - (Optional) This argument specifies the minimum number
-    of endpoints that must be ‘online’ in the child profile in order for the
-    parent profile to direct traffic to any of the endpoints in that child
-    profile. This argument only applies to Endpoints of type `nestedEndpoints`
-    and defaults to `1`.
+* `min_child_endpoints` - (Optional) This argument specifies the minimum number of endpoints that must be ‘online’ in the child profile in order for the parent profile to direct traffic to any of the endpoints in that child profile. This argument only applies to Endpoints of type `nestedEndpoints` and defaults to `1`.
 
 * `geo_mappings` - (Optional) A list of Geographic Regions used to distribute traffic, such as `WORLD`, `UK` or `DE`. The same location can't be specified in two endpoints. [See the Geographic Hierarchies documentation for more information](https://docs.microsoft.com/en-us/rest/api/trafficmanager/geographichierarchies/getdefault).
 
@@ -113,7 +63,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Traffic Manager Endpoint id.
+* `id` - The ID of the Traffic Manager Endpoint.
 
 ## Import
 

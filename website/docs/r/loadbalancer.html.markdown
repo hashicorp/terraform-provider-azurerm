@@ -12,6 +12,8 @@ Create a LoadBalancer Resource.
 
 ## Example Usage
 
+<!-- TODO: more examples for Load Balancers -->
+
 ```hcl
 resource "azurerm_resource_group" "test" {
   name     = "LoadBalancerRG"

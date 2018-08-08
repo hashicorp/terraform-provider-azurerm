@@ -14,19 +14,17 @@ Enables you to manage DNS AAAA Records within Azure DNS.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acceptanceTestResourceGroup1"
-  location = "West US"
+  # ...
 }
 
-resource "azurerm_dns_zone" "test" {
-  name                = "mydomain.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_dns_zone" "example" {
+  # ...
 }
 
-resource "azurerm_dns_aaaa_record" "test" {
+resource "azurerm_dns_aaaa_record" "example" {
   name                = "test"
-  zone_name           = "${azurerm_dns_zone.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_dns_zone.example.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   ttl                 = 300
   records             = ["2607:f8b0:4009:1803::1005"]
 }

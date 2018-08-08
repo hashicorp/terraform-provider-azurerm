@@ -13,14 +13,13 @@ Manages a user assigned identity.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "acceptanceTestResourceGroup1"
-  location = "eastus"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_user_assigned_identity" "testIdentity" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+resource "azurerm_user_assigned_identity" "example" {
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
 
   name = "search-api"
 }

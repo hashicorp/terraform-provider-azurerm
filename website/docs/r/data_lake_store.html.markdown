@@ -14,8 +14,7 @@ Manage an Azure Data Lake Store.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example"
-  location = "northeurope"
+  # ...
 }
 
 resource "azurerm_data_lake_store" "example" {
@@ -23,7 +22,7 @@ resource "azurerm_data_lake_store" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   location            = "${azurerm_resource_group.example.location}"
 
-  encrytpion {
+  encryption {
     type = "UserManaged"
     key_vault_id = "${azurerm_key_vault.example.id}"
     key_name     = "${azurerm_key_vault_key.example.name}"

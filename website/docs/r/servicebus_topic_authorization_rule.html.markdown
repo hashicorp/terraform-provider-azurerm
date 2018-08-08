@@ -3,40 +3,30 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_topic_authorization_rule"
 sidebar_current: "docs-azurerm-resource-messaging-servicebus-topic-authorization-rule"
 description: |-
-  Manages a ServiceBus Topic authorization Rule within a ServiceBus Topic.
+  Manages a Authorization Rule within a ServiceBus Topic.
 ---
 
 # azurerm_servicebus_topic_authorization_rule
 
-Manages a ServiceBus Topic authorization Rule within a ServiceBus Topic.
+Manages a Authorization Rule within a ServiceBus Topic.
 
 ## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "tfex-servicebus"
-  location = "West US"
+  # ...
 }
 
 resource "azurerm_servicebus_namespace" "example" {
-  name                = "tfex_servicebus_namespace"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  sku                 = "standard"
-
-  tags {
-    source = "terraform"
-  }
+  # ...
 }
 
 resource "azurerm_servicebus_topic" "example" {
-  name                = "tfex_servicebus_topic"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
+  # ...
 }
 
 resource "azurerm_servicebus_topic_authorization_rule" "example" {
-  name                = "tfex_servicebus_topic_sasPolicy"
+  name                = "example-rule"
   namespace_name      = "${azurerm_servicebus_namespace.example.name}"
   topic_name          = "${azurerm_servicebus_topic.example.name}"
   resource_group_name = "${azurerm_resource_group.example.name}"

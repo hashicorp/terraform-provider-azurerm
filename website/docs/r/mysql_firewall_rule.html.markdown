@@ -10,12 +10,11 @@ description: |-
 
 Manages a Firewall Rule for a MySQL Server
 
-## Example Usage (Single IP Address)
+## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "api-rg-pro"
-  location = "West Europe"
+  # ...
 }
 
 resource "azurerm_mysql_server" "test" {
@@ -28,27 +27,6 @@ resource "azurerm_mysql_firewall_rule" "test" {
   server_name         = "${azurerm_mysql_server.test.name}"
   start_ip_address    = "40.112.8.12"
   end_ip_address      = "40.112.8.12"
-}
-```
-
-## Example Usage (IP Range)
-
-```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "api-rg-pro"
-  location = "West Europe"
-}
-
-resource "azurerm_mysql_server" "test" {
-  # ...
-}
-
-resource "azurerm_mysql_firewall_rule" "test" {
-  name                = "office"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mysql_server.test.name}"
-  start_ip_address    = "40.112.0.0"
-  end_ip_address      = "40.112.255.255"
 }
 ```
 

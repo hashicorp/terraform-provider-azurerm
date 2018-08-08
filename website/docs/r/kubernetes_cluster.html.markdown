@@ -13,6 +13,12 @@ Manages a managed Kubernetes Cluster (AKS)
 ~> **Note:** All arguments including the client secret will be stored in the raw state as plain-text.
 [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
+## Example Usage
+
+Complete examples of how to use the `azurerm_kubernetes_cluster` resource can be found [in the `./examples/kubernetes` folder within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/kubernetes)
+
+<!-- TODO: three examples: Basic, Advanced Networking -->
+
 ## Example Usage - Basic
 
 ```hcl

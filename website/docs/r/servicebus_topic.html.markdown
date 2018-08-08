@@ -8,39 +8,25 @@ description: |-
 
 # azurerm_servicebus_topic
 
-Create a ServiceBus Topic.
+Manages a ServiceBus Topic.
 
 **Note** Topics can only be created in Namespaces with an SKU of `standard` or higher.
 
 ## Example Usage
 
 ```hcl
-variable "location" {
-  description = "Azure datacenter to deploy to."
-  default = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "terraform-servicebus"
-  location = "${var.location}"
+resource "azurerm_servicebus_namespace" "example" {
+  # ...
 }
 
-resource "azurerm_servicebus_namespace" "test" {
-  name                = "${var.servicebus_name}"
-  location            = "${var.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "standard"
-
-  tags {
-    source = "terraform"
-  }
-}
-
-resource "azurerm_servicebus_topic" "test" {
-  name                = "testTopic"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-
+resource "azurerm_servicebus_topic" "example" {
+  name                = "example-topic"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
   enable_partitioning = true
 }
 ```
@@ -101,7 +87,7 @@ The following arguments are supported:
 ### TimeSpan Format
 
 Some arguments for this resource are required in the TimeSpan format which is
-used to represent a lengh of time. The supported format is documented [here](https://msdn.microsoft.com/en-us/library/se73z7b9(v=vs.110).aspx#Anchor_2)
+used to represent a length of time. The supported format is documented [here](https://msdn.microsoft.com/en-us/library/se73z7b9(v=vs.110).aspx#Anchor_2)
 
 ## Attributes Reference
 

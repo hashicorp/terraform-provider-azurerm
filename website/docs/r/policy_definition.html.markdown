@@ -13,11 +13,11 @@ Manages a policy for all of the resource groups under the subscription.
 ## Example Usage
 
 ```hcl
-resource "azurerm_policy_definition" "policy" {
-  name         = "accTestPolicy"
+resource "azurerm_policy_definition" "example" {
+  name         = "example-policy"
   policy_type  = "BuiltIn"
   mode         = "Indexed"
-  display_name = "acceptance test policy definition"
+  display_name = "Example Policy Definition"
   policy_rule  = <<POLICY_RULE
 	{
     "if": {
@@ -44,7 +44,6 @@ POLICY_RULE
     }
   }
 PARAMETERS
-
 }
 ```
 

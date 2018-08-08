@@ -13,33 +13,18 @@ Manages an ExpressRoute Circuit Authorization.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "exprtTest"
-  location = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_express_route_circuit" "test" {
-  name                     = "expressRoute1"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
-  service_provider_name    = "Equinix"
-  peering_location         = "Silicon Valley"
-  bandwidth_in_mbps        = 50
-  sku {
-    tier   = "Standard"
-    family = "MeteredData"
-  }
-  allow_classic_operations = false
-
-  tags {
-    environment = "Production"
-  }
+resource "azurerm_express_route_circuit" "example" {
+  # ...
 }
 
-resource "azurerm_express_route_circuit_authorization" "test" {
-  name                       = "exampleERCAuth"
-  express_route_circuit_name = "${azurerm_express_route_circuit.test.name}"
-  resource_group_name        = "${azurerm_resource_group.test.name}"
+resource "azurerm_express_route_circuit_authorization" "example" {
+  name                       = "example-auth-rule"
+  express_route_circuit_name = "${azurerm_express_route_circuit.example.name}"
+  resource_group_name        = "${azurerm_resource_group.example.name}"
 }
 ```
 

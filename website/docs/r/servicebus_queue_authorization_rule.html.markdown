@@ -14,27 +14,15 @@ Manages an Authorization Rule for a ServiceBus Queue.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "terraform-servicebus"
-  location = "West US"
+  # ...
 }
 
 resource "azurerm_servicebus_namespace" "example" {
-  name                = "tfex_sevicebus_namespace"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  sku                 = "standard"
-
-  tags {
-    source = "terraform"
-  }
+  # ...
 }
 
 resource "azurerm_servicebus_queue" "example" {
-  name                = "acctest-%[1]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-
-  enable_partitioning = true
+  # ...
 }
 
 resource "azurerm_servicebus_queue_authorization_rule" "example" {
@@ -42,10 +30,9 @@ resource "azurerm_servicebus_queue_authorization_rule" "example" {
   namespace_name      = "${azurerm_servicebus_namespace.example.name}"
   queue_name          = "${azurerm_servicebus_queue.example.name}"
   resource_group_name = "${azurerm_resource_group.example.name}"
-
-  listen = true
-  send   = true
-  manage = false
+  listen              = true
+  send                = true
+  manage              = false
 }
 ```
 

@@ -14,15 +14,14 @@ Manages an Azure Relay Namespace.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "example-resources"
-  location = "West Europe"
+resource "azurerm_resource_group" "exmple" {
+  # ...
 }
 
-resource "azurerm_relay_namespace" "test" {
+resource "azurerm_relay_namespace" "exmple" {
   name                = "example-relay"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.exmple.location}"
+  resource_group_name = "${azurerm_resource_group.exmple.name}"
   sku {
     name = "Standard"
   }

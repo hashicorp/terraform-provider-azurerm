@@ -13,23 +13,22 @@ Manages a Scheduler Job Collection.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "rg" {
-  name     = "tfex-job_collection"
-  location = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_scheduler_job_collection" "jobs" {
-    name                = "example_job_collection"
-    location            = "${azurerm_resource_group.rg.location}"
-    resource_group_name = "${azurerm_resource_group.rg.name}"
-    sku                 = "free"
-    state               = "enabled"
+resource "azurerm_scheduler_job_collection" "example" {
+  name                = "example-collection"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  sku                 = "free"
+  state               = "enabled"
 
-    quota {
-        max_job_count            = 5
-        max_recurrence_interval  = 24
-        max_recurrence_frequency = "hour"
-    }
+  quota {
+    max_job_count            = 5
+    max_recurrence_interval  = 24
+    max_recurrence_frequency = "hour"
+  }
 }
 
 ```
@@ -44,19 +43,21 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.
-
 * `sku` - (Required) Sets the Job Collection's pricing level's SKU. Possible values include: `Standard`, `Free`, `P10Premium`, `P20Premium`.
+
+* `quota` - (Optional) A `quota` block as defined below.
 
 * `state` - (Optional) Sets Job Collection's state. Possible values include: `Enabled`, `Disabled`, `Suspended`.
 
-* `quota` - (Optional) Configures the Job collection quotas as documented in the `quota` block below. 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
-The `quota` block supports:
+---
 
-* `max_job_count` - (Optional) Sets the maximum number of jobs in the collection. 
+A `quota` block supports:
 
-* `max_recurrence_frequency` - (Required) The maximum frequency of recurrence. Possible values include: `Minute`, `Hour`, `Day`, `Week`, `Month`
+* `max_job_count` - (Optional) Sets the maximum number of jobs in the collection.
+
+* `max_recurrence_frequency` - (Required) The maximum frequency of recurrence. Possible values include: `Minute`, `Hour`, `Day`, `Week` and `Month`.
 
 * `max_recurrence_interval` - (Optional) The maximum interval between recurrence.
 

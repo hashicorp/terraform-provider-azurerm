@@ -13,21 +13,14 @@ Enables you to manage DNS zones within Azure DNS. These zones are hosted on Azur
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "acceptanceTestResourceGroup1"
-  location = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_dns_zone" "test" {
+resource "azurerm_dns_zone" "example" {
   name                = "mydomain.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   zone_type           = "Public"
-}
-
-resource "azurerm_dns_zone" "test_private" {
-  name                = "mydomain.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_type           = "Private"
 }
 ```
 ## Argument Reference

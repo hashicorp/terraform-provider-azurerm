@@ -10,11 +10,18 @@ description: |-
 
 Manages a Scheduler Job.
 
-## Example Usage (single web get now)
+## Example Usage
+
+Complete examples of how to use the `azurerm_scheduler_job` resource can be found [in the `./examples/scheduler-job` folder within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/scheduler-job)
+
 
 ```hcl
-resource "azurerm_scheduler_job" "web-once-now" {
-  name                = "tfex-web-once-now"
+resource "azurerm_resource_group" "example" {
+  # ...
+}
+
+resource "azurerm_scheduler_job" "example" {
+  name                = "example-job"
   resource_group_name = "${azurerm_resource_group.example.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
 
@@ -27,135 +34,6 @@ resource "azurerm_scheduler_job" "web-once-now" {
   }
 
   # default start time is now
-}
-```
-
-## Example Usage (recurring daily with retry and basic authentication)
-
-```hcl
-resource "azurerm_scheduler_job" "web-recurring-daily" {
-  name                = "tfex-web-recurring-daily"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
-
-  action_web {
-    url     = "https://this.url.fails"
-    method  = "put"
-    body    = "this is some text"
-
-    headers = {
-      Content-Type = "text"
-    }
-
-    authentication_basic {
-      username = "login"
-      password = "apassword"
-    }
-  }
-
-  retry {
-    # retry every 5 min a maximum of 10 times
-    interval = "00:05:00"
-    count    =  10
-  }
-
-  recurrence {
-    frequency = "day"
-    count     = 1000
-    # run 4 times an hour every 12 hours
-    hours     = [0,12]
-    minutes   = [0,15,30,45]
-  }
-
-  start_time = "2018-07-07T07:07:07-07:00"
-}
-```
-
-## Example Usage (recurring monthly with an error action and client certificate authentication)
-
-```hcl
-resource "azurerm_scheduler_job" "web-recurring-daily" {
-  name                = "tfex-web-recurring-daily"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
-
-  action_web {
-    url     = "https://this.url.fails"
-    authentication_certificate {
-      pfx      = "${base64encode(file("your_cert.pfx"))}"
-      password = "cert_password"
-    }
-  }
-
-  error_action_web {
-    url     = "https://this.url.fails"
-    method  = "put"
-    body    = "The job failed"
-
-    headers = {
-      "Content-Type" = "text"
-    }
-
-    authentication_basic {
-      username = "login"
-      password = "apassword"
-    }
-  }
-
-  recurrence {
-    frequency = "monthly"
-    count     = 1000
-    monthly_occurrences = [
-      {
-        # first Sunday
-        day        = "Sunday"
-        occurrence = 1
-      },
-      {
-        # third Sunday
-        day        = "Sunday"
-        occurrence = 3
-      },
-      {
-        # last Sunday
-        day        = "Sunday"
-        occurrence = -1
-      }
-    ]
-  }
-
-  start_time = "2018-07-07T07:07:07-07:00"
-}
-```
-
-## Example Usage (storage queue action)
-
-```hcl
-resource "azurerm_storage_account" "example" {
-  name                     = "tfexstorageaccount"
-  resource_group_name      = "${azurerm_resource_group.example.name}"
-  location                 = "${azurerm_resource_group.example.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_queue" "example" {
-  name                 = "tfex-schedulerjob-storagequeue"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  storage_account_name = "${azurerm_storage_account.example.name}"
-}
-
-resource "azurerm_scheduler_job" "storage-once-now" {
-  name                = "tfex-storage-once-now"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
-
-  action_storage_queue = {
-    storage_account_name = "${azurerm_storage_account.example.name}"
-    storage_queue_name   = "${azurerm_storage_queue.example.name}"
-    sas_token            = "${azurerm_storage_account.example.primary_access_key}"
-    message              = "storage message"
-  }
 }
 ```
 

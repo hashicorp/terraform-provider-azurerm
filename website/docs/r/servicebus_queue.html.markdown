@@ -8,41 +8,23 @@ description: |-
 
 # azurerm_servicebus_queue
 
-Create and manage a ServiceBus Queue.
+Manages a ServiceBus Queue.
 
 ## Example Usage
 
 ```hcl
-variable "location" {
-  description = "Azure datacenter to deploy to."
-  default = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-variable "servicebus_name" {
-  description = "Input your unique Azure service bus name"
+resource "azurerm_servicebus_namespace" "example" {
+  # ...
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "terraform-servicebus"
-  location = "${var.location}"
-}
-
-resource "azurerm_servicebus_namespace" "test" {
-  name                = "${var.servicebus_name}"
-  location            = "${var.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "standard"
-
-  tags {
-    source = "terraform"
-  }
-}
-
-resource "azurerm_servicebus_queue" "test" {
-  name                = "testQueue"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-
+resource "azurerm_servicebus_queue" "example" {
+  name                = "example-queue"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
   enable_partitioning = true
 }
 ```
@@ -98,13 +80,13 @@ The following arguments are supported:
     the Queue requires duplicate detection. Changing this forces
     a new resource to be created. Defaults to `false`.
 
-* `requires_session` - (Optional) Boolean flag which controls whether the Queue requires sessions. 
-    This will allow ordered handling of unbounded sequences of related messages. With sessions enabled 
-    a queue can guarantee first-in-first-out delivery of messages. 
+* `requires_session` - (Optional) Boolean flag which controls whether the Queue requires sessions.
+    This will allow ordered handling of unbounded sequences of related messages. With sessions enabled
+    a queue can guarantee first-in-first-out delivery of messages.
     Changing this forces a new resource to be created. Defaults to `false`.
 
 * `dead_lettering_on_message_expiration` - (Optional) Boolean flag which controls whether the Queue has dead letter support when a message expires. Defaults to `false`.
-    
+
 ### TimeSpan Format
 
 Some arguments for this resource are required in the TimeSpan format which is
@@ -114,7 +96,7 @@ used to represent a length of time. The supported format is documented [here](ht
 
 The following attributes are exported:
 
-* `id` - The ServiceBus Queue ID.
+* `id` - The ID of the ServiceBus Queue.
 
 ## Import
 

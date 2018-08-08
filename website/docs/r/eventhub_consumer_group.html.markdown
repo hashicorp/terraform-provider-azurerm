@@ -13,36 +13,23 @@ Manages a Event Hubs Consumer Group as a nested resource within an Event Hub.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "resourceGroup1"
-  location = "West US"
+resource "azurerm_resource_group" "example" {
+  # ...
 }
 
-resource "azurerm_eventhub_namespace" "test" {
-  name                = "acceptanceTestEventHubNamespace"
-  location            = "West US"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "Basic"
-  capacity            = 2
-
-  tags {
-    environment = "Production"
-  }
+resource "azurerm_eventhub_namespace" "example" {
+  # ...
 }
 
-resource "azurerm_eventhub" "test" {
-  name                = "acceptanceTestEventHub"
-  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  partition_count     = 2
-  message_retention   = 2
+resource "azurerm_eventhub" "example" {
+  # ...
 }
 
-resource "azurerm_eventhub_consumer_group" "test" {
-  name                = "acceptanceTestEventHubConsumerGroup"
-  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-  eventhub_name       = "${azurerm_eventhub.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_eventhub_consumer_group" "example" {
+  name                = "example-consumergroup"
+  namespace_name      = "${azurerm_eventhub_namespace.example.name}"
+  eventhub_name       = "${azurerm_eventhub.example.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   user_metadata       = "some-meta-data"
 }
 ```
