@@ -226,10 +226,12 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						"client_id": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 						},
 
 						"client_secret": {
 							Type:      schema.TypeString,
+							ForceNew:  true,
 							Required:  true,
 							Sensitive: true,
 						},
