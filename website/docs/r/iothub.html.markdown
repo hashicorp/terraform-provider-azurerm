@@ -52,9 +52,9 @@ The following arguments are supported:
 
 A `sku` block supports the following:
 
-* `name` - (Required) The name of the sku. Possible values are `F1`, `S1`, `S2`, and `S3`.
+* `name` - (Required) The name of the sku. Possible values are `B1`, `B2`, `B3`, `F1`, `S1`, `S2`, and `S3`.
 
-* `tier` - (Required) The billing tier for the IoT Hub. Possible values are `Free` or `Standard`.
+* `tier` - (Required) The billing tier for the IoT Hub. Possible values are `Basic`, `Free` or `Standard`.
 
 * `capacity` - (Required) The number of provisioned IoT Hub units. 
 
@@ -62,11 +62,11 @@ A `sku` block supports the following:
 
 The following attributes are exported:
 
-* `id` - The IotHub ID.
+* `id` - The ID of the IoTHub.
 
 * `hostname` - The hostname of the IotHub Resource.
 
-* `shared_access_policy` - A list of `shared_access_policy` blocks as defined below.
+* `shared_access_policy` - One or more `shared_access_policy` blocks as defined below.
 
 ---
 

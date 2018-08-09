@@ -3,10 +3,10 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_machine_scale_set"
 sidebar_current: "docs-azurerm-resource-compute-virtualmachine-scale-set"
 description: |-
-  Create a Virtual Machine scale set.
+  Manages a Virtual Machine scale set.
 ---
 
-# azurerm\_virtual\_machine\_scale\_set
+# azurerm_virtual_machine_scale_set
 
 Create a virtual machine scale set.
 
@@ -359,7 +359,8 @@ output "principal_id" {
 * `primary` - (Required) Indicates whether network interfaces created from the network interface configuration will be the primary NIC of the VM.
 * `ip_configuration` - (Required) An ip_configuration block as documented below.
 * `accelerated_networking` - (Optional) Specifies whether to enable accelerated networking or not. Defaults to `false`.
-* `dns_settings` - (Optional) An dns_settings block as documented below.
+* `dns_settings` - (Optional) A dns_settings block as documented below.
+* `ip_forwarding` - (Optional) Whether IP forwarding is enabled on this NIC. Defaults to `false`.
 * `network_security_group_id` - (Optional) Specifies the identifier for the network security group.
 
 `dns_settings` supports the following:

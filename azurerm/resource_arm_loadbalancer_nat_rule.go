@@ -9,24 +9,29 @@ import (
 	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmLoadBalancerNatRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLoadBalancerNatRuleCreate,
+		Create: resourceArmLoadBalancerNatRuleCreateUpdate,
 		Read:   resourceArmLoadBalancerNatRuleRead,
-		Update: resourceArmLoadBalancerNatRuleCreate,
+		Update: resourceArmLoadBalancerNatRuleCreateUpdate,
 		Delete: resourceArmLoadBalancerNatRuleDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: loadBalancerSubResourceStateImporter,
 		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"location": deprecatedLocationSchema(),
@@ -34,9 +39,10 @@ func resourceArmLoadBalancerNatRule() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"loadbalancer_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"protocol": {
@@ -44,6 +50,11 @@ func resourceArmLoadBalancerNatRule() *schema.Resource {
 				Required:         true,
 				StateFunc:        ignoreCaseStateFunc,
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.TransportProtocolAll),
+					string(network.TransportProtocolTCP),
+					string(network.TransportProtocolUDP),
+				}, true),
 			},
 
 			"enable_floating_ip": {
@@ -53,18 +64,21 @@ func resourceArmLoadBalancerNatRule() *schema.Resource {
 			},
 
 			"frontend_port": {
-				Type:     schema.TypeInt,
-				Required: true,
+				Type:         schema.TypeInt,
+				Required:     true,
+				ValidateFunc: validate.PortNumber,
 			},
 
 			"backend_port": {
-				Type:     schema.TypeInt,
-				Required: true,
+				Type:         schema.TypeInt,
+				Required:     true,
+				ValidateFunc: validate.PortNumber,
 			},
 
 			"frontend_ip_configuration_name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"frontend_ip_configuration_id": {
@@ -80,7 +94,7 @@ func resourceArmLoadBalancerNatRule() *schema.Resource {
 	}
 }
 
-func resourceArmLoadBalancerNatRuleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerNatRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).loadBalancerClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -108,7 +122,7 @@ func resourceArmLoadBalancerNatRuleCreate(d *schema.ResourceData, meta interface
 	existingNatRule, existingNatRuleIndex, exists := findLoadBalancerNatRuleByName(loadBalancer, d.Get("name").(string))
 	if exists {
 		if d.Get("name").(string) == *existingNatRule.Name {
-			// this probe is being updated/reapplied remove old copy from the slice
+			// this nat rule is being updated/reapplied remove old copy from the slice
 			natRules = append(natRules[:existingNatRuleIndex], natRules[existingNatRuleIndex+1:]...)
 		}
 	}
@@ -278,8 +292,7 @@ func expandAzureRmLoadBalancerNatRule(d *schema.ResourceData, lb *network.LoadBa
 	}
 
 	if v, ok := d.GetOk("enable_floating_ip"); ok {
-		enableFloatingIP := v.(bool)
-		properties.EnableFloatingIP = utils.Bool(enableFloatingIP)
+		properties.EnableFloatingIP = utils.Bool(v.(bool))
 	}
 
 	if v := d.Get("frontend_ip_configuration_name").(string); v != "" {
@@ -288,11 +301,9 @@ func expandAzureRmLoadBalancerNatRule(d *schema.ResourceData, lb *network.LoadBa
 			return nil, fmt.Errorf("[ERROR] Cannot find FrontEnd IP Configuration with the name %s", v)
 		}
 
-		feip := network.SubResource{
+		properties.FrontendIPConfiguration = &network.SubResource{
 			ID: rule.ID,
 		}
-
-		properties.FrontendIPConfiguration = &feip
 	}
 
 	natRule := network.InboundNatRule{

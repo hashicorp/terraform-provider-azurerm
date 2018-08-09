@@ -128,7 +128,6 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(compute.Regular),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.Low),
 					string(compute.Regular),

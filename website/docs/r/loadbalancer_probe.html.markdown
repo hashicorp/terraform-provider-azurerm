@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_lb_probe"
 sidebar_current: "docs-azurerm-resource-loadbalancer-probe"
 description: |-
-  Create a LoadBalancer Probe Resource.
+  Manages a LoadBalancer Probe Resource.
 ---
 
 # azurerm_lb_probe

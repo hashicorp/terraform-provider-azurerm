@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_lb_backend_address_pool"
 sidebar_current: "docs-azurerm-resource-loadbalancer-backend-address-pool"
 description: |-
-  Create a LoadBalancer Backend Address Pool.
+  Manages a LoadBalancer Backend Address Pool.
 ---
 
 # azurerm_lb_backend_address_pool

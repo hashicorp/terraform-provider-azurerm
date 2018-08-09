@@ -23,6 +23,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
 			if v, exists := diff.GetOk("network_profile"); exists {
 				rawProfiles := v.([]interface{})
@@ -34,15 +35,25 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				profile := rawProfiles[0].(map[string]interface{})
 				networkPlugin := profile["network_plugin"].(string)
 
-				if networkPlugin == "kubenet" {
-					dockerBridgeCidr := profile["docker_bridge_cidr"].(string)
-					dnsServiceIP := profile["dns_service_ip"].(string)
-					serviceCidr := profile["service_cidr"].(string)
-
-					if dockerBridgeCidr == "" || dnsServiceIP == "" || serviceCidr == "" {
-						return fmt.Errorf("If the `network_plugin` is set to `kubenet` then the fields `docker_bridge_cidr`, `dns_service_ip` and `service_cidr` must not be empty.")
-					}
+				if networkPlugin != "kubenet" && networkPlugin != "azure" {
+					return nil
 				}
+
+				dockerBridgeCidr := profile["docker_bridge_cidr"].(string)
+				dnsServiceIP := profile["dns_service_ip"].(string)
+				serviceCidr := profile["service_cidr"].(string)
+
+				// All empty values.
+				if dockerBridgeCidr == "" && dnsServiceIP == "" && serviceCidr == "" {
+					return nil
+				}
+
+				// All set values.
+				if dockerBridgeCidr != "" && dnsServiceIP != "" && serviceCidr != "" {
+					return nil
+				}
+
+				return fmt.Errorf("`docker_bridge_cidr`, `dns_service_ip` and `service_cidr` should all be empty or all should be set.")
 			}
 
 			return nil
@@ -226,10 +237,12 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						"client_id": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 						},
 
 						"client_secret": {
 							Type:      schema.TypeString,
+							ForceNew:  true,
 							Required:  true,
 							Sensitive: true,
 						},

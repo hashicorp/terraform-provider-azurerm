@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_scheduler_job"
-sidebar_current: "docs-azurerm-resource-scheduler-job-x
+sidebar_current: "docs-azurerm-resource-scheduler-job-x"
 description: |-
   Manages a Scheduler Job.
 ---
@@ -14,17 +14,19 @@ Manages a Scheduler Job.
 
 ```hcl
 resource "azurerm_scheduler_job" "web-once-now" {
-    name                = "tfex-web-once-now"
-    resource_group_name = "${azurerm_resource_group.example.name}"
-    job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
+  name                = "tfex-web-once-now"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
 
-    state = "enabled" //re-enable it each run
+  # re-enable it each run
+  state = "enabled"
 
-    action_web {
-        url = "http://this.url.fails" //defaults to get
-    }
+  action_web {
+    # defaults to get
+    url = "http://this.url.fails"
+  }
 
-    //default start time is now
+  # default start time is now
 }
 ```
 
@@ -32,38 +34,40 @@ resource "azurerm_scheduler_job" "web-once-now" {
 
 ```hcl
 resource "azurerm_scheduler_job" "web-recurring-daily" {
-    name                = "tfex-web-recurring-daily"
-    resource_group_name = "${azurerm_resource_group.example.name}"
-    job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
+  name                = "tfex-web-recurring-daily"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
 
-     action_web {
-        url     = "https://this.url.fails"
-        method  = "put"
-        body    = "this is some text"
+  action_web {
+    url     = "https://this.url.fails"
+    method  = "put"
+    body    = "this is some text"
 
-        headers = {
-            Content-Type = "text"
-        }
-
-        authentication_basic {
-            username = "login"
-            password = "apassword"
-        }
+    headers = {
+      Content-Type = "text"
     }
 
-    retry {
-        interval = "00:05:00" //retry every 5 min
-        count    =  10        //a maximum or 10 times
+    authentication_basic {
+      username = "login"
+      password = "apassword"
     }
+  }
 
-    recurrence {
-        frequency = "day"
-        count     = 1000
-        hours     = [0,12]       //run every 12 hours
-        minutes   = [0,15,30,45] //4 times an hour
-    }
+  retry {
+    # retry every 5 min a maximum of 10 times
+    interval = "00:05:00"
+    count    =  10
+  }
 
-    start_time = "2018-07-07T07:07:07-07:00"
+  recurrence {
+    frequency = "day"
+    count     = 1000
+    # run 4 times an hour every 12 hours
+    hours     = [0,12]
+    minutes   = [0,15,30,45]
+  }
+
+  start_time = "2018-07-07T07:07:07-07:00"
 }
 ```
 
@@ -71,53 +75,56 @@ resource "azurerm_scheduler_job" "web-recurring-daily" {
 
 ```hcl
 resource "azurerm_scheduler_job" "web-recurring-daily" {
-    name                = "tfex-web-recurring-daily"
-    resource_group_name = "${azurerm_resource_group.example.name}"
-    job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
+  name                = "tfex-web-recurring-daily"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
 
-    action_web {
-        url     = "https://this.url.fails"
-        authentication_certificate {
-            pfx      = "${base64encode(file("your_cert.pfx"))}"
-            password = "cert_password"
-        }
+  action_web {
+    url     = "https://this.url.fails"
+    authentication_certificate {
+      pfx      = "${base64encode(file("your_cert.pfx"))}"
+      password = "cert_password"
+    }
+  }
+
+  error_action_web {
+    url     = "https://this.url.fails"
+    method  = "put"
+    body    = "The job failed"
+
+    headers = {
+      "Content-Type" = "text"
     }
 
-    error_action_web {
-        url     = "https://this.url.fails"
-        method  = "put"
-        body    = "The job failed"
-
-        headers = {
-            "Content-Type" = "text"
-        }
-
-        authentication_basic {
-            username = "login"
-            password = "apassword"
-        }
+    authentication_basic {
+      username = "login"
+      password = "apassword"
     }
+  }
 
-    recurrence {
-        frequency = "monthly"
-        count     = 1000
-        monthly_occurrences = [
-            { //first sunday
-                day        = "Sunday"
-                occurrence = 1
-            },
-            { //third sunday
-                day        = "Sunday"
-                occurrence = 3
-            },
-            { //last sunday
-                day        = "Sunday"
-                occurrence = -1
-            }
-        ]
-    }
+  recurrence {
+    frequency = "monthly"
+    count     = 1000
+    monthly_occurrences = [
+      {
+        # first Sunday
+        day        = "Sunday"
+        occurrence = 1
+      },
+      {
+        # third Sunday
+        day        = "Sunday"
+        occurrence = 3
+      },
+      {
+        # last Sunday
+        day        = "Sunday"
+        occurrence = -1
+      }
+    ]
+  }
 
-    start_time = "2018-07-07T07:07:07-07:00"
+  start_time = "2018-07-07T07:07:07-07:00"
 }
 ```
 
@@ -139,16 +146,16 @@ resource "azurerm_storage_queue" "example" {
 }
 
 resource "azurerm_scheduler_job" "storage-once-now" {
-    name                = "tfex-storage-once-now"
-    resource_group_name = "${azurerm_resource_group.example.name}"
-    job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
+  name                = "tfex-storage-once-now"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
 
-    action_storage_queue = {
-        storage_account_name = "${azurerm_storage_account.example.name}"
-        storage_queue_name   = "${azurerm_storage_queue.example.name}"
-        sas_token            = "${azurerm_storage_account.example.primary_access_key}"
-        message              = "storage message"
-      }
+  action_storage_queue = {
+    storage_account_name = "${azurerm_storage_account.example.name}"
+    storage_queue_name   = "${azurerm_storage_queue.example.name}"
+    sas_token            = "${azurerm_storage_account.example.primary_access_key}"
+    message              = "storage message"
+  }
 }
 ```
 
@@ -172,11 +179,11 @@ The following arguments are supported:
 
 * `error_action_storage_queue` - (Optional) A `error_action_storage_queue` block defining the a web action to take on an error as described below. Note this is identical to an `action_storage_queue` block.
 
-* `retry` - (Optional) A `retry` block defining how to retry as described below. 
+* `retry` - (Optional) A `retry` block defining how to retry as described below.
 
-* `recurrence` - (Optional) A `recurrence` block defining a job occurrence schedule. 
+* `recurrence` - (Optional) A `recurrence` block defining a job occurrence schedule.
 
-* `start_time` - (Optional) The time the first instance of the job is to start running at. 
+* `start_time` - (Optional) The time the first instance of the job is to start running at.
 
 * `state` - (Optional) The sets or gets the current state of the job. Can be set to either `Enabled` or `Completed`
 
