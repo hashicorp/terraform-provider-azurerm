@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
-	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -30,7 +29,7 @@ func retrieveLoadBalancerById(loadBalancerId string, meta interface{}) (*network
 
 	resGroup, name, err := resourceGroupAndLBNameFromId(loadBalancerId)
 	if err != nil {
-		return nil, false, errwrap.Wrapf("Error Getting LoadBalancer Name and Group: {{err}}", err)
+		return nil, false, fmt.Errorf("Error Getting LoadBalancer Name and Group:: %+v", err)
 	}
 
 	resp, err := client.Get(ctx, resGroup, name, "")
