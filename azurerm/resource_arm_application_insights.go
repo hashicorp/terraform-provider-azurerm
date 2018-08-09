@@ -1,13 +1,16 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,6 +22,11 @@ func resourceArmApplicationInsights() *schema.Resource {
 		Delete: resourceArmApplicationInsightsDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -72,6 +80,21 @@ func resourceArmApplicationInsightsCreateOrUpdate(d *schema.ResourceData, meta i
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
+
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of Application Insights %q (Resource Group %q): %+v", name, resGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_application_insights", *resp.ID)
+		}
+	}
+
 	applicationType := d.Get("application_type").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
@@ -89,7 +112,9 @@ func resourceArmApplicationInsightsCreateOrUpdate(d *schema.ResourceData, meta i
 		Tags: expandTags(tags),
 	}
 
-	resp, err := client.CreateOrUpdate(ctx, resGroup, name, insightProperties)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	resp, err := client.CreateOrUpdate(waitCtx, resGroup, name, insightProperties)
 	if err != nil {
 		// @tombuildsstuff - from 2018-08-14 the Create call started returning a 201 instead of 200
 		// which doesn't match the Swagger - this works around it until that's fixed
@@ -121,7 +146,7 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	log.Printf("[DEBUG] Reading AzureRM Application Insights '%s'", id)
+	log.Printf("[DEBUG] Reading AzureRM Application Insights %q", id)
 
 	resGroup := id.ResourceGroup
 	name := id.Path["components"]
@@ -132,7 +157,7 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Application Insights '%s': %+v", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM Application Insights %q: %+v", name, err)
 	}
 
 	d.Set("name", name)
@@ -165,7 +190,9 @@ func resourceArmApplicationInsightsDelete(d *schema.ResourceData, meta interface
 
 	log.Printf("[DEBUG] Deleting AzureRM Application Insights '%s' (resource group '%s')", name, resGroup)
 
-	resp, err := client.Delete(ctx, resGroup, name)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	resp, err := client.Delete(waitCtx, resGroup, name)
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
 			return nil
