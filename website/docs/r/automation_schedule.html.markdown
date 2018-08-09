@@ -65,17 +65,11 @@ The following arguments are supported:
 
 * `timezone` - (Optional) The timezone of the start time. Defaults to `UTC`. For possible values see: https://msdn.microsoft.com/en-us/library/ms912391(v=winembedded.11).aspx
 
-* `advanced_schedule` - (Optional) Advanced fine-grained schedule frequency configuration. The `advanced_schedule` block supports fields documented below.
+* `week_days` - (Optional) List of days of the week that the job should execute on. Only valid for `Week`.
 
----
+* `month_days` - (Optional) List of days of the month that the job should execute on. Must be between `1` and `31`. `-1` for last day of the month. Only valid for `Month`.
 
-The `advanced_schedule` block supports:
-
-* `week_days` - (Optional) List of days of the week that the job should execute on.
-
-* `month_days` - (Optional) List of days of the month that the job should execute on. Must be between 1 and 31. 0 for last day of the month.
-
-* `monthly_occurrence` - (Optional) List of occurrences of days within a month. The `monthly_occurrence` block supports fields documented below.
+* `monthly_occurrence` - (Optional) List of occurrences of days within a month. Only valid for `Month`. The `monthly_occurrence` block supports fields documented below.
 
 ---
 
@@ -83,7 +77,7 @@ The `monthly_occurrence` block supports:
 
 * `day` - (Required) Day of the occurrence. Must be one of Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday.
 
-* `occurrence` - (Required) Occurrence of the week within the month. Must be between 1 and 5.
+* `occurrence` - (Required) Occurrence of the week within the month. Must be between `1` and `5`. `-1` for last week within the month.
 
 ## Attributes Reference
 
