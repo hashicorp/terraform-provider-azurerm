@@ -3,14 +3,14 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_lb_probe"
 sidebar_current: "docs-azurerm-resource-loadbalancer-probe"
 description: |-
-  Manages a LoadBalancer Probe Resource.
+  Manages a Load Balancer Probe Resource.
 ---
 
 # azurerm_lb_probe
 
-Create a LoadBalancer Probe Resource.
+Create a Load Balancer Probe Resource.
 
-~> **NOTE** When using this resource, the LoadBalancer needs to have a FrontEnd IP Configuration Attached
+~> **NOTE** When using this resource, the Load Balancer needs to have a FrontEnd IP Configuration Attached
 
 ## Example Usage
 
@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Probe.
 * `resource_group_name` - (Required) The name of the resource group in which to create the resource.
-* `loadbalancer_id` - (Required) The ID of the LoadBalancer in which to create the NAT Rule.
+* `loadbalancer_id` - (Required) The ID of the Load Balancer in which to create the NAT Rule.
 * `protocol` - (Optional) Specifies the protocol of the end point. Possible values are `Http` or `Tcp`. If Tcp is specified, a received ACK is required for the probe to be successful. If Http is specified, a 200 OK response from the specified URI is required for the probe to be successful.
 * `port` - (Required) Port on which the Probe queries the backend endpoint. Possible values range from 1 to 65535, inclusive.
 * `request_path` - (Optional) The URI used for requesting health status from the backend endpoint. Required if protocol is set to Http. Otherwise, it is not allowed.
@@ -64,7 +64,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the LoadBalancer to which the resource is attached.
+* `id` - The ID of the Load Balancer to which the resource is attached.
 
 ## Import
 

@@ -10,6 +10,10 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
 
 func resourceArmLoadBalancerNatPool() *schema.Resource {
@@ -27,6 +31,7 @@ func resourceArmLoadBalancerNatPool() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"location": deprecatedLocationSchema(),
@@ -37,33 +42,43 @@ func resourceArmLoadBalancerNatPool() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"protocol": {
 				Type:             schema.TypeString,
 				Required:         true,
 				StateFunc:        ignoreCaseStateFunc,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.TransportProtocolAll),
+					string(network.TransportProtocolTCP),
+					string(network.TransportProtocolUDP),
+				}, true),
 			},
 
 			"frontend_port_start": {
 				Type:     schema.TypeInt,
 				Required: true,
+				ValidateFunc: validate.PortNumber,
 			},
 
 			"frontend_port_end": {
 				Type:     schema.TypeInt,
 				Required: true,
+				ValidateFunc: validate.PortNumber,
 			},
 
 			"backend_port": {
 				Type:     schema.TypeInt,
 				Required: true,
+				ValidateFunc: validate.PortNumber,
 			},
 
 			"frontend_ip_configuration_name": {
 				Type:     schema.TypeString,
 				Required: true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"frontend_ip_configuration_id": {
@@ -273,17 +288,13 @@ func expandAzureRmLoadBalancerNatPool(d *schema.ResourceData, lb *network.LoadBa
 			return nil, fmt.Errorf("[ERROR] Cannot find FrontEnd IP Configuration with the name %s", v)
 		}
 
-		feip := network.SubResource{
+		properties.FrontendIPConfiguration = &network.SubResource{
 			ID: rule.ID,
 		}
-
-		properties.FrontendIPConfiguration = &feip
 	}
 
-	natPool := network.InboundNatPool{
+	return &network.InboundNatPool{
 		Name: utils.String(d.Get("name").(string)),
 		InboundNatPoolPropertiesFormat: &properties,
-	}
-
-	return &natPool, nil
+	}, nil
 }

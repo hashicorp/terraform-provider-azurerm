@@ -283,49 +283,52 @@ func testAccAzureRMLoadBalancerNatPool_multiplePools(rInt int, natPoolName, natP
 	return fmt.Sprintf(`
 
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
+    name     = "acctestRG-%d"
     location = "%s"
 }
 
 resource "azurerm_public_ip" "test" {
-    name = "test-ip-%d"
-    location = "${azurerm_resource_group.test.location}"
+    name                = "test-ip-%d"
+    location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
+
     public_ip_address_allocation = "static"
 }
 
 resource "azurerm_lb" "test" {
-    name = "arm-test-loadbalancer-%d"
-    location = "${azurerm_resource_group.test.location}"
+    name                = "arm-test-loadbalancer-%d"
+    location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     frontend_ip_configuration {
-      name = "one-%d"
+      name                 = "one-%d"
       public_ip_address_id = "${azurerm_public_ip.test.id}"
     }
 }
 
 resource "azurerm_lb_nat_pool" "test" {
-  location = "${azurerm_resource_group.test.location}"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  loadbalancer_id = "${azurerm_lb.test.id}"
-  name = "%s"
-  protocol = "Tcp"
+  loadbalancer_id     = "${azurerm_lb.test.id}"
+  name                = "%s"
+  protocol            = "Tcp"
   frontend_port_start = 80
-  frontend_port_end = 81
-  backend_port = 3389
+  frontend_port_end   = 81
+  backend_port        = 3389
+
   frontend_ip_configuration_name = "one-%d"
 }
 
 resource "azurerm_lb_nat_pool" "test2" {
-  location = "${azurerm_resource_group.test.location}"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  loadbalancer_id = "${azurerm_lb.test.id}"
-  name = "%s"
-  protocol = "Tcp"
+  loadbalancer_id     = "${azurerm_lb.test.id}"
+  name                = "%s"
+  protocol            = "Tcp"
   frontend_port_start = 82
-  frontend_port_end = 83
-  backend_port = 3390
+  frontend_port_end   = 83
+  backend_port        = 3390
+
   frontend_ip_configuration_name = "one-%d"
 }
 `, rInt, location, rInt, rInt, rInt, natPoolName, rInt, natPool2Name, rInt)
