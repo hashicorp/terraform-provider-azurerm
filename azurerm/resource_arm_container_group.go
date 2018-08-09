@@ -458,7 +458,7 @@ func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, cont
 	volumeConfigs := make([]interface{}, 0)
 
 	if volumeMounts == nil {
-	 	return volumeConfigs
+		return volumeConfigs
 	}
 
 	for _, vm := range *volumeMounts {
@@ -480,7 +480,6 @@ func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, cont
 				if cgv.Name == nil || vm.Name == nil {
 					continue
 				}
-
 
 				if *cgv.Name == *vm.Name {
 					if file := cgv.AzureFile; file != nil {
