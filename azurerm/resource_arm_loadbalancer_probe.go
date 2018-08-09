@@ -217,7 +217,9 @@ func resourceArmLoadBalancerProbeRead(d *schema.ResourceData, meta interface{}) 
 				}
 			}
 		}
-		d.Set("load_balancer_rules", load_balancer_rules)
+		if err := d.Set("load_balancer_rules", load_balancer_rules); err != nil {
+			return fmt.Errorf("Error setting `load_balancer_rules` (Load Balancer Probe %q): %+v", name, err)
+		}
 	}
 
 	return nil
