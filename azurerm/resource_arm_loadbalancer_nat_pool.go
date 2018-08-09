@@ -98,7 +98,7 @@ func resourceArmLoadBalancerNatPoolCreate(d *schema.ResourceData, meta interface
 
 	loadBalancer, exists, err := retrieveLoadBalancerById(loadBalancerID, meta)
 	if err != nil {
-		return fmt.Errorf("Error Getting LoadBalancer By ID: %+v", err)
+		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
 	}
 	if !exists {
 		d.SetId("")
@@ -124,7 +124,7 @@ func resourceArmLoadBalancerNatPoolCreate(d *schema.ResourceData, meta interface
 	loadBalancer.LoadBalancerPropertiesFormat.InboundNatPools = &natPools
 	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(d.Get("loadbalancer_id").(string))
 	if err != nil {
-		return fmt.Errorf("Error Getting LoadBalancer Name and Group:: %+v", err)
+		return fmt.Errorf("Error Getting Load Balancer Name and Group:: %+v", err)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, loadBalancerName, *loadBalancer)
@@ -248,7 +248,7 @@ func resourceArmLoadBalancerNatPoolDelete(d *schema.ResourceData, meta interface
 
 	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(d.Get("loadbalancer_id").(string))
 	if err != nil {
-		return fmt.Errorf("Error Getting LoadBalancer Name and Group:: %+v", err)
+		return fmt.Errorf("Error Getting Load Balancer Name and Group:: %+v", err)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, loadBalancerName, *loadBalancer)

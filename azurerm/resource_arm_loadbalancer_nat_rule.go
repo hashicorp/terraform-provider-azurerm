@@ -104,7 +104,7 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *schema.ResourceData, meta int
 
 	loadBalancer, exists, err := retrieveLoadBalancerById(loadBalancerID, meta)
 	if err != nil {
-		return fmt.Errorf("Error Getting LoadBalancer By ID: %+v", err)
+		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
 	}
 	if !exists {
 		d.SetId("")

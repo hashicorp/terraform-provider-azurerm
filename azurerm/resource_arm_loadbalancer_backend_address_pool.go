@@ -74,7 +74,7 @@ func resourceArmLoadBalancerBackendAddressPoolCreate(d *schema.ResourceData, met
 
 	loadBalancer, exists, err := retrieveLoadBalancerById(loadBalancerID, meta)
 	if err != nil {
-		return fmt.Errorf("Error Getting LoadBalancer By ID: %+v", err)
+		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
 	}
 	if !exists {
 		d.SetId("")
@@ -221,7 +221,7 @@ func resourceArmLoadBalancerBackendAddressPoolDelete(d *schema.ResourceData, met
 
 	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(d.Get("loadbalancer_id").(string))
 	if err != nil {
-		return fmt.Errorf("Error Getting LoadBalancer Name and Group:: %+v", err)
+		return fmt.Errorf("Error Getting Load Balancer Name and Group:: %+v", err)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, loadBalancerName, *loadBalancer)

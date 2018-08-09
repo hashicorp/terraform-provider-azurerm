@@ -29,7 +29,7 @@ func retrieveLoadBalancerById(loadBalancerId string, meta interface{}) (*network
 
 	resGroup, name, err := resourceGroupAndLBNameFromId(loadBalancerId)
 	if err != nil {
-		return nil, false, fmt.Errorf("Error Getting LoadBalancer Name and Group:: %+v", err)
+		return nil, false, fmt.Errorf("Error Getting Load Balancer Name and Group:: %+v", err)
 	}
 
 	resp, err := client.Get(ctx, resGroup, name, "")
