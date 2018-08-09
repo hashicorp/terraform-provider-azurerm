@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
-	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -184,7 +183,7 @@ func resourceArmLoadBalancerProbeRead(d *schema.ResourceData, meta interface{}) 
 
 	loadBalancer, exists, err := retrieveLoadBalancerById(d.Get("loadbalancer_id").(string), meta)
 	if err != nil {
-		return errwrap.Wrapf("Error Getting Load Balancer By ID {{err}}", err)
+		return fmt.Errorf("Error Getting LoadBalancer By ID: %+v", err)
 	}
 	if !exists {
 		d.SetId("")
@@ -253,7 +252,7 @@ func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}
 
 	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(d.Get("loadbalancer_id").(string))
 	if err != nil {
-		return errwrap.Wrapf("Error Getting Load Balancer Name and Group: {{err}}", err)
+		return fmt.Errorf("Error Getting LoadBalancer Name and Group:: %+v", err)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, loadBalancerName, *loadBalancer)
@@ -268,7 +267,7 @@ func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}
 
 	read, err := client.Get(ctx, resGroup, loadBalancerName, "")
 	if err != nil {
-		return errwrap.Wrapf("Error Getting Load Balancer {{err}}", err)
+		return fmt.Errorf("Error Getting LoadBalancer: %+v", err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read Load Balancer %s (resource group %s) ID", loadBalancerName, resGroup)

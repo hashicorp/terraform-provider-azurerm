@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
-	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -105,7 +104,7 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *schema.ResourceData, meta int
 
 	loadBalancer, exists, err := retrieveLoadBalancerById(loadBalancerID, meta)
 	if err != nil {
-		return errwrap.Wrapf("Error Getting Load Balancer By ID {{err}}", err)
+		return fmt.Errorf("Error Getting LoadBalancer By ID: %+v", err)
 	}
 	if !exists {
 		d.SetId("")
@@ -115,7 +114,7 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *schema.ResourceData, meta int
 
 	newNatRule, err := expandAzureRmLoadBalancerNatRule(d, loadBalancer)
 	if err != nil {
-		return errwrap.Wrapf("Error Expanding NAT Rule {{err}}", err)
+		return fmt.Errorf("Error Expanding NAT Rule: %+v", err)
 	}
 
 	natRules := append(*loadBalancer.LoadBalancerPropertiesFormat.InboundNatRules, *newNatRule)
