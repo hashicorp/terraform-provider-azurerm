@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
@@ -13,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -23,9 +25,13 @@ func resourceArmAutomationSchedule() *schema.Resource {
 		Read:   resourceArmAutomationScheduleRead,
 		Update: resourceArmAutomationScheduleCreateUpdate,
 		Delete: resourceArmAutomationScheduleDelete,
-
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -222,10 +228,6 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	frequency := d.Get("frequency").(string)
-
-	timeZone := d.Get("timezone").(string)
-	description := d.Get("description").(string)
 
 	//CustomizeDiff should ensure one of these two is set
 	//todo remove this once `account_name` is removed
@@ -235,6 +237,24 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 	} else if v, ok := d.GetOk("account_name"); ok {
 		accountName = v.(string)
 	}
+
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resGroup, accountName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of Automation Schedule %q (Account %q / Resource Group %q): %+v", name, accountName, resGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_automation_schedule", *resp.ID)
+		}
+	}
+
+	frequency := d.Get("frequency").(string)
+	timeZone := d.Get("timezone").(string)
+	description := d.Get("description").(string)
 
 	parameters := automation.ScheduleCreateOrUpdateParameters{
 		Name: &name,
@@ -277,7 +297,9 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 		properties.AdvancedSchedule = advancedRef
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resGroup, accountName, name, parameters)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	_, err := client.CreateOrUpdate(waitCtx, resGroup, accountName, name, parameters)
 	if err != nil {
 		return err
 	}
@@ -369,7 +391,9 @@ func resourceArmAutomationScheduleDelete(d *schema.ResourceData, meta interface{
 	resGroup := id.ResourceGroup
 	accountName := id.Path["automationAccounts"]
 
-	resp, err := client.Delete(ctx, resGroup, accountName, name)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	resp, err := client.Delete(waitCtx, resGroup, accountName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return fmt.Errorf("Error issuing AzureRM delete request for Automation Schedule '%s': %+v", name, err)
