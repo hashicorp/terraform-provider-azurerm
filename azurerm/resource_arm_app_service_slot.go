@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -147,13 +149,27 @@ func resourceArmAppServiceSlot() *schema.Resource {
 
 func resourceArmAppServiceSlotCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).appServicesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM App Service Slot creation.")
 
 	slot := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
 	appServiceName := d.Get("app_service_name").(string)
+
+	// first check if there's one in this subscription requiring import
+	resp, err := client.GetSlot(ctx, resGroup, appServiceName, slot)
+	if err != nil {
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Error checking for the existence of Slot %q (App Service %q / Resource Group %q): %+v", slot, appServiceName, resGroup, err)
+		}
+	}
+
+	if resp.ID != nil {
+		return tf.ImportAsExistsError("azurerm_app_service_slot", *resp.ID)
+	}
+
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	appServicePlanId := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
@@ -181,10 +197,7 @@ func resourceArmAppServiceSlotCreate(d *schema.ResourceData, meta interface{}) e
 		siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(enabled)
 	}
 
-	// NOTE: these seem like sensible defaults, in lieu of any better documentation.
-	ctx := meta.(*ArmClient).StopContext
-
-	resp, err := client.Get(ctx, resGroup, appServiceName)
+	resp, err = client.Get(ctx, resGroup, appServiceName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("[DEBUG] App Service %q (resource group %q) was not found.", appServiceName, resGroup)
@@ -192,7 +205,9 @@ func resourceArmAppServiceSlotCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error making Read request on AzureRM App Service %q: %+v", appServiceName, err)
 	}
 
-	createFuture, err := client.CreateOrUpdateSlot(ctx, resGroup, appServiceName, siteEnvelope, slot)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutCreate))
+	defer cancel()
+	createFuture, err := client.CreateOrUpdateSlot(waitCtx, resGroup, appServiceName, siteEnvelope, slot)
 	if err != nil {
 		return err
 	}
@@ -253,17 +268,20 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	err = createFuture.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutUpdate))
+	defer cancel()
+	err = createFuture.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return err
 	}
+
 	if d.HasChange("site_config") {
 		// update the main configuration
 		siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
 		siteConfigResource := web.SiteConfigResource{
 			SiteConfig: &siteConfig,
 		}
-		_, err := client.CreateOrUpdateConfigurationSlot(ctx, resGroup, appServiceName, siteConfigResource, slot)
+		_, err := client.CreateOrUpdateConfigurationSlot(waitCtx, resGroup, appServiceName, siteConfigResource, slot)
 		if err != nil {
 			return fmt.Errorf("Error updating Configuration for App Service Slot %q/%q: %+v", appServiceName, slot, err)
 		}
@@ -277,7 +295,7 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 				ClientAffinityEnabled: &affinity,
 			},
 		}
-		_, err := client.UpdateSlot(ctx, resGroup, appServiceName, sitePatchResource, slot)
+		_, err := client.UpdateSlot(waitCtx, resGroup, appServiceName, sitePatchResource, slot)
 		if err != nil {
 			return fmt.Errorf("Error updating App Service ARR Affinity setting %q: %+v", slot, err)
 		}
@@ -290,7 +308,7 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 			Properties: appSettings,
 		}
 
-		_, err := client.UpdateApplicationSettingsSlot(ctx, resGroup, appServiceName, settings, slot)
+		_, err := client.UpdateApplicationSettingsSlot(waitCtx, resGroup, appServiceName, settings, slot)
 		if err != nil {
 			return fmt.Errorf("Error updating Application Settings for App Service Slot %q/%q: %+v", appServiceName, slot, err)
 		}
@@ -303,7 +321,7 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 			Properties: connectionStrings,
 		}
 
-		_, err := client.UpdateConnectionStringsSlot(ctx, resGroup, appServiceName, properties, slot)
+		_, err := client.UpdateConnectionStringsSlot(waitCtx, resGroup, appServiceName, properties, slot)
 		if err != nil {
 			return fmt.Errorf("Error updating Connection Strings for App Service Slot %q/%q: %+v", appServiceName, slot, err)
 		}
@@ -403,7 +421,9 @@ func resourceArmAppServiceSlotDelete(d *schema.ResourceData, meta interface{}) e
 	deleteMetrics := true
 	deleteEmptyServerFarm := false
 	ctx := meta.(*ArmClient).StopContext
-	resp, err := client.DeleteSlot(ctx, resGroup, appServiceName, slot, &deleteMetrics, &deleteEmptyServerFarm)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	resp, err := client.DeleteSlot(waitCtx, resGroup, appServiceName, slot, &deleteMetrics, &deleteEmptyServerFarm)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return err

@@ -1,13 +1,16 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,6 +22,11 @@ func resourceArmAppServicePlan() *schema.Resource {
 		Delete: resourceArmAppServicePlanDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -116,6 +124,21 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
+
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of App Service Plan %q (Resource Group %q): %+v", name, resGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_app_service_plan", *resp.ID)
+		}
+	}
+
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	kind := d.Get("kind").(string)
 	tags := d.Get("tags").(map[string]interface{})
@@ -136,7 +159,9 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 		return err
 	}
 
-	err = createFuture.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	err = createFuture.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -215,8 +240,9 @@ func resourceArmAppServicePlanDelete(d *schema.ResourceData, meta interface{}) e
 
 	log.Printf("[DEBUG] Deleting app service plan %s: %s", resGroup, name)
 
-	resp, err := client.Delete(ctx, resGroup, name)
-
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	resp, err := client.Delete(waitCtx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil

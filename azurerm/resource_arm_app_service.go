@@ -1,14 +1,17 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,6 +23,11 @@ func resourceArmAppService() *schema.Resource {
 		Delete: resourceArmAppServiceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -188,6 +196,21 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	log.Printf("[INFO] preparing arguments for AzureRM App Service creation.")
 
 	name := d.Get("name").(string)
+	resGroup := d.Get("resource_group_name").(string)
+
+	// first check if there's one in this subscription requiring import
+	resp, err := client.Get(ctx, resGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Error checking for the existence of App Service %q (Resource Group %q): %+v", name, resGroup, err)
+		}
+	}
+
+	if resp.ID != nil {
+		return tf.ImportAsExistsError("azurerm_app_service", *resp.ID)
+	}
+
+	// then check the name's globally unique
 	availabilityRequest := web.ResourceNameAvailabilityRequest{
 		Name: utils.String(name),
 		Type: web.CheckNameResourceTypesMicrosoftWebsites,
@@ -201,7 +224,6 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("The name %q used for the App Service needs to be globally unique and isn't available: %s", name, *available.Message)
 	}
 
-	resGroup := d.Get("resource_group_name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	appServicePlanId := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
@@ -236,7 +258,9 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	err = createFuture.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutCreate))
+	defer cancel()
+	err = createFuture.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -289,7 +313,9 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutUpdate))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -300,7 +326,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		siteConfigResource := web.SiteConfigResource{
 			SiteConfig: &siteConfig,
 		}
-		_, err := client.CreateOrUpdateConfiguration(ctx, resGroup, name, siteConfigResource)
+		_, err := client.CreateOrUpdateConfiguration(waitCtx, resGroup, name, siteConfigResource)
 		if err != nil {
 			return fmt.Errorf("Error updating Configuration for App Service %q: %+v", name, err)
 		}
@@ -317,7 +343,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			},
 		}
 
-		_, err := client.Update(ctx, resGroup, name, sitePatchResource)
+		_, err := client.Update(waitCtx, resGroup, name, sitePatchResource)
 		if err != nil {
 			return fmt.Errorf("Error updating App Service ARR Affinity setting %q: %+v", name, err)
 		}
@@ -330,7 +356,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			Properties: appSettings,
 		}
 
-		_, err := client.UpdateApplicationSettings(ctx, resGroup, name, settings)
+		_, err := client.UpdateApplicationSettings(waitCtx, resGroup, name, settings)
 		if err != nil {
 			return fmt.Errorf("Error updating Application Settings for App Service %q: %+v", name, err)
 		}
@@ -343,14 +369,14 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			Properties: connectionStrings,
 		}
 
-		_, err := client.UpdateConnectionStrings(ctx, resGroup, name, properties)
+		_, err := client.UpdateConnectionStrings(waitCtx, resGroup, name, properties)
 		if err != nil {
 			return fmt.Errorf("Error updating Connection Strings for App Service %q: %+v", name, err)
 		}
 	}
 
 	if d.HasChange("identity") {
-		site, err := client.Get(ctx, resGroup, name)
+		site, err := client.Get(waitCtx, resGroup, name)
 		if err != nil {
 			return fmt.Errorf("Error getting configuration for App Service %q: %+v", name, err)
 		}
@@ -358,13 +384,13 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		appServiceIdentity := expandAzureRmAppServiceIdentity(d)
 		site.Identity = appServiceIdentity
 
-		future, err := client.CreateOrUpdate(ctx, resGroup, name, site)
+		future, err := client.CreateOrUpdate(waitCtx, resGroup, name, site)
 
 		if err != nil {
 			return fmt.Errorf("Error updating Managed Service Identity for App Service %q: %+v", name, err)
 		}
 
-		err = future.WaitForCompletionRef(ctx, client.Client)
+		err = future.WaitForCompletionRef(waitCtx, client.Client)
 
 		if err != nil {
 			return fmt.Errorf("Error updating Managed Service Identity for App Service %q: %+v", name, err)
@@ -491,7 +517,9 @@ func resourceArmAppServiceDelete(d *schema.ResourceData, meta interface{}) error
 	deleteMetrics := true
 	deleteEmptyServerFarm := false
 	ctx := meta.(*ArmClient).StopContext
-	resp, err := client.Delete(ctx, resGroup, name, &deleteMetrics, &deleteEmptyServerFarm)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	resp, err := client.Delete(waitCtx, resGroup, name, &deleteMetrics, &deleteEmptyServerFarm)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return err

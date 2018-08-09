@@ -1,11 +1,14 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -16,6 +19,10 @@ func resourceArmAppServiceCustomHostnameBinding() *schema.Resource {
 		Delete: resourceArmAppServiceCustomHostnameBindingDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 10),
+			Delete: schema.DefaultTimeout(time.Minute * 10),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -46,12 +53,26 @@ func resourceArmAppServiceCustomHostnameBindingCreate(d *schema.ResourceData, me
 	appServiceName := d.Get("app_service_name").(string)
 	hostname := d.Get("hostname").(string)
 
+	// first check if there's one in this subscription requiring import
+	resp, err := client.GetHostNameBinding(ctx, resourceGroup, appServiceName, hostname)
+	if err != nil {
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Error checking for the existence of Hostname Binding %q (App Service Name %q / Resource Group %q): %+v", hostname, appServiceName, resourceGroup, err)
+		}
+	}
+
+	if resp.ID != nil {
+		return tf.ImportAsExistsError("azurerm_app_service_custom_hostname_binding", *resp.ID)
+	}
+
 	properties := web.HostNameBinding{
 		HostNameBindingProperties: &web.HostNameBindingProperties{
 			SiteName: utils.String(appServiceName),
 		},
 	}
-	_, err := client.CreateOrUpdateHostNameBinding(ctx, resourceGroup, appServiceName, hostname, properties)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutCreate))
+	defer cancel()
+	_, err = client.CreateOrUpdateHostNameBinding(waitCtx, resourceGroup, appServiceName, hostname, properties)
 	if err != nil {
 		return err
 	}
@@ -113,7 +134,9 @@ func resourceArmAppServiceCustomHostnameBindingDelete(d *schema.ResourceData, me
 	log.Printf("[DEBUG] Deleting App Service Hostname Binding %q (App Service %q / Resource Group %q)", hostname, appServiceName, resGroup)
 
 	ctx := meta.(*ArmClient).StopContext
-	resp, err := client.DeleteHostNameBinding(ctx, resGroup, appServiceName, hostname)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	resp, err := client.DeleteHostNameBinding(waitCtx, resGroup, appServiceName, hostname)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return err
