@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
-	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -261,7 +260,7 @@ func resourceArmLoadBalancerDelete(d *schema.ResourceData, meta interface{}) err
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return errwrap.Wrapf("Error Parsing Azure Resource ID {{err}}", err)
+		return fmt.Errorf("Error Parsing Azure Resource ID: %+v", err)
 	}
 	resGroup := id.ResourceGroup
 	name := id.Path["loadBalancers"]
