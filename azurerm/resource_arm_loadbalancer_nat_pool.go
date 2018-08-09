@@ -8,6 +8,10 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,9 +27,10 @@ func resourceArmLoadBalancerNatPool() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"location": deprecatedLocationSchema(),
@@ -33,36 +38,46 @@ func resourceArmLoadBalancerNatPool() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"loadbalancer_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"protocol": {
 				Type:             schema.TypeString,
 				Required:         true,
 				StateFunc:        ignoreCaseStateFunc,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.TransportProtocolAll),
+					string(network.TransportProtocolTCP),
+					string(network.TransportProtocolUDP),
+				}, true),
 			},
 
 			"frontend_port_start": {
-				Type:     schema.TypeInt,
-				Required: true,
+				Type:         schema.TypeInt,
+				Required:     true,
+				ValidateFunc: validate.PortNumber,
 			},
 
 			"frontend_port_end": {
-				Type:     schema.TypeInt,
-				Required: true,
+				Type:         schema.TypeInt,
+				Required:     true,
+				ValidateFunc: validate.PortNumber,
 			},
 
 			"backend_port": {
-				Type:     schema.TypeInt,
-				Required: true,
+				Type:         schema.TypeInt,
+				Required:     true,
+				ValidateFunc: validate.PortNumber,
 			},
 
 			"frontend_ip_configuration_name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"frontend_ip_configuration_id": {
@@ -83,11 +98,11 @@ func resourceArmLoadBalancerNatPoolCreate(d *schema.ResourceData, meta interface
 
 	loadBalancer, exists, err := retrieveLoadBalancerById(loadBalancerID, meta)
 	if err != nil {
-		return fmt.Errorf("Error Getting LoadBalancer By ID: %+v", err)
+		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
 	}
 	if !exists {
 		d.SetId("")
-		log.Printf("[INFO] LoadBalancer %q not found. Removing from state", d.Get("name").(string))
+		log.Printf("[INFO] Load Balancer %q not found. Removing from state", d.Get("name").(string))
 		return nil
 	}
 
@@ -109,7 +124,7 @@ func resourceArmLoadBalancerNatPoolCreate(d *schema.ResourceData, meta interface
 	loadBalancer.LoadBalancerPropertiesFormat.InboundNatPools = &natPools
 	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(d.Get("loadbalancer_id").(string))
 	if err != nil {
-		return fmt.Errorf("Error Getting LoadBalancer Name and Group:: %+v", err)
+		return fmt.Errorf("Error Getting Load Balancer Name and Group:: %+v", err)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, loadBalancerName, *loadBalancer)
@@ -127,7 +142,7 @@ func resourceArmLoadBalancerNatPoolCreate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error retrieving Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read LoadBalancer %q (Resource Group %q) ID", loadBalancerName, resGroup)
+		return fmt.Errorf("Cannot read Load Balancer %q (Resource Group %q) ID", loadBalancerName, resGroup)
 	}
 
 	var natPoolId string
@@ -138,13 +153,13 @@ func resourceArmLoadBalancerNatPoolCreate(d *schema.ResourceData, meta interface
 	}
 
 	if natPoolId == "" {
-		return fmt.Errorf("Cannot find created LoadBalancer NAT Pool ID %q", natPoolId)
+		return fmt.Errorf("Cannot find created Load Balancer NAT Pool ID %q", natPoolId)
 	}
 
 	d.SetId(natPoolId)
 
 	// TODO: is this needed?
-	log.Printf("[DEBUG] Waiting for LoadBalancer (%q) to become available", loadBalancerName)
+	log.Printf("[DEBUG] Waiting for Load Balancer (%q) to become available", loadBalancerName)
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"Accepted", "Updating"},
 		Target:  []string{"Succeeded"},
@@ -152,7 +167,7 @@ func resourceArmLoadBalancerNatPoolCreate(d *schema.ResourceData, meta interface
 		Timeout: 10 * time.Minute,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for LoadBalancer (%q - Resource Group %q) to become available: %+v", loadBalancerName, resGroup, err)
+		return fmt.Errorf("Error waiting for Load Balancer (%q - Resource Group %q) to become available: %+v", loadBalancerName, resGroup, err)
 	}
 
 	return resourceArmLoadBalancerNatPoolRead(d, meta)
@@ -171,14 +186,14 @@ func resourceArmLoadBalancerNatPoolRead(d *schema.ResourceData, meta interface{}
 	}
 	if !exists {
 		d.SetId("")
-		log.Printf("[INFO] LoadBalancer %q not found. Removing from state", name)
+		log.Printf("[INFO] Load Balancer %q not found. Removing from state", name)
 		return nil
 	}
 
 	config, _, exists := findLoadBalancerNatPoolByName(loadBalancer, name)
 	if !exists {
 		d.SetId("")
-		log.Printf("[INFO] LoadBalancer Nat Pool %q not found. Removing from state", name)
+		log.Printf("[INFO] Load Balancer Nat Pool %q not found. Removing from state", name)
 		return nil
 	}
 
@@ -215,7 +230,7 @@ func resourceArmLoadBalancerNatPoolDelete(d *schema.ResourceData, meta interface
 
 	loadBalancer, exists, err := retrieveLoadBalancerById(loadBalancerID, meta)
 	if err != nil {
-		return fmt.Errorf("Error retrieving LoadBalancer by ID: %+v", err)
+		return fmt.Errorf("Error retrieving Load Balancer by ID: %+v", err)
 	}
 	if !exists {
 		d.SetId("")
@@ -233,7 +248,7 @@ func resourceArmLoadBalancerNatPoolDelete(d *schema.ResourceData, meta interface
 
 	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(d.Get("loadbalancer_id").(string))
 	if err != nil {
-		return fmt.Errorf("Error Getting LoadBalancer Name and Group:: %+v", err)
+		return fmt.Errorf("Error Getting Load Balancer Name and Group:: %+v", err)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, loadBalancerName, *loadBalancer)
@@ -251,7 +266,7 @@ func resourceArmLoadBalancerNatPoolDelete(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error retrieving Load Balancer: %+v", err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read LoadBalancer %q (Resource Group %q) ID", loadBalancerName, resGroup)
+		return fmt.Errorf("Cannot read Load Balancer %q (Resource Group %q) ID", loadBalancerName, resGroup)
 	}
 
 	return nil
@@ -272,17 +287,13 @@ func expandAzureRmLoadBalancerNatPool(d *schema.ResourceData, lb *network.LoadBa
 			return nil, fmt.Errorf("[ERROR] Cannot find FrontEnd IP Configuration with the name %s", v)
 		}
 
-		feip := network.SubResource{
+		properties.FrontendIPConfiguration = &network.SubResource{
 			ID: rule.ID,
 		}
-
-		properties.FrontendIPConfiguration = &feip
 	}
 
-	natPool := network.InboundNatPool{
+	return &network.InboundNatPool{
 		Name: utils.String(d.Get("name").(string)),
 		InboundNatPoolPropertiesFormat: &properties,
-	}
-
-	return &natPool, nil
+	}, nil
 }

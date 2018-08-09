@@ -3,14 +3,14 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_lb_probe"
 sidebar_current: "docs-azurerm-resource-loadbalancer-probe"
 description: |-
-  Manages a LoadBalancer Probe Resource.
+  Manages a Load Balancer Probe Resource.
 ---
 
 # azurerm_lb_probe
 
 Manages a LoadBalancer Probe Resource.
 
-~> **NOTE** When using this resource, the LoadBalancer needs to have a FrontEnd IP Configuration Attached
+~> **NOTE** When using this resource, the Load Balancer needs to have a FrontEnd IP Configuration Attached
 
 ## Example Usage
 
@@ -64,7 +64,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the LoadBalancer to which the resource is attached.
+* `id` - The ID of the Load Balancer to which the resource is attached.
 
 ## Import
 
