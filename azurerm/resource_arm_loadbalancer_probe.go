@@ -9,14 +9,18 @@ import (
 	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmLoadBalancerProbe() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLoadBalancerProbeCreate,
+		Create: resourceArmLoadBalancerProbeCreateUpdate,
 		Read:   resourceArmLoadBalancerProbeRead,
-		Update: resourceArmLoadBalancerProbeCreate,
+		Update: resourceArmLoadBalancerProbeCreateUpdate,
 		Delete: resourceArmLoadBalancerProbeDelete,
 		Importer: &schema.ResourceImporter{
 			State: loadBalancerSubResourceStateImporter,
@@ -24,9 +28,10 @@ func resourceArmLoadBalancerProbe() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"location": deprecatedLocationSchema(),
@@ -34,9 +39,10 @@ func resourceArmLoadBalancerProbe() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"loadbalancer_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"protocol": {
@@ -44,12 +50,18 @@ func resourceArmLoadBalancerProbe() *schema.Resource {
 				Computed:         true,
 				Optional:         true,
 				StateFunc:        ignoreCaseStateFunc,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.ProbeProtocolHTTP),
+					string(network.ProbeProtocolHTTPS),
+					string(network.ProbeProtocolTCP),
+				}, true),
 			},
 
 			"port": {
-				Type:     schema.TypeInt,
-				Required: true,
+				Type:         schema.TypeInt,
+				Required:     true,
+				ValidateFunc: validate.PortNumber,
 			},
 
 			"request_path": {
@@ -58,9 +70,10 @@ func resourceArmLoadBalancerProbe() *schema.Resource {
 			},
 
 			"interval_in_seconds": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  15,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      15,
+				ValidateFunc: validation.IntAtLeast(5),
 			},
 
 			"number_of_probes": {
@@ -72,14 +85,17 @@ func resourceArmLoadBalancerProbe() *schema.Resource {
 			"load_balancer_rules": {
 				Type:     schema.TypeSet,
 				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.NoZeroValues,
+				},
+				Set: schema.HashString,
 			},
 		},
 	}
 }
 
-func resourceArmLoadBalancerProbeCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerProbeCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).loadBalancerClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -97,11 +113,7 @@ func resourceArmLoadBalancerProbeCreate(d *schema.ResourceData, meta interface{}
 		return nil
 	}
 
-	newProbe, err := expandAzureRmLoadBalancerProbe(d, loadBalancer)
-	if err != nil {
-		return fmt.Errorf("Error Expanding Probe: %+v", err)
-	}
-
+	newProbe := expandAzureRmLoadBalancerProbe(d)
 	probes := append(*loadBalancer.LoadBalancerPropertiesFormat.Probes, *newProbe)
 
 	existingProbe, existingProbeIndex, exists := findLoadBalancerProbeByName(loadBalancer, d.Get("name").(string))
@@ -189,19 +201,26 @@ func resourceArmLoadBalancerProbeRead(d *schema.ResourceData, meta interface{}) 
 
 	d.Set("name", config.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("protocol", config.ProbePropertiesFormat.Protocol)
-	d.Set("interval_in_seconds", config.ProbePropertiesFormat.IntervalInSeconds)
-	d.Set("number_of_probes", config.ProbePropertiesFormat.NumberOfProbes)
-	d.Set("port", config.ProbePropertiesFormat.Port)
-	d.Set("request_path", config.ProbePropertiesFormat.RequestPath)
 
-	var load_balancer_rules []string
-	if config.ProbePropertiesFormat.LoadBalancingRules != nil {
-		for _, ruleConfig := range *config.ProbePropertiesFormat.LoadBalancingRules {
-			load_balancer_rules = append(load_balancer_rules, *ruleConfig.ID)
+	if properties := config.ProbePropertiesFormat; properties != nil {
+		d.Set("protocol", properties.Protocol)
+		d.Set("interval_in_seconds", properties.IntervalInSeconds)
+		d.Set("number_of_probes", properties.NumberOfProbes)
+		d.Set("port", properties.Port)
+		d.Set("request_path", properties.RequestPath)
+
+		var load_balancer_rules []string
+		if rules := properties.LoadBalancingRules; rules != nil {
+			for _, ruleConfig := range *rules {
+				if id := ruleConfig.ID; id != nil {
+					load_balancer_rules = append(load_balancer_rules, *id)
+				}
+			}
+		}
+		if err := d.Set("load_balancer_rules", load_balancer_rules); err != nil {
+			return fmt.Errorf("Error setting `load_balancer_rules` (Load Balancer Probe %q): %+v", name, err)
 		}
 	}
-	d.Set("load_balancer_rules", load_balancer_rules)
 
 	return nil
 }
@@ -258,7 +277,7 @@ func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func expandAzureRmLoadBalancerProbe(d *schema.ResourceData, lb *network.LoadBalancer) (*network.Probe, error) {
+func expandAzureRmLoadBalancerProbe(d *schema.ResourceData) *network.Probe {
 
 	properties := network.ProbePropertiesFormat{
 		NumberOfProbes:    utils.Int32(int32(d.Get("number_of_probes").(int))),
@@ -274,10 +293,8 @@ func expandAzureRmLoadBalancerProbe(d *schema.ResourceData, lb *network.LoadBala
 		properties.RequestPath = utils.String(v.(string))
 	}
 
-	probe := network.Probe{
+	return &network.Probe{
 		Name: utils.String(d.Get("name").(string)),
 		ProbePropertiesFormat: &properties,
 	}
-
-	return &probe, nil
 }
