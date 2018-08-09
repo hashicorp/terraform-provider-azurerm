@@ -1,12 +1,15 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -18,6 +21,11 @@ func resourceArmApplicationSecurityGroup() *schema.Resource {
 		Delete: resourceArmApplicationSecurityGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -42,6 +50,21 @@ func resourceArmApplicationSecurityGroupCreateUpdate(d *schema.ResourceData, met
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
+
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of Application Security Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_application_security_group", *resp.ID)
+		}
+	}
+
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -54,7 +77,9 @@ func resourceArmApplicationSecurityGroupCreateUpdate(d *schema.ResourceData, met
 		return fmt.Errorf("Error creating Application Security Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for the Application Security Group %q (Resource Group %q) to finish creating: %+v", name, resourceGroup, err)
 	}
@@ -123,7 +148,9 @@ func resourceArmApplicationSecurityGroupDelete(d *schema.ResourceData, meta inte
 		}
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("Error waiting for deletion of Application Security Group %q (Resource Group %q): %+v", name, resourceGroup, err)
