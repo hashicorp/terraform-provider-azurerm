@@ -134,7 +134,7 @@ func resourceArmAutomationDscConfigurationDelete(d *schema.ResourceData, meta in
 			return nil
 		}
 
-		return fmt.Errorf("Error issuing AzureRM delete request for Automation Configuration '%s': %+v", name, err)
+		return fmt.Errorf("Error issuing AzureRM delete request for Automation Dsc Configuration '%s': %+v", name, err)
 	}
 
 	return nil

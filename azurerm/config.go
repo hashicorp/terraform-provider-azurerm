@@ -455,52 +455,31 @@ func (c *ArmClient) registerAppInsightsClients(endpoint, subscriptionId string, 
 
 func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
 	accountClient := automation.NewAccountClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&accountClient.Client)
-	accountClient.Authorizer = auth
-	accountClient.Sender = sender
-	accountClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&accountClient.Client, auth)
 	c.automationAccountClient = accountClient
 
 	credentialClient := automation.NewCredentialClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&credentialClient.Client)
-	credentialClient.Authorizer = auth
-	credentialClient.Sender = sender
-	credentialClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&credentialClient.Client, auth)
 	c.automationCredentialClient = credentialClient
 
 	dscConfigurationClient := automation.NewDscConfigurationClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&dscConfigurationClient.Client)
-	dscConfigurationClient.Authorizer = auth
-	dscConfigurationClient.Sender = sender
-	dscConfigurationClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&dscConfigurationClient.Client, auth)
 	c.automationDscConfigurationClient = dscConfigurationClient
 
 	dscNodeConfigurationClient := automation.NewDscNodeConfigurationClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&dscNodeConfigurationClient.Client)
-	dscNodeConfigurationClient.Authorizer = auth
-	dscNodeConfigurationClient.Sender = sender
-	dscNodeConfigurationClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&dscNodeConfigurationClient.Client, auth)
 	c.automationDscNodeConfigurationClient = dscNodeConfigurationClient
 
 	moduleClient := automation.NewModuleClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&moduleClient.Client)
-	moduleClient.Authorizer = auth
-	moduleClient.Sender = sender
-	moduleClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&moduleClient.Client, auth)
 	c.automationModuleClient = moduleClient
 
 	runbookClient := automation.NewRunbookClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&runbookClient.Client)
-	runbookClient.Authorizer = auth
-	runbookClient.Sender = sender
-	runbookClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&runbookClient.Client, auth)
 	c.automationRunbookClient = runbookClient
 
 	scheduleClient := automation.NewScheduleClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&scheduleClient.Client)
-	scheduleClient.Authorizer = auth
-	scheduleClient.Sender = sender
-	scheduleClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&scheduleClient.Client, auth)
 	c.automationScheduleClient = scheduleClient
 }
 
