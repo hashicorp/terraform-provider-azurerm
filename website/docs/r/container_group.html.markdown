@@ -121,7 +121,7 @@ The `container` block supports:
 
 * `command` - (Optional) A command line to be run on the container. Changing this forces a new resource to be created.
 
-~> **NOTE:** The field `command` has been deprecated in favour of `commands` to better match the API.
+~> **NOTE:** The field `command` has been deprecated in favor of `commands` to better match the API.
 
 * `commands` - (Optional) A list of commands which should be run on the container. Changing this forces a new resource to be created.
 
