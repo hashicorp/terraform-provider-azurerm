@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
@@ -12,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,6 +25,11 @@ func resourceArmAutoScaleSetting() *schema.Resource {
 		Delete: resourceArmAutoScaleSettingDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -344,6 +351,21 @@ func resourceArmAutoScaleSettingCreateOrUpdate(d *schema.ResourceData, meta inte
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of Auto Scale Setting %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_autoscale_setting", *resp.ID)
+		}
+	}
+
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	enabled := d.Get("enabled").(bool)
 	targetResourceId := d.Get("target_resource_id").(string)
@@ -371,7 +393,9 @@ func resourceArmAutoScaleSettingCreateOrUpdate(d *schema.ResourceData, meta inte
 		Tags: expandedTags,
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	if _, err := client.CreateOrUpdate(waitCtx, resourceGroup, name, parameters); err != nil {
 		return fmt.Errorf("Error creating AutoScale Setting %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -450,7 +474,9 @@ func resourceArmAutoScaleSettingDelete(d *schema.ResourceData, meta interface{})
 	resourceGroup := id.ResourceGroup
 	name := id.Path["autoscalesettings"]
 
-	resp, err := client.Delete(ctx, resourceGroup, name)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	resp, err := client.Delete(waitCtx, resourceGroup, name)
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("Error deleting AutoScale Setting %q (Resource Group %q): %+v", name, resourceGroup, err)
