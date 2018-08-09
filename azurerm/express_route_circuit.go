@@ -33,7 +33,7 @@ func retrieveErcByResourceId(resourceId string, meta interface{}) (erc *network.
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil, "", nil
 		}
-		return nil, "", fmt.Errorf(fmt.Sprintf("Error making Read request on Express Route Circuit %s:: %+v", name), err)
+		return nil, "", fmt.Errorf("Error making Read request on Express Route Circuit %s: %+v", name, err)
 	}
 
 	return &resp, resGroup, nil
