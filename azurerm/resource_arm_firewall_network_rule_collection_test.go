@@ -582,7 +582,7 @@ func testCheckAzureRMFirewallNetworkRuleCollectionDisappears(name string, firewa
 			return fmt.Errorf("Error Creating/Updating Azure Firewall: %+v", err)
 		}
 
-		err = future.WaitForCompletion(ctx, client.Client)
+		err = future.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
 			return fmt.Errorf("Error waiting for completion for Azure Firewall: %+v", err)
 		}

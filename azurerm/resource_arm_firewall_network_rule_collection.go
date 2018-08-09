@@ -134,7 +134,7 @@ func resourceArmFirewallNetworkRuleCollectionCreateUpdate(d *schema.ResourceData
 		return fmt.Errorf("Error creating/updating network rule collection %q in Azure Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for creation/update of network rule collection %q in Azure Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
 	}
@@ -229,7 +229,7 @@ func resourceArmFirewallNetworkRuleCollectionDelete(d *schema.ResourceData, meta
 		return fmt.Errorf("Error deleting network rule collection %q from Azure Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for deletion of network rule collection %q from Azure Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
 	}
