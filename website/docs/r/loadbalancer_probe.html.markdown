@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_lb_probe
 
-Create a Load Balancer Probe Resource.
+Manages a LoadBalancer Probe Resource.
 
 ~> **NOTE** When using this resource, the Load Balancer needs to have a FrontEnd IP Configuration Attached
 
@@ -52,8 +52,8 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Probe.
 * `resource_group_name` - (Required) The name of the resource group in which to create the resource.
-* `loadbalancer_id` - (Required) The ID of the Load Balancer in which to create the NAT Rule.
-* `protocol` - (Optional) Specifies the protocol of the end point. Possible values are `Http` or `Tcp`. If Tcp is specified, a received ACK is required for the probe to be successful. If Http is specified, a 200 OK response from the specified URI is required for the probe to be successful.
+* `loadbalancer_id` - (Required) The ID of the LoadBalancer in which to create the NAT Rule.
+* `protocol` - (Optional) Specifies the protocol of the end point. Possible values are `Http`, `Https` or `Tcp`. If Tcp is specified, a received ACK is required for the probe to be successful. If Http is specified, a 200 OK response from the specified URI is required for the probe to be successful.
 * `port` - (Required) Port on which the Probe queries the backend endpoint. Possible values range from 1 to 65535, inclusive.
 * `request_path` - (Optional) The URI used for requesting health status from the backend endpoint. Required if protocol is set to Http. Otherwise, it is not allowed.
 * `interval_in_seconds` - (Optional) The interval, in seconds between probes to the backend endpoint for health status. The default value is 15, the minimum value is 5.
