@@ -46,7 +46,7 @@ func testSweepResourceGroups(region string) error {
 			return err
 		}
 
-		err = deleteFuture.WaitForCompletion(ctx, client.Client)
+		err = deleteFuture.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
 			return err
 		}
@@ -175,7 +175,7 @@ func testCheckAzureRMResourceGroupDisappears(name string) resource.TestCheckFunc
 			return fmt.Errorf("Failed deleting Resource Group %q: %+v", resourceGroup, err)
 		}
 
-		err = deleteFuture.WaitForCompletion(ctx, client.Client)
+		err = deleteFuture.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
 			return fmt.Errorf("Failed long polling for the deletion of Resource Group %q: %+v", resourceGroup, err)
 		}

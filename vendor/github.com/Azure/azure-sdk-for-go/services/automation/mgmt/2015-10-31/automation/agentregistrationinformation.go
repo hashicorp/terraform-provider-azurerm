@@ -42,12 +42,15 @@ func NewAgentRegistrationInformationClientWithBaseURI(baseURI string, subscripti
 }
 
 // Get retrieve the automation agent registration information.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
 func (client AgentRegistrationInformationClient) Get(ctx context.Context, resourceGroupName string, automationAccountName string) (result AgentRegistration, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.AgentRegistrationInformationClient", "Get", err.Error())
 	}
 
@@ -114,13 +117,16 @@ func (client AgentRegistrationInformationClient) GetResponder(resp *http.Respons
 }
 
 // RegenerateKey regenerate a primary or secondary agent registration key
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. parameters
-// is the name of the agent registration key to be regenerated
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// parameters - the name of the agent registration key to be regenerated
 func (client AgentRegistrationInformationClient) RegenerateKey(ctx context.Context, resourceGroupName string, automationAccountName string, parameters AgentRegistrationRegenerateKeyParameter) (result AgentRegistration, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.AgentRegistrationInformationClient", "RegenerateKey", err.Error())
 	}
 

@@ -68,7 +68,7 @@ func TestAccAzureRMLoadBalancerProbe_removal(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLoadBalancerProbe_update(t *testing.T) {
+func maProbe_update(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := acctest.RandInt()
 	probeName := fmt.Sprintf("probe-%d", ri)
@@ -234,7 +234,7 @@ func testCheckAzureRMLoadBalancerProbeDisappears(addressPoolName string, lb *net
 			return fmt.Errorf("Error Creating/Updating LoadBalancer: %+v", err)
 		}
 
-		err = future.WaitForCompletion(ctx, client.Client)
+		err = future.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
 			return fmt.Errorf("Error waiting for completion for LoadBalancer: %+v", err)
 		}

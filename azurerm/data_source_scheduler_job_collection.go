@@ -10,9 +10,6 @@ import (
 func dataSourceArmSchedulerJobCollection() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmSchedulerJobCollectionRead,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {

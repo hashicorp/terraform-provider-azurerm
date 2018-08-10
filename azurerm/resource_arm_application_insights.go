@@ -38,8 +38,12 @@ func resourceArmApplicationInsights() *schema.Resource {
 				ForceNew:         true,
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(insights.Web),
-					string(insights.Other),
+					"web",
+					"other",
+					"java",
+					"phone",
+					"store",
+					"ios",
 				}, true),
 			},
 

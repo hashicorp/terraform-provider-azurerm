@@ -42,7 +42,7 @@ func TestResourceAzureRMLoadBalancerPrivateIpAddressAllocation_validation(t *tes
 		_, errors := validateLoadBalancerPrivateIpAddressAllocation(tc.Value, "azurerm_lb")
 
 		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Azure RM LoadBalancer private_ip_address_allocation to trigger a validation error")
+			t.Fatalf("Expected the Azure RM Load Balancer private_ip_address_allocation to trigger a validation error")
 		}
 	}
 }
@@ -153,6 +153,27 @@ func TestAccAzureRMLoadBalancer_tags(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLoadBalancer_emptyPrivateIP(t *testing.T) {
+	resourceName := "azurerm_lb.test"
+	var lb network.LoadBalancer
+	ri := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLoadBalancer_emptyIPAddress(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLoadBalancerExists(resourceName, &lb),
+					resource.TestCheckResourceAttrSet(resourceName, "frontend_ip_configuration.0.private_ip_address"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMLoadBalancerExists(name string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
@@ -172,7 +193,7 @@ func testCheckAzureRMLoadBalancerExists(name string, lb *network.LoadBalancer) r
 		resp, err := client.Get(ctx, resourceGroup, loadBalancerName, "")
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
-				return fmt.Errorf("Bad: LoadBalancer %q (resource group: %q) does not exist", loadBalancerName, resourceGroup)
+				return fmt.Errorf("Bad: Load Balancer %q (resource group: %q) does not exist", loadBalancerName, resourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on loadBalancerClient: %+v", err)
@@ -406,4 +427,41 @@ resource "azurerm_lb" "test" {
       public_ip_address_id = "${azurerm_public_ip.test.id}"
     }
 }`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMLoadBalancer_emptyIPAddress(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name = "acctvn-%d"
+  address_space = ["10.0.0.0/16"]
+  location = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name = "acctsub-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix = "10.0.2.0/24"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctestlb-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  sku                 = "Basic"
+
+  frontend_ip_configuration {
+    name                          = "Internal"
+    private_ip_address_allocation = "Dynamic"
+    private_ip_address            = ""
+    subnet_id                     = "${azurerm_subnet.test.id}"
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
 }

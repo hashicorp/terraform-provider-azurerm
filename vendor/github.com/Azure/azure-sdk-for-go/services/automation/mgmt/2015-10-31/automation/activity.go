@@ -41,13 +41,17 @@ func NewActivityClientWithBaseURI(baseURI string, subscriptionID string) Activit
 }
 
 // Get retrieve the activity in the module identified by module name and activity name.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. moduleName
-// is the name of module. activityName is the name of activity.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// moduleName - the name of module.
+// activityName - the name of activity.
 func (client ActivityClient) Get(ctx context.Context, resourceGroupName string, automationAccountName string, moduleName string, activityName string) (result Activity, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.ActivityClient", "Get", err.Error())
 	}
 
@@ -116,13 +120,16 @@ func (client ActivityClient) GetResponder(resp *http.Response) (result Activity,
 }
 
 // ListByModule retrieve a list of activities in the module identified by module name.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. moduleName
-// is the name of module.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// moduleName - the name of module.
 func (client ActivityClient) ListByModule(ctx context.Context, resourceGroupName string, automationAccountName string, moduleName string) (result ActivityListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.ActivityClient", "ListByModule", err.Error())
 	}
 

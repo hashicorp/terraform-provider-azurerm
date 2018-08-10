@@ -42,13 +42,16 @@ func NewDscCompilationJobStreamClientWithBaseURI(baseURI string, subscriptionID 
 }
 
 // ListByJob retrieve all the job streams for the compilation Job.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. jobID is the
-// job id.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// jobID - the job id.
 func (client DscCompilationJobStreamClient) ListByJob(ctx context.Context, resourceGroupName string, automationAccountName string, jobID uuid.UUID) (result JobStreamListResult, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.DscCompilationJobStreamClient", "ListByJob", err.Error())
 	}
 

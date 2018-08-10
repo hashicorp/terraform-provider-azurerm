@@ -75,7 +75,7 @@ func resourceArmEventGridTopicCreateUpdate(d *schema.ResourceData, meta interfac
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -157,7 +157,7 @@ func resourceArmEventGridTopicDelete(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error deleting Event Grid Topic %q: %+v", name, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil

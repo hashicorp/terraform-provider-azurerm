@@ -85,6 +85,8 @@ output "app_service_id" {
 
 * `managed_pipeline_mode` - The Managed Pipeline Mode used in this App Service.
 
+* `min_tls_version` - The minimum supported TLS version for this App Service.
+
 * `php_version` - The version of PHP used in this App Service.
 
 * `python_version` - The version of Python used in this App Service.
@@ -98,6 +100,10 @@ output "app_service_id" {
 * `use_32_bit_worker_process` - Does the App Service run in 32 bit mode, rather than 64 bit mode?
 
 * `websockets_enabled` - Are WebSockets enabled for this App Service?
+
+* `ftps_state` - State of FTP / FTPS service for this AppService.
+
+* `linux_fx_version` - Linux App Framework and version for the AppService.
 
 ---
 

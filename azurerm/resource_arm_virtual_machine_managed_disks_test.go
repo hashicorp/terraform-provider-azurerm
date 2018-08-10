@@ -505,7 +505,7 @@ func testCheckAndStopAzureRMVirtualMachine(vm *compute.VirtualMachine) resource.
 			return fmt.Errorf("Failed stopping virtual machine %q: %+v", resourceGroup, err)
 		}
 
-		err = future.WaitForCompletion(ctx, client.Client)
+		err = future.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
 			return fmt.Errorf("Failed long polling for the stop of virtual machine %q: %+v", resourceGroup, err)
 		}

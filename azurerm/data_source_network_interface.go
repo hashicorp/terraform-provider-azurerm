@@ -10,9 +10,6 @@ import (
 func dataSourceArmNetworkInterface() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmNetworkInterfaceRead,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -20,12 +17,12 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 				Required: true,
 			},
 
+			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+
 			"location": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 
 			"network_security_group_id": {
 				Type:     schema.TypeString,

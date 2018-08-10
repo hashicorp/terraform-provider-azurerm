@@ -12,6 +12,10 @@ func Int64(input int64) *int64 {
 	return &input
 }
 
+func Float(input float64) *float64 {
+	return &input
+}
+
 func String(input string) *string {
 	return &input
 }

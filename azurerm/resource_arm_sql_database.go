@@ -283,13 +283,18 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
+	// The requested Service Objective Name does not match the requested Service Objective Id.
+	if d.HasChange("requested_service_objective_name") && !d.HasChange("requested_service_objective_id") {
+		properties.DatabaseProperties.RequestedServiceObjectiveID = nil
+	}
+
 	ctx := meta.(*ArmClient).StopContext
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, properties)
 	if err != nil {
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -309,7 +314,7 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 		// for most imports
 		client.Client.PollingDuration = 60 * time.Minute
 
-		err = importFuture.WaitForCompletion(ctx, client.Client)
+		err = importFuture.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
 			return err
 		}

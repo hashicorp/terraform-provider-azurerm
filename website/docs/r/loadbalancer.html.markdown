@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_lb"
 sidebar_current: "docs-azurerm-resource-loadbalancer-x"
 description: |-
-  Create a LoadBalancer Resource.
+  Manages a Load Balancer Resource.
 ---
 
 # azurerm_lb
 
-Create a LoadBalancer Resource.
+Create a Load Balancer Resource.
 
 ## Example Usage
 
@@ -64,7 +64,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The LoadBalancer ID.
+* `id` - The Load Balancer ID.
 * `private_ip_address` - The first private IP address assigned to the load balancer in `frontend_ip_configuration` blocks, if any.
 * `private_ip_addresses` - The list of private IP address assigned to the load balancer in `frontend_ip_configuration` blocks, if any.
 

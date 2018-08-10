@@ -41,13 +41,17 @@ func NewNodeReportsClientWithBaseURI(baseURI string, subscriptionID string) Node
 }
 
 // Get retrieve the Dsc node report data by node id and report id.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. nodeID is
-// the Dsc node id. reportID is the report id.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// nodeID - the Dsc node id.
+// reportID - the report id.
 func (client NodeReportsClient) Get(ctx context.Context, resourceGroupName string, automationAccountName string, nodeID string, reportID string) (result DscNodeReport, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.NodeReportsClient", "Get", err.Error())
 	}
 
@@ -116,13 +120,17 @@ func (client NodeReportsClient) GetResponder(resp *http.Response) (result DscNod
 }
 
 // GetContent retrieve the Dsc node reports by node id and report id.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. nodeID is
-// the Dsc node id. reportID is the report id.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// nodeID - the Dsc node id.
+// reportID - the report id.
 func (client NodeReportsClient) GetContent(ctx context.Context, resourceGroupName string, automationAccountName string, nodeID string, reportID string) (result SetObject, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.NodeReportsClient", "GetContent", err.Error())
 	}
 
@@ -191,13 +199,17 @@ func (client NodeReportsClient) GetContentResponder(resp *http.Response) (result
 }
 
 // ListByNode retrieve the Dsc node report list by node id.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. nodeID is
-// the parameters supplied to the list operation. filter is the filter to apply on the operation.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// nodeID - the parameters supplied to the list operation.
+// filter - the filter to apply on the operation.
 func (client NodeReportsClient) ListByNode(ctx context.Context, resourceGroupName string, automationAccountName string, nodeID string, filter string) (result DscNodeReportListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.NodeReportsClient", "ListByNode", err.Error())
 	}
 

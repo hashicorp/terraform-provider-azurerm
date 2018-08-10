@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_metric_alertrule"
-sidebar_current: "docs-azurerm-resource-metric-alertrule"
+sidebar_current: "docs-azurerm-resource-monitor-metric-alertrule"
 description: |-
   Manages a metric-based alert rule.
 

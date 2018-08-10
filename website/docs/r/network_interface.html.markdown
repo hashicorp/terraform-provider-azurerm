@@ -96,8 +96,6 @@ The `ip_configuration` block supports:
 
 * `application_security_group_ids` - (Optional) List of Application Security Group IDs which should be attached to this NIC
 
--> **Note:** Application Security Groups are currently in Public Preview on an opt-in basis. [More information, including how you can register for the Preview, and which regions Application Security Groups are available in are available here](https://docs.microsoft.com/en-us/azure/virtual-network/create-network-security-group-preview)
-
 * `primary` - (Optional) Is this the Primary Network Interface? If set to `true` this should be the first `ip_configuration` in the array.
 
 ## Attributes Reference

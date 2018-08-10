@@ -5,6 +5,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault"
 	"github.com/hashicorp/terraform/helper/schema"
+	kvschema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -140,7 +141,9 @@ func dataSourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		if err := d.Set("sku", flattenKeyVaultDataSourceSku(props.Sku)); err != nil {
 			return fmt.Errorf("Error flattening `sku` for KeyVault %q: %+v", resp.Name, err)
 		}
-		if err := d.Set("access_policy", flattenKeyVaultDataSourceAccessPolicies(props.AccessPolicies)); err != nil {
+
+		flattenedPolicies := kvschema.FlattenKeyVaultAccessPolicies(props.AccessPolicies)
+		if err := d.Set("access_policy", flattenedPolicies); err != nil {
 			return fmt.Errorf("Error flattening `access_policy` for KeyVault %q: %+v", resp.Name, err)
 		}
 		d.Set("vault_uri", props.VaultURI)
@@ -157,54 +160,4 @@ func flattenKeyVaultDataSourceSku(sku *keyvault.Sku) []interface{} {
 	}
 
 	return []interface{}{result}
-}
-
-func flattenKeyVaultDataSourceAccessPolicies(policies *[]keyvault.AccessPolicyEntry) []interface{} {
-	result := make([]interface{}, 0, len(*policies))
-
-	if policies == nil {
-		return result
-	}
-
-	for _, policy := range *policies {
-		policyRaw := make(map[string]interface{})
-
-		keyPermissionsRaw := make([]interface{}, 0)
-		secretPermissionsRaw := make([]interface{}, 0)
-		certificatePermissionsRaw := make([]interface{}, 0)
-
-		if permissions := policy.Permissions; permissions != nil {
-			if keys := permissions.Keys; keys != nil {
-				for _, keyPermission := range *keys {
-					keyPermissionsRaw = append(keyPermissionsRaw, string(keyPermission))
-				}
-			}
-			if secrets := permissions.Secrets; secrets != nil {
-				for _, secretPermission := range *secrets {
-					secretPermissionsRaw = append(secretPermissionsRaw, string(secretPermission))
-				}
-			}
-
-			if certificates := permissions.Certificates; certificates != nil {
-				for _, certificatePermission := range *certificates {
-					certificatePermissionsRaw = append(certificatePermissionsRaw, string(certificatePermission))
-				}
-			}
-		}
-
-		policyRaw["tenant_id"] = policy.TenantID.String()
-		if policy.ObjectID != nil {
-			policyRaw["object_id"] = *policy.ObjectID
-		}
-		if policy.ApplicationID != nil {
-			policyRaw["application_id"] = policy.ApplicationID.String()
-		}
-		policyRaw["key_permissions"] = keyPermissionsRaw
-		policyRaw["secret_permissions"] = secretPermissionsRaw
-		policyRaw["certificate_permissions"] = certificatePermissionsRaw
-
-		result = append(result, policyRaw)
-	}
-
-	return result
 }

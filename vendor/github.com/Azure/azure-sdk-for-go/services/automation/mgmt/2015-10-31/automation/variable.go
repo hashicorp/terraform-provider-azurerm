@@ -41,13 +41,17 @@ func NewVariableClientWithBaseURI(baseURI string, subscriptionID string) Variabl
 }
 
 // CreateOrUpdate create a variable.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. variableName
-// is the variable name. parameters is the parameters supplied to the create or update variable operation.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// variableName - the variable name.
+// parameters - the parameters supplied to the create or update variable operation.
 func (client VariableClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, automationAccountName string, variableName string, parameters VariableCreateOrUpdateParameters) (result Variable, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.Name", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "parameters.VariableCreateOrUpdateProperties", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
@@ -120,13 +124,16 @@ func (client VariableClient) CreateOrUpdateResponder(resp *http.Response) (resul
 }
 
 // Delete delete the variable.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. variableName
-// is the name of variable.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// variableName - the name of variable.
 func (client VariableClient) Delete(ctx context.Context, resourceGroupName string, automationAccountName string, variableName string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.VariableClient", "Delete", err.Error())
 	}
 
@@ -193,13 +200,16 @@ func (client VariableClient) DeleteResponder(resp *http.Response) (result autore
 }
 
 // Get retrieve the variable identified by variable name.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. variableName
-// is the name of variable.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// variableName - the name of variable.
 func (client VariableClient) Get(ctx context.Context, resourceGroupName string, automationAccountName string, variableName string) (result Variable, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.VariableClient", "Get", err.Error())
 	}
 
@@ -267,12 +277,15 @@ func (client VariableClient) GetResponder(resp *http.Response) (result Variable,
 }
 
 // ListByAutomationAccount retrieve a list of variables.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
 func (client VariableClient) ListByAutomationAccount(ctx context.Context, resourceGroupName string, automationAccountName string) (result VariableListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.VariableClient", "ListByAutomationAccount", err.Error())
 	}
 
@@ -367,13 +380,17 @@ func (client VariableClient) ListByAutomationAccountComplete(ctx context.Context
 }
 
 // Update update a variable.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. variableName
-// is the variable name. parameters is the parameters supplied to the update variable operation.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// variableName - the variable name.
+// parameters - the parameters supplied to the update variable operation.
 func (client VariableClient) Update(ctx context.Context, resourceGroupName string, automationAccountName string, variableName string, parameters VariableUpdateParameters) (result Variable, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.VariableClient", "Update", err.Error())
 	}
 

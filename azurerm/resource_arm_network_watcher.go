@@ -115,7 +115,7 @@ func resourceArmNetworkWatcherDelete(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for the deletion of Network Watcher %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}

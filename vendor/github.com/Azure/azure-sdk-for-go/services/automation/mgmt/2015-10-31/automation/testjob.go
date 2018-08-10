@@ -41,14 +41,17 @@ func NewTestJobClientWithBaseURI(baseURI string, subscriptionID string) TestJobC
 }
 
 // Create create a test job of the runbook.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. runbookName
-// is the parameters supplied to the create test job operation. parameters is the parameters supplied to the create
-// test job operation.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// runbookName - the parameters supplied to the create test job operation.
+// parameters - the parameters supplied to the create test job operation.
 func (client TestJobClient) Create(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string, parameters TestJobCreateParameters) (result TestJob, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.TestJobClient", "Create", err.Error())
 	}
 
@@ -118,13 +121,16 @@ func (client TestJobClient) CreateResponder(resp *http.Response) (result TestJob
 }
 
 // Get retrieve the test job for the specified runbook.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. runbookName
-// is the runbook name.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// runbookName - the runbook name.
 func (client TestJobClient) Get(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string) (result TestJob, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.TestJobClient", "Get", err.Error())
 	}
 
@@ -192,13 +198,16 @@ func (client TestJobClient) GetResponder(resp *http.Response) (result TestJob, e
 }
 
 // Resume resume the test job.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. runbookName
-// is the runbook name.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// runbookName - the runbook name.
 func (client TestJobClient) Resume(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.TestJobClient", "Resume", err.Error())
 	}
 
@@ -265,13 +274,16 @@ func (client TestJobClient) ResumeResponder(resp *http.Response) (result autores
 }
 
 // Stop stop the test job.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. runbookName
-// is the runbook name.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// runbookName - the runbook name.
 func (client TestJobClient) Stop(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.TestJobClient", "Stop", err.Error())
 	}
 
@@ -338,13 +350,16 @@ func (client TestJobClient) StopResponder(resp *http.Response) (result autorest.
 }
 
 // Suspend suspend the test job.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. runbookName
-// is the runbook name.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// runbookName - the runbook name.
 func (client TestJobClient) Suspend(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.TestJobClient", "Suspend", err.Error())
 	}
 

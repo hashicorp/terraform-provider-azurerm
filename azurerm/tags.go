@@ -45,7 +45,7 @@ func tagValueToString(v interface{}) (string, error) {
 	}
 }
 
-func validateAzureRMTags(v interface{}, f string) (ws []string, es []error) {
+func validateAzureRMTags(v interface{}, _ string) (ws []string, es []error) {
 	tagsMap := v.(map[string]interface{})
 
 	if len(tagsMap) > 15 {

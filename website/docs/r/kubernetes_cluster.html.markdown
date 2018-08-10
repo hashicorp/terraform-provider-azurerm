@@ -247,11 +247,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-    network_plugin     = "kubenet"
-    pod_cidr           = "10.244.0.0/24"
-    dns_service_ip     = "10.10.0.10"
-    docker_bridge_cidr = "172.17.0.1/16"
-    service_cidr       = "10.10.0.0/16"
+    network_plugin = "kubenet"
   }
 }
 ```
@@ -267,7 +263,11 @@ The following attributes are exported:
 
 * `fqdn` - The FQDN of the Azure Kubernetes Managed Cluster.
 
-* `kube_config_raw` - Base64 encoded Kubernetes configuration
+* `node_resource_group` - Auto-generated Resource Group containing AKS Cluster resources.
+
+* `kube_config_raw` - Raw Kubernetes config to be used by
+    [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and
+    other compatible tools
 
 * `kube_config` - Kubernetes configuration, sub-attributes defined below:
 

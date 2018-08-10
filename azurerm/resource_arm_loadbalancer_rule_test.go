@@ -62,7 +62,7 @@ func TestResourceAzureRMLoadBalancerRuleNameLabel_validation(t *testing.T) {
 		_, errors := validateArmLoadBalancerRuleName(tc.Value, "azurerm_lb_rule")
 
 		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Azure RM LoadBalancer Rule Name Label to trigger a validation error")
+			t.Fatalf("Expected the Azure RM Load Balancer Rule Name Label to trigger a validation error")
 		}
 	}
 }
@@ -258,7 +258,7 @@ func testCheckAzureRMLoadBalancerRuleExists(lbRuleName string, lb *network.LoadB
 	return func(s *terraform.State) error {
 		_, _, exists := findLoadBalancerRuleByName(lb, lbRuleName)
 		if !exists {
-			return fmt.Errorf("A LoadBalancer Rule with name %q cannot be found.", lbRuleName)
+			return fmt.Errorf("A Load Balancer Rule with name %q cannot be found.", lbRuleName)
 		}
 
 		return nil
@@ -269,7 +269,7 @@ func testCheckAzureRMLoadBalancerRuleNotExists(lbRuleName string, lb *network.Lo
 	return func(s *terraform.State) error {
 		_, _, exists := findLoadBalancerRuleByName(lb, lbRuleName)
 		if exists {
-			return fmt.Errorf("A LoadBalancer Rule with name %q has been found.", lbRuleName)
+			return fmt.Errorf("A Load Balancer Rule with name %q has been found.", lbRuleName)
 		}
 
 		return nil
@@ -297,12 +297,12 @@ func testCheckAzureRMLoadBalancerRuleDisappears(ruleName string, lb *network.Loa
 
 		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, *lb.Name, *lb)
 		if err != nil {
-			return fmt.Errorf("Error Creating/Updating LoadBalancer %q (Resource Group %q): %+v", lb.Name, id.ResourceGroup, err)
+			return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q): %+v", lb.Name, id.ResourceGroup, err)
 		}
 
-		err = future.WaitForCompletion(ctx, client.Client)
+		err = future.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
-			return fmt.Errorf("Error waiting for completion of LoadBalancer %q (Resource Group %q): %+v", lb.Name, id.ResourceGroup, err)
+			return fmt.Errorf("Error waiting for completion of Load Balancer %q (Resource Group %q): %+v", lb.Name, id.ResourceGroup, err)
 		}
 
 		_, err = client.Get(ctx, id.ResourceGroup, *lb.Name, "")

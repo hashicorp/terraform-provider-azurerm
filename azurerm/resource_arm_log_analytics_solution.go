@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -104,14 +105,21 @@ func resourceArmLogAnalyticsSolutionCreateUpdate(d *schema.ResourceData, meta in
 	res, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
 	//Currently this is required to work around successful creation resulting in an error
 	// being returned
-	if err != nil && res.StatusCode != 201 {
-		return err
+	if err != nil && res.Response().StatusCode != 201 {
+		if resp := res.Response(); resp != nil {
+			if resp.StatusCode != 201 {
+				return err
+			}
+		}
 	}
 
-	solution, _ := client.Get(ctx, resGroup, name)
+	solution, err := client.Get(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Log Analytics Solution %q (Resource Group %q): %+v", name, resGroup, err)
+	}
 
 	if solution.ID == nil {
-		return fmt.Errorf("Cannot read Log Analytics Solution '%s' (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read Log Analytics Solution %q (Resource Group %q) ID", name, resGroup)
 	}
 
 	d.SetId(*solution.ID)
@@ -182,14 +190,18 @@ func resourceArmLogAnalyticsSolutionDelete(d *schema.ResourceData, meta interfac
 	resGroup := id.ResourceGroup
 	name := id.Path["solutions"]
 
-	resp, err := client.Delete(ctx, resGroup, name)
-
+	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp) {
+		return fmt.Errorf("Error deleting Log Analytics Solution %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	err = future.WaitForCompletionRef(ctx, client.Client)
+	if err != nil {
+		if response.WasNotFound(future.Response()) {
 			return nil
 		}
 
-		return fmt.Errorf("Error issuing AzureRM delete request for Log Analytics Solution '%s': %+v", name, err)
+		return fmt.Errorf("Error waiting for deletion of Log Analytics Solution %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	return nil

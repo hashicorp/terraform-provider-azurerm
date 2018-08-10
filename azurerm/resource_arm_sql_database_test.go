@@ -185,6 +185,36 @@ func TestAccAzureRMSqlDatabase_collation(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSqlDatabase_requestedServiceObjectiveName(t *testing.T) {
+	resourceName := "azurerm_sql_database.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+	preConfig := testAccAzureRMSqlDatabase_requestedServiceObjectiveName(ri, location, "S0")
+	postConfig := testAccAzureRMSqlDatabase_requestedServiceObjectiveName(ri, location, "S1")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlDatabaseExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "requested_service_objective_name", "S0"),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlDatabaseExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "requested_service_objective_name", "S1"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMSqlDatabaseExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
@@ -584,4 +614,33 @@ func testAccAzureRMSqlDatabase_bacpac(rInt int, location string) string {
 			}
 		}
 		`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMSqlDatabase_requestedServiceObjectiveName(rInt int, location, requestedServiceObjectiveName string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_sql_server" "test" {
+    name = "acctestsqlserver%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    location = "${azurerm_resource_group.test.location}"
+    version = "12.0"
+    administrator_login = "mradministrator"
+    administrator_login_password = "thisIsDog11"
+}
+
+resource "azurerm_sql_database" "test" {
+    name = "acctestdb%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    server_name = "${azurerm_sql_server.test.name}"
+    location = "${azurerm_resource_group.test.location}"
+    edition = "Standard"
+    collation = "SQL_Latin1_General_CP1_CI_AS"
+    max_size_bytes = "1073741824"
+    requested_service_objective_name = %q
+}
+`, rInt, location, rInt, rInt, requestedServiceObjectiveName)
 }

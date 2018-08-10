@@ -260,7 +260,7 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -484,7 +484,7 @@ func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error
 
 		return err
 	}
-	err = future.WaitForCompletion(ctx, redisClient.Client)
+	err = future.WaitForCompletionRef(ctx, redisClient.Client)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil

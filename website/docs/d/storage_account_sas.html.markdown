@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_account_sas"
 sidebar_current: "docs-azurerm-datasource-storage-account-sas"
 description: |-
-  Create a Shared Access Signature (SAS) for an Azure Storage Account.
+  Manages a Shared Access Signature (SAS) for an Azure Storage Account.
 
 ---
 

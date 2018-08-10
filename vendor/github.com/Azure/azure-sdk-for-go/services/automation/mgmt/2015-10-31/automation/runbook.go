@@ -41,14 +41,18 @@ func NewRunbookClientWithBaseURI(baseURI string, subscriptionID string) RunbookC
 }
 
 // CreateOrUpdate create the runbook identified by runbook name.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. runbookName
-// is the runbook name. parameters is the create or update parameters for runbook. Provide either content link for
-// a published runbook or draft, not both.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// runbookName - the runbook name.
+// parameters - the create or update parameters for runbook. Provide either content link for a published
+// runbook or draft, not both.
 func (client RunbookClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string, parameters RunbookCreateOrUpdateParameters) (result Runbook, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.RunbookCreateOrUpdateProperties", Name: validation.Null, Rule: true,
 				Chain: []validation.Constraint{{Target: "parameters.RunbookCreateOrUpdateProperties.Draft", Name: validation.Null, Rule: false,
@@ -135,13 +139,16 @@ func (client RunbookClient) CreateOrUpdateResponder(resp *http.Response) (result
 }
 
 // Delete delete the runbook by name.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. runbookName
-// is the runbook name.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// runbookName - the runbook name.
 func (client RunbookClient) Delete(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.RunbookClient", "Delete", err.Error())
 	}
 
@@ -208,13 +215,16 @@ func (client RunbookClient) DeleteResponder(resp *http.Response) (result autores
 }
 
 // Get retrieve the runbook identified by runbook name.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. runbookName
-// is the runbook name.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// runbookName - the runbook name.
 func (client RunbookClient) Get(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string) (result Runbook, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.RunbookClient", "Get", err.Error())
 	}
 
@@ -282,13 +292,16 @@ func (client RunbookClient) GetResponder(resp *http.Response) (result Runbook, e
 }
 
 // GetContent retrieve the content of runbook identified by runbook name.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. runbookName
-// is the runbook name.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// runbookName - the runbook name.
 func (client RunbookClient) GetContent(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string) (result String, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.RunbookClient", "GetContent", err.Error())
 	}
 
@@ -356,12 +369,15 @@ func (client RunbookClient) GetContentResponder(resp *http.Response) (result Str
 }
 
 // ListByAutomationAccount retrieve a list of runbooks.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
 func (client RunbookClient) ListByAutomationAccount(ctx context.Context, resourceGroupName string, automationAccountName string) (result RunbookListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.RunbookClient", "ListByAutomationAccount", err.Error())
 	}
 
@@ -456,13 +472,17 @@ func (client RunbookClient) ListByAutomationAccountComplete(ctx context.Context,
 }
 
 // Update update the runbook identified by runbook name.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. runbookName
-// is the runbook name. parameters is the update parameters for runbook.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// runbookName - the runbook name.
+// parameters - the update parameters for runbook.
 func (client RunbookClient) Update(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string, parameters RunbookUpdateParameters) (result Runbook, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.RunbookClient", "Update", err.Error())
 	}
 
