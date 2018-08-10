@@ -2,6 +2,9 @@ package authentication
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"strings"
 
 	"log"
 
@@ -26,10 +29,12 @@ type Config struct {
 	ClientSecret string
 
 	// Bearer Auth
-	AccessToken  *adal.Token
-	IsCloudShell bool
-	UseMsi       bool
-	MsiEndpoint  string
+	AccessToken             *adal.Token
+	IsCloudShell            bool
+	IsAzureCLI              bool
+	AzureCLIRefreshCallback adal.TokenRefreshCallback
+	UseMsi                  bool
+	MsiEndpoint             string
 }
 
 func (c *Config) LoadTokensFromAzureCLI() error {
@@ -83,6 +88,16 @@ func (c *Config) LoadTokensFromAzureCLI() error {
 			foundToken, err = c.populateFromAccessToken(validToken)
 			if err != nil {
 				return err
+			}
+
+			c.IsAzureCLI = true
+			c.AzureCLIRefreshCallback = func(t adal.Token) error {
+				log.Printf("refresh token callback triggered %s -> %s in %s \n", validToken.AccessToken.RefreshToken, t.RefreshToken, tokensPath)
+
+				if t.RefreshToken != validToken.AccessToken.RefreshToken {
+					return updateRefreshToken(validToken.AccessToken.RefreshToken, t.RefreshToken, tokensPath)
+				}
+				return nil
 			}
 		}
 	}
@@ -145,4 +160,26 @@ func (c *Config) populateFromAccessToken(token *AccessToken) (bool, error) {
 	c.IsCloudShell = token.IsCloudShell
 
 	return true, nil
+}
+
+func updateRefreshToken(oldToken, newToken, filepath string) error {
+	log.Printf("updating refresh token %s -> %s in %s \n", oldToken, newToken, filepath)
+	b, err := ioutil.ReadFile(filepath)
+	if err != nil {
+		return fmt.Errorf("failed reading azurecli file: %v", err)
+	}
+
+	replaceString := strings.Replace(string(b), oldToken, newToken, -1)
+
+	fileStat, err := os.Stat(filepath)
+	if err != nil {
+		return fmt.Errorf("failed getting stats for azurecli file: %v", err)
+	}
+
+	err = ioutil.WriteFile(filepath, []byte(replaceString), fileStat.Mode())
+	if err != nil {
+		return fmt.Errorf("failed writing azurecli file with new refresh token: %v", err)
+	}
+
+	return nil
 }

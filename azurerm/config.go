@@ -334,6 +334,13 @@ func getAuthorizationToken(c *authentication.Config, oauthConfig *adal.OAuthConf
 		return nil, err
 	}
 
+	// Set a callback which updates the azure cli refresh token on disk
+	if c.IsAzureCLI {
+		spt.SetRefreshCallbacks([]adal.TokenRefreshCallback{
+			c.AzureCLIRefreshCallback,
+		})
+	}
+
 	err = spt.Refresh()
 
 	if err != nil {

@@ -29,8 +29,7 @@ func findValidAccessTokenForTenant(tokens []cli.Token, tenantId string) (*Access
 		}
 
 		if expirationDate.UTC().Before(time.Now().UTC()) {
-			log.Printf("[DEBUG] Token %q has expired", token.AccessToken)
-			continue
+			log.Printf("[DEBUG] Token %q has expired but will be renewed", token.AccessToken)
 		}
 
 		if !strings.Contains(accessToken.Resource, "management") {
