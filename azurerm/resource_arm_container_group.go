@@ -1,13 +1,16 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-04-01/containerinstance"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -18,6 +21,10 @@ func resourceArmContainerGroup() *schema.Resource {
 		Delete: resourceArmContainerGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -238,11 +245,24 @@ func resourceArmContainerGroup() *schema.Resource {
 }
 
 func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).containerGroupsClient
 	ctx := meta.(*ArmClient).StopContext
-	containerGroupsClient := meta.(*ArmClient).containerGroupsClient
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
+
+	// first check if there's one in this subscription requiring import
+	resp, err := client.Get(ctx, resGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Error checking for the existence of Container Group %q (Resource Group %q): %+v", name, resGroup, err)
+		}
+	}
+
+	if resp.ID != nil {
+		return tf.ImportAsExistsError("azurerm_container_group", *resp.ID)
+	}
+
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	OSType := d.Get("os_type").(string)
 	IPAddressType := d.Get("ip_address_type").(string)
@@ -271,12 +291,14 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 		containerGroup.ContainerGroupProperties.IPAddress.DNSNameLabel = &dnsNameLabel
 	}
 
-	_, err := containerGroupsClient.CreateOrUpdate(ctx, resGroup, name, containerGroup)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutCreate))
+	defer cancel()
+	_, err = client.CreateOrUpdate(waitCtx, resGroup, name, containerGroup)
 	if err != nil {
 		return err
 	}
 
-	read, err := containerGroupsClient.Get(ctx, resGroup, name)
+	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
@@ -356,7 +378,9 @@ func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) e
 	resourceGroup := id.ResourceGroup
 	name := id.Path["containerGroups"]
 
-	resp, err := client.Delete(ctx, resourceGroup, name)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	resp, err := client.Delete(waitCtx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error deleting Container Group %q (Resource Group %q): %+v", name, resourceGroup, err)
