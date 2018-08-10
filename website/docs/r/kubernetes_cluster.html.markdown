@@ -180,28 +180,32 @@ The following arguments are supported:
 
 * `dns_prefix` - (Required) DNS prefix specified when creating the managed cluster.
 
-* `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS managed cluster. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade).
-
 * `linux_profile` - (Required) A Linux Profile block as documented below.
 
 * `agent_pool_profile` - (Required) One or more Agent Pool Profile's block as documented below.
 
 * `service_principal` - (Required) A Service Principal block as documented below.
 
+---
+
+* `addon_profile` - (Optional) A `addon_profile` block.
+
+* `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS managed cluster. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade).
+
 * `network_profile` - (Optional) A Network Profile block as documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-`linux_profile` supports the following:
+---
 
-* `admin_username` - (Required) The Admin Username for the Cluster. Changing this forces a new resource to be created.
-* `ssh_key` - (Required) An SSH Key block as documented below.
+A `addon_profile` block supports the following:
 
-`ssh_key` supports the following:
+* `http_application_routing` - (Optional) A `http_application_routing` block.
+* `oms_agent` - (Optional) A `oms_agent` block.
 
-* `key_data` - (Required) The Public SSH Key used to access the cluster. Changing this forces a new resource to be created.
+---
 
-`agent_pool_profile` supports the following:
+A `agent_pool_profile` block supports the following:
 
 * `name` - (Required) Unique name of the Agent Pool Profile in the context of the Subscription and Resource Group. Changing this forces a new resource to be created.
 * `count` - (Required) Number of Agents (VMs) in the Pool. Possible values must be in the range of 1 to 50 (inclusive). Defaults to `1`.
@@ -210,12 +214,43 @@ The following arguments are supported:
 * `os_type` - (Optional) The Operating System used for the Agents. Possible values are `Linux` and `Windows`.  Changing this forces a new resource to be created. Defaults to `Linux`.
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where the Agents in the Pool should be provisioned. Changing this forces a new resource to be created.
 
-`service_principal` supports the following:
+---
+
+A `http_application_routing` block supports the following:
+
+* `enabled` (Required) Is HTTP Application Routing Enabled? Changing this forces a new resource to be created.
+
+---
+
+A `linux_profile` block supports the following:
+
+* `admin_username` - (Required) The Admin Username for the Cluster. Changing this forces a new resource to be created.
+* `ssh_key` - (Required) An SSH Key block as documented below.
+
+---
+
+A `oms_agent` block supports the following:
+
+* `enabled` - (Required) Is the OMS Agent Enabled? Changing this forces a new resource to be created.
+
+* `log_analytics_workspace_id` - (Required) The ID of the Log Analytics Workspace which the OMS Agent should send data to. Changing this forces a new resource to be created.
+
+---
+
+A `ssh_key` block supports the following:
+
+* `key_data` - (Required) The Public SSH Key used to access the cluster. Changing this forces a new resource to be created.
+
+---
+
+A `service_principal` block supports the following:
 
 * `client_id` - (Required) The Client ID for the Service Principal.
 * `client_secret` - (Required) The Client Secret for the Service Principal.
 
-`network_profile` supports the following:
+---
+
+A `network_profile` block supports the following:
 
 * `network_plugin` - (Required) Network plugin to use for networking. Currently supported values are 'azure' and 'kubenet'. Changing this forces a new resource to be created.
 
@@ -269,19 +304,32 @@ The following attributes are exported:
     [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and
     other compatible tools
 
-* `kube_config` - Kubernetes configuration, sub-attributes defined below:
+* `http_application_routing` - A `http_application_routing` block as defined below.
 
-  * `client_key` - Base64 encoded private key used by clients to authenticate to the Kubernetes cluster.
+* `kube_config` - A `kube_config` block as defined below.
 
-  * `client_certificate` - Base64 encoded public certificate used by clients to authenticate to the Kubernetes cluster.
+---
 
-  * `cluster_ca_certificate` - Base64 encoded public CA certificate used as the root of trust for the Kubernetes cluster.
+A `http_application_routing` block exports the following:
 
-  * `host` - The Kubernetes cluster server host.
+* `http_application_routing_zone_name` - The Zone Name of the HTTP Application Routing.
 
-  * `username` - A username used to authenticate to the Kubernetes cluster.
 
-  * `password` - A password or token used to authenticate to the Kubernetes cluster.
+---
+
+A `kube_config` exports the following::
+
+* `client_key` - Base64 encoded private key used by clients to authenticate to the Kubernetes cluster.
+
+* `client_certificate` - Base64 encoded public certificate used by clients to authenticate to the Kubernetes cluster.
+
+* `cluster_ca_certificate` - Base64 encoded public CA certificate used as the root of trust for the Kubernetes cluster.
+
+* `host` - The Kubernetes cluster server host.
+
+* `username` - A username used to authenticate to the Kubernetes cluster.
+
+* `password` - A password or token used to authenticate to the Kubernetes cluster.
 
 -> **NOTE:** It's possible to use these credentials with [the Kubernetes Provider](/docs/providers/kubernetes/index.html) like so:
 
@@ -298,7 +346,7 @@ provider "kubernetes" {
 
 ## Import
 
-Kubernetes Managed Clusters can be imported using the `resource id`, e.g.
+Kubernetes Clusters can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_kubernetes_cluster.cluster1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ContainerService/managedClusters/cluster1
