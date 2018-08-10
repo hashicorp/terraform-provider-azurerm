@@ -754,7 +754,7 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 	scaleSetProps := compute.VirtualMachineScaleSetProperties{
 		UpgradePolicy: &compute.UpgradePolicy{
 			Mode:                 compute.UpgradeMode(upgradePolicy),
-			AutomaticOSUpgrade:   &automaticOsUpgrade,
+			AutomaticOSUpgrade:   utils.Bool(automaticOsUpgrade),
 			RollingUpgradePolicy: expandAzureRmRollingUpgradePolicy(d),
 		},
 		VirtualMachineProfile: &compute.VirtualMachineScaleSetVMProfile{
@@ -870,8 +870,10 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 			d.Set("upgrade_policy_mode", upgradePolicy.Mode)
 			d.Set("automatic_os_upgrade", upgradePolicy.AutomaticOSUpgrade)
 
-			if err := d.Set("rolling_upgrade_policy", flattenAzureRmVirtualMachineScaleSetRollingUpgradePolicy(upgradePolicy.RollingUpgradePolicy)); err != nil {
-				return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Rolling Upgrade Policy error: %#v", err)
+			if rollingUpgradePolicy := upgradePolicy.RollingUpgradePolicy; rollingUpgradePolicy != nil {
+				if err := d.Set("rolling_upgrade_policy", flattenAzureRmVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicy)); err != nil {
+					return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Rolling Upgrade Policy error: %#v", err)
+				}
 			}
 		}
 		d.Set("overprovision", properties.Overprovision)
@@ -1135,11 +1137,19 @@ func flattenAzureRmVirtualMachineScaleSetBootDiagnostics(bootDiagnostic *compute
 }
 
 func flattenAzureRmVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicy *compute.RollingUpgradePolicy) []interface{} {
-	b := map[string]interface{}{
-		"max_batch_instance_percent":              *rollingUpgradePolicy.MaxBatchInstancePercent,
-		"max_unhealthy_instance_percent":          *rollingUpgradePolicy.MaxUnhealthyInstancePercent,
-		"max_unhealthy_upgraded_instance_percent": *rollingUpgradePolicy.MaxUnhealthyUpgradedInstancePercent,
-		"pause_time_between_batches":              *rollingUpgradePolicy.PauseTimeBetweenBatches,
+	b := make(map[string]interface{}, 0)
+
+	if v := rollingUpgradePolicy.MaxBatchInstancePercent; v != nil {
+		b["max_batch_instance_percent"] = *v
+	}
+	if v := rollingUpgradePolicy.MaxUnhealthyInstancePercent; v != nil {
+		b["max_unhealthy_instance_percent"] = *v
+	}
+	if v := rollingUpgradePolicy.MaxUnhealthyUpgradedInstancePercent; v != nil {
+		b["max_unhealthy_upgraded_instance_percent"] = *v
+	}
+	if v := rollingUpgradePolicy.PauseTimeBetweenBatches; v != nil {
+		b["pause_time_between_batches"] = *v
 	}
 
 	return []interface{}{b}
