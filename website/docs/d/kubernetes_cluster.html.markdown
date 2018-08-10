@@ -107,6 +107,7 @@ provider "kubernetes" {
 * `os_disk_size_gb` - The size of the Agent VM's Operating System Disk in GB.
 * `os_type` - The Operating System used for the Agents.
 * `vnet_subnet_id` - The ID of the Subnet where the Agents in the Pool are provisioned.
+* `max_pods` - The maximum number of pods that can run on a single agent.
 
 `service_principal` supports the following:
 
