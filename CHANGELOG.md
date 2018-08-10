@@ -1,5 +1,9 @@
 ## 1.13.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_monitor_action_group` [GH-1725]
+
 IMPROVEMENTS:
 
 * dependencies: upgrading to `2018-04-01` of the IoTHub SDK [GH-1717]
