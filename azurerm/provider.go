@@ -122,7 +122,6 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
-			"azurerm_monitor_action_group":                    resourceArmMonitorActionGroup(),
 			"azurerm_azuread_application":                     resourceArmActiveDirectoryApplication(),
 			"azurerm_azuread_service_principal":               resourceArmActiveDirectoryServicePrincipal(),
 			"azurerm_azuread_service_principal_password":      resourceArmActiveDirectoryServicePrincipalPassword(),
@@ -197,6 +196,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_managed_disk":                            resourceArmManagedDisk(),
 			"azurerm_management_lock":                         resourceArmManagementLock(),
 			"azurerm_metric_alertrule":                        resourceArmMetricAlertRule(),
+			"azurerm_monitor_action_group":                    resourceArmMonitorActionGroup(),
 			"azurerm_mysql_configuration":                     resourceArmMySQLConfiguration(),
 			"azurerm_mysql_database":                          resourceArmMySqlDatabase(),
 			"azurerm_mysql_firewall_rule":                     resourceArmMySqlFirewallRule(),

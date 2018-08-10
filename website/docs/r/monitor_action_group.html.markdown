@@ -3,13 +3,13 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_action_group"
 sidebar_current: "docs-azurerm-resource-monitor-action-group"
 description: |-
-  Manages an Action Group of Azure monitoring service
+  Manages an Action Group within Azure Monitor
 
 ---
 
 # azurerm_monitor_action_group
 
-Manages an Action Group of Azure monitoring service.
+Manages an Action Group within Azure Monitor.
 
 ## Example Usage
 
@@ -86,7 +86,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the Monitor Action Group.
+* `id` - The ID of the Action Group.
 
 ## Import
 

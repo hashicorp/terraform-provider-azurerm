@@ -33,7 +33,7 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 			"short_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validation.StringLenBetween(1, 12),
 			},
 
 			"enabled": {
@@ -129,8 +129,8 @@ func resourceArmMonitorActionGroupCreateOrUpdate(d *schema.ResourceData, meta in
 	parameters := insights.ActionGroupResource{
 		Location: utils.String(azureRMNormalizeLocation("Global")),
 		ActionGroup: &insights.ActionGroup{
-			GroupShortName:   &shortName,
-			Enabled:          &enabled,
+			GroupShortName:   utils.String(shortName),
+			Enabled:          utils.Bool(enabled),
 			EmailReceivers:   expandMonitorActionGroupEmailReceiver(emailReceiversRaw),
 			SmsReceivers:     expandMonitorActionGroupSmsReceiver(smsReceiversRaw),
 			WebhookReceivers: expandMonitorActionGroupWebHookReceiver(webhookReceiversRaw),
@@ -179,19 +179,21 @@ func resourceArmMonitorActionGroupRead(d *schema.ResourceData, meta interface{})
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 
-	d.Set("short_name", resp.ActionGroup.GroupShortName)
-	d.Set("enabled", resp.ActionGroup.Enabled)
+	if group := resp.ActionGroup; group != nil {
+		d.Set("short_name", group.GroupShortName)
+		d.Set("enabled", group.Enabled)
 
-	if err = d.Set("email_receiver", flattenMonitorActionGroupEmailReceiver(resp.ActionGroup.EmailReceivers)); err != nil {
-		return fmt.Errorf("Error setting `email_receiver` of action group %q (resource group %q): %+v", name, resGroup, err)
-	}
+		if err = d.Set("email_receiver", flattenMonitorActionGroupEmailReceiver(group.EmailReceivers)); err != nil {
+			return fmt.Errorf("Error setting `email_receiver`: %+v", err)
+		}
 
-	if err = d.Set("sms_receiver", flattenMonitorActionGroupSmsReceiver(resp.ActionGroup.SmsReceivers)); err != nil {
-		return fmt.Errorf("Error setting `sms_receiver` of action group %q (resource group %q): %+v", name, resGroup, err)
-	}
+		if err = d.Set("sms_receiver", flattenMonitorActionGroupSmsReceiver(group.SmsReceivers)); err != nil {
+			return fmt.Errorf("Error setting `sms_receiver`: %+v", err)
+		}
 
-	if err = d.Set("webhook_receiver", flattenMonitorActionGroupWebHookReceiver(resp.ActionGroup.WebhookReceivers)); err != nil {
-		return fmt.Errorf("Error setting `webhook_receiver` of action group %q (resource group %q): %+v", name, resGroup, err)
+		if err = d.Set("webhook_receiver", flattenMonitorActionGroupWebHookReceiver(group.WebhookReceivers)); err != nil {
+			return fmt.Errorf("Error setting `webhook_receiver`: %+v", err)
+		}
 	}
 
 	flattenAndSetTags(d, resp.Tags)
