@@ -287,8 +287,8 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 			return fmt.Errorf("Error setting `linux_profile`: %+v", err)
 		}
 
-		addOnProfile := flattenKubernetesClusterDataSourceAddOnProfiles(props.AddonProfiles)
-		if err := d.Set("addon_profile", addOnProfile); err != nil {
+		addonProfiles := flattenKubernetesClusterDataSourceAddonProfiles(props.AddonProfiles)
+		if err := d.Set("addon_profile", addonProfiles); err != nil {
 			return fmt.Errorf("Error setting `addon_profile`: %+v", err)
 		}
 
@@ -466,7 +466,7 @@ func flattenKubernetesClusterDataSourceNetworkProfile(profile *containerservice.
 	return []interface{}{values}
 }
 
-func flattenKubernetesClusterDataSourceAddOnProfiles(profile map[string]*containerservice.ManagedClusterAddonProfile) interface{} {
+func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*containerservice.ManagedClusterAddonProfile) interface{} {
 	values := make(map[string]interface{}, 0)
 
 	routes := make([]interface{}, 0)

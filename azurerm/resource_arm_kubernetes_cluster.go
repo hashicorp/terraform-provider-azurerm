@@ -372,7 +372,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	agentProfiles := expandAzureRmKubernetesClusterAgentProfiles(d)
 	servicePrincipalProfile := expandAzureRmKubernetesClusterServicePrincipal(d)
 	networkProfile := expandAzureRmKubernetesClusterNetworkProfile(d)
-	addOnProfile := expandAzureRmKubernetesClusterAddOnProfile(d)
+	addonProfiles := expandAzureRmKubernetesClusterAddonProfiles(d)
 
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -392,7 +392,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 		Name:     &name,
 		Location: &location,
 		ManagedClusterProperties: &containerservice.ManagedClusterProperties{
-			AddonProfiles:           addOnProfile,
+			AddonProfiles:           addonProfiles,
 			AgentPoolProfiles:       &agentProfiles,
 			DNSPrefix:               &dnsPrefix,
 			KubernetesVersion:       &kubernetesVersion,
@@ -472,7 +472,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("Error setting `linux_profile`: %+v", err)
 		}
 
-		addonProfiles := flattenAzureRmKubernetesClusterAddonProfile(props.AddonProfiles)
+		addonProfiles := flattenAzureRmKubernetesClusterAddonProfiles(props.AddonProfiles)
 		if err := d.Set("addon_profile", addonProfiles); err != nil {
 			return fmt.Errorf("Error setting `addon_profile`: %+v", err)
 		}
@@ -796,7 +796,7 @@ func expandAzureRmKubernetesClusterNetworkProfile(d *schema.ResourceData) *conta
 	return &networkProfile
 }
 
-func expandAzureRmKubernetesClusterAddOnProfile(d *schema.ResourceData) map[string]*containerservice.ManagedClusterAddonProfile {
+func expandAzureRmKubernetesClusterAddonProfiles(d *schema.ResourceData) map[string]*containerservice.ManagedClusterAddonProfile {
 	profiles := d.Get("addon_profile").([]interface{})
 	if len(profiles) == 0 {
 		return nil
@@ -833,7 +833,7 @@ func expandAzureRmKubernetesClusterAddOnProfile(d *schema.ResourceData) map[stri
 	return addonProfiles
 }
 
-func flattenAzureRmKubernetesClusterAddonProfile(profile map[string]*containerservice.ManagedClusterAddonProfile) []interface{} {
+func flattenAzureRmKubernetesClusterAddonProfiles(profile map[string]*containerservice.ManagedClusterAddonProfile) []interface{} {
 	values := make(map[string]interface{}, 0)
 
 	routes := make([]interface{}, 0)
