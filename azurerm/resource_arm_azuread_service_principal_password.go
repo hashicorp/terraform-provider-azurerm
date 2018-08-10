@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -10,6 +11,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -21,6 +23,10 @@ func resourceArmActiveDirectoryServicePrincipalPassword() *schema.Resource {
 		Delete: resourceArmActiveDirectoryServicePrincipalPasswordDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -68,6 +74,9 @@ func resourceArmActiveDirectoryServicePrincipalPasswordCreate(d *schema.Resource
 	client := meta.(*ArmClient).servicePrincipalsClient
 	ctx := meta.(*ArmClient).StopContext
 
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutCreate))
+	defer cancel()
+
 	objectId := d.Get("service_principal_id").(string)
 	value := d.Get("value").(string)
 	// errors will be handled by the validation
@@ -100,13 +109,23 @@ func resourceArmActiveDirectoryServicePrincipalPasswordCreate(d *schema.Resource
 	azureRMLockByName(objectId, servicePrincipalResourceName)
 	defer azureRMUnlockByName(objectId, servicePrincipalResourceName)
 
-	existingCredentials, err := client.ListPasswordCredentials(ctx, objectId)
+	existingCredentials, err := client.ListPasswordCredentials(waitCtx, objectId)
 	if err != nil {
 		return fmt.Errorf("Error Listing Password Credentials for Service Principal %q: %+v", objectId, err)
 	}
 
 	updatedCredentials := make([]graphrbac.PasswordCredential, 0)
 	if existingCredentials.Value != nil {
+		for _, v := range *existingCredentials.Value {
+			if v.KeyID == nil {
+				continue
+			}
+
+			if *v.KeyID == keyId {
+				return tf.ImportAsExistsError("azurerm_azuread_service_principal_password", fmt.Sprintf("%s/%s", objectId, keyId))
+			}
+		}
+
 		updatedCredentials = *existingCredentials.Value
 	}
 
@@ -115,7 +134,7 @@ func resourceArmActiveDirectoryServicePrincipalPasswordCreate(d *schema.Resource
 	parameters := graphrbac.PasswordCredentialsUpdateParameters{
 		Value: &updatedCredentials,
 	}
-	_, err = client.UpdatePasswordCredentials(ctx, objectId, parameters)
+	_, err = client.UpdatePasswordCredentials(waitCtx, objectId, parameters)
 	if err != nil {
 		return fmt.Errorf("Error creating Password Credential %q for Service Principal %q: %+v", keyId, objectId, err)
 	}
@@ -190,6 +209,8 @@ func resourceArmActiveDirectoryServicePrincipalPasswordRead(d *schema.ResourceDa
 func resourceArmActiveDirectoryServicePrincipalPasswordDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).servicePrincipalsClient
 	ctx := meta.(*ArmClient).StopContext
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
 
 	id := strings.Split(d.Id(), "/")
 	if len(id) != 2 {
@@ -203,7 +224,7 @@ func resourceArmActiveDirectoryServicePrincipalPasswordDelete(d *schema.Resource
 	defer azureRMUnlockByName(objectId, servicePrincipalResourceName)
 
 	// ensure the parent Service Principal exists
-	servicePrincipal, err := client.Get(ctx, objectId)
+	servicePrincipal, err := client.Get(waitCtx, objectId)
 	if err != nil {
 		// the parent Service Principal was removed - skip it
 		if utils.ResponseWasNotFound(servicePrincipal.Response) {
@@ -213,7 +234,7 @@ func resourceArmActiveDirectoryServicePrincipalPasswordDelete(d *schema.Resource
 		return fmt.Errorf("Error retrieving Service Principal ID %q: %+v", objectId, err)
 	}
 
-	existing, err := client.ListPasswordCredentials(ctx, objectId)
+	existing, err := client.ListPasswordCredentials(waitCtx, objectId)
 	if err != nil {
 		return fmt.Errorf("Error Listing Password Credentials for Service Principal with Object ID %q: %+v", objectId, err)
 	}
@@ -232,7 +253,7 @@ func resourceArmActiveDirectoryServicePrincipalPasswordDelete(d *schema.Resource
 	parameters := graphrbac.PasswordCredentialsUpdateParameters{
 		Value: &updatedCredentials,
 	}
-	_, err = client.UpdatePasswordCredentials(ctx, objectId, parameters)
+	_, err = client.UpdatePasswordCredentials(waitCtx, objectId, parameters)
 	if err != nil {
 		return fmt.Errorf("Error removing Password %q from Service Principal %q: %+v", keyId, objectId, err)
 	}

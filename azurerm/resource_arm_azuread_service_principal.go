@@ -1,12 +1,15 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,6 +22,11 @@ func resourceArmActiveDirectoryServicePrincipal() *schema.Resource {
 		Delete: resourceArmActiveDirectoryServicePrincipalDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -38,8 +46,31 @@ func resourceArmActiveDirectoryServicePrincipal() *schema.Resource {
 func resourceArmActiveDirectoryServicePrincipalCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).servicePrincipalsClient
 	ctx := meta.(*ArmClient).StopContext
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutCreate))
+	defer cancel()
 
 	applicationId := d.Get("application_id").(string)
+
+	apps, err := client.ListComplete(waitCtx, "")
+	if err != nil {
+		return fmt.Errorf("Error checking for existence of Service Principal %q: %+v", applicationId, err)
+	}
+
+	for apps.NotDone() {
+		a := apps.Value()
+		if a.AppID == nil || a.ObjectID == nil {
+			continue
+		}
+
+		if *a.AppID == applicationId {
+			return tf.ImportAsExistsError("azurerm_azuread_service_principal", *a.ObjectID)
+		}
+
+		e := apps.Next()
+		if e != nil {
+			return e
+		}
+	}
 
 	properties := graphrbac.ServicePrincipalCreateParameters{
 		AppID: utils.String(applicationId),
@@ -48,7 +79,7 @@ func resourceArmActiveDirectoryServicePrincipalCreate(d *schema.ResourceData, me
 		AccountEnabled: utils.Bool(true),
 	}
 
-	app, err := client.Create(ctx, properties)
+	app, err := client.Create(waitCtx, properties)
 	if err != nil {
 		return fmt.Errorf("Error creating Service Principal %q: %+v", applicationId, err)
 	}
@@ -90,7 +121,9 @@ func resourceArmActiveDirectoryServicePrincipalDelete(d *schema.ResourceData, me
 	ctx := meta.(*ArmClient).StopContext
 
 	applicationId := d.Id()
-	app, err := client.Delete(ctx, applicationId)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	app, err := client.Delete(waitCtx, applicationId)
 	if err != nil {
 		if !response.WasNotFound(app.Response) {
 			return fmt.Errorf("Error deleting Service Principal ID %q: %+v", applicationId, err)

@@ -1,8 +1,10 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -17,6 +19,11 @@ func resourceArmActiveDirectoryApplication() *schema.Resource {
 		Delete: resourceArmActiveDirectoryApplicationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -72,9 +79,9 @@ func resourceArmActiveDirectoryApplicationCreate(d *schema.ResourceData, meta in
 	client := meta.(*ArmClient).applicationsClient
 	ctx := meta.(*ArmClient).StopContext
 
+	// NOTE: name isn't the Resource ID here, so we don't check it exists
 	name := d.Get("name").(string)
 	availableToOtherTenants := d.Get("available_to_other_tenants").(bool)
-
 	properties := graphrbac.ApplicationCreateParameters{
 		DisplayName:             &name,
 		Homepage:                expandAzureRmActiveDirectoryApplicationHomepage(d, name),
@@ -87,7 +94,9 @@ func resourceArmActiveDirectoryApplicationCreate(d *schema.ResourceData, meta in
 		properties.Oauth2AllowImplicitFlow = utils.Bool(v.(bool))
 	}
 
-	app, err := client.Create(ctx, properties)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutCreate))
+	defer cancel()
+	app, err := client.Create(waitCtx, properties)
 	if err != nil {
 		return err
 	}
@@ -131,7 +140,9 @@ func resourceArmActiveDirectoryApplicationUpdate(d *schema.ResourceData, meta in
 		properties.Oauth2AllowImplicitFlow = utils.Bool(oauth)
 	}
 
-	_, err := client.Patch(ctx, d.Id(), properties)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutUpdate))
+	defer cancel()
+	_, err := client.Patch(waitCtx, d.Id(), properties)
 	if err != nil {
 		return fmt.Errorf("Error patching Azure AD Application with ID %q: %+v", d.Id(), err)
 	}
@@ -177,6 +188,9 @@ func resourceArmActiveDirectoryApplicationDelete(d *schema.ResourceData, meta in
 	client := meta.(*ArmClient).applicationsClient
 	ctx := meta.(*ArmClient).StopContext
 
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+
 	// in order to delete an application which is available to other tenants, we first have to disable this setting
 	availableToOtherTenants := d.Get("available_to_other_tenants").(bool)
 	if availableToOtherTenants {
@@ -184,13 +198,13 @@ func resourceArmActiveDirectoryApplicationDelete(d *schema.ResourceData, meta in
 		properties := graphrbac.ApplicationUpdateParameters{
 			AvailableToOtherTenants: utils.Bool(false),
 		}
-		_, err := client.Patch(ctx, d.Id(), properties)
+		_, err := client.Patch(waitCtx, d.Id(), properties)
 		if err != nil {
 			return fmt.Errorf("Error patching Azure AD Application with ID %q: %+v", d.Id(), err)
 		}
 	}
 
-	resp, err := client.Delete(ctx, d.Id())
+	resp, err := client.Delete(waitCtx, d.Id())
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return fmt.Errorf("Error Deleting Azure AD Application with ID %q: %+v", d.Id(), err)
