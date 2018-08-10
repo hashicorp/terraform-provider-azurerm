@@ -1,14 +1,17 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -18,8 +21,15 @@ func resourceArmServiceBusSubscriptionRule() *schema.Resource {
 		Read:   resourceArmServiceBusSubscriptionRuleRead,
 		Update: resourceArmServiceBusSubscriptionRuleCreateUpdate,
 		Delete: resourceArmServiceBusSubscriptionRuleDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -130,6 +140,20 @@ func resourceArmServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, m
 	namespaceName := d.Get("namespace_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	filterType := d.Get("filter_type").(string)
+
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resourceGroup, namespaceName, topicName, subscriptionName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of Service Bus Subscription Rule %q (Resource Group %q / Namespace %q / Topic %q): %+v", name, resourceGroup, namespaceName, topicName, err)
+			}
+		}
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_servicebus_subscription_rule", *resp.ID)
+		}
+	}
+
 	rule := servicebus.Rule{
 		Ruleproperties: &servicebus.Ruleproperties{
 			FilterType: servicebus.FilterType(filterType),
@@ -158,20 +182,21 @@ func resourceArmServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, m
 		}
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, topicName, subscriptionName, name, rule)
-	if err != nil {
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	if _, err := client.CreateOrUpdate(waitCtx, resourceGroup, namespaceName, topicName, subscriptionName, name, rule); err != nil {
 		return err
 	}
 
-	read, err := client.Get(ctx, resourceGroup, namespaceName, topicName, subscriptionName, name)
+	resp, err := client.Get(ctx, resourceGroup, namespaceName, topicName, subscriptionName, name)
 	if err != nil {
 		return err
 	}
-	if read.ID == nil {
+	if resp.ID == nil {
 		return fmt.Errorf("Cannot read Service Bus Subscription Rule %s (resource group %s) ID", name, resourceGroup)
 	}
 
-	d.SetId(*read.ID)
+	d.SetId(*resp.ID)
 
 	return resourceArmServiceBusSubscriptionRuleRead(d, meta)
 }
@@ -239,8 +264,9 @@ func resourceArmServiceBusSubscriptionRuleDelete(d *schema.ResourceData, meta in
 	subscriptionName := id.Path["subscriptions"]
 	name := id.Path["rules"]
 
-	resp, err := client.Delete(ctx, resourceGroup, namespaceName, topicName, subscriptionName, name)
-	if err != nil {
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	if resp, err := client.Delete(waitCtx, resourceGroup, namespaceName, topicName, subscriptionName, name); err != nil {
 		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("Error deleting ServiceBus Subscription Rule %q: %+v", name, err)
 		}

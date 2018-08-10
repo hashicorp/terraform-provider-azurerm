@@ -1,12 +1,15 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,6 +22,12 @@ func resourceArmServiceBusNamespaceAuthorizationRule() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		//function takes a schema map and adds the authorization rule properties to it
@@ -54,6 +63,19 @@ func resourceArmServiceBusNamespaceAuthorizationRuleCreateUpdate(d *schema.Resou
 	resourceGroup := d.Get("resource_group_name").(string)
 	namespaceName := d.Get("namespace_name").(string)
 
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of Service Bus Namespace Authorization Rule %q (Resource Group %q / Namespace %q): %+v", name, resourceGroup, namespaceName, err)
+			}
+		}
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_servicebus_namespace_authorization_rule", *resp.ID)
+		}
+	}
+
 	parameters := servicebus.SBAuthorizationRule{
 		Name: &name,
 		SBAuthorizationRuleProperties: &servicebus.SBAuthorizationRuleProperties{
@@ -61,20 +83,21 @@ func resourceArmServiceBusNamespaceAuthorizationRuleCreateUpdate(d *schema.Resou
 		},
 	}
 
-	if _, err := client.CreateOrUpdateAuthorizationRule(ctx, resourceGroup, namespaceName, name, parameters); err != nil {
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	if _, err := client.CreateOrUpdateAuthorizationRule(waitCtx, resourceGroup, namespaceName, name, parameters); err != nil {
 		return fmt.Errorf("Error creating/updating ServiceBus Namespace Authorization Rule %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	read, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, name)
+	resp, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, name)
 	if err != nil {
 		return err
 	}
-
-	if read.ID == nil {
+	if resp.ID == nil {
 		return fmt.Errorf("Cannot read ServiceBus Namespace Authorization Rule %s (resource group %s) ID", name, resourceGroup)
 	}
 
-	d.SetId(*read.ID)
+	d.SetId(*resp.ID)
 
 	return resourceArmServiceBusNamespaceAuthorizationRuleRead(d, meta)
 }
@@ -138,7 +161,9 @@ func resourceArmServiceBusNamespaceAuthorizationRuleDelete(d *schema.ResourceDat
 	namespaceName := id.Path["namespaces"]
 	name := id.Path["AuthorizationRules"] //this is slightly different then topic/queue (Authorization vs authorization)
 
-	if _, err = client.DeleteAuthorizationRule(ctx, resGroup, namespaceName, name); err != nil {
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	if _, err = client.DeleteAuthorizationRule(waitCtx, resGroup, namespaceName, name); err != nil {
 		return fmt.Errorf("Error issuing Azure ARM delete request of ServiceBus Namespace Authorization Rule %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 

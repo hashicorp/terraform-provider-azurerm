@@ -1,12 +1,15 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -16,8 +19,15 @@ func resourceArmServiceBusQueue() *schema.Resource {
 		Read:   resourceArmServiceBusQueueRead,
 		Update: resourceArmServiceBusQueueCreateUpdate,
 		Delete: resourceArmServiceBusQueueDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -137,6 +147,19 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 	requiresSession := d.Get("requires_session").(bool)
 	deadLetteringOnMessageExpiration := d.Get("dead_lettering_on_message_expiration").(bool)
 
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resourceGroup, namespaceName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of Service Bus queue %q (Resource Group %q / Namespace %q): %+v", name, resourceGroup, namespaceName, err)
+			}
+		}
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_servicebus_queue", *resp.ID)
+		}
+	}
+
 	parameters := servicebus.SBQueue{
 		Name: &name,
 		SBQueueProperties: &servicebus.SBQueueProperties{
@@ -179,8 +202,9 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("ServiceBus Queue (%s) does not support Express Entities in Premium SKU and must be disabled", name)
 	}
 
-	_, err = client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters)
-	if err != nil {
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	if _, err = client.CreateOrUpdate(waitCtx, resourceGroup, namespaceName, name, parameters); err != nil {
 		return err
 	}
 
@@ -271,8 +295,9 @@ func resourceArmServiceBusQueueDelete(d *schema.ResourceData, meta interface{}) 
 	namespaceName := id.Path["namespaces"]
 	name := id.Path["queues"]
 
-	resp, err := client.Delete(ctx, resourceGroup, namespaceName, name)
-	if err != nil {
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	if resp, err := client.Delete(waitCtx, resourceGroup, namespaceName, name); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return err
 		}

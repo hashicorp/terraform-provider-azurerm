@@ -1,25 +1,34 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmServiceBusTopic() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceBusTopicCreate,
+		Create: resourceArmServiceBusTopicCreateUpdate,
 		Read:   resourceArmServiceBusTopicRead,
-		Update: resourceArmServiceBusTopicCreate,
+		Update: resourceArmServiceBusTopicCreateUpdate,
 		Delete: resourceArmServiceBusTopicDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -116,7 +125,7 @@ func resourceArmServiceBusTopic() *schema.Resource {
 	}
 }
 
-func resourceArmServiceBusTopicCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).serviceBusTopicsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ServiceBus Topic creation.")
@@ -132,6 +141,19 @@ func resourceArmServiceBusTopicCreate(d *schema.ResourceData, meta interface{}) 
 	maxSize := int32(d.Get("max_size_in_megabytes").(int))
 	requiresDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
 	supportOrdering := d.Get("support_ordering").(bool)
+
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resourceGroup, namespaceName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of Service Bus Topic %q (Resource Group %q / Namespace %q): %+v", name, resourceGroup, namespaceName, err)
+			}
+		}
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_servicebus_topic", *resp.ID)
+		}
+	}
 
 	parameters := servicebus.SBTopic{
 		Name: &name,
@@ -158,20 +180,21 @@ func resourceArmServiceBusTopicCreate(d *schema.ResourceData, meta interface{}) 
 		parameters.SBTopicProperties.DuplicateDetectionHistoryTimeWindow = utils.String(duplicateWindow)
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters)
-	if err != nil {
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	if _, err := client.CreateOrUpdate(waitCtx, resourceGroup, namespaceName, name, parameters); err != nil {
 		return err
 	}
 
-	read, err := client.Get(ctx, resourceGroup, namespaceName, name)
+	resp, err := client.Get(ctx, resourceGroup, namespaceName, name)
 	if err != nil {
 		return err
 	}
-	if read.ID == nil {
+	if resp.ID == nil {
 		return fmt.Errorf("Cannot read ServiceBus Topic %s (resource group %s) ID", name, resourceGroup)
 	}
 
-	d.SetId(*read.ID)
+	d.SetId(*resp.ID)
 
 	return resourceArmServiceBusTopicRead(d, meta)
 }
@@ -253,8 +276,10 @@ func resourceArmServiceBusTopicDelete(d *schema.ResourceData, meta interface{}) 
 	namespaceName := id.Path["namespaces"]
 	name := id.Path["topics"]
 
-	resp, err := client.Delete(ctx, resourceGroup, namespaceName, name)
-	if err != nil {
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+
+	if resp, err := client.Delete(waitCtx, resourceGroup, namespaceName, name); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return err
 		}
