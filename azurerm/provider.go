@@ -97,6 +97,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_key_vault_secret":                      dataSourceArmKeyVaultSecret(),
 			"azurerm_kubernetes_cluster":                    dataSourceArmKubernetesCluster(),
 			"azurerm_logic_app_workflow":                    dataSourceArmLogicAppWorkflow(),
+			"azurerm_log_analystics_workspace":              dataSourceLogAnalyticsWorkspace(),
 			"azurerm_managed_disk":                          dataSourceArmManagedDisk(),
 			"azurerm_network_interface":                     dataSourceArmNetworkInterface(),
 			"azurerm_network_security_group":                dataSourceArmNetworkSecurityGroup(),
