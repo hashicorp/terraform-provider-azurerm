@@ -691,7 +691,6 @@ func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []conta
 	vmSize := config["vm_size"].(string)
 	osDiskSizeGB := int32(config["os_disk_size_gb"].(int))
 	osType := config["os_type"].(string)
-	maxPods := int32(config["max_pods"].(int))
 
 	profile := containerservice.ManagedClusterAgentPoolProfile{
 		Name:           utils.String(name),
@@ -701,7 +700,10 @@ func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []conta
 		OsDiskSizeGB:   utils.Int32(osDiskSizeGB),
 		StorageProfile: containerservice.ManagedDisks,
 		OsType:         containerservice.OSType(osType),
-		MaxPods:        utils.Int32(maxPods),
+	}
+
+	if maxPods := int32(config["max_pods"].(int)); maxPods > 0 {
+		profile.MaxPods = utils.Int32(maxPods)
 	}
 
 	vnetSubnetID := config["vnet_subnet_id"].(string)
