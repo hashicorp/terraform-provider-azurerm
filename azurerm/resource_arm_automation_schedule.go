@@ -126,6 +126,7 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				Set:           set.HashStringIgnoreCase,
 				ConflictsWith: []string{"month_days", "monthly_occurrence"},
 			},
+
 			"month_days": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -423,33 +424,33 @@ func expandArmAutomationScheduleAdvanced(d *schema.ResourceData, isUpdate bool) 
 	return &expandedAdvancedSchedule, nil
 }
 
-func flattenArmAutomationScheduleAdvancedWeekDays(v *automation.AdvancedSchedule) *schema.Set {
+func flattenArmAutomationScheduleAdvancedWeekDays(s *automation.AdvancedSchedule) *schema.Set {
 	flattenedWeekDays := schema.NewSet(set.HashStringIgnoreCase, []interface{}{})
-	if v.WeekDays != nil {
-		for i := range *v.WeekDays {
-			flattenedWeekDays.Add((*v.WeekDays)[i])
+	if weekDays := s.WeekDays; weekDays != nil {
+		for _, v := range *weekDays {
+			flattenedWeekDays.Add(v)
 		}
 	}
 	return flattenedWeekDays
 }
 
-func flattenArmAutomationScheduleAdvancedMonthDays(v *automation.AdvancedSchedule) *schema.Set {
+func flattenArmAutomationScheduleAdvancedMonthDays(s *automation.AdvancedSchedule) *schema.Set {
 	flattenedMonthDays := schema.NewSet(set.HashInt, []interface{}{})
-	if v.MonthDays != nil {
-		for i := range *v.MonthDays {
-			flattenedMonthDays.Add(int(((*v.MonthDays)[i])))
+	if monthDays := s.MonthDays; monthDays != nil {
+		for _, v := range *monthDays {
+			flattenedMonthDays.Add(int(v))
 		}
 	}
 	return flattenedMonthDays
 }
 
-func flattenArmAutomationScheduleAdvancedMonthlyOccurrences(v *automation.AdvancedSchedule) []map[string]interface{} {
+func flattenArmAutomationScheduleAdvancedMonthlyOccurrences(s *automation.AdvancedSchedule) []map[string]interface{} {
 	flattenedMonthlyOccurrences := make([]map[string]interface{}, 0)
-	if v.MonthlyOccurrences != nil {
-		for i := range *v.MonthlyOccurrences {
+	if monthlyOccurrences := s.MonthlyOccurrences; monthlyOccurrences != nil {
+		for _, v := range *monthlyOccurrences {
 			f := make(map[string]interface{})
-			f["day"] = (*v.MonthlyOccurrences)[i].Day
-			f["occurrence"] = int(*(*v.MonthlyOccurrences)[i].Occurrence)
+			f["day"] = v.Day
+			f["occurrence"] = int(*v.Occurrence)
 			flattenedMonthlyOccurrences = append(flattenedMonthlyOccurrences, f)
 		}
 	}

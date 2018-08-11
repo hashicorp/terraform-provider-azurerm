@@ -330,7 +330,7 @@ func testAccAzureRMAutomationSchedule_oneTime_basic(rInt int, location string) s
 %s
 
 resource "azurerm_automation_schedule" "test" {
-  name	 	              = "acctestAS-%d"
+  name                    = "acctestAS-%d"
   resource_group_name     = "${azurerm_resource_group.test.name}"
   automation_account_name = "${azurerm_automation_account.test.name}"
   frequency               = "OneTime"
@@ -355,7 +355,7 @@ func testAccAzureRMAutomationSchedule_oneTime_complete(rInt int, location, start
 %s
 
 resource "azurerm_automation_schedule" "test" {
-  name	 	              = "acctestAS-%d"
+  name                    = "acctestAS-%d"
   resource_group_name     = "${azurerm_resource_group.test.name}"
   automation_account_name = "${azurerm_automation_account.test.name}"
   frequency               = "OneTime"
@@ -384,7 +384,7 @@ func testAccAzureRMAutomationSchedule_recurring_basic(rInt int, location, freque
 %s
 
 resource "azurerm_automation_schedule" "test" {
-  name	 	              = "acctestAS-%d"
+  name                    = "acctestAS-%d"
   resource_group_name     = "${azurerm_resource_group.test.name}"
   automation_account_name = "${azurerm_automation_account.test.name}"
   frequency               = "%s"
@@ -411,13 +411,12 @@ func testAccAzureRMAutomationSchedule_recurring_advanced_week(rInt int, location
 %s
 
 resource "azurerm_automation_schedule" "test" {
-  name	 	              = "acctestAS-%d"
+  name                    = "acctestAS-%d"
   resource_group_name     = "${azurerm_resource_group.test.name}"
   automation_account_name = "${azurerm_automation_account.test.name}"
   frequency               = "Week"
   interval                = "1"
-
-  week_days  = ["%s"]
+  week_days               = ["%s"]
 }	
 `, testAccAzureRMAutomationSchedule_prerequisites(rInt, location), rInt, weekDay)
 }
@@ -441,13 +440,12 @@ func testAccAzureRMAutomationSchedule_recurring_advanced_month(rInt int, locatio
 %s
 
 resource "azurerm_automation_schedule" "test" {
-  name	 	              = "acctestAS-%d"
+  name                    = "acctestAS-%d"
   resource_group_name     = "${azurerm_resource_group.test.name}"
   automation_account_name = "${azurerm_automation_account.test.name}"
   frequency               = "Month"
   interval                = "1"
-
-  month_days  = [%d]
+  month_days              = [%d]
 }	
 `, testAccAzureRMAutomationSchedule_prerequisites(rInt, location), rInt, monthDay)
 }
@@ -472,7 +470,7 @@ func testAccAzureRMAutomationSchedule_recurring_advanced_month_week_day(rInt int
 %s
 
 resource "azurerm_automation_schedule" "test" {
-  name	 	              = "acctestAS-%d"
+  name                    = "acctestAS-%d"
   resource_group_name     = "${azurerm_resource_group.test.name}"
   automation_account_name = "${azurerm_automation_account.test.name}"
   frequency               = "Month"
