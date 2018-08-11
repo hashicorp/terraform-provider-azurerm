@@ -1,14 +1,20 @@
 ## 1.13.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_monitor_action_group` [GH-1725]
+
 IMPROVEMENTS:
 
 * dependencies: upgrading to `2018-04-01` of the IoTHub SDK [GH-1717]
 * Azure CLI Auth - using the `USERPROFILE` environment variable to locate the users home directory, if set [GH-1718]
+* `azurerm_container_group` - adding a new `commands` field / deprecating the `command` field [GH-1740]
 * `azurerm_iothub` - support for the `Basic` SKU [GH-1717]
 * `azurerm_kubernetes_cluster` - `client_id` and `client_secret` in the `service_principal` block are now ForceNew [GH-1737]
 * `azurerm_kubernetes_cluster` - `docker_bridge_cidr`, `dns_service_ip` and `service_cidr` are now conditionally set [GH-1715]
-* `azurerm_lb_nat_rule` - `protocol` property now supports `All` [GH-1736] 
-
+* `azurerm_lb_nat_rule` - `protocol` property now supports `All` [GH-1736]
+* `azurerm_lb_nat_pool` - `protocol` property now supports `All` [GH-1748] 
+* `azurerm_lb_probe` - `protocol` property now supports `Https` [GH-1742] 
 
 ## 1.12.0 (August 03, 2018)
 

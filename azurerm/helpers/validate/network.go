@@ -53,7 +53,7 @@ func PortNumber(i interface{}, k string) (_ []string, errors []error) {
 		return
 	}
 
-	if v < 0 || 65535 < v {
+	if v < 1 || 65535 < v {
 		errors = append(errors, fmt.Errorf("%q is not a valid port number: %q", k, i))
 	}
 

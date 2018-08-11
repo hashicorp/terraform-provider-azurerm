@@ -162,7 +162,7 @@ func TestPortNumber(t *testing.T) {
 		},
 		{
 			Port:   0,
-			Errors: 0,
+			Errors: 1,
 		},
 		{
 			Port:   1,

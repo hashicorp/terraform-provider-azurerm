@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
-	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -111,17 +110,17 @@ func resourceArmLoadBalancerRuleCreate(d *schema.ResourceData, meta interface{})
 
 	loadBalancer, exists, err := retrieveLoadBalancerById(loadBalancerID, meta)
 	if err != nil {
-		return errwrap.Wrapf("Error Getting LoadBalancer By ID {{err}}", err)
+		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
 	}
 	if !exists {
 		d.SetId("")
-		log.Printf("[INFO] LoadBalancer %q not found. Removing from state", d.Get("name").(string))
+		log.Printf("[INFO] Load Balancer %q not found. Removing from state", d.Get("name").(string))
 		return nil
 	}
 
 	newLbRule, err := expandAzureRmLoadBalancerRule(d, loadBalancer)
 	if err != nil {
-		return errwrap.Wrapf("Error Exanding LoadBalancer Rule {{err}}", err)
+		return fmt.Errorf("Error Exanding Load Balancer Rule: %+v", err)
 	}
 
 	lbRules := append(*loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules, *newLbRule)
@@ -137,25 +136,25 @@ func resourceArmLoadBalancerRuleCreate(d *schema.ResourceData, meta interface{})
 	loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules = &lbRules
 	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(d.Get("loadbalancer_id").(string))
 	if err != nil {
-		return errwrap.Wrapf("Error Getting LoadBalancer Name and Group: {{err}}", err)
+		return fmt.Errorf("Error Getting Load Balancer Name and Group:: %+v", err)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, loadBalancerName, *loadBalancer)
 	if err != nil {
-		return errwrap.Wrapf("Error Creating/Updating LoadBalancer {{err}}", err)
+		return fmt.Errorf("Error Creating/Updating LoadBalancer: %+v", err)
 	}
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error waiting for completion for LoadBalancer updates: %+v", err)
+		return fmt.Errorf("Error waiting for completion for Load Balancer updates: %+v", err)
 	}
 
 	read, err := client.Get(ctx, resGroup, loadBalancerName, "")
 	if err != nil {
-		return errwrap.Wrapf("Error Getting LoadBalancer {{err}}", err)
+		return fmt.Errorf("Error Getting LoadBalancer: %+v", err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read LoadBalancer %s (resource group %s) ID", loadBalancerName, resGroup)
+		return fmt.Errorf("Cannot read Load Balancer %s (resource group %s) ID", loadBalancerName, resGroup)
 	}
 
 	var ruleId string
@@ -166,12 +165,12 @@ func resourceArmLoadBalancerRuleCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	if ruleId == "" {
-		return fmt.Errorf("Cannot find created LoadBalancer Rule ID %q", ruleId)
+		return fmt.Errorf("Cannot find created Load Balancer Rule ID %q", ruleId)
 	}
 
 	d.SetId(ruleId)
 
-	log.Printf("[DEBUG] Waiting for LoadBalancer (%s) to become available", loadBalancerName)
+	log.Printf("[DEBUG] Waiting for Load Balancer (%s) to become available", loadBalancerName)
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"Accepted", "Updating"},
 		Target:  []string{"Succeeded"},
@@ -179,7 +178,7 @@ func resourceArmLoadBalancerRuleCreate(d *schema.ResourceData, meta interface{})
 		Timeout: 10 * time.Minute,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for LoadBalancer (%s) to become available: %s", loadBalancerName, err)
+		return fmt.Errorf("Error waiting for Load Balancer (%s) to become available: %s", loadBalancerName, err)
 	}
 
 	return resourceArmLoadBalancerRuleRead(d, meta)
@@ -194,18 +193,18 @@ func resourceArmLoadBalancerRuleRead(d *schema.ResourceData, meta interface{}) e
 
 	loadBalancer, exists, err := retrieveLoadBalancerById(d.Get("loadbalancer_id").(string), meta)
 	if err != nil {
-		return errwrap.Wrapf("Error Getting LoadBalancer By ID {{err}}", err)
+		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
 	}
 	if !exists {
 		d.SetId("")
-		log.Printf("[INFO] LoadBalancer %q not found. Removing from state", name)
+		log.Printf("[INFO] Load Balancer %q not found. Removing from state", name)
 		return nil
 	}
 
 	config, _, exists := findLoadBalancerRuleByName(loadBalancer, name)
 	if !exists {
 		d.SetId("")
-		log.Printf("[INFO] LoadBalancer Rule %q not found. Removing from state", name)
+		log.Printf("[INFO] Load Balancer Rule %q not found. Removing from state", name)
 		return nil
 	}
 
@@ -259,7 +258,7 @@ func resourceArmLoadBalancerRuleDelete(d *schema.ResourceData, meta interface{})
 
 	loadBalancer, exists, err := retrieveLoadBalancerById(loadBalancerID, meta)
 	if err != nil {
-		return errwrap.Wrapf("Error Getting LoadBalancer By ID {{err}}", err)
+		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
 	}
 	if !exists {
 		d.SetId("")
@@ -277,25 +276,25 @@ func resourceArmLoadBalancerRuleDelete(d *schema.ResourceData, meta interface{})
 
 	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(d.Get("loadbalancer_id").(string))
 	if err != nil {
-		return errwrap.Wrapf("Error Getting LoadBalancer Name and Group: {{err}}", err)
+		return fmt.Errorf("Error Getting Load Balancer Name and Group:: %+v", err)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, loadBalancerName, *loadBalancer)
 	if err != nil {
-		return fmt.Errorf("Error Creating/Updating LoadBalancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
+		return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
 	}
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error waiting for completion of LoadBalancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
+		return fmt.Errorf("Error waiting for completion of Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, loadBalancerName, "")
 	if err != nil {
-		return errwrap.Wrapf("Error Getting LoadBalancer {{err}}", err)
+		return fmt.Errorf("Error Getting LoadBalancer: %+v", err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read ID of LoadBalancer %q (resource group %s)", loadBalancerName, resGroup)
+		return fmt.Errorf("Cannot read ID of Load Balancer %q (resource group %s)", loadBalancerName, resGroup)
 	}
 
 	return nil
