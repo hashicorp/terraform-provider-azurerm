@@ -1514,18 +1514,16 @@ func expandVirtualMachineScaleSetSku(d *schema.ResourceData) (*compute.Sku, erro
 }
 
 func expandAzureRmRollingUpgradePolicy(d *schema.ResourceData) *compute.RollingUpgradePolicy {
-	if configs, ok := d.Get("rolling_upgrade_policy").([]interface{}); ok && len(configs) > 0 {
-		config := configs[0].(map[string]interface{})
-
+	if config, ok := d.GetOk("rolling_upgrade_policy.0"); ok {
+		policy := config.(map[string]interface{})
 		return &compute.RollingUpgradePolicy{
-			MaxBatchInstancePercent:             utils.Int32(int32(config["max_batch_instance_percent"].(int))),
-			MaxUnhealthyInstancePercent:         utils.Int32(int32(config["max_unhealthy_instance_percent"].(int))),
-			MaxUnhealthyUpgradedInstancePercent: utils.Int32(int32(config["max_unhealthy_upgraded_instance_percent"].(int))),
-			PauseTimeBetweenBatches:             utils.String(config["pause_time_between_batches"].(string)),
+			MaxBatchInstancePercent:             utils.Int32(int32(policy["max_batch_instance_percent"].(int))),
+			MaxUnhealthyInstancePercent:         utils.Int32(int32(policy["max_unhealthy_instance_percent"].(int))),
+			MaxUnhealthyUpgradedInstancePercent: utils.Int32(int32(policy["max_unhealthy_upgraded_instance_percent"].(int))),
+			PauseTimeBetweenBatches:             utils.String(policy["pause_time_between_batches"].(string)),
 		}
-	} else {
-		return nil
 	}
+	return nil
 }
 
 func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *compute.VirtualMachineScaleSetNetworkProfile {

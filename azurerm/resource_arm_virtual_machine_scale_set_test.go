@@ -4025,7 +4025,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "PublicIPForLB"
+  name                         = "acctestpip-%[1]d"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
   public_ip_address_allocation = "Dynamic"
@@ -4046,7 +4046,7 @@ resource "azurerm_lb" "test" {
 resource "azurerm_lb_rule" "test" {
   resource_group_name            = "${azurerm_resource_group.test.name}"
   loadbalancer_id                = "${azurerm_lb.test.id}"
-  name                           = "LBRule"
+  name                           = "AccTestLBRule"
   protocol                       = "Tcp"
   frontend_port                  = 22
   backend_port                   = 22
@@ -4058,13 +4058,13 @@ resource "azurerm_lb_rule" "test" {
 resource "azurerm_lb_probe" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   loadbalancer_id     = "${azurerm_lb.test.id}"
-  name                = "ssh-running-probe"
+  name                = "acctest-lb-probe"
   port                = 22
   protocol            = "Tcp"
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name                = "test"
+  name                = "acctestbapool"
   resource_group_name = "${azurerm_resource_group.test.name}"
   loadbalancer_id     = "${azurerm_lb.test.id}"
 }
@@ -4087,7 +4087,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   sku {
-    name     = "Standard_A0"
+    name     = "Standard_F2"
     tier     = "Standard"
     capacity = 1
   }
