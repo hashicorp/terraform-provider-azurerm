@@ -227,6 +227,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 
 						"max_pods": {
 							Type:     schema.TypeInt,
+							Optional: true,
 							Computed: true,
 							ForceNew: true,
 						},
