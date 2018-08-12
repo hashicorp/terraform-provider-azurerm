@@ -19,10 +19,11 @@ package datafactory
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
-	"net/http"
 )
 
 // FactoriesClient is the the Azure Data Factory V2 management API provides a RESTful set of web services that interact
@@ -140,14 +141,15 @@ func (client FactoriesClient) CreateOrUpdate(ctx context.Context, resourceGroupN
 		{TargetValue: factory,
 			Constraints: []validation.Constraint{{Target: "factory.Identity", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "factory.Identity.Type", Name: validation.Null, Rule: true, Chain: nil}}},
-				{Target: "factory.FactoryProperties", Name: validation.Null, Rule: false,
-					Chain: []validation.Constraint{{Target: "factory.FactoryProperties.RepoConfiguration", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "factory.FactoryProperties.RepoConfiguration.AccountName", Name: validation.Null, Rule: true, Chain: nil},
-							{Target: "factory.FactoryProperties.RepoConfiguration.RepositoryName", Name: validation.Null, Rule: true, Chain: nil},
-							{Target: "factory.FactoryProperties.RepoConfiguration.CollaborationBranch", Name: validation.Null, Rule: true, Chain: nil},
-							{Target: "factory.FactoryProperties.RepoConfiguration.RootFolder", Name: validation.Null, Rule: true, Chain: nil},
-						}},
-					}}}}}); err != nil {
+			// {Target: "factory.FactoryProperties", Name: validation.Null, Rule: false,
+			// 	Chain: []validation.Constraint{{Target: "factory.FactoryProperties.RepoConfiguration", Name: validation.Null, Rule: false,
+			// 		Chain: []validation.Constraint{{Target: "factory.FactoryProperties.RepoConfiguration.AccountName", Name: validation.Null, Rule: true, Chain: nil},
+			// 			{Target: "factory.FactoryProperties.RepoConfiguration.RepositoryName", Name: validation.Null, Rule: true, Chain: nil},
+			// 			{Target: "factory.FactoryProperties.RepoConfiguration.CollaborationBranch", Name: validation.Null, Rule: true, Chain: nil},
+			// 			{Target: "factory.FactoryProperties.RepoConfiguration.RootFolder", Name: validation.Null, Rule: true, Chain: nil},
+			// 		}},
+			// 	}}
+			}}}); err != nil {
 		return result, validation.NewError("datafactory.FactoriesClient", "CreateOrUpdate", err.Error())
 	}
 
