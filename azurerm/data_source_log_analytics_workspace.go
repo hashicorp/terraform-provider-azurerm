@@ -17,7 +17,7 @@ func dataSourceLogAnalyticsWorkspace() *schema.Resource {
 				Required: true,
 			},
 
-			"location": locationSchema(),
+			"location": locationForDataSourceSchema(),
 
 			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
 

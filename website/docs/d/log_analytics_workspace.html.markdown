@@ -18,7 +18,7 @@ data "azurerm_log_analytics_workspace" "test" {
   resource_group_name = "acctest"
 }
 
-output "storage_account_tielog_analytics_workspace_id" {
+output "log_analytics_workspace_id" {
   value = "${data.azurerm_log_analytics_workspace.test.workspace_id}"
 }
 ```
