@@ -590,21 +590,21 @@ func flattenRedisConfiguration(input map[string]*string) ([]interface{}, error) 
 	if v := input["maxclients"]; v != nil {
 		i, err := strconv.Atoi(*v)
 		if err != nil {
-			return nil, fmt.Errorf("Error parsing `maxclients` %q: %+v", v, err)
+			return nil, fmt.Errorf("Error parsing `maxclients` %q: %+v", *v, err)
 		}
 		outputs["maxclients"] = i
 	}
 	if v := input["maxmemory-delta"]; v != nil {
 		i, err := strconv.Atoi(*v)
 		if err != nil {
-			return nil, fmt.Errorf("Error parsing `maxmemory-delta` %q: %+v", v, err)
+			return nil, fmt.Errorf("Error parsing `maxmemory-delta` %q: %+v", *v, err)
 		}
 		outputs["maxmemory_delta"] = i
 	}
 	if v := input["maxmemory-reserved"]; v != nil {
 		i, err := strconv.Atoi(*v)
 		if err != nil {
-			return nil, fmt.Errorf("Error parsing `maxmemory-reserved` %q: %+v", v, err)
+			return nil, fmt.Errorf("Error parsing `maxmemory-reserved` %q: %+v", *v, err)
 		}
 		outputs["maxmemory_reserved"] = i
 	}
@@ -616,21 +616,21 @@ func flattenRedisConfiguration(input map[string]*string) ([]interface{}, error) 
 	if v := input["rdb-backup-enabled"]; v != nil {
 		b, err := strconv.ParseBool(*v)
 		if err != nil {
-			return nil, fmt.Errorf("Error parsing `rdb-backup-enabled` %q: %+v", v, err)
+			return nil, fmt.Errorf("Error parsing `rdb-backup-enabled` %q: %+v", *v, err)
 		}
 		outputs["rdb_backup_enabled"] = b
 	}
 	if v := input["rdb-backup-frequency"]; v != nil {
 		i, err := strconv.Atoi(*v)
 		if err != nil {
-			return nil, fmt.Errorf("Error parsing `rdb-backup-frequency` %q: %+v", v, err)
+			return nil, fmt.Errorf("Error parsing `rdb-backup-frequency` %q: %+v", *v, err)
 		}
 		outputs["rdb_backup_frequency"] = i
 	}
 	if v := input["rdb-backup-max-snapshot-count"]; v != nil {
 		i, err := strconv.Atoi(*v)
 		if err != nil {
-			return nil, fmt.Errorf("Error parsing `rdb-backup-max-snapshot-count` %q: %+v", v, err)
+			return nil, fmt.Errorf("Error parsing `rdb-backup-max-snapshot-count` %q: %+v", *v, err)
 		}
 		outputs["rdb_backup_max_snapshot_count"] = i
 	}
