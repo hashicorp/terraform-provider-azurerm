@@ -252,7 +252,7 @@ A `service_principal` block supports the following:
 
 A `network_profile` block supports the following:
 
-* `network_plugin` - (Required) Network plugin to use for networking. Currently supported values are 'azure' and 'kubenet'. Changing this forces a new resource to be created.
+* `network_plugin` - (Required) Network plugin to use for networking. Currently supported values are `azure` and `kubenet`. Changing this forces a new resource to be created.
 
 -> **NOTE:** When `network_plugin` is set to `azure` - the `vnet_subnet_id` field in the `agent_pool_profile` block must be set.
 
