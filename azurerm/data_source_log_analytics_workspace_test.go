@@ -8,13 +8,13 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccDataSourceAzureRMLogAnalyticsWorkspac_basic(t *testing.T) {
+func TestAccDataSourceAzureRMLogAnalyticsWorkspace_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_log_analytics_workspace.test"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
 	preConfig := testAccDataSourceAzureRMLogAnalyticsWorkspace_basic(ri, rs, location)
-	config := testAccDataSourceAzureRMLogAnalyticsWorkspace_basicWithDataSource(ri, rs, location)
+	config := testAccDataSourceAzureRMLogAnalyticsWorkspace_basicWithDataSource(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -37,8 +37,8 @@ func TestAccDataSourceAzureRMLogAnalyticsWorkspac_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceAzureRMLogAnalyticsWorkspace_basicWithDataSource(rInt int, rString string, location string) string {
-	config := testAccAzureRMLogAnalyticsWorkspace_requiredOnly(rInt, rString, location)
+func testAccDataSourceAzureRMLogAnalyticsWorkspace_basicWithDataSource(rInt int, location string) string {
+	config := testAccAzureRMLogAnalyticsWorkspace_requiredOnly(rInt, location)
 	return fmt.Sprintf(`
 %s
 
