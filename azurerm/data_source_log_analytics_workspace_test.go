@@ -37,30 +37,8 @@ func TestAccDataSourceAzureRMLogAnalyticsWorkspac_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceAzureRMLogAnalyticsWorkspace_basic(rInt int, rString string, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name = "acctestsa-%d"
-  location = "%s"
-}
-
-resource "azurerm_log_analytics_workspace" "test" {
-  name = "acctestsads%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  location = "${azurerm_resource_group.test.location}"
-  sku = "Free"
-  retention_in_days = "30"
-
-  tags {
-    environment = "production"
-  }
-}
-`, rInt, location, rString)
-}
-
 func testAccDataSourceAzureRMLogAnalyticsWorkspace_basicWithDataSource(rInt int, rString string, location string) string {
-	config := testAccDataSourceAzureRMStorageAccount_basic(rInt, rString, location)
+	config := testAccAzureRMLogAnalyticsWorkspace_requiredOnly(rInt, rString, location)
 	return fmt.Sprintf(`
 %s
 

@@ -19,7 +19,7 @@ func dataSourceLogAnalyticsWorkspace() *schema.Resource {
 
 			"location": locationForDataSourceSchema(),
 
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 
 			"sku": {
 				Type:     schema.TypeString,
