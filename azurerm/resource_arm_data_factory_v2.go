@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
@@ -29,7 +28,7 @@ func resourceArmDataFactoryV2() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile(`^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$`),
-					`Some error message`,
+					`Invalid name for Data Factory, see https://docs.microsoft.com/en-us/azure/data-factory/naming-rules`,
 				),
 			},
 
@@ -149,7 +148,7 @@ func resourceArmDataFactoryV2CreateOrUpdate(d *schema.ResourceData, meta interfa
 		Tags:     expandTags(tags),
 	}
 
-	if test, repo := expandArmDataFactoryV2RepoConfiguration(d); test {
+	if hasRepo, repo := expandArmDataFactoryV2RepoConfiguration(d); hasRepo {
 		dataFactory.FactoryProperties = &datafactory.FactoryProperties{
 			RepoConfiguration: repo,
 		}
@@ -247,8 +246,10 @@ func resourceArmDataFactoryV2Delete(d *schema.ResourceData, meta interface{}) er
 	name := id.Path["factories"]
 
 	response, err := client.Delete(ctx, resourceGroup, name)
-	if response.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting Data Factory %s: %+v", name, err)
+	if err != nil {
+		if !utils.ResponseWasNotFound(response) {
+			return fmt.Errorf("Error deleting Data Factory %s: %+v", name, err)
+		}
 	}
 
 	return nil
@@ -263,8 +264,8 @@ func expandArmDataFactoryV2RepoConfiguration(d *schema.ResourceData) (bool, data
 		repositoryName := vsts["repository_name"].(string)
 		rootFolder := vsts["root_folder"].(string)
 		tenantID := vsts["tenant_id"].(string)
-
-		return true, datafactory.FactoryVSTSConfiguration{
+		// https://github.com/Azure/go-autorest/issues/307
+		return true, &datafactory.FactoryVSTSConfiguration{
 			AccountName:         &accountName,
 			CollaborationBranch: &collaborationBranch,
 			ProjectName:         &projectName,
@@ -281,8 +282,8 @@ func expandArmDataFactoryV2RepoConfiguration(d *schema.ResourceData) (bool, data
 		hostName := github["host_name"].(string)
 		repositoryName := github["repository_name"].(string)
 		rootFolder := github["root_folder"].(string)
-
-		return true, datafactory.FactoryGitHubConfiguration{
+		// https://github.com/Azure/go-autorest/issues/307
+		return true, &datafactory.FactoryGitHubConfiguration{
 			AccountName:         &accountName,
 			CollaborationBranch: &collaborationBranch,
 			HostName:            &hostName,
@@ -332,10 +333,10 @@ func flattenArmDataFactoryV2Identity(identity *datafactory.FactoryIdentity) inte
 	result["type"] = string(*identity.Type)
 
 	if identity.PrincipalID != nil {
-		result["principal_id"] = *identity.PrincipalID
+		result["principal_id"] = identity.PrincipalID.String()
 	}
 	if identity.TenantID != nil {
-		result["tenant_id"] = *identity.TenantID
+		result["tenant_id"] = identity.TenantID.String()
 	}
 
 	return []interface{}{result}
