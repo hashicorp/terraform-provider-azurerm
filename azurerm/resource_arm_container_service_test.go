@@ -77,6 +77,7 @@ func TestAccAzureRMContainerService_agentProfilePoolCountValidation(t *testing.T
 }
 
 func TestAccAzureRMContainerService_dcosBasic(t *testing.T) {
+	resourceName := "azurerm_container_service.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMContainerService_dcosBasic(ri, testLocation())
 
@@ -88,14 +89,20 @@ func TestAccAzureRMContainerService_dcosBasic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerServiceExists("azurerm_container_service.test"),
+					testCheckAzureRMContainerServiceExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func TestAccAzureRMContainerService_kubernetesBasic(t *testing.T) {
+	resourceName := "azurerm_container_service.test"
 	ri := acctest.RandInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
@@ -109,14 +116,21 @@ func TestAccAzureRMContainerService_kubernetesBasic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerServiceExists("azurerm_container_service.test"),
+					testCheckAzureRMContainerServiceExists(resourceName),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"service_principal"},
 			},
 		},
 	})
 }
 
 func TestAccAzureRMContainerService_kubernetesComplete(t *testing.T) {
+	resourceName := "azurerm_container_service.test"
 	ri := acctest.RandInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
@@ -130,14 +144,21 @@ func TestAccAzureRMContainerService_kubernetesComplete(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerServiceExists("azurerm_container_service.test"),
+					testCheckAzureRMContainerServiceExists(resourceName),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"service_principal"},
 			},
 		},
 	})
 }
 
 func TestAccAzureRMContainerService_swarmBasic(t *testing.T) {
+	resourceName := "azurerm_container_service.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMContainerService_swarmBasic(ri, testLocation())
 
@@ -149,8 +170,13 @@ func TestAccAzureRMContainerService_swarmBasic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerServiceExists("azurerm_container_service.test"),
+					testCheckAzureRMContainerServiceExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

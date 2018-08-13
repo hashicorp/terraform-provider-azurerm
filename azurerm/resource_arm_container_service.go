@@ -23,6 +23,9 @@ func resourceArmContainerService() *schema.Resource {
 		Read:   resourceArmContainerServiceRead,
 		Update: resourceArmContainerServiceCreateUpdate,
 		Delete: resourceArmContainerServiceDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(time.Hour * 1),
 			Update: schema.DefaultTimeout(time.Hour * 1),
@@ -365,7 +368,7 @@ func resourceArmContainerServiceDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func flattenAzureRmContainerServiceMasterProfile(input *containerservice.MasterProfile) schema.Set {
+func flattenAzureRmContainerServiceMasterProfile(input *containerservice.MasterProfile) *schema.Set {
 	masterProfiles := schema.Set{
 		F: resourceAzureRMContainerServiceMasterProfileHash,
 	}
@@ -388,10 +391,10 @@ func flattenAzureRmContainerServiceMasterProfile(input *containerservice.MasterP
 		masterProfiles.Add(masterProfile)
 	}
 
-	return masterProfiles
+	return &masterProfiles
 }
 
-func flattenAzureRmContainerServiceLinuxProfile(input *containerservice.LinuxProfile) schema.Set {
+func flattenAzureRmContainerServiceLinuxProfile(input *containerservice.LinuxProfile) *schema.Set {
 	profiles := schema.Set{
 		F: resourceAzureRMContainerServiceLinuxProfilesHash,
 	}
@@ -424,10 +427,10 @@ func flattenAzureRmContainerServiceLinuxProfile(input *containerservice.LinuxPro
 		profiles.Add(values)
 	}
 
-	return profiles
+	return &profiles
 }
 
-func flattenAzureRmContainerServiceAgentPoolProfiles(profiles *[]containerservice.AgentPoolProfile) schema.Set {
+func flattenAzureRmContainerServiceAgentPoolProfiles(profiles *[]containerservice.AgentPoolProfile) *schema.Set {
 	agentPoolProfiles := schema.Set{
 		F: resourceAzureRMContainerServiceAgentPoolProfilesHash,
 	}
@@ -455,15 +458,15 @@ func flattenAzureRmContainerServiceAgentPoolProfiles(profiles *[]containerservic
 		agentPoolProfiles.Add(agentPoolProfile)
 	}
 
-	return agentPoolProfiles
+	return &agentPoolProfiles
 }
 
-func flattenAzureRmContainerServiceServicePrincipalProfile(profile *containerservice.ServicePrincipalProfile) schema.Set {
+func flattenAzureRmContainerServiceServicePrincipalProfile(profile *containerservice.ServicePrincipalProfile) *schema.Set {
 	servicePrincipalProfiles := schema.Set{
 		F: resourceAzureRMContainerServiceServicePrincipalProfileHash,
 	}
 	if profile == nil {
-		return servicePrincipalProfiles
+		return &servicePrincipalProfiles
 	}
 
 	values := map[string]interface{}{}
@@ -478,15 +481,15 @@ func flattenAzureRmContainerServiceServicePrincipalProfile(profile *containerser
 
 	servicePrincipalProfiles.Add(values)
 
-	return servicePrincipalProfiles
+	return &servicePrincipalProfiles
 }
 
-func flattenAzureRmContainerServiceDiagnosticsProfile(profile *containerservice.DiagnosticsProfile) schema.Set {
+func flattenAzureRmContainerServiceDiagnosticsProfile(profile *containerservice.DiagnosticsProfile) *schema.Set {
 	diagnosticProfiles := schema.Set{
 		F: resourceAzureRMContainerServiceDiagnosticProfilesHash,
 	}
 	if profile == nil {
-		return diagnosticProfiles
+		return &diagnosticProfiles
 	}
 
 	values := map[string]interface{}{}
@@ -502,7 +505,7 @@ func flattenAzureRmContainerServiceDiagnosticsProfile(profile *containerservice.
 		diagnosticProfiles.Add(values)
 	}
 
-	return diagnosticProfiles
+	return &diagnosticProfiles
 }
 
 func expandAzureRmContainerServiceDiagnostics(d *schema.ResourceData) containerservice.DiagnosticsProfile {
