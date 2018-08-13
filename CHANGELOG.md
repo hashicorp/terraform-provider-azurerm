@@ -8,6 +8,7 @@ IMPROVEMENTS:
 
 * dependencies: upgrading to `2018-04-01` of the IoTHub SDK [GH-1717]
 * Azure CLI Auth - using the `USERPROFILE` environment variable to locate the users home directory, if set [GH-1718]
+* `azurerm_automation_schedule` - adding the `week_days`, `month_days` and `monthly_occurrence` properties [GH-1626]
 * `azurerm_container_group` - adding a new `commands` field / deprecating the `command` field [GH-1740]
 * `azurerm_iothub` - support for the `Basic` SKU [GH-1717]
 * `azurerm_kubernetes_cluster` - `client_id` and `client_secret` in the `service_principal` block are now ForceNew [GH-1737]
