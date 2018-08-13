@@ -11,10 +11,7 @@ import (
 func TestAccDataSourceAzureRMLogAnalyticsWorkspace_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_log_analytics_workspace.test"
 	ri := acctest.RandInt()
-	rs := acctest.RandString(4)
-	location := testLocation()
-	preConfig := testAccDataSourceAzureRMLogAnalyticsWorkspace_basic(ri, rs, location)
-	config := testAccDataSourceAzureRMLogAnalyticsWorkspace_basicWithDataSource(ri, location)
+	config := testAccDataSourceAzureRMLogAnalyticsWorkspace_basicWithDataSource(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -22,12 +19,9 @@ func TestAccDataSourceAzureRMLogAnalyticsWorkspace_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
-			},
-			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "sku", "Free"),
+					resource.TestCheckResourceAttr(dataSourceName, "sku", "PerGB2018"),
 					resource.TestCheckResourceAttr(dataSourceName, "retention_in_days", "30"),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.environment", "production"),
@@ -38,7 +32,7 @@ func TestAccDataSourceAzureRMLogAnalyticsWorkspace_basic(t *testing.T) {
 }
 
 func testAccDataSourceAzureRMLogAnalyticsWorkspace_basicWithDataSource(rInt int, location string) string {
-	config := testAccAzureRMLogAnalyticsWorkspace_requiredOnly(rInt, location)
+	config := testAccAzureRMLogAnalyticsWorkspace_retentionInDaysComplete(rInt, location)
 	return fmt.Sprintf(`
 %s
 
