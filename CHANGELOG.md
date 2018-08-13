@@ -13,8 +13,9 @@ IMPROVEMENTS:
 * `azurerm_kubernetes_cluster` - `client_id` and `client_secret` in the `service_principal` block are now ForceNew [GH-1737]
 * `azurerm_kubernetes_cluster` - `docker_bridge_cidr`, `dns_service_ip` and `service_cidr` are now conditionally set [GH-1715]
 * `azurerm_lb_nat_rule` - `protocol` property now supports `All` [GH-1736]
-* `azurerm_lb_nat_pool` - `protocol` property now supports `All` [GH-1748] 
-* `azurerm_lb_probe` - `protocol` property now supports `Https` [GH-1742] 
+* `azurerm_lb_nat_pool` - `protocol` property now supports `All` [GH-1748]
+* `azurerm_lb_probe` - `protocol` property now supports `Https` [GH-1742]
+* `azurerm_lb_rule` - support for the `All` protocol / adding validation [GH-1754]
 
 ## 1.12.0 (August 03, 2018)
 
