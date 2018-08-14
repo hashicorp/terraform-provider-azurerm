@@ -21,10 +21,8 @@ func TestAccDataSourceAzureRMLogAnalyticsWorkspace_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "sku", "PerGB2018"),
+					resource.TestCheckResourceAttr(dataSourceName, "sku", "pergb2018"),
 					resource.TestCheckResourceAttr(dataSourceName, "retention_in_days", "30"),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.environment", "production"),
 				),
 			},
 		},
