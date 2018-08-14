@@ -1,10 +1,13 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
 	"github.com/hashicorp/terraform/helper/schema"
 
@@ -20,9 +23,13 @@ func resourceArmDataLakeAnalyticsFirewallRule() *schema.Resource {
 		Read:   resourceArmDateLakeAnalyticsFirewallRuleRead,
 		Update: resourceArmDateLakeAnalyticsFirewallRuleCreateUpdate,
 		Delete: resourceArmDateLakeAnalyticsFirewallRuleDelete,
-
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 5),
+			Update: schema.DefaultTimeout(time.Minute * 5),
+			Delete: schema.DefaultTimeout(time.Minute * 5),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -64,10 +71,25 @@ func resourceArmDateLakeAnalyticsFirewallRuleCreateUpdate(d *schema.ResourceData
 	name := d.Get("name").(string)
 	accountName := d.Get("account_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resourceGroup, accountName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of Date Lake Analytics Firewall Rule %q (Account %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_data_lake_analytics_firewall_rule", *resp.ID)
+		}
+	}
+
 	startIPAddress := d.Get("start_ip_address").(string)
 	endIPAddress := d.Get("end_ip_address").(string)
 
-	log.Printf("[INFO] preparing arguments for Date Lake Analytics Firewall Rule creation %q (Resource Group %q)", name, resourceGroup)
+	log.Printf("[INFO] preparing arguments for Date Lake Analytics Firewall Rule creation %q (Account %q / Resource Group %q)", name, accountName, resourceGroup)
 
 	dateLakeStore := account.CreateOrUpdateFirewallRuleParameters{
 		CreateOrUpdateFirewallRuleProperties: &account.CreateOrUpdateFirewallRuleProperties{
@@ -76,9 +98,11 @@ func resourceArmDateLakeAnalyticsFirewallRuleCreateUpdate(d *schema.ResourceData
 		},
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, accountName, name, dateLakeStore)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	_, err := client.CreateOrUpdate(waitCtx, resourceGroup, accountName, name, dateLakeStore)
 	if err != nil {
-		return fmt.Errorf("Error issuing create request for Data Lake Analytics %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error issuing create request for Data Lake Analytics %q (Account %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, accountName, name)
@@ -141,7 +165,9 @@ func resourceArmDateLakeAnalyticsFirewallRuleDelete(d *schema.ResourceData, meta
 	accountName := id.Path["accounts"]
 	name := id.Path["firewallRules"]
 
-	resp, err := client.Delete(ctx, resourceGroup, accountName, name)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	resp, err := client.Delete(waitCtx, resourceGroup, accountName, name)
 	if err != nil {
 		if response.WasNotFound(resp.Response) {
 			return nil
