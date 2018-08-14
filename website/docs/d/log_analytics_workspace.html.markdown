@@ -47,3 +47,5 @@ The following attributes are exported:
 * `sku` - The Sku of the Log Analytics Workspace.
 
 * `retention_in_days` - The workspace data retention in days.
+
+* `tags` - A mapping of tags assigned to the resource.
