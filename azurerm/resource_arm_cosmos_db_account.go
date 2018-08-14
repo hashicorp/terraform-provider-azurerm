@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -28,6 +29,11 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Hour * 1),
+			Update: schema.DefaultTimeout(time.Hour * 1),
+			Delete: schema.DefaultTimeout(time.Hour * 1),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -46,7 +52,6 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 
 			"tags": tagsSchema(),
 
-			//resource fields
 			"offer_type": {
 				Type:             schema.TypeString,
 				Required:         true,
@@ -205,7 +210,6 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 				Set: resourceAzureRMCosmosDBAccountCapabilitiesHash,
 			},
 
-			//computed
 			"endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -269,14 +273,20 @@ func resourceArmCosmosDBAccountCreate(d *schema.ResourceData, meta interface{}) 
 	log.Printf("[INFO] preparing arguments for AzureRM Cosmos DB Account creation.")
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
-	tags := d.Get("tags").(map[string]interface{})
-	kind := d.Get("kind").(string)
-	offerType := d.Get("offer_type").(string)
-	ipRangeFilter := d.Get("ip_range_filter").(string)
-	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
 
+	// first check if there's one in this subscription requiring import
+	existing, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for the existence of Cosmos DB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	}
+	if existing.ID != nil {
+		return tf.ImportAsExistsError("azurerm_cosmosdb_account", *existing.ID)
+	}
+
+	// then check it's globally unique
 	r, err := client.CheckNameExists(ctx, name)
 	if err != nil {
 		return fmt.Errorf("Error checking if CosmosDB Account %q already exists (Resource Group %q): %+v", name, resourceGroup, err)
@@ -284,6 +294,13 @@ func resourceArmCosmosDBAccountCreate(d *schema.ResourceData, meta interface{}) 
 	if !utils.ResponseWasNotFound(r) {
 		return fmt.Errorf("CosmosDB Account %s already exists, please import the resource via terraform import", name)
 	}
+
+	location := azureRMNormalizeLocation(d.Get("location").(string))
+	tags := d.Get("tags").(map[string]interface{})
+	kind := d.Get("kind").(string)
+	offerType := d.Get("offer_type").(string)
+	ipRangeFilter := d.Get("ip_range_filter").(string)
+	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
 
 	//hacky, todo fix up once deprecated field 'failover_policy' is removed
 	var geoLocations []documentdb.Location
@@ -316,7 +333,7 @@ func resourceArmCosmosDBAccountCreate(d *schema.ResourceData, meta interface{}) 
 		Tags: expandTags(tags),
 	}
 
-	resp, err := resourceArmCosmosDBAccountApiUpsert(client, ctx, resourceGroup, name, account)
+	resp, err := resourceArmCosmosDBAccountApiUpsert(ctx, client, d, resourceGroup, name, account)
 	if err != nil {
 		return fmt.Errorf("Error creating CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -400,7 +417,7 @@ func resourceArmCosmosDBAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		Tags: expandTags(tags),
 	}
 
-	if _, err := resourceArmCosmosDBAccountApiUpsert(client, ctx, resourceGroup, name, account); err != nil {
+	if _, err := resourceArmCosmosDBAccountApiUpsert(ctx, client, d, resourceGroup, name, account); err != nil {
 		return fmt.Errorf("Error updating CosmosDB Account %q properties (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -437,14 +454,14 @@ func resourceArmCosmosDBAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 
 		account.DatabaseAccountCreateUpdateProperties.Locations = &locationsUnchanged
-		if _, err := resourceArmCosmosDBAccountApiUpsert(client, ctx, resourceGroup, name, account); err != nil {
+		if _, err := resourceArmCosmosDBAccountApiUpsert(ctx, client, d, resourceGroup, name, account); err != nil {
 			return fmt.Errorf("Error removing CosmosDB Account %q renamed locations (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
 	//add any new/renamed locations
 	account.DatabaseAccountCreateUpdateProperties.Locations = &newLocations
-	upsertResponse, err := resourceArmCosmosDBAccountApiUpsert(client, ctx, resourceGroup, name, account)
+	upsertResponse, err := resourceArmCosmosDBAccountApiUpsert(ctx, client, d, resourceGroup, name, account)
 	if err != nil {
 		return fmt.Errorf("Error updating CosmosDB Account %q locations (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -588,7 +605,7 @@ func resourceArmCosmosDBAccountDelete(d *schema.ResourceData, meta interface{}) 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Deleting"},
 		Target:     []string{"NotFound"},
-		Timeout:    60 * time.Minute,
+		Timeout:    d.Timeout(schema.TimeoutDelete),
 		MinTimeout: 30 * time.Second,
 		Refresh: func() (interface{}, string, error) {
 
@@ -611,7 +628,7 @@ func resourceArmCosmosDBAccountDelete(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceArmCosmosDBAccountApiUpsert(client documentdb.DatabaseAccountsClient, ctx context.Context, resourceGroup string, name string, account documentdb.DatabaseAccountCreateUpdateParameters) (*documentdb.DatabaseAccount, error) {
+func resourceArmCosmosDBAccountApiUpsert(ctx context.Context, client documentdb.DatabaseAccountsClient, d *schema.ResourceData, resourceGroup string, name string, account documentdb.DatabaseAccountCreateUpdateParameters) (*documentdb.DatabaseAccount, error) {
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, account)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating/updating CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -626,7 +643,7 @@ func resourceArmCosmosDBAccountApiUpsert(client documentdb.DatabaseAccountsClien
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Creating", "Updating", "Deleting"},
 		Target:     []string{"Succeeded"},
-		Timeout:    60 * time.Minute,
+		Timeout:    d.Timeout(tf.TimeoutForCreateUpdate(d)),
 		MinTimeout: 30 * time.Second,
 		Delay:      30 * time.Second, // required because it takes some time before the 'creating' location shows up
 		Refresh: func() (interface{}, string, error) {
