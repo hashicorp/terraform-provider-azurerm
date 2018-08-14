@@ -387,9 +387,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   agent_pool_profile {
     name           = "default"
     count          = "2"
-    vm_size        = "Standard_DS2_v2"
+		vm_size        = "Standard_DS2_v2"
 		vnet_subnet_id = "${azurerm_subnet.test.id}"
-		max_pods       = 60
+    max_pods       = 60
   }
 
   service_principal {
