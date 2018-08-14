@@ -1,8 +1,10 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -10,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,9 +22,13 @@ func resourceArmDataLakeStore() *schema.Resource {
 		Read:   resourceArmDateLakeStoreRead,
 		Update: resourceArmDateLakeStoreUpdate,
 		Delete: resourceArmDateLakeStoreDelete,
-
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -112,8 +119,22 @@ func resourceArmDateLakeStoreCreate(d *schema.ResourceData, meta interface{}) er
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	// first check if there's one in this subscription requiring import
+	resp, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Error checking for the existence of Data Lake Store Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	}
+
+	if resp.ID != nil {
+		// TODO: rename this resource in a future release
+		return tf.ImportAsExistsError("azurerm_data_lake_store", *resp.ID)
+	}
+
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tier := d.Get("tier").(string)
 
 	encryptionState := account.EncryptionState(d.Get("encryption_state").(string))
@@ -124,7 +145,7 @@ func resourceArmDateLakeStoreCreate(d *schema.ResourceData, meta interface{}) er
 
 	log.Printf("[INFO] preparing arguments for Data Lake Store creation %q (Resource Group %q)", name, resourceGroup)
 
-	dateLakeStore := account.CreateDataLakeStoreAccountParameters{
+	dataLakeStore := account.CreateDataLakeStoreAccountParameters{
 		Location: &location,
 		Tags:     expandTags(tags),
 		CreateDataLakeStoreAccountProperties: &account.CreateDataLakeStoreAccountProperties{
@@ -138,12 +159,14 @@ func resourceArmDateLakeStoreCreate(d *schema.ResourceData, meta interface{}) er
 		},
 	}
 
-	future, err := client.Create(ctx, resourceGroup, name, dateLakeStore)
+	future, err := client.Create(ctx, resourceGroup, name, dataLakeStore)
 	if err != nil {
 		return fmt.Errorf("Error issuing create request for Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutCreate))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error creating Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -186,7 +209,9 @@ func resourceArmDateLakeStoreUpdate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error issuing update request for Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutUpdate))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for the update of Data Lake Store %q (Resource Group %q) to commplete: %+v", name, resourceGroup, err)
 	}
@@ -260,7 +285,9 @@ func resourceArmDateLakeStoreDelete(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error issuing delete request for Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
