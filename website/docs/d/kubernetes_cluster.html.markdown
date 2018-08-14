@@ -80,6 +80,7 @@ A `agent_pool_profile` block exports the following:
 * `os_disk_size_gb` - The size of the Agent VM's Operating System Disk in GB.
 * `os_type` - The Operating System used for the Agents.
 * `vnet_subnet_id` - The ID of the Subnet where the Agents in the Pool are provisioned.
+* `max_pods` - The maximum number of pods that can run on each agent.
 
 ---
 
@@ -134,8 +135,6 @@ A `network_profile` block exports the following:
 * `dns_service_ip` - IP address within the Kubernetes service address range used by cluster service discovery (kube-dns).
 * `docker_bridge_cidr` - IP address (in CIDR notation) used as the Docker bridge IP address on nodes.
 * `pod_cidr` - The CIDR used for pod IP addresses.
-
----
 
 A `oms_agent` block exports the following:
 

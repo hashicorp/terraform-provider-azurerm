@@ -1,16 +1,25 @@
 ## 1.13.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_monitor_action_group` [GH-1725]
+* **New Data Source:** `azurerm_log_analytics_workspace` [GH-1755]
+
 IMPROVEMENTS:
 
 * dependencies: upgrading to `2018-04-01` of the IoTHub SDK [GH-1717]
 * Azure CLI Auth - using the `USERPROFILE` environment variable to locate the users home directory, if set [GH-1718]
+* Data Source `azurerm_kubernetes_cluster` - exposing the `max_pods` field within the `agent_pool_profile` block [GH-1753]
+* `azurerm_automation_schedule` - adding the `week_days`, `month_days` and `monthly_occurrence` properties [GH-1626]
 * `azurerm_container_group` - adding a new `commands` field / deprecating the `command` field [GH-1740]
 * `azurerm_iothub` - support for the `Basic` SKU [GH-1717]
+* `azurerm_kubernetes_cluster` - support for `max_pods` within the `agent_pool_profile` block [GH-1753]
 * `azurerm_kubernetes_cluster` - `client_id` and `client_secret` in the `service_principal` block are now ForceNew [GH-1737]
 * `azurerm_kubernetes_cluster` - `docker_bridge_cidr`, `dns_service_ip` and `service_cidr` are now conditionally set [GH-1715]
 * `azurerm_lb_nat_rule` - `protocol` property now supports `All` [GH-1736]
-* `azurerm_lb_nat_pool` - `protocol` property now supports `All` [GH-1748] 
-* `azurerm_lb_probe` - `protocol` property now supports `Https` [GH-1742] 
+* `azurerm_lb_nat_pool` - `protocol` property now supports `All` [GH-1748]
+* `azurerm_lb_probe` - `protocol` property now supports `Https` [GH-1742]
+* `azurerm_lb_rule` - support for the `All` protocol / adding validation [GH-1754]
 
 ## 1.12.0 (August 03, 2018)
 

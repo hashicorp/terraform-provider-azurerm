@@ -224,6 +224,13 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							}, true),
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
+
+						"max_pods": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+						},
 					},
 				},
 			},
@@ -590,6 +597,10 @@ func flattenAzureRmKubernetesClusterAgentPoolProfiles(profiles *[]containerservi
 			agentPoolProfile["os_type"] = string(profile.OsType)
 		}
 
+		if profile.MaxPods != nil {
+			agentPoolProfile["max_pods"] = int(*profile.MaxPods)
+		}
+
 		agentPoolProfiles = append(agentPoolProfiles, agentPoolProfile)
 	}
 
@@ -747,6 +758,10 @@ func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []conta
 		OsDiskSizeGB:   utils.Int32(osDiskSizeGB),
 		StorageProfile: containerservice.ManagedDisks,
 		OsType:         containerservice.OSType(osType),
+	}
+
+	if maxPods := int32(config["max_pods"].(int)); maxPods > 0 {
+		profile.MaxPods = utils.Int32(maxPods)
 	}
 
 	vnetSubnetID := config["vnet_subnet_id"].(string)

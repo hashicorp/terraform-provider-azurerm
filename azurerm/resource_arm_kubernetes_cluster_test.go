@@ -91,6 +91,7 @@ func TestAccAzureRMKubernetesCluster_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.host"),
 					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.username"),
 					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.password"),
+					resource.TestCheckResourceAttrSet(resourceName, "agent_pool_profile.0.max_pods"),
 				),
 			},
 		},
@@ -172,6 +173,7 @@ func TestAccAzureRMKubernetesCluster_internalNetwork(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "agent_pool_profile.0.max_pods", "60"),
 				),
 			},
 		},
@@ -439,6 +441,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     count          = "2"
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = "${azurerm_subnet.test.id}"
+    max_pods       = 60
   }
 
   service_principal {

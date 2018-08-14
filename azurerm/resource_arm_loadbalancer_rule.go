@@ -9,6 +9,10 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -18,6 +22,7 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 		Read:   resourceArmLoadBalancerRuleRead,
 		Update: resourceArmLoadBalancerRuleCreate,
 		Delete: resourceArmLoadBalancerRuleDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: loadBalancerSubResourceStateImporter,
 		},
@@ -35,14 +40,16 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"loadbalancer_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"frontend_ip_configuration_name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"frontend_ip_configuration_id": {
@@ -60,17 +67,24 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				StateFunc:        ignoreCaseStateFunc,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.TransportProtocolAll),
+					string(network.TransportProtocolTCP),
+					string(network.TransportProtocolUDP),
+				}, true),
 			},
 
 			"frontend_port": {
-				Type:     schema.TypeInt,
-				Required: true,
+				Type:         schema.TypeInt,
+				Required:     true,
+				ValidateFunc: validate.PortNumber,
 			},
 
 			"backend_port": {
-				Type:     schema.TypeInt,
-				Required: true,
+				Type:         schema.TypeInt,
+				Required:     true,
+				ValidateFunc: validate.PortNumber,
 			},
 
 			"probe_id": {
@@ -86,9 +100,10 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 			},
 
 			"idle_timeout_in_minutes": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(4, 30),
 			},
 
 			"load_distribution": {
@@ -211,38 +226,40 @@ func resourceArmLoadBalancerRuleRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("name", config.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	d.Set("protocol", config.LoadBalancingRulePropertiesFormat.Protocol)
-	d.Set("frontend_port", config.LoadBalancingRulePropertiesFormat.FrontendPort)
-	d.Set("backend_port", config.LoadBalancingRulePropertiesFormat.BackendPort)
+	if properties := config.LoadBalancingRulePropertiesFormat; properties != nil {
+		d.Set("protocol", properties.Protocol)
+		d.Set("frontend_port", properties.FrontendPort)
+		d.Set("backend_port", properties.BackendPort)
 
-	if config.LoadBalancingRulePropertiesFormat.EnableFloatingIP != nil {
-		d.Set("enable_floating_ip", config.LoadBalancingRulePropertiesFormat.EnableFloatingIP)
-	}
-
-	if config.LoadBalancingRulePropertiesFormat.IdleTimeoutInMinutes != nil {
-		d.Set("idle_timeout_in_minutes", config.LoadBalancingRulePropertiesFormat.IdleTimeoutInMinutes)
-	}
-
-	if config.LoadBalancingRulePropertiesFormat.FrontendIPConfiguration != nil {
-		fipID, err := parseAzureResourceID(*config.LoadBalancingRulePropertiesFormat.FrontendIPConfiguration.ID)
-		if err != nil {
-			return err
+		if properties.EnableFloatingIP != nil {
+			d.Set("enable_floating_ip", properties.EnableFloatingIP)
 		}
 
-		d.Set("frontend_ip_configuration_name", fipID.Path["frontendIPConfigurations"])
-		d.Set("frontend_ip_configuration_id", config.LoadBalancingRulePropertiesFormat.FrontendIPConfiguration.ID)
-	}
+		if properties.IdleTimeoutInMinutes != nil {
+			d.Set("idle_timeout_in_minutes", properties.IdleTimeoutInMinutes)
+		}
 
-	if config.LoadBalancingRulePropertiesFormat.BackendAddressPool != nil {
-		d.Set("backend_address_pool_id", config.LoadBalancingRulePropertiesFormat.BackendAddressPool.ID)
-	}
+		if properties.FrontendIPConfiguration != nil {
+			fipID, err := parseAzureResourceID(*properties.FrontendIPConfiguration.ID)
+			if err != nil {
+				return err
+			}
 
-	if config.LoadBalancingRulePropertiesFormat.Probe != nil {
-		d.Set("probe_id", config.LoadBalancingRulePropertiesFormat.Probe.ID)
-	}
+			d.Set("frontend_ip_configuration_name", fipID.Path["frontendIPConfigurations"])
+			d.Set("frontend_ip_configuration_id", properties.FrontendIPConfiguration.ID)
+		}
 
-	if config.LoadBalancingRulePropertiesFormat.LoadDistribution != "" {
-		d.Set("load_distribution", config.LoadBalancingRulePropertiesFormat.LoadDistribution)
+		if properties.BackendAddressPool != nil {
+			d.Set("backend_address_pool_id", properties.BackendAddressPool.ID)
+		}
+
+		if properties.Probe != nil {
+			d.Set("probe_id", properties.Probe.ID)
+		}
+
+		if properties.LoadDistribution != "" {
+			d.Set("load_distribution", properties.LoadDistribution)
+		}
 	}
 
 	return nil
@@ -323,35 +340,27 @@ func expandAzureRmLoadBalancerRule(d *schema.ResourceData, lb *network.LoadBalan
 			return nil, fmt.Errorf("[ERROR] Cannot find FrontEnd IP Configuration with the name %s", v)
 		}
 
-		feip := network.SubResource{
+		properties.FrontendIPConfiguration = &network.SubResource{
 			ID: rule.ID,
 		}
-
-		properties.FrontendIPConfiguration = &feip
 	}
 
 	if v := d.Get("backend_address_pool_id").(string); v != "" {
-		beAP := network.SubResource{
+		properties.BackendAddressPool = &network.SubResource{
 			ID: &v,
 		}
-
-		properties.BackendAddressPool = &beAP
 	}
 
 	if v := d.Get("probe_id").(string); v != "" {
-		pid := network.SubResource{
+		properties.Probe = &network.SubResource{
 			ID: &v,
 		}
-
-		properties.Probe = &pid
 	}
 
-	lbRule := network.LoadBalancingRule{
+	return &network.LoadBalancingRule{
 		Name: utils.String(d.Get("name").(string)),
 		LoadBalancingRulePropertiesFormat: &properties,
-	}
-
-	return &lbRule, nil
+	}, nil
 }
 
 func validateArmLoadBalancerRuleName(v interface{}, k string) (ws []string, errors []error) {
