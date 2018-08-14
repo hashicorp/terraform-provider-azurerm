@@ -42,7 +42,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				podCidr := profile["pod_cidr"].(string)
 
 				if networkPlugin == "azure" && podCidr != "" {
-					return fmt.Errorf("`network_profile.pod_cidr` can not be used when `network_profile.network_plugin` is set to `azure`. Please remove `network_profile.pod_cidr` or set `network_profile.network_plugin` to `kubenet`.")
+					return fmt.Errorf("The `pod_cidr` field in the `network_profile` block can not be specified when `network_plugin` is set to `azure`. Please remove `pod_cidr` or set `network_plugin` to `kubenet`.")
 				}
 
 				dockerBridgeCidr := profile["docker_bridge_cidr"].(string)
