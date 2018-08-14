@@ -1,10 +1,13 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -21,9 +24,13 @@ func resourceArmDataLakeAnalyticsAccount() *schema.Resource {
 		Read:   resourceArmDateLakeAnalyticsAccountRead,
 		Update: resourceArmDateLakeAnalyticsAccountUpdate,
 		Delete: resourceArmDateLakeAnalyticsAccountDelete,
-
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -73,13 +80,26 @@ func resourceArmDateLakeAnalyticsAccountCreate(d *schema.ResourceData, meta inte
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	// first check if there's one in this subscription requiring import
+	resp, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Error checking for the existence of Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	}
+
+	if resp.ID != nil {
+		return tf.ImportAsExistsError("azurerm_data_lake_analytics_account", *resp.ID)
+	}
+
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	storeAccountName := d.Get("default_store_account_name").(string)
 	tier := d.Get("tier").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Date Lake Store creation %q (Resource Group %q)", name, resourceGroup)
+	log.Printf("[INFO] preparing arguments for Data Lake Analytics Account creation %q (Resource Group %q)", name, resourceGroup)
 
 	dateLakeAnalyticsAccount := account.CreateDataLakeAnalyticsAccountParameters{
 		Location: &location,
@@ -100,7 +120,9 @@ func resourceArmDateLakeAnalyticsAccountCreate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error issuing create request for Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutCreate))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error creating Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -145,7 +167,9 @@ func resourceArmDateLakeAnalyticsAccountUpdate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error issuing update request for Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutUpdate))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for the update of Data Lake Analytics Account %q (Resource Group %q) to commplete: %+v", name, resourceGroup, err)
 	}
@@ -210,7 +234,9 @@ func resourceArmDateLakeAnalyticsAccountDelete(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error issuing delete request for Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
