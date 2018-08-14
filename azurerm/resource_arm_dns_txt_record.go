@@ -1,11 +1,14 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -17,6 +20,11 @@ func resourceArmDnsTxtRecord() *schema.Resource {
 		Delete: resourceArmDnsTxtRecordDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 10),
+			Update: schema.DefaultTimeout(time.Minute * 10),
+			Delete: schema.DefaultTimeout(time.Minute * 10),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -63,6 +71,21 @@ func resourceArmDnsTxtRecordCreateOrUpdate(d *schema.ResourceData, meta interfac
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	zoneName := d.Get("zone_name").(string)
+
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resGroup, zoneName, name, dns.TXT)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of DNS TXT Record %q (Zone %q / Resource Group %q): %+v", name, zoneName, resGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_dns_txt_record", *resp.ID)
+		}
+	}
+
 	ttl := int64(d.Get("ttl").(int))
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -82,7 +105,9 @@ func resourceArmDnsTxtRecordCreateOrUpdate(d *schema.ResourceData, meta interfac
 
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	resp, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.TXT, parameters, eTag, ifNoneMatch)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	resp, err := client.CreateOrUpdate(waitCtx, resGroup, zoneName, name, dns.TXT, parameters, eTag, ifNoneMatch)
 	if err != nil {
 		return err
 	}
@@ -144,16 +169,18 @@ func resourceArmDnsTxtRecordDelete(d *schema.ResourceData, meta interface{}) err
 	name := id.Path["TXT"]
 	zoneName := id.Path["dnszones"]
 
-	resp, error := client.Delete(ctx, resGroup, zoneName, name, dns.TXT, "")
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	resp, err := client.Delete(waitCtx, resGroup, zoneName, name, dns.TXT, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS TXT Record %s: %+v", name, error)
+		return fmt.Errorf("Error deleting DNS TXT Record %s: %+v", name, err)
 	}
 
 	return nil
 }
 
 func flattenAzureRmDnsTxtRecords(records *[]dns.TxtRecord) []map[string]interface{} {
-	results := make([]map[string]interface{}, 0, len(*records))
+	results := make([]map[string]interface{}, 0)
 
 	if records != nil {
 		for _, record := range *records {
