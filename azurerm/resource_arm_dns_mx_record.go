@@ -2,13 +2,16 @@ package azurerm
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,6 +23,11 @@ func resourceArmDnsMxRecord() *schema.Resource {
 		Delete: resourceArmDnsMxRecordDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 10),
+			Update: schema.DefaultTimeout(time.Minute * 10),
+			Delete: schema.DefaultTimeout(time.Minute * 10),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -73,6 +81,21 @@ func resourceArmDnsMxRecordCreateOrUpdate(d *schema.ResourceData, meta interface
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	zoneName := d.Get("zone_name").(string)
+
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resGroup, zoneName, name, dns.MX)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of DNS MX Record %q (Zone %q / Resource Group %q): %+v", name, zoneName, resGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_dns_mx_record", *resp.ID)
+		}
+	}
+
 	ttl := int64(d.Get("ttl").(int))
 	tags := d.Get("tags").(map[string]interface{})
 	records, err := expandAzureRmDnsMxRecords(d)
@@ -91,7 +114,9 @@ func resourceArmDnsMxRecordCreateOrUpdate(d *schema.ResourceData, meta interface
 
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	resp, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.MX, parameters, eTag, ifNoneMatch)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	resp, err := client.CreateOrUpdate(waitCtx, resGroup, zoneName, name, dns.MX, parameters, eTag, ifNoneMatch)
 	if err != nil {
 		return err
 	}
@@ -153,7 +178,9 @@ func resourceArmDnsMxRecordDelete(d *schema.ResourceData, meta interface{}) erro
 	name := id.Path["MX"]
 	zoneName := id.Path["dnszones"]
 
-	resp, error := client.Delete(ctx, resGroup, zoneName, name, dns.MX, "")
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	resp, error := client.Delete(waitCtx, resGroup, zoneName, name, dns.MX, "")
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Error deleting DNS MX Record %s: %+v", name, error)
 	}
@@ -165,7 +192,7 @@ func resourceArmDnsMxRecordDelete(d *schema.ResourceData, meta interface{}) erro
 // the expectations of the ResourceData schema, so that this data can be
 // managed by Terradata state.
 func flattenAzureRmDnsMxRecords(records *[]dns.MxRecord) []map[string]interface{} {
-	results := make([]map[string]interface{}, 0, len(*records))
+	results := make([]map[string]interface{}, 0)
 
 	if records != nil {
 		for _, record := range *records {
