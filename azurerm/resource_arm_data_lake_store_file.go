@@ -2,12 +2,14 @@ package azurerm
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -24,6 +26,10 @@ func resourceArmDataLakeStoreFile() *schema.Resource {
 		SchemaVersion: 1,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -57,6 +63,22 @@ func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}
 
 	accountName := d.Get("account_name").(string)
 	remoteFilePath := d.Get("remote_file_path").(string)
+
+	// TODO: Requiring import support once the ID's have been sorted (below)
+	/*
+		// first check if there's one in this subscription requiring import
+		resp, err := client.GetFileStatus(ctx, accountName, remoteFilePath, utils.Bool(true))
+		if resp.StatusCode == http.StatusOK {
+			return tf.ImportAsExistsError("azurerm_data_lake_store_file", remoteFilePath)
+		}
+
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of Data Lake Store File %q (Account %q): %+v", remoteFilePath, accountName, err)
+			}
+		}
+	*/
+
 	localFilePath := d.Get("local_file_path").(string)
 
 	file, err := os.Open(localFilePath)
@@ -71,7 +93,9 @@ func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	_, err = client.Create(ctx, accountName, remoteFilePath, ioutil.NopCloser(bytes.NewReader(fileContents)), utils.Bool(false), filesystem.CLOSE, nil, nil)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutCreate))
+	defer cancel()
+	_, err = client.Create(waitCtx, accountName, remoteFilePath, ioutil.NopCloser(bytes.NewReader(fileContents)), utils.Bool(false), filesystem.CLOSE, nil, nil)
 	if err != nil {
 		return fmt.Errorf("Error issuing create request for Data Lake Store File %q : %+v", remoteFilePath, err)
 	}
@@ -117,7 +141,9 @@ func resourceArmDataLakeStoreFileDelete(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.storageAccountName, id.filePath, utils.Bool(false))
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	resp, err := client.Delete(waitCtx, id.storageAccountName, id.filePath, utils.Bool(false))
 	if err != nil {
 		if !response.WasNotFound(resp.Response.Response) {
 			return fmt.Errorf("Error issuing delete request for Data Lake Store File %q (Account %q): %+v", id.filePath, id.storageAccountName, err)
