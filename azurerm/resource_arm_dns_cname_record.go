@@ -1,11 +1,14 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -17,6 +20,11 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 		Delete: resourceArmDnsCNameRecordDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 10),
+			Update: schema.DefaultTimeout(time.Minute * 10),
+			Delete: schema.DefaultTimeout(time.Minute * 10),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -31,14 +39,6 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 			"zone_name": {
 				Type:     schema.TypeString,
 				Required: true,
-			},
-
-			"records": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
-				Removed:  "Use `record` instead. This attribute will be removed in a future version",
 			},
 
 			"record": {
@@ -57,12 +57,27 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 }
 
 func resourceArmDnsCNameRecordCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
-	dnsClient := meta.(*ArmClient).dnsClient
+	client := meta.(*ArmClient).dnsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	zoneName := d.Get("zone_name").(string)
+
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resGroup, zoneName, name, dns.CNAME)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of DNS CAME Record %q (Zone %q / Resource Group %q): %+v", name, zoneName, resGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_dns_cname_record", *resp.ID)
+		}
+	}
+
 	ttl := int64(d.Get("ttl").(int))
 	record := d.Get("record").(string)
 	tags := d.Get("tags").(map[string]interface{})
@@ -80,7 +95,9 @@ func resourceArmDnsCNameRecordCreateOrUpdate(d *schema.ResourceData, meta interf
 
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	resp, err := dnsClient.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.CNAME, parameters, eTag, ifNoneMatch)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	resp, err := client.CreateOrUpdate(waitCtx, resGroup, zoneName, name, dns.CNAME, parameters, eTag, ifNoneMatch)
 	if err != nil {
 		return err
 	}
@@ -145,7 +162,9 @@ func resourceArmDnsCNameRecordDelete(d *schema.ResourceData, meta interface{}) e
 	name := id.Path["CNAME"]
 	zoneName := id.Path["dnszones"]
 
-	resp, error := dnsClient.Delete(ctx, resGroup, zoneName, name, dns.CNAME, "")
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	resp, error := dnsClient.Delete(waitCtx, resGroup, zoneName, name, dns.CNAME, "")
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Error deleting DNS CNAME Record %s: %+v", name, error)
 	}
