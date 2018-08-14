@@ -16,6 +16,7 @@ IMPROVEMENTS:
 * `azurerm_iothub` - support for the `Basic` SKU [GH-1717]
 * `azurerm_kubernetes_cluster` - support for `max_pods` within the `agent_pool_profile` block [GH-1753]
 * `azurerm_kubernetes_cluster` - support for the `add_on_profile` block [GH-1751]
+* `azurerm_kubernetes_cluster` - validation for when `pod_cidr` is set with a `network_plugin` set to `azure` [GH-1763]
 * `azurerm_kubernetes_cluster` - `client_id` and `client_secret` in the `service_principal` block are now ForceNew [GH-1737]
 * `azurerm_kubernetes_cluster` - `docker_bridge_cidr`, `dns_service_ip` and `service_cidr` are now conditionally set [GH-1715]
 * `azurerm_lb_nat_rule` - `protocol` property now supports `All` [GH-1736]
