@@ -216,6 +216,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_postgresql_database":                     resourceArmPostgreSQLDatabase(),
 			"azurerm_postgresql_firewall_rule":                resourceArmPostgreSQLFirewallRule(),
 			"azurerm_postgresql_server":                       resourceArmPostgreSQLServer(),
+			"azurerm_postgresql_virtual_network_rule":         resourceArmPostgreSQLVirtualNetworkRule(),
 			"azurerm_public_ip":                               resourceArmPublicIp(),
 			"azurerm_relay_namespace":                         resourceArmRelayNamespace(),
 			"azurerm_recovery_services_vault":                 resourceArmRecoveryServicesVault(),
