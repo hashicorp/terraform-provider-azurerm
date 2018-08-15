@@ -128,7 +128,7 @@ A `route` block supports the following:
 
 * `endpoint_names` - (Required) The list of endpoints to which messages that satisfy the condition are routed.
 
-* `is_enabled` - (Required) Used to specify whether a route is enabled.
+* `enabled` - (Required) Used to specify whether a route is enabled.
 
 ## Attributes Reference
 
