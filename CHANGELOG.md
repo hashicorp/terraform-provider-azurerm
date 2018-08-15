@@ -2,8 +2,8 @@
 
 FEATURES:
 
-* **New Resource:** `azurerm_monitor_action_group` [GH-1725]
 * **New Data Source:** `azurerm_log_analytics_workspace` [GH-1755]
+* **New Resource:** `azurerm_monitor_action_group` [GH-1725]
 
 IMPROVEMENTS:
 
