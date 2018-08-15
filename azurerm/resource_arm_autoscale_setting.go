@@ -432,7 +432,9 @@ func resourceArmAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error setting `notification` of Autoscale Setting %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
+	// Return a new tag map filtered by the specified tag names.
+	tagMap := filterTags(resp.Tags, "$type")
+	flattenAndSetTags(d, tagMap)
 
 	return nil
 }

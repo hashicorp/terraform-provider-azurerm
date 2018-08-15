@@ -23,6 +23,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
 			if v, exists := diff.GetOk("network_profile"); exists {
 				rawProfiles := v.([]interface{})
@@ -34,15 +35,31 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				profile := rawProfiles[0].(map[string]interface{})
 				networkPlugin := profile["network_plugin"].(string)
 
-				if networkPlugin == "kubenet" {
-					dockerBridgeCidr := profile["docker_bridge_cidr"].(string)
-					dnsServiceIP := profile["dns_service_ip"].(string)
-					serviceCidr := profile["service_cidr"].(string)
-
-					if dockerBridgeCidr == "" || dnsServiceIP == "" || serviceCidr == "" {
-						return fmt.Errorf("If the `network_plugin` is set to `kubenet` then the fields `docker_bridge_cidr`, `dns_service_ip` and `service_cidr` must not be empty.")
-					}
+				if networkPlugin != "kubenet" && networkPlugin != "azure" {
+					return nil
 				}
+
+				podCidr := profile["pod_cidr"].(string)
+
+				if networkPlugin == "azure" && podCidr != "" {
+					return fmt.Errorf("The `pod_cidr` field in the `network_profile` block can not be specified when `network_plugin` is set to `azure`. Please remove `pod_cidr` or set `network_plugin` to `kubenet`.")
+				}
+
+				dockerBridgeCidr := profile["docker_bridge_cidr"].(string)
+				dnsServiceIP := profile["dns_service_ip"].(string)
+				serviceCidr := profile["service_cidr"].(string)
+
+				// All empty values.
+				if dockerBridgeCidr == "" && dnsServiceIP == "" && serviceCidr == "" {
+					return nil
+				}
+
+				// All set values.
+				if dockerBridgeCidr != "" && dnsServiceIP != "" && serviceCidr != "" {
+					return nil
+				}
+
+				return fmt.Errorf("`docker_bridge_cidr`, `dns_service_ip` and `service_cidr` should all be empty or all should be set.")
 			}
 
 			return nil
@@ -213,6 +230,13 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							}, true),
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
+
+						"max_pods": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+						},
 					},
 				},
 			},
@@ -226,10 +250,12 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						"client_id": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 						},
 
 						"client_secret": {
 							Type:      schema.TypeString,
+							ForceNew:  true,
 							Required:  true,
 							Sensitive: true,
 						},
@@ -287,6 +313,57 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			"addon_profile": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"http_application_routing": {
+							Type:     schema.TypeList,
+							MaxItems: 1,
+							ForceNew: true,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enabled": {
+										Type:     schema.TypeBool,
+										ForceNew: true,
+										Required: true,
+									},
+									"http_application_routing_zone_name": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+
+						"oms_agent": {
+							Type:     schema.TypeList,
+							MaxItems: 1,
+							Optional: true,
+							ForceNew: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enabled": {
+										Type:     schema.TypeBool,
+										Required: true,
+										ForceNew: true,
+									},
+									"log_analytics_workspace_id": {
+										Type:     schema.TypeString,
+										Required: true,
+										ForceNew: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -308,6 +385,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	agentProfiles := expandAzureRmKubernetesClusterAgentProfiles(d)
 	servicePrincipalProfile := expandAzureRmKubernetesClusterServicePrincipal(d)
 	networkProfile := expandAzureRmKubernetesClusterNetworkProfile(d)
+	addonProfiles := expandAzureRmKubernetesClusterAddonProfiles(d)
 
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -327,6 +405,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 		Name:     &name,
 		Location: &location,
 		ManagedClusterProperties: &containerservice.ManagedClusterProperties{
+			AddonProfiles:           addonProfiles,
 			AgentPoolProfiles:       &agentProfiles,
 			DNSPrefix:               &dnsPrefix,
 			KubernetesVersion:       &kubernetesVersion,
@@ -406,20 +485,25 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("Error setting `linux_profile`: %+v", err)
 		}
 
+		addonProfiles := flattenAzureRmKubernetesClusterAddonProfiles(props.AddonProfiles)
+		if err := d.Set("addon_profile", addonProfiles); err != nil {
+			return fmt.Errorf("Error setting `addon_profile`: %+v", err)
+		}
+
 		agentPoolProfiles := flattenAzureRmKubernetesClusterAgentPoolProfiles(props.AgentPoolProfiles, resp.Fqdn)
 		if err := d.Set("agent_pool_profile", agentPoolProfiles); err != nil {
 			return fmt.Errorf("Error setting `agent_pool_profile`: %+v", err)
+		}
+
+		networkProfile := flattenAzureRmKubernetesClusterNetworkProfile(props.NetworkProfile)
+		if err := d.Set("network_profile", networkProfile); err != nil {
+			return fmt.Errorf("Error setting `network_profile`: %+v", err)
 		}
 
 		servicePrincipal := flattenAzureRmKubernetesClusterServicePrincipalProfile(resp.ManagedClusterProperties.ServicePrincipalProfile)
 		if err := d.Set("service_principal", servicePrincipal); err != nil {
 			return fmt.Errorf("Error setting `service_principal`: %+v", err)
 		}
-	}
-
-	networkProfile := flattenAzureRmKubernetesClusterNetworkProfile(resp.NetworkProfile)
-	if err := d.Set("network_profile", networkProfile); err != nil {
-		return fmt.Errorf("Error setting `network_profile`: %+v", err)
 	}
 
 	kubeConfigRaw, kubeConfig := flattenAzureRmKubernetesClusterAccessProfile(&profile)
@@ -517,6 +601,10 @@ func flattenAzureRmKubernetesClusterAgentPoolProfiles(profiles *[]containerservi
 
 		if profile.OsType != "" {
 			agentPoolProfile["os_type"] = string(profile.OsType)
+		}
+
+		if profile.MaxPods != nil {
+			agentPoolProfile["max_pods"] = int(*profile.MaxPods)
 		}
 
 		agentPoolProfiles = append(agentPoolProfiles, agentPoolProfile)
@@ -678,6 +766,10 @@ func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []conta
 		OsType:         containerservice.OSType(osType),
 	}
 
+	if maxPods := int32(config["max_pods"].(int)); maxPods > 0 {
+		profile.MaxPods = utils.Int32(maxPods)
+	}
+
 	vnetSubnetID := config["vnet_subnet_id"].(string)
 	if vnetSubnetID != "" {
 		profile.VnetSubnetID = utils.String(vnetSubnetID)
@@ -723,6 +815,89 @@ func expandAzureRmKubernetesClusterNetworkProfile(d *schema.ResourceData) *conta
 	}
 
 	return &networkProfile
+}
+
+func expandAzureRmKubernetesClusterAddonProfiles(d *schema.ResourceData) map[string]*containerservice.ManagedClusterAddonProfile {
+	profiles := d.Get("addon_profile").([]interface{})
+	if len(profiles) == 0 {
+		return nil
+	}
+
+	profile := profiles[0].(map[string]interface{})
+	addonProfiles := map[string]*containerservice.ManagedClusterAddonProfile{}
+
+	httpApplicationRouting := profile["http_application_routing"].([]interface{})
+	if len(httpApplicationRouting) > 0 {
+		value := httpApplicationRouting[0].(map[string]interface{})
+		enabled := value["enabled"].(bool)
+		addonProfiles["httpApplicationRouting"] = &containerservice.ManagedClusterAddonProfile{
+			Enabled: utils.Bool(enabled),
+		}
+	}
+
+	omsAgent := profile["oms_agent"].([]interface{})
+	if len(omsAgent) > 0 {
+		value := omsAgent[0].(map[string]interface{})
+		config := make(map[string]*string)
+		enabled := value["enabled"].(bool)
+
+		if workspaceId, ok := value["log_analytics_workspace_id"]; ok {
+			config["logAnalyticsWorkspaceResourceID"] = utils.String(workspaceId.(string))
+		}
+
+		addonProfiles["omsAgent"] = &containerservice.ManagedClusterAddonProfile{
+			Enabled: utils.Bool(enabled),
+			Config:  config,
+		}
+	}
+
+	return addonProfiles
+}
+
+func flattenAzureRmKubernetesClusterAddonProfiles(profile map[string]*containerservice.ManagedClusterAddonProfile) []interface{} {
+	values := make(map[string]interface{}, 0)
+
+	routes := make([]interface{}, 0)
+	if httpApplicationRouting := profile["httpApplicationRouting"]; httpApplicationRouting != nil {
+		enabled := false
+		if enabledVal := httpApplicationRouting.Enabled; enabledVal != nil {
+			enabled = *enabledVal
+		}
+
+		zoneName := ""
+		if v := httpApplicationRouting.Config["HTTPApplicationRoutingZoneName"]; v != nil {
+			zoneName = *v
+		}
+
+		output := map[string]interface{}{
+			"enabled": enabled,
+			"http_application_routing_zone_name": zoneName,
+		}
+		routes = append(routes, output)
+	}
+	values["http_application_routing"] = routes
+
+	agents := make([]interface{}, 0)
+	if omsAgent := profile["omsAgent"]; omsAgent != nil {
+		enabled := false
+		if enabledVal := omsAgent.Enabled; enabledVal != nil {
+			enabled = *enabledVal
+		}
+
+		workspaceId := ""
+		if workspaceResourceID := omsAgent.Config["logAnalyticsWorkspaceResourceID"]; workspaceResourceID != nil {
+			workspaceId = *workspaceResourceID
+		}
+
+		output := map[string]interface{}{
+			"enabled":                    enabled,
+			"log_analytics_workspace_id": workspaceId,
+		}
+		agents = append(agents, output)
+	}
+	values["oms_agent"] = agents
+
+	return []interface{}{values}
 }
 
 func resourceAzureRMKubernetesClusterServicePrincipalProfileHash(v interface{}) int {

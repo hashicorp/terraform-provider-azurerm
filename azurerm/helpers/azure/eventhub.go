@@ -15,13 +15,13 @@ import (
 func ValidateEventHubNamespaceName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{4,48}[a-zA-Z0-9]$"),
-		"The namespace name can contain only letters, numbers, and hyphens. The namespace must start with a letter, and it must end with a letter or number and be between 6 and 50 characters long.",
+		"The namespace name can contain only letters, numbers, underscores and hyphens. The namespace must start with a letter, and it must end with a letter or number and be between 6 and 50 characters long.",
 	)
 }
 
 func ValidateEventHubName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
-		regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{4,48}[a-zA-Z0-9]$"),
+		regexp.MustCompile("^[a-zA-Z][-_a-zA-Z0-9]{4,48}[a-zA-Z0-9]$"),
 		"The namespace name can contain only letters, numbers, and hyphens. The namespace must start with a letter, and it must end with a letter or number and be between 6 and 50 characters long.",
 	)
 }

@@ -42,7 +42,7 @@ func TestResourceAzureRMLoadBalancerPrivateIpAddressAllocation_validation(t *tes
 		_, errors := validateLoadBalancerPrivateIpAddressAllocation(tc.Value, "azurerm_lb")
 
 		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Azure RM LoadBalancer private_ip_address_allocation to trigger a validation error")
+			t.Fatalf("Expected the Azure RM Load Balancer private_ip_address_allocation to trigger a validation error")
 		}
 	}
 }
@@ -193,7 +193,7 @@ func testCheckAzureRMLoadBalancerExists(name string, lb *network.LoadBalancer) r
 		resp, err := client.Get(ctx, resourceGroup, loadBalancerName, "")
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
-				return fmt.Errorf("Bad: LoadBalancer %q (resource group: %q) does not exist", loadBalancerName, resourceGroup)
+				return fmt.Errorf("Bad: Load Balancer %q (resource group: %q) does not exist", loadBalancerName, resourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on loadBalancerClient: %+v", err)

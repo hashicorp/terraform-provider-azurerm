@@ -83,6 +83,7 @@ resource "azurerm_autoscale_setting" "test" {
     email {
       send_to_subscription_administrator    = true
       send_to_subscription_co_administrator = true
+      custom_emails                         = ["admin@contoso.com"]
     }
   }
 }
@@ -172,6 +173,7 @@ resource "azurerm_autoscale_setting" "test" {
     email {
       send_to_subscription_administrator    = true
       send_to_subscription_co_administrator = true
+      custom_emails                         = ["admin@contoso.com"]
     }
   }
 }
@@ -258,6 +260,7 @@ resource "azurerm_autoscale_setting" "test" {
     email {
       send_to_subscription_administrator    = true
       send_to_subscription_co_administrator = true
+      custom_emails                         = ["admin@contoso.com"]
     }
   }
 }
@@ -387,7 +390,7 @@ A `email` block supports the following:
 
 * `send_to_subscription_co_administrator` - (Optional) Should email notifications be sent to the subscription co-administrator? Defaults to `false`.
 
-* `custom_email` - (Optional) Specifies a list of custom email addresses to which the email notifications will be sent.
+* `custom_emails` - (Optional) Specifies a list of custom email addresses to which the email notifications will be sent.
 
 ---
 

@@ -170,6 +170,7 @@ type ArmClient struct {
 	logicWorkflowsClient logic.WorkflowsClient
 
 	// Monitor
+	actionGroupsClient      insights.ActionGroupsClient
 	monitorAlertRulesClient insights.AlertRulesClient
 
 	// MSI
@@ -788,6 +789,10 @@ func (c *ArmClient) registerLogicClients(endpoint, subscriptionId string, auth a
 }
 
 func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	actionGroupsClient := insights.NewActionGroupsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&actionGroupsClient.Client, auth)
+	c.actionGroupsClient = actionGroupsClient
+
 	arc := insights.NewAlertRulesClientWithBaseURI(endpoint, subscriptionId)
 	setUserAgent(&arc.Client)
 	arc.Authorizer = auth
