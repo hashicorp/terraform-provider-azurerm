@@ -27,6 +27,9 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * `azurerm_application_insights` - handling a `HTTP 201` being returned from the Create API which working around a breaking change in the API [GH-1769]
+* `azurerm_eventhub` - allowing underscores in the name field [GH-1768]
+* `azurerm_eventhub_authorization_rule` - allowing underscores in the name field [GH-1768]
+* `azurerm_eventhub_consumer_group` - allowing underscores in the name field [GH-1768]
 
 ## 1.12.0 (August 03, 2018)
 
