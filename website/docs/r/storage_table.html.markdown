@@ -3,10 +3,10 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_table"
 sidebar_current: "docs-azurerm-resource-storage-table"
 description: |-
-  Create a Azure Storage Table.
+  Manages a Azure Storage Table.
 ---
 
-# azurerm\_storage\_table
+# azurerm_storage_table
 
 Create an Azure Storage Table.
 

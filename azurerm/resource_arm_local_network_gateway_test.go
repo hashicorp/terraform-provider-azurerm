@@ -193,7 +193,7 @@ func TestAccAzureRMLocalNetworkGateway_bgpSettingsComplete(t *testing.T) {
 	})
 }
 
-// testCheckAzureRMLocalNetworkGatewayExists returns the resurce.TestCheckFunc
+// testCheckAzureRMLocalNetworkGatewayExists returns the resource.TestCheckFunc
 // which checks whether or not the expected local network gateway exists both
 // in the schema, and on Azure.
 func testCheckAzureRMLocalNetworkGatewayExists(name string) resource.TestCheckFunc {
@@ -257,7 +257,7 @@ func testCheckAzureRMLocalNetworkGatewayDisappears(name string) resource.TestChe
 			return fmt.Errorf("Error deleting the state of local network gateway %q: %+v", localNetName, err)
 		}
 
-		err = future.WaitForCompletion(ctx, client.Client)
+		err = future.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
 			return fmt.Errorf("Error waiting for deletion of the local network gateway %q to complete: %+v", localNetName, err)
 		}

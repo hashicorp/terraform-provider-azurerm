@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_postgresql_firewall_rule"
 sidebar_current: "docs-azurerm-resource-database-postgresql-firewall-rule"
 description: |-
-  Creates a Firewall Rule for a PostgreSQL Server.
+  Manages a Firewall Rule for a PostgreSQL Server.
 ---
 
-# azurerm\_postgresql\_firewall\_rule
+# azurerm_postgresql_firewall_rule
 
-Creates a Firewall Rule for a PostgreSQL Server
+Manages a Firewall Rule for a PostgreSQL Server
 
 ## Example Usage (Single IP Address)
 
@@ -66,6 +66,9 @@ The following arguments are supported:
 * `start_ip_address` - (Required) Specifies the Charset for the PostgreSQL Database. Changing this forces a new resource to be created.
 
 * `end_ip_address` - (Required) Specifies the End IP Address associated with this Firewall Rule. Changing this forces a new resource to be created.
+
+-> **NOTE:** The Azure feature `Allow access to Azure services` can be enabled by setting `start_ip_address` and `end_ip_address` to `0.0.0.0` which ([is documented in the Azure API Docs](https://docs.microsoft.com/en-us/rest/api/sql/firewallrules/createorupdate)).
+
 
 ## Attributes Reference
 

@@ -74,8 +74,7 @@ func TestExpandARMTags(t *testing.T) {
 	testData["key2"] = 21
 	testData["key3"] = "value3"
 
-	tempExpanded := expandTags(testData)
-	expanded := *tempExpanded
+	expanded := expandTags(testData)
 
 	if len(expanded) != 3 {
 		t.Fatalf("Expected 3 results in expanded tag map, got %d", len(expanded))
@@ -93,5 +92,24 @@ func TestExpandARMTags(t *testing.T) {
 		if *expanded[k] != strVal {
 			t.Fatalf("Expanded value %q incorrect: expected %q, got %q", k, strVal, expanded[k])
 		}
+	}
+}
+
+func TestFilterARMTags(t *testing.T) {
+	testData := make(map[string]*string)
+	valueData := [3]string{"value1", "value2", "value3"}
+
+	testData["key1"] = &valueData[0]
+	testData["key2"] = &valueData[1]
+	testData["key3"] = &valueData[2]
+
+	filtered := filterTags(testData, "key1", "key3", "")
+
+	if len(filtered) != 1 {
+		t.Fatalf("Expected 1 result in filtered tag map, got %d", len(filtered))
+	}
+
+	if filtered["key2"] != &valueData[1] {
+		t.Fatalf("Expected %v in filtered tag map, got %v", valueData[1], *filtered["key2"])
 	}
 }

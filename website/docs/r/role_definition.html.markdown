@@ -9,7 +9,7 @@ description: |-
 
 # azurerm_role_definition
 
-Manages a custom Role Definition, used to assign Roles to Users/Principals.
+Manages a custom Role Definition, used to assign Roles to Users/Principals. See ['Understand role definitions'](https://docs.microsoft.com/en-us/azure/role-based-access-control/role-definitions) in the Azure documentation for more details.
 
 ## Example Usage
 
@@ -17,7 +17,6 @@ Manages a custom Role Definition, used to assign Roles to Users/Principals.
 data "azurerm_subscription" "primary" {}
 
 resource "azurerm_role_definition" "test" {
-  role_definition_id = "12345678-1234-5678-1234-123456780123"
   name               = "my-custom-role"
   scope              = "${data.azurerm_subscription.primary.id}"
   description        = "This is a custom role created via Terraform"
@@ -37,7 +36,7 @@ resource "azurerm_role_definition" "test" {
 
 The following arguments are supported:
 
-* `role_definition_id` - (Required) A unique UUID/GUID which identifies this role. Changing this forces a new resource to be created.
+* `role_definition_id` - (Optional) A unique UUID/GUID which identifies this role - one will be generated if not specified. Changing this forces a new resource to be created.
 
 * `name` - (Required) The name of the Role Definition. Changing this forces a new resource to be created.
 
@@ -51,9 +50,9 @@ The following arguments are supported:
 
 A `permissions` block as the following properties:
 
-* `action` - (Optional) One or more Allowed Actions, such as `*`, `Microsoft.Resources/subscriptions/resourceGroups/read`.
+* `action` - (Optional) One or more Allowed Actions, such as `*`, `Microsoft.Resources/subscriptions/resourceGroups/read`. See ['Azure Resource Manager resource provider operations'](https://docs.microsoft.com/en-us/azure/role-based-access-control/resource-provider-operations) for details. 
 
-* `not_action` - (Optional) One or more Disallowed Actions, such as `*`, `Microsoft.Resources/subscriptions/resourceGroups/read`.
+* `not_action` - (Optional) One or more Disallowed Actions, such as `*`, `Microsoft.Resources/subscriptions/resourceGroups/read`. See ['Azure Resource Manager resource provider operations'](https://docs.microsoft.com/en-us/azure/role-based-access-control/resource-provider-operations) for details.
 
 ## Attributes Reference
 

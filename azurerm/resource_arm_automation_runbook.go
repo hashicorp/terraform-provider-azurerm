@@ -16,6 +16,7 @@ func resourceArmAutomationRunbook() *schema.Resource {
 		Read:   resourceArmAutomationRunbookRead,
 		Update: resourceArmAutomationRunbookCreateUpdate,
 		Delete: resourceArmAutomationRunbookDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -103,6 +104,7 @@ func resourceArmAutomationRunbook() *schema.Resource {
 					},
 				},
 			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -111,12 +113,12 @@ func resourceArmAutomationRunbook() *schema.Resource {
 func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).automationRunbookClient
 	ctx := meta.(*ArmClient).StopContext
+
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Runbook creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
-	client.ResourceGroupName = resGroup
 	tags := d.Get("tags").(map[string]interface{})
 
 	accName := d.Get("account_name").(string)
@@ -140,12 +142,12 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 		Tags:     expandTags(tags),
 	}
 
-	_, err := client.CreateOrUpdate(ctx, accName, name, parameters)
+	_, err := client.CreateOrUpdate(ctx, resGroup, accName, name, parameters)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(ctx, accName, name)
+	read, err := client.Get(ctx, resGroup, accName, name)
 	if err != nil {
 		return err
 	}
@@ -162,16 +164,16 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).automationRunbookClient
 	ctx := meta.(*ArmClient).StopContext
+
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 	resGroup := id.ResourceGroup
-	client.ResourceGroupName = resGroup
 	accName := id.Path["automationAccounts"]
 	name := id.Path["runbooks"]
 
-	resp, err := client.Get(ctx, accName, name)
+	resp, err := client.Get(ctx, resGroup, accName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -182,8 +184,10 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("resource_group_name", resGroup)
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
 	d.Set("account_name", accName)
 	if props := resp.RunbookProperties; props != nil {
@@ -193,7 +197,9 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("description", props.Description)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
+	if tags := resp.Tags; tags != nil {
+		flattenAndSetTags(d, tags)
+	}
 
 	return nil
 }
@@ -207,11 +213,10 @@ func resourceArmAutomationRunbookDelete(d *schema.ResourceData, meta interface{}
 		return err
 	}
 	resGroup := id.ResourceGroup
-	client.ResourceGroupName = resGroup
 	accName := id.Path["automationAccounts"]
 	name := id.Path["runbooks"]
 
-	resp, err := client.Delete(ctx, accName, name)
+	resp, err := client.Delete(ctx, resGroup, accName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil

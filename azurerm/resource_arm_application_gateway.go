@@ -6,8 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
-	"github.com/hashicorp/errwrap"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -68,8 +67,8 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Required:         true,
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.Standard),
-								string(network.WAF),
+								string(network.ApplicationGatewayTierStandard),
+								string(network.ApplicationGatewayTierWAF),
 							}, true),
 						},
 
@@ -457,6 +456,35 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Type:     schema.TypeInt,
 							Required: true,
 						},
+
+						"minimum_servers": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Default:  0,
+						},
+
+						"match": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"body": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Default:  "*",
+									},
+
+									"status_code": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -686,7 +714,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	log.Printf("[INFO] preparing arguments for AzureRM ApplicationGateway creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -726,7 +754,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error Creating/Updating ApplicationGateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error Creating/Updating ApplicationGateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
@@ -747,12 +775,12 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return errwrap.Wrapf("Error parsing ApplicationGateway ID {{err}}", err)
+		return fmt.Errorf("Error parsing ApplicationGateway ID: %+v", err)
 	}
 
 	applicationGateway, exists, err := retrieveApplicationGatewayById(d.Id(), meta)
 	if err != nil {
-		return errwrap.Wrapf("Error Getting ApplicationGateway By ID {{err}}", err)
+		return fmt.Errorf("Error Getting ApplicationGateway By ID: %+v", err)
 	}
 	if !exists {
 		d.SetId("")
@@ -762,7 +790,10 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 
 	d.Set("name", applicationGateway.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", applicationGateway.Location)
+	if location := applicationGateway.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
+
 	d.Set("sku", schema.NewSet(hashApplicationGatewaySku, flattenApplicationGatewaySku(applicationGateway.ApplicationGatewayPropertiesFormat.Sku)))
 	d.Set("disabled_ssl_protocols", flattenApplicationGatewaySslPolicy(applicationGateway.ApplicationGatewayPropertiesFormat.SslPolicy))
 	d.Set("gateway_ip_configuration", flattenApplicationGatewayIPConfigurations(applicationGateway.ApplicationGatewayPropertiesFormat.GatewayIPConfigurations))
@@ -815,7 +846,7 @@ func resourceArmApplicationGatewayDelete(d *schema.ResourceData, meta interface{
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return errwrap.Wrapf("Error Parsing Azure Resource ID {{err}}", err)
+		return fmt.Errorf("Error Parsing Azure Resource ID: %+v", err)
 	}
 	resGroup := id.ResourceGroup
 	name := id.Path["applicationGateways"]
@@ -825,7 +856,7 @@ func resourceArmApplicationGatewayDelete(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error deleting for AppGateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for deletion of AppGateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
@@ -851,7 +882,7 @@ func retrieveApplicationGatewayById(applicationGatewayID string, meta interface{
 
 	resGroup, name, err := ApplicationGatewayResGroupAndNameFromID(applicationGatewayID)
 	if err != nil {
-		return nil, false, errwrap.Wrapf("Error Getting ApplicationGateway Name and Group: {{err}}", err)
+		return nil, false, fmt.Errorf("Error Getting ApplicationGateway Name and Group:: %+v", err)
 	}
 
 	resp, err := client.Get(ctx, resGroup, name)
@@ -1146,6 +1177,7 @@ func expandApplicationGatewayProbes(d *schema.ResourceData) *[]network.Applicati
 		interval := int32(data["interval"].(int))
 		timeout := int32(data["timeout"].(int))
 		unhealthyThreshold := int32(data["unhealthy_threshold"].(int))
+		minServers := int32(data["minimum_servers"].(int))
 
 		setting := network.ApplicationGatewayProbe{
 			Name: &name,
@@ -1156,7 +1188,24 @@ func expandApplicationGatewayProbes(d *schema.ResourceData) *[]network.Applicati
 				Interval:           &interval,
 				Timeout:            &timeout,
 				UnhealthyThreshold: &unhealthyThreshold,
+				MinServers:         &minServers,
 			},
+		}
+
+		matchConfigs := data["match"].([]interface{})
+		if len(matchConfigs) > 0 {
+			match := matchConfigs[0].(map[string]interface{})
+			matchBody := match["body"].(string)
+
+			statusCodes := make([]string, 0)
+			for _, statusCode := range match["status_code"].([]interface{}) {
+				statusCodes = append(statusCodes, statusCode.(string))
+			}
+
+			setting.ApplicationGatewayProbePropertiesFormat.Match = &network.ApplicationGatewayProbeHealthResponseMatch{
+				Body:        &matchBody,
+				StatusCodes: &statusCodes,
+			}
 		}
 
 		backendSettings = append(backendSettings, setting)
@@ -1359,9 +1408,11 @@ func flattenApplicationGatewayWafConfig(waf *network.ApplicationGatewayWebApplic
 func flattenApplicationGatewaySslPolicy(policy *network.ApplicationGatewaySslPolicy) []interface{} {
 	result := make([]interface{}, 0)
 
-	if protocols := policy.DisabledSslProtocols; protocols != nil {
-		for _, proto := range *protocols {
-			result = append(result, string(proto))
+	if pol := policy; policy != nil {
+		if protocols := pol.DisabledSslProtocols; protocols != nil {
+			for _, proto := range *protocols {
+				result = append(result, string(proto))
+			}
 		}
 	}
 
@@ -1602,6 +1653,26 @@ func flattenApplicationGatewayProbes(input *[]network.ApplicationGatewayProbe) [
 
 				if threshold := props.UnhealthyThreshold; threshold != nil {
 					settings["unhealthy_threshold"] = int(*threshold)
+				}
+
+				if minServers := props.MinServers; minServers != nil {
+					settings["minimum_servers"] = int(*minServers)
+				}
+
+				if match := props.Match; match != nil {
+					matchConfig := map[string]interface{}{}
+					if body := match.Body; body != nil {
+						matchConfig["body"] = *body
+					}
+
+					statusCodes := make([]interface{}, 0)
+					if match.StatusCodes != nil {
+						for _, status := range *match.StatusCodes {
+							statusCodes = append(statusCodes, status)
+						}
+						matchConfig["status_code"] = statusCodes
+					}
+					settings["match"] = matchConfig
 				}
 			}
 

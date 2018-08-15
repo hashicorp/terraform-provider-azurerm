@@ -37,9 +37,9 @@ resource "azurerm_network_interface" "nic" {
 }
 
 resource "azurerm_storage_account" "stor" {
-  name                = "${var.hostname}stor"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  location            = "${azurerm_resource_group.rg.location}"
+  name                     = "${var.hostname}stor"
+  resource_group_name      = "${azurerm_resource_group.rg.name}"
+  location                 = "${azurerm_resource_group.rg.location}"
   account_tier             = "${var.storage_account_tier}"
   account_replication_type = "${var.storage_replication_type}"
 }

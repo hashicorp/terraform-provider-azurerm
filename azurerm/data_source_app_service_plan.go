@@ -10,9 +10,6 @@ import (
 func dataSourceAppServicePlan() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceAppServicePlanRead,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -94,8 +91,7 @@ func dataSourceAppServicePlanRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if utils.ResponseWasNotFound(resp.Response) {
-		d.SetId("")
-		return nil
+		return fmt.Errorf("Error: App Service Plan %q (Resource Group %q) was not found", name, resourceGroup)
 	}
 
 	d.SetId(*resp.ID)

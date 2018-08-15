@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_traffic_manager_endpoint"
 sidebar_current: "docs-azurerm-resource-network-traffic-manager-endpoint"
 description: |-
-  Creates a Traffic Manager Endpoint.
+  Manages a Traffic Manager Endpoint.
 ---
 
-# azurerm\_traffic\_manager\_endpoint
+# azurerm_traffic_manager_endpoint
 
-Creates a Traffic Manager Endpoint.
+Manages a Traffic Manager Endpoint.
 
 ## Example Usage
 
@@ -28,7 +28,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_traffic_manager_profile" "test" {
   name                = "${random_id.server.hex}"
   resource_group_name = "${azurerm_resource_group.test.name}"
- 
+
   traffic_routing_method = "Weighted"
 
   dns_config {
@@ -106,6 +106,8 @@ The following arguments are supported:
     parent profile to direct traffic to any of the endpoints in that child
     profile. This argument only applies to Endpoints of type `nestedEndpoints`
     and defaults to `1`.
+
+* `geo_mappings` - (Optional) A list of Geographic Regions used to distribute traffic, such as `WORLD`, `UK` or `DE`. The same location can't be specified in two endpoints. [See the Geographic Hierarchies documentation for more information](https://docs.microsoft.com/en-us/rest/api/trafficmanager/geographichierarchies/getdefault).
 
 ## Attributes Reference
 

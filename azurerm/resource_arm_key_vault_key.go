@@ -174,6 +174,12 @@ func resourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error 
 
 	resp, err := client.GetKey(ctx, id.KeyVaultBaseUrl, id.Name, "")
 	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[DEBUG] Key %q was not found in Key Vault at URI %q - removing from state", id.Name, id.KeyVaultBaseUrl)
+			d.SetId("")
+			return nil
+		}
+
 		return err
 	}
 

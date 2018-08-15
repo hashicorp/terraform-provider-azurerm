@@ -3,10 +3,10 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_application_insights"
 sidebar_current: "docs-azurerm-resource-application-insights"
 description: |-
-  Create an Application Insights component.
+  Manages an Application Insights component.
 ---
 
-# azurerm\_application\_insights
+# azurerm_application_insights
 
 Create an Application Insights component.
 
@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `application_type` - (Required) Specifies the type of Application Insights to create. Valid values are `Web` and `Other`.
+* `application_type` - (Required) Specifies the type of Application Insights to create. Valid values are `Web`, `Java`, `Phone`, `Store`, `iOS` and `Other`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

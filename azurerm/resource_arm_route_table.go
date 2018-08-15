@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -19,15 +19,17 @@ func resourceArmRouteTable() *schema.Resource {
 		Read:   resourceArmRouteTableRead,
 		Update: resourceArmRouteTableCreate,
 		Delete: resourceArmRouteTableDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"location": locationSchema(),
@@ -41,13 +43,15 @@ func resourceArmRouteTable() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 
 						"address_prefix": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 
 						"next_hop_type": {
@@ -64,12 +68,19 @@ func resourceArmRouteTable() *schema.Resource {
 						},
 
 						"next_hop_in_ip_address": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 					},
 				},
+			},
+
+			"disable_bgp_route_propagation": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"subnets": {
@@ -91,7 +102,7 @@ func resourceArmRouteTableCreate(d *schema.ResourceData, meta interface{}) error
 	log.Printf("[INFO] preparing arguments for AzureRM Route Table creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -105,6 +116,7 @@ func resourceArmRouteTableCreate(d *schema.ResourceData, meta interface{}) error
 		Location: &location,
 		RouteTablePropertiesFormat: &network.RouteTablePropertiesFormat{
 			Routes: &routes,
+			DisableBgpRoutePropagation: utils.Bool(d.Get("disable_bgp_route_propagation").(bool)),
 		},
 		Tags: expandTags(tags),
 	}
@@ -114,7 +126,7 @@ func resourceArmRouteTableCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error Creating/Updating Route Table %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for completion of Route Table %q (Resource Group %q): %+v", name, resGroup, err)
 	}
@@ -154,9 +166,12 @@ func resourceArmRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
 	if props := resp.RouteTablePropertiesFormat; props != nil {
+		d.Set("disable_bgp_route_propagation", props.DisableBgpRoutePropagation)
 		if err := d.Set("route", flattenRouteTableRoutes(props.Routes)); err != nil {
 			return err
 		}
@@ -189,7 +204,7 @@ func resourceArmRouteTableDelete(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for deletion of Route Table %q (Resource Group %q): %+v", name, resGroup, err)
 	}

@@ -70,9 +70,13 @@ The following arguments are supported:
 
 * `source_address_prefixes` - (Optional) List of source address prefixes. Tags may not be used. This is required if `source_address_prefix` is not specified.
 
+* `source_application_security_group_ids` - (Optional) A List of source Application Security Group ID's
+
 * `destination_address_prefix` - (Optional) CIDR or destination IP range or * to match any IP. Tags such as ‘VirtualNetwork’, ‘AzureLoadBalancer’ and ‘Internet’ can also be used. This is required if `destination_address_prefixes` is not specified.
 
 * `destination_address_prefixes` - (Optional) List of destination address prefixes. Tags may not be used. This is required if `destination_address_prefix` is not specified.
+
+* `destination_application_security_group_ids` - (Optional) A List of destination Application Security Group ID's
 
 * `access` - (Required) Specifies whether network traffic is allowed or denied. Possible values are `Allow` and `Deny`.
 

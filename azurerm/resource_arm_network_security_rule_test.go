@@ -92,6 +92,23 @@ func TestAccAzureRMNetworkSecurityRule_augmented(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMNetworkSecurityRule_applicationSecurityGroups(t *testing.T) {
+	rInt := acctest.RandInt()
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkSecurityRule_applicationSecurityGroups(rInt, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkSecurityRuleExists("azurerm_network_security_rule.test1"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMNetworkSecurityRuleExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
@@ -306,4 +323,45 @@ resource "azurerm_network_security_rule" "test1" {
   network_security_group_name  = "${azurerm_network_security_group.test1.name}"
 }
 `, rInt, location)
+}
+
+func testAccAzureRMNetworkSecurityRule_applicationSecurityGroups(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_application_security_group" "first" {
+  name                = "acctest-first%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_application_security_group" "second" {
+  name                = "acctest-second%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_network_security_group" "test" {
+  name                = "acctestnsg-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_network_security_rule" "test1" {
+  name                                       = "test123"
+  resource_group_name                        = "${azurerm_resource_group.test.name}"
+  network_security_group_name                = "${azurerm_network_security_group.test.name}"
+  priority                                   = 100
+  direction                                  = "Outbound"
+  access                                     = "Allow"
+  protocol                                   = "Tcp"
+  source_application_security_group_ids      = ["${azurerm_application_security_group.first.id}"]
+  destination_application_security_group_ids = ["${azurerm_application_security_group.second.id}"]
+  source_port_ranges                         = [ "10000-40000" ]
+  destination_port_ranges                    = [ "80", "443", "8080", "8190" ]
+}
+`, rInt, location, rInt, rInt, rInt)
 }

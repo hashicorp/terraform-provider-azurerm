@@ -1,14 +1,14 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventhub"
-sidebar_current: "docs-azurerm-resource-eventhub"
+sidebar_current: "docs-azurerm-resource-messaging-eventhub"
 description: |-
-  Creates a new Event Hubs as a nested resource within an Event Hubs namespace.
+  Manages a Event Hubs as a nested resource within an Event Hubs namespace.
 ---
 
 # azurerm_eventhub
 
-Creates a new Event Hubs as a nested resource within a Event Hubs namespace.
+Manages a Event Hubs as a nested resource within a Event Hubs namespace.
 
 ## Example Usage
 

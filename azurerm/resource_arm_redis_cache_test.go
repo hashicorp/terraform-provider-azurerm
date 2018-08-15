@@ -238,6 +238,11 @@ func TestAccAzureRMRedisCache_BackupEnabled(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRedisCacheExists("azurerm_redis_cache.test"),
 				),
+				// `redis_configuration.0.rdb_storage_connection_string` is returned as:
+				// "...;AccountKey=[key hidden]" rather than "...;AccountKey=fsjfvjnfnf"
+				// TODO: remove this once the Bug's been fixed:
+				// https://github.com/Azure/azure-rest-api-specs/issues/3037
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -260,12 +265,22 @@ func TestAccAzureRMRedisCache_BackupEnabledDisabled(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRedisCacheExists("azurerm_redis_cache.test"),
 				),
+				// `redis_configuration.0.rdb_storage_connection_string` is returned as:
+				// "...;AccountKey=[key hidden]" rather than "...;AccountKey=fsjfvjnfnf"
+				// TODO: remove this once the Bug's been fixed:
+				// https://github.com/Azure/azure-rest-api-specs/issues/3037
+				ExpectNonEmptyPlan: true,
 			},
 			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRedisCacheExists("azurerm_redis_cache.test"),
 				),
+				// `redis_configuration.0.rdb_storage_connection_string` is returned as:
+				// "...;AccountKey=[key hidden]" rather than "...;AccountKey=fsjfvjnfnf"
+				// TODO: remove this once the Bug's been fixed:
+				// https://github.com/Azure/azure-rest-api-specs/issues/3037
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -310,6 +325,44 @@ func TestAccAzureRMRedisCache_PatchScheduleUpdated(t *testing.T) {
 			},
 			{
 				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRedisCacheExists("azurerm_redis_cache.test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMRedisCache_InternalSubnet(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMRedisCache_internalSubnet(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRedisCacheExists("azurerm_redis_cache.test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMRedisCache_InternalSubnetStaticIP(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMRedisCache_internalSubnetStaticIP(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRedisCacheExists("azurerm_redis_cache.test"),
 				),
@@ -374,6 +427,26 @@ func testCheckAzureRMRedisCacheDestroy(s *terraform.State) error {
 	return nil
 }
 
+func TestAccAzureRMRedisCache_SubscribeAllEvents(t *testing.T) {
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	config := testAccAzureRMRedisCacheSubscribeAllEvents(ri, rs, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRedisCacheExists("azurerm_redis_cache.test"),
+				),
+			},
+		},
+	})
+}
+
 func testAccAzureRMRedisCache_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -391,7 +464,6 @@ resource "azurerm_redis_cache" "test" {
     enable_non_ssl_port = false
 
     redis_configuration {
-      maxclients = "256"
     }
 }
 `, rInt, location, rInt)
@@ -413,7 +485,6 @@ resource "azurerm_redis_cache" "test" {
     sku_name            = "Standard"
     enable_non_ssl_port = false
     redis_configuration {
-      maxclients = "256"
     }
 
     tags {
@@ -439,8 +510,7 @@ resource "azurerm_redis_cache" "test" {
     sku_name            = "Premium"
     enable_non_ssl_port = false
     redis_configuration {
-      maxclients         = 256,
-      maxmemory_reserved = 2,
+      maxmemory_reserved = 2
       maxmemory_delta    = 2
       maxmemory_policy   = "allkeys-lru"
     }
@@ -465,8 +535,7 @@ resource "azurerm_redis_cache" "test" {
     enable_non_ssl_port = true
     shard_count         = 3
     redis_configuration {
-      maxclients         = "256",
-      maxmemory_reserved = 2,
+      maxmemory_reserved = 2
       maxmemory_delta    = 2
       maxmemory_policy   = "allkeys-lru"
     }
@@ -490,7 +559,6 @@ resource "azurerm_redis_cache" "test" {
     sku_name            = "basic"
     enable_non_ssl_port = false
     redis_configuration {
-      maxclients = "256"
     }
 }
 `, ri, location, ri)
@@ -512,7 +580,6 @@ resource "azurerm_redis_cache" "test" {
     sku_name            = "Premium"
     enable_non_ssl_port = false
     redis_configuration {
-      maxclients         = "256"
       rdb_backup_enabled = false
     }
 }
@@ -547,7 +614,6 @@ resource "azurerm_redis_cache" "test" {
     sku_name            = "Premium"
     enable_non_ssl_port = false
     redis_configuration {
-      maxclients                    = "256"
       rdb_backup_enabled            = true
       rdb_backup_frequency          = 60
       rdb_backup_max_snapshot_count = 1
@@ -563,7 +629,6 @@ resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "%s"
 }
-
 resource "azurerm_redis_cache" "test" {
     name                = "acctestRedis-%d"
     location            = "${azurerm_resource_group.test.location}"
@@ -573,16 +638,117 @@ resource "azurerm_redis_cache" "test" {
     sku_name            = "Premium"
     enable_non_ssl_port = false
     redis_configuration {
-      maxclients         = 256,
-      maxmemory_reserved = 2,
+      maxmemory_reserved = 2
       maxmemory_delta    = 2
       maxmemory_policy   = "allkeys-lru"
     }
-
     patch_schedule {
       day_of_week    = "Tuesday"
       start_hour_utc = 8
     }
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMRedisCacheSubscribeAllEvents(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location     = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+  tags {
+    environment = "staging"
+  }
+}
+resource "azurerm_redis_cache" "test" {
+  name                = "acctestRedis-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  capacity            = 3
+  family              = "P"
+  sku_name            = "Premium"
+  enable_non_ssl_port = false
+  redis_configuration {
+    notify_keyspace_events = "KAE"
+  }
+}
+`, rInt, location, rString, rInt)
+}
+func testAccAzureRMRedisCache_internalSubnet(ri int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestnw-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "testsubnet"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.1.0/24"
+}
+
+resource "azurerm_redis_cache" "test" {
+  name                = "acctestRedis-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  capacity            = 1
+  family              = "P"
+  sku_name            = "Premium"
+  enable_non_ssl_port = false
+  subnet_id           = "${azurerm_subnet.test.id}"
+  redis_configuration {
+  }
+}
+`, ri, location, ri, ri)
+}
+
+func testAccAzureRMRedisCache_internalSubnetStaticIP(ri int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestnw-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "testsubnet"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.1.0/24"
+}
+
+resource "azurerm_redis_cache" "test" {
+  name                      = "acctestRedis-%d"
+  location                  = "${azurerm_resource_group.test.location}"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
+  capacity                  = 1
+  family                    = "P"
+  sku_name                  = "Premium"
+  enable_non_ssl_port       = false
+  subnet_id                 = "${azurerm_subnet.test.id}"
+  private_static_ip_address = "10.0.1.20"
+  redis_configuration {
+  }
+}
+`, ri, location, ri, ri)
 }

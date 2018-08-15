@@ -3,12 +3,13 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_container_registry"
 sidebar_current: "docs-azurerm-resource-container-registry"
 description: |-
-  Create as an Azure Container Registry instance.
+  Manages an Azure Container Registry.
+
 ---
 
-# azurerm\_container\_registry
+# azurerm_container_registry
 
-Create as an Azure Container Registry instance.
+Manages an Azure Container Registry.
 
 ~> **Note:** All arguments including the access key will be stored in the raw state as plain-text.
 [Read more about sensitive data in state](/docs/state/sensitive-data.html).
@@ -43,11 +44,9 @@ resource "azurerm_container_registry" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Container Registry. Changing this forces a
-    new resource to be created.
+* `name` - (Required) Specifies the name of the Container Registry. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the Container Registry.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Container Registry. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 

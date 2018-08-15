@@ -30,6 +30,29 @@ func TestAccAzureRMDnsZone_importBasic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMDnsZone_importBasicWithVNets(t *testing.T) {
+	resourceName := "azurerm_dns_zone.test"
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMDnsZone_withVNets(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMDnsZone_importBasicWithTags(t *testing.T) {
 	resourceName := "azurerm_dns_zone.test"
 

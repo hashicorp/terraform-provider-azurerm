@@ -15,6 +15,7 @@ func resourceArmAutomationCredential() *schema.Resource {
 		Read:   resourceArmAutomationCredentialRead,
 		Update: resourceArmAutomationCredentialCreateUpdate,
 		Delete: resourceArmAutomationCredentialDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -25,7 +26,9 @@ func resourceArmAutomationCredential() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+
 			"resource_group_name": resourceGroupNameSchema(),
+
 			"account_name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -42,6 +45,7 @@ func resourceArmAutomationCredential() *schema.Resource {
 				Required:  true,
 				Sensitive: true,
 			},
+
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -53,11 +57,11 @@ func resourceArmAutomationCredential() *schema.Resource {
 func resourceArmAutomationCredentialCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).automationCredentialClient
 	ctx := meta.(*ArmClient).StopContext
+
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Credential creation.")
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	client.ResourceGroupName = resGroup
 	accName := d.Get("account_name").(string)
 	user := d.Get("username").(string)
 	password := d.Get("password").(string)
@@ -72,12 +76,12 @@ func resourceArmAutomationCredentialCreateUpdate(d *schema.ResourceData, meta in
 		Name: &name,
 	}
 
-	_, err := client.CreateOrUpdate(ctx, accName, name, parameters)
+	_, err := client.CreateOrUpdate(ctx, resGroup, accName, name, parameters)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(ctx, accName, name)
+	read, err := client.Get(ctx, resGroup, accName, name)
 	if err != nil {
 		return err
 	}
@@ -88,22 +92,22 @@ func resourceArmAutomationCredentialCreateUpdate(d *schema.ResourceData, meta in
 
 	d.SetId(*read.ID)
 
-	return resourceArmAutomationAccountRead(d, meta)
+	return resourceArmAutomationCredentialRead(d, meta)
 }
 
 func resourceArmAutomationCredentialRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).automationCredentialClient
 	ctx := meta.(*ArmClient).StopContext
+
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 	resGroup := id.ResourceGroup
-	client.ResourceGroupName = resGroup
 	accName := id.Path["automationAccounts"]
 	name := id.Path["credentials"]
 
-	resp, err := client.Get(ctx, accName, name)
+	resp, err := client.Get(ctx, resGroup, accName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -133,11 +137,10 @@ func resourceArmAutomationCredentialDelete(d *schema.ResourceData, meta interfac
 		return err
 	}
 	resGroup := id.ResourceGroup
-	client.ResourceGroupName = resGroup
 	accName := id.Path["automationAccounts"]
 	name := id.Path["credentials"]
 
-	resp, err := client.Delete(ctx, accName, name)
+	resp, err := client.Delete(ctx, resGroup, accName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil

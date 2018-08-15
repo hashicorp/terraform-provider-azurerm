@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,6 +23,8 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+
+		CustomizeDiff: resourceArmVirtualNetworkGatewayCustomizeDiff,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -139,7 +143,12 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 						},
 						"root_certificate": {
 							Type:     schema.TypeSet,
-							Required: true,
+							Optional: true,
+
+							ConflictsWith: []string{
+								"vpn_client_configuration.0.radius_server_address",
+								"vpn_client_configuration.0.radius_server_secret",
+							},
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
@@ -157,6 +166,10 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 						"revoked_certificate": {
 							Type:     schema.TypeSet,
 							Optional: true,
+							ConflictsWith: []string{
+								"vpn_client_configuration.0.radius_server_address",
+								"vpn_client_configuration.0.radius_server_secret",
+							},
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
@@ -170,6 +183,34 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 								},
 							},
 							Set: hashVirtualNetworkGatewayRevokedCert,
+						},
+						"radius_server_address": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ConflictsWith: []string{
+								"vpn_client_configuration.0.root_certificate",
+								"vpn_client_configuration.0.revoked_certificate",
+							},
+							ValidateFunc: validate.IPv4Address,
+						},
+						"radius_server_secret": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ConflictsWith: []string{
+								"vpn_client_configuration.0.root_certificate",
+								"vpn_client_configuration.0.revoked_certificate",
+							},
+						},
+						"vpn_client_protocols": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(network.IkeV2),
+									string(network.SSTP),
+								}, true),
+							},
 						},
 					},
 				},
@@ -189,6 +230,8 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 						"peering_address": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
+							ForceNew: true,
 						},
 						"peer_weight": {
 							Type:     schema.TypeInt,
@@ -215,7 +258,7 @@ func resourceArmVirtualNetworkGatewayCreateUpdate(d *schema.ResourceData, meta i
 	log.Printf("[INFO] preparing arguments for AzureRM Virtual Network Gateway creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -236,7 +279,7 @@ func resourceArmVirtualNetworkGatewayCreateUpdate(d *schema.ResourceData, meta i
 		return fmt.Errorf("Error Creating/Updating AzureRM Virtual Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for completion of AzureRM Virtual Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
@@ -274,14 +317,11 @@ func resourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	if resp.VirtualNetworkGatewayPropertiesFormat != nil {
-		gw := *resp.VirtualNetworkGatewayPropertiesFormat
-
+	if gw := resp.VirtualNetworkGatewayPropertiesFormat; gw != nil {
 		d.Set("type", string(gw.GatewayType))
 		d.Set("enable_bgp", gw.EnableBgp)
 		d.Set("active_active", gw.ActiveActive)
@@ -298,13 +338,13 @@ func resourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface
 			d.Set("sku", string(gw.Sku.Name))
 		}
 
-		d.Set("ip_configuration", flattenArmVirtualNetworkGatewayIPConfigurations(gw.IPConfigurations))
+		if err := d.Set("ip_configuration", flattenArmVirtualNetworkGatewayIPConfigurations(gw.IPConfigurations)); err != nil {
+			return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
+		}
 
-		if gw.VpnClientConfiguration != nil {
-			vpnConfigFlat := flattenArmVirtualNetworkGatewayVpnClientConfig(gw.VpnClientConfiguration)
-			if err := d.Set("vpn_client_configuration", vpnConfigFlat); err != nil {
-				return fmt.Errorf("Error setting `vpn_client_configuration`: %+v", err)
-			}
+		vpnConfigFlat := flattenArmVirtualNetworkGatewayVpnClientConfig(gw.VpnClientConfiguration)
+		if err := d.Set("vpn_client_configuration", vpnConfigFlat); err != nil {
+			return fmt.Errorf("Error setting `vpn_client_configuration`: %+v", err)
 		}
 
 		if gw.BgpSettings != nil {
@@ -334,7 +374,7 @@ func resourceArmVirtualNetworkGatewayDelete(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error deleting Virtual Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for deletion of Virtual Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
@@ -491,12 +531,24 @@ func expandArmVirtualNetworkGatewayVpnClientConfig(d *schema.ResourceData) *netw
 		revokedCerts = append(revokedCerts, r)
 	}
 
+	var vpnClientProtocols []network.VpnClientProtocol
+	for _, vpnClientProtocol := range conf["vpn_client_protocols"].(*schema.Set).List() {
+		p := network.VpnClientProtocol(vpnClientProtocol.(string))
+		vpnClientProtocols = append(vpnClientProtocols, p)
+	}
+
+	confRadiusServerAddress := conf["radius_server_address"].(string)
+	confRadiusServerSecret := conf["radius_server_secret"].(string)
+
 	return &network.VpnClientConfiguration{
 		VpnClientAddressPool: &network.AddressSpace{
 			AddressPrefixes: &addresses,
 		},
 		VpnClientRootCertificates:    &rootCerts,
 		VpnClientRevokedCertificates: &revokedCerts,
+		VpnClientProtocols:           &vpnClientProtocols,
+		RadiusServerAddress:          &confRadiusServerAddress,
+		RadiusServerSecret:           &confRadiusServerSecret,
 	}
 }
 
@@ -510,34 +562,64 @@ func expandArmVirtualNetworkGatewaySku(d *schema.ResourceData) *network.VirtualN
 }
 
 func flattenArmVirtualNetworkGatewayBgpSettings(settings *network.BgpSettings) []interface{} {
-	flat := make(map[string]interface{})
+	output := make([]interface{}, 0)
 
-	flat["asn"] = int(*settings.Asn)
-	flat["peering_address"] = *settings.BgpPeeringAddress
-	flat["peer_weight"] = int(*settings.PeerWeight)
+	if settings != nil {
+		flat := make(map[string]interface{})
 
-	return []interface{}{flat}
+		if asn := settings.Asn; asn != nil {
+			flat["asn"] = int(*asn)
+		}
+		if address := settings.BgpPeeringAddress; address != nil {
+			flat["peering_address"] = *address
+		}
+		if weight := settings.PeerWeight; weight != nil {
+			flat["peer_weight"] = int(*weight)
+		}
+
+		output = append(output, flat)
+	}
+
+	return output
 }
 
 func flattenArmVirtualNetworkGatewayIPConfigurations(ipConfigs *[]network.VirtualNetworkGatewayIPConfiguration) []interface{} {
-	flat := make([]interface{}, 0, len(*ipConfigs))
+	flat := make([]interface{}, 0)
 
-	for _, cfg := range *ipConfigs {
-		props := cfg.VirtualNetworkGatewayIPConfigurationPropertiesFormat
-		v := make(map[string]interface{})
+	if ipConfigs != nil {
+		for _, cfg := range *ipConfigs {
+			props := cfg.VirtualNetworkGatewayIPConfigurationPropertiesFormat
+			v := make(map[string]interface{})
 
-		v["name"] = *cfg.Name
-		v["private_ip_address_allocation"] = string(props.PrivateIPAllocationMethod)
-		v["subnet_id"] = *props.Subnet.ID
-		v["public_ip_address_id"] = *props.PublicIPAddress.ID
+			if name := cfg.Name; name != nil {
+				v["name"] = *name
+			}
+			v["private_ip_address_allocation"] = string(props.PrivateIPAllocationMethod)
 
-		flat = append(flat, v)
+			if subnet := props.Subnet; subnet != nil {
+				if id := subnet.ID; id != nil {
+					v["subnet_id"] = *id
+				}
+			}
+
+			if pip := props.PublicIPAddress; pip != nil {
+				if id := pip.ID; id != nil {
+					v["public_ip_address_id"] = *id
+				}
+			}
+
+			flat = append(flat, v)
+		}
 	}
 
 	return flat
 }
 
 func flattenArmVirtualNetworkGatewayVpnClientConfig(cfg *network.VpnClientConfiguration) []interface{} {
+	if cfg == nil {
+		return []interface{}{}
+	}
+
 	flat := make(map[string]interface{})
 
 	addressSpace := make([]interface{}, 0)
@@ -573,6 +655,22 @@ func flattenArmVirtualNetworkGatewayVpnClientConfig(cfg *network.VpnClientConfig
 		}
 	}
 	flat["revoked_certificate"] = schema.NewSet(hashVirtualNetworkGatewayRevokedCert, revokedCerts)
+
+	vpnClientProtocols := &schema.Set{F: schema.HashString}
+	if vpnProtocols := cfg.VpnClientProtocols; vpnProtocols != nil {
+		for _, protocol := range *vpnProtocols {
+			vpnClientProtocols.Add(string(protocol))
+		}
+	}
+	flat["vpn_client_protocols"] = vpnClientProtocols
+
+	if v := cfg.RadiusServerAddress; v != nil {
+		flat["radius_server_address"] = *v
+	}
+
+	if v := cfg.RadiusServerSecret; v != nil {
+		flat["radius_server_secret"] = *v
+	}
 
 	return []interface{}{flat}
 }
@@ -627,7 +725,7 @@ func validateArmVirtualNetworkGatewaySubnetId(i interface{}, k string) (s []stri
 		return
 	}
 
-	if subnet != "GatewaySubnet" {
+	if strings.ToLower(subnet) != "gatewaysubnet" {
 		es = append(es, fmt.Errorf("expected %s to reference a gateway subnet with name GatewaySubnet", k))
 	}
 
@@ -657,4 +755,22 @@ func validateArmVirtualNetworkGatewayExpressRouteSku() schema.SchemaValidateFunc
 		string(network.VirtualNetworkGatewaySkuTierHighPerformance),
 		string(network.VirtualNetworkGatewaySkuTierUltraPerformance),
 	}, true)
+}
+
+func resourceArmVirtualNetworkGatewayCustomizeDiff(diff *schema.ResourceDiff, v interface{}) error {
+
+	if vpnClient, ok := diff.GetOk("vpn_client_configuration"); ok {
+		if vpnClientConfig, ok := vpnClient.([]interface{})[0].(map[string]interface{}); ok {
+			hasRadiusAddress := vpnClientConfig["radius_server_address"] != ""
+			hasRadiusSecret := vpnClientConfig["radius_server_secret"] != ""
+
+			if hasRadiusAddress && !hasRadiusSecret {
+				return fmt.Errorf("if radius_server_address is set radius_server_secret must also be set")
+			}
+			if !hasRadiusAddress && hasRadiusSecret {
+				return fmt.Errorf("if radius_server_secret is set radius_server_address must also be set")
+			}
+		}
+	}
+	return nil
 }

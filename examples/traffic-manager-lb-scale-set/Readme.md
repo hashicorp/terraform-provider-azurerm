@@ -2,7 +2,7 @@
 
 This example shows how to create a load balanced scale set in multiple locations and then geographically load balance these using traffic manager. This example the scale set uses a market place Ubuntu image, this could be customised using an extension or a generalized image created using packer. 
 
-This script demonstrates how variable can be passed in and out of reusable modules. You will need to run `terraform get` for terrafrom to get so that modules are pre-processed.
+This script demonstrates how variable can be passed in and out of reusable modules. You will need to run `terraform get` for terraform to get so that modules are pre-processed.
 
 ## Keys and variables
 

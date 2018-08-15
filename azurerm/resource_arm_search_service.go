@@ -68,7 +68,7 @@ func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resourceGroupName := d.Get("resource_group_name").(string)
 	skuName := d.Get("sku").(string)
 	tags := d.Get("tags").(map[string]interface{})

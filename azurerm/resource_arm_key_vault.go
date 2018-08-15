@@ -3,16 +3,16 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net"
+	"net/http"
 	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault"
-	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	uuid "github.com/satori/go.uuid"
+	azschema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,11 +21,13 @@ import (
 // https://github.com/Azure/azure-rest-api-specs/blob/master/arm-keyvault/2015-06-01/swagger/keyvault.json#L239
 var armKeyVaultSkuFamily = "A"
 
+var keyVaultResourceName = "azurerm_key_vault"
+
 func resourceArmKeyVault() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKeyVaultCreate,
+		Create: resourceArmKeyVaultCreateUpdate,
 		Read:   resourceArmKeyVaultRead,
-		Update: resourceArmKeyVaultCreate,
+		Update: resourceArmKeyVaultCreateUpdate,
 		Delete: resourceArmKeyVaultDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -76,7 +78,7 @@ func resourceArmKeyVault() *schema.Resource {
 			"access_policy": {
 				Type:     schema.TypeList,
 				Optional: true,
-				MinItems: 1,
+				Computed: true,
 				MaxItems: 16,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -95,72 +97,9 @@ func resourceArmKeyVault() *schema.Resource {
 							Optional:     true,
 							ValidateFunc: validateUUID,
 						},
-						"certificate_permissions": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(keyvault.Create),
-									string(keyvault.Delete),
-									string(keyvault.Deleteissuers),
-									string(keyvault.Get),
-									string(keyvault.Getissuers),
-									string(keyvault.Import),
-									string(keyvault.List),
-									string(keyvault.Listissuers),
-									string(keyvault.Managecontacts),
-									string(keyvault.Manageissuers),
-									string(keyvault.Setissuers),
-									string(keyvault.Update),
-								}, true),
-								DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-							},
-						},
-						"key_permissions": {
-							Type:     schema.TypeList,
-							Required: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(keyvault.KeyPermissionsBackup),
-									string(keyvault.KeyPermissionsCreate),
-									string(keyvault.KeyPermissionsDecrypt),
-									string(keyvault.KeyPermissionsDelete),
-									string(keyvault.KeyPermissionsEncrypt),
-									string(keyvault.KeyPermissionsGet),
-									string(keyvault.KeyPermissionsImport),
-									string(keyvault.KeyPermissionsList),
-									string(keyvault.KeyPermissionsPurge),
-									string(keyvault.KeyPermissionsRecover),
-									string(keyvault.KeyPermissionsRestore),
-									string(keyvault.KeyPermissionsSign),
-									string(keyvault.KeyPermissionsUnwrapKey),
-									string(keyvault.KeyPermissionsUpdate),
-									string(keyvault.KeyPermissionsVerify),
-									string(keyvault.KeyPermissionsWrapKey),
-								}, true),
-								DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-							},
-						},
-						"secret_permissions": {
-							Type:     schema.TypeList,
-							Required: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(keyvault.SecretPermissionsBackup),
-									string(keyvault.SecretPermissionsDelete),
-									string(keyvault.SecretPermissionsGet),
-									string(keyvault.SecretPermissionsList),
-									string(keyvault.SecretPermissionsPurge),
-									string(keyvault.SecretPermissionsRecover),
-									string(keyvault.SecretPermissionsRestore),
-									string(keyvault.SecretPermissionsSet),
-								}, true),
-								DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-							},
-						},
+						"certificate_permissions": azschema.KeyVaultCertificatePermissionsSchema(),
+						"key_permissions":         azschema.KeyVaultKeyPermissionsSchema(),
+						"secret_permissions":      azschema.KeyVaultSecretPermissionsSchema(),
 					},
 				},
 			},
@@ -185,13 +124,13 @@ func resourceArmKeyVault() *schema.Resource {
 	}
 }
 
-func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).keyVaultClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ARM KeyVault creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	tenantUUID := uuid.FromStringOrNil(d.Get("tenant_id").(string))
 	enabledForDeployment := d.Get("enabled_for_deployment").(bool)
@@ -199,12 +138,18 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	enabledForTemplateDeployment := d.Get("enabled_for_template_deployment").(bool)
 	tags := d.Get("tags").(map[string]interface{})
 
+	policies := d.Get("access_policy").([]interface{})
+	accessPolicies, err := azschema.ExpandKeyVaultAccessPolicies(policies)
+	if err != nil {
+		return fmt.Errorf("Error expanding `access_policy`: %+v", policies)
+	}
+
 	parameters := keyvault.VaultCreateOrUpdateParameters{
 		Location: &location,
 		Properties: &keyvault.VaultProperties{
 			TenantID:                     &tenantUUID,
 			Sku:                          expandKeyVaultSku(d),
-			AccessPolicies:               expandKeyVaultAccessPolicies(d),
+			AccessPolicies:               accessPolicies,
 			EnabledForDeployment:         &enabledForDeployment,
 			EnabledForDiskEncryption:     &enabledForDiskEncryption,
 			EnabledForTemplateDeployment: &enabledForTemplateDeployment,
@@ -212,17 +157,22 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 		Tags: expandTags(tags),
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
+	// Locking this resource so we don't make modifications to it at the same time if there is a
+	// key vault access policy trying to update it as well
+	azureRMLockByName(name, keyVaultResourceName)
+	defer azureRMUnlockByName(name, keyVaultResourceName)
+
+	_, err = client.CreateOrUpdate(ctx, resGroup, name, parameters)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error updating Key Vault %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving Key Vault %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read KeyVault %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read KeyVault %s (resource Group %q) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -230,9 +180,19 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	if d.IsNewResource() {
 		if props := read.Properties; props != nil {
 			if vault := props.VaultURI; vault != nil {
-				err := resource.Retry(120*time.Second, checkKeyVaultDNSIsAvailable(*vault))
-				if err != nil {
-					return err
+				log.Printf("[DEBUG] Waiting for Key Vault %q (Resource Group %q) to become available", name, resGroup)
+				stateConf := &resource.StateChangeConf{
+					Pending:                   []string{"pending"},
+					Target:                    []string{"available"},
+					Refresh:                   keyVaultRefreshFunc(*vault),
+					Timeout:                   30 * time.Minute,
+					Delay:                     30 * time.Second,
+					PollInterval:              10 * time.Second,
+					ContinuousTargetOccurence: 10,
+				}
+
+				if _, err := stateConf.WaitForState(); err != nil {
+					return fmt.Errorf("Error waiting for Key Vault %q (Resource Group %q) to become available: %s", name, resGroup, err)
 				}
 			}
 		}
@@ -258,22 +218,32 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure KeyVault %s: %+v", name, err)
+		return fmt.Errorf("Error making Read request on KeyVault %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
-	d.Set("tenant_id", resp.Properties.TenantID.String())
-	d.Set("enabled_for_deployment", resp.Properties.EnabledForDeployment)
-	d.Set("enabled_for_disk_encryption", resp.Properties.EnabledForDiskEncryption)
-	d.Set("enabled_for_template_deployment", resp.Properties.EnabledForTemplateDeployment)
-	d.Set("sku", flattenKeyVaultSku(resp.Properties.Sku))
-	d.Set("access_policy", flattenKeyVaultAccessPolicies(resp.Properties.AccessPolicies))
-	d.Set("vault_uri", resp.Properties.VaultURI)
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
+
+	if props := resp.Properties; props != nil {
+		d.Set("tenant_id", props.TenantID.String())
+		d.Set("enabled_for_deployment", props.EnabledForDeployment)
+		d.Set("enabled_for_disk_encryption", props.EnabledForDiskEncryption)
+		d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
+		if err := d.Set("sku", flattenKeyVaultSku(props.Sku)); err != nil {
+			return fmt.Errorf("Error flattening `sku` for KeyVault %q: %+v", resp.Name, err)
+		}
+
+		flattenedPolicies := azschema.FlattenKeyVaultAccessPolicies(props.AccessPolicies)
+		if err := d.Set("access_policy", flattenedPolicies); err != nil {
+			return fmt.Errorf("Error flattening `access_policy` for KeyVault %q: %+v", resp.Name, err)
+		}
+		d.Set("vault_uri", props.VaultURI)
+	}
 
 	flattenAndSetTags(d, resp.Tags)
-
 	return nil
 }
 
@@ -287,6 +257,9 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 	resGroup := id.ResourceGroup
 	name := id.Path["vaults"]
+
+	azureRMLockByName(name, keyVaultResourceName)
+	defer azureRMUnlockByName(name, keyVaultResourceName)
 
 	_, err = client.Delete(ctx, resGroup, name)
 
@@ -303,99 +276,12 @@ func expandKeyVaultSku(d *schema.ResourceData) *keyvault.Sku {
 	}
 }
 
-func expandKeyVaultAccessPolicies(d *schema.ResourceData) *[]keyvault.AccessPolicyEntry {
-	policies := d.Get("access_policy").([]interface{})
-	result := make([]keyvault.AccessPolicyEntry, 0, len(policies))
-
-	for _, policySet := range policies {
-		policyRaw := policySet.(map[string]interface{})
-
-		certificatePermissionsRaw := policyRaw["certificate_permissions"].([]interface{})
-		certificatePermissions := []keyvault.CertificatePermissions{}
-		for _, permission := range certificatePermissionsRaw {
-			certificatePermissions = append(certificatePermissions, keyvault.CertificatePermissions(permission.(string)))
-		}
-
-		keyPermissionsRaw := policyRaw["key_permissions"].([]interface{})
-		keyPermissions := []keyvault.KeyPermissions{}
-		for _, permission := range keyPermissionsRaw {
-			keyPermissions = append(keyPermissions, keyvault.KeyPermissions(permission.(string)))
-		}
-
-		secretPermissionsRaw := policyRaw["secret_permissions"].([]interface{})
-		secretPermissions := []keyvault.SecretPermissions{}
-		for _, permission := range secretPermissionsRaw {
-			secretPermissions = append(secretPermissions, keyvault.SecretPermissions(permission.(string)))
-		}
-
-		policy := keyvault.AccessPolicyEntry{
-			Permissions: &keyvault.Permissions{
-				Certificates: &certificatePermissions,
-				Keys:         &keyPermissions,
-				Secrets:      &secretPermissions,
-			},
-		}
-
-		tenantUUID := uuid.FromStringOrNil(policyRaw["tenant_id"].(string))
-		policy.TenantID = &tenantUUID
-		objectUUID := policyRaw["object_id"].(string)
-		policy.ObjectID = &objectUUID
-
-		if v := policyRaw["application_id"]; v != "" {
-			applicationUUID := uuid.FromStringOrNil(v.(string))
-			policy.ApplicationID = &applicationUUID
-		}
-
-		result = append(result, policy)
-	}
-
-	return &result
-}
-
 func flattenKeyVaultSku(sku *keyvault.Sku) []interface{} {
 	result := map[string]interface{}{
 		"name": string(sku.Name),
 	}
 
 	return []interface{}{result}
-}
-
-func flattenKeyVaultAccessPolicies(policies *[]keyvault.AccessPolicyEntry) []interface{} {
-	result := make([]interface{}, 0, len(*policies))
-
-	for _, policy := range *policies {
-		policyRaw := make(map[string]interface{})
-
-		keyPermissionsRaw := make([]interface{}, 0, len(*policy.Permissions.Keys))
-		for _, keyPermission := range *policy.Permissions.Keys {
-			keyPermissionsRaw = append(keyPermissionsRaw, string(keyPermission))
-		}
-
-		secretPermissionsRaw := make([]interface{}, 0, len(*policy.Permissions.Secrets))
-		for _, secretPermission := range *policy.Permissions.Secrets {
-			secretPermissionsRaw = append(secretPermissionsRaw, string(secretPermission))
-		}
-
-		policyRaw["tenant_id"] = policy.TenantID.String()
-		policyRaw["object_id"] = *policy.ObjectID
-		if policy.ApplicationID != nil {
-			policyRaw["application_id"] = policy.ApplicationID.String()
-		}
-		policyRaw["key_permissions"] = keyPermissionsRaw
-		policyRaw["secret_permissions"] = secretPermissionsRaw
-
-		if policy.Permissions.Certificates != nil {
-			certificatePermissionsRaw := make([]interface{}, 0, len(*policy.Permissions.Certificates))
-			for _, certificatePermission := range *policy.Permissions.Certificates {
-				certificatePermissionsRaw = append(certificatePermissionsRaw, string(certificatePermission))
-			}
-			policyRaw["certificate_permissions"] = certificatePermissionsRaw
-		}
-
-		result = append(result, policyRaw)
-	}
-
-	return result
 }
 
 func validateKeyVaultName(v interface{}, k string) (ws []string, errors []error) {
@@ -407,19 +293,25 @@ func validateKeyVaultName(v interface{}, k string) (ws []string, errors []error)
 	return
 }
 
-func checkKeyVaultDNSIsAvailable(vaultUri string) func() *resource.RetryError {
-	return func() *resource.RetryError {
-		uri, err := url.Parse(vaultUri)
-		if err != nil {
-			return resource.NonRetryableError(err)
+func keyVaultRefreshFunc(vaultUri string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		log.Printf("[DEBUG] Checking to see if KeyVault %q is available..", vaultUri)
+
+		var PTransport = &http.Transport{Proxy: http.ProxyFromEnvironment}
+
+		client := &http.Client{
+			Transport: PTransport,
 		}
 
-		conn, err := net.Dial("tcp", fmt.Sprintf("%s:443", uri.Host))
+		conn, err := client.Get(vaultUri)
 		if err != nil {
-			return resource.RetryableError(err)
+			log.Printf("[DEBUG] Didn't find KeyVault at %q", vaultUri)
+			return nil, "pending", fmt.Errorf("Error connecting to %q: %s", vaultUri, err)
 		}
 
-		_ = conn.Close()
-		return nil
+		defer conn.Body.Close()
+
+		log.Printf("[DEBUG] Found KeyVault at %q", vaultUri)
+		return "available", "available", nil
 	}
 }

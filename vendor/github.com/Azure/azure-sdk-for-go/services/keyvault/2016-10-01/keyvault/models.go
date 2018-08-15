@@ -18,6 +18,7 @@ package keyvault
 // Changes may cause incorrect behavior and will be lost if the code is regenerated.
 
 import (
+	"encoding/json"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -34,33 +35,52 @@ const (
 	EmailContacts ActionType = "EmailContacts"
 )
 
+// PossibleActionTypeValues returns an array of possible values for the ActionType const type.
+func PossibleActionTypeValues() []ActionType {
+	return []ActionType{AutoRenew, EmailContacts}
+}
+
 // DeletionRecoveryLevel enumerates the values for deletion recovery level.
 type DeletionRecoveryLevel string
 
 const (
-	// Purgeable ...
+	// Purgeable Soft-delete is not enabled for this vault. A DELETE operation results in immediate and
+	// irreversible data loss.
 	Purgeable DeletionRecoveryLevel = "Purgeable"
-	// Recoverable ...
+	// Recoverable Soft-delete is enabled for this vault and purge has been disabled. A deleted entity will
+	// remain in this state until recovered, or the end of the retention interval.
 	Recoverable DeletionRecoveryLevel = "Recoverable"
-	// RecoverableProtectedSubscription ...
+	// RecoverableProtectedSubscription Soft-delete is enabled for this vault, and the subscription is
+	// protected against immediate deletion.
 	RecoverableProtectedSubscription DeletionRecoveryLevel = "Recoverable+ProtectedSubscription"
-	// RecoverablePurgeable ...
+	// RecoverablePurgeable Soft-delete is enabled for this vault; A priveleged user may trigger an immediate,
+	// irreversible deletion(purge) of a deleted entity.
 	RecoverablePurgeable DeletionRecoveryLevel = "Recoverable+Purgeable"
 )
+
+// PossibleDeletionRecoveryLevelValues returns an array of possible values for the DeletionRecoveryLevel const type.
+func PossibleDeletionRecoveryLevelValues() []DeletionRecoveryLevel {
+	return []DeletionRecoveryLevel{Purgeable, Recoverable, RecoverableProtectedSubscription, RecoverablePurgeable}
+}
 
 // JSONWebKeyCurveName enumerates the values for json web key curve name.
 type JSONWebKeyCurveName string
 
 const (
-	// P256 ...
+	// P256 The NIST P-256 elliptic curve, AKA SECG curve SECP256R1.
 	P256 JSONWebKeyCurveName = "P-256"
-	// P384 ...
+	// P384 The NIST P-384 elliptic curve, AKA SECG curve SECP384R1.
 	P384 JSONWebKeyCurveName = "P-384"
-	// P521 ...
+	// P521 The NIST P-521 elliptic curve, AKA SECG curve SECP521R1.
 	P521 JSONWebKeyCurveName = "P-521"
-	// SECP256K1 ...
+	// SECP256K1 The SECG SECP256K1 elliptic curve.
 	SECP256K1 JSONWebKeyCurveName = "SECP256K1"
 )
+
+// PossibleJSONWebKeyCurveNameValues returns an array of possible values for the JSONWebKeyCurveName const type.
+func PossibleJSONWebKeyCurveNameValues() []JSONWebKeyCurveName {
+	return []JSONWebKeyCurveName{P256, P384, P521, SECP256K1}
+}
 
 // JSONWebKeyEncryptionAlgorithm enumerates the values for json web key encryption algorithm.
 type JSONWebKeyEncryptionAlgorithm string
@@ -73,6 +93,11 @@ const (
 	// RSAOAEP256 ...
 	RSAOAEP256 JSONWebKeyEncryptionAlgorithm = "RSA-OAEP-256"
 )
+
+// PossibleJSONWebKeyEncryptionAlgorithmValues returns an array of possible values for the JSONWebKeyEncryptionAlgorithm const type.
+func PossibleJSONWebKeyEncryptionAlgorithmValues() []JSONWebKeyEncryptionAlgorithm {
+	return []JSONWebKeyEncryptionAlgorithm{RSA15, RSAOAEP, RSAOAEP256}
+}
 
 // JSONWebKeyOperation enumerates the values for json web key operation.
 type JSONWebKeyOperation string
@@ -91,6 +116,11 @@ const (
 	// WrapKey ...
 	WrapKey JSONWebKeyOperation = "wrapKey"
 )
+
+// PossibleJSONWebKeyOperationValues returns an array of possible values for the JSONWebKeyOperation const type.
+func PossibleJSONWebKeyOperationValues() []JSONWebKeyOperation {
+	return []JSONWebKeyOperation{Decrypt, Encrypt, Sign, UnwrapKey, Verify, WrapKey}
+}
 
 // JSONWebKeySignatureAlgorithm enumerates the values for json web key signature algorithm.
 type JSONWebKeySignatureAlgorithm string
@@ -120,6 +150,11 @@ const (
 	RSNULL JSONWebKeySignatureAlgorithm = "RSNULL"
 )
 
+// PossibleJSONWebKeySignatureAlgorithmValues returns an array of possible values for the JSONWebKeySignatureAlgorithm const type.
+func PossibleJSONWebKeySignatureAlgorithmValues() []JSONWebKeySignatureAlgorithm {
+	return []JSONWebKeySignatureAlgorithm{ECDSA256, ES256, ES384, ES512, PS256, PS384, PS512, RS256, RS384, RS512, RSNULL}
+}
+
 // JSONWebKeyType enumerates the values for json web key type.
 type JSONWebKeyType string
 
@@ -135,6 +170,11 @@ const (
 	// RSAHSM ...
 	RSAHSM JSONWebKeyType = "RSA-HSM"
 )
+
+// PossibleJSONWebKeyTypeValues returns an array of possible values for the JSONWebKeyType const type.
+func PossibleJSONWebKeyTypeValues() []JSONWebKeyType {
+	return []JSONWebKeyType{EC, ECHSM, Oct, RSA, RSAHSM}
+}
 
 // KeyUsageType enumerates the values for key usage type.
 type KeyUsageType string
@@ -159,6 +199,11 @@ const (
 	// NonRepudiation ...
 	NonRepudiation KeyUsageType = "nonRepudiation"
 )
+
+// PossibleKeyUsageTypeValues returns an array of possible values for the KeyUsageType const type.
+func PossibleKeyUsageTypeValues() []KeyUsageType {
+	return []KeyUsageType{CRLSign, DataEncipherment, DecipherOnly, DigitalSignature, EncipherOnly, KeyAgreement, KeyCertSign, KeyEncipherment, NonRepudiation}
+}
 
 // Action the action that will be executed.
 type Action struct {
@@ -195,19 +240,21 @@ type Attributes struct {
 // BackupKeyResult the backup key result, containing the backup blob.
 type BackupKeyResult struct {
 	autorest.Response `json:"-"`
-	// Value - The backup blob containing the backed up key.
+	// Value - The backup blob containing the backed up key. (a URL-encoded base64 string)
 	Value *string `json:"value,omitempty"`
 }
 
 // BackupSecretResult the backup secret result, containing the backup blob.
 type BackupSecretResult struct {
 	autorest.Response `json:"-"`
-	// Value - The backup blob containing the backed up secret.
+	// Value - The backup blob containing the backed up secret. (a URL-encoded base64 string)
 	Value *string `json:"value,omitempty"`
 }
 
 // CertificateAttributes the certificate management attributes.
 type CertificateAttributes struct {
+	// RecoveryLevel - Reflects the deletion recovery level currently in effect for certificates in the current vault. If it contains 'Purgeable', the certificate can be permanently deleted by a privileged user; otherwise, only the system can purge the certificate, at the end of the retention interval. Possible values include: 'Purgeable', 'RecoverablePurgeable', 'Recoverable', 'RecoverableProtectedSubscription'
+	RecoveryLevel DeletionRecoveryLevel `json:"recoveryLevel,omitempty"`
 	// Enabled - Determines whether the object is enabled.
 	Enabled *bool `json:"enabled,omitempty"`
 	// NotBefore - Not before date in UTC.
@@ -218,8 +265,6 @@ type CertificateAttributes struct {
 	Created *date.UnixTime `json:"created,omitempty"`
 	// Updated - Last updated time in UTC.
 	Updated *date.UnixTime `json:"updated,omitempty"`
-	// RecoveryLevel - Reflects the deletion recovery level currently in effect for certificates in the current vault. If it contains 'Purgeable', the certificate can be permanently deleted by a privileged user; otherwise, only the system can purge the certificate, at the end of the retention interval. Possible values include: 'Purgeable', 'RecoverablePurgeable', 'Recoverable', 'RecoverableProtectedSubscription'
-	RecoveryLevel DeletionRecoveryLevel `json:"recoveryLevel,omitempty"`
 }
 
 // CertificateBundle a certificate bundle consists of a certificate (X509) plus its attributes.
@@ -231,7 +276,7 @@ type CertificateBundle struct {
 	Kid *string `json:"kid,omitempty"`
 	// Sid - The secret id.
 	Sid *string `json:"sid,omitempty"`
-	// X509Thumbprint - Thumbprint of the certificate.
+	// X509Thumbprint - Thumbprint of the certificate. (a URL-encoded base64 string)
 	X509Thumbprint *string `json:"x5t,omitempty"`
 	// Policy - The management policy.
 	Policy *CertificatePolicy `json:"policy,omitempty"`
@@ -242,7 +287,40 @@ type CertificateBundle struct {
 	// Attributes - The certificate attributes.
 	Attributes *CertificateAttributes `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs
-	Tags *map[string]*string `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for CertificateBundle.
+func (cb CertificateBundle) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cb.ID != nil {
+		objectMap["id"] = cb.ID
+	}
+	if cb.Kid != nil {
+		objectMap["kid"] = cb.Kid
+	}
+	if cb.Sid != nil {
+		objectMap["sid"] = cb.Sid
+	}
+	if cb.X509Thumbprint != nil {
+		objectMap["x5t"] = cb.X509Thumbprint
+	}
+	if cb.Policy != nil {
+		objectMap["policy"] = cb.Policy
+	}
+	if cb.Cer != nil {
+		objectMap["cer"] = cb.Cer
+	}
+	if cb.ContentType != nil {
+		objectMap["contentType"] = cb.ContentType
+	}
+	if cb.Attributes != nil {
+		objectMap["attributes"] = cb.Attributes
+	}
+	if cb.Tags != nil {
+		objectMap["tags"] = cb.Tags
+	}
+	return json.Marshal(objectMap)
 }
 
 // CertificateCreateParameters the certificate create parameters.
@@ -252,7 +330,22 @@ type CertificateCreateParameters struct {
 	// CertificateAttributes - The attributes of the certificate (optional).
 	CertificateAttributes *CertificateAttributes `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs.
-	Tags *map[string]*string `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for CertificateCreateParameters.
+func (ccp CertificateCreateParameters) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ccp.CertificatePolicy != nil {
+		objectMap["policy"] = ccp.CertificatePolicy
+	}
+	if ccp.CertificateAttributes != nil {
+		objectMap["attributes"] = ccp.CertificateAttributes
+	}
+	if ccp.Tags != nil {
+		objectMap["tags"] = ccp.Tags
+	}
+	return json.Marshal(objectMap)
 }
 
 // CertificateImportParameters the certificate import parameters.
@@ -266,7 +359,28 @@ type CertificateImportParameters struct {
 	// CertificateAttributes - The attributes of the certificate (optional).
 	CertificateAttributes *CertificateAttributes `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs.
-	Tags *map[string]*string `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for CertificateImportParameters.
+func (cip CertificateImportParameters) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cip.Base64EncodedCertificate != nil {
+		objectMap["value"] = cip.Base64EncodedCertificate
+	}
+	if cip.Password != nil {
+		objectMap["pwd"] = cip.Password
+	}
+	if cip.CertificatePolicy != nil {
+		objectMap["policy"] = cip.CertificatePolicy
+	}
+	if cip.CertificateAttributes != nil {
+		objectMap["attributes"] = cip.CertificateAttributes
+	}
+	if cip.Tags != nil {
+		objectMap["tags"] = cip.Tags
+	}
+	return json.Marshal(objectMap)
 }
 
 // CertificateIssuerItem the certificate issuer item containing certificate issuer metadata.
@@ -410,9 +524,27 @@ type CertificateItem struct {
 	// Attributes - The certificate management attributes.
 	Attributes *CertificateAttributes `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs.
-	Tags *map[string]*string `json:"tags,omitempty"`
-	// X509Thumbprint - Thumbprint of the certificate.
+	Tags map[string]*string `json:"tags"`
+	// X509Thumbprint - Thumbprint of the certificate. (a URL-encoded base64 string)
 	X509Thumbprint *string `json:"x5t,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CertificateItem.
+func (ci CertificateItem) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ci.ID != nil {
+		objectMap["id"] = ci.ID
+	}
+	if ci.Attributes != nil {
+		objectMap["attributes"] = ci.Attributes
+	}
+	if ci.Tags != nil {
+		objectMap["tags"] = ci.Tags
+	}
+	if ci.X509Thumbprint != nil {
+		objectMap["x5t"] = ci.X509Thumbprint
+	}
+	return json.Marshal(objectMap)
 }
 
 // CertificateListResult the certificate list result.
@@ -524,7 +656,22 @@ type CertificateMergeParameters struct {
 	// CertificateAttributes - The attributes of the certificate (optional).
 	CertificateAttributes *CertificateAttributes `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs.
-	Tags *map[string]*string `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for CertificateMergeParameters.
+func (cmp CertificateMergeParameters) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cmp.X509Certificates != nil {
+		objectMap["x5c"] = cmp.X509Certificates
+	}
+	if cmp.CertificateAttributes != nil {
+		objectMap["attributes"] = cmp.CertificateAttributes
+	}
+	if cmp.Tags != nil {
+		objectMap["tags"] = cmp.Tags
+	}
+	return json.Marshal(objectMap)
 }
 
 // CertificateOperation a certificate operation is returned in case of asynchronous requests.
@@ -582,7 +729,22 @@ type CertificateUpdateParameters struct {
 	// CertificateAttributes - The attributes of the certificate (optional).
 	CertificateAttributes *CertificateAttributes `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs.
-	Tags *map[string]*string `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for CertificateUpdateParameters.
+func (cup CertificateUpdateParameters) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cup.CertificatePolicy != nil {
+		objectMap["policy"] = cup.CertificatePolicy
+	}
+	if cup.CertificateAttributes != nil {
+		objectMap["attributes"] = cup.CertificateAttributes
+	}
+	if cup.Tags != nil {
+		objectMap["tags"] = cup.Tags
+	}
+	return json.Marshal(objectMap)
 }
 
 // Contact the contact information for the vault certificates.
@@ -604,17 +766,23 @@ type Contacts struct {
 	ContactList *[]Contact `json:"contacts,omitempty"`
 }
 
-// DeletedCertificateBundle a Deleted Certificate consisting of its previous id, attributes and its tags, as well as
-// information on when it will be purged.
+// DeletedCertificateBundle a Deleted Certificate consisting of its previous id, attributes and its tags, as well
+// as information on when it will be purged.
 type DeletedCertificateBundle struct {
 	autorest.Response `json:"-"`
+	// RecoveryID - The url of the recovery object, used to identify and recover the deleted certificate.
+	RecoveryID *string `json:"recoveryId,omitempty"`
+	// ScheduledPurgeDate - The time when the certificate is scheduled to be purged, in UTC
+	ScheduledPurgeDate *date.UnixTime `json:"scheduledPurgeDate,omitempty"`
+	// DeletedDate - The time when the certificate was deleted, in UTC
+	DeletedDate *date.UnixTime `json:"deletedDate,omitempty"`
 	// ID - The certificate id.
 	ID *string `json:"id,omitempty"`
 	// Kid - The key id.
 	Kid *string `json:"kid,omitempty"`
 	// Sid - The secret id.
 	Sid *string `json:"sid,omitempty"`
-	// X509Thumbprint - Thumbprint of the certificate.
+	// X509Thumbprint - Thumbprint of the certificate. (a URL-encoded base64 string)
 	X509Thumbprint *string `json:"x5t,omitempty"`
 	// Policy - The management policy.
 	Policy *CertificatePolicy `json:"policy,omitempty"`
@@ -625,31 +793,94 @@ type DeletedCertificateBundle struct {
 	// Attributes - The certificate attributes.
 	Attributes *CertificateAttributes `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs
-	Tags *map[string]*string `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for DeletedCertificateBundle.
+func (dcb DeletedCertificateBundle) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dcb.RecoveryID != nil {
+		objectMap["recoveryId"] = dcb.RecoveryID
+	}
+	if dcb.ScheduledPurgeDate != nil {
+		objectMap["scheduledPurgeDate"] = dcb.ScheduledPurgeDate
+	}
+	if dcb.DeletedDate != nil {
+		objectMap["deletedDate"] = dcb.DeletedDate
+	}
+	if dcb.ID != nil {
+		objectMap["id"] = dcb.ID
+	}
+	if dcb.Kid != nil {
+		objectMap["kid"] = dcb.Kid
+	}
+	if dcb.Sid != nil {
+		objectMap["sid"] = dcb.Sid
+	}
+	if dcb.X509Thumbprint != nil {
+		objectMap["x5t"] = dcb.X509Thumbprint
+	}
+	if dcb.Policy != nil {
+		objectMap["policy"] = dcb.Policy
+	}
+	if dcb.Cer != nil {
+		objectMap["cer"] = dcb.Cer
+	}
+	if dcb.ContentType != nil {
+		objectMap["contentType"] = dcb.ContentType
+	}
+	if dcb.Attributes != nil {
+		objectMap["attributes"] = dcb.Attributes
+	}
+	if dcb.Tags != nil {
+		objectMap["tags"] = dcb.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// DeletedCertificateItem the deleted certificate item containing metadata about the deleted certificate.
+type DeletedCertificateItem struct {
 	// RecoveryID - The url of the recovery object, used to identify and recover the deleted certificate.
 	RecoveryID *string `json:"recoveryId,omitempty"`
 	// ScheduledPurgeDate - The time when the certificate is scheduled to be purged, in UTC
 	ScheduledPurgeDate *date.UnixTime `json:"scheduledPurgeDate,omitempty"`
 	// DeletedDate - The time when the certificate was deleted, in UTC
 	DeletedDate *date.UnixTime `json:"deletedDate,omitempty"`
-}
-
-// DeletedCertificateItem the deleted certificate item containing metadata about the deleted certificate.
-type DeletedCertificateItem struct {
 	// ID - Certificate identifier.
 	ID *string `json:"id,omitempty"`
 	// Attributes - The certificate management attributes.
 	Attributes *CertificateAttributes `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs.
-	Tags *map[string]*string `json:"tags,omitempty"`
-	// X509Thumbprint - Thumbprint of the certificate.
+	Tags map[string]*string `json:"tags"`
+	// X509Thumbprint - Thumbprint of the certificate. (a URL-encoded base64 string)
 	X509Thumbprint *string `json:"x5t,omitempty"`
-	// RecoveryID - The url of the recovery object, used to identify and recover the deleted certificate.
-	RecoveryID *string `json:"recoveryId,omitempty"`
-	// ScheduledPurgeDate - The time when the certificate is scheduled to be purged, in UTC
-	ScheduledPurgeDate *date.UnixTime `json:"scheduledPurgeDate,omitempty"`
-	// DeletedDate - The time when the certificate was deleted, in UTC
-	DeletedDate *date.UnixTime `json:"deletedDate,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DeletedCertificateItem.
+func (dci DeletedCertificateItem) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dci.RecoveryID != nil {
+		objectMap["recoveryId"] = dci.RecoveryID
+	}
+	if dci.ScheduledPurgeDate != nil {
+		objectMap["scheduledPurgeDate"] = dci.ScheduledPurgeDate
+	}
+	if dci.DeletedDate != nil {
+		objectMap["deletedDate"] = dci.DeletedDate
+	}
+	if dci.ID != nil {
+		objectMap["id"] = dci.ID
+	}
+	if dci.Attributes != nil {
+		objectMap["attributes"] = dci.Attributes
+	}
+	if dci.Tags != nil {
+		objectMap["tags"] = dci.Tags
+	}
+	if dci.X509Thumbprint != nil {
+		objectMap["x5t"] = dci.X509Thumbprint
+	}
+	return json.Marshal(objectMap)
 }
 
 // DeletedCertificateListResult a list of certificates that have been deleted in this vault.
@@ -757,38 +988,92 @@ func (page DeletedCertificateListResultPage) Values() []DeletedCertificateItem {
 // DeletedKeyBundle a DeletedKeyBundle consisting of a WebKey plus its Attributes and deletion info
 type DeletedKeyBundle struct {
 	autorest.Response `json:"-"`
+	// RecoveryID - The url of the recovery object, used to identify and recover the deleted key.
+	RecoveryID *string `json:"recoveryId,omitempty"`
+	// ScheduledPurgeDate - The time when the key is scheduled to be purged, in UTC
+	ScheduledPurgeDate *date.UnixTime `json:"scheduledPurgeDate,omitempty"`
+	// DeletedDate - The time when the key was deleted, in UTC
+	DeletedDate *date.UnixTime `json:"deletedDate,omitempty"`
 	// Key - The Json web key.
 	Key *JSONWebKey `json:"key,omitempty"`
 	// Attributes - The key management attributes.
 	Attributes *KeyAttributes `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs.
-	Tags *map[string]*string `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
 	// Managed - True if the key's lifetime is managed by key vault. If this is a key backing a certificate, then managed will be true.
 	Managed *bool `json:"managed,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DeletedKeyBundle.
+func (dkb DeletedKeyBundle) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dkb.RecoveryID != nil {
+		objectMap["recoveryId"] = dkb.RecoveryID
+	}
+	if dkb.ScheduledPurgeDate != nil {
+		objectMap["scheduledPurgeDate"] = dkb.ScheduledPurgeDate
+	}
+	if dkb.DeletedDate != nil {
+		objectMap["deletedDate"] = dkb.DeletedDate
+	}
+	if dkb.Key != nil {
+		objectMap["key"] = dkb.Key
+	}
+	if dkb.Attributes != nil {
+		objectMap["attributes"] = dkb.Attributes
+	}
+	if dkb.Tags != nil {
+		objectMap["tags"] = dkb.Tags
+	}
+	if dkb.Managed != nil {
+		objectMap["managed"] = dkb.Managed
+	}
+	return json.Marshal(objectMap)
+}
+
+// DeletedKeyItem the deleted key item containing the deleted key metadata and information about deletion.
+type DeletedKeyItem struct {
 	// RecoveryID - The url of the recovery object, used to identify and recover the deleted key.
 	RecoveryID *string `json:"recoveryId,omitempty"`
 	// ScheduledPurgeDate - The time when the key is scheduled to be purged, in UTC
 	ScheduledPurgeDate *date.UnixTime `json:"scheduledPurgeDate,omitempty"`
 	// DeletedDate - The time when the key was deleted, in UTC
 	DeletedDate *date.UnixTime `json:"deletedDate,omitempty"`
-}
-
-// DeletedKeyItem the deleted key item containing the deleted key metadata and information about deletion.
-type DeletedKeyItem struct {
 	// Kid - Key identifier.
 	Kid *string `json:"kid,omitempty"`
 	// Attributes - The key management attributes.
 	Attributes *KeyAttributes `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs.
-	Tags *map[string]*string `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
 	// Managed - True if the key's lifetime is managed by key vault. If this is a key backing a certificate, then managed will be true.
 	Managed *bool `json:"managed,omitempty"`
-	// RecoveryID - The url of the recovery object, used to identify and recover the deleted key.
-	RecoveryID *string `json:"recoveryId,omitempty"`
-	// ScheduledPurgeDate - The time when the key is scheduled to be purged, in UTC
-	ScheduledPurgeDate *date.UnixTime `json:"scheduledPurgeDate,omitempty"`
-	// DeletedDate - The time when the key was deleted, in UTC
-	DeletedDate *date.UnixTime `json:"deletedDate,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DeletedKeyItem.
+func (dki DeletedKeyItem) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dki.RecoveryID != nil {
+		objectMap["recoveryId"] = dki.RecoveryID
+	}
+	if dki.ScheduledPurgeDate != nil {
+		objectMap["scheduledPurgeDate"] = dki.ScheduledPurgeDate
+	}
+	if dki.DeletedDate != nil {
+		objectMap["deletedDate"] = dki.DeletedDate
+	}
+	if dki.Kid != nil {
+		objectMap["kid"] = dki.Kid
+	}
+	if dki.Attributes != nil {
+		objectMap["attributes"] = dki.Attributes
+	}
+	if dki.Tags != nil {
+		objectMap["tags"] = dki.Tags
+	}
+	if dki.Managed != nil {
+		objectMap["managed"] = dki.Managed
+	}
+	return json.Marshal(objectMap)
 }
 
 // DeletedKeyListResult a list of keys that have been deleted in this vault.
@@ -893,10 +1178,16 @@ func (page DeletedKeyListResultPage) Values() []DeletedKeyItem {
 	return *page.dklr.Value
 }
 
-// DeletedSecretBundle a Deleted Secret consisting of its previous id, attributes and its tags, as well as information
-// on when it will be purged.
+// DeletedSecretBundle a Deleted Secret consisting of its previous id, attributes and its tags, as well as
+// information on when it will be purged.
 type DeletedSecretBundle struct {
 	autorest.Response `json:"-"`
+	// RecoveryID - The url of the recovery object, used to identify and recover the deleted secret.
+	RecoveryID *string `json:"recoveryId,omitempty"`
+	// ScheduledPurgeDate - The time when the secret is scheduled to be purged, in UTC
+	ScheduledPurgeDate *date.UnixTime `json:"scheduledPurgeDate,omitempty"`
+	// DeletedDate - The time when the secret was deleted, in UTC
+	DeletedDate *date.UnixTime `json:"deletedDate,omitempty"`
 	// Value - The secret value.
 	Value *string `json:"value,omitempty"`
 	// ID - The secret id.
@@ -906,37 +1197,97 @@ type DeletedSecretBundle struct {
 	// Attributes - The secret management attributes.
 	Attributes *SecretAttributes `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs.
-	Tags *map[string]*string `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
 	// Kid - If this is a secret backing a KV certificate, then this field specifies the corresponding key backing the KV certificate.
 	Kid *string `json:"kid,omitempty"`
 	// Managed - True if the secret's lifetime is managed by key vault. If this is a secret backing a certificate, then managed will be true.
 	Managed *bool `json:"managed,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DeletedSecretBundle.
+func (dsb DeletedSecretBundle) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dsb.RecoveryID != nil {
+		objectMap["recoveryId"] = dsb.RecoveryID
+	}
+	if dsb.ScheduledPurgeDate != nil {
+		objectMap["scheduledPurgeDate"] = dsb.ScheduledPurgeDate
+	}
+	if dsb.DeletedDate != nil {
+		objectMap["deletedDate"] = dsb.DeletedDate
+	}
+	if dsb.Value != nil {
+		objectMap["value"] = dsb.Value
+	}
+	if dsb.ID != nil {
+		objectMap["id"] = dsb.ID
+	}
+	if dsb.ContentType != nil {
+		objectMap["contentType"] = dsb.ContentType
+	}
+	if dsb.Attributes != nil {
+		objectMap["attributes"] = dsb.Attributes
+	}
+	if dsb.Tags != nil {
+		objectMap["tags"] = dsb.Tags
+	}
+	if dsb.Kid != nil {
+		objectMap["kid"] = dsb.Kid
+	}
+	if dsb.Managed != nil {
+		objectMap["managed"] = dsb.Managed
+	}
+	return json.Marshal(objectMap)
+}
+
+// DeletedSecretItem the deleted secret item containing metadata about the deleted secret.
+type DeletedSecretItem struct {
 	// RecoveryID - The url of the recovery object, used to identify and recover the deleted secret.
 	RecoveryID *string `json:"recoveryId,omitempty"`
 	// ScheduledPurgeDate - The time when the secret is scheduled to be purged, in UTC
 	ScheduledPurgeDate *date.UnixTime `json:"scheduledPurgeDate,omitempty"`
 	// DeletedDate - The time when the secret was deleted, in UTC
 	DeletedDate *date.UnixTime `json:"deletedDate,omitempty"`
-}
-
-// DeletedSecretItem the deleted secret item containing metadata about the deleted secret.
-type DeletedSecretItem struct {
 	// ID - Secret identifier.
 	ID *string `json:"id,omitempty"`
 	// Attributes - The secret management attributes.
 	Attributes *SecretAttributes `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs.
-	Tags *map[string]*string `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
 	// ContentType - Type of the secret value such as a password.
 	ContentType *string `json:"contentType,omitempty"`
 	// Managed - True if the secret's lifetime is managed by key vault. If this is a key backing a certificate, then managed will be true.
 	Managed *bool `json:"managed,omitempty"`
-	// RecoveryID - The url of the recovery object, used to identify and recover the deleted secret.
-	RecoveryID *string `json:"recoveryId,omitempty"`
-	// ScheduledPurgeDate - The time when the secret is scheduled to be purged, in UTC
-	ScheduledPurgeDate *date.UnixTime `json:"scheduledPurgeDate,omitempty"`
-	// DeletedDate - The time when the secret was deleted, in UTC
-	DeletedDate *date.UnixTime `json:"deletedDate,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DeletedSecretItem.
+func (dsi DeletedSecretItem) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dsi.RecoveryID != nil {
+		objectMap["recoveryId"] = dsi.RecoveryID
+	}
+	if dsi.ScheduledPurgeDate != nil {
+		objectMap["scheduledPurgeDate"] = dsi.ScheduledPurgeDate
+	}
+	if dsi.DeletedDate != nil {
+		objectMap["deletedDate"] = dsi.DeletedDate
+	}
+	if dsi.ID != nil {
+		objectMap["id"] = dsi.ID
+	}
+	if dsi.Attributes != nil {
+		objectMap["attributes"] = dsi.Attributes
+	}
+	if dsi.Tags != nil {
+		objectMap["tags"] = dsi.Tags
+	}
+	if dsi.ContentType != nil {
+		objectMap["contentType"] = dsi.ContentType
+	}
+	if dsi.Managed != nil {
+		objectMap["managed"] = dsi.Managed
+	}
+	return json.Marshal(objectMap)
 }
 
 // DeletedSecretListResult the deleted secret list result
@@ -1103,36 +1454,38 @@ type JSONWebKey struct {
 	// Kty - JsonWebKey key type (kty). Possible values include: 'EC', 'ECHSM', 'RSA', 'RSAHSM', 'Oct'
 	Kty    JSONWebKeyType `json:"kty,omitempty"`
 	KeyOps *[]string      `json:"key_ops,omitempty"`
-	// N - RSA modulus.
+	// N - RSA modulus. (a URL-encoded base64 string)
 	N *string `json:"n,omitempty"`
-	// E - RSA public exponent.
+	// E - RSA public exponent. (a URL-encoded base64 string)
 	E *string `json:"e,omitempty"`
-	// D - RSA private exponent, or the D component of an EC private key.
+	// D - RSA private exponent, or the D component of an EC private key. (a URL-encoded base64 string)
 	D *string `json:"d,omitempty"`
-	// DP - RSA private key parameter.
+	// DP - RSA private key parameter. (a URL-encoded base64 string)
 	DP *string `json:"dp,omitempty"`
-	// DQ - RSA private key parameter.
+	// DQ - RSA private key parameter. (a URL-encoded base64 string)
 	DQ *string `json:"dq,omitempty"`
-	// QI - RSA private key parameter.
+	// QI - RSA private key parameter. (a URL-encoded base64 string)
 	QI *string `json:"qi,omitempty"`
-	// P - RSA secret prime.
+	// P - RSA secret prime. (a URL-encoded base64 string)
 	P *string `json:"p,omitempty"`
-	// Q - RSA secret prime, with p < q.
+	// Q - RSA secret prime, with p < q. (a URL-encoded base64 string)
 	Q *string `json:"q,omitempty"`
-	// K - Symmetric key.
+	// K - Symmetric key. (a URL-encoded base64 string)
 	K *string `json:"k,omitempty"`
-	// T - HSM Token, used with 'Bring Your Own Key'.
+	// T - HSM Token, used with 'Bring Your Own Key'. (a URL-encoded base64 string)
 	T *string `json:"key_hsm,omitempty"`
 	// Crv - Elliptic curve name. For valid values, see JsonWebKeyCurveName. Possible values include: 'P256', 'P384', 'P521', 'SECP256K1'
 	Crv JSONWebKeyCurveName `json:"crv,omitempty"`
-	// X - X component of an EC public key.
+	// X - X component of an EC public key. (a URL-encoded base64 string)
 	X *string `json:"x,omitempty"`
-	// Y - Y component of an EC public key.
+	// Y - Y component of an EC public key. (a URL-encoded base64 string)
 	Y *string `json:"y,omitempty"`
 }
 
 // KeyAttributes the attributes of a key managed by the key vault service.
 type KeyAttributes struct {
+	// RecoveryLevel - Reflects the deletion recovery level currently in effect for keys in the current vault. If it contains 'Purgeable' the key can be permanently deleted by a privileged user; otherwise, only the system can purge the key, at the end of the retention interval. Possible values include: 'Purgeable', 'RecoverablePurgeable', 'Recoverable', 'RecoverableProtectedSubscription'
+	RecoveryLevel DeletionRecoveryLevel `json:"recoveryLevel,omitempty"`
 	// Enabled - Determines whether the object is enabled.
 	Enabled *bool `json:"enabled,omitempty"`
 	// NotBefore - Not before date in UTC.
@@ -1143,8 +1496,6 @@ type KeyAttributes struct {
 	Created *date.UnixTime `json:"created,omitempty"`
 	// Updated - Last updated time in UTC.
 	Updated *date.UnixTime `json:"updated,omitempty"`
-	// RecoveryLevel - Reflects the deletion recovery level currently in effect for keys in the current vault. If it contains 'Purgeable' the key can be permanently deleted by a privileged user; otherwise, only the system can purge the key, at the end of the retention interval. Possible values include: 'Purgeable', 'RecoverablePurgeable', 'Recoverable', 'RecoverableProtectedSubscription'
-	RecoveryLevel DeletionRecoveryLevel `json:"recoveryLevel,omitempty"`
 }
 
 // KeyBundle a KeyBundle consisting of a WebKey plus its attributes.
@@ -1155,23 +1506,65 @@ type KeyBundle struct {
 	// Attributes - The key management attributes.
 	Attributes *KeyAttributes `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs.
-	Tags *map[string]*string `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
 	// Managed - True if the key's lifetime is managed by key vault. If this is a key backing a certificate, then managed will be true.
 	Managed *bool `json:"managed,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for KeyBundle.
+func (kb KeyBundle) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if kb.Key != nil {
+		objectMap["key"] = kb.Key
+	}
+	if kb.Attributes != nil {
+		objectMap["attributes"] = kb.Attributes
+	}
+	if kb.Tags != nil {
+		objectMap["tags"] = kb.Tags
+	}
+	if kb.Managed != nil {
+		objectMap["managed"] = kb.Managed
+	}
+	return json.Marshal(objectMap)
 }
 
 // KeyCreateParameters the key create parameters.
 type KeyCreateParameters struct {
 	// Kty - The type of key to create. For valid values, see JsonWebKeyType. Possible values include: 'EC', 'ECHSM', 'RSA', 'RSAHSM', 'Oct'
 	Kty JSONWebKeyType `json:"kty,omitempty"`
-	// KeySize - The key size in bytes. For example, 1024 or 2048.
+	// KeySize - The key size in bits. For example: 2048, 3072, or 4096 for RSA.
 	KeySize       *int32                 `json:"key_size,omitempty"`
 	KeyOps        *[]JSONWebKeyOperation `json:"key_ops,omitempty"`
 	KeyAttributes *KeyAttributes         `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs.
-	Tags *map[string]*string `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
 	// Curve - Elliptic curve name. For valid values, see JsonWebKeyCurveName. Possible values include: 'P256', 'P384', 'P521', 'SECP256K1'
 	Curve JSONWebKeyCurveName `json:"crv,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for KeyCreateParameters.
+func (kcp KeyCreateParameters) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if kcp.Kty != "" {
+		objectMap["kty"] = kcp.Kty
+	}
+	if kcp.KeySize != nil {
+		objectMap["key_size"] = kcp.KeySize
+	}
+	if kcp.KeyOps != nil {
+		objectMap["key_ops"] = kcp.KeyOps
+	}
+	if kcp.KeyAttributes != nil {
+		objectMap["attributes"] = kcp.KeyAttributes
+	}
+	if kcp.Tags != nil {
+		objectMap["tags"] = kcp.Tags
+	}
+	if kcp.Curve != "" {
+		objectMap["crv"] = kcp.Curve
+	}
+	return json.Marshal(objectMap)
 }
 
 // KeyImportParameters the key import parameters.
@@ -1183,7 +1576,25 @@ type KeyImportParameters struct {
 	// KeyAttributes - The key management attributes.
 	KeyAttributes *KeyAttributes `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs.
-	Tags *map[string]*string `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for KeyImportParameters.
+func (kip KeyImportParameters) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if kip.Hsm != nil {
+		objectMap["Hsm"] = kip.Hsm
+	}
+	if kip.Key != nil {
+		objectMap["key"] = kip.Key
+	}
+	if kip.KeyAttributes != nil {
+		objectMap["attributes"] = kip.KeyAttributes
+	}
+	if kip.Tags != nil {
+		objectMap["tags"] = kip.Tags
+	}
+	return json.Marshal(objectMap)
 }
 
 // KeyItem the key item containing key metadata.
@@ -1193,9 +1604,27 @@ type KeyItem struct {
 	// Attributes - The key management attributes.
 	Attributes *KeyAttributes `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs.
-	Tags *map[string]*string `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
 	// Managed - True if the key's lifetime is managed by key vault. If this is a key backing a certificate, then managed will be true.
 	Managed *bool `json:"managed,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for KeyItem.
+func (ki KeyItem) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ki.Kid != nil {
+		objectMap["kid"] = ki.Kid
+	}
+	if ki.Attributes != nil {
+		objectMap["attributes"] = ki.Attributes
+	}
+	if ki.Tags != nil {
+		objectMap["tags"] = ki.Tags
+	}
+	if ki.Managed != nil {
+		objectMap["managed"] = ki.Managed
+	}
+	return json.Marshal(objectMap)
 }
 
 // KeyListResult the key list result.
@@ -1304,7 +1733,8 @@ func (page KeyListResultPage) Values() []KeyItem {
 type KeyOperationResult struct {
 	autorest.Response `json:"-"`
 	// Kid - Key identifier
-	Kid    *string `json:"kid,omitempty"`
+	Kid *string `json:"kid,omitempty"`
+	// Result - a URL-encoded base64 string
 	Result *string `json:"value,omitempty"`
 }
 
@@ -1312,7 +1742,8 @@ type KeyOperationResult struct {
 type KeyOperationsParameters struct {
 	// Algorithm - algorithm identifier. Possible values include: 'RSAOAEP', 'RSAOAEP256', 'RSA15'
 	Algorithm JSONWebKeyEncryptionAlgorithm `json:"alg,omitempty"`
-	Value     *string                       `json:"value,omitempty"`
+	// Value - a URL-encoded base64 string
+	Value *string `json:"value,omitempty"`
 }
 
 // KeyProperties properties of the key pair backing a certificate.
@@ -1321,7 +1752,7 @@ type KeyProperties struct {
 	Exportable *bool `json:"exportable,omitempty"`
 	// KeyType - The key type.
 	KeyType *string `json:"kty,omitempty"`
-	// KeySize - The key size in bytes. For example;  1024 or 2048.
+	// KeySize - The key size in bits. For example: 2048, 3072, or 4096 for RSA.
 	KeySize *int32 `json:"key_size,omitempty"`
 	// ReuseKey - Indicates if the same key pair will be used on certificate renewal.
 	ReuseKey *bool `json:"reuse_key,omitempty"`
@@ -1329,7 +1760,7 @@ type KeyProperties struct {
 
 // KeyRestoreParameters the key restore parameters.
 type KeyRestoreParameters struct {
-	// KeyBundleBackup - The backup blob associated with a key bundle.
+	// KeyBundleBackup - The backup blob associated with a key bundle. (a URL-encoded base64 string)
 	KeyBundleBackup *string `json:"value,omitempty"`
 }
 
@@ -1337,7 +1768,8 @@ type KeyRestoreParameters struct {
 type KeySignParameters struct {
 	// Algorithm - The signing/verification algorithm identifier. For more information on possible algorithm types, see JsonWebKeySignatureAlgorithm. Possible values include: 'PS256', 'PS384', 'PS512', 'RS256', 'RS384', 'RS512', 'RSNULL', 'ES256', 'ES384', 'ES512', 'ECDSA256'
 	Algorithm JSONWebKeySignatureAlgorithm `json:"alg,omitempty"`
-	Value     *string                      `json:"value,omitempty"`
+	// Value - a URL-encoded base64 string
+	Value *string `json:"value,omitempty"`
 }
 
 // KeyUpdateParameters the key update parameters.
@@ -1346,16 +1778,31 @@ type KeyUpdateParameters struct {
 	KeyOps        *[]JSONWebKeyOperation `json:"key_ops,omitempty"`
 	KeyAttributes *KeyAttributes         `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs.
-	Tags *map[string]*string `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for KeyUpdateParameters.
+func (kup KeyUpdateParameters) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if kup.KeyOps != nil {
+		objectMap["key_ops"] = kup.KeyOps
+	}
+	if kup.KeyAttributes != nil {
+		objectMap["attributes"] = kup.KeyAttributes
+	}
+	if kup.Tags != nil {
+		objectMap["tags"] = kup.Tags
+	}
+	return json.Marshal(objectMap)
 }
 
 // KeyVerifyParameters the key verify parameters.
 type KeyVerifyParameters struct {
 	// Algorithm - The signing/verification algorithm. For more information on possible algorithm types, see JsonWebKeySignatureAlgorithm. Possible values include: 'PS256', 'PS384', 'PS512', 'RS256', 'RS384', 'RS512', 'RSNULL', 'ES256', 'ES384', 'ES512', 'ECDSA256'
 	Algorithm JSONWebKeySignatureAlgorithm `json:"alg,omitempty"`
-	// Digest - The digest used for signing.
+	// Digest - The digest used for signing. (a URL-encoded base64 string)
 	Digest *string `json:"digest,omitempty"`
-	// Signature - The signature to be verified.
+	// Signature - The signature to be verified. (a URL-encoded base64 string)
 	Signature *string `json:"value,omitempty"`
 }
 
@@ -1406,21 +1853,57 @@ type SasDefinitionBundle struct {
 	// SecretID - Storage account SAS definition secret id.
 	SecretID *string `json:"sid,omitempty"`
 	// Parameters - The SAS definition metadata in the form of key-value pairs.
-	Parameters *map[string]*string `json:"parameters,omitempty"`
+	Parameters map[string]*string `json:"parameters"`
 	// Attributes - The SAS definition attributes.
 	Attributes *SasDefinitionAttributes `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs
-	Tags *map[string]*string `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for SasDefinitionBundle.
+func (sdb SasDefinitionBundle) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sdb.ID != nil {
+		objectMap["id"] = sdb.ID
+	}
+	if sdb.SecretID != nil {
+		objectMap["sid"] = sdb.SecretID
+	}
+	if sdb.Parameters != nil {
+		objectMap["parameters"] = sdb.Parameters
+	}
+	if sdb.Attributes != nil {
+		objectMap["attributes"] = sdb.Attributes
+	}
+	if sdb.Tags != nil {
+		objectMap["tags"] = sdb.Tags
+	}
+	return json.Marshal(objectMap)
 }
 
 // SasDefinitionCreateParameters the SAS definition create parameters.
 type SasDefinitionCreateParameters struct {
 	// Parameters - Sas definition creation metadata in the form of key-value pairs.
-	Parameters *map[string]*string `json:"parameters,omitempty"`
+	Parameters map[string]*string `json:"parameters"`
 	// SasDefinitionAttributes - The attributes of the SAS definition.
 	SasDefinitionAttributes *SasDefinitionAttributes `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs.
-	Tags *map[string]*string `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for SasDefinitionCreateParameters.
+func (sdcp SasDefinitionCreateParameters) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sdcp.Parameters != nil {
+		objectMap["parameters"] = sdcp.Parameters
+	}
+	if sdcp.SasDefinitionAttributes != nil {
+		objectMap["attributes"] = sdcp.SasDefinitionAttributes
+	}
+	if sdcp.Tags != nil {
+		objectMap["tags"] = sdcp.Tags
+	}
+	return json.Marshal(objectMap)
 }
 
 // SasDefinitionItem the SAS definition item containing storage SAS definition metadata.
@@ -1432,7 +1915,25 @@ type SasDefinitionItem struct {
 	// Attributes - The SAS definition management attributes.
 	Attributes *SasDefinitionAttributes `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs.
-	Tags *map[string]*string `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for SasDefinitionItem.
+func (sdi SasDefinitionItem) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sdi.ID != nil {
+		objectMap["id"] = sdi.ID
+	}
+	if sdi.SecretID != nil {
+		objectMap["sid"] = sdi.SecretID
+	}
+	if sdi.Attributes != nil {
+		objectMap["attributes"] = sdi.Attributes
+	}
+	if sdi.Tags != nil {
+		objectMap["tags"] = sdi.Tags
+	}
+	return json.Marshal(objectMap)
 }
 
 // SasDefinitionListResult the storage account SAS definition list result.
@@ -1540,15 +2041,32 @@ func (page SasDefinitionListResultPage) Values() []SasDefinitionItem {
 // SasDefinitionUpdateParameters the SAS definition update parameters.
 type SasDefinitionUpdateParameters struct {
 	// Parameters - Sas definition update metadata in the form of key-value pairs.
-	Parameters *map[string]*string `json:"parameters,omitempty"`
+	Parameters map[string]*string `json:"parameters"`
 	// SasDefinitionAttributes - The attributes of the SAS definition.
 	SasDefinitionAttributes *SasDefinitionAttributes `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs.
-	Tags *map[string]*string `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for SasDefinitionUpdateParameters.
+func (sdup SasDefinitionUpdateParameters) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sdup.Parameters != nil {
+		objectMap["parameters"] = sdup.Parameters
+	}
+	if sdup.SasDefinitionAttributes != nil {
+		objectMap["attributes"] = sdup.SasDefinitionAttributes
+	}
+	if sdup.Tags != nil {
+		objectMap["tags"] = sdup.Tags
+	}
+	return json.Marshal(objectMap)
 }
 
 // SecretAttributes the secret management attributes.
 type SecretAttributes struct {
+	// RecoveryLevel - Reflects the deletion recovery level currently in effect for secrets in the current vault. If it contains 'Purgeable', the secret can be permanently deleted by a privileged user; otherwise, only the system can purge the secret, at the end of the retention interval. Possible values include: 'Purgeable', 'RecoverablePurgeable', 'Recoverable', 'RecoverableProtectedSubscription'
+	RecoveryLevel DeletionRecoveryLevel `json:"recoveryLevel,omitempty"`
 	// Enabled - Determines whether the object is enabled.
 	Enabled *bool `json:"enabled,omitempty"`
 	// NotBefore - Not before date in UTC.
@@ -1559,8 +2077,6 @@ type SecretAttributes struct {
 	Created *date.UnixTime `json:"created,omitempty"`
 	// Updated - Last updated time in UTC.
 	Updated *date.UnixTime `json:"updated,omitempty"`
-	// RecoveryLevel - Reflects the deletion recovery level currently in effect for secrets in the current vault. If it contains 'Purgeable', the secret can be permanently deleted by a privileged user; otherwise, only the system can purge the secret, at the end of the retention interval. Possible values include: 'Purgeable', 'RecoverablePurgeable', 'Recoverable', 'RecoverableProtectedSubscription'
-	RecoveryLevel DeletionRecoveryLevel `json:"recoveryLevel,omitempty"`
 }
 
 // SecretBundle a secret consisting of a value, id and its attributes.
@@ -1575,11 +2091,38 @@ type SecretBundle struct {
 	// Attributes - The secret management attributes.
 	Attributes *SecretAttributes `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs.
-	Tags *map[string]*string `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
 	// Kid - If this is a secret backing a KV certificate, then this field specifies the corresponding key backing the KV certificate.
 	Kid *string `json:"kid,omitempty"`
 	// Managed - True if the secret's lifetime is managed by key vault. If this is a secret backing a certificate, then managed will be true.
 	Managed *bool `json:"managed,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SecretBundle.
+func (sb SecretBundle) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sb.Value != nil {
+		objectMap["value"] = sb.Value
+	}
+	if sb.ID != nil {
+		objectMap["id"] = sb.ID
+	}
+	if sb.ContentType != nil {
+		objectMap["contentType"] = sb.ContentType
+	}
+	if sb.Attributes != nil {
+		objectMap["attributes"] = sb.Attributes
+	}
+	if sb.Tags != nil {
+		objectMap["tags"] = sb.Tags
+	}
+	if sb.Kid != nil {
+		objectMap["kid"] = sb.Kid
+	}
+	if sb.Managed != nil {
+		objectMap["managed"] = sb.Managed
+	}
+	return json.Marshal(objectMap)
 }
 
 // SecretItem the secret item containing secret metadata.
@@ -1589,11 +2132,32 @@ type SecretItem struct {
 	// Attributes - The secret management attributes.
 	Attributes *SecretAttributes `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs.
-	Tags *map[string]*string `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
 	// ContentType - Type of the secret value such as a password.
 	ContentType *string `json:"contentType,omitempty"`
 	// Managed - True if the secret's lifetime is managed by key vault. If this is a key backing a certificate, then managed will be true.
 	Managed *bool `json:"managed,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SecretItem.
+func (si SecretItem) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if si.ID != nil {
+		objectMap["id"] = si.ID
+	}
+	if si.Attributes != nil {
+		objectMap["attributes"] = si.Attributes
+	}
+	if si.Tags != nil {
+		objectMap["tags"] = si.Tags
+	}
+	if si.ContentType != nil {
+		objectMap["contentType"] = si.ContentType
+	}
+	if si.Managed != nil {
+		objectMap["managed"] = si.Managed
+	}
+	return json.Marshal(objectMap)
 }
 
 // SecretListResult the secret list result.
@@ -1706,7 +2270,7 @@ type SecretProperties struct {
 
 // SecretRestoreParameters the secret restore parameters.
 type SecretRestoreParameters struct {
-	// SecretBundleBackup - The backup blob associated with a secret bundle.
+	// SecretBundleBackup - The backup blob associated with a secret bundle. (a URL-encoded base64 string)
 	SecretBundleBackup *string `json:"value,omitempty"`
 }
 
@@ -1715,11 +2279,29 @@ type SecretSetParameters struct {
 	// Value - The value of the secret.
 	Value *string `json:"value,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs.
-	Tags *map[string]*string `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
 	// ContentType - Type of the secret value such as a password.
 	ContentType *string `json:"contentType,omitempty"`
 	// SecretAttributes - The secret management attributes.
 	SecretAttributes *SecretAttributes `json:"attributes,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SecretSetParameters.
+func (ssp SecretSetParameters) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ssp.Value != nil {
+		objectMap["value"] = ssp.Value
+	}
+	if ssp.Tags != nil {
+		objectMap["tags"] = ssp.Tags
+	}
+	if ssp.ContentType != nil {
+		objectMap["contentType"] = ssp.ContentType
+	}
+	if ssp.SecretAttributes != nil {
+		objectMap["attributes"] = ssp.SecretAttributes
+	}
+	return json.Marshal(objectMap)
 }
 
 // SecretUpdateParameters the secret update parameters.
@@ -1729,7 +2311,22 @@ type SecretUpdateParameters struct {
 	// SecretAttributes - The secret management attributes.
 	SecretAttributes *SecretAttributes `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs.
-	Tags *map[string]*string `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for SecretUpdateParameters.
+func (sup SecretUpdateParameters) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sup.ContentType != nil {
+		objectMap["contentType"] = sup.ContentType
+	}
+	if sup.SecretAttributes != nil {
+		objectMap["attributes"] = sup.SecretAttributes
+	}
+	if sup.Tags != nil {
+		objectMap["tags"] = sup.Tags
+	}
+	return json.Marshal(objectMap)
 }
 
 // StorageAccountAttributes the storage account management attributes.
@@ -1755,7 +2352,31 @@ type StorageAccountCreateParameters struct {
 	// StorageAccountAttributes - The attributes of the storage account.
 	StorageAccountAttributes *StorageAccountAttributes `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs.
-	Tags *map[string]*string `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for StorageAccountCreateParameters.
+func (sacp StorageAccountCreateParameters) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sacp.ResourceID != nil {
+		objectMap["resourceId"] = sacp.ResourceID
+	}
+	if sacp.ActiveKeyName != nil {
+		objectMap["activeKeyName"] = sacp.ActiveKeyName
+	}
+	if sacp.AutoRegenerateKey != nil {
+		objectMap["autoRegenerateKey"] = sacp.AutoRegenerateKey
+	}
+	if sacp.RegenerationPeriod != nil {
+		objectMap["regenerationPeriod"] = sacp.RegenerationPeriod
+	}
+	if sacp.StorageAccountAttributes != nil {
+		objectMap["attributes"] = sacp.StorageAccountAttributes
+	}
+	if sacp.Tags != nil {
+		objectMap["tags"] = sacp.Tags
+	}
+	return json.Marshal(objectMap)
 }
 
 // StorageAccountItem the storage account item containing storage account metadata.
@@ -1767,7 +2388,25 @@ type StorageAccountItem struct {
 	// Attributes - The storage account management attributes.
 	Attributes *StorageAccountAttributes `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs.
-	Tags *map[string]*string `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for StorageAccountItem.
+func (sai StorageAccountItem) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sai.ID != nil {
+		objectMap["id"] = sai.ID
+	}
+	if sai.ResourceID != nil {
+		objectMap["resourceId"] = sai.ResourceID
+	}
+	if sai.Attributes != nil {
+		objectMap["attributes"] = sai.Attributes
+	}
+	if sai.Tags != nil {
+		objectMap["tags"] = sai.Tags
+	}
+	return json.Marshal(objectMap)
 }
 
 // StorageAccountRegenerteKeyParameters the storage account key regenerate parameters.
@@ -1787,7 +2426,28 @@ type StorageAccountUpdateParameters struct {
 	// StorageAccountAttributes - The attributes of the storage account.
 	StorageAccountAttributes *StorageAccountAttributes `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs.
-	Tags *map[string]*string `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for StorageAccountUpdateParameters.
+func (saup StorageAccountUpdateParameters) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if saup.ActiveKeyName != nil {
+		objectMap["activeKeyName"] = saup.ActiveKeyName
+	}
+	if saup.AutoRegenerateKey != nil {
+		objectMap["autoRegenerateKey"] = saup.AutoRegenerateKey
+	}
+	if saup.RegenerationPeriod != nil {
+		objectMap["regenerationPeriod"] = saup.RegenerationPeriod
+	}
+	if saup.StorageAccountAttributes != nil {
+		objectMap["attributes"] = saup.StorageAccountAttributes
+	}
+	if saup.Tags != nil {
+		objectMap["tags"] = saup.Tags
+	}
+	return json.Marshal(objectMap)
 }
 
 // StorageBundle a Storage account bundle consists of key vault storage account details plus its attributes.
@@ -1806,7 +2466,34 @@ type StorageBundle struct {
 	// Attributes - The storage account attributes.
 	Attributes *StorageAccountAttributes `json:"attributes,omitempty"`
 	// Tags - Application specific metadata in the form of key-value pairs
-	Tags *map[string]*string `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for StorageBundle.
+func (sb StorageBundle) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sb.ID != nil {
+		objectMap["id"] = sb.ID
+	}
+	if sb.ResourceID != nil {
+		objectMap["resourceId"] = sb.ResourceID
+	}
+	if sb.ActiveKeyName != nil {
+		objectMap["activeKeyName"] = sb.ActiveKeyName
+	}
+	if sb.AutoRegenerateKey != nil {
+		objectMap["autoRegenerateKey"] = sb.AutoRegenerateKey
+	}
+	if sb.RegenerationPeriod != nil {
+		objectMap["regenerationPeriod"] = sb.RegenerationPeriod
+	}
+	if sb.Attributes != nil {
+		objectMap["attributes"] = sb.Attributes
+	}
+	if sb.Tags != nil {
+		objectMap["tags"] = sb.Tags
+	}
+	return json.Marshal(objectMap)
 }
 
 // StorageListResult the storage accounts list result.

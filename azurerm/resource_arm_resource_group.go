@@ -36,7 +36,7 @@ func resourceArmResourceGroupCreateUpdate(d *schema.ResourceData, meta interface
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 	parameters := resources.Group{
 		Location: utils.String(location),
@@ -80,7 +80,9 @@ func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil
@@ -129,7 +131,7 @@ func resourceArmResourceGroupDelete(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error deleting Resource Group %q: %+v", name, err)
 	}
 
-	err = deleteFuture.WaitForCompletion(ctx, client.Client)
+	err = deleteFuture.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		if response.WasNotFound(deleteFuture.Response()) {
 			return nil

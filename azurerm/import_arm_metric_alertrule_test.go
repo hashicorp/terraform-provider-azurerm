@@ -20,11 +20,19 @@ func TestAccAzureRMMetricAlertRule_importVirtualMachineCpu(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMetricAlertRuleExists(resourceName),
+					resource.TestCheckNoResourceAttr(resourceName, "tags.$type"),
+				),
 			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMetricAlertRuleExists(resourceName),
+					resource.TestCheckNoResourceAttr(resourceName, "tags.$type"),
+				),
 			},
 		},
 	})

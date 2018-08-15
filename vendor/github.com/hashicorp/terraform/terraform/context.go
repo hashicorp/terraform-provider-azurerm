@@ -8,10 +8,13 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/hashicorp/terraform/tfdiags"
+
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/terraform/config"
 	"github.com/hashicorp/terraform/config/module"
+	"github.com/hashicorp/terraform/version"
 )
 
 // InputMode defines what sort of input will be asked for when Input
@@ -142,19 +145,14 @@ func NewContext(opts *ContextOpts) (*Context, error) {
 
 	// If our state is from the future, then error. Callers can avoid
 	// this error by explicitly setting `StateFutureAllowed`.
-	if !opts.StateFutureAllowed && state.FromFutureTerraform() {
-		return nil, fmt.Errorf(
-			"Terraform doesn't allow running any operations against a state\n"+
-				"that was written by a future Terraform version. The state is\n"+
-				"reporting it is written by Terraform '%s'.\n\n"+
-				"Please run at least that version of Terraform to continue.",
-			state.TFVersion)
+	if err := CheckStateVersion(state); err != nil && !opts.StateFutureAllowed {
+		return nil, err
 	}
 
 	// Explicitly reset our state version to our current version so that
 	// any operations we do will write out that our latest version
 	// has run.
-	state.TFVersion = Version
+	state.TFVersion = version.Version
 
 	// Determine parallelism, default to 10. We do this both to limit
 	// CPU pressure but also to have an extra guard against rate throttling
@@ -532,13 +530,14 @@ func (c *Context) Plan() (*Plan, error) {
 		State:   c.state,
 		Targets: c.targets,
 
-		TerraformVersion: VersionString(),
+		TerraformVersion: version.String(),
 		ProviderSHA256s:  c.providerSHA256s,
 	}
 
 	var operation walkOperation
 	if c.destroy {
 		operation = walkPlanDestroy
+		p.Destroy = true
 	} else {
 		// Set our state to be something temporary. We do this so that
 		// the plan can update a fake state so that variables work, then
@@ -669,29 +668,27 @@ func (c *Context) Stop() {
 }
 
 // Validate validates the configuration and returns any warnings or errors.
-func (c *Context) Validate() ([]string, []error) {
+func (c *Context) Validate() tfdiags.Diagnostics {
 	defer c.acquireRun("validate")()
 
-	var errs error
+	var diags tfdiags.Diagnostics
 
 	// Validate the configuration itself
-	if err := c.module.Validate(); err != nil {
-		errs = multierror.Append(errs, err)
-	}
+	diags = diags.Append(c.module.Validate())
 
 	// This only needs to be done for the root module, since inter-module
 	// variables are validated in the module tree.
 	if config := c.module.Config(); config != nil {
 		// Validate the user variables
-		if err := smcUserVariables(config, c.variables); len(err) > 0 {
-			errs = multierror.Append(errs, err...)
+		for _, err := range smcUserVariables(config, c.variables) {
+			diags = diags.Append(err)
 		}
 	}
 
 	// If we have errors at this point, the graphing has no chance,
 	// so just bail early.
-	if errs != nil {
-		return nil, []error{errs}
+	if diags.HasErrors() {
+		return diags
 	}
 
 	// Build the graph so we can walk it and run Validate on nodes.
@@ -700,24 +697,29 @@ func (c *Context) Validate() ([]string, []error) {
 	// graph again later after Planning.
 	graph, err := c.Graph(GraphTypeValidate, nil)
 	if err != nil {
-		return nil, []error{err}
+		diags = diags.Append(err)
+		return diags
 	}
 
 	// Walk
 	walker, err := c.walk(graph, walkValidate)
 	if err != nil {
-		return nil, multierror.Append(errs, err).Errors
+		diags = diags.Append(err)
 	}
 
-	// Return the result
-	rerrs := multierror.Append(errs, walker.ValidationErrors...)
-
 	sort.Strings(walker.ValidationWarnings)
-	sort.Slice(rerrs.Errors, func(i, j int) bool {
-		return rerrs.Errors[i].Error() < rerrs.Errors[j].Error()
+	sort.Slice(walker.ValidationErrors, func(i, j int) bool {
+		return walker.ValidationErrors[i].Error() < walker.ValidationErrors[j].Error()
 	})
 
-	return walker.ValidationWarnings, rerrs.Errors
+	for _, warn := range walker.ValidationWarnings {
+		diags = diags.Append(tfdiags.SimpleWarning(warn))
+	}
+	for _, err := range walker.ValidationErrors {
+		diags = diags.Append(err)
+	}
+
+	return diags
 }
 
 // Module returns the module tree associated with this context.

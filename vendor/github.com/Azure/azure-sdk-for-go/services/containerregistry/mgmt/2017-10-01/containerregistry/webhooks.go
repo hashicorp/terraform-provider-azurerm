@@ -41,10 +41,11 @@ func NewWebhooksClientWithBaseURI(baseURI string, subscriptionID string) Webhook
 }
 
 // Create creates a webhook for a container registry with the specified parameters.
-//
-// resourceGroupName is the name of the resource group to which the container registry belongs. registryName is the
-// name of the container registry. webhookName is the name of the webhook. webhookCreateParameters is the parameters
-// for creating a webhook.
+// Parameters:
+// resourceGroupName - the name of the resource group to which the container registry belongs.
+// registryName - the name of the container registry.
+// webhookName - the name of the webhook.
+// webhookCreateParameters - the parameters for creating a webhook.
 func (client WebhooksClient) Create(ctx context.Context, resourceGroupName string, registryName string, webhookName string, webhookCreateParameters WebhookCreateParameters) (result WebhooksCreateFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: registryName,
@@ -61,7 +62,7 @@ func (client WebhooksClient) Create(ctx context.Context, resourceGroupName strin
 					Chain: []validation.Constraint{{Target: "webhookCreateParameters.WebhookPropertiesCreateParameters.ServiceURI", Name: validation.Null, Rule: true, Chain: nil},
 						{Target: "webhookCreateParameters.WebhookPropertiesCreateParameters.Actions", Name: validation.Null, Rule: true, Chain: nil},
 					}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "containerregistry.WebhooksClient", "Create")
+		return result, validation.NewError("containerregistry.WebhooksClient", "Create", err.Error())
 	}
 
 	req, err := client.CreatePreparer(ctx, resourceGroupName, registryName, webhookName, webhookCreateParameters)
@@ -94,7 +95,7 @@ func (client WebhooksClient) CreatePreparer(ctx context.Context, resourceGroupNa
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ContainerRegistry/registries/{registryName}/webhooks/{webhookName}", pathParameters),
@@ -106,15 +107,17 @@ func (client WebhooksClient) CreatePreparer(ctx context.Context, resourceGroupNa
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client WebhooksClient) CreateSender(req *http.Request) (future WebhooksCreateFuture, err error) {
-	sender := autorest.DecorateSender(client, azure.DoRetryWithRegistration(client.Client))
-	future.Future = azure.NewFuture(req)
-	future.req = req
-	_, err = future.Done(sender)
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
-	err = autorest.Respond(future.Response(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated))
+	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
 	return
 }
 
@@ -132,9 +135,10 @@ func (client WebhooksClient) CreateResponder(resp *http.Response) (result Webhoo
 }
 
 // Delete deletes a webhook from a container registry.
-//
-// resourceGroupName is the name of the resource group to which the container registry belongs. registryName is the
-// name of the container registry. webhookName is the name of the webhook.
+// Parameters:
+// resourceGroupName - the name of the resource group to which the container registry belongs.
+// registryName - the name of the container registry.
+// webhookName - the name of the webhook.
 func (client WebhooksClient) Delete(ctx context.Context, resourceGroupName string, registryName string, webhookName string) (result WebhooksDeleteFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: registryName,
@@ -145,7 +149,7 @@ func (client WebhooksClient) Delete(ctx context.Context, resourceGroupName strin
 			Constraints: []validation.Constraint{{Target: "webhookName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "webhookName", Name: validation.MinLength, Rule: 5, Chain: nil},
 				{Target: "webhookName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]*$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "containerregistry.WebhooksClient", "Delete")
+		return result, validation.NewError("containerregistry.WebhooksClient", "Delete", err.Error())
 	}
 
 	req, err := client.DeletePreparer(ctx, resourceGroupName, registryName, webhookName)
@@ -188,15 +192,17 @@ func (client WebhooksClient) DeletePreparer(ctx context.Context, resourceGroupNa
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client WebhooksClient) DeleteSender(req *http.Request) (future WebhooksDeleteFuture, err error) {
-	sender := autorest.DecorateSender(client, azure.DoRetryWithRegistration(client.Client))
-	future.Future = azure.NewFuture(req)
-	future.req = req
-	_, err = future.Done(sender)
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
-	err = autorest.Respond(future.Response(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent))
+	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
 	return
 }
 
@@ -213,9 +219,10 @@ func (client WebhooksClient) DeleteResponder(resp *http.Response) (result autore
 }
 
 // Get gets the properties of the specified webhook.
-//
-// resourceGroupName is the name of the resource group to which the container registry belongs. registryName is the
-// name of the container registry. webhookName is the name of the webhook.
+// Parameters:
+// resourceGroupName - the name of the resource group to which the container registry belongs.
+// registryName - the name of the container registry.
+// webhookName - the name of the webhook.
 func (client WebhooksClient) Get(ctx context.Context, resourceGroupName string, registryName string, webhookName string) (result Webhook, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: registryName,
@@ -226,7 +233,7 @@ func (client WebhooksClient) Get(ctx context.Context, resourceGroupName string, 
 			Constraints: []validation.Constraint{{Target: "webhookName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "webhookName", Name: validation.MinLength, Rule: 5, Chain: nil},
 				{Target: "webhookName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]*$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "containerregistry.WebhooksClient", "Get")
+		return result, validation.NewError("containerregistry.WebhooksClient", "Get", err.Error())
 	}
 
 	req, err := client.GetPreparer(ctx, resourceGroupName, registryName, webhookName)
@@ -293,9 +300,10 @@ func (client WebhooksClient) GetResponder(resp *http.Response) (result Webhook, 
 }
 
 // GetCallbackConfig gets the configuration of service URI and custom headers for the webhook.
-//
-// resourceGroupName is the name of the resource group to which the container registry belongs. registryName is the
-// name of the container registry. webhookName is the name of the webhook.
+// Parameters:
+// resourceGroupName - the name of the resource group to which the container registry belongs.
+// registryName - the name of the container registry.
+// webhookName - the name of the webhook.
 func (client WebhooksClient) GetCallbackConfig(ctx context.Context, resourceGroupName string, registryName string, webhookName string) (result CallbackConfig, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: registryName,
@@ -306,7 +314,7 @@ func (client WebhooksClient) GetCallbackConfig(ctx context.Context, resourceGrou
 			Constraints: []validation.Constraint{{Target: "webhookName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "webhookName", Name: validation.MinLength, Rule: 5, Chain: nil},
 				{Target: "webhookName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]*$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "containerregistry.WebhooksClient", "GetCallbackConfig")
+		return result, validation.NewError("containerregistry.WebhooksClient", "GetCallbackConfig", err.Error())
 	}
 
 	req, err := client.GetCallbackConfigPreparer(ctx, resourceGroupName, registryName, webhookName)
@@ -373,16 +381,16 @@ func (client WebhooksClient) GetCallbackConfigResponder(resp *http.Response) (re
 }
 
 // List lists all the webhooks for the specified container registry.
-//
-// resourceGroupName is the name of the resource group to which the container registry belongs. registryName is the
-// name of the container registry.
+// Parameters:
+// resourceGroupName - the name of the resource group to which the container registry belongs.
+// registryName - the name of the container registry.
 func (client WebhooksClient) List(ctx context.Context, resourceGroupName string, registryName string) (result WebhookListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: registryName,
 			Constraints: []validation.Constraint{{Target: "registryName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "registryName", Name: validation.MinLength, Rule: 5, Chain: nil},
 				{Target: "registryName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]*$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "containerregistry.WebhooksClient", "List")
+		return result, validation.NewError("containerregistry.WebhooksClient", "List", err.Error())
 	}
 
 	result.fn = client.listNextResults
@@ -476,9 +484,10 @@ func (client WebhooksClient) ListComplete(ctx context.Context, resourceGroupName
 }
 
 // ListEvents lists recent events for the specified webhook.
-//
-// resourceGroupName is the name of the resource group to which the container registry belongs. registryName is the
-// name of the container registry. webhookName is the name of the webhook.
+// Parameters:
+// resourceGroupName - the name of the resource group to which the container registry belongs.
+// registryName - the name of the container registry.
+// webhookName - the name of the webhook.
 func (client WebhooksClient) ListEvents(ctx context.Context, resourceGroupName string, registryName string, webhookName string) (result EventListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: registryName,
@@ -489,7 +498,7 @@ func (client WebhooksClient) ListEvents(ctx context.Context, resourceGroupName s
 			Constraints: []validation.Constraint{{Target: "webhookName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "webhookName", Name: validation.MinLength, Rule: 5, Chain: nil},
 				{Target: "webhookName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]*$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "containerregistry.WebhooksClient", "ListEvents")
+		return result, validation.NewError("containerregistry.WebhooksClient", "ListEvents", err.Error())
 	}
 
 	result.fn = client.listEventsNextResults
@@ -584,9 +593,10 @@ func (client WebhooksClient) ListEventsComplete(ctx context.Context, resourceGro
 }
 
 // Ping triggers a ping event to be sent to the webhook.
-//
-// resourceGroupName is the name of the resource group to which the container registry belongs. registryName is the
-// name of the container registry. webhookName is the name of the webhook.
+// Parameters:
+// resourceGroupName - the name of the resource group to which the container registry belongs.
+// registryName - the name of the container registry.
+// webhookName - the name of the webhook.
 func (client WebhooksClient) Ping(ctx context.Context, resourceGroupName string, registryName string, webhookName string) (result EventInfo, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: registryName,
@@ -597,7 +607,7 @@ func (client WebhooksClient) Ping(ctx context.Context, resourceGroupName string,
 			Constraints: []validation.Constraint{{Target: "webhookName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "webhookName", Name: validation.MinLength, Rule: 5, Chain: nil},
 				{Target: "webhookName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]*$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "containerregistry.WebhooksClient", "Ping")
+		return result, validation.NewError("containerregistry.WebhooksClient", "Ping", err.Error())
 	}
 
 	req, err := client.PingPreparer(ctx, resourceGroupName, registryName, webhookName)
@@ -664,10 +674,11 @@ func (client WebhooksClient) PingResponder(resp *http.Response) (result EventInf
 }
 
 // Update updates a webhook with the specified parameters.
-//
-// resourceGroupName is the name of the resource group to which the container registry belongs. registryName is the
-// name of the container registry. webhookName is the name of the webhook. webhookUpdateParameters is the parameters
-// for updating a webhook.
+// Parameters:
+// resourceGroupName - the name of the resource group to which the container registry belongs.
+// registryName - the name of the container registry.
+// webhookName - the name of the webhook.
+// webhookUpdateParameters - the parameters for updating a webhook.
 func (client WebhooksClient) Update(ctx context.Context, resourceGroupName string, registryName string, webhookName string, webhookUpdateParameters WebhookUpdateParameters) (result WebhooksUpdateFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: registryName,
@@ -678,7 +689,7 @@ func (client WebhooksClient) Update(ctx context.Context, resourceGroupName strin
 			Constraints: []validation.Constraint{{Target: "webhookName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "webhookName", Name: validation.MinLength, Rule: 5, Chain: nil},
 				{Target: "webhookName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]*$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "containerregistry.WebhooksClient", "Update")
+		return result, validation.NewError("containerregistry.WebhooksClient", "Update", err.Error())
 	}
 
 	req, err := client.UpdatePreparer(ctx, resourceGroupName, registryName, webhookName, webhookUpdateParameters)
@@ -711,7 +722,7 @@ func (client WebhooksClient) UpdatePreparer(ctx context.Context, resourceGroupNa
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ContainerRegistry/registries/{registryName}/webhooks/{webhookName}", pathParameters),
@@ -723,15 +734,17 @@ func (client WebhooksClient) UpdatePreparer(ctx context.Context, resourceGroupNa
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client WebhooksClient) UpdateSender(req *http.Request) (future WebhooksUpdateFuture, err error) {
-	sender := autorest.DecorateSender(client, azure.DoRetryWithRegistration(client.Client))
-	future.Future = azure.NewFuture(req)
-	future.req = req
-	_, err = future.Done(sender)
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
-	err = autorest.Respond(future.Response(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated))
+	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
 	return
 }
 

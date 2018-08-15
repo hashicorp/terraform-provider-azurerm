@@ -49,3 +49,22 @@ func (c *Config) ValidateServicePrincipal() error {
 
 	return err.ErrorOrNil()
 }
+
+func (c *Config) ValidateMsi() error {
+	var err *multierror.Error
+
+	if c.SubscriptionID == "" {
+		err = multierror.Append(err, fmt.Errorf("Subscription ID must be configured for the AzureRM provider"))
+	}
+	if c.TenantID == "" {
+		err = multierror.Append(err, fmt.Errorf("Tenant ID must be configured for the AzureRM provider"))
+	}
+	if c.Environment == "" {
+		err = multierror.Append(err, fmt.Errorf("Environment must be configured for the AzureRM provider"))
+	}
+	if c.MsiEndpoint == "" {
+		err = multierror.Append(err, fmt.Errorf("MSI endpoint must be configured for the AzureRM provider"))
+	}
+
+	return err.ErrorOrNil()
+}

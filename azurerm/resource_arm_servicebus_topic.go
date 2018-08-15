@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -16,21 +17,24 @@ func resourceArmServiceBusTopic() *schema.Resource {
 		Read:   resourceArmServiceBusTopicRead,
 		Update: resourceArmServiceBusTopicCreate,
 		Delete: resourceArmServiceBusTopicDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateServiceBusTopicName(),
 			},
 
 			"namespace_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateServiceBusNamespaceName(),
 			},
 
 			"location": deprecatedLocationSchema(),
@@ -214,7 +218,7 @@ func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) er
 
 			// if the topic is in a premium namespace and partitioning is enabled then the
 			// max size returned by the API will be 16 times greater than the value set
-			if *props.EnablePartitioning {
+			if partitioning := props.EnablePartitioning; partitioning != nil && *partitioning {
 				namespacesClient := meta.(*ArmClient).serviceBusNamespacesClient
 				namespace, err := namespacesClient.Get(ctx, resourceGroup, namespaceName)
 				if err != nil {

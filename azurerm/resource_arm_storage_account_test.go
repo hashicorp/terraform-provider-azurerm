@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -345,6 +346,135 @@ func TestAccAzureRMStorageAccount_NonStandardCasing(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageAccount_enableIdentity(t *testing.T) {
+	resourceName := "azurerm_storage_account.testsa"
+
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	config := testAccAzureRMStorageAccount_identity(ri, rs, testLocation())
+
+	uuidMatch := regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", uuidMatch),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", uuidMatch),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMStorageAccount_updateResourceByEnablingIdentity(t *testing.T) {
+	resourceName := "azurerm_storage_account.testsa"
+
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+
+	basicResourceNoManagedIdentity := testAccAzureRMStorageAccount_basic(ri, rs, testLocation())
+	managedIdentityEnabled := testAccAzureRMStorageAccount_identity(ri, rs, testLocation())
+
+	uuidMatch := regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: basicResourceNoManagedIdentity,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "identity.#", "0"),
+				),
+			},
+			{
+				Config: managedIdentityEnabled,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", uuidMatch),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", uuidMatch),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMStorageAccount_networkRules(t *testing.T) {
+	resourceName := "azurerm_storage_account.testsa"
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	location := testLocation()
+	preConfig := testAccAzureRMStorageAccount_networkRules(ri, rs, location)
+	postConfig := testAccAzureRMStorageAccount_networkRulesUpdate(ri, rs, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "network_rules.0.ip_rules.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "network_rules.0.virtual_network_subnet_ids.#", "1"),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "network_rules.0.ip_rules.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "network_rules.0.virtual_network_subnet_ids.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "network_rules.0.bypass.#", "2"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMStorageAccount_networkRulesDeleted(t *testing.T) {
+	resourceName := "azurerm_storage_account.testsa"
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	location := testLocation()
+	preConfig := testAccAzureRMStorageAccount_networkRules(ri, rs, location)
+	postConfig := testAccAzureRMStorageAccount_basic(ri, rs, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "network_rules.0.ip_rules.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "network_rules.0.virtual_network_subnet_ids.#", "1"),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "network_rules.#", "0"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMStorageAccountExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -357,9 +487,10 @@ func testCheckAzureRMStorageAccountExists(name string) resource.TestCheckFunc {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		// Ensure resource group exists in API
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		conn := testAccProvider.Meta().(*ArmClient).storageServiceClient
 
-		resp, err := conn.GetProperties(resourceGroup, storageAccount)
+		resp, err := conn.GetProperties(ctx, resourceGroup, storageAccount)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on storageServiceClient: %+v", err)
 		}
@@ -384,9 +515,10 @@ func testCheckAzureRMStorageAccountDisappears(name string) resource.TestCheckFun
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		// Ensure resource group exists in API
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		conn := testAccProvider.Meta().(*ArmClient).storageServiceClient
 
-		_, err := conn.Delete(resourceGroup, storageAccount)
+		_, err := conn.Delete(ctx, resourceGroup, storageAccount)
 		if err != nil {
 			return fmt.Errorf("Bad: Delete on storageServiceClient: %+v", err)
 		}
@@ -396,6 +528,7 @@ func testCheckAzureRMStorageAccountDisappears(name string) resource.TestCheckFun
 }
 
 func testCheckAzureRMStorageAccountDestroy(s *terraform.State) error {
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 	conn := testAccProvider.Meta().(*ArmClient).storageServiceClient
 
 	for _, rs := range s.RootModule().Resources {
@@ -406,7 +539,7 @@ func testCheckAzureRMStorageAccountDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.GetProperties(resourceGroup, name)
+		resp, err := conn.GetProperties(ctx, resourceGroup, name)
 		if err != nil {
 			return nil
 		}
@@ -734,4 +867,104 @@ resource "azurerm_storage_account" "testsa" {
     }
 }
 `, rInt, location, rString)
+}
+
+func testAccAzureRMStorageAccount_identity(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+    name = "testAccAzureRMSA-%d"
+    location = "%s"
+}
+
+resource "azurerm_storage_account" "testsa" {
+    name = "unlikely23exst2acct%s"
+    resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+    location = "${azurerm_resource_group.testrg.location}"
+    account_tier = "Standard"
+    account_replication_type = "LRS"
+
+		identity {
+			type = "SystemAssigned"
+		}
+
+    tags {
+        environment = "production"
+    }
+}
+`, rInt, location, rString)
+}
+
+func testAccAzureRMStorageAccount_networkRules(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+    name = "testAccAzureRMSA-%d"
+    location = "%s"
+}
+resource "azurerm_virtual_network" "test" {
+    name = "acctestvirtnet%d"
+    address_space = ["10.0.0.0/16"]
+    location = "${azurerm_resource_group.testrg.location}"
+    resource_group_name = "${azurerm_resource_group.testrg.name}"
+}
+resource "azurerm_subnet" "test" {
+	name                 = "acctestsubnet%d"
+	resource_group_name  = "${azurerm_resource_group.testrg.name}"
+	virtual_network_name = "${azurerm_virtual_network.test.name}"
+	address_prefix       = "10.0.2.0/24"
+	service_endpoints    = ["Microsoft.Storage"]
+  }
+resource "azurerm_storage_account" "testsa" {
+    name = "unlikely23exst2acct%s"
+    resource_group_name = "${azurerm_resource_group.testrg.name}"
+    location = "${azurerm_resource_group.testrg.location}"
+    account_tier = "Standard"
+    account_replication_type = "LRS"
+	
+    network_rules {
+        ip_rules = ["127.0.0.1"]
+        virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
+    }
+    tags {
+        environment = "production"
+    }
+}
+`, rInt, location, rInt, rInt, rString)
+}
+
+func testAccAzureRMStorageAccount_networkRulesUpdate(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+    name = "testAccAzureRMSA-%d"
+    location = "%s"
+}
+resource "azurerm_virtual_network" "test" {
+    name = "acctestvirtnet%d"
+    address_space = ["10.0.0.0/16"]
+    location = "${azurerm_resource_group.testrg.location}"
+    resource_group_name = "${azurerm_resource_group.testrg.name}"
+}
+resource "azurerm_subnet" "test" {
+	name                 = "acctestsubnet%d"
+	resource_group_name  = "${azurerm_resource_group.testrg.name}"
+	virtual_network_name = "${azurerm_virtual_network.test.name}"
+	address_prefix       = "10.0.2.0/24"
+	service_endpoints    = ["Microsoft.Storage"]
+  }
+resource "azurerm_storage_account" "testsa" {
+    name = "unlikely23exst2acct%s"
+    resource_group_name = "${azurerm_resource_group.testrg.name}"
+    location = "${azurerm_resource_group.testrg.location}"
+    account_tier = "Standard"
+    account_replication_type = "LRS"
+	
+    network_rules {
+        ip_rules = ["127.0.0.1", "127.0.0.2"]
+        bypass = ["Logging", "Metrics"]
+    }
+    tags {
+        environment = "production"
+    }
+}
+`, rInt, location, rInt, rInt, rString)
 }

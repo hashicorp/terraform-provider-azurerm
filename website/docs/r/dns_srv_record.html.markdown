@@ -6,7 +6,7 @@ description: |-
   Manage a DNS SRV Record.
 ---
 
-# azurerm\_dns\_srv\_record
+# azurerm_dns_srv_record
 
 Enables you to manage DNS SRV Records within Azure DNS.
 

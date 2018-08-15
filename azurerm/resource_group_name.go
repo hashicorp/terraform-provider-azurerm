@@ -52,3 +52,9 @@ func validateArmResourceGroupName(v interface{}, k string) (ws []string, es []er
 
 	return
 }
+
+// Resource group names can be capitalised, but we store them in lowercase.
+// Use a custom diff function to avoid creation of new resources.
+func resourceAzurermResourceGroupNameDiffSuppress(k, old, new string, d *schema.ResourceData) bool {
+	return strings.ToLower(old) == strings.ToLower(new)
+}

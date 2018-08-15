@@ -5,8 +5,11 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
+
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -32,66 +35,71 @@ func resourceArmImage() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"source_virtual_machine_id": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"os_disk": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"os_type": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:             schema.TypeString,
+							Optional:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.Linux),
 								string(compute.Windows),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 
 						"os_state": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:             schema.TypeString,
+							Optional:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.Generalized),
 								string(compute.Specialized),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 
 						"managed_disk_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-							Optional: true,
+							Type:             schema.TypeString,
+							Computed:         true,
+							Optional:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc:     azure.ValidateResourceID,
 						},
 
 						"blob_uri": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-							ForceNew: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.URLIsHTTPOrHTTPS,
 						},
 
 						"caching": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  string(compute.None),
+							Type:             schema.TypeString,
+							Optional:         true,
+							Default:          string(compute.None),
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.CachingTypesNone),
 								string(compute.CachingTypesReadOnly),
 								string(compute.CachingTypesReadWrite),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 
 						"size_gb": {
-							Type:     schema.TypeInt,
-							Computed: true,
-							Optional: true,
+							Type:         schema.TypeInt,
+							Computed:     true,
+							Optional:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 					},
 				},
@@ -109,15 +117,17 @@ func resourceArmImage() *schema.Resource {
 						},
 
 						"managed_disk_id": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 
 						"blob_uri": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validate.URLIsHTTPOrHTTPS,
 						},
 
 						"caching": {
@@ -133,9 +143,10 @@ func resourceArmImage() *schema.Resource {
 						},
 
 						"size_gb": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Computed: true,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 					},
 				},
@@ -153,10 +164,10 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 	log.Printf("[INFO] preparing arguments for AzureRM Image creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
-	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
+	expandedTags := expandTags(d.Get("tags").(map[string]interface{}))
+
 	properties := compute.ImageProperties{}
 
 	osDisk, err := expandAzureRmImageOsDisk(d)
@@ -211,7 +222,7 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -251,7 +262,6 @@ func resourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
@@ -294,7 +304,7 @@ func resourceArmImageDelete(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -350,7 +360,7 @@ func flattenAzureRmImageDataDisks(diskImages *[]compute.ImageDataDisk) []interfa
 
 func expandAzureRmImageOsDisk(d *schema.ResourceData) (*compute.ImageOSDisk, error) {
 	osDisk := &compute.ImageOSDisk{}
-	disks := d.Get("os_disk").(*schema.Set).List()
+	disks := d.Get("os_disk").([]interface{})
 
 	if len(disks) > 0 {
 		config := disks[0].(map[string]interface{})

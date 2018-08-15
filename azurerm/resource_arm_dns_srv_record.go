@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2016-04-01/dns"
+	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -213,12 +213,13 @@ func expandAzureRmDnsSrvRecords(d *schema.ResourceData) ([]dns.SrvRecord, error)
 
 func resourceArmDnsSrvRecordHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
 
-	buf.WriteString(fmt.Sprintf("%d-", m["priority"].(int)))
-	buf.WriteString(fmt.Sprintf("%d-", m["weight"].(int)))
-	buf.WriteString(fmt.Sprintf("%d-", m["port"].(int)))
-	buf.WriteString(fmt.Sprintf("%s-", m["target"].(string)))
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%d-", m["priority"].(int)))
+		buf.WriteString(fmt.Sprintf("%d-", m["weight"].(int)))
+		buf.WriteString(fmt.Sprintf("%d-", m["port"].(int)))
+		buf.WriteString(fmt.Sprintf("%s-", m["target"].(string)))
+	}
 
 	return hashcode.String(buf.String())
 }

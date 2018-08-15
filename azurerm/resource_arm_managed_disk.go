@@ -33,6 +33,8 @@ func resourceArmManagedDisk() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameSchema(),
 
+			"zones": singleZonesSchema(),
+
 			"storage_account_type": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -113,12 +115,13 @@ func resourceArmManagedDiskCreate(d *schema.ResourceData, meta interface{}) erro
 	log.Printf("[INFO] preparing arguments for Azure ARM Managed Disk creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	storageAccountType := d.Get("storage_account_type").(string)
 	osType := d.Get("os_type").(string)
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
+	zones := expandZones(d.Get("zones").([]interface{}))
 
 	var skuName compute.StorageAccountTypes
 	if strings.ToLower(storageAccountType) == strings.ToLower(string(compute.PremiumLRS)) {
@@ -134,9 +137,10 @@ func resourceArmManagedDiskCreate(d *schema.ResourceData, meta interface{}) erro
 			OsType: compute.OperatingSystemTypes(osType),
 		},
 		Sku: &compute.DiskSku{
-			Name: (skuName),
+			Name: skuName,
 		},
-		Tags: expandedTags,
+		Tags:  expandedTags,
+		Zones: zones,
 	}
 
 	if v := d.Get("disk_size_gb"); v != 0 {
@@ -182,7 +186,7 @@ func resourceArmManagedDiskCreate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -222,6 +226,7 @@ func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error 
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
+	d.Set("zones", resp.Zones)
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
@@ -274,7 +279,7 @@ func resourceArmManagedDiskDelete(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
 			return err

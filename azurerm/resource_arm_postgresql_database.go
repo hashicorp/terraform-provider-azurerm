@@ -3,8 +3,9 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-04-30-preview/postgresql"
+	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -35,15 +36,17 @@ func resourceArmPostgreSQLDatabase() *schema.Resource {
 			},
 
 			"charset": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				ForceNew:         true,
 			},
 
 			"collation": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateCollation(),
 			},
 		},
 	}
@@ -74,7 +77,7 @@ func resourceArmPostgreSQLDatabaseCreate(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -118,8 +121,15 @@ func resourceArmPostgreSQLDatabaseRead(d *schema.ResourceData, meta interface{})
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("server_name", serverName)
-	d.Set("charset", resp.Charset)
-	d.Set("collation", resp.Collation)
+
+	if props := resp.DatabaseProperties; props != nil {
+		d.Set("charset", props.Charset)
+
+		if collation := props.Collation; collation != nil {
+			v := strings.Replace(*collation, "-", "_", -1)
+			d.Set("collation", v)
+		}
+	}
 
 	return nil
 }
@@ -144,7 +154,7 @@ func resourceArmPostgreSQLDatabaseDelete(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil

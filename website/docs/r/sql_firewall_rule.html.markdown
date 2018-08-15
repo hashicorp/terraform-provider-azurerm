@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sql_firewall_rule"
 sidebar_current: "docs-azurerm-resource-database-sql-firewall_rule"
 description: |-
-  Create a SQL Firewall Rule.
+  Manages a SQL Firewall Rule.
 ---
 
 # azurerm_sql_firewall_rule
@@ -39,7 +39,7 @@ resource "azurerm_sql_firewall_rule" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the SQL Server.
+* `name` - (Required) The name of the firewall rule.
 
 * `resource_group_name` - (Required) The name of the resource group in which to
     create the sql server.

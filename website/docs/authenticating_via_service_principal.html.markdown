@@ -11,7 +11,7 @@ description: |-
 
 Terraform supports authenticating to Azure through a Service Principal or the Azure CLI.
 
-We recommend using a Service Principal when running in a Shared Environment (such as within a CI server/automation) - and [authenticating via the Azure CLI](authenticating_via_azure_cli.html) when you're running Terraform locally.
+We recommend using a Service Principal when running in a shared environment (such as within a CI server/automation) - and [authenticating via the Azure CLI](authenticating_via_azure_cli.html) when you're running Terraform locally.
 
 ## Creating a Service Principal
 
@@ -21,7 +21,7 @@ It's possible to complete this task in either the [Azure CLI](#creating-a-servic
 
 ### Creating a Service Principal using the Azure CLI
 
-~> **Note**: if you're using the **China**, **German** or **Government** Azure Clouds - you'll need to first configure the Azure CLI to work with that Cloud.  You can do this by running:
+~> **Note**: If you're using the **China**, **German** or **Government** Azure Clouds - you'll need to first configure the Azure CLI to work with that Cloud.  You can do this by running:
 
 ```shell
 $ az cloud set --name AzureChinaCloud|AzureGermanCloud|AzureUSGovernment
@@ -42,7 +42,7 @@ Once logged in - it's possible to list the Subscriptions associated with the acc
 $ az account list
 ```
 
-The output (similar to below) will display one or more Subscriptions - with the `ID` field being the `subscription_id` field referenced above.
+The output (similar to below) will display one or more Subscriptions - with the `id` field being the `subscription_id` field referenced above.
 
 ```json
 [
@@ -93,13 +93,13 @@ These values map to the Terraform variables like so:
 
 ---
 
-Finally - it's possible to test these values work as expected by first logging in:
+Finally, it's possible to test these values work as expected by first logging in:
 
 ```shell
 $ az login --service-principal -u CLIENT_ID -p CLIENT_SECRET --tenant TENANT_ID
 ```
 
-Once logged in as the Service Principal - we should be able to list the VM Sizes by specifying an Azure region, for example here we use the `West US` region:
+Once logged in as the Service Principal - we should be able to list the VM sizes by specifying an Azure region, for example here we use the `West US` region:
 
 ```shell
 $ az vm list-sizes --location westus
@@ -120,7 +120,7 @@ There are two tasks needed to create a Service Principal via [the Azure Portal](
 
 ### 1. Creating an Application in Azure Active Directory
 
-Firstly navigate to [the **Azure Active Directory** overview](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/Overview) within the Azure Portal - [then select the **App Registration** blade](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps/RegisteredApps/Overview) and click **Endpoints** at the top of the **App Registration** blade. A list of URIs will be displayed and you need to located the URI for **OAUTH 2.0 AUTHORIZATION ENDPOINT** which contains a GUID. This is your Tenant ID / the `tenant_id` field mentioned above.
+Firstly navigate to [the **Azure Active Directory** overview](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/Overview) within the Azure Portal - [then select the **App Registration** blade](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps/RegisteredApps/Overview) and click **Endpoints** at the top of the **App Registration** blade. A list of URIs will be displayed and you need to locate the URI for **OAUTH 2.0 AUTHORIZATION ENDPOINT** which contains a GUID. This is your Tenant ID / the `tenant_id` field mentioned above.
 
 Next, navigate back to [the **App Registration** blade](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps/RegisteredApps/Overview) - from here we'll create the Application in Azure Active Directory. To do this click **Add** at the top to add a new Application within Azure Active Directory. On this page, set the following values then press **Create**:
 
@@ -136,10 +136,16 @@ Finally, we can create the `client_secret` by selecting **Keys** and then genera
 
 Once the Application exists in Azure Active Directory - we can grant it permissions to modify resources in the Subscription. To do this, [navigate to the **Subscriptions** blade within the Azure Portal](https://portal.azure.com/#blade/Microsoft_Azure_Billing/SubscriptionsBlade), then select the Subscription you wish to use, then click **Access Control (IAM)**, and finally **Add**.
 
-Firstly specify a Role which grants the appropriate permissions needed for the Service Principal (for example, `Contributor` will grant Read/Write on all resources in the Subscription). There's more information about [the built in roles](https://azure.microsoft.com/en-gb/documentation/articles/role-based-access-built-in-roles/) available here.
+Firstly, specify a Role which grants the appropriate permissions needed for the Service Principal (for example, `Contributor` will grant Read/Write on all resources in the Subscription). There's more information about [the built in roles available here](https://azure.microsoft.com/en-gb/documentation/articles/role-based-access-built-in-roles/).
 
 Secondly, search for and select the name of the Application created in Azure Active Directory to assign it this role - then press **Save**.
 
 ## Creating a Service Principal through the Legacy CLI's
 
 It's also possible to create credentials via [the legacy cross-platform CLI](https://azure.microsoft.com/en-us/documentation/articles/resource-group-authenticate-service-principal-cli/) and the [legacy PowerShell Cmdlets](https://azure.microsoft.com/en-us/documentation/articles/resource-group-authenticate-service-principal/) - however we would highly recommend using the Azure CLI above.
+
+## Configuring your Service Principal
+
+Service Principals can be configured in Terraform in one of two ways, either as Environment Variables or in the Provider block. Please see [this section](index.html#argument-reference) for an example of which fields are available and can be specified either through Environment Variables - or in the Provider Block.
+
+~> **NOTE:** Authenticating using a Service Principal via the Azure CLI is unsupported. Service Principal credentials either need to be specified either as Environment Variables or in the Provider Block.

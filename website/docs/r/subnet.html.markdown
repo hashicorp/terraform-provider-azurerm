@@ -1,6 +1,6 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azure_subnet"
+page_title: "Azure Resource Manager: azurerm_subnet"
 sidebar_current: "docs-azurerm-resource-network-subnet"
 description: |-
   Manages a subnet. Subnets represent network segments within the IP space defined by the virtual network.

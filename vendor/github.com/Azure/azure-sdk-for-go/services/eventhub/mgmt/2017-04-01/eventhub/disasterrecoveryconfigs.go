@@ -42,9 +42,10 @@ func NewDisasterRecoveryConfigsClientWithBaseURI(baseURI string, subscriptionID 
 
 // BreakPairing this operation disables the Disaster Recovery and stops replicating changes from primary to secondary
 // namespaces
-//
-// resourceGroupName is name of the resource group within the azure subscription. namespaceName is the Namespace name
-// alias is the Disaster Recovery configuration name
+// Parameters:
+// resourceGroupName - name of the resource group within the azure subscription.
+// namespaceName - the Namespace name
+// alias - the Disaster Recovery configuration name
 func (client DisasterRecoveryConfigsClient) BreakPairing(ctx context.Context, resourceGroupName string, namespaceName string, alias string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -56,7 +57,7 @@ func (client DisasterRecoveryConfigsClient) BreakPairing(ctx context.Context, re
 		{TargetValue: alias,
 			Constraints: []validation.Constraint{{Target: "alias", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "alias", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "eventhub.DisasterRecoveryConfigsClient", "BreakPairing")
+		return result, validation.NewError("eventhub.DisasterRecoveryConfigsClient", "BreakPairing", err.Error())
 	}
 
 	req, err := client.BreakPairingPreparer(ctx, resourceGroupName, namespaceName, alias)
@@ -122,9 +123,10 @@ func (client DisasterRecoveryConfigsClient) BreakPairingResponder(resp *http.Res
 }
 
 // CheckNameAvailability check the give Namespace name availability.
-//
-// resourceGroupName is name of the resource group within the azure subscription. namespaceName is the Namespace name
-// parameters is parameters to check availability of the given Alias name
+// Parameters:
+// resourceGroupName - name of the resource group within the azure subscription.
+// namespaceName - the Namespace name
+// parameters - parameters to check availability of the given Alias name
 func (client DisasterRecoveryConfigsClient) CheckNameAvailability(ctx context.Context, resourceGroupName string, namespaceName string, parameters CheckNameAvailabilityParameter) (result CheckNameAvailabilityResult, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -135,7 +137,7 @@ func (client DisasterRecoveryConfigsClient) CheckNameAvailability(ctx context.Co
 				{Target: "namespaceName", Name: validation.MinLength, Rule: 6, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.Name", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "eventhub.DisasterRecoveryConfigsClient", "CheckNameAvailability")
+		return result, validation.NewError("eventhub.DisasterRecoveryConfigsClient", "CheckNameAvailability", err.Error())
 	}
 
 	req, err := client.CheckNameAvailabilityPreparer(ctx, resourceGroupName, namespaceName, parameters)
@@ -173,7 +175,7 @@ func (client DisasterRecoveryConfigsClient) CheckNameAvailabilityPreparer(ctx co
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventHub/namespaces/{namespaceName}/disasterRecoveryConfigs/CheckNameAvailability", pathParameters),
@@ -203,10 +205,11 @@ func (client DisasterRecoveryConfigsClient) CheckNameAvailabilityResponder(resp 
 }
 
 // CreateOrUpdate creates or updates a new Alias(Disaster Recovery configuration)
-//
-// resourceGroupName is name of the resource group within the azure subscription. namespaceName is the Namespace name
-// alias is the Disaster Recovery configuration name parameters is parameters required to create an Alias(Disaster
-// Recovery configuration)
+// Parameters:
+// resourceGroupName - name of the resource group within the azure subscription.
+// namespaceName - the Namespace name
+// alias - the Disaster Recovery configuration name
+// parameters - parameters required to create an Alias(Disaster Recovery configuration)
 func (client DisasterRecoveryConfigsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, namespaceName string, alias string, parameters ArmDisasterRecovery) (result ArmDisasterRecovery, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -218,7 +221,7 @@ func (client DisasterRecoveryConfigsClient) CreateOrUpdate(ctx context.Context, 
 		{TargetValue: alias,
 			Constraints: []validation.Constraint{{Target: "alias", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "alias", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "eventhub.DisasterRecoveryConfigsClient", "CreateOrUpdate")
+		return result, validation.NewError("eventhub.DisasterRecoveryConfigsClient", "CreateOrUpdate", err.Error())
 	}
 
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, namespaceName, alias, parameters)
@@ -257,7 +260,7 @@ func (client DisasterRecoveryConfigsClient) CreateOrUpdatePreparer(ctx context.C
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventHub/namespaces/{namespaceName}/disasterRecoveryConfigs/{alias}", pathParameters),
@@ -287,9 +290,10 @@ func (client DisasterRecoveryConfigsClient) CreateOrUpdateResponder(resp *http.R
 }
 
 // Delete deletes an Alias(Disaster Recovery configuration)
-//
-// resourceGroupName is name of the resource group within the azure subscription. namespaceName is the Namespace name
-// alias is the Disaster Recovery configuration name
+// Parameters:
+// resourceGroupName - name of the resource group within the azure subscription.
+// namespaceName - the Namespace name
+// alias - the Disaster Recovery configuration name
 func (client DisasterRecoveryConfigsClient) Delete(ctx context.Context, resourceGroupName string, namespaceName string, alias string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -301,7 +305,7 @@ func (client DisasterRecoveryConfigsClient) Delete(ctx context.Context, resource
 		{TargetValue: alias,
 			Constraints: []validation.Constraint{{Target: "alias", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "alias", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "eventhub.DisasterRecoveryConfigsClient", "Delete")
+		return result, validation.NewError("eventhub.DisasterRecoveryConfigsClient", "Delete", err.Error())
 	}
 
 	req, err := client.DeletePreparer(ctx, resourceGroupName, namespaceName, alias)
@@ -367,9 +371,10 @@ func (client DisasterRecoveryConfigsClient) DeleteResponder(resp *http.Response)
 }
 
 // FailOver envokes GEO DR failover and reconfigure the alias to point to the secondary namespace
-//
-// resourceGroupName is name of the resource group within the azure subscription. namespaceName is the Namespace name
-// alias is the Disaster Recovery configuration name
+// Parameters:
+// resourceGroupName - name of the resource group within the azure subscription.
+// namespaceName - the Namespace name
+// alias - the Disaster Recovery configuration name
 func (client DisasterRecoveryConfigsClient) FailOver(ctx context.Context, resourceGroupName string, namespaceName string, alias string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -381,7 +386,7 @@ func (client DisasterRecoveryConfigsClient) FailOver(ctx context.Context, resour
 		{TargetValue: alias,
 			Constraints: []validation.Constraint{{Target: "alias", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "alias", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "eventhub.DisasterRecoveryConfigsClient", "FailOver")
+		return result, validation.NewError("eventhub.DisasterRecoveryConfigsClient", "FailOver", err.Error())
 	}
 
 	req, err := client.FailOverPreparer(ctx, resourceGroupName, namespaceName, alias)
@@ -447,9 +452,10 @@ func (client DisasterRecoveryConfigsClient) FailOverResponder(resp *http.Respons
 }
 
 // Get retrieves Alias(Disaster Recovery configuration) for primary or secondary namespace
-//
-// resourceGroupName is name of the resource group within the azure subscription. namespaceName is the Namespace name
-// alias is the Disaster Recovery configuration name
+// Parameters:
+// resourceGroupName - name of the resource group within the azure subscription.
+// namespaceName - the Namespace name
+// alias - the Disaster Recovery configuration name
 func (client DisasterRecoveryConfigsClient) Get(ctx context.Context, resourceGroupName string, namespaceName string, alias string) (result ArmDisasterRecovery, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -461,7 +467,7 @@ func (client DisasterRecoveryConfigsClient) Get(ctx context.Context, resourceGro
 		{TargetValue: alias,
 			Constraints: []validation.Constraint{{Target: "alias", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "alias", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "eventhub.DisasterRecoveryConfigsClient", "Get")
+		return result, validation.NewError("eventhub.DisasterRecoveryConfigsClient", "Get", err.Error())
 	}
 
 	req, err := client.GetPreparer(ctx, resourceGroupName, namespaceName, alias)
@@ -528,9 +534,11 @@ func (client DisasterRecoveryConfigsClient) GetResponder(resp *http.Response) (r
 }
 
 // GetAuthorizationRule gets an AuthorizationRule for a Namespace by rule name.
-//
-// resourceGroupName is name of the resource group within the azure subscription. namespaceName is the Namespace name
-// alias is the Disaster Recovery configuration name authorizationRuleName is the authorization rule name.
+// Parameters:
+// resourceGroupName - name of the resource group within the azure subscription.
+// namespaceName - the Namespace name
+// alias - the Disaster Recovery configuration name
+// authorizationRuleName - the authorization rule name.
 func (client DisasterRecoveryConfigsClient) GetAuthorizationRule(ctx context.Context, resourceGroupName string, namespaceName string, alias string, authorizationRuleName string) (result AuthorizationRule, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -544,7 +552,7 @@ func (client DisasterRecoveryConfigsClient) GetAuthorizationRule(ctx context.Con
 				{Target: "alias", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: authorizationRuleName,
 			Constraints: []validation.Constraint{{Target: "authorizationRuleName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "eventhub.DisasterRecoveryConfigsClient", "GetAuthorizationRule")
+		return result, validation.NewError("eventhub.DisasterRecoveryConfigsClient", "GetAuthorizationRule", err.Error())
 	}
 
 	req, err := client.GetAuthorizationRulePreparer(ctx, resourceGroupName, namespaceName, alias, authorizationRuleName)
@@ -612,8 +620,9 @@ func (client DisasterRecoveryConfigsClient) GetAuthorizationRuleResponder(resp *
 }
 
 // List gets all Alias(Disaster Recovery configurations)
-//
-// resourceGroupName is name of the resource group within the azure subscription. namespaceName is the Namespace name
+// Parameters:
+// resourceGroupName - name of the resource group within the azure subscription.
+// namespaceName - the Namespace name
 func (client DisasterRecoveryConfigsClient) List(ctx context.Context, resourceGroupName string, namespaceName string) (result ArmDisasterRecoveryListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -622,7 +631,7 @@ func (client DisasterRecoveryConfigsClient) List(ctx context.Context, resourceGr
 		{TargetValue: namespaceName,
 			Constraints: []validation.Constraint{{Target: "namespaceName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "namespaceName", Name: validation.MinLength, Rule: 6, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "eventhub.DisasterRecoveryConfigsClient", "List")
+		return result, validation.NewError("eventhub.DisasterRecoveryConfigsClient", "List", err.Error())
 	}
 
 	result.fn = client.listNextResults
@@ -716,9 +725,10 @@ func (client DisasterRecoveryConfigsClient) ListComplete(ctx context.Context, re
 }
 
 // ListAuthorizationRules gets a list of authorization rules for a Namespace.
-//
-// resourceGroupName is name of the resource group within the azure subscription. namespaceName is the Namespace name
-// alias is the Disaster Recovery configuration name
+// Parameters:
+// resourceGroupName - name of the resource group within the azure subscription.
+// namespaceName - the Namespace name
+// alias - the Disaster Recovery configuration name
 func (client DisasterRecoveryConfigsClient) ListAuthorizationRules(ctx context.Context, resourceGroupName string, namespaceName string, alias string) (result AuthorizationRuleListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -730,7 +740,7 @@ func (client DisasterRecoveryConfigsClient) ListAuthorizationRules(ctx context.C
 		{TargetValue: alias,
 			Constraints: []validation.Constraint{{Target: "alias", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "alias", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "eventhub.DisasterRecoveryConfigsClient", "ListAuthorizationRules")
+		return result, validation.NewError("eventhub.DisasterRecoveryConfigsClient", "ListAuthorizationRules", err.Error())
 	}
 
 	result.fn = client.listAuthorizationRulesNextResults
@@ -825,9 +835,11 @@ func (client DisasterRecoveryConfigsClient) ListAuthorizationRulesComplete(ctx c
 }
 
 // ListKeys gets the primary and secondary connection strings for the Namespace.
-//
-// resourceGroupName is name of the resource group within the azure subscription. namespaceName is the Namespace name
-// alias is the Disaster Recovery configuration name authorizationRuleName is the authorization rule name.
+// Parameters:
+// resourceGroupName - name of the resource group within the azure subscription.
+// namespaceName - the Namespace name
+// alias - the Disaster Recovery configuration name
+// authorizationRuleName - the authorization rule name.
 func (client DisasterRecoveryConfigsClient) ListKeys(ctx context.Context, resourceGroupName string, namespaceName string, alias string, authorizationRuleName string) (result AccessKeys, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -841,7 +853,7 @@ func (client DisasterRecoveryConfigsClient) ListKeys(ctx context.Context, resour
 				{Target: "alias", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: authorizationRuleName,
 			Constraints: []validation.Constraint{{Target: "authorizationRuleName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "eventhub.DisasterRecoveryConfigsClient", "ListKeys")
+		return result, validation.NewError("eventhub.DisasterRecoveryConfigsClient", "ListKeys", err.Error())
 	}
 
 	req, err := client.ListKeysPreparer(ctx, resourceGroupName, namespaceName, alias, authorizationRuleName)

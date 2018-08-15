@@ -3,9 +3,10 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/sql/mgmt/2015-05-01-preview/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -57,6 +58,61 @@ func resourceArmSqlDatabase() *schema.Resource {
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
+			"import": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"storage_uri": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"storage_key": {
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
+						},
+						"storage_key_type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"StorageAccessKey",
+								"SharedAccessKey",
+							}, true),
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+						},
+						"administrator_login": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"administrator_login_password": {
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
+						},
+						"authentication_type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"ADPassword",
+								"SQL",
+							}, true),
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+						},
+						"operation_mode": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  "Import",
+							ValidateFunc: validation.StringInSlice([]string{
+								"Import",
+							}, true),
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+						},
+					},
+				},
+			},
+
 			"source_database_id": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -87,6 +143,7 @@ func resourceArmSqlDatabase() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 
 			"max_size_bytes": {
@@ -151,7 +208,7 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 	serverName := d.Get("server_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	createMode := d.Get("create_mode").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -226,15 +283,41 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
+	// The requested Service Objective Name does not match the requested Service Objective Id.
+	if d.HasChange("requested_service_objective_name") && !d.HasChange("requested_service_objective_id") {
+		properties.DatabaseProperties.RequestedServiceObjectiveID = nil
+	}
+
 	ctx := meta.(*ArmClient).StopContext
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, properties)
 	if err != nil {
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return err
+	}
+
+	if _, ok := d.GetOk("import"); ok {
+		if !strings.EqualFold(createMode, "default") {
+			return fmt.Errorf("import can only be used when create_mode is Default")
+		}
+		importParameters := expandAzureRmSqlDatabaseImport(d)
+		importFuture, err := client.CreateImportOperation(ctx, resourceGroup, serverName, name, importParameters)
+		if err != nil {
+			return err
+		}
+
+		// this is set in config.go, but something sets
+		// it back to 15 minutes, which isn't long enough
+		// for most imports
+		client.Client.PollingDuration = 60 * time.Minute
+
+		err = importFuture.WaitForCompletionRef(ctx, client.Client)
+		if err != nil {
+			return err
+		}
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, serverName, name, "")
@@ -272,8 +355,11 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("resource_group_name", resourceGroup)
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
+
 	d.Set("server_name", serverName)
 
 	if props := resp.DatabaseProperties; props != nil {
@@ -351,4 +437,22 @@ func flattenEncryptionStatus(encryption *[]sql.TransparentDataEncryption) string
 	}
 
 	return ""
+}
+
+func expandAzureRmSqlDatabaseImport(d *schema.ResourceData) sql.ImportExtensionRequest {
+	v := d.Get("import")
+	dbimportRefs := v.([]interface{})
+	dbimportRef := dbimportRefs[0].(map[string]interface{})
+	return sql.ImportExtensionRequest{
+		Name: utils.String("terraform"),
+		ImportExtensionProperties: &sql.ImportExtensionProperties{
+			StorageKeyType:             sql.StorageKeyType(dbimportRef["storage_key_type"].(string)),
+			StorageKey:                 utils.String(dbimportRef["storage_key"].(string)),
+			StorageURI:                 utils.String(dbimportRef["storage_uri"].(string)),
+			AdministratorLogin:         utils.String(dbimportRef["administrator_login"].(string)),
+			AdministratorLoginPassword: utils.String(dbimportRef["administrator_login_password"].(string)),
+			AuthenticationType:         sql.AuthenticationType(dbimportRef["authentication_type"].(string)),
+			OperationMode:              utils.String(dbimportRef["operation_mode"].(string)),
+		},
+	}
 }

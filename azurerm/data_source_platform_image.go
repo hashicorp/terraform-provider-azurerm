@@ -54,8 +54,10 @@ func dataSourceArmPlatformImageRead(d *schema.ResourceData, meta interface{}) er
 	latestVersion := (*result.Value)[len(*result.Value)-1]
 
 	d.SetId(*latestVersion.ID)
+	if location := latestVersion.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
-	d.Set("location", azureRMNormalizeLocation(*latestVersion.Location))
 	d.Set("publisher", publisher)
 	d.Set("offer", offer)
 	d.Set("sku", sku)

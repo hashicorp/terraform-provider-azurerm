@@ -5,7 +5,7 @@ import (
 	"log"
 	"regexp"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2016-09-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -39,6 +39,10 @@ func resourceArmAppServicePlan() *schema.Resource {
 				Default:  "Windows",
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
+					// @tombuildsstuff: I believe `app` is the older representation of `Windows`
+					// thus we need to support it to be able to import resources without recreating them.
+					"App",
+					"FunctionApp",
 					"Linux",
 					"Windows",
 				}, true),
@@ -112,7 +116,7 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	kind := d.Get("kind").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -132,7 +136,7 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 		return err
 	}
 
-	err = createFuture.WaitForCompletion(ctx, client.Client)
+	err = createFuture.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -176,7 +180,9 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 	d.Set("kind", resp.Kind)
 
 	if props := resp.AppServicePlanProperties; props != nil {
@@ -261,9 +267,7 @@ func flattenAppServicePlanSku(profile *web.SkuDescription) []interface{} {
 
 func expandAppServicePlanProperties(d *schema.ResourceData, name string) *web.AppServicePlanProperties {
 	configs := d.Get("properties").([]interface{})
-	properties := web.AppServicePlanProperties{
-		Name: &name,
-	}
+	properties := web.AppServicePlanProperties{}
 	if len(configs) == 0 {
 		return &properties
 	}
@@ -308,8 +312,8 @@ func flattenAppServiceProperties(props *web.AppServicePlanProperties) []interfac
 func validateAppServicePlanName(v interface{}, k string) (ws []string, es []error) {
 	value := v.(string)
 
-	if matched := regexp.MustCompile(`^[0-9a-zA-Z-]+$`).Match([]byte(value)); !matched {
-		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters and dashes", k))
+	if matched := regexp.MustCompile(`^[0-9a-zA-Z-_]{1,60}$`).Match([]byte(value)); !matched {
+		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters, dashes and underscores up to 60 characters in length", k))
 	}
 
 	return

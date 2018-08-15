@@ -1,13 +1,13 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventgrid_topic"
-sidebar_current: "docs-azurerm-resource-eventgrid-topic"
+sidebar_current: "docs-azurerm-resource-messaging-eventgrid-topic"
 description: |-
   Manages an EventGrid Topic
 
 ---
 
-# azurerm\_eventgrid\_topic
+# azurerm_eventgrid_topic
 
 Manages an EventGrid Topic
 

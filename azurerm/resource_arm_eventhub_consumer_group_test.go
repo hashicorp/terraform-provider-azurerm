@@ -50,6 +50,34 @@ func TestAccAzureRMEventHubConsumerGroup_complete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMEventHubConsumerGroup_userMetadataUpdate(t *testing.T) {
+	resourceName := "azurerm_eventhub_consumer_group.test"
+	ri := acctest.RandInt()
+	preConfig := testAccAzureRMEventHubConsumerGroup_basic(ri, testLocation())
+	postConfig := testAccAzureRMEventHubConsumerGroup_complete(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMEventHubConsumerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventHubConsumerGroupExists(resourceName),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventHubConsumerGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "user_metadata", "some-meta-data"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMEventHubConsumerGroupDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).eventHubConsumerGroupClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext

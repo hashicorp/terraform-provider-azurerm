@@ -11,9 +11,8 @@ import (
 )
 
 func TestAccAzureRMAutomationAccount_basic(t *testing.T) {
-	ri := acctest.RandInt()
 	resourceName := "azurerm_automation_account.test"
-	config := testAccAzureRMAutomationAccount_basic(ri, testLocation())
+	ri := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -21,20 +20,24 @@ func TestAccAzureRMAutomationAccount_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAutomationAccount_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationAccountExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Basic"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func TestAccAzureRMAutomationAccount_complete(t *testing.T) {
-	ri := acctest.RandInt()
 	resourceName := "azurerm_automation_account.test"
-	config := testAccAzureRMAutomationAccount_complete(ri, testLocation())
+	ri := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -42,12 +45,17 @@ func TestAccAzureRMAutomationAccount_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAutomationAccount_complete(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationAccountExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Basic"),
 					resource.TestCheckResourceAttr(resourceName, "tags.hello", "world"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

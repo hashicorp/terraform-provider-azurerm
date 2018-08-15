@@ -50,11 +50,12 @@ func validateArmStorageTableName(v interface{}, k string) (ws []string, errors [
 
 func resourceArmStorageTableCreate(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
+	ctx := armClient.StopContext
 
 	resourceGroupName := d.Get("resource_group_name").(string)
 	storageAccountName := d.Get("storage_account_name").(string)
 
-	tableClient, accountExists, err := armClient.getTableServiceClientForStorageAccount(resourceGroupName, storageAccountName)
+	tableClient, accountExists, err := armClient.getTableServiceClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return err
 	}
@@ -81,11 +82,12 @@ func resourceArmStorageTableCreate(d *schema.ResourceData, meta interface{}) err
 
 func resourceArmStorageTableRead(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
+	ctx := armClient.StopContext
 
 	resourceGroupName := d.Get("resource_group_name").(string)
 	storageAccountName := d.Get("storage_account_name").(string)
 
-	tableClient, accountExists, err := armClient.getTableServiceClientForStorageAccount(resourceGroupName, storageAccountName)
+	tableClient, accountExists, err := armClient.getTableServiceClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return err
 	}
@@ -122,11 +124,12 @@ func resourceArmStorageTableRead(d *schema.ResourceData, meta interface{}) error
 
 func resourceArmStorageTableDelete(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
+	ctx := armClient.StopContext
 
 	resourceGroupName := d.Get("resource_group_name").(string)
 	storageAccountName := d.Get("storage_account_name").(string)
 
-	tableClient, accountExists, err := armClient.getTableServiceClientForStorageAccount(resourceGroupName, storageAccountName)
+	tableClient, accountExists, err := armClient.getTableServiceClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return err
 	}

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"regexp"
+
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -96,7 +98,7 @@ func TestAccAzureRMAppServiceSlot_appSettings(t *testing.T) {
 func TestAccAzureRMAppServiceSlot_clientAffinityEnabled(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMAppServiceSlot_clientAffinityEnabled(ri, testLocation())
+	config := testAccAzureRMAppServiceSlot_clientAffinityEnabled(ri, testLocation(), true)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -108,6 +110,35 @@ func TestAccAzureRMAppServiceSlot_clientAffinityEnabled(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceSlotExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "client_affinity_enabled", "true"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_clientAffinityEnabledUpdate(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_clientAffinityEnabled(ri, testLocation(), true)
+	updatedConfig := testAccAzureRMAppServiceSlot_clientAffinityEnabled(ri, testLocation(), false)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "client_affinity_enabled", "true"),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "client_affinity_enabled", "false"),
 				),
 			},
 		},
@@ -163,7 +194,7 @@ func TestAccAzureRMAppServiceSlot_defaultDocuments(t *testing.T) {
 func TestAccAzureRMAppServiceSlot_enabled(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMAppServiceSlot_enabled(ri, testLocation())
+	config := testAccAzureRMAppServiceSlot_enabled(ri, testLocation(), false)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -175,6 +206,156 @@ func TestAccAzureRMAppServiceSlot_enabled(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceSlotExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_enabledUpdate(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_enabled(ri, testLocation(), false)
+	updatedConfig := testAccAzureRMAppServiceSlot_enabled(ri, testLocation(), true)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_httpsOnly(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_httpsOnly(ri, testLocation(), true)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "https_only", "true"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_httpsOnlyUpdate(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_httpsOnly(ri, testLocation(), true)
+	updatedConfig := testAccAzureRMAppServiceSlot_httpsOnly(ri, testLocation(), false)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "https_only", "true"),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "https_only", "false"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_http2Enabled(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_http2Enabled(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.http2_enabled", "true"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_oneIpRestriction(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_oneIpRestriction(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.0.subnet_mask", "255.255.255.255"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_manyIpRestrictions(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_manyIpRestrictions(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.0.subnet_mask", "255.255.255.255"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.1.ip_address", "20.20.20.0"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.1.subnet_mask", "255.255.255.0"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.2.ip_address", "30.30.0.0"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.2.subnet_mask", "255.255.0.0"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.3.ip_address", "192.168.1.2"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.3.subnet_mask", "255.255.255.0"),
 				),
 			},
 		},
@@ -502,6 +683,60 @@ func TestAccAzureRMAppServiceSlot_webSockets(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppServiceSlot_enableManageServiceIdentity(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_enableManageServiceIdentity(ri, testLocation())
+
+	uuidMatch := regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", uuidMatch),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", uuidMatch),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_minTls(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_minTls(ri, testLocation(), "1.0")
+	updatedConfig := testAccAzureRMAppServiceSlot_minTls(ri, testLocation(), "1.1")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.min_tls_version", "1.0"),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.min_tls_version", "1.1"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMAppServiceSlotDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).appServicesClient
 
@@ -711,7 +946,7 @@ resource "azurerm_app_service_slot" "test" {
 `, rInt, location, rInt, rInt, rInt)
 }
 
-func testAccAzureRMAppServiceSlot_clientAffinityEnabled(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_clientAffinityEnabled(rInt int, location string, clientAffinityEnabled bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name = "acctestRG-%d"
@@ -742,9 +977,9 @@ resource "azurerm_app_service_slot" "test" {
   resource_group_name     = "${azurerm_resource_group.test.name}"
   app_service_plan_id     = "${azurerm_app_service_plan.test.id}"
   app_service_name        = "${azurerm_app_service.test.name}"
-  client_affinity_enabled = true
+  client_affinity_enabled = %t
 }
-`, rInt, location, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt, clientAffinityEnabled)
 }
 
 func testAccAzureRMAppServiceSlot_connectionStrings(rInt int, location string) string {
@@ -831,7 +1066,7 @@ resource "azurerm_app_service_slot" "test" {
 `, rInt, location, rInt, rInt, rInt)
 }
 
-func testAccAzureRMAppServiceSlot_enabled(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_enabled(rInt int, location string, enabled bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name = "acctestRG-%d"
@@ -862,7 +1097,179 @@ resource "azurerm_app_service_slot" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
   app_service_name    = "${azurerm_app_service.test.name}"
-  enabled = false
+  enabled = %t
+}
+`, rInt, location, rInt, rInt, rInt, enabled)
+}
+
+func testAccAzureRMAppServiceSlot_httpsOnly(rInt int, location string, httpsOnly bool) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+  https_only          = %t
+}
+`, rInt, location, rInt, rInt, rInt, httpsOnly)
+}
+
+func testAccAzureRMAppServiceSlot_http2Enabled(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
+  site_config {
+    http2_enabled = true
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMAppServiceSlot_oneIpRestriction(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
+  site_config {
+    ip_restriction {
+      ip_address = "10.10.10.10"
+    }
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMAppServiceSlot_manyIpRestrictions(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
+  site_config {
+    ip_restriction {
+      ip_address = "10.10.10.10"
+    }
+
+    ip_restriction {
+      ip_address  = "20.20.20.0"
+      subnet_mask = "255.255.255.0"
+    }
+
+    ip_restriction {
+      ip_address  = "30.30.0.0"
+      subnet_mask = "255.255.0.0"
+    }
+
+    ip_restriction {
+      ip_address = "192.168.1.2"
+      subnet_mask = "255.255.255.0"
+    }
+  }
 }
 `, rInt, location, rInt, rInt, rInt)
 }
@@ -1263,4 +1670,81 @@ resource "azurerm_app_service_slot" "test" {
   }
 }
 `, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMAppServiceSlot_enableManageServiceIdentity(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                    = "acctestASSlot-%d"
+  location                = "${azurerm_resource_group.test.location}"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  app_service_plan_id     = "${azurerm_app_service_plan.test.id}"
+  app_service_name        = "${azurerm_app_service.test.name}"
+  identity = {
+    type = "SystemAssigned"
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMAppServiceSlot_minTls(rInt int, location string, tlsVersion string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
+  site_config {
+    min_tls_version = "%s"
+	}
+}
+`, rInt, location, rInt, rInt, rInt, tlsVersion)
 }

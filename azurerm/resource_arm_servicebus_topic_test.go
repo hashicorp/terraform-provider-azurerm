@@ -165,7 +165,7 @@ func TestAccAzureRMServiceBusTopic_enablePartitioningPremium(t *testing.T) {
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "enable_partitioning", "true"),
+					resource.TestCheckResourceAttr(resourceName, "enable_partitioning", "false"),
 					resource.TestCheckResourceAttr(resourceName, "max_size_in_megabytes", "81920"),
 				),
 			},
@@ -349,7 +349,7 @@ resource "azurerm_servicebus_topic" "test" {
     name = "acctestservicebustopic-%d"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    enable_partitioning = true
+    enable_partitioning = false
 }
 `, rInt, location, rInt, rInt)
 }
@@ -397,7 +397,7 @@ resource "azurerm_servicebus_topic" "test" {
     name = "acctestservicebustopic-%d"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    enable_partitioning = true
+    enable_partitioning = false
     max_size_in_megabytes = 81920
 }
 `, rInt, location, rInt, rInt)
