@@ -1,36 +1,36 @@
-## 1.13.0 (Unreleased)
+## 1.13.0 (August 15, 2018)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_log_analytics_workspace` [GH-1755]
-* **New Resource:** `azurerm_monitor_action_group` [GH-1725]
+* **New Data Source:** `azurerm_log_analytics_workspace` ([#1755](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1755))
+* **New Resource:** `azurerm_monitor_action_group` ([#1725](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1725))
 
 IMPROVEMENTS:
 
-* dependencies: upgrading to `2018-04-01` of the IoTHub SDK [GH-1717]
-* Azure CLI Auth - using the `USERPROFILE` environment variable to locate the users home directory, if set [GH-1718]
-* Data Source `azurerm_kubernetes_cluster` - exposing the `max_pods` field within the `agent_pool_profile` block [GH-1753]
-* Data Source: `azurerm_kubernetes_cluster` - exposing the `add_on_profile` block [GH-1751]
-* `azurerm_automation_schedule` - adding the `week_days`, `month_days` and `monthly_occurrence` properties [GH-1626]
-* `azurerm_container_group` - adding a new `commands` field / deprecating the `command` field [GH-1740]
-* `azurerm_iothub` - support for the `Basic` SKU [GH-1717]
-* `azurerm_kubernetes_cluster` - support for `max_pods` within the `agent_pool_profile` block [GH-1753]
-* `azurerm_kubernetes_cluster` - support for the `add_on_profile` block [GH-1751]
-* `azurerm_kubernetes_cluster` - validation for when `pod_cidr` is set with a `network_plugin` set to `azure` [GH-1763]
-* `azurerm_kubernetes_cluster` - `client_id` and `client_secret` in the `service_principal` block are now ForceNew [GH-1737]
-* `azurerm_kubernetes_cluster` - `docker_bridge_cidr`, `dns_service_ip` and `service_cidr` are now conditionally set [GH-1715]
-* `azurerm_lb_nat_rule` - `protocol` property now supports `All` [GH-1736]
-* `azurerm_lb_nat_pool` - `protocol` property now supports `All` [GH-1748]
-* `azurerm_lb_probe` - `protocol` property now supports `Https` [GH-1742]
-* `azurerm_lb_rule` - support for the `All` protocol / adding validation [GH-1754]
+* dependencies: upgrading to `2018-04-01` of the IoTHub SDK ([#1717](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1717))
+* Azure CLI Auth - using the `USERPROFILE` environment variable to locate the users home directory, if set ([#1718](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1718))
+* Data Source `azurerm_kubernetes_cluster` - exposing the `max_pods` field within the `agent_pool_profile` block ([#1753](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1753))
+* Data Source: `azurerm_kubernetes_cluster` - exposing the `add_on_profile` block ([#1751](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1751))
+* `azurerm_automation_schedule` - adding the `week_days`, `month_days` and `monthly_occurrence` properties ([#1626](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1626))
+* `azurerm_container_group` - adding a new `commands` field / deprecating the `command` field ([#1740](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1740))
+* `azurerm_iothub` - support for the `Basic` SKU ([#1717](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1717))
+* `azurerm_kubernetes_cluster` - support for `max_pods` within the `agent_pool_profile` block ([#1753](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1753))
+* `azurerm_kubernetes_cluster` - support for the `add_on_profile` block ([#1751](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1751))
+* `azurerm_kubernetes_cluster` - validation for when `pod_cidr` is set with a `network_plugin` set to `azure` ([#1763](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1763))
+* `azurerm_kubernetes_cluster` - `client_id` and `client_secret` in the `service_principal` block are now ForceNew ([#1737](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1737))
+* `azurerm_kubernetes_cluster` - `docker_bridge_cidr`, `dns_service_ip` and `service_cidr` are now conditionally set ([#1715](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1715))
+* `azurerm_lb_nat_rule` - `protocol` property now supports `All` ([#1736](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1736))
+* `azurerm_lb_nat_pool` - `protocol` property now supports `All` ([#1748](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1748))
+* `azurerm_lb_probe` - `protocol` property now supports `Https` ([#1742](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1742))
+* `azurerm_lb_rule` - support for the `All` protocol / adding validation ([#1754](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1754))
 
 BUG FIXES:
 
-* `azurerm_application_insights` - handling a `HTTP 201` being returned from the Create API which working around a breaking change in the API [GH-1769]
-* `azurerm_autoscale_setting` - filtering out the `$tags` tag [GH-1770]
-* `azurerm_eventhub` - allowing underscores in the name field [GH-1768]
-* `azurerm_eventhub_authorization_rule` - allowing underscores in the name field [GH-1768]
-* `azurerm_eventhub_consumer_group` - allowing underscores in the name field [GH-1768]
+* `azurerm_application_insights` - handling a `HTTP 201` being returned from the Create API which working around a breaking change in the API ([#1769](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1769))
+* `azurerm_autoscale_setting` - filtering out the `$tags` tag ([#1770](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1770))
+* `azurerm_eventhub` - allowing underscores in the name field ([#1768](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1768))
+* `azurerm_eventhub_authorization_rule` - allowing underscores in the name field ([#1768](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1768))
+* `azurerm_eventhub_consumer_group` - allowing underscores in the name field ([#1768](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1768))
 
 ## 1.12.0 (August 03, 2018)
 
