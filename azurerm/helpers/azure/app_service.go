@@ -1,4 +1,4 @@
-package schema
+package azure
 
 import (
 	"log"
@@ -12,7 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func AppServiceSiteConfigSchema() *schema.Schema {
+func SchemaAppServiceSiteConfig() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,

@@ -1,4 +1,4 @@
-package schema
+package azure
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault"
@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 )
 
-func KeyVaultCertificatePermissionsSchema() *schema.Schema {
+func SchemaKeyVaultCertificatePermissions() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -35,7 +35,7 @@ func KeyVaultCertificatePermissionsSchema() *schema.Schema {
 	}
 }
 
-func KeyVaultKeyPermissionsSchema() *schema.Schema {
+func SchemaKeyVaultKeyPermissions() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Required: true,
@@ -64,7 +64,7 @@ func KeyVaultKeyPermissionsSchema() *schema.Schema {
 	}
 }
 
-func KeyVaultSecretPermissionsSchema() *schema.Schema {
+func SchemaKeyVaultSecretPermissions() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Required: true,

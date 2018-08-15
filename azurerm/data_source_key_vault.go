@@ -5,7 +5,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault"
 	"github.com/hashicorp/terraform/helper/schema"
-	kvschema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -142,7 +142,7 @@ func dataSourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("Error flattening `sku` for KeyVault %q: %+v", resp.Name, err)
 		}
 
-		flattenedPolicies := kvschema.FlattenKeyVaultAccessPolicies(props.AccessPolicies)
+		flattenedPolicies := azure.FlattenKeyVaultAccessPolicies(props.AccessPolicies)
 		if err := d.Set("access_policy", flattenedPolicies); err != nil {
 			return fmt.Errorf("Error flattening `access_policy` for KeyVault %q: %+v", resp.Name, err)
 		}

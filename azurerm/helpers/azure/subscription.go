@@ -1,10 +1,10 @@
-package subscription
+package azure
 
 import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-func SubscriptionSchema(subscriptionIDOptional bool) map[string]*schema.Schema {
+func SchemaSubscription(subscriptionIDOptional bool) map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"subscription_id": {
 			Type:     schema.TypeString,
