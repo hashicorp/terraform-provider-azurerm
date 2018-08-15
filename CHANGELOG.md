@@ -24,6 +24,10 @@ IMPROVEMENTS:
 * `azurerm_lb_probe` - `protocol` property now supports `Https` [GH-1742]
 * `azurerm_lb_rule` - support for the `All` protocol / adding validation [GH-1754]
 
+BUG FIXES:
+
+* `azurerm_application_insights` - handling a `HTTP 201` being returned from the Create API which working around a breaking change in the API [GH-1769]
+
 ## 1.12.0 (August 03, 2018)
 
 UPGRADE NOTES:
