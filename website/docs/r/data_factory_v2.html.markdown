@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `collaboration_branch` - (Required) Specifies the branch of the repository to get code from.
 
-* `host_name` - (Required) The GitHub Enterprise host name. For example: https://github.mydomain.com. Set to `""` for public GitHub
+* `host_name` - (Required) Specifies the GitHub Enterprise host name. For example: https://github.mydomain.com.
 
 * `repository_name` - (Required) Specifies the name of the git repository.
 
