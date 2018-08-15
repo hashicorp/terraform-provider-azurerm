@@ -29,7 +29,7 @@ func resourceArmPostgreSQLVirtualNetworkRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateSqlVirtualNetworkRuleName,
+				ValidateFunc: validatePostgreSQLVirtualNetworkRuleName,
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),

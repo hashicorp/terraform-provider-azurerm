@@ -645,6 +645,10 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	c.configureClient(&postgresqlSrvClient.Client, auth)
 	c.postgresqlServersClient = postgresqlSrvClient
 
+	postgresqlVNRClient := postgresql.NewVirtualNetworkRulesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&postgresqlVNRClient.Client, auth)
+	c.postgresqlVirtualNetworkRulesClient = postgresqlVNRClient
+
 	// SQL Azure
 	sqlDBClient := sql.NewDatabasesClientWithBaseURI(endpoint, subscriptionId)
 	setUserAgent(&sqlDBClient.Client)
