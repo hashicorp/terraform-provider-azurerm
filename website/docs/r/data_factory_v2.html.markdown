@@ -63,6 +63,8 @@ The following arguments are supported:
 
 * `root_folder` - (Required) Specifies the root folder within the repository. Set to `/` for the top level.
 
+-> **Note:** The AzureDataFactory OAuth app must have access to the GitHub account.
+
 ---
 
 `vsts_configuration` supports the following:
