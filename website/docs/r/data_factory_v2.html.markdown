@@ -53,31 +53,31 @@ The following arguments are supported:
 
 `github_configuration` supports the following:
 
-* `account_name` - (Required)
+* `account_name` - (Required) Specifies the GitHub account name.
 
-* `collaboration_branch` - (Required)
+* `collaboration_branch` - (Required) Specifies the branch of the repository to get code from.
 
-* `host_name` - (Required)
+* `host_name` - (Required) The GitHub Enterprise host name. For example: https://github.mydomain.com. Set to `""` for public GitHub
 
-* `repository_name` - (Required)
+* `repository_name` - (Required) Specifies the name of the git repository.
 
-* `root_folder` - (Required)
+* `root_folder` - (Required) Specifies the root folder within the repository. Set to `/` for the top level.
 
 ---
 
 `vsts_configuration` supports the following:
 
-* `account_name` - (Required)
+* `account_name` - (Required) Specifies the VSTS account name.
 
-* `collaboration_branch` - (Required)
+* `collaboration_branch` - (Required) Specifies the branch of the repository to get code from.
 
-* `project_name` - (Required)
+* `project_name` - (Required) Specifies the name of the VSTS project.
 
-* `repository_name` - (Required)
+* `repository_name` - (Required) Specifies the name of the git repository.
 
-* `root_folder` - (Required)
+* `root_folder` - (Required) Specifies the root folder within the repository. Set to `/` for the top level.
 
-* `tenant_id` - (Required)
+* `tenant_id` - (Required) Specifies the Tenant ID associated with the VSTS account.
 
 ## Attributes Reference
 
