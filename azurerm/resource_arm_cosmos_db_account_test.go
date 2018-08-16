@@ -62,6 +62,31 @@ func testSweepCosmosDBAccount(region string) error {
 	return nil
 }
 
+func TestAccAzureRMCosmosDBAccount_requiresImport(t *testing.T) {
+	resourceName := "azurerm_cosmosdb_account.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+	consistencyLevel := string(documentdb.Eventual)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDBAccount_basic(ri, location, consistencyLevel),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMCosmosDBAccountExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMCosmosDBAccount_requiresImport(ri, location, consistencyLevel),
+				ExpectError: testRequiresImportError("azurerm_cosmosdb_account"),
+			},
+		},
+	})
+}
+
 //consistency
 func TestAccAzureRMCosmosDBAccount_eventualConsistency(t *testing.T) {
 	ri := acctest.RandInt()
@@ -535,6 +560,29 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 }
 `, rInt, location, rInt, consistency)
+}
+
+func testAccAzureRMCosmosDBAccount_requiresImport(rInt int, location string, consistency string) string {
+	template := testAccAzureRMCosmosDBAccount_basic(rInt, location, consistency)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cosmosdb_account" "import" {
+  name                = "${azurerm_cosmosdb_account.test.name}"
+  location            = "${azurerm_cosmosdb_account.test.location}"
+  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
+  offer_type          = "Standard"
+
+  consistency_policy {
+    consistency_level = "${azurerm_cosmosdb_account.test.consistency_policy.0.consistency_level}"
+  }
+
+  geo_location {
+    location          = "${azurerm_resource_group.test.location}"
+    failover_priority = 0
+  }
+}
+`, template)
 }
 
 func testAccAzureRMCosmosDBAccount_boundedStaleness_complete(rInt int, location string) string {

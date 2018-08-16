@@ -119,6 +119,30 @@ func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMContainerGroup_requiresImport(t *testing.T) {
+	resourceName := "azurerm_container_group.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMContainerGroup_linuxBasic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerGroupExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMContainerGroup_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_container_group"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMContainerGroup_linuxBasicUpdate(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := acctest.RandInt()
@@ -285,6 +309,33 @@ resource "azurerm_container_group" "test" {
   }
 }
 `, ri, location, ri)
+}
+
+func testAccAzureRMContainerGroup_requiresImport(ri int, location string) string {
+	template := testAccAzureRMContainerGroup_linuxBasic(ri, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_group" "import" {
+  name                = "${azurerm_container_group.test.name}"
+  location            = "${azurerm_container_group.test.location}"
+  resource_group_name = "${azurerm_container_group.test.resource_group_name}"
+  ip_address_type     = "${azurerm_container_group.test.ip_address_type}"
+  os_type             = "${azurerm_container_group.test.os_type}"
+
+  container {
+    name   = "hw"
+    image  = "microsoft/aci-helloworld:latest"
+    cpu    = "0.5"
+    memory = "0.5"
+	port   = "80"
+  }
+
+  tags {
+    environment = "Testing"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMContainerGroup_imageRegistryCredentials(ri int, location string) string {

@@ -5,10 +5,11 @@ import (
 	"net/http"
 	"testing"
 
+	"strconv"
+
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"strconv"
 )
 
 func TestAccAzureRMDataLakeStoreFirewallRule_basic(t *testing.T) {
@@ -34,6 +35,34 @@ func TestAccAzureRMDataLakeStoreFirewallRule_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMDataLakeStoreFirewallRule_requiresImport(t *testing.T) {
+	resourceName := "azurerm_data_lake_store_firewall_rule.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+	startIP := "1.1.1.1"
+	endIP := "2.2.2.2"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDataLakeStoreFirewallRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDataLakeStoreFirewallRule_basic(ri, location, startIP, endIP),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataLakeStoreFirewallRuleExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "start_ip_address", startIP),
+					resource.TestCheckResourceAttr(resourceName, "end_ip_address", endIP),
+				),
+			},
+			{
+				Config:      testAccAzureRMDataLakeStoreFirewallRule_requiresImport(ri, location, startIP, endIP),
+				ExpectError: testRequiresImportError("azurerm_data_lake_store_firewall_rule"),
 			},
 		},
 	})
@@ -155,6 +184,7 @@ func testCheckAzureRMDataLakeStoreFirewallRuleDestroy(s *terraform.State) error 
 }
 
 func testAccAzureRMDataLakeStoreFirewallRule_basic(rInt int, location, startIP, endIP string) string {
+	rs := strconv.Itoa(rInt)[0:15]
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -174,5 +204,20 @@ resource "azurerm_data_lake_store_firewall_rule" "test" {
   start_ip_address    = "%s"
   end_ip_address      = "%s"
 }
-`, rInt, location, strconv.Itoa(rInt)[0:15], startIP, endIP)
+`, rInt, location, rs, startIP, endIP)
+}
+
+func testAccAzureRMDataLakeStoreFirewallRule_requiresImport(rInt int, location, startIP, endIP string) string {
+	template := testAccAzureRMDataLakeStoreFirewallRule_basic(rInt, location, startIP, endIP)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_lake_store_firewall_rule" "import" {
+  name                = "${azurerm_data_lake_store_firewall_rule.test.name}"
+  account_name        = "${azurerm_data_lake_store_firewall_rule.test.account_name}"
+  resource_group_name = "${azurerm_data_lake_store_firewall_rule.test.resource_group_name}"
+  start_ip_address    = "${azurerm_data_lake_store_firewall_rule.test.start_ip_address}"
+  end_ip_address      = "${azurerm_data_lake_store_firewall_rule.test.end_ip_address}"
+}
+`, template)
 }

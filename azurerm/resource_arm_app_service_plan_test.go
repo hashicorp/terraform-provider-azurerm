@@ -70,6 +70,7 @@ func TestAccAzureRMAppServicePlan_basicWindows(t *testing.T) {
 }
 
 func TestAccAzureRMAppServicePlan_basicLinux(t *testing.T) {
+	resourceName := "azurerm_app_service_plan.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServicePlan_basicLinux(ri, testLocation())
 
@@ -81,8 +82,31 @@ func TestAccAzureRMAppServicePlan_basicLinux(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServicePlanExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServicePlan_requiresImport(t *testing.T) {
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppServicePlan_basicLinux(ri, location),
+				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServicePlanExists("azurerm_app_service_plan.test"),
 				),
+			},
+			{
+				Config:      testAccAzureRMAppServicePlan_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_app_service_plan"),
 			},
 		},
 	})
@@ -299,6 +323,29 @@ resource "azurerm_app_service_plan" "test" {
   }
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMAppServicePlan_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMAppServicePlan_basicLinux(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_plan" "import" {
+  name                = "${azurerm_app_service_plan.test.name}"
+  location            = "${azurerm_app_service_plan.test.location}"
+  resource_group_name = "${azurerm_app_service_plan.test.resource_group_name}"
+  kind                = "${azurerm_app_service_plan.test.kind}"
+
+  sku {
+    tier = "Basic"
+    size = "B1"
+  }
+
+  properties {
+    reserved = true
+  }
+}
+`, template)
 }
 
 func testAccAzureRMAppServicePlan_standardWindows(rInt int, location string) string {

@@ -36,6 +36,31 @@ func TestAccAzureRMAutomationCredential_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAutomationCredential_requiresImport(t *testing.T) {
+	resourceName := "azurerm_automation_credential.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAutomationCredentialDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAutomationCredential_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAutomationCredentialExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "username", "test_user"),
+				),
+			},
+			{
+				Config:      testAccAzureRMAutomationCredential_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_automation_credential"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAutomationCredential_complete(t *testing.T) {
 	resourceName := "azurerm_automation_credential.test"
 	ri := acctest.RandInt()
@@ -155,6 +180,21 @@ resource "azurerm_automation_credential" "test" {
   password            = "test_pwd"
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMAutomationCredential_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMAutomationCredential_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_automation_credential" "import" {
+  name                = "${azurerm_automation_credential.test.name}"
+  resource_group_name = "${azurerm_automation_credential.test.resource_group_name}"
+  account_name        = "${azurerm_automation_credential.test.account_name}"
+  username            = "${azurerm_automation_credential.test.username}"
+  password            = "${azurerm_automation_credential.test.password}"
+}
+`, template)
 }
 
 func testAccAzureRMAutomationCredential_complete(rInt int, location string) string {

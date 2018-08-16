@@ -106,6 +106,29 @@ func TestAccAzureRMContainerRegistry_basicBasic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMContainerRegistry_requiresImport(t *testing.T) {
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMContainerRegistry_basicManaged(ri, location, "Basic"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerRegistryExists("azurerm_container_registry.test"),
+				),
+			},
+			{
+				Config:      testAccAzureRMContainerRegistry_requiresImport(ri, location, "Basic"),
+				ExpectError: testRequiresImportError("azurerm_container_registry"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMContainerRegistry_basicStandard(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Standard")
@@ -290,6 +313,20 @@ resource "azurerm_container_registry" "test" {
   sku                 = "%s"
 }
 `, rInt, location, rInt, sku)
+}
+
+func testAccAzureRMContainerRegistry_requiresImport(rInt int, location string, sku string) string {
+	template := testAccAzureRMContainerRegistry_basicManaged(rInt, location, sku)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_registry" "test" {
+  name                = "${azurerm_container_registry.test.name}"
+  resource_group_name = "${azurerm_container_registry.test.resource_group_name}"
+  location            = "${azurerm_container_registry.test.location}"
+  sku                 = "${azurerm_container_registry.test.sku}"
+}
+`, template)
 }
 
 func testAccAzureRMContainerRegistry_basicUnmanaged(rInt int, rStr string, location string, sku string) string {

@@ -30,6 +30,29 @@ func TestAccAzureRMDnsPtrRecord_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMDnsPtrRecord_requiresImport(t *testing.T) {
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDnsPtrRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDnsPtrRecord_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDnsPtrRecordExists("azurerm_dns_ptr_record.test"),
+				),
+			},
+			{
+				Config:      testAccAzureRMDnsPtrRecord_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_dns_ptr_record"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMDnsPtrRecord_updateRecords(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
@@ -170,6 +193,21 @@ resource "azurerm_dns_ptr_record" "test" {
   records             = ["hashicorp.com", "microsoft.com"]
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMDnsPtrRecord_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMDnsPtrRecord_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_dns_ptr_record" "import" {
+  name                = "${azurerm_dns_ptr_record.test.name}"
+  resource_group_name = "${azurerm_dns_ptr_record.test.resource_group_name}"
+  zone_name           = "${azurerm_dns_ptr_record.test.zone_name}"
+  ttl                 = 300
+  records             = ["hashicorp.com", "microsoft.com"]
+}
+`, template)
 }
 
 func testAccAzureRMDnsPtrRecord_updateRecords(rInt int, location string) string {

@@ -32,6 +32,29 @@ func TestAccAzureRMActiveDirectoryServicePrincipal_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMActiveDirectoryServicePrincipal_requiresImport(t *testing.T) {
+	resourceName := "azurerm_azuread_service_principal.test"
+	id := uuid.New().String()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMActiveDirectoryServicePrincipalDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMActiveDirectoryServicePrincipal_basic(id),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMActiveDirectoryServicePrincipalExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMActiveDirectoryServicePrincipal_requiresImport(id),
+				ExpectError: testRequiresImportError("azurerm_azuread_service_principal"),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMActiveDirectoryServicePrincipalExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
@@ -88,4 +111,15 @@ resource "azurerm_azuread_service_principal" "test" {
   application_id = "${azurerm_azuread_application.test.application_id}"
 }
 `, id)
+}
+
+func testAccAzureRMActiveDirectoryServicePrincipal_requiresImport(id string) string {
+	template := testAccAzureRMActiveDirectoryServicePrincipal_basic(id)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_azuread_service_principal" "import" {
+  application_id = "${azurerm_azuread_service_principal.test.application_id}"
+}
+`, template)
 }

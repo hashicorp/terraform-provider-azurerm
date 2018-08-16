@@ -33,6 +33,29 @@ func TestAccAzureRMActiveDirectoryApplication_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMActiveDirectoryApplication_requiresImport(t *testing.T) {
+	resourceName := "azurerm_azuread_application.test"
+	id := uuid.New().String()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMActiveDirectoryApplication_basic(id),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMActiveDirectoryApplicationExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMActiveDirectoryApplication_requiresImport(id),
+				ExpectError: testRequiresImportError("azurerm_azuread_application"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMActiveDirectoryApplication_availableToOtherTenants(t *testing.T) {
 	resourceName := "azurerm_azuread_application.test"
 	id := uuid.New().String()
@@ -168,6 +191,17 @@ resource "azurerm_azuread_application" "test" {
   name = "acctest%s"
 }
 `, id)
+}
+
+func testAccAzureRMActiveDirectoryApplication_requiresImport(id string) string {
+	template := testAccAzureRMActiveDirectoryApplication_basic(id)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_azuread_application" "import" {
+  name = "${azurerm_azuread_application.test.name}"
+}
+`, template)
 }
 
 func testAccAzureRMActiveDirectoryApplication_availableToOtherTenants(id string) string {

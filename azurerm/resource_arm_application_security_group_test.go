@@ -31,6 +31,30 @@ func TestAccAzureRMApplicationSecurityGroup_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMApplicationSecurityGroup_requiresImport(t *testing.T) {
+	ri := acctest.RandInt()
+	resourceName := "azurerm_application_security_group.test"
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApplicationSecurityGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApplicationSecurityGroup_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationSecurityGroupExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMApplicationSecurityGroup_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_application_security_group"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMApplicationSecurityGroup_complete(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_application_security_group.test"
@@ -153,6 +177,19 @@ resource "azurerm_application_security_group" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMApplicationSecurityGroup_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMApplicationSecurityGroup_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_application_security_group" "import" {
+  name                = "${azurerm_application_security_group.test.name}"
+  location            = "${azurerm_application_security_group.test.location}"
+  resource_group_name = "${azurerm_application_security_group.test.resource_group_name}"
+}
+`, template)
 }
 
 func testAccAzureRMApplicationSecurityGroup_complete(rInt int, location string) string {

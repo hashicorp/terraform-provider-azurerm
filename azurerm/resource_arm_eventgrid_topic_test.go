@@ -34,6 +34,29 @@ func TestAccAzureRMEventGridTopic_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMEventGridTopic_requiresImport(t *testing.T) {
+	resourceName := "azurerm_eventgrid_topic.test"
+	ri := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMEventGridTopicDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMEventGridTopic_basic(ri),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventGridTopicExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMEventGridTopic_requiresImport(ri),
+				ExpectError: testRequiresImportError("azurerm_eventgrid_topic"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMEventGridTopic_basicWithTags(t *testing.T) {
 	resourceName := "azurerm_eventgrid_topic.test"
 	ri := acctest.RandInt()
@@ -132,6 +155,19 @@ resource "azurerm_eventgrid_topic" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMEventGridTopic_requiresImport(rInt int) string {
+	template := testAccAzureRMEventGridTopic_basic(rInt)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_eventgrid_topic" "import" {
+  name                = "${azurerm_eventgrid_topic.test.name}"
+  location            = "${azurerm_eventgrid_topic.test.location}"
+  resource_group_name = "${azurerm_eventgrid_topic.test.resource_group_name}"
+}
+`, template)
 }
 
 func testAccAzureRMEventGridTopic_basicWithTags(rInt int) string {

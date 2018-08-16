@@ -41,6 +41,30 @@ func TestAccAzureRMAutomationSchedule_oneTimeBasic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAutomationSchedule_requiresImport(t *testing.T) {
+	resourceName := "azurerm_automation_schedule.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAutomationSchedule_oneTimeBasic(ri, location),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMAutomationScheduleExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMAutomationSchedule_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_automation_schedule"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAutomationSchedule_oneTimeComplete(t *testing.T) {
 	resourceName := "azurerm_automation_schedule.test"
 	ri := acctest.RandInt()
@@ -419,6 +443,20 @@ resource "azurerm_automation_schedule" "test" {
   frequency               = "OneTime"
 }
 `, template, rInt)
+}
+
+func testAccAzureRMAutomationSchedule_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMAutomationSchedule_oneTimeBasic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_automation_schedule" "import" {
+  name                    = "${azurerm_automation_schedule.test.name}"
+  resource_group_name     = "${azurerm_automation_schedule.test.resource_group_name}"
+  automation_account_name = "${azurerm_automation_schedule.test.automation_account_name}"
+  frequency               = "OneTime"
+}
+`, template)
 }
 
 func testAccAzureRMAutomationSchedule_oneTimeComplete(rInt int, location, startTime string) string {

@@ -35,6 +35,31 @@ func TestAccAzureRMAutomationAccount_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAutomationAccount_requireImport(t *testing.T) {
+	resourceName := "azurerm_automation_account.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAutomationAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAutomationAccount_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAutomationAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Basic"),
+				),
+			},
+			{
+				Config:      testAccAzureRMAutomationAccount_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_automation_account"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAutomationAccount_complete(t *testing.T) {
 	resourceName := "azurerm_automation_account.test"
 	ri := acctest.RandInt()
@@ -132,11 +157,29 @@ resource "azurerm_automation_account" "test" {
   name                = "acctest-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
   sku {
 	name = "Basic"
   }
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMAutomationAccount_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMAutomationAccount_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_automation_account" "import" {
+  name                = "${azurerm_automation_account.test.name}"
+  location            = "${azurerm_automation_account.test.location}"
+  resource_group_name = "${azurerm_automation_account.test.resource_group_name}"
+
+  sku {
+	name = "Basic"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMAutomationAccount_complete(rInt int, location string) string {

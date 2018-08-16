@@ -36,6 +36,30 @@ func TestAccAzureRMDataLakeAnalyticsAccount_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMDataLakeAnalyticsAccount_requiresImport(t *testing.T) {
+	resourceName := "azurerm_data_lake_analytics_account.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDataLakeAnalyticsAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDataLakeAnalyticsAccount_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataLakeAnalyticsAccountExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMDataLakeAnalyticsAccount_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_data_lake_analytics_account"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMDataLakeAnalyticsAccount_tier(t *testing.T) {
 	resourceName := "azurerm_data_lake_analytics_account.test"
 	ri := acctest.RandInt()
@@ -155,13 +179,26 @@ func testAccAzureRMDataLakeAnalyticsAccount_basic(rInt int, location string) str
 %s
 
 resource "azurerm_data_lake_analytics_account" "test" {
-  name                = "acctest%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-
+  name                       = "acctest%s"
+  resource_group_name        = "${azurerm_resource_group.test.name}"
+  location                   = "${azurerm_resource_group.test.location}"
   default_store_account_name = "${azurerm_data_lake_store.test.name}"
 }
 `, testAccAzureRMDataLakeStore_basic(rInt, location), strconv.Itoa(rInt)[0:15])
+}
+
+func testAccAzureRMDataLakeAnalyticsAccount_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMDataLakeStore_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_lake_analytics_account" "import" {
+  name                       = "${azurerm_data_lake_analytics_account.test.name}"
+  resource_group_name        = "${azurerm_data_lake_analytics_account.test.resource_group_name}"
+  location                   = "${azurerm_data_lake_analytics_account.test.location}"
+  default_store_account_name = "${azurerm_data_lake_analytics_account.test.default_store_account_name}"
+}
+`, template)
 }
 
 func testAccAzureRMDataLakeAnalyticsAccount_tier(rInt int, location string) string {

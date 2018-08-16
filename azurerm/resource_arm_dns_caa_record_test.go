@@ -14,7 +14,8 @@ import (
 func TestAccAzureRMDnsCaaRecord_basic(t *testing.T) {
 	resourceName := "azurerm_dns_caa_record.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMDnsCaaRecord_basic(ri, testLocation())
+	location := testLocation()
+	config := testAccAzureRMDnsCaaRecord_basic(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -26,6 +27,30 @@ func TestAccAzureRMDnsCaaRecord_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsCaaRecordExists(resourceName),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMDnsCaaRecord_requiresImport(t *testing.T) {
+	resourceName := "azurerm_dns_caa_record.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDnsCaaRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDnsCaaRecord_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDnsCaaRecordExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMDnsCaaRecord_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_dns_caa_record"),
 			},
 		},
 	})
@@ -172,7 +197,7 @@ resource "azurerm_dns_caa_record" "test" {
     flags = 0
     tag   = "issue"
     value = "example.com"
-	}
+  }
 	
   record {
     flags = 0
@@ -184,15 +209,53 @@ resource "azurerm_dns_caa_record" "test" {
     flags = 1
     tag   = "issuewild"
     value = ";"
-	}
+  }
 	
   record {
     flags = 0
     tag   = "iodef"
     value = "mailto:terraform@nonexist.tld"
-	}
+  }
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMDnsCaaRecord_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMDnsCaaRecord_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_dns_caa_record" "import" {
+  name                = "${azurerm_dns_caa_record.test.name}"
+  resource_group_name = "${azurerm_dns_caa_record.test.resource_group_name}"
+  zone_name           = "${azurerm_dns_caa_record.test.zone_name}"
+  ttl                 = 300
+
+  record {
+    flags = 0
+    tag   = "issue"
+    value = "example.com"
+  }
+	
+  record {
+    flags = 0
+    tag   = "issue"
+    value = "example.net"
+  }
+
+  record {
+    flags = 1
+    tag   = "issuewild"
+    value = ";"
+  }
+	
+  record {
+    flags = 0
+    tag   = "iodef"
+    value = "mailto:terraform@nonexist.tld"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMDnsCaaRecord_updateRecords(rInt int, location string) string {

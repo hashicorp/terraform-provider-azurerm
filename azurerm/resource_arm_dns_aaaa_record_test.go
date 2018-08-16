@@ -31,6 +31,30 @@ func TestAccAzureRMDnsAAAARecord_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMDnsAAAARecord_requiresImport(t *testing.T) {
+	resourceName := "azurerm_dns_aaaa_record.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDnsAaaaRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDnsAAAARecord_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDnsAaaaRecordExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMDnsAAAARecord_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_dns_aaaa_record"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMDnsAAAARecord_updateRecords(t *testing.T) {
 	resourceName := "azurerm_dns_aaaa_record.test"
 	ri := acctest.RandInt()
@@ -170,6 +194,21 @@ resource "azurerm_dns_aaaa_record" "test" {
   records             = ["2607:f8b0:4009:1803::1005", "2607:f8b0:4009:1803::1006"]
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMDnsAAAARecord_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMDnsAAAARecord_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_dns_aaaa_record" "import" {
+  name                = "${azurerm_dns_aaaa_record.test.name}"
+  resource_group_name = "${azurerm_dns_aaaa_record.test.resource_group_name}"
+  zone_name           = "${azurerm_dns_aaaa_record.test.zone_name}"
+  ttl                 = 300
+  records             = ["2607:f8b0:4009:1803::1005", "2607:f8b0:4009:1803::1006"]
+}
+`, template)
 }
 
 func testAccAzureRMDnsAAAARecord_updateRecords(rInt int, location string) string {

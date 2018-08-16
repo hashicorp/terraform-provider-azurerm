@@ -31,6 +31,30 @@ func TestAccAzureRMDnsMxRecord_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMDnsMxRecord_requiresImport(t *testing.T) {
+	resourceName := "azurerm_dns_mx_record.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDnsMxRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDnsMxRecord_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDnsMxRecordExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMDnsMxRecord_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_dns_mx_record"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMDnsMxRecord_updateRecords(t *testing.T) {
 	resourceName := "azurerm_dns_mx_record.test"
 	ri := acctest.RandInt()
@@ -179,6 +203,30 @@ resource "azurerm_dns_mx_record" "test" {
   }
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMDnsMxRecord_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMDnsMxRecord_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_dns_mx_record" "import" {
+  name                = "${azurerm_dns_mx_record.test.name}"
+  resource_group_name = "${azurerm_dns_mx_record.test.resource_group_name}"
+  zone_name           = "${azurerm_dns_mx_record.test.zone_name}"
+  ttl                 = 300
+
+  record {
+    preference = "10"
+    exchange   = "mail1.contoso.com"
+  }
+
+  record {
+    preference = "20"
+    exchange   = "mail2.contoso.com"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMDnsMxRecord_updateRecords(rInt int, location string) string {

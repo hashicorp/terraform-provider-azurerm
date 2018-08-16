@@ -38,6 +38,30 @@ func TestAccAzureRMDataLakeStore_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMDataLakeStore_requiresImport(t *testing.T) {
+	resourceName := "azurerm_data_lake_store.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDataLakeStore_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataLakeStoreExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMDataLakeStore_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_data_lake_store"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMDataLakeStore_tier(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
 	ri := acctest.RandInt()
@@ -225,6 +249,7 @@ func testCheckAzureRMDataLakeStoreDestroy(s *terraform.State) error {
 }
 
 func testAccAzureRMDataLakeStore_basic(rInt int, location string) string {
+	rs := strconv.Itoa(rInt)[0:15]
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -236,7 +261,20 @@ resource "azurerm_data_lake_store" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
 }
-`, rInt, location, strconv.Itoa(rInt)[0:15])
+`, rInt, location, rs)
+}
+
+func testAccAzureRMDataLakeStore_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMDataLakeStore_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_lake_store" "import" {
+  name                = "${azurerm_data_lake_store.test.name}"
+  resource_group_name = "${azurerm_data_lake_store.test.resource_group_name}"
+  location            = "${azurerm_data_lake_store.test.location}"
+}
+`, template)
 }
 
 func testAccAzureRMDataLakeStore_tier(rInt int, location string) string {
