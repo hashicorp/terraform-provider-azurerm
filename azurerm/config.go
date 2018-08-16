@@ -38,6 +38,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi"
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/management"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
@@ -53,6 +54,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
+
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
@@ -164,6 +166,10 @@ type ArmClient struct {
 
 	// Logic
 	logicWorkflowsClient logic.WorkflowsClient
+
+	// Management Groups
+	managementGroupsClient             managementgroups.Client
+	managementGroupsSubscriptionClient managementgroups.SubscriptionsClient
 
 	// Monitor
 	actionGroupsClient      insights.ActionGroupsClient
@@ -428,6 +434,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerOperationalInsightsClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerRecoveryServiceClients(endpoint, c.SubscriptionID, auth)
 	client.registerPolicyClients(endpoint, c.SubscriptionID, auth)
+	client.registerManagementGroupClients(endpoint, auth)
 	client.registerRedisClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerRelayClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerResourcesClients(endpoint, c.SubscriptionID, auth)
@@ -1037,6 +1044,16 @@ func (c *ArmClient) registerPolicyClients(endpoint, subscriptionId string, auth 
 	policyDefinitionsClient := policy.NewDefinitionsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&policyDefinitionsClient.Client, auth)
 	c.policyDefinitionsClient = policyDefinitionsClient
+}
+
+func (c *ArmClient) registerManagementGroupClients(endpoint string, auth autorest.Authorizer) {
+	managementGroupsClient := managementgroups.NewClientWithBaseURI(endpoint)
+	c.configureClient(&managementGroupsClient.Client, auth)
+	c.managementGroupsClient = managementGroupsClient
+
+	managementGroupsSubscriptionClient := managementgroups.NewSubscriptionsClientWithBaseURI(endpoint)
+	c.configureClient(&managementGroupsSubscriptionClient.Client, auth)
+	c.managementGroupsSubscriptionClient = managementGroupsSubscriptionClient
 }
 
 var (

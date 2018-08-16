@@ -196,6 +196,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_logic_app_workflow":                      resourceArmLogicAppWorkflow(),
 			"azurerm_managed_disk":                            resourceArmManagedDisk(),
 			"azurerm_management_lock":                         resourceArmManagementLock(),
+			"azurerm_management_group":                        resourceManagementGroup(),
 			"azurerm_metric_alertrule":                        resourceArmMetricAlertRule(),
 			"azurerm_monitor_action_group":                    resourceArmMonitorActionGroup(),
 			"azurerm_mysql_configuration":                     resourceArmMySQLConfiguration(),
