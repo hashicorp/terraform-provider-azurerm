@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -38,13 +39,13 @@ func resourceArmPostgreSQLVirtualNetworkRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NonZeroValues,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"subnet_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.NonZeroValues,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"ignore_missing_vnet_service_endpoint": {
