@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"strconv"
 	"testing"
 	"time"
 
@@ -12,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMAutomationSchedule_oneTime_basic(t *testing.T) {
+func TestAccAzureRMAutomationSchedule_oneTimeBasic(t *testing.T) {
 	resourceName := "azurerm_automation_schedule.test"
 	ri := acctest.RandInt()
 
@@ -22,8 +21,16 @@ func TestAccAzureRMAutomationSchedule_oneTime_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationSchedule_oneTime_basic(ri, testLocation()),
-				Check:  checkAccAzureRMAutomationSchedule_oneTime_basic(resourceName),
+				Config: testAccAzureRMAutomationSchedule_oneTimeBasic(ri, testLocation()),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMAutomationScheduleExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "name"),
+					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "automation_account_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "start_time"),
+					resource.TestCheckResourceAttr(resourceName, "frequency", "OneTime"),
+					resource.TestCheckResourceAttr(resourceName, "timezone", "UTC"),
+				),
 			},
 			{
 				ResourceName:      resourceName,
@@ -34,7 +41,7 @@ func TestAccAzureRMAutomationSchedule_oneTime_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationSchedule_oneTime_complete(t *testing.T) {
+func TestAccAzureRMAutomationSchedule_oneTimeComplete(t *testing.T) {
 	resourceName := "azurerm_automation_schedule.test"
 	ri := acctest.RandInt()
 
@@ -49,8 +56,17 @@ func TestAccAzureRMAutomationSchedule_oneTime_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationSchedule_oneTime_complete(ri, testLocation(), startTime),
-				Check:  checkAccAzureRMAutomationSchedule_oneTime_complete(resourceName, startTime),
+				Config: testAccAzureRMAutomationSchedule_oneTimeComplete(ri, testLocation(), startTime),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMAutomationScheduleExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "name"),
+					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "automation_account_name"),
+					resource.TestCheckResourceAttr(resourceName, "frequency", "OneTime"),
+					resource.TestCheckResourceAttr(resourceName, "start_time", startTime),
+					resource.TestCheckResourceAttr(resourceName, "timezone", "Central Europe Standard Time"),
+					resource.TestCheckResourceAttr(resourceName, "description", "This is an automation schedule"),
+				),
 			},
 			{
 				ResourceName:      resourceName,
@@ -61,7 +77,7 @@ func TestAccAzureRMAutomationSchedule_oneTime_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationSchedule_oneTime_update(t *testing.T) {
+func TestAccAzureRMAutomationSchedule_oneTimeUpdate(t *testing.T) {
 	resourceName := "azurerm_automation_schedule.test"
 	ri := acctest.RandInt()
 
@@ -76,18 +92,35 @@ func TestAccAzureRMAutomationSchedule_oneTime_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationSchedule_oneTime_basic(ri, testLocation()),
-				Check:  checkAccAzureRMAutomationSchedule_oneTime_basic(resourceName),
+				Config: testAccAzureRMAutomationSchedule_oneTimeBasic(ri, testLocation()),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMAutomationScheduleExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "name"),
+					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "automation_account_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "start_time"),
+					resource.TestCheckResourceAttr(resourceName, "frequency", "OneTime"),
+					resource.TestCheckResourceAttr(resourceName, "timezone", "UTC"),
+				),
 			},
 			{
-				Config: testAccAzureRMAutomationSchedule_oneTime_complete(ri, testLocation(), startTime),
-				Check:  checkAccAzureRMAutomationSchedule_oneTime_complete(resourceName, startTime),
+				Config: testAccAzureRMAutomationSchedule_oneTimeComplete(ri, testLocation(), startTime),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMAutomationScheduleExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "name"),
+					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "automation_account_name"),
+					resource.TestCheckResourceAttr(resourceName, "frequency", "OneTime"),
+					resource.TestCheckResourceAttr(resourceName, "start_time", startTime),
+					resource.TestCheckResourceAttr(resourceName, "timezone", "Central Europe Standard Time"),
+					resource.TestCheckResourceAttr(resourceName, "description", "This is an automation schedule"),
+				),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMAutomationSchedule_hourly(t *testing.T) {
+func TestAccAzureRMAutomationSchedule_recurringHourly(t *testing.T) {
 	resourceName := "azurerm_automation_schedule.test"
 	ri := acctest.RandInt()
 
@@ -97,8 +130,17 @@ func TestAccAzureRMAutomationSchedule_hourly(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationSchedule_recurring_basic(ri, testLocation(), "Hour", 7),
-				Check:  checkAccAzureRMAutomationSchedule_recurring_basic(resourceName, "Hour", 7),
+				Config: testAccAzureRMAutomationSchedule_recurringBasic(ri, testLocation(), "Hour", 7),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMAutomationScheduleExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "name"),
+					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "automation_account_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "start_time"),
+					resource.TestCheckResourceAttr(resourceName, "frequency", "Hour"),
+					resource.TestCheckResourceAttr(resourceName, "interval", "7"),
+					resource.TestCheckResourceAttr(resourceName, "timezone", "UTC"),
+				),
 			},
 			{
 				ResourceName:      resourceName,
@@ -109,7 +151,7 @@ func TestAccAzureRMAutomationSchedule_hourly(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationSchedule_daily(t *testing.T) {
+func TestAccAzureRMAutomationSchedule_recurringDaily(t *testing.T) {
 	resourceName := "azurerm_automation_schedule.test"
 	ri := acctest.RandInt()
 
@@ -119,8 +161,17 @@ func TestAccAzureRMAutomationSchedule_daily(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationSchedule_recurring_basic(ri, testLocation(), "Day", 7),
-				Check:  checkAccAzureRMAutomationSchedule_recurring_basic(resourceName, "Day", 7),
+				Config: testAccAzureRMAutomationSchedule_recurringBasic(ri, testLocation(), "Day", 7),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMAutomationScheduleExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "name"),
+					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "automation_account_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "start_time"),
+					resource.TestCheckResourceAttr(resourceName, "frequency", "Day"),
+					resource.TestCheckResourceAttr(resourceName, "interval", "7"),
+					resource.TestCheckResourceAttr(resourceName, "timezone", "UTC"),
+				),
 			},
 			{
 				ResourceName:      resourceName,
@@ -131,7 +182,7 @@ func TestAccAzureRMAutomationSchedule_daily(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationSchedule_weekly(t *testing.T) {
+func TestAccAzureRMAutomationSchedule_recurringWeekly(t *testing.T) {
 	resourceName := "azurerm_automation_schedule.test"
 	ri := acctest.RandInt()
 
@@ -141,8 +192,17 @@ func TestAccAzureRMAutomationSchedule_weekly(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationSchedule_recurring_basic(ri, testLocation(), "Week", 7),
-				Check:  checkAccAzureRMAutomationSchedule_recurring_basic(resourceName, "Week", 7),
+				Config: testAccAzureRMAutomationSchedule_recurringBasic(ri, testLocation(), "Week", 7),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMAutomationScheduleExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "name"),
+					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "automation_account_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "start_time"),
+					resource.TestCheckResourceAttr(resourceName, "frequency", "Week"),
+					resource.TestCheckResourceAttr(resourceName, "interval", "7"),
+					resource.TestCheckResourceAttr(resourceName, "timezone", "UTC"),
+				),
 			},
 			{
 				ResourceName:      resourceName,
@@ -153,7 +213,7 @@ func TestAccAzureRMAutomationSchedule_weekly(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationSchedule_monthly(t *testing.T) {
+func TestAccAzureRMAutomationSchedule_recurringMonthly(t *testing.T) {
 	resourceName := "azurerm_automation_schedule.test"
 	ri := acctest.RandInt()
 
@@ -163,8 +223,17 @@ func TestAccAzureRMAutomationSchedule_monthly(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationSchedule_recurring_basic(ri, testLocation(), "Month", 7),
-				Check:  checkAccAzureRMAutomationSchedule_recurring_basic(resourceName, "Month", 7),
+				Config: testAccAzureRMAutomationSchedule_recurringBasic(ri, testLocation(), "Month", 7),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMAutomationScheduleExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "name"),
+					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "automation_account_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "start_time"),
+					resource.TestCheckResourceAttr(resourceName, "frequency", "Month"),
+					resource.TestCheckResourceAttr(resourceName, "interval", "7"),
+					resource.TestCheckResourceAttr(resourceName, "timezone", "UTC"),
+				),
 			},
 			{
 				ResourceName:      resourceName,
@@ -175,7 +244,7 @@ func TestAccAzureRMAutomationSchedule_monthly(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationSchedule_weekly_advanced(t *testing.T) {
+func TestAccAzureRMAutomationSchedule_weeklyAdvanced(t *testing.T) {
 	resourceName := "azurerm_automation_schedule.test"
 	ri := acctest.RandInt()
 
@@ -185,8 +254,18 @@ func TestAccAzureRMAutomationSchedule_weekly_advanced(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationSchedule_recurring_advanced_week(ri, testLocation(), "Monday"),
-				Check:  checkAccAzureRMAutomationSchedule_recurring_advanced_week(resourceName, "Monday"),
+				Config: testAccAzureRMAutomationSchedule_recurringAdvancedWeek(ri, testLocation(), "Monday"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMAutomationScheduleExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "name"),
+					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "automation_account_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "start_time"),
+					resource.TestCheckResourceAttr(resourceName, "frequency", "Week"),
+					resource.TestCheckResourceAttr(resourceName, "interval", "1"),
+					resource.TestCheckResourceAttr(resourceName, "timezone", "UTC"),
+					resource.TestCheckResourceAttr(resourceName, "week_days.#", "1"),
+				),
 			},
 			{
 				ResourceName:      resourceName,
@@ -197,7 +276,7 @@ func TestAccAzureRMAutomationSchedule_weekly_advanced(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationSchedule_monthly_advanced_by_day(t *testing.T) {
+func TestAccAzureRMAutomationSchedule_monthlyAdvancedByDay(t *testing.T) {
 	resourceName := "azurerm_automation_schedule.test"
 	ri := acctest.RandInt()
 
@@ -207,8 +286,18 @@ func TestAccAzureRMAutomationSchedule_monthly_advanced_by_day(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationSchedule_recurring_advanced_month(ri, testLocation(), 2),
-				Check:  checkAccAzureRMAutomationSchedule_recurring_advanced_month(resourceName, 2),
+				Config: testAccAzureRMAutomationSchedule_recurringAdvancedMonth(ri, testLocation(), 2),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMAutomationScheduleExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "name"),
+					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "automation_account_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "start_time"),
+					resource.TestCheckResourceAttr(resourceName, "frequency", "Month"),
+					resource.TestCheckResourceAttr(resourceName, "interval", "1"),
+					resource.TestCheckResourceAttr(resourceName, "timezone", "UTC"),
+					resource.TestCheckResourceAttr(resourceName, "month_days.#", "1"),
+				),
 			},
 			{
 				ResourceName:      resourceName,
@@ -219,7 +308,7 @@ func TestAccAzureRMAutomationSchedule_monthly_advanced_by_day(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationSchedule_monthly_advanced_by_week_day(t *testing.T) {
+func TestAccAzureRMAutomationSchedule_monthlyAdvancedByWeekday(t *testing.T) {
 	resourceName := "azurerm_automation_schedule.test"
 	ri := acctest.RandInt()
 
@@ -229,8 +318,20 @@ func TestAccAzureRMAutomationSchedule_monthly_advanced_by_week_day(t *testing.T)
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationSchedule_recurring_advanced_month_week_day(ri, testLocation(), "Monday", 2),
-				Check:  checkAccAzureRMAutomationSchedule_recurring_advanced_month_week_day(resourceName, "Monday", 2),
+				Config: testAccAzureRMAutomationSchedule_recurringAdvancedMonthWeekDay(ri, testLocation(), "Monday", 2),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMAutomationScheduleExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "name"),
+					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "automation_account_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "start_time"),
+					resource.TestCheckResourceAttr(resourceName, "frequency", "Month"),
+					resource.TestCheckResourceAttr(resourceName, "interval", "1"),
+					resource.TestCheckResourceAttr(resourceName, "timezone", "UTC"),
+					resource.TestCheckResourceAttr(resourceName, "monthly_occurrence.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "monthly_occurrence.0.day", "Monday"),
+					resource.TestCheckResourceAttr(resourceName, "monthly_occurrence.0.occurrence", "2"),
+				),
 			},
 			{
 				ResourceName:      resourceName,
@@ -306,26 +407,8 @@ func testCheckAzureRMAutomationScheduleExists(name string) resource.TestCheckFun
 	}
 }
 
-func testAccAzureRMAutomationSchedule_prerequisites(rInt int, location string) string {
-	return fmt.Sprintf(` 
-resource "azurerm_resource_group" "test" { 
-  name     = "acctestRG-%d" 
-  location = "%s" 
-} 
- 
-resource "azurerm_automation_account" "test" { 
-  name                = "acctestAA-%d" 
-  location            = "${azurerm_resource_group.test.location}" 
-  resource_group_name = "${azurerm_resource_group.test.name}" 
-  sku { 
-    name = "Basic" 
-  } 
-}
-
-`, rInt, location, rInt)
-}
-
-func testAccAzureRMAutomationSchedule_oneTime_basic(rInt int, location string) string {
+func testAccAzureRMAutomationSchedule_oneTimeBasic(rInt int, location string) string {
+	template := testAccAzureRMAutomationSchedule_template(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -335,22 +418,11 @@ resource "azurerm_automation_schedule" "test" {
   automation_account_name = "${azurerm_automation_account.test.name}"
   frequency               = "OneTime"
 }
-`, testAccAzureRMAutomationSchedule_prerequisites(rInt, location), rInt)
+`, template, rInt)
 }
 
-func checkAccAzureRMAutomationSchedule_oneTime_basic(resourceName string) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		testCheckAzureRMAutomationScheduleExists("azurerm_automation_schedule.test"),
-		resource.TestCheckResourceAttrSet(resourceName, "name"),
-		resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
-		resource.TestCheckResourceAttrSet(resourceName, "automation_account_name"),
-		resource.TestCheckResourceAttrSet(resourceName, "start_time"),
-		resource.TestCheckResourceAttr(resourceName, "frequency", "OneTime"),
-		resource.TestCheckResourceAttr(resourceName, "timezone", "UTC"),
-	)
-}
-
-func testAccAzureRMAutomationSchedule_oneTime_complete(rInt int, location, startTime string) string {
+func testAccAzureRMAutomationSchedule_oneTimeComplete(rInt int, location, startTime string) string {
+	template := testAccAzureRMAutomationSchedule_template(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -363,23 +435,10 @@ resource "azurerm_automation_schedule" "test" {
   timezone                = "Central Europe Standard Time" 
   description             = "This is an automation schedule"
 }
-`, testAccAzureRMAutomationSchedule_prerequisites(rInt, location), rInt, startTime)
+`, template, rInt, startTime)
 }
 
-func checkAccAzureRMAutomationSchedule_oneTime_complete(resourceName, startTime string) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		testCheckAzureRMAutomationScheduleExists(resourceName),
-		resource.TestCheckResourceAttrSet(resourceName, "name"),
-		resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
-		resource.TestCheckResourceAttrSet(resourceName, "automation_account_name"),
-		resource.TestCheckResourceAttr(resourceName, "frequency", "OneTime"),
-		resource.TestCheckResourceAttr(resourceName, "start_time", startTime),
-		resource.TestCheckResourceAttr(resourceName, "timezone", "Central Europe Standard Time"),
-		resource.TestCheckResourceAttr(resourceName, "description", "This is an automation schedule"),
-	)
-}
-
-func testAccAzureRMAutomationSchedule_recurring_basic(rInt int, location, frequency string, interval int) string {
+func testAccAzureRMAutomationSchedule_recurringBasic(rInt int, location, frequency string, interval int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -390,23 +449,10 @@ resource "azurerm_automation_schedule" "test" {
   frequency               = "%s"
   interval                = "%d"
 }
-`, testAccAzureRMAutomationSchedule_prerequisites(rInt, location), rInt, frequency, interval)
+`, testAccAzureRMAutomationSchedule_template(rInt, location), rInt, frequency, interval)
 }
 
-func checkAccAzureRMAutomationSchedule_recurring_basic(resourceName string, frequency string, interval int) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		testCheckAzureRMAutomationScheduleExists("azurerm_automation_schedule.test"),
-		resource.TestCheckResourceAttrSet(resourceName, "name"),
-		resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
-		resource.TestCheckResourceAttrSet(resourceName, "automation_account_name"),
-		resource.TestCheckResourceAttrSet(resourceName, "start_time"),
-		resource.TestCheckResourceAttr(resourceName, "frequency", frequency),
-		resource.TestCheckResourceAttr(resourceName, "interval", strconv.Itoa(interval)),
-		resource.TestCheckResourceAttr(resourceName, "timezone", "UTC"),
-	)
-}
-
-func testAccAzureRMAutomationSchedule_recurring_advanced_week(rInt int, location string, weekDay string) string {
+func testAccAzureRMAutomationSchedule_recurringAdvancedWeek(rInt int, location string, weekDay string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -418,24 +464,11 @@ resource "azurerm_automation_schedule" "test" {
   interval                = "1"
   week_days               = ["%s"]
 }	
-`, testAccAzureRMAutomationSchedule_prerequisites(rInt, location), rInt, weekDay)
+`, testAccAzureRMAutomationSchedule_template(rInt, location), rInt, weekDay)
 }
 
-func checkAccAzureRMAutomationSchedule_recurring_advanced_week(resourceName string, weekDay string) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		testCheckAzureRMAutomationScheduleExists("azurerm_automation_schedule.test"),
-		resource.TestCheckResourceAttrSet(resourceName, "name"),
-		resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
-		resource.TestCheckResourceAttrSet(resourceName, "automation_account_name"),
-		resource.TestCheckResourceAttrSet(resourceName, "start_time"),
-		resource.TestCheckResourceAttr(resourceName, "frequency", "Week"),
-		resource.TestCheckResourceAttr(resourceName, "interval", "1"),
-		resource.TestCheckResourceAttr(resourceName, "timezone", "UTC"),
-		resource.TestCheckResourceAttr(resourceName, "week_days.#", "1"),
-	)
-}
-
-func testAccAzureRMAutomationSchedule_recurring_advanced_month(rInt int, location string, monthDay int) string {
+func testAccAzureRMAutomationSchedule_recurringAdvancedMonth(rInt int, location string, monthDay int) string {
+	template := testAccAzureRMAutomationSchedule_template(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -447,25 +480,11 @@ resource "azurerm_automation_schedule" "test" {
   interval                = "1"
   month_days              = [%d]
 }	
-`, testAccAzureRMAutomationSchedule_prerequisites(rInt, location), rInt, monthDay)
+`, template, rInt, monthDay)
 }
 
-func checkAccAzureRMAutomationSchedule_recurring_advanced_month(resourceName string, monthDay int) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		testCheckAzureRMAutomationScheduleExists("azurerm_automation_schedule.test"),
-		resource.TestCheckResourceAttrSet(resourceName, "name"),
-		resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
-		resource.TestCheckResourceAttrSet(resourceName, "automation_account_name"),
-		resource.TestCheckResourceAttrSet(resourceName, "start_time"),
-		resource.TestCheckResourceAttr(resourceName, "frequency", "Month"),
-		resource.TestCheckResourceAttr(resourceName, "interval", "1"),
-		resource.TestCheckResourceAttr(resourceName, "timezone", "UTC"),
-		resource.TestCheckResourceAttr(resourceName, "month_days.#", "1"),
-	)
-}
-
-func testAccAzureRMAutomationSchedule_recurring_advanced_month_week_day(rInt int, location string, weekDay string, weekDayOccurrence int) string {
-
+func testAccAzureRMAutomationSchedule_recurringAdvancedMonthWeekDay(rInt int, location string, weekDay string, weekDayOccurrence int) string {
+	template := testAccAzureRMAutomationSchedule_template(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -481,21 +500,23 @@ resource "azurerm_automation_schedule" "test" {
 	occurrence = "%d"
   }
 }	
-`, testAccAzureRMAutomationSchedule_prerequisites(rInt, location), rInt, weekDay, weekDayOccurrence)
+`, template, rInt, weekDay, weekDayOccurrence)
 }
 
-func checkAccAzureRMAutomationSchedule_recurring_advanced_month_week_day(resourceName string, monthWeekDay string, monthWeekOccurrence int) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		testCheckAzureRMAutomationScheduleExists("azurerm_automation_schedule.test"),
-		resource.TestCheckResourceAttrSet(resourceName, "name"),
-		resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
-		resource.TestCheckResourceAttrSet(resourceName, "automation_account_name"),
-		resource.TestCheckResourceAttrSet(resourceName, "start_time"),
-		resource.TestCheckResourceAttr(resourceName, "frequency", "Month"),
-		resource.TestCheckResourceAttr(resourceName, "interval", "1"),
-		resource.TestCheckResourceAttr(resourceName, "timezone", "UTC"),
-		resource.TestCheckResourceAttr(resourceName, "monthly_occurrence.#", "1"),
-		resource.TestCheckResourceAttr(resourceName, "monthly_occurrence.0.day", monthWeekDay),
-		resource.TestCheckResourceAttr(resourceName, "monthly_occurrence.0.occurrence", strconv.Itoa(monthWeekOccurrence)),
-	)
+func testAccAzureRMAutomationSchedule_template(rInt int, location string) string {
+	return fmt.Sprintf(` 
+resource "azurerm_resource_group" "test" { 
+  name     = "acctestRG-%d" 
+  location = "%s" 
+} 
+ 
+resource "azurerm_automation_account" "test" { 
+  name                = "acctestAA-%d" 
+  location            = "${azurerm_resource_group.test.location}" 
+  resource_group_name = "${azurerm_resource_group.test.name}" 
+  sku { 
+    name = "Basic" 
+  } 
+}
+`, rInt, location, rInt)
 }
