@@ -18,12 +18,34 @@ func TestAccAzureRMManagementGroup_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
+		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRmManagementGroup_basic(ri),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagementGroupExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMManagementGroup_withSubscriptions(t *testing.T) {
+	resourceName := "azurerm_management_group.test"
+
+	ri := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAzureRmManagementGroup_withSubscriptions(ri),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMManagementGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "subscription_ids.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "subscription_ids.#", "00000000-1111-2222-3333-444444444444"),
 				),
 			},
 		},
@@ -37,12 +59,13 @@ func testCheckAzureRMManagementGroupExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("not found: %s", name)
 		}
 
-		policyName := rs.Primary.Attributes["name"]
+		name := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).policyDefinitionsClient
+		client := testAccProvider.Meta().(*ArmClient).managementGroupsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(ctx, policyName)
+		recurse := false
+		resp, err := client.Get(ctx, name, "", &recurse, "", "no-cache")
 		if err != nil {
 			return fmt.Errorf("Bad: Get on policyDefinitionsClient: %s", err)
 		}
@@ -84,6 +107,17 @@ func testAzureRmManagementGroup_basic(ri int) string {
 	return fmt.Sprintf(`
 resource "azurerm_management_group" "test" {
   name         = "acctestmg-%d"
+}
+`, ri)
+}
+
+func testAzureRmManagementGroup_withSubscriptions(ri int) string {
+	return fmt.Sprintf(`
+resource "azurerm_management_group" "test" {
+  name         = "acctestmg-%d"
+  subscription_ids = [
+	  "00000000-1111-2222-3333-444444444444"
+  ]
 }
 `, ri)
 }
