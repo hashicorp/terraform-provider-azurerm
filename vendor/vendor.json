@@ -1614,5 +1614,5 @@
 			"versionExact": "v1.6.1"
 		}
 	],
-	"rootPath": "github.com/hiscox/terraform-provider-azurerm"
+	"rootPath": "github.com/terraform-providers/terraform-provider-azurerm"
 }
