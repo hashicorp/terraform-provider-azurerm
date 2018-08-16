@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	uuid "github.com/satori/go.uuid"
-	azschema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/schema"
+	"github.com/satori/go.uuid"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -97,9 +97,9 @@ func resourceArmKeyVault() *schema.Resource {
 							Optional:     true,
 							ValidateFunc: validateUUID,
 						},
-						"certificate_permissions": azschema.KeyVaultCertificatePermissionsSchema(),
-						"key_permissions":         azschema.KeyVaultKeyPermissionsSchema(),
-						"secret_permissions":      azschema.KeyVaultSecretPermissionsSchema(),
+						"certificate_permissions": azure.SchemaKeyVaultCertificatePermissions(),
+						"key_permissions":         azure.SchemaKeyVaultKeyPermissions(),
+						"secret_permissions":      azure.SchemaKeyVaultSecretPermissions(),
 					},
 				},
 			},
@@ -139,7 +139,7 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	tags := d.Get("tags").(map[string]interface{})
 
 	policies := d.Get("access_policy").([]interface{})
-	accessPolicies, err := azschema.ExpandKeyVaultAccessPolicies(policies)
+	accessPolicies, err := azure.ExpandKeyVaultAccessPolicies(policies)
 	if err != nil {
 		return fmt.Errorf("Error expanding `access_policy`: %+v", policies)
 	}
@@ -236,7 +236,7 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("Error flattening `sku` for KeyVault %q: %+v", resp.Name, err)
 		}
 
-		flattenedPolicies := azschema.FlattenKeyVaultAccessPolicies(props.AccessPolicies)
+		flattenedPolicies := azure.FlattenKeyVaultAccessPolicies(props.AccessPolicies)
 		if err := d.Set("access_policy", flattenedPolicies); err != nil {
 			return fmt.Errorf("Error flattening `access_policy` for KeyVault %q: %+v", resp.Name, err)
 		}
