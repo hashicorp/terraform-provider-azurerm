@@ -1,11 +1,14 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -18,9 +21,13 @@ func resourceArmRecoveryServicesVault() *schema.Resource {
 		Read:   resourceArmRecoveryServicesVaultRead,
 		Update: resourceArmRecoveryServicesVaultCreateUpdate,
 		Delete: resourceArmRecoveryServicesVaultDelete,
-
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -58,13 +65,27 @@ func resourceArmRecoveryServicesVaultCreateUpdate(d *schema.ResourceData, meta i
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of Recovery Services Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_recovery_services_vault", *resp.ID)
+		}
+	}
+
+	location := d.Get("location").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
 	log.Printf("[DEBUG] Creating/updating Recovery Service Vault %q (resource group %q)", name, resourceGroup)
 
-	//build vault struct
 	vault := recoveryservices.Vault{
 		Location: utils.String(location),
 		Tags:     expandTags(tags),
@@ -74,13 +95,19 @@ func resourceArmRecoveryServicesVaultCreateUpdate(d *schema.ResourceData, meta i
 		Properties: &recoveryservices.VaultProperties{},
 	}
 
-	//create recovery services vault
-	vault, err := client.CreateOrUpdate(ctx, resourceGroup, name, vault)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	_, err := client.CreateOrUpdate(waitCtx, resourceGroup, name, vault)
 	if err != nil {
 		return fmt.Errorf("Error creating/updating Recovery Service Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	d.SetId(*vault.ID)
+	read, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Recovery Services Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	d.SetId(*read.ID)
 
 	return resourceArmRecoveryServicesVaultRead(d, meta)
 }
@@ -137,8 +164,9 @@ func resourceArmRecoveryServicesVaultDelete(d *schema.ResourceData, meta interfa
 	resourceGroup := id.ResourceGroup
 
 	log.Printf("[DEBUG] Deleting Recovery Service Vault %q (resource group %q)", name, resourceGroup)
-
-	resp, err := client.Delete(ctx, resourceGroup, name)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	resp, err := client.Delete(waitCtx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return fmt.Errorf("Error issuing delete request for Recovery Service Vault %q (Resource Group %q): %+v", name, resourceGroup, err)

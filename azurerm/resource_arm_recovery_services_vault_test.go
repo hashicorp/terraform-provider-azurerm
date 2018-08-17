@@ -38,6 +38,30 @@ func TestAccAzureRMRecoveryServicesVault_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMRecoveryServicesVault_requiresImport(t *testing.T) {
+	resourceName := "azurerm_recovery_services_vault.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRecoveryServicesVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRecoveryServicesVault_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRecoveryServicesVaultExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMRecoveryServicesVault_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_recovery_services_vault"),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMRecoveryServicesVaultDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_recovery_services_vault" {
@@ -101,14 +125,27 @@ func testAccAzureRMRecoveryServicesVault_basic(rInt int, location string) string
 resource "azurerm_resource_group" "test" { 
   name     = "acctestRG-%d" 
   location = "%s" 
-} 
+}
 
 resource "azurerm_recovery_services_vault" "test" {
-    name                = "acctest-%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku                 = "Standard"
+  name                = "acctest-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
 }
- 
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMRecoveryServicesVault_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMRecoveryServicesVault_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_recovery_services_vault" "import" {
+  name                = "${azurerm_recovery_services_vault.test.name}"
+  location            = "${azurerm_recovery_services_vault.test.location}"
+  resource_group_name = "${azurerm_recovery_services_vault.test.resource_group_name}"
+  sku                 = "${azurerm_recovery_services_vault.test.sku}"
+}
+`, template)
 }
