@@ -30,6 +30,30 @@ func TestAccAzureRMKeyVaultKey_basicEC(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKeyVaultKey_requiresImport(t *testing.T) {
+	resourceName := "azurerm_key_vault_key.test"
+	rs := acctest.RandString(6)
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVaultKey_basicEC(rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultKeyExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMKeyVaultKey_requiresImport(rs, location),
+				ExpectError: testRequiresImportError("azurerm_key_vault_key"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMKeyVaultKey_basicRSA(t *testing.T) {
 	resourceName := "azurerm_key_vault_key.test"
 	rs := acctest.RandString(6)
@@ -299,6 +323,25 @@ resource "azurerm_key_vault_key" "test" {
   ]
 }
 `, rString, location, rString, rString)
+}
+
+func testAccAzureRMKeyVaultKey_requiresImport(rString string, location string) string {
+	template := testAccAzureRMKeyVaultKey_basicEC(rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_key_vault_key" "import" {
+  name      = "${azurerm_key_vault_key.test.name}"
+  vault_uri = "${azurerm_key_vault_key.test.vault_uri}"
+  key_type  = "EC"
+  key_size  = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+}
+`, template)
 }
 
 func testAccAzureRMKeyVaultKey_basicRSA(rString string, location string) string {

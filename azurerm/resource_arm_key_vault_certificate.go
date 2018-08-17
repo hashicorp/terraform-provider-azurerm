@@ -316,7 +316,7 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 		}
 	}
 
-	resp, err := client.GetCertificate(ctx, keyVaultBaseUrl, name, "")
+	resp, err = client.GetCertificate(ctx, keyVaultBaseUrl, name, "")
 	if err != nil {
 		return err
 	}

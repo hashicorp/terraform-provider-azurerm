@@ -1,12 +1,15 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -18,6 +21,11 @@ func resourceArmKeyVaultKey() *schema.Resource {
 		Delete: resourceArmKeyVaultKeyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -102,6 +110,18 @@ func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) erro
 	name := d.Get("name").(string)
 	keyVaultBaseUrl := d.Get("vault_uri").(string)
 
+	// first check if there's one in this subscription requiring import
+	resp, err := client.GetKey(ctx, keyVaultBaseUrl, name, "")
+	if err != nil {
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Error checking for the existence of Key Vault Key %q (Key Vault %q): %+v", name, keyVaultBaseUrl, err)
+		}
+	}
+
+	if resp.Key != nil && resp.Key.Kid != nil {
+		return tf.ImportAsExistsError("azurerm_key_vault_key", *resp.Key.Kid)
+	}
+
 	keyType := d.Get("key_type").(string)
 	keyOptions := expandKeyVaultKeyOptions(d)
 	tags := d.Get("tags").(map[string]interface{})
@@ -118,7 +138,9 @@ func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) erro
 		Tags:    expandTags(tags),
 	}
 
-	_, err := client.CreateKey(ctx, keyVaultBaseUrl, name, parameters)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutCreate))
+	defer cancel()
+	_, err = client.CreateKey(waitCtx, keyVaultBaseUrl, name, parameters)
 	if err != nil {
 		return fmt.Errorf("Error Creating Key: %+v", err)
 	}
@@ -155,7 +177,9 @@ func resourceArmKeyVaultKeyUpdate(d *schema.ResourceData, meta interface{}) erro
 		Tags: expandTags(tags),
 	}
 
-	_, err = client.UpdateKey(ctx, id.KeyVaultBaseUrl, id.Name, id.Version, parameters)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutUpdate))
+	defer cancel()
+	_, err = client.UpdateKey(waitCtx, id.KeyVaultBaseUrl, id.Name, id.Version, parameters)
 	if err != nil {
 		return err
 	}
@@ -214,7 +238,9 @@ func resourceArmKeyVaultKeyDelete(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	_, err = client.DeleteKey(ctx, id.KeyVaultBaseUrl, id.Name)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	_, err = client.DeleteKey(waitCtx, id.KeyVaultBaseUrl, id.Name)
 
 	return err
 }
