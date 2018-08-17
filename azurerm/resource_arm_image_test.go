@@ -49,6 +49,43 @@ func TestAccAzureRMImage_standaloneImage(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMImage_requiresImport(t *testing.T) {
+	ri := acctest.RandInt()
+	resourceGroup := fmt.Sprintf("acctestRG-%d", ri)
+	userName := "testadmin"
+	password := "Password1234!"
+	hostName := fmt.Sprintf("tftestcustomimagesrc%d", ri)
+	sshPort := "22"
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMImageDestroy,
+		Steps: []resource.TestStep{
+			{
+				//need to create a vm and then reference it in the image creation
+				Config:  testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName, location),
+				Destroy: false,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, location),
+				),
+			},
+			{
+				Config: testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMImageExists("azurerm_image.test", true),
+				),
+			},
+			{
+				Config:      testAccAzureRMImage_requiresImport(ri, userName, password, hostName, location),
+				ExpectError: testRequiresImportError("azurerm_image"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMImage_customImageVMFromVHD(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceGroup := fmt.Sprintf("acctestRG-%d", ri)
@@ -571,6 +608,32 @@ resource "azurerm_image" "test" {
   }
 }
 `, rInt, location, rInt, rInt, rInt, hostName, rInt, rInt, userName, password)
+}
+
+func testAccAzureRMImage_requiresImport(rInt int, userName string, password string, hostName string, location string) string {
+	template := testAccAzureRMImage_standaloneImage_provision(rInt, userName, password, hostName, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_image" "import" {
+  name                = "${azurerm_image.test.name}"
+  location            = "${azurerm_image.test.location}"
+  resource_group_name = "${azurerm_image.test.resource_group_name}"
+
+  os_disk {
+    os_type  = "Linux"
+    os_state = "Generalized"
+    blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+    size_gb  = 30
+    caching  = "None"
+  }
+
+  tags {
+    environment = "Dev"
+    cost-center = "Ops"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMImage_customImage_fromVHD_setup(rInt int, userName string, password string, hostName string, location string) string {
