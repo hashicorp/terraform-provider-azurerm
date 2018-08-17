@@ -32,6 +32,30 @@ func TestAccAzureRMPostgreSQLFirewallRule_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPostgreSQLFirewallRule_requiresImport(t *testing.T) {
+	resourceName := "azurerm_postgresql_firewall_rule.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPostgreSQLFirewallRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPostgreSQLFirewallRule_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLFirewallRuleExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMPostgreSQLFirewallRule_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_postgresql_firewall_rule"),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMPostgreSQLFirewallRuleExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -131,4 +155,20 @@ resource "azurerm_postgresql_firewall_rule" "test" {
   end_ip_address      = "255.255.255.255"
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMPostgreSQLFirewallRule_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMPostgreSQLFirewallRule_basic(rInt, location)
+	return fmt.Sprintf(`
+%scement              = "Enabled"
+}
+
+resource "azurerm_postgresql_firewall_rule" "import" {
+  name                = "${azurerm_postgresql_firewall_rule.test.name}"
+  resource_group_name = "${azurerm_postgresql_firewall_rule.test.resource_group_name}"
+  server_name         = "${azurerm_postgresql_firewall_rule.test.server_name}"
+  start_ip_address    = "${azurerm_postgresql_firewall_rule.test.start_ip_address}"
+  end_ip_address      = "${azurerm_postgresql_firewall_rule.test.end_ip_address}"
+}
+`, template)
 }
