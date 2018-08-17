@@ -31,6 +31,31 @@ func TestAccAzureRMPolicyAssignment_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPolicyAssignment_requiresImport(t *testing.T) {
+	resourceName := "azurerm_policy_assignment.test"
+
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPolicyAssignmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAzureRMPolicyAssignment_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPolicyAssignmentExists(resourceName),
+				),
+			},
+			{
+				Config:      testAzureRMPolicyAssignment_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_policy_assignment"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMPolicyAssignment_complete(t *testing.T) {
 	resourceName := "azurerm_policy_assignment.test"
 
@@ -133,6 +158,19 @@ resource "azurerm_policy_assignment" "test" {
   policy_definition_id = "${azurerm_policy_definition.test.id}"
 }
 `, ri, ri, location, ri, location, ri)
+}
+
+func testAzureRMPolicyAssignment_requiresImport(rInt int, location string) string {
+	template := testAzureRMPolicyAssignment_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_policy_assignment" "import" {
+  name                 = "${azurerm_policy_assignment.test.name}"
+  scope                = "${azurerm_policy_assignment.test.scope}"
+  policy_definition_id = "${azurerm_policy_assignment.test.policy_definition_id}"
+}
+`, template)
 }
 
 func testAzureRMPolicyAssignment_complete(ri int, location string) string {

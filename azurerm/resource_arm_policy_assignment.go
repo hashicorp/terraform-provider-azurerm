@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/structure"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -24,6 +25,10 @@ func resourceArmPolicyAssignment() *schema.Resource {
 		Delete: resourceArmPolicyAssignmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 5),
+			Delete: schema.DefaultTimeout(time.Minute * 5),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -75,6 +80,18 @@ func resourceArmPolicyAssignmentCreate(d *schema.ResourceData, meta interface{})
 	name := d.Get("name").(string)
 	scope := d.Get("scope").(string)
 
+	// first check if there's one in this subscription requiring import
+	resp, err := client.Get(ctx, scope, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Error checking for the existence of Policy Assignment %q (Scope %q): %+v", name, scope, err)
+		}
+	}
+
+	if resp.ID != nil {
+		return tf.ImportAsExistsError("azurerm_policy_assignment", *resp.ID)
+	}
+
 	policyDefinitionId := d.Get("policy_definition_id").(string)
 	displayName := d.Get("display_name").(string)
 
@@ -99,18 +116,21 @@ func resourceArmPolicyAssignmentCreate(d *schema.ResourceData, meta interface{})
 		assignment.AssignmentProperties.Parameters = &expandedParams
 	}
 
-	_, err := client.Create(ctx, scope, name, assignment)
+	_, err = client.Create(ctx, scope, name, assignment)
 	if err != nil {
 		return err
 	}
 
 	// Policy Assignments are eventually consistent; wait for them to stabilize
 	log.Printf("[DEBUG] Waiting for Policy Assignment %q to become available", name)
+	timeout := d.Timeout(schema.TimeoutCreate)
+	waitCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
 	stateConf := &resource.StateChangeConf{
 		Pending:                   []string{"404"},
 		Target:                    []string{"200"},
-		Refresh:                   policyAssignmentRefreshFunc(ctx, client, scope, name),
-		Timeout:                   5 * time.Minute,
+		Refresh:                   policyAssignmentRefreshFunc(waitCtx, client, scope, name),
+		Timeout:                   timeout,
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 10,
 	}
@@ -118,7 +138,7 @@ func resourceArmPolicyAssignmentCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error waiting for Policy Assignment %q to become available: %s", name, err)
 	}
 
-	resp, err := client.Get(ctx, scope, name)
+	resp, err = client.Get(ctx, scope, name)
 	if err != nil {
 		return err
 	}
@@ -170,10 +190,11 @@ func resourceArmPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) e
 func resourceArmPolicyAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).policyAssignmentsClient
 	ctx := meta.(*ArmClient).StopContext
-
 	id := d.Id()
 
-	resp, err := client.DeleteByID(ctx, id)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	resp, err := client.DeleteByID(waitCtx, id)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil
