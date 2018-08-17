@@ -122,6 +122,29 @@ func TestAccAzureRMRedisCache_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMRedisCache_requiresImport(t *testing.T) {
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRedisCache_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRedisCacheExists("azurerm_redis_cache.test"),
+				),
+			},
+			{
+				Config:      testAccAzureRMRedisCache_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_redis_cache"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMRedisCache_standard(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMRedisCache_standard(ri, testLocation())
@@ -467,6 +490,26 @@ resource "azurerm_redis_cache" "test" {
     }
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMRedisCache_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMRedisCache_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_redis_cache" "import" {
+  name                = "${azurerm_redis_cache.test.name}"
+  location            = "${azurerm_redis_cache.test.location}"
+  resource_group_name = "${azurerm_redis_cache.test.resource_group_name}"
+  capacity            = "${azurerm_redis_cache.test.capacity}"
+  family              = "${azurerm_redis_cache.test.family}"
+  sku_name            = "${azurerm_redis_cache.test.sku_name}"
+  enable_non_ssl_port = "${azurerm_redis_cache.test.enable_non_ssl_port}"
+
+  redis_configuration {
+  }
+}
+`, template)
 }
 
 func testAccAzureRMRedisCache_standard(rInt int, location string) string {

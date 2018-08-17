@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -26,6 +27,11 @@ func resourceArmRedisCache() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 60),
+			Update: schema.DefaultTimeout(time.Minute * 60),
+			Delete: schema.DefaultTimeout(time.Minute * 60),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -34,6 +40,7 @@ func resourceArmRedisCache() *schema.Resource {
 				ForceNew: true,
 			},
 
+			// TODO: use location schema
 			"location": {
 				Type:      schema.TypeString,
 				Required:  true,
@@ -211,9 +218,21 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	log.Printf("[INFO] preparing arguments for Azure ARM Redis Cache creation.")
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 
+	// first check if there's one in this subscription requiring import
+	resp, err := client.Get(ctx, resGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Error checking for the existence of Redis Cache %q (Resource Group %q): %+v", name, resGroup, err)
+		}
+	}
+
+	if resp.ID != nil {
+		return tf.ImportAsExistsError("azurerm_redis_cache", *resp.ID)
+	}
+
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	enableNonSSLPort := d.Get("enable_non_ssl_port").(bool)
 
 	capacity := int32(d.Get("capacity").(int))
@@ -260,7 +279,10 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	timeout := d.Timeout(schema.TimeoutCreate)
+	waitCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -273,12 +295,13 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Cannot read Redis Instance %s (resource group %s) ID", name, resGroup)
 	}
 
+	// TODO: needs confirmation - but I think this can be removed?
 	log.Printf("[DEBUG] Waiting for Redis Instance (%s) to become available", d.Get("name"))
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Updating", "Creating"},
 		Target:     []string{"Succeeded"},
 		Refresh:    redisStateRefreshFunc(ctx, client, resGroup, name),
-		Timeout:    60 * time.Minute,
+		Timeout:    timeout,
 		MinTimeout: 15 * time.Second,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
@@ -305,7 +328,6 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-
 	enableNonSSLPort := d.Get("enable_non_ssl_port").(bool)
 
 	capacity := int32(d.Get("capacity").(int))
@@ -339,7 +361,10 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 		parameters.RedisConfiguration = redisConfiguration
 	}
 
-	_, err := client.Update(ctx, resGroup, name, parameters)
+	timeout := d.Timeout(schema.TimeoutUpdate)
+	waitCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	_, err := client.Update(waitCtx, resGroup, name, parameters)
 	if err != nil {
 		return err
 	}
@@ -352,6 +377,7 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Cannot read Redis Instance %s (resource group %s) ID", name, resGroup)
 	}
 
+	// TODO: confirm but I think this can be removed?
 	log.Printf("[DEBUG] Waiting for Redis Instance (%s) to become available", d.Get("name"))
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Updating", "Creating"},
@@ -364,8 +390,6 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error waiting for Redis Instance (%s) to become available: %s", d.Get("name"), err)
 	}
 
-	d.SetId(*read.ID)
-
 	patchSchedule, err := expandRedisPatchSchedule(d)
 	if err != nil {
 		return fmt.Errorf("Error parsing Patch Schedule: %+v", err)
@@ -373,12 +397,12 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 
 	patchClient := meta.(*ArmClient).redisPatchSchedulesClient
 	if patchSchedule == nil || len(*patchSchedule.ScheduleEntries.ScheduleEntries) == 0 {
-		_, err = patchClient.Delete(ctx, resGroup, name)
+		_, err = patchClient.Delete(waitCtx, resGroup, name)
 		if err != nil {
 			return fmt.Errorf("Error deleting Redis Patch Schedule: %+v", err)
 		}
 	} else {
-		_, err = patchClient.CreateOrUpdate(ctx, resGroup, name, *patchSchedule)
+		_, err = patchClient.CreateOrUpdate(waitCtx, resGroup, name, *patchSchedule)
 		if err != nil {
 			return fmt.Errorf("Error setting Redis Patch Schedule: %+v", err)
 		}
@@ -484,7 +508,10 @@ func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error
 
 		return err
 	}
-	err = future.WaitForCompletionRef(ctx, redisClient.Client)
+
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, redisClient.Client)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
