@@ -1,8 +1,10 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"strings"
 
@@ -10,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,6 +24,11 @@ func resourceArmKeyVaultAccessPolicy() *schema.Resource {
 		Delete: resourceArmKeyVaultAccessPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -62,7 +70,7 @@ func resourceArmKeyVaultAccessPolicy() *schema.Resource {
 	}
 }
 
-func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta interface{}, action keyvault.AccessPolicyUpdateKind) error {
+func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta interface{}, action keyvault.AccessPolicyUpdateKind, timeoutKey string) error {
 	client := meta.(*ArmClient).keyVaultClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] Preparing arguments for Key Vault Access Policy: %s.", action)
@@ -101,10 +109,32 @@ func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta 
 	if applicationIdRaw != "" {
 		applicationId, err := uuid.FromString(applicationIdRaw)
 		if err != nil {
-			return fmt.Errorf("Error parsing Appliciation ID %q as a UUID: %+v", applicationIdRaw, err)
+			return fmt.Errorf("Error parsing Application ID %q as a UUID: %+v", applicationIdRaw, err)
 		}
 
 		accessPolicy.ApplicationID = &applicationId
+	}
+
+	if d.IsNewResource() {
+		resp, err := client.Get(ctx, resGroup, vaultName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for existence of Azure KeyVault %q (Resource Group %q): %+v", vaultName, resGroup, err)
+			}
+		}
+
+		policy, err := findKeyVaultAccessPolicy(resp.Properties.AccessPolicies, objectId, applicationIdRaw)
+		if err != nil {
+			return fmt.Errorf("Error locating existing Access Policy (Object ID %q / Application ID %q) in Key Vault %q (Resource Group %q)", objectId, applicationIdRaw, vaultName, resGroup)
+		}
+
+		if policy != nil {
+			resourceId := fmt.Sprintf("%s/objectId/%s", *resp.ID, objectId)
+			if applicationIdRaw != "" {
+				resourceId = fmt.Sprintf("%s/applicationId/%s", resourceId, applicationIdRaw)
+			}
+			return tf.ImportAsExistsError("azurerm_key_vault_access_policy", resourceId)
+		}
 	}
 
 	accessPolicies := []keyvault.AccessPolicyEntry{accessPolicy}
@@ -120,7 +150,9 @@ func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta 
 	azureRMLockByName(vaultName, keyVaultResourceName)
 	defer azureRMUnlockByName(vaultName, keyVaultResourceName)
 
-	_, err = client.UpdateAccessPolicy(ctx, resGroup, vaultName, action, parameters)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(timeoutKey))
+	defer cancel()
+	_, err = client.UpdateAccessPolicy(waitCtx, resGroup, vaultName, action, parameters)
 	if err != nil {
 		return fmt.Errorf("Error updating Access Policy (Object ID %q / Application ID %q) for Key Vault %q (Resource Group %q): %+v", objectId, applicationIdRaw, vaultName, resGroup, err)
 	}
@@ -149,15 +181,15 @@ func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta 
 }
 
 func resourceArmKeyVaultAccessPolicyCreate(d *schema.ResourceData, meta interface{}) error {
-	return resourceArmKeyVaultAccessPolicyCreateOrDelete(d, meta, keyvault.Add)
+	return resourceArmKeyVaultAccessPolicyCreateOrDelete(d, meta, keyvault.Add, schema.TimeoutCreate)
 }
 
 func resourceArmKeyVaultAccessPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	return resourceArmKeyVaultAccessPolicyCreateOrDelete(d, meta, keyvault.Remove)
+	return resourceArmKeyVaultAccessPolicyCreateOrDelete(d, meta, keyvault.Remove, schema.TimeoutDelete)
 }
 
 func resourceArmKeyVaultAccessPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
-	return resourceArmKeyVaultAccessPolicyCreateOrDelete(d, meta, keyvault.Replace)
+	return resourceArmKeyVaultAccessPolicyCreateOrDelete(d, meta, keyvault.Replace, schema.TimeoutUpdate)
 }
 
 func resourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {

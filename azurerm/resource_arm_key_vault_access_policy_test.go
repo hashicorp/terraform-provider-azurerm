@@ -33,6 +33,30 @@ func TestAccAzureRMKeyVaultAccessPolicy_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKeyVaultAccessPolicy_requiresImport(t *testing.T) {
+	resourceName := "azurerm_key_vault_access_policy.test"
+	rs := acctest.RandString(6)
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVaultAccessPolicy_basic(rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultAccessPolicyExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMKeyVaultAccessPolicy_requiresImport(rs, location),
+				ExpectError: testRequiresImportError("azurerm_key_vault_access_policy"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMKeyVaultAccessPolicy_multiple(t *testing.T) {
 	resourceName1 := "azurerm_key_vault_access_policy.test_with_application_id"
 	resourceName2 := "azurerm_key_vault_access_policy.test_no_application_id"
@@ -142,6 +166,30 @@ func testAccAzureRMKeyVaultAccessPolicy_basic(rString string, location string) s
 resource "azurerm_key_vault_access_policy" "test" {
   vault_name          = "${azurerm_key_vault.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
+  key_permissions = [
+    "get",
+  ]
+
+  secret_permissions = [
+    "get",
+    "set",
+  ]
+
+  tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+  object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+}
+`, template)
+}
+
+func testAccAzureRMKeyVaultAccessPolicy_requiresImport(rString string, location string) string {
+	template := testAccAzureRMKeyVaultAccessPolicy_basic(rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_key_vault_access_policy" "import" {
+  vault_name          = "${azurerm_key_vault_access_policy.test.vault_name}"
+  resource_group_name = "${azurerm_key_vault_access_policy.test.resource_group_name}"
 
   key_permissions = [
     "get",
