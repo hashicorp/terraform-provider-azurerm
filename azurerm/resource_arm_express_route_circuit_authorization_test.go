@@ -31,6 +31,31 @@ func testAccAzureRMExpressRouteCircuitAuthorization_basic(t *testing.T) {
 	})
 }
 
+func testAccAzureRMExpressRouteCircuitAuthorization_requiresImport(t *testing.T) {
+	resourceName := "azurerm_express_route_circuit_authorization.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMExpressRouteCircuitAuthorizationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMExpressRouteCircuitAuthorization_basicConfig(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMExpressRouteCircuitAuthorizationExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "authorization_key"),
+				),
+			},
+			{
+				Config:      testAccAzureRMExpressRouteCircuitAuthorization_requiresImportConfig(ri, location),
+				ExpectError: testRequiresImportError("azurerm_express_route_circuit_authorization"),
+			},
+		},
+	})
+}
+
 func testAccAzureRMExpressRouteCircuitAuthorization_multiple(t *testing.T) {
 	firstResourceName := "azurerm_express_route_circuit_authorization.test1"
 	secondResourceName := "azurerm_express_route_circuit_authorization.test2"
@@ -145,6 +170,19 @@ resource "azurerm_express_route_circuit_authorization" "test" {
   resource_group_name        = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMExpressRouteCircuitAuthorization_requiresImportConfig(rInt int, location string) string {
+	template := testAccAzureRMExpressRouteCircuitAuthorization_basicConfig(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_express_route_circuit_authorization" "import" {
+  name                       = "${azurerm_express_route_circuit_authorization.test.name}"
+  express_route_circuit_name = "${azurerm_express_route_circuit_authorization.test.express_route_circuit_name}"
+  resource_group_name        = "${azurerm_express_route_circuit_authorization.test.resource_group_name}"
+}
+`, template)
 }
 
 func testAccAzureRMExpressRouteCircuitAuthorization_multipleConfig(rInt int, location string) string {
