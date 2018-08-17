@@ -31,6 +31,31 @@ func TestAccAzureRMNotificationHubNamespace_free(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMNotificationHubNamespace_requiresImport(t *testing.T) {
+	resourceName := "azurerm_notification_hub_namespace.test"
+
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNotificationHubNamespaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAzureRMNotificationHubNamespace_free(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNotificationHubNamespaceExists(resourceName),
+				),
+			},
+			{
+				Config:      testAzureRMNotificationHubNamespace_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_notification_hub_namespace"),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMNotificationHubNamespaceExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
@@ -102,22 +127,20 @@ resource "azurerm_notification_hub_namespace" "test" {
 `, ri, location, ri)
 }
 
-func testAzureRMNotificationHubNamespace_basic(ri int, location string) string {
+func testAzureRMNotificationHubNamespace_requiresImport(rInt int, location string) string {
+	template := testAzureRMNotificationHubNamespace_free(rInt, location)
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name = "acctestrg-%d"
-  location = "%s"
-}
+%s
 
-resource "azurerm_notification_hub_namespace" "test" {
-  name                = "acctestnhn-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  namespace_type      = "NotificationHub"
+resource "azurerm_notification_hub_namespace" "import" {
+  name                = "${azurerm_notification_hub_namespace.test.name}"
+  resource_group_name = "${azurerm_notification_hub_namespace.test.resource_group_name}"
+  location            = "${azurerm_notification_hub_namespace.test.location}"
+  namespace_type      = "${azurerm_notification_hub_namespace.test.namespace_type}"
 
   sku {
-    name = "Basic"
+    name = "Free"
   }
 }
-`, ri, location, ri)
+`, template)
 }

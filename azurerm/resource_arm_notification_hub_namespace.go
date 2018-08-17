@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,6 +24,11 @@ func resourceArmNotificationHubNamespace() *schema.Resource {
 		Delete: resourceArmNotificationHubNamespaceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -90,8 +96,22 @@ func resourceArmNotificationHubNamespaceCreateUpdate(d *schema.ResourceData, met
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
 
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of Notification Hub Namespace %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_notification_hub_namespace", *resp.ID)
+		}
+	}
+
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	sku := expandNotificationHubNamespacesSku(d.Get("sku").([]interface{}))
 
 	namespaceType := d.Get("namespace_type").(string)
@@ -106,7 +126,10 @@ func resourceArmNotificationHubNamespaceCreateUpdate(d *schema.ResourceData, met
 			Enabled:       utils.Bool(enabled),
 		},
 	}
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
+
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	_, err := client.CreateOrUpdate(waitCtx, resourceGroup, name, parameters)
 	if err != nil {
 		return fmt.Errorf("Error creating/updating Notification Hub Namesapce %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -187,11 +210,13 @@ func resourceArmNotificationHubNamespaceDelete(d *schema.ResourceData, meta inte
 	// the future returned from the Delete method is broken 50% of the time - let's poll ourselves for now
 	// Related Bug: https://github.com/Azure/azure-sdk-for-go/issues/2254
 	log.Printf("[DEBUG] Waiting for Notification Hub Namespace %q (Resource Group %q) to be deleted", name, resourceGroup)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"200", "202"},
 		Target:  []string{"404"},
-		Refresh: notificationHubNamespaceStateRefreshFunc(ctx, client, resourceGroup, name),
-		Timeout: 10 * time.Minute,
+		Refresh: notificationHubNamespaceStateRefreshFunc(waitCtx, client, resourceGroup, name),
+		Timeout: d.Timeout(schema.TimeoutDelete),
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Notification Hub %q (Resource Group %q) to be deleted: %s", name, resourceGroup, err)
