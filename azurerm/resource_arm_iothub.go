@@ -13,18 +13,24 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"strings"
 )
 
 func resourceArmIotHub() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotHubCreateAndUpdate,
+		Create: resourceArmIotHubCreateUpdate,
 		Read:   resourceArmIotHubRead,
-		Update: resourceArmIotHubCreateAndUpdate,
+		Update: resourceArmIotHubCreateUpdate,
 		Delete: resourceArmIotHubDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -249,25 +255,40 @@ func resourceArmIotHub() *schema.Resource {
 
 }
 
-func resourceArmIotHubCreateAndUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).iothubResourceClient
 	ctx := meta.(*ArmClient).StopContext
 	subscriptionID := meta.(*ArmClient).subscriptionId
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	res, err := client.CheckNameAvailability(ctx, devices.OperationInputs{
-		Name: &name,
-	})
 
-	if err != nil {
-		return fmt.Errorf("An error occurred checking if the IoTHub name was unique: %+v", err)
-	}
-
-	if !*res.NameAvailable {
-		_, err := client.Get(ctx, resourceGroup, name)
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
-			return fmt.Errorf("An IoTHub already exists with the name %q - please choose an alternate name: %s", name, string(res.Reason))
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of IoTHub %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_iothub", *resp.ID)
+		}
+
+		res, err := client.CheckNameAvailability(ctx, devices.OperationInputs{
+			Name: &name,
+		})
+
+		if err != nil {
+			return fmt.Errorf("An error occurred checking if the IoTHub name was unique: %+v", err)
+		}
+
+		if !*res.NameAvailable {
+			_, err := client.Get(ctx, resourceGroup, name)
+			if err != nil {
+				return fmt.Errorf("An IoTHub already exists with the name %q - please choose an alternate name: %s", name, string(res.Reason))
+			}
 		}
 	}
 
@@ -304,7 +325,9 @@ func resourceArmIotHubCreateAndUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error creating/updating IotHub %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for the completion of the creating/updating of IotHub %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -424,17 +447,18 @@ func resourceArmIotHubDelete(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	return waitForIotHubToBeDeleted(ctx, client, resourceGroup, name)
+	timeout := d.Timeout(schema.TimeoutDelete)
+	return waitForIotHubToBeDeleted(ctx, client, resourceGroup, name, timeout)
 }
 
-func waitForIotHubToBeDeleted(ctx context.Context, client devices.IotHubResourceClient, resourceGroup, name string) error {
+func waitForIotHubToBeDeleted(ctx context.Context, client devices.IotHubResourceClient, resourceGroup, name string, timeout time.Duration) error {
 	// we can't use the Waiter here since the API returns a 404 once it's deleted which is considered a polling status code..
 	log.Printf("[DEBUG] Waiting for IotHub (%q in Resource Group %q) to be deleted", name, resourceGroup)
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"200"},
 		Target:  []string{"404"},
-		Refresh: iothubStateStatusCodeRefreshFunc(ctx, client, resourceGroup, name),
-		Timeout: 40 * time.Minute,
+		Refresh: iothubStateStatusCodeRefreshFunc(ctx, client, resourceGroup, name, timeout),
+		Timeout: timeout,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for IotHub (%q in Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
@@ -443,9 +467,11 @@ func waitForIotHubToBeDeleted(ctx context.Context, client devices.IotHubResource
 	return nil
 }
 
-func iothubStateStatusCodeRefreshFunc(ctx context.Context, client devices.IotHubResourceClient, resourceGroup, name string) resource.StateRefreshFunc {
+func iothubStateStatusCodeRefreshFunc(ctx context.Context, client devices.IotHubResourceClient, resourceGroup, name string, timeout time.Duration) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, resourceGroup, name)
+		waitCtx, cancel := context.WithTimeout(ctx, timeout)
+		defer cancel()
+		res, err := client.Get(waitCtx, resourceGroup, name)
 
 		log.Printf("Retrieving IoTHub %q (Resource Group %q) returned Status %d", resourceGroup, name, res.StatusCode)
 

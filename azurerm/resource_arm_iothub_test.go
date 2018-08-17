@@ -28,6 +28,29 @@ func TestAccAzureRMIotHub_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMIotHub_requiresImport(t *testing.T) {
+	rInt := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMIotHubDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMIotHub_basic(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMIotHubExists("azurerm_iothub.test"),
+				),
+			},
+			{
+				Config:      testAccAzureRMIotHub_requiresImport(rInt, location),
+				ExpectError: testRequiresImportError("azurerm_iothub"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMIotHub_standard(t *testing.T) {
 	rInt := acctest.RandInt()
 
@@ -141,6 +164,28 @@ resource "azurerm_iothub" "test" {
   }
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMIotHub_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMIotHub_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_iothub" "import" {
+  name                = "${azurerm_iothub.test.name}"
+  resource_group_name = "${azurerm_iothub.test.resource_group_name}"
+  location            = "${azurerm_iothub.test.location}"
+  sku {
+    name = "B1"
+    tier = "Basic"
+    capacity = "1"
+  }
+
+  tags {
+    "purpose" = "testing"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMIotHub_standard(rInt int, location string) string {
