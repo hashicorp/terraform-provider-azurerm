@@ -1,8 +1,10 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -16,6 +18,10 @@ func resourceArmMySQLConfiguration() *schema.Resource {
 		Delete: resourceArmMySQLConfigurationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -48,6 +54,8 @@ func resourceArmMySQLConfigurationCreate(d *schema.ResourceData, meta interface{
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Configuration creation.")
 
+	// NOTE: we can't require import for this resource since these settings can have default values
+	// and having config containing the default values would be valid.
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	serverName := d.Get("server_name").(string)
@@ -65,7 +73,9 @@ func resourceArmMySQLConfigurationCreate(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutCreate))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -144,7 +154,9 @@ func resourceArmMySQLConfigurationDelete(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return err
 	}
