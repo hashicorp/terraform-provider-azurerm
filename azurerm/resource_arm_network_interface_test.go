@@ -93,6 +93,28 @@ func TestAccAzureRMNetworkInterface_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMNetworkInterface_requiresImport(t *testing.T) {
+	rInt := acctest.RandInt()
+	location := testLocation()
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkInterface_basic(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkInterfaceExists("azurerm_network_interface.test"),
+				),
+			},
+			{
+				Config:      testAccAzureRMNetworkInterface_requiresImport(rInt, location),
+				ExpectError: testRequiresImportError("azurerm_network_interface"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMNetworkInterface_disappears(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
 	rInt := acctest.RandInt()
@@ -538,6 +560,25 @@ resource "azurerm_network_interface" "test" {
   }
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMNetworkInterface_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMNetworkInterface_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_interface" "import" {
+  name                = "${azurerm_network_interface.test.name}"
+  location            = "${azurerm_network_interface.test.location}"
+  resource_group_name = "${azurerm_network_interface.test.resource_group_name}"
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMNetworkInterface_basicWithNetworkSecurityGroup(rInt int, location string) string {
