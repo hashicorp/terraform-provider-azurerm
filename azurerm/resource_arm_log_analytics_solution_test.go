@@ -28,6 +28,28 @@ func TestAccAzureRMLogAnalyticsSolution_basicContainerMonitoring(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLogAnalyticsSolution_requiresImport(t *testing.T) {
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLogAnalyticsSolutionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLogAnalyticsSolution_containerMonitoring(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogAnalyticsSolutionExists("azurerm_log_analytics_solution.test"),
+				),
+			},
+			{
+				Config:      testAccAzureRMLogAnalyticsSolution_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_log_analytics_solution"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMLogAnalyticsSolution_basicSecurity(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMLogAnalyticsSolution_security(ri, testLocation())
@@ -129,6 +151,26 @@ resource "azurerm_log_analytics_solution" "test" {
   }
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMLogAnalyticsSolution_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMLogAnalyticsSolution_containerMonitoring(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_solution" "import" {
+  solution_name         = "${azurerm_log_analytics_solution.test.name}"
+  location              = "${azurerm_log_analytics_solution.test.location}"
+  resource_group_name   = "${azurerm_log_analytics_solution.test.resource_group_name}"
+  workspace_resource_id = "${azurerm_log_analytics_solution.test.workspace_resource_id}"
+  workspace_name        = "${azurerm_log_analytics_solution.test.workspace_name}"
+
+  plan {
+    publisher      = "Microsoft"
+    product        = "OMSGallery/Containers"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMLogAnalyticsSolution_security(rInt int, location string) string {
