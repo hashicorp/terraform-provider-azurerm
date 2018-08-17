@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -24,6 +25,10 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 		Delete: resourceArmKeyVaultCertificateDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 60),
+			Delete: schema.DefaultTimeout(time.Minute * 60),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -255,8 +260,20 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 
 	name := d.Get("name").(string)
 	keyVaultBaseUrl := d.Get("vault_uri").(string)
-	tags := d.Get("tags").(map[string]interface{})
 
+	// first check if there's one in this subscription requiring import
+	resp, err := client.GetCertificate(ctx, keyVaultBaseUrl, name, "")
+	if err != nil {
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Error checking for the existence of Key Vault Certificate %q (Key Vault %q): %+v", name, keyVaultBaseUrl, err)
+		}
+	}
+
+	if resp.ID != nil {
+		return tf.ImportAsExistsError("azurerm_key_vault_certificate", *resp.ID)
+	}
+
+	tags := d.Get("tags").(map[string]interface{})
 	policy := expandKeyVaultCertificatePolicy(d)
 
 	if v, ok := d.GetOk("certificate"); ok {
@@ -268,7 +285,9 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 			CertificatePolicy:        &policy,
 			Tags:                     expandTags(tags),
 		}
-		_, err := client.ImportCertificate(ctx, keyVaultBaseUrl, name, importParameters)
+		waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutCreate))
+		defer cancel()
+		_, err := client.ImportCertificate(waitCtx, keyVaultBaseUrl, name, importParameters)
 		if err != nil {
 			return err
 		}
@@ -284,11 +303,12 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 		}
 
 		log.Printf("[DEBUG] Waiting for Key Vault Certificate %q in Vault %q to be provisioned", name, keyVaultBaseUrl)
+
 		stateConf := &resource.StateChangeConf{
 			Pending:    []string{"Provisioning"},
 			Target:     []string{"Ready"},
 			Refresh:    keyVaultCertificateCreationRefreshFunc(ctx, client, keyVaultBaseUrl, name),
-			Timeout:    60 * time.Minute,
+			Timeout:    d.Timeout(schema.TimeoutCreate),
 			MinTimeout: 15 * time.Second,
 		}
 		if _, err := stateConf.WaitForState(); err != nil {
@@ -380,7 +400,9 @@ func resourceArmKeyVaultCertificateDelete(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	resp, err := client.DeleteCertificate(ctx, id.KeyVaultBaseUrl, id.Name)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	resp, err := client.DeleteCertificate(waitCtx, id.KeyVaultBaseUrl, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil
