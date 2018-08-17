@@ -1,7 +1,9 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"log"
 
@@ -9,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,6 +22,10 @@ func resourceArmPacketCapture() *schema.Resource {
 		Delete: resourceArmPacketCaptureDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -138,6 +145,18 @@ func resourceArmPacketCaptureCreate(d *schema.ResourceData, meta interface{}) er
 	watcherName := d.Get("network_watcher_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	// first check if there's one in this subscription requiring import
+	resp, err := client.Get(ctx, resourceGroup, watcherName, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Error checking for the existence of Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
+		}
+	}
+
+	if resp.ID != nil {
+		return tf.ImportAsExistsError("azurerm_packet_capture", *resp.ID)
+	}
+
 	targetResourceId := d.Get("target_resource_id").(string)
 	bytesToCapturePerPacket := d.Get("maximum_bytes_per_packet").(int)
 	totalBytesPerSession := d.Get("maximum_bytes_per_session").(int)
@@ -169,12 +188,14 @@ func resourceArmPacketCaptureCreate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error creating Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutCreate))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for creation of Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, watcherName, name)
+	resp, err = client.Get(ctx, resourceGroup, watcherName, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
 	}
@@ -254,7 +275,9 @@ func resourceArmPacketCaptureDelete(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error deleting Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
