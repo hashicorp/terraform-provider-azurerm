@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var expressRouteCircuitResourceName = "azurerm_express_route_circuit"
@@ -161,15 +162,26 @@ func resourceArmExpressRouteCircuitCreateOrUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}) error {
-	resp, resourceGroup, err := retrieveErcByResourceId(d.Id(), meta)
+	client := meta.(*ArmClient).expressRouteCircuitClient
+	ctx := meta.(*ArmClient).StopContext
+
+	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if resp == nil {
-		log.Printf("[INFO] Express Route Circuit %q not found. Removing from state", d.Get("name").(string))
-		d.SetId("")
-		return nil
+	resourceGroup := id.ResourceGroup
+	name := id.Path["expressRouteCircuits"]
+
+	resp, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[INFO] Express Route Circuit %q not found. Removing from state", name)
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("Error making Read request on Express Route Circuit %s: %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -191,9 +203,11 @@ func resourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}
 		d.Set("bandwidth_in_mbps", props.BandwidthInMbps)
 	}
 
-	d.Set("service_provider_provisioning_state", string(resp.ServiceProviderProvisioningState))
-	d.Set("service_key", resp.ServiceKey)
-	d.Set("allow_classic_operations", resp.AllowClassicOperations)
+	if props := resp.ExpressRouteCircuitPropertiesFormat; props != nil {
+		d.Set("service_provider_provisioning_state", string(props.ServiceProviderProvisioningState))
+		d.Set("service_key", props.ServiceKey)
+		d.Set("allow_classic_operations", props.AllowClassicOperations)
+	}
 
 	flattenAndSetTags(d, resp.Tags)
 
@@ -204,10 +218,12 @@ func resourceArmExpressRouteCircuitDelete(d *schema.ResourceData, meta interface
 	client := meta.(*ArmClient).expressRouteCircuitClient
 	ctx := meta.(*ArmClient).StopContext
 
-	resourceGroup, name, err := extractResourceGroupAndErcName(d.Id())
+	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error Parsing Azure Resource ID: %+v", err)
+		return err
 	}
+	resourceGroup := id.ResourceGroup
+	name := id.Path["expressRouteCircuits"]
 
 	azureRMLockByName(name, expressRouteCircuitResourceName)
 	defer azureRMUnlockByName(name, expressRouteCircuitResourceName)
