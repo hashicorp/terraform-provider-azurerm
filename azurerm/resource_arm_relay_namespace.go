@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,6 +24,11 @@ func resourceArmRelayNamespace() *schema.Resource {
 		Delete: resourceArmRelayNamespaceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 60),
+			Update: schema.DefaultTimeout(time.Minute * 60),
+			Delete: schema.DefaultTimeout(time.Minute * 60),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -95,9 +101,23 @@ func resourceArmRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interfac
 	log.Printf("[INFO] preparing arguments for Relay Namespace creation.")
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of Relay Namespace %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_relay_namespace", *resp.ID)
+		}
+	}
+
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	sku := expandRelayNamespaceSku(d)
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
@@ -114,7 +134,9 @@ func resourceArmRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interfac
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -207,11 +229,14 @@ func resourceArmRelayNamespaceDelete(d *schema.ResourceData, meta interface{}) e
 
 	// we can't make use of the Future here due to a bug where 404 isn't tracked as Successful
 	log.Printf("[DEBUG] Waiting for Relay Namespace %q (Resource Group %q) to be deleted", name, resourceGroup)
+	timeout := d.Timeout(schema.TimeoutDelete)
+	waitCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Pending"},
 		Target:     []string{"Deleted"},
-		Refresh:    relayNamespaceDeleteRefreshFunc(ctx, client, resourceGroup, name),
-		Timeout:    60 * time.Minute,
+		Refresh:    relayNamespaceDeleteRefreshFunc(waitCtx, client, resourceGroup, name),
+		Timeout:    timeout,
 		MinTimeout: 15 * time.Second,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {

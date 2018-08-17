@@ -35,6 +35,29 @@ func TestAccAzureRMRelayNamespace_basic(t *testing.T) {
 		},
 	})
 }
+func TestAccAzureRMRelayNamespace_requiresImport(t *testing.T) {
+	resourceName := "azurerm_relay_namespace.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRelayNamespaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRelayNamespace_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRelayNamespaceExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMRelayNamespace_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_relay_namespace"),
+			},
+		},
+	})
+}
 
 func TestAccAzureRMRelayNamespace_complete(t *testing.T) {
 	resourceName := "azurerm_relay_namespace.test"
@@ -132,6 +155,23 @@ resource "azurerm_relay_namespace" "test" {
   }
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMRelayNamespace_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMRelayNamespace_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_relay_namespace" "import" {
+  name                = "${azurerm_relay_namespace.test.name}"
+  location            = "${azurerm_relay_namespace.test.location}"
+  resource_group_name = "${azurerm_relay_namespace.test.resource_group_name}"
+
+  sku {
+    name = "Standard"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMRelayNamespace_complete(rInt int, location string) string {
