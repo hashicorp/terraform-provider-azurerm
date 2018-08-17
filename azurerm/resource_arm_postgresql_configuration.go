@@ -1,22 +1,29 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmPostgreSQLConfiguration() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPostgreSQLConfigurationCreateUpdate,
+		Create: resourceArmPostgreSQLConfigurationCreate,
 		Read:   resourceArmPostgreSQLConfigurationRead,
 		Delete: resourceArmPostgreSQLConfigurationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -43,12 +50,14 @@ func resourceArmPostgreSQLConfiguration() *schema.Resource {
 	}
 }
 
-func resourceArmPostgreSQLConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmPostgreSQLConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).postgresqlConfigurationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Configuration creation.")
 
+	// NOTE: we can't require import for this resource since these settings can have default values
+	// and having config containing the default values would be valid.
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	serverName := d.Get("server_name").(string)
@@ -66,7 +75,9 @@ func resourceArmPostgreSQLConfigurationCreateUpdate(d *schema.ResourceData, meta
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -148,7 +159,9 @@ func resourceArmPostgreSQLConfigurationDelete(d *schema.ResourceData, meta inter
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
