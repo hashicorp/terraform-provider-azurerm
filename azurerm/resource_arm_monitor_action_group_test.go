@@ -39,6 +39,30 @@ func TestAccAzureRMMonitorActionGroup_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMonitorActionGroup_requiresImport(t *testing.T) {
+	resourceName := "azurerm_monitor_action_group.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMonitorActionGroup_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorActionGroupExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMMonitorActionGroup_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_monitor_action_group"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMMonitorActionGroup_emailReceiver(t *testing.T) {
 	resourceName := "azurerm_monitor_action_group.test"
 	ri := acctest.RandInt()
@@ -322,6 +346,19 @@ resource "azurerm_monitor_action_group" "test" {
   short_name          = "acctestag"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMMonitorActionGroup_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMMonitorActionGroup_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_monitor_action_group" "import" {
+  name                = "${azurerm_monitor_action_group.test.name}"
+  resource_group_name = "${azurerm_monitor_action_group.test.resource_group_name}"
+  short_name          = "${azurerm_monitor_action_group.test.short_name}"
+}
+`, template)
 }
 
 func testAccAzureRMMonitorActionGroup_emailReceiver(rInt int, location string) string {
