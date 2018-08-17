@@ -32,6 +32,30 @@ func TestAccAzureRMLocalNetworkGateway_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLocalNetworkGateway_requiresImport(t *testing.T) {
+	name := "azurerm_local_network_gateway.test"
+	rInt := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLocalNetworkGatewayConfig_basic(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLocalNetworkGatewayExists(name),
+				),
+			},
+			{
+				Config:      testAccAzureRMLocalNetworkGatewayConfig_requiresImport(rInt, location),
+				ExpectError: testRequiresImportError("azurerm_local_network_gateway"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMLocalNetworkGateway_disappears(t *testing.T) {
 	name := "azurerm_local_network_gateway.test"
 	rInt := acctest.RandInt()
@@ -313,6 +337,22 @@ resource "azurerm_local_network_gateway" "test" {
 }
 
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMLocalNetworkGatewayConfig_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMLocalNetworkGatewayConfig_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_local_network_gateway" "import" {
+  name                = "${azurerm_local_network_gateway.test.name}"
+  location            = "${azurerm_local_network_gateway.test.location}
+  resource_group_name = "${azurerm_local_network_gateway.test.resource_group_name}
+  gateway_address     = "${azurerm_local_network_gateway.test.gateway_address}
+  address_space       = "${azurerm_local_network_gateway.test.address_space}"
+}
+
+`, template)
 }
 
 func testAccAzureRMLocalNetworkGatewayConfig_tags(rInt int, location string) string {
