@@ -13,11 +13,96 @@ Create a management group with subscription assignments.
 ## Example Usage
 
 ```hcl
-resource "azurerm_policy_definition" "policy" {
+
+data "azurerm_subscription" "current" {}
+
+resource "azurerm_management_group" "testmanagementgroup" {
     name = "TestManagementGroup"
     subscription_ids = [
-        "000000-1111-2222-3333-444444444444"
+        "${data.azurerm_subscription.current.id}"
     ]
+}
+```
+
+## Example Usage with azurerm_role_assignment
+
+```hcl
+data "azurerm_subscription" "current" {}
+
+data "azurerm_client_config" "test" {}
+
+resource "azurerm_management_group" "testmanagementgroup" {
+    name = "TestManagementGroup"
+    subscription_ids = [
+        "${data.azurerm_subscription.primary.id}"
+    ]
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = "${data.azurerm_management_group.testmanagementgroup.id}"
+  role_definition_name = "Reader"
+  principal_id         = "${data.azurerm_client_config.test.service_principal_object_id}"
+}
+```
+
+## Example Usage with azurerm_policy_assignment and azurerm_policy_definition
+
+```hcl
+data "azurerm_subscription" "current" {}
+
+resource "azurerm_management_group" "testmanagementgroup" {
+    name = "TestManagementGroup"
+    subscription_ids = [
+        "${data.azurerm_subscription.current.id}"
+    ]
+}
+
+resource "azurerm_policy_definition" "test" {
+  name         = "my-policy-definition"
+  policy_type  = "Custom"
+  mode         = "All"
+  display_name = "acctestpol-%d"
+  policy_rule  = <<POLICY_RULE
+	{
+    "if": {
+      "not": {
+        "field": "location",
+        "in": "[parameters('allowedLocations')]"
+      }
+    },
+    "then": {
+      "effect": "audit"
+    }
+  }
+POLICY_RULE
+
+  parameters = <<PARAMETERS
+	{
+    "allowedLocations": {
+      "type": "Array",
+      "metadata": {
+        "description": "The list of allowed locations for resources.",
+        "displayName": "Allowed locations",
+        "strongType": "location"
+      }
+    }
+  }
+PARAMETERS
+}
+
+resource "azurerm_policy_assignment" "test" {
+  name                 = "example-policy-assignment"
+  scope                = "${azurerm_management_group.testmanagementgroup.id}"
+  policy_definition_id = "${azurerm_policy_definition.test.id}"
+  description          = "Policy Assignment created via an Acceptance Test"
+  display_name         = "Acceptance Test Run %d"
+  parameters = <<PARAMETERS
+{
+  "allowedLocations": {
+    "value": [ "West Europe" ]
+  }
+}
+PARAMETERS
 }
 ```
 
