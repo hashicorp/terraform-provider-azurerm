@@ -176,23 +176,14 @@ func resourceArmRoleAssignmentDelete(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).roleAssignmentsClient
 	ctx := meta.(*ArmClient).StopContext
 
-<<<<<<< HEAD
 	id, err := parseRoleAssignmentId(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.scope, id.name)
-=======
-	// TODO: update this to use client.DeleteByID(d.Id())
-	// which allows the config tp be empty / for this to work
-	scope := d.Get("scope").(string)
-	name := d.Get("name").(string)
-
 	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
 	defer cancel()
-	resp, err := client.Delete(waitCtx, scope, name)
->>>>>>> Role Assignment: requiring import/timeouts
+	resp, err := client.Delete(waitCtx, id.scope, id.name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
 			return err

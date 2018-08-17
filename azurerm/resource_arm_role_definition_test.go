@@ -49,6 +49,29 @@ func TestAccAzureRMRoleDefinition_complete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMRoleDefinition_requiresImport(t *testing.T) {
+	ri := acctest.RandInt()
+	id := uuid.New().String()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRoleDefinitionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRoleDefinition_complete(id, ri),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRoleDefinitionExists("azurerm_role_definition.test"),
+				),
+			},
+			{
+				Config:      testAccAzureRMRoleDefinition_requiresImport(id, ri),
+				ExpectError: testRequiresImportError("azurerm_role_definition"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMRoleDefinition_update(t *testing.T) {
 	resourceName := "azurerm_role_definition.test"
 	id := uuid.New().String()
@@ -200,6 +223,29 @@ resource "azurerm_role_definition" "test" {
   ]
 }
 `, id, rInt)
+}
+
+func testAccAzureRMRoleDefinition_requiresImport(id string, rInt int) string {
+	template := testAccAzureRMRoleDefinition_complete(id, rInt)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_role_definition" "import" {
+  role_definition_id = "${azurerm_role_definition.test.role_definition_id}"
+  name               = "${azurerm_role_definition.test.name}"
+  scope              = "${azurerm_role_definition.test.scope}"
+  description        = "${azurerm_role_definition.test.description}"
+
+  permissions {
+    actions     = ["*"]
+    not_actions = ["Microsoft.Authorization/*/read"]
+  }
+
+  assignable_scopes = [
+    "${data.azurerm_subscription.primary.id}",
+  ]
+}
+`, template)
 }
 
 func testAccAzureRMRoleDefinition_updated(id string, rInt int) string {
