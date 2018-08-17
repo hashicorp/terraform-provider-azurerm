@@ -87,6 +87,24 @@ func resourceArmIotHub() *schema.Resource {
 				Computed: true,
 			},
 
+			"event_hub_events_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"event_hub_operations_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"event_hub_events_path": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"event_hub_operations_path": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"shared_access_policy": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -206,6 +224,29 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if properties := hub.Properties; properties != nil {
+
+		for k, v := range properties.EventHubEndpoints {
+			if v == nil {
+				continue
+			}
+			if k == "events" {
+				if v.Endpoint != nil {
+					d.Set("event_hub_events_endpoint", *v.Endpoint)
+				}
+				if v.Path != nil {
+					d.Set("event_hub_events_path", *v.Path)
+				}
+			} else if k == "operationsMonitoringEvents" {
+				if v.Endpoint != nil {
+					d.Set("event_hub_operations_endpoint", *v.Endpoint)
+				}
+				if v.Path != nil {
+					d.Set("event_hub_operations_path", *v.Path)
+				}
+			}
+
+		}
+
 		d.Set("hostname", properties.HostName)
 	}
 
