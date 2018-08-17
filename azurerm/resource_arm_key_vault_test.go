@@ -88,6 +88,29 @@ func TestAccAzureRMKeyVault_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKeyVault_requiresImport(t *testing.T) {
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVault_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists("azurerm_key_vault.test"),
+				),
+			},
+			{
+				Config:      testAccAzureRMKeyVault_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_key_vault"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMKeyVault_disappears(t *testing.T) {
 	resourceName := "azurerm_key_vault.test"
 	ri := acctest.RandInt()
@@ -285,6 +308,37 @@ resource "azurerm_key_vault" "test" {
   }
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMKeyVault_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMKeyVault_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_key_vault" "import" {
+  name                = "${azurerm_key_vault.test.name}"
+  location            = "${azurerm_key_vault.test.location}"
+  resource_group_name = "${azurerm_key_vault.test.resource_group_name}"
+  tenant_id           = "${azurerm_key_vault.test.tenant_id}"
+
+  sku {
+    name = "premium"
+  }
+
+  access_policy {
+    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+    object_id = "${data.azurerm_client_config.current.client_id}"
+
+    key_permissions = [
+      "create",
+    ]
+
+    secret_permissions = [
+      "set",
+    ]
+  }
+}
+`, template)
 }
 
 func testAccAzureRMKeyVault_update(rInt int, location string) string {
