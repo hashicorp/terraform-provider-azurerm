@@ -68,6 +68,10 @@ The following attributes are exported:
 
 * `shared_access_policy` - One or more `shared_access_policy` blocks as defined below.
 
+* `event_hub_[events|operations]_endpoint` -  The EventHub compatible endpoint for either the events or operational data (in conjunction with the path and share access policy, can be used to build a connection string)
+
+* `event_hub_[events|operations]_path` -  The EventHub compatible path for either the events or operational data (in conjunction with the endpoint and share access policy, can be used to build a connection string).
+
 ---
 
 A `shared access policy` block contains the following:
