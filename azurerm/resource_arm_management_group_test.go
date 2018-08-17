@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -32,20 +33,21 @@ func TestAccAzureRMManagementGroup_basic(t *testing.T) {
 
 func TestAccAzureRMManagementGroup_withSubscriptions(t *testing.T) {
 	resourceName := "azurerm_management_group.test"
+	//use subscriptionID from ENV VARS
 
 	ri := acctest.RandInt()
-
+	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRmManagementGroup_withSubscriptions(ri),
+				Config: testAzureRmManagementGroup_withSubscriptions(ri, subscriptionID),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagementGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "subscription_ids.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "subscription_ids.#", "00000000-1111-2222-3333-444444444444"),
+					resource.TestCheckResourceAttr(resourceName, "subscription_ids.#", subscriptionID),
 				),
 			},
 		},
@@ -111,13 +113,13 @@ resource "azurerm_management_group" "test" {
 `, ri)
 }
 
-func testAzureRmManagementGroup_withSubscriptions(ri int) string {
+func testAzureRmManagementGroup_withSubscriptions(ri int, subscriptionID string) string {
+
 	return fmt.Sprintf(`
 resource "azurerm_management_group" "test" {
   name         = "acctestmg-%d"
   subscription_ids = [
-	  "00000000-1111-2222-3333-444444444444"
-  ]
+	  "%q" 
 }
-`, ri)
+`, ri, subscriptionID)
 }
