@@ -73,7 +73,7 @@ func resourceArmEventHubAuthorizationRuleCreateUpdate(d *schema.ResourceData, me
 
 	if d.IsNewResource() {
 		// first check if there's one in this subscription requiring import
-		resp, err := client.Get(ctx, resourceGroup, namespaceName, name)
+		resp, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, eventHubName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Error checking for the existence of Authorization Rule %q (EventHub %q / Namespace %q / Resource Group %q): %+v", name, eventHubName, namespaceName, resourceGroup, err)

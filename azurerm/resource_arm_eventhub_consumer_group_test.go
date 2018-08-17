@@ -11,7 +11,6 @@ import (
 )
 
 func TestAccAzureRMEventHubConsumerGroup_basic(t *testing.T) {
-
 	ri := acctest.RandInt()
 	config := testAccAzureRMEventHubConsumerGroup_basic(ri, testLocation())
 
@@ -30,8 +29,30 @@ func TestAccAzureRMEventHubConsumerGroup_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMEventHubConsumerGroup_complete(t *testing.T) {
+func TestAccAzureRMEventHubConsumerGroup_requiresImport(t *testing.T) {
+	ri := acctest.RandInt()
+	location := testLocation()
 
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMEventHubConsumerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMEventHubConsumerGroup_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventHubConsumerGroupExists("azurerm_eventhub_consumer_group.test"),
+				),
+			},
+			{
+				Config:      testAccAzureRMEventHubConsumerGroup_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_eventhub_consumer_group"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMEventHubConsumerGroup_complete(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMEventHubConsumerGroup_complete(ri, testLocation())
 
@@ -166,6 +187,20 @@ resource "azurerm_eventhub_consumer_group" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMEventHubConsumerGroup_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMEventHubConsumerGroup_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_eventhub_consumer_group" "import" {
+  name                = "${azurerm_eventhub_consumer_group.test.name}"
+  namespace_name      = "${azurerm_eventhub_consumer_group.test.namespace_name}"
+  eventhub_name       = "${azurerm_eventhub_consumer_group.test.eventhub_name}"
+  resource_group_name = "${azurerm_eventhub_consumer_group.test.resource_group_name}"
+}
+`, template)
 }
 
 func testAccAzureRMEventHubConsumerGroup_complete(rInt int, location string) string {

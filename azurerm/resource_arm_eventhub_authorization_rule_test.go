@@ -27,6 +27,31 @@ func TestAccAzureRMEventHubAuthorizationRule_manage(t *testing.T) {
 	testAccAzureRMEventHubAuthorizationRule(t, true, true, true)
 }
 
+func TestAccAzureRMEventHubAuthorizationRule_requiresImport(t *testing.T) {
+	resourceName := "azurerm_eventhub_authorization_rule.test"
+
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMEventHubAuthorizationRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMEventHubAuthorizationRule_base(ri, location, true, true, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventHubAuthorizationRuleExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMEventHubAuthorizationRule_base(ri, location, true, true, true),
+				ExpectError: testRequiresImportError("azurerm_eventhub_authorization_rule"),
+			},
+		},
+	})
+}
+
 func testAccAzureRMEventHubAuthorizationRule(t *testing.T, listen, send, manage bool) {
 	resourceName := "azurerm_eventhub_authorization_rule.test"
 

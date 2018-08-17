@@ -1,13 +1,16 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -17,9 +20,13 @@ func resourceArmEventHubNamespaceAuthorizationRule() *schema.Resource {
 		Read:   resourceArmEventHubNamespaceAuthorizationRuleRead,
 		Update: resourceArmEventHubNamespaceAuthorizationRuleCreateUpdate,
 		Delete: resourceArmEventHubNamespaceAuthorizationRuleDelete,
-
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: azure.EventHubAuthorizationRuleSchemaFrom(map[string]*schema.Schema{
@@ -56,6 +63,20 @@ func resourceArmEventHubNamespaceAuthorizationRuleCreateUpdate(d *schema.Resourc
 	namespaceName := d.Get("namespace_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of Authorization Rule %q (Namespace %q / Resource Group %q): %+v", name, namespaceName, resourceGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_eventhub_namespace_authorization_rule", *resp.ID)
+		}
+	}
+
 	parameters := eventhub.AuthorizationRule{
 		Name: &name,
 		AuthorizationRuleProperties: &eventhub.AuthorizationRuleProperties{
@@ -63,7 +84,9 @@ func resourceArmEventHubNamespaceAuthorizationRuleCreateUpdate(d *schema.Resourc
 		},
 	}
 
-	if _, err := client.CreateOrUpdateAuthorizationRule(ctx, resourceGroup, namespaceName, name, parameters); err != nil {
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	if _, err := client.CreateOrUpdateAuthorizationRule(waitCtx, resourceGroup, namespaceName, name, parameters); err != nil {
 		return fmt.Errorf("Error creating/updating EventHub Namespace Authorization Rule %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -140,7 +163,9 @@ func resourceArmEventHubNamespaceAuthorizationRuleDelete(d *schema.ResourceData,
 	resourceGroup := id.ResourceGroup
 	namespaceName := id.Path["namespaces"]
 
-	resp, err := eventhubClient.DeleteAuthorizationRule(ctx, resourceGroup, namespaceName, name)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	resp, err := eventhubClient.DeleteAuthorizationRule(waitCtx, resourceGroup, namespaceName, name)
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Error issuing Azure ARM delete request of EventHub Authorization Rule '%s': %+v", name, err)

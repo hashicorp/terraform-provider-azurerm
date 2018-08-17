@@ -59,6 +59,30 @@ func testAccAzureRMEventHubNamespaceAuthorizationRule(t *testing.T, listen, send
 	})
 }
 
+func TestAccAzureRMEventHubNamespaceAuthorizationRule_requiresImport(t *testing.T) {
+	resourceName := "azurerm_eventhub_namespace_authorization_rule.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMEventHubNamespaceAuthorizationRule_base(ri, location, true, true, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMEventHubNamespaceAuthorizationRule_requiresImport(ri, location, true, true, true),
+				ExpectError: testRequiresImportError("azurerm_eventhub_namespace_authorization_rule"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMEventHubNamespaceAuthorizationRule_rightsUpdate(t *testing.T) {
 	resourceName := "azurerm_eventhub_namespace_authorization_rule.test"
 
@@ -165,7 +189,6 @@ resource "azurerm_eventhub_namespace" "test" {
   name                = "acctesteventhubnamespace-%[1]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-
   sku                 = "Standard"
 }
 
@@ -179,4 +202,20 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
   manage              = %[5]t
 }
 `, rInt, location, listen, send, manage)
+}
+
+func testAccAzureRMEventHubNamespaceAuthorizationRule_requiresImport(rInt int, location string, listen, send, manage bool) string {
+	template := testAccAzureRMEventHubNamespaceAuthorizationRule_base(rInt, location, listen, send, manage)
+	return fmt.Sprintf(`
+r%s
+
+resource "azurerm_eventhub_namespace_authorization_rule" "import" {
+  name                = "${azurerm_eventhub_namespace_authorization_rule.test.name}"
+  namespace_name      = "${azurerm_eventhub_namespace_authorization_rule.test.namespace_name}"
+  resource_group_name = "${azurerm_eventhub_namespace_authorization_rule.test.resource_group_name}"
+  listen              = "${azurerm_eventhub_namespace_authorization_rule.test.listen}"
+  manage              = "${azurerm_eventhub_namespace_authorization_rule.test.manage}"
+  send                = "${azurerm_eventhub_namespace_authorization_rule.test.send}"
+}
+`, template)
 }
