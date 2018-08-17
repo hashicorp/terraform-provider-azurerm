@@ -1,11 +1,14 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -17,6 +20,11 @@ func resourceArmNotificationHubAuthorizationRule() *schema.Resource {
 		Delete: resourceArmNotificationHubAuthorizationRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 		// TODO: customizeDiff for send+listen when manage selected
 
@@ -81,6 +89,20 @@ func resourceArmNotificationHubAuthorizationRuleCreateUpdate(d *schema.ResourceD
 	namespaceName := d.Get("namespace_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, notificationHubName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of Authorization Rule %q (Notification Hub %q / Namespace %q / Resource Group %q): %+v", name, notificationHubName, namespaceName, resourceGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_notification_hub_authorization_rule", *resp.ID)
+		}
+	}
+
 	manage := d.Get("manage").(bool)
 	send := d.Get("send").(bool)
 	listen := d.Get("listen").(bool)
@@ -91,7 +113,9 @@ func resourceArmNotificationHubAuthorizationRuleCreateUpdate(d *schema.ResourceD
 		},
 	}
 
-	_, err := client.CreateOrUpdateAuthorizationRule(ctx, resourceGroup, namespaceName, notificationHubName, name, parameters)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	_, err := client.CreateOrUpdateAuthorizationRule(waitCtx, resourceGroup, namespaceName, notificationHubName, name, parameters)
 	if err != nil {
 		return fmt.Errorf("Error creating Authorization Rule %q (Notification Hub %q / Namespace %q / Resource Group %q): %+v", name, notificationHubName, namespaceName, resourceGroup, err)
 	}
@@ -169,7 +193,9 @@ func resourceArmNotificationHubAuthorizationRuleDelete(d *schema.ResourceData, m
 	notificationHubName := id.Path["notificationHubs"]
 	name := id.Path["AuthorizationRules"]
 
-	resp, err := client.DeleteAuthorizationRule(ctx, resourceGroup, namespaceName, notificationHubName, name)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	resp, err := client.DeleteAuthorizationRule(waitCtx, resourceGroup, namespaceName, notificationHubName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return fmt.Errorf("Error deleting Authorization Rule %q (Notification Hub %q / Namespace %q / Resource Group %q): %+v", name, notificationHubName, namespaceName, resourceGroup, err)

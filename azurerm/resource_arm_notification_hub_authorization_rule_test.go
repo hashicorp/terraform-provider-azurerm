@@ -36,6 +36,31 @@ func TestAccAzureRMNotificationHubAuthorizationRule_listen(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMNotificationHubAuthorizationRule_requiresImport(t *testing.T) {
+	resourceName := "azurerm_notification_hub_authorization_rule.test"
+
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNotificationHubAuthorizationRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAzureRMNotificationHubAuthorizationRule_listen(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNotificationHubAuthorizationRuleExists(resourceName),
+				),
+			},
+			{
+				Config:      testAzureRMNotificationHubAuthorizationRule_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_notification_hub_authorization_rule"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMNotificationHubAuthorizationRule_manage(t *testing.T) {
 	resourceName := "azurerm_notification_hub_authorization_rule.test"
 
@@ -193,6 +218,21 @@ resource "azurerm_notification_hub_authorization_rule" "test" {
   listen                = true
 }
 `, template, ri)
+}
+
+func testAzureRMNotificationHubAuthorizationRule_requiresImport(rInt int, location string) string {
+	template := testAzureRMNotificationHubAuthorizationRule_listen(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_notification_hub_authorization_rule" "import" {
+  name                  = "${azurerm_notification_hub_authorization_rule.test.name}"
+  notification_hub_name = "${azurerm_notification_hub_authorization_rule.test.notification_hub_name}"
+  namespace_name        = "${azurerm_notification_hub_authorization_rule.test.namespace_name}"
+  resource_group_name   = "${azurerm_notification_hub_authorization_rule.test.resource_group_name}"
+  listen                = true
+}
+`, template)
 }
 
 func testAzureRMNotificationHubAuthorizationRule_send(ri int, location string) string {
