@@ -1,24 +1,31 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmManagementLock() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmManagementLockCreateUpdate,
+		Create: resourceArmManagementLockCreate,
 		Read:   resourceArmManagementLockRead,
 		Delete: resourceArmManagementLockDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 10),
+			Delete: schema.DefaultTimeout(time.Minute * 10),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -55,13 +62,26 @@ func resourceArmManagementLock() *schema.Resource {
 	}
 }
 
-func resourceArmManagementLockCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmManagementLockCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).managementLocksClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Management Lock creation.")
 
 	name := d.Get("name").(string)
 	scope := d.Get("scope").(string)
+
+	// first check if there's one in this subscription requiring import
+	resp, err := client.GetByScope(ctx, scope, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Error checking for the existence of Management Lock %q (Scope %q): %+v", name, scope, err)
+		}
+	}
+
+	if resp.ID != nil {
+		return tf.ImportAsExistsError("azurerm_management_lock", *resp.ID)
+	}
+
 	lockLevel := d.Get("lock_level").(string)
 	notes := d.Get("notes").(string)
 
@@ -72,7 +92,9 @@ func resourceArmManagementLockCreateUpdate(d *schema.ResourceData, meta interfac
 		},
 	}
 
-	_, err := client.CreateOrUpdateByScope(ctx, scope, name, lock)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutCreate))
+	defer cancel()
+	_, err = client.CreateOrUpdateByScope(waitCtx, scope, name, lock)
 	if err != nil {
 		return err
 	}
@@ -128,7 +150,9 @@ func resourceArmManagementLockDelete(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	resp, err := client.DeleteByScope(ctx, id.Scope, id.Name)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	resp, err := client.DeleteByScope(waitCtx, id.Scope, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil
