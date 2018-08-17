@@ -117,6 +117,30 @@ func TestAccAzureRMMetricAlertRule_sqlDatabaseStorage(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMetricAlertRule_requiresImport(t *testing.T) {
+	resourceName := "azurerm_metric_alertrule.test"
+	rInt := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMetricAlertRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMetricAlertRule_sqlDatabaseStorage(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMetricAlertRuleExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMMetricAlertRule_requiresImport(rInt, location),
+				ExpectError: testRequiresImportError("azurerm_metric_alertrule"),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMMetricAlertRuleExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -255,4 +279,40 @@ resource "azurerm_metric_alertrule" "test" {
   }
 }
 `, basicSqlServerDatabase)
+}
+func testAccAzureRMMetricAlertRule_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMMetricAlertRule_sqlDatabaseStorage(rInt, location)
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_metric_alertrule" "import" {
+  name                = "${azurerm_metric_alertrule.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  description         = "An alert rule to watch the metric Storage"
+  enabled             = true
+  resource_id         = "${azurerm_sql_database.test.id}"
+  metric_name         = "storage"
+  operator            = "GreaterThan"
+  threshold           = 1073741824
+  aggregation         = "Maximum"
+  period              = "PT10M"
+
+  email_action {
+    send_to_service_owners = false
+    custom_emails = [
+      "support@azure.microsoft.com",
+    ]
+  }
+
+  webhook_action {
+    service_uri = "https://requestb.in/18jamc41"
+      properties = {
+        severity = "incredible"
+        acceptance_test = "true"
+      }
+  }
+}
+`, template)
 }

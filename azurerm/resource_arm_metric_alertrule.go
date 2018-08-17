@@ -1,24 +1,33 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+// TODO: consider renaming this `azurerm_monitor_alert_rule` for consistency
 func resourceArmMetricAlertRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMetricAlertRuleCreateOrUpdate,
+		Create: resourceArmMetricAlertRuleCreateUpdate,
 		Read:   resourceArmMetricAlertRuleRead,
-		Update: resourceArmMetricAlertRuleCreateOrUpdate,
+		Update: resourceArmMetricAlertRuleCreateUpdate,
 		Delete: resourceArmMetricAlertRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -149,7 +158,7 @@ func resourceArmMetricAlertRule() *schema.Resource {
 	}
 }
 
-func resourceArmMetricAlertRuleCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMetricAlertRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).monitorAlertRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -157,6 +166,21 @@ func resourceArmMetricAlertRuleCreateOrUpdate(d *schema.ResourceData, meta inter
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of Metric Alert Rule %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_metric_alertrule", *resp.ID)
+		}
+	}
+
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -172,7 +196,9 @@ func resourceArmMetricAlertRuleCreateOrUpdate(d *schema.ResourceData, meta inter
 		AlertRule: alertRule,
 	}
 
-	_, err = client.CreateOrUpdate(ctx, resourceGroup, name, alertRuleResource)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	_, err = client.CreateOrUpdate(waitCtx, resourceGroup, name, alertRuleResource)
 	if err != nil {
 		return err
 	}
@@ -194,10 +220,13 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 	client := meta.(*ArmClient).monitorAlertRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	resourceGroup, name, err := resourceGroupAndAlertRuleNameFromId(d.Id())
+	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
+
+	name := id.Path["alertrules"]
+	resourceGroup := id.ResourceGroup
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -294,10 +323,12 @@ func resourceArmMetricAlertRuleDelete(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*ArmClient).monitorAlertRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	resourceGroup, name, err := resourceGroupAndAlertRuleNameFromId(d.Id())
+	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
+	name := id.Path["alertrules"]
+	resourceGroup := id.ResourceGroup
 
 	resp, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
@@ -408,17 +439,6 @@ func expandAzureRmMetricThresholdAlertRule(d *schema.ResourceData) (*insights.Al
 	}
 
 	return &alertRule, nil
-}
-
-func resourceGroupAndAlertRuleNameFromId(alertRuleId string) (string, string, error) {
-	id, err := parseAzureResourceID(alertRuleId)
-	if err != nil {
-		return "", "", err
-	}
-	name := id.Path["alertrules"]
-	resourceGroup := id.ResourceGroup
-
-	return resourceGroup, name, nil
 }
 
 func validateMetricAlertRuleTags(v interface{}, f string) (ws []string, es []error) {

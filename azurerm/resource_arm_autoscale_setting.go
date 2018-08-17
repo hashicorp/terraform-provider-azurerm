@@ -17,6 +17,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+// TODO: consider renaming this `azurerm_monitor_autoscale_setting` for consistency
 func resourceArmAutoScaleSetting() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmAutoScaleSettingCreateOrUpdate,
