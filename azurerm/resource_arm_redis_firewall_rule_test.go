@@ -71,6 +71,30 @@ func TestAccAzureRMRedisFirewallRule_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMRedisFirewallRule_requiresImport(t *testing.T) {
+	resourceName := "azurerm_redis_firewall_rule.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRedisFirewallRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRedisFirewallRule_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRedisFirewallRuleExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMRedisFirewallRule_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_redis_firewall_rule"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMRedisFirewallRule_update(t *testing.T) {
 	resourceName := "azurerm_redis_firewall_rule.test"
 	ri := acctest.RandInt()
@@ -178,6 +202,21 @@ resource "azurerm_redis_firewall_rule" "test" {
   end_ip              = "2.3.4.5"
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMRedisFirewallRule_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMRedisFirewallRule_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_redis_firewall_rule" "import" {
+  name                = "${azurerm_redis_firewall_rule.test.name}"
+  redis_cache_name    = "${azurerm_redis_firewall_rule.test.redis_cache_name}"
+  resource_group_name = "${azurerm_redis_firewall_rule.test.resource_group_name}"
+  start_ip            = "${azurerm_redis_firewall_rule.test.start_ip}"
+  end_ip              = "${azurerm_redis_firewall_rule.test.end_ip}"
+}
+`, template)
 }
 
 func testAccAzureRMRedisFirewallRule_update(rInt int, location string) string {
