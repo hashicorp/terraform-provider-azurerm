@@ -30,6 +30,30 @@ func TestAccAzureRMMySQLServer_basicFiveSix(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMySQLServer_requiresImport(t *testing.T) {
+	resourceName := "azurerm_mysql_server.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMySQLServer_basicFiveSix(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMySQLServerExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMMySQLServer_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_mysql_server"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMMySQLServer_basicFiveSeven(t *testing.T) {
 	resourceName := "azurerm_mysql_server.test"
 	ri := acctest.RandInt()
@@ -254,6 +278,37 @@ resource "azurerm_mysql_server" "test" {
   ssl_enforcement              = "Enabled"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMMySQLServer_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMMySQLServer_basicFiveSix(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mysql_server" "import" {
+  name                = "${azurerm_mysql_server.test.name}"
+  location            = "${azurerm_mysql_server.test.location}"
+  resource_group_name = "${azurerm_mysql_server.test.resource_group_name}"
+
+  sku {
+    name     = "B_Gen4_2"
+    capacity = 2
+    tier     = "Basic"
+    family   = "Gen4"
+  }
+
+  storage_profile {
+    storage_mb            = 51200
+    backup_retention_days = 7
+    geo_redundant_backup  = "Disabled"
+  }
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+  version                      = "5.6"
+  ssl_enforcement              = "Enabled"
+}
+`, template)
 }
 
 func testAccAzureRMMySQLServer_basicFiveSeven(rInt int, location string) string {
