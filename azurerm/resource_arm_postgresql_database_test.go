@@ -32,6 +32,30 @@ func TestAccAzureRMPostgreSQLDatabase_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPostgreSQLDatabase_requiresImport(t *testing.T) {
+	resourceName := "azurerm_postgresql_database.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPostgreSQLDatabase_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLDatabaseExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMPostgreSQLDatabase_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_postgresql_database"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMPostgreSQLDatabase_charsetLowercase(t *testing.T) {
 	resourceName := "azurerm_postgresql_database.test"
 	ri := acctest.RandInt()
@@ -174,6 +198,21 @@ resource "azurerm_postgresql_database" "test" {
   collation           = "English_United States.1252"
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMPostgreSQLDatabase_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMPostgreSQLDatabase_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_database" "import" {
+  name                = "${azurerm_postgresql_database.test.name}"
+  resource_group_name = "${azurerm_postgresql_database.test.resource_group_name}"
+  server_name         = "${azurerm_postgresql_database.test.server_name}"
+  charset             = "${azurerm_postgresql_database.test.charset}"
+  collation           = "${azurerm_postgresql_database.test.collation}"
+}
+`, template)
 }
 
 func testAccAzureRMPostgreSQLDatabase_charsetLowercase(rInt int, location string) string {

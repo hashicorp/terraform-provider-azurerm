@@ -1,13 +1,16 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -18,6 +21,10 @@ func resourceArmPostgreSQLDatabase() *schema.Resource {
 		Delete: resourceArmPostgreSQLDatabaseDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -62,6 +69,18 @@ func resourceArmPostgreSQLDatabaseCreate(d *schema.ResourceData, meta interface{
 	resGroup := d.Get("resource_group_name").(string)
 	serverName := d.Get("server_name").(string)
 
+	// first check if there's one in this subscription requiring import
+	resp, err := client.Get(ctx, resGroup, serverName, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Error checking for the existence of PostgreSQL Database %q (Server %q / Resource Group %q): %+v", name, serverName, resGroup, err)
+		}
+	}
+
+	if resp.ID != nil {
+		return tf.ImportAsExistsError("azurerm_postgresql_database", *resp.ID)
+	}
+
 	charset := d.Get("charset").(string)
 	collation := d.Get("collation").(string)
 
@@ -77,7 +96,9 @@ func resourceArmPostgreSQLDatabaseCreate(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutCreate))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -154,7 +175,9 @@ func resourceArmPostgreSQLDatabaseDelete(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
