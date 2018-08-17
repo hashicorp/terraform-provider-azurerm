@@ -29,6 +29,29 @@ func TestAccAzureRMNetworkSecurityGroup_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMNetworkSecurityGroup_requiresImport(t *testing.T) {
+	resourceName := "azurerm_network_security_group.test"
+	rInt := acctest.RandInt()
+	location := testLocation()
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkSecurityGroup_basic(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkSecurityGroupExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMNetworkSecurityGroup_requiresImport(rInt, location),
+				ExpectError: testRequiresImportError("azurerm_network_security_group"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMNetworkSecurityGroup_singleRule(t *testing.T) {
 	resourceName := "azurerm_network_security_group.test"
 	rInt := acctest.RandInt()
@@ -283,6 +306,19 @@ resource "azurerm_network_security_group" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location)
+}
+
+func testAccAzureRMNetworkSecurityGroup_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMNetworkSecurityGroup_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_security_group" "import" {
+  name                = "${azurerm_network_security_group.test.name}"
+  location            = "${azurerm_network_security_group.test.location}"
+  resource_group_name = "${azurerm_network_security_group.test.resource_group_name}"
+}
+`, template)
 }
 
 func testAccAzureRMNetworkSecurityGroup_singleRule(rInt int, location string) string {
