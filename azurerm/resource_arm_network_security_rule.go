@@ -1,22 +1,30 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmNetworkSecurityRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetworkSecurityRuleCreate,
+		Create: resourceArmNetworkSecurityRuleCreateUpdate,
 		Read:   resourceArmNetworkSecurityRuleRead,
-		Update: resourceArmNetworkSecurityRuleCreate,
+		Update: resourceArmNetworkSecurityRuleCreateUpdate,
 		Delete: resourceArmNetworkSecurityRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -152,13 +160,27 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 	}
 }
 
-func resourceArmNetworkSecurityRuleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmNetworkSecurityRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).secRuleClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	nsgName := d.Get("network_security_group_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
+
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resGroup, nsgName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of Network Security Rule %q (Security Group %q Resource Group %q): %+v", name, nsgName, resGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_network_security_rule", *resp.ID)
+		}
+	}
 
 	sourcePortRange := d.Get("source_port_range").(string)
 	destinationPortRange := d.Get("destination_port_range").(string)
@@ -258,7 +280,9 @@ func resourceArmNetworkSecurityRuleCreate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error Creating/Updating Network Security Rule %q (NSG %q / Resource Group %q): %+v", name, nsgName, resGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for completion of Network Security Rule %q (NSG %q / Resource Group %q): %+v", name, nsgName, resGroup, err)
 	}
@@ -340,7 +364,9 @@ func resourceArmNetworkSecurityRuleDelete(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error Deleting Network Security Rule %q (NSG %q / Resource Group %q): %+v", sgRuleName, nsgName, resGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for the deletion of Network Security Rule %q (NSG %q / Resource Group %q): %+v", sgRuleName, nsgName, resGroup, err)
 	}
