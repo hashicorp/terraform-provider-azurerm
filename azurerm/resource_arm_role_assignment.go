@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -10,6 +11,7 @@ import (
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,6 +22,10 @@ func resourceArmRoleAssignment() *schema.Resource {
 		Delete: resourceArmRoleAssignmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 5),
+			Delete: schema.DefaultTimeout(time.Minute * 5),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -91,7 +97,20 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 
 	principalId := d.Get("principal_id").(string)
 
-	if name == "" {
+	if name != "" {
+		// first check if there's one in this subscription requiring import
+		resp, err := roleAssignmentsClient.Get(ctx, scope, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of Role Assignment %q: %+v", name, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_role_assignment", *resp.ID)
+		}
+	} else {
+		// generate a new name
 		uuid, err := uuid.GenerateUUID()
 		if err != nil {
 			return fmt.Errorf("Error generating UUID for Role Assignment: %+v", err)
@@ -107,7 +126,10 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 		},
 	}
 
-	err := resource.Retry(300*time.Second, retryRoleAssignmentsClient(scope, name, properties, meta))
+	timeout := d.Timeout(schema.TimeoutCreate)
+	waitCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	err := resource.Retry(timeout, retryRoleAssignmentsClient(waitCtx, scope, name, properties, meta))
 	if err != nil {
 		return err
 	}
@@ -154,12 +176,23 @@ func resourceArmRoleAssignmentDelete(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).roleAssignmentsClient
 	ctx := meta.(*ArmClient).StopContext
 
+<<<<<<< HEAD
 	id, err := parseRoleAssignmentId(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resp, err := client.Delete(ctx, id.scope, id.name)
+=======
+	// TODO: update this to use client.DeleteByID(d.Id())
+	// which allows the config tp be empty / for this to work
+	scope := d.Get("scope").(string)
+	name := d.Get("name").(string)
+
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	resp, err := client.Delete(waitCtx, scope, name)
+>>>>>>> Role Assignment: requiring import/timeouts
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
 			return err
@@ -181,19 +214,15 @@ func validateRoleDefinitionName(i interface{}, k string) ([]string, []error) {
 	return nil, nil
 }
 
-func retryRoleAssignmentsClient(scope string, name string, properties authorization.RoleAssignmentCreateParameters, meta interface{}) func() *resource.RetryError {
-
+func retryRoleAssignmentsClient(ctx context.Context, scope string, name string, properties authorization.RoleAssignmentCreateParameters, meta interface{}) func() *resource.RetryError {
 	return func() *resource.RetryError {
-		roleAssignmentsClient := meta.(*ArmClient).roleAssignmentsClient
-		ctx := meta.(*ArmClient).StopContext
-
-		_, err := roleAssignmentsClient.Create(ctx, scope, name, properties)
-
+		client := meta.(*ArmClient).roleAssignmentsClient
+		_, err := client.Create(ctx, scope, name, properties)
 		if err != nil {
 			return resource.RetryableError(err)
 		}
-		return nil
 
+		return nil
 	}
 }
 

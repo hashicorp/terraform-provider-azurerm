@@ -16,11 +16,12 @@ func TestAccAzureRMRoleAssignment(t *testing.T) {
 	// Azure only being happy about provisioning a couple at a time
 	testCases := map[string]map[string]func(t *testing.T){
 		"basic": {
-			"emptyName":   testAccAzureRMRoleAssignment_emptyName,
-			"roleName":    testAccAzureRMRoleAssignment_roleName,
-			"dataActions": testAccAzureRMRoleAssignment_dataActions,
-			"builtin":     testAccAzureRMRoleAssignment_builtin,
-			"custom":      testAccAzureRMRoleAssignment_custom,
+			"emptyName":      testAccAzureRMRoleAssignment_emptyName,
+			"roleName":       testAccAzureRMRoleAssignment_roleName,
+			"dataActions":    testAccAzureRMRoleAssignment_dataActions,
+			"builtin":        testAccAzureRMRoleAssignment_builtin,
+			"custom":         testAccAzureRMRoleAssignment_custom,
+			"requiresImport": testAccAzureRMRoleAssignment_requiresImport,
 		},
 		"import": {
 			"basic":  testAccAzureRMRoleAssignment_importBasic,
@@ -77,6 +78,29 @@ func testAccAzureRMRoleAssignment_roleName(t *testing.T) {
 					testCheckAzureRMRoleAssignmentExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "role_definition_id"),
 				),
+			},
+		},
+	})
+}
+
+func testAccAzureRMRoleAssignment_requiresImport(t *testing.T) {
+	id := uuid.New().String()
+	resourceName := "azurerm_role_assignment.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRoleAssignment_roleNameConfig(id),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRoleAssignmentExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMRoleAssignment_requiresImportConfig(id),
+				ExpectError: testRequiresImportError("azurerm_role_assignment"),
 			},
 		},
 	})
@@ -224,6 +248,20 @@ resource "azurerm_role_assignment" "test" {
   scope                = "${data.azurerm_subscription.primary.id}"
   role_definition_name = "Log Analytics Reader"
   principal_id         = "${data.azurerm_client_config.test.service_principal_object_id}"
+}
+`, id)
+}
+
+func testAccAzureRMRoleAssignment_requiresImportConfig(id string) string {
+	template := testAccAzureRMRoleAssignment_roleNameConfig(id)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_role_assignment" "import" {
+  name                 = "${azurerm_role_assignment.test.name}"
+  scope                = "${azurerm_role_assignment.test.scope}"
+  role_definition_name = "${azurerm_role_assignment.test.role_definition_name}"
+  principal_id         = "${azurerm_role_assignment.test.principal_id}"
 }
 `, id)
 }
