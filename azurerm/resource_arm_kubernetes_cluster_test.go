@@ -98,6 +98,32 @@ func TestAccAzureRMKubernetesCluster_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKubernetesCluster_requiresImport(t *testing.T) {
+	resourceName := "azurerm_kubernetes_cluster.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesCluster_basic(ri, clientId, clientSecret, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMKubernetesCluster_requiresImport(ri, clientId, clientSecret, location),
+				ExpectError: testRequiresImportError("azurerm_kubernetes_cluster"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMKubernetesCluster_linuxProfile(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
 	ri := acctest.RandInt()
@@ -415,6 +441,40 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, rInt, location, rInt, rInt, rInt, clientId, clientSecret)
+}
+
+func testAccAzureRMKubernetesCluster_requiresImport(rInt int, clientId string, clientSecret string, location string) string {
+	template := testAccAzureRMKubernetesCluster_basic(rInt, clientId, clientSecret, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_kubernetes_cluster" "import" {
+  name                = "${azurerm_kubernetes_cluster.test.name}"
+  location            = "${azurerm_kubernetes_cluster.test.location}"
+  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+  dns_prefix          = "${azurerm_kubernetes_cluster.test.dns_prefix}"
+  kubernetes_version  = "1.7.7"
+
+  linux_profile {
+    admin_username = "acctestuser%d"
+
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
+
+  agent_pool_profile {
+    name    = "default"
+    count   = "1"
+    vm_size = "Standard_DS2_v2"
+  }
+
+  service_principal {
+    client_id     = "%s"
+    client_secret = "%s"
+  }
+}
+`, template, rInt, clientId, clientSecret)
 }
 
 func testAccAzureRMKubernetesCluster_addAgent(rInt int, clientId string, clientSecret string, location string) string {

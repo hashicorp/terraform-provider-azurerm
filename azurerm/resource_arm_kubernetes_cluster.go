@@ -2,26 +2,34 @@ package azurerm
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"regexp"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/kubernetes"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmKubernetesCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKubernetesClusterCreate,
+		Create: resourceArmKubernetesClusterCreateUpdate,
 		Read:   resourceArmKubernetesClusterRead,
-		Update: resourceArmKubernetesClusterCreate,
+		Update: resourceArmKubernetesClusterCreateUpdate,
 		Delete: resourceArmKubernetesClusterDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 60),
+			Update: schema.DefaultTimeout(time.Minute * 60),
+			Delete: schema.DefaultTimeout(time.Minute * 60),
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
@@ -365,14 +373,29 @@ func resourceArmKubernetesCluster() *schema.Resource {
 	}
 }
 
-func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	kubernetesClustersClient := client.kubernetesClustersClient
+func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).kubernetesClustersClient
 
 	log.Printf("[INFO] preparing arguments for Azure ARM AKS managed cluster creation.")
 
-	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
+	resGroup := d.Get("resource_group_name").(string)
+
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of Kubernetes Cluster %q (Resource Group %q): %+v", name, resGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_kubernetes_cluster", *resp.ID)
+		}
+	}
+
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	dnsPrefix := d.Get("dns_prefix").(string)
 	kubernetesVersion := d.Get("kubernetes_version").(string)
@@ -412,18 +435,19 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 		Tags: expandTags(tags),
 	}
 
-	ctx := client.StopContext
-	future, err := kubernetesClustersClient.CreateOrUpdate(ctx, resGroup, name, parameters)
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
 	if err != nil {
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, kubernetesClustersClient.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return err
 	}
 
-	read, err := kubernetesClustersClient.Get(ctx, resGroup, name)
+	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
@@ -515,8 +539,8 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmKubernetesClusterDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	kubernetesClustersClient := client.kubernetesClustersClient
+	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).kubernetesClustersClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -525,13 +549,14 @@ func resourceArmKubernetesClusterDelete(d *schema.ResourceData, meta interface{}
 	resGroup := id.ResourceGroup
 	name := id.Path["managedClusters"]
 
-	ctx := client.StopContext
-	future, err := kubernetesClustersClient.Delete(ctx, resGroup, name)
+	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error issuing AzureRM delete request of AKS Managed Cluster %q (resource Group %q): %+v", name, resGroup, err)
 	}
 
-	return future.WaitForCompletionRef(ctx, kubernetesClustersClient.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	return future.WaitForCompletionRef(waitCtx, client.Client)
 }
 
 func flattenAzureRmKubernetesClusterLinuxProfile(profile *containerservice.LinuxProfile) []interface{} {
