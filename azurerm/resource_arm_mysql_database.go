@@ -1,11 +1,14 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -16,6 +19,10 @@ func resourceArmMySqlDatabase() *schema.Resource {
 		Delete: resourceArmMySqlDatabaseDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -59,6 +66,18 @@ func resourceArmMySqlDatabaseCreate(d *schema.ResourceData, meta interface{}) er
 	resourceGroup := d.Get("resource_group_name").(string)
 	serverName := d.Get("server_name").(string)
 
+	// first check if there's one in this subscription requiring import
+	resp, err := client.Get(ctx, resourceGroup, serverName, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Error checking for the existence of MySQL Database %q (Server %q / Resource Group %q): %+v", name, serverName, resourceGroup, err)
+		}
+	}
+
+	if resp.ID != nil {
+		return tf.ImportAsExistsError("azurerm_mysql_database", *resp.ID)
+	}
+
 	charset := d.Get("charset").(string)
 	collation := d.Get("collation").(string)
 
@@ -74,7 +93,9 @@ func resourceArmMySqlDatabaseCreate(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutCreate))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -140,7 +161,9 @@ func resourceArmMySqlDatabaseDelete(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return err
 	}

@@ -30,6 +30,30 @@ func TestAccAzureRMMySQLDatabase_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMySQLDatabase_requiresImport(t *testing.T) {
+	resourceName := "azurerm_mysql_database.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMySQLDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMySQLDatabase_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMySQLDatabaseExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMMySQLDatabase_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_mysql_database"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMMySQLDatabase_charsetUppercase(t *testing.T) {
 	resourceName := "azurerm_mysql_database.test"
 	ri := acctest.RandInt()
@@ -167,6 +191,21 @@ resource "azurerm_mysql_database" "test" {
   collation           = "utf8_unicode_ci"
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMMySQLDatabase_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMMySQLDatabase_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mysql_database" "import" {
+  name                = "${azurerm_mysql_database.test.name}"
+  resource_group_name = "${azurerm_mysql_database.test.resource_group_name}"
+  server_name         = "${azurerm_mysql_database.test.server_name}"
+  charset             = "${azurerm_mysql_database.test.charset}"
+  collation           = "${azurerm_mysql_database.test.collation}"
+}
+`, template)
 }
 
 func testAccAzureRMMySQLDatabase_charsetUppercase(rInt int, location string) string {
