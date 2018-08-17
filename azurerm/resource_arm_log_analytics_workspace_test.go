@@ -70,6 +70,29 @@ func TestAccAzureRMLogAnalyticsWorkspace_requiredOnly(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLogAnalyticsWorkspace_requiresImport(t *testing.T) {
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLogAnalyticsWorkspace_requiredOnly(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogAnalyticsWorkspaceExists("azurerm_log_analytics_workspace.test"),
+				),
+			},
+			{
+				Config:      testAccAzureRMLogAnalyticsWorkspace_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_log_analytics_workspace"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMLogAnalyticsWorkspace_retentionInDaysComplete(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMLogAnalyticsWorkspace_retentionInDaysComplete(ri, testLocation())
@@ -158,6 +181,20 @@ resource "azurerm_log_analytics_workspace" "test" {
   sku                 = "PerGB2018"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMLogAnalyticsWorkspace_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMLogAnalyticsWorkspace_requiredOnly(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_workspace" "import" {
+  name                = "${azurerm_log_analytics_workspace.test.name}"
+  location            = "${azurerm_log_analytics_workspace.test.location}"
+  resource_group_name = "${azurerm_log_analytics_workspace.test.resource_group_name}"
+  sku                 = "${azurerm_log_analytics_workspace.test.sku}"
+}
+`, template)
 }
 
 func testAccAzureRMLogAnalyticsWorkspace_retentionInDaysComplete(rInt int, location string) string {
