@@ -1,12 +1,15 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -24,6 +27,12 @@ func resourceArmNotificationHub() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
+		},
+
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
 			// NOTE: the ForceNew is to workaround a bug in the Azure SDK where nil-values aren't sent to the API.
 			// Bug: https://github.com/Azure/azure-sdk-for-go/issues/2246
@@ -130,8 +139,22 @@ func resourceArmNotificationHubCreateUpdate(d *schema.ResourceData, meta interfa
 	name := d.Get("name").(string)
 	namespaceName := d.Get("namespace_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
 
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resourceGroup, namespaceName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of Notification Hub %q (Namespace %q / Resource Group %q): %+v", name, namespaceName, resourceGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_notification_hub", *resp.ID)
+		}
+	}
+
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	apnsRaw := d.Get("apns_credential").([]interface{})
 	apnsCredential, err := expandNotificationHubsAPNSCredentials(apnsRaw)
 	if err != nil {
@@ -152,7 +175,9 @@ func resourceArmNotificationHubCreateUpdate(d *schema.ResourceData, meta interfa
 		},
 	}
 
-	_, err = client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	_, err = client.CreateOrUpdate(waitCtx, resourceGroup, namespaceName, name, parameters)
 	if err != nil {
 		return fmt.Errorf("Error creating Notification Hub %q (Namespace %q / Resource Group %q): %+v", name, namespaceName, resourceGroup, err)
 	}
@@ -232,7 +257,9 @@ func resourceArmNotificationHubDelete(d *schema.ResourceData, meta interface{}) 
 	namespaceName := id.Path["namespaces"]
 	name := id.Path["notificationHubs"]
 
-	resp, err := client.Delete(ctx, resourceGroup, namespaceName, name)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	resp, err := client.Delete(waitCtx, resourceGroup, namespaceName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return fmt.Errorf("Error deleting Notification Hub %q (Namespace %q / Resource Group %q): %+v", name, namespaceName, resourceGroup, err)

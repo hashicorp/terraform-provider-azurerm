@@ -33,6 +33,31 @@ func TestAccAzureRMNotificationHub_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMNotificationHub_requiresImport(t *testing.T) {
+	resourceName := "azurerm_notification_hub.test"
+
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNotificationHubDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAzureRMNotificationHub_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNotificationHubExists(resourceName),
+				),
+			},
+			{
+				Config:      testAzureRMNotificationHub_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_notification_hub"),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMNotificationHubExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
@@ -111,4 +136,18 @@ resource "azurerm_notification_hub" "test" {
   location            = "${azurerm_resource_group.test.location}"
 }
 `, ri, location, ri, ri)
+}
+
+func testAzureRMNotificationHub_requiresImport(rInt int, location string) string {
+	template := testAzureRMNotificationHub_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_notification_hub" "import" {
+  name                = "${azurerm_notification_hub.test.name}"
+  namespace_name      = "${azurerm_notification_hub.test.namespace_name}" 
+  resource_group_name = "${azurerm_notification_hub.test.resource_group_name}"
+  location            = "${azurerm_notification_hub.test.location}"
+}
+`, template)
 }
