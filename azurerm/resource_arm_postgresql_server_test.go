@@ -33,6 +33,30 @@ func TestAccAzureRMPostgreSQLServer_basicNinePointFive(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPostgreSQLServer_requiresImport(t *testing.T) {
+	resourceName := "azurerm_postgresql_server.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPostgreSQLServer_basicNinePointFive(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLServerExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMPostgreSQLServer_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_postgresql_server"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMPostgreSQLServer_basicNinePointSix(t *testing.T) {
 	resourceName := "azurerm_postgresql_server.test"
 	ri := acctest.RandInt()
@@ -336,6 +360,37 @@ resource "azurerm_postgresql_server" "test" {
   ssl_enforcement              = "Enabled"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMPostgreSQLServer_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMPostgreSQLServer_basicNinePointFive(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_server" "import" {
+  name                = "${azurerm_postgresql_server.test.name}"
+  location            = "${azurerm_postgresql_server.test.location}"
+  resource_group_name = "${azurerm_postgresql_server.test.resource_group_name}"
+
+  sku {
+    name     = "B_Gen4_2"
+    capacity = 2
+    tier     = "Basic"
+    family   = "Gen4"
+  }
+
+  storage_profile {
+    storage_mb            = 51200
+    backup_retention_days = 7
+    geo_redundant_backup  = "Disabled"
+  }
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+  version                      = "9.5"
+  ssl_enforcement              = "Enabled"
+}
+`, template)
 }
 
 func testAccAzureRMPostgreSQLServer_basicNinePointSix(rInt int, location string) string {
