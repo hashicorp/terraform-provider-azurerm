@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/structure"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -26,6 +27,11 @@ func resourceArmPolicyDefinition() *schema.Resource {
 		Delete: resourceArmPolicyDefinitionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 10),
+			Update: schema.DefaultTimeout(time.Minute * 10),
+			Delete: schema.DefaultTimeout(time.Minute * 10),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -95,6 +101,21 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
+
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of Policy Definition %q: %+v", name, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_policy_definition", *resp.ID)
+		}
+	}
+
 	policyType := d.Get("policy_type").(string)
 	mode := d.Get("mode").(string)
 	displayName := d.Get("display_name").(string)
@@ -143,11 +164,14 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 
 	// Policy Definitions are eventually consistent; wait for them to stabilize
 	log.Printf("[DEBUG] Waiting for Policy Definition %q to become available", name)
+	timeout := d.Timeout(tf.TimeoutForCreateUpdate(d))
+	waitCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
 	stateConf := &resource.StateChangeConf{
 		Pending:                   []string{"404"},
 		Target:                    []string{"200"},
-		Refresh:                   policyDefinitionRefreshFunc(ctx, client, name),
-		Timeout:                   5 * time.Minute,
+		Refresh:                   policyDefinitionRefreshFunc(waitCtx, client, name),
+		Timeout:                   timeout,
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 10,
 	}
@@ -236,8 +260,9 @@ func resourceArmPolicyDefinitionDelete(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	resp, err := client.Delete(ctx, name)
-
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	resp, err := client.Delete(waitCtx, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil

@@ -30,6 +30,30 @@ func TestAccAzureRMPolicyDefinition_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPolicyDefinition_requiresImport(t *testing.T) {
+	resourceName := "azurerm_policy_definition.test"
+
+	ri := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAzureRMPolicyDefinition_basic(ri),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPolicyDefinitionExists(resourceName),
+				),
+			},
+			{
+				Config:      testAzureRMPolicyDefinition_requiresImport(ri),
+				ExpectError: testRequiresImportError("azurerm_policy_definition"),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMPolicyDefinitionExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
@@ -115,4 +139,20 @@ POLICY_RULE
 PARAMETERS
 }
 `, ri, ri)
+}
+
+func testAzureRMPolicyDefinition_requiresImport(rInt int) string {
+	template := testAzureRMPolicyDefinition_basic(rInt)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_policy_definition" "import" {
+  name         = "${azurerm_policy_definition.test.name}"
+  policy_type  = "${azurerm_policy_definition.test.policy_type}"
+  mode         = "${azurerm_policy_definition.test.mode}"
+  display_name = "${azurerm_policy_definition.test.display_name}"
+  policy_rule  = "${azurerm_policy_definition.test.policy_rule}"
+  parameters   = "${azurerm_policy_definition.test.parameters}"
+}
+`, template)
 }
