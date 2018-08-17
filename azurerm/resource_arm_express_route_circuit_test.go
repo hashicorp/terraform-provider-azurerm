@@ -24,6 +24,7 @@ func TestAccAzureRMExpressRouteCircuit(t *testing.T) {
 			"premiumMetered":               testAccAzureRMExpressRouteCircuit_premiumMetered,
 			"premiumUnlimited":             testAccAzureRMExpressRouteCircuit_premiumUnlimited,
 			"allowClassicOperationsUpdate": testAccAzureRMExpressRouteCircuit_allowClassicOperationsUpdate,
+			"requiresImport":               testAccAzureRMExpressRouteCircuit_requiresImport,
 		},
 		"PrivatePeering": {
 			"azurePrivatePeering":  testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering,
@@ -74,6 +75,30 @@ func testAccAzureRMExpressRouteCircuit_basicMetered(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteCircuitExists("azurerm_express_route_circuit.test", &erc),
 				),
+			},
+		},
+	})
+}
+
+func testAccAzureRMExpressRouteCircuit_requiresImport(t *testing.T) {
+	var erc network.ExpressRouteCircuit
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMExpressRouteCircuit_basicMeteredConfig(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMExpressRouteCircuitExists("azurerm_express_route_circuit.test", &erc),
+				),
+			},
+			{
+				Config:      testAccAzureRMExpressRouteCircuit_requiresImportConfig(ri, location),
+				ExpectError: testRequiresImportError("azurerm_express_route_circuit"),
 			},
 		},
 	})
@@ -311,6 +336,34 @@ resource "azurerm_express_route_circuit" "test" {
   }
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMExpressRouteCircuit_requiresImportConfig(rInt int, location string) string {
+	template := testAccAzureRMExpressRouteCircuit_basicMeteredConfig(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_express_route_circuit" "import" {
+  name                  = "${azurerm_express_route_circuit.test.name}"
+  location              = "${azurerm_express_route_circuit.test.location}"
+  resource_group_name   = "${azurerm_express_route_circuit.test.resource_group_name}"
+  service_provider_name = "${azurerm_express_route_circuit.test.service_provider_name}"
+  peering_location      = "${azurerm_express_route_circuit.test.peering_location}"
+  bandwidth_in_mbps     = "${azurerm_express_route_circuit.test.bandwidth_in_mbps}"
+
+  sku {
+    tier   = "Standard"
+    family = "MeteredData"
+  }
+
+  allow_classic_operations = false
+
+  tags {
+    Environment = "production"
+    Purpose     = "AcceptanceTests"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMExpressRouteCircuit_basicUnlimitedConfig(rInt int, location string) string {

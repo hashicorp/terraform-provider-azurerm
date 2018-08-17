@@ -1,12 +1,15 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,6 +23,11 @@ func resourceArmExpressRouteCircuit() *schema.Resource {
 		Delete: resourceArmExpressRouteCircuitDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -111,6 +119,21 @@ func resourceArmExpressRouteCircuitCreateOrUpdate(d *schema.ResourceData, meta i
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
+
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of ExpressRouteCircuit %q (Resource Group %q): %+v", name, resGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_express_route_circuit", *resp.ID)
+		}
+	}
+
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	serviceProviderName := d.Get("service_provider_name").(string)
 	peeringLocation := d.Get("peering_location").(string)
@@ -143,7 +166,9 @@ func resourceArmExpressRouteCircuitCreateOrUpdate(d *schema.ResourceData, meta i
 		return fmt.Errorf("Error Creating/Updating ExpressRouteCircuit %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error Creating/Updating ExpressRouteCircuit %q (Resource Group %q): %+v", name, resGroup, err)
 	}
@@ -233,7 +258,9 @@ func resourceArmExpressRouteCircuitDelete(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return err
 	}
