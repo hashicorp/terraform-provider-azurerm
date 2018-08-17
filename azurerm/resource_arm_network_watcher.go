@@ -1,11 +1,14 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -17,6 +20,11 @@ func resourceArmNetworkWatcher() *schema.Resource {
 		Delete: resourceArmNetworkWatcherDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -41,6 +49,21 @@ func resourceArmNetworkWatcherCreateUpdate(d *schema.ResourceData, meta interfac
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of Network Watcher %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_network_watcher", *resp.ID)
+		}
+	}
+
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -48,7 +71,10 @@ func resourceArmNetworkWatcherCreateUpdate(d *schema.ResourceData, meta interfac
 		Location: utils.String(location),
 		Tags:     expandTags(tags),
 	}
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, name, watcher)
+
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	_, err := client.CreateOrUpdate(waitCtx, resourceGroup, name, watcher)
 	if err != nil {
 		return err
 	}
@@ -115,7 +141,9 @@ func resourceArmNetworkWatcherDelete(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for the deletion of Network Watcher %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}

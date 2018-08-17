@@ -23,6 +23,7 @@ func TestAccAzureRMNetworkWatcher(t *testing.T) {
 			"disappears":     testAccAzureRMNetworkWatcher_disappears,
 			"importBasic":    testAccAzureRMNetworkWatcher_importBasic,
 			"importComplete": testAccAzureRMNetworkWatcher_importComplete,
+			"requiresImport": testAccAzureRMNetworkWatcher_requiresImport,
 		},
 		"PacketCapture": {
 			"import":                     testAccAzureRMPacketCapture_importBasic,
@@ -59,6 +60,29 @@ func testAccAzureRMNetworkWatcher_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkWatcherExists(resourceGroup),
 				),
+			},
+		},
+	})
+}
+
+func testAccAzureRMNetworkWatcher_requiresImport(t *testing.T) {
+	resourceGroup := "azurerm_network_watcher.test"
+	rInt := acctest.RandInt()
+	location := testLocation()
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkWatcher_basicConfig(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkWatcherExists(resourceGroup),
+				),
+			},
+			{
+				Config:      testAccAzureRMNetworkWatcher_requiresImportConfig(rInt, location),
+				ExpectError: testRequiresImportError("azurerm_network_watcher"),
 			},
 		},
 	})
@@ -225,6 +249,19 @@ resource "azurerm_network_watcher" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMNetworkWatcher_requiresImportConfig(rInt int, location string) string {
+	template := testAccAzureRMNetworkWatcher_basicConfig(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_watcher" "import" {
+  name                = "${azurerm_network_watcher.test.name}"
+  location            = "${azurerm_network_watcher.test.location}"
+  resource_group_name = "${azurerm_network_watcher.test.resource_group_name}"
+}
+`, template)
 }
 
 func testAccAzureRMNetworkWatcher_completeConfig(rInt int, location string) string {
