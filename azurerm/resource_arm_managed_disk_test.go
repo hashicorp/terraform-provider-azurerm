@@ -30,6 +30,29 @@ func TestAccAzureRMManagedDisk_empty(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMManagedDisk_requiresImport(t *testing.T) {
+	var d compute.Disk
+	ri := acctest.RandInt()
+	location := testLocation()
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMManagedDisk_empty(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMManagedDiskExists("azurerm_managed_disk.test", &d, true),
+				),
+			},
+			{
+				Config:      testAccAzureRMManagedDisk_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_managed_disk"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMManagedDisk_zeroGbFromPlatformImage(t *testing.T) {
 	var d compute.Disk
 	ri := acctest.RandInt()
@@ -321,6 +344,27 @@ resource "azurerm_managed_disk" "test" {
     }
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMManagedDisk_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMManagedDisk_empty(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_managed_disk" "import" {
+  name                 = "${azurerm_managed_disk.test.name}"
+  location             = "${azurerm_managed_disk.test.location}"
+  resource_group_name  = "${azurerm_managed_disk.test.resource_group_name}"
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = "1"
+
+  tags {
+    environment = "acctest"
+    cost-center = "ops"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMManagedDisk_empty_withZone(rInt int, location string) string {
