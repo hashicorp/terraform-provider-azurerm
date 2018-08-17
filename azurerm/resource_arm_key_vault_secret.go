@@ -1,11 +1,14 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -17,6 +20,11 @@ func resourceArmKeyVaultSecret() *schema.Resource {
 		Delete: resourceArmKeyVaultSecretDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -62,6 +70,19 @@ func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) e
 
 	name := d.Get("name").(string)
 	keyVaultBaseUrl := d.Get("vault_uri").(string)
+
+	// first check if there's one in this subscription requiring import
+	resp, err := client.GetSecret(ctx, keyVaultBaseUrl, name, "")
+	if err != nil {
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Error checking for the existence of KeyVault Secret %q (KeyVault %q): %+v", name, keyVaultBaseUrl, err)
+		}
+	}
+
+	if resp.ID != nil {
+		return tf.ImportAsExistsError("azurerm_key_vault_secret", *resp.ID)
+	}
+
 	value := d.Get("value").(string)
 	contentType := d.Get("content_type").(string)
 	tags := d.Get("tags").(map[string]interface{})
@@ -72,7 +93,9 @@ func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) e
 		Tags:        expandTags(tags),
 	}
 
-	_, err := client.SetSecret(ctx, keyVaultBaseUrl, name, parameters)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutCreate))
+	defer cancel()
+	_, err = client.SetSecret(waitCtx, keyVaultBaseUrl, name, parameters)
 	if err != nil {
 		return err
 	}
@@ -113,7 +136,9 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 			Tags:        expandTags(tags),
 		}
 
-		_, err := client.SetSecret(ctx, id.KeyVaultBaseUrl, id.Name, parameters)
+		waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutUpdate))
+		defer cancel()
+		_, err := client.SetSecret(waitCtx, id.KeyVaultBaseUrl, id.Name, parameters)
 		if err != nil {
 			return err
 		}
@@ -132,8 +157,9 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 			ContentType: utils.String(contentType),
 			Tags:        expandTags(tags),
 		}
-
-		_, err = client.UpdateSecret(ctx, id.KeyVaultBaseUrl, id.Name, id.Version, parameters)
+		waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutUpdate))
+		defer cancel()
+		_, err = client.UpdateSecret(waitCtx, id.KeyVaultBaseUrl, id.Name, id.Version, parameters)
 		if err != nil {
 			return err
 		}
@@ -187,7 +213,9 @@ func resourceArmKeyVaultSecretDelete(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	_, err = client.DeleteSecret(ctx, id.KeyVaultBaseUrl, id.Name)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	_, err = client.DeleteSecret(waitCtx, id.KeyVaultBaseUrl, id.Name)
 
 	return err
 }
