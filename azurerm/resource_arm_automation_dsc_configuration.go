@@ -116,6 +116,9 @@ func resourceArmAutomationDscConfigurationRead(d *schema.ResourceData, meta inte
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("automation_account_name", accName)
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
 	return nil
 }
