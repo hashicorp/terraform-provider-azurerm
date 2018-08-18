@@ -200,6 +200,7 @@ func resourceArmSqlDatabase() *schema.Resource {
 			"threat_detection_policy": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -436,8 +437,7 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 	d.SetId(*resp.ID)
 
 	threatDetectionClient := meta.(*ArmClient).sqlDatabaseThreatDetectionPoliciesClient
-	_, err = threatDetectionClient.CreateOrUpdate(ctx, resourceGroup, serverName, name, *threatDetection)
-	if err != nil {
+	if _, err = threatDetectionClient.CreateOrUpdate(ctx, resourceGroup, serverName, name, *threatDetection); err != nil {
 		return fmt.Errorf("Error setting database threat detection policy: %+v", err)
 	}
 
@@ -468,16 +468,12 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error making Read request on Sql Database %s: %+v", name, err)
 	}
 
-	oldThreatDetection, hasOldThreatDetection := d.GetOk("threat_detection_policy")
-	if hasOldThreatDetection {
-		threatDetectionClient := meta.(*ArmClient).sqlDatabaseThreatDetectionPoliciesClient
-
-		threatDetection, err := threatDetectionClient.Get(ctx, resourceGroup, serverName, name)
-		if err == nil {
-			flattenedThreatDetection := flattenArmSqlServerThreatDetectionPolicy(threatDetection, oldThreatDetection.([]interface{}))
-			if err := d.Set("threat_detection_policy", flattenedThreatDetection); err != nil {
-				return fmt.Errorf("Error setting `threat_detection_policy`: %+v", err)
-			}
+	threatDetectionClient := meta.(*ArmClient).sqlDatabaseThreatDetectionPoliciesClient
+	threatDetection, err := threatDetectionClient.Get(ctx, resourceGroup, serverName, name)
+	if err == nil {
+		flattenedThreatDetection := flattenArmSqlServerThreatDetectionPolicy(d, threatDetection)
+		if err := d.Set("threat_detection_policy", flattenedThreatDetection); err != nil {
+			return fmt.Errorf("Error setting `threat_detection_policy`: %+v", err)
 		}
 	}
 
@@ -566,30 +562,40 @@ func flattenEncryptionStatus(encryption *[]sql.TransparentDataEncryption) string
 	return ""
 }
 
-func flattenArmSqlServerThreatDetectionPolicy(policy sql.DatabaseSecurityAlertPolicy, oldThreatDetection []interface{}) []interface{} {
+func flattenArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, policy sql.DatabaseSecurityAlertPolicy) []interface{} {
 
+	// The SQL database threat detection API always returns the default value even if never set.
+	// If the values are on their default one, threat it as not set.
 	properties := policy.DatabaseSecurityAlertPolicyProperties
+	if properties == nil {
+		return []interface{}{}
+	}
+
 	threatDetectionPolicy := make(map[string]interface{})
 
 	threatDetectionPolicy["state"] = string(properties.State)
 	threatDetectionPolicy["email_account_admins"] = string(properties.EmailAccountAdmins)
 	threatDetectionPolicy["use_server_default"] = string(properties.UseServerDefault)
 
-	if properties.DisabledAlerts != nil && *properties.DisabledAlerts != "" {
-		alerts := strings.Split(*properties.DisabledAlerts, ";")
-		flattenedAlerts := make([]interface{}, len(alerts))
-		for i := range alerts {
-			flattenedAlerts[i] = alerts[i]
+	if disabledAlerts := properties.DisabledAlerts; disabledAlerts != nil {
+		flattenedAlerts := schema.NewSet(schema.HashString, []interface{}{})
+		if v := *disabledAlerts; v != "" {
+			parsedAlerts := strings.Split(v, ";")
+			for _, a := range parsedAlerts {
+				flattenedAlerts.Add(a)
+			}
 		}
-		threatDetectionPolicy["disabled_alerts"] = schema.NewSet(schema.HashString, flattenedAlerts)
+		threatDetectionPolicy["disabled_alerts"] = flattenedAlerts
 	}
-	if properties.EmailAddresses != nil && *properties.EmailAddresses != "" {
-		emails := strings.Split(*properties.EmailAddresses, ";")
-		flattenedEmails := make([]interface{}, len(emails))
-		for i := range emails {
-			flattenedEmails[i] = emails[i]
+	if emailAddresses := properties.EmailAddresses; emailAddresses != nil {
+		flattenedEmails := schema.NewSet(schema.HashString, []interface{}{})
+		if v := *emailAddresses; v != "" {
+			parsedEmails := strings.Split(*emailAddresses, ";")
+			for _, e := range parsedEmails {
+				flattenedEmails.Add(e)
+			}
 		}
-		threatDetectionPolicy["email_addresses"] = schema.NewSet(schema.HashString, flattenedEmails)
+		threatDetectionPolicy["email_addresses"] = flattenedEmails
 	}
 	if properties.StorageEndpoint != nil {
 		threatDetectionPolicy["storage_endpoint"] = *properties.StorageEndpoint
@@ -598,9 +604,9 @@ func flattenArmSqlServerThreatDetectionPolicy(policy sql.DatabaseSecurityAlertPo
 		threatDetectionPolicy["retention_days"] = int(*properties.RetentionDays)
 	}
 
-	// If storage account access key is in state readd it to the new state, as the API does not return it for security reasons
-	if t, ok := oldThreatDetection[0].(map[string]interface{})["storage_account_access_key"]; ok {
-		threatDetectionPolicy["storage_account_access_key"] = t.(string)
+	// If storage account access key is in state read it to the new state, as the API does not return it for security reasons
+	if v, ok := d.GetOk("threat_detection_policy.0.storage_account_access_key"); ok {
+		threatDetectionPolicy["storage_account_access_key"] = v.(string)
 	}
 
 	return []interface{}{threatDetectionPolicy}
@@ -633,12 +639,12 @@ func expandArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, location st
 	}
 	properties := policy.DatabaseSecurityAlertPolicyProperties
 
-	v, ok := d.GetOk("threat_detection_policy")
+	td, ok := d.GetOk("threat_detection_policy")
 	if !ok {
 		return &policy, nil
 	}
 
-	if tdl := v.([]interface{}); len(tdl) > 0 {
+	if tdl := td.([]interface{}); len(tdl) > 0 {
 		threadDetection := tdl[0].(map[string]interface{})
 
 		properties.State = sql.SecurityAlertPolicyState(threadDetection["state"].(string))
@@ -648,16 +654,16 @@ func expandArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, location st
 		if v, ok := threadDetection["disabled_alerts"]; ok {
 			alerts := v.(*schema.Set).List()
 			expandedAlerts := make([]string, len(alerts))
-			for i := range alerts {
-				expandedAlerts[i] = alerts[i].(string)
+			for i, a := range alerts {
+				expandedAlerts[i] = a.(string)
 			}
 			properties.DisabledAlerts = utils.String(strings.Join(expandedAlerts, ";"))
 		}
 		if v, ok := threadDetection["email_addresses"]; ok {
 			emails := v.(*schema.Set).List()
 			expandedEmails := make([]string, len(emails))
-			for i := range emails {
-				expandedEmails[i] = emails[i].(string)
+			for i, e := range emails {
+				expandedEmails[i] = e.(string)
 			}
 			properties.EmailAddresses = utils.String(strings.Join(expandedEmails, ";"))
 		}

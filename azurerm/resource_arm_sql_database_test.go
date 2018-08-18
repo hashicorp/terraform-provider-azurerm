@@ -219,8 +219,8 @@ func TestAccAzureRMSqlDatabase_threatDetectionPolicy(t *testing.T) {
 	resourceName := "azurerm_sql_database.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	preConfig := testAccAzureRMSqlDatabase_threatDetectionPolicy(ri, location)
-	postConfig := testAccAzureRMSqlDatabase_basic(ri, location)
+	preConfig := testAccAzureRMSqlDatabase_threatDetectionPolicy(ri, location, "Enabled")
+	postConfig := testAccAzureRMSqlDatabase_threatDetectionPolicy(ri, location, "Disabled")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -239,10 +239,17 @@ func TestAccAzureRMSqlDatabase_threatDetectionPolicy(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"create_mode", "threat_detection_policy.0.storage_account_access_key"},
+			},
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlDatabaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.0.state", "Disabled"),
 				),
 			},
 		},
@@ -679,7 +686,7 @@ resource "azurerm_sql_database" "test" {
 `, rInt, location, rInt, rInt, requestedServiceObjectiveName)
 }
 
-func testAccAzureRMSqlDatabase_threatDetectionPolicy(rInt int, location string) string {
+func testAccAzureRMSqlDatabase_threatDetectionPolicy(rInt int, location, state string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
@@ -714,7 +721,7 @@ resource "azurerm_sql_database" "test" {
 	
 	threat_detection_policy {
 		retention_days             = 15
-		state                      = "Enabled"
+		state                      = "%s"
 		disabled_alerts            = ["Sql_Injection"]
 		email_account_admins       = "Enabled"
 		storage_account_access_key = "${azurerm_storage_account.test.primary_access_key}"
@@ -722,5 +729,5 @@ resource "azurerm_sql_database" "test" {
 		use_server_default         = "Disabled"
 	}
 }
-`, rInt, location, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt, state)
 }
