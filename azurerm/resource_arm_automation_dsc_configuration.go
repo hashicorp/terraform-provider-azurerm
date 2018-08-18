@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -23,10 +24,13 @@ func resourceArmAutomationDscConfiguration() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile(`^[a-zA-Z0-9_]{1,64}$`),
+					`The name length must be from 1 to 64 characters. The name can only contain letters, numbers and underscores.`,
+				),
 			},
 
 			"automation_account_name": {
@@ -40,10 +44,26 @@ func resourceArmAutomationDscConfiguration() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"content": {
+			"log_verbose": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"description": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
+			"content_embedded": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.NoZeroValues,
+			},
+
+			"state": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -58,14 +78,18 @@ func resourceArmAutomationDscConfigurationCreateUpdate(d *schema.ResourceData, m
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	accName := d.Get("automation_account_name").(string)
-	content := d.Get("content").(string)
+	contentEmbedded := d.Get("content_embedded").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
+	logVerbose := d.Get("log_verbose").(bool)
+	description := d.Get("description").(string)
 
 	parameters := automation.DscConfigurationCreateOrUpdateParameters{
 		DscConfigurationCreateOrUpdateProperties: &automation.DscConfigurationCreateOrUpdateProperties{
+			LogVerbose:  &logVerbose,
+			Description: &description,
 			Source: &automation.ContentSource{
 				Type:  automation.EmbeddedContent,
-				Value: &content,
+				Value: &contentEmbedded,
 			},
 		},
 		Location: &location,
@@ -116,9 +140,20 @@ func resourceArmAutomationDscConfigurationRead(d *schema.ResourceData, meta inte
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("automation_account_name", accName)
+
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
+
+	if props := resp.DscConfigurationProperties; props != nil {
+		d.Set("log_verbose", props.LogVerbose)
+		d.Set("description", props.Description)
+		d.Set("state", resp.State)
+	}
+
+	//TODO: client.GetContent to fetch content
+	//This function from Azure GO SDK currently is broken as it tries to unmarshal json while return is string
+	//https://github.com/Azure/azure-sdk-for-go/issues/2486
 
 	return nil
 }

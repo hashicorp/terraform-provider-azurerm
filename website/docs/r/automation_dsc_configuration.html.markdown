@@ -32,7 +32,7 @@ resource "azurerm_automation_dsc_configuration" "example" {
   resource_group_name     = "${azurerm_resource_group.example.name}"
   automation_account_name = "${azurerm_automation_account.example.name}"
   location                = "${azurerm_resource_group.example.location}"
-  content                 = "configuration test {}"
+  content_embedded        = "configuration test {}"
 }
 ```
 
@@ -46,7 +46,13 @@ The following arguments are supported:
 
 * `automation_account_name` - (Required) The name of the automation account in which the DSC Configuration is created. Changing this forces a new resource to be created.
 
-* `content` - (Required) The PowerShell DSC Configuration script.
+* `content_embedded` - (Required) The PowerShell DSC Configuration script.
+
+* `location` - (Required) Must be the same location as the Automation Account.
+
+* `log_verbose` - (Optional) Verbose log option.
+
+* `description` - (Optional) Description to go with DSC Configuration.
 
 ## Attributes Reference
 

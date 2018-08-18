@@ -23,13 +23,18 @@ func TestAccAzureRMAutomationDscConfiguration_basic(t *testing.T) {
 				Config: testAccAzureRMAutomationDscConfiguration_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationDscConfigurationExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "location"),
+					resource.TestCheckResourceAttr(resourceName, "description", "test"),
+					resource.TestCheckResourceAttrSet(resourceName, "log_verbose"),
+					resource.TestCheckResourceAttrSet(resourceName, "state"),
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"content", "location"},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				// Cannot check content_embedded at this time as GetContent function from Azure GO SDK is currently broken
+				ImportStateVerifyIgnore: []string{"content_embedded"},
 			},
 		},
 	})
@@ -124,7 +129,8 @@ resource "azurerm_automation_dsc_configuration" "test" {
   resource_group_name     = "${azurerm_resource_group.test.name}"
   automation_account_name = "${azurerm_automation_account.test.name}"
   location                = "${azurerm_resource_group.test.location}"
-  content                 = "configuration test {}"
+  content_embedded        = "configuration test {}"
+  description             = "test"
 }
 `, rInt, location, rInt)
 }
