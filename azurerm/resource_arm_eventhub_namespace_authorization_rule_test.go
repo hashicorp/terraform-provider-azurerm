@@ -207,7 +207,7 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
 func testAccAzureRMEventHubNamespaceAuthorizationRule_requiresImport(rInt int, location string, listen, send, manage bool) string {
 	template := testAccAzureRMEventHubNamespaceAuthorizationRule_base(rInt, location, listen, send, manage)
 	return fmt.Sprintf(`
-r%s
+%s
 
 resource "azurerm_eventhub_namespace_authorization_rule" "import" {
   name                = "${azurerm_eventhub_namespace_authorization_rule.test.name}"

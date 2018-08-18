@@ -258,7 +258,7 @@ func testAccAzureRMApplicationInsights_requiresImport(rInt int, location string,
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_application_insights" "test" {
+resource "azurerm_application_insights" "import" {
   name                = "${azurerm_application_insights.test.name}"
   location            = "${azurerm_application_insights.test.location}"
   resource_group_name = "${azurerm_application_insights.test.resource_group_name}"

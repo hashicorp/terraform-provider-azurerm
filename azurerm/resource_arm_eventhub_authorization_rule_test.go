@@ -45,7 +45,7 @@ func TestAccAzureRMEventHubAuthorizationRule_requiresImport(t *testing.T) {
 				),
 			},
 			{
-				Config:      testAccAzureRMEventHubAuthorizationRule_base(ri, location, true, true, true),
+				Config:      testAccAzureRMEventHubAuthorizationRule_requiresImport(ri, location, true, true, true),
 				ExpectError: testRequiresImportError("azurerm_eventhub_authorization_rule"),
 			},
 		},
@@ -217,4 +217,21 @@ resource "azurerm_eventhub_authorization_rule" "test" {
   manage              = %[5]t
 }
 `, rInt, location, listen, send, manage)
+}
+
+func testAccAzureRMEventHubAuthorizationRule_requiresImport(rInt int, location string, listen, send, manage bool) string {
+	template := testAccAzureRMEventHubAuthorizationRule_base(rInt, location, listen, send, manage)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_eventhub_authorization_rule" "import" {
+  name                = "${azurerm_eventhub_authorization_rule.test.name}"
+  namespace_name      = "${azurerm_eventhub_authorization_rule.test.namespace_name}"
+  eventhub_name       = "${azurerm_eventhub_authorization_rule.test.eventhub_name}"
+  resource_group_name = "${azurerm_eventhub_authorization_rule.test.resource_group_name}"
+  listen              = "${azurerm_eventhub_authorization_rule.test.listen}"
+  send                = "${azurerm_eventhub_authorization_rule.test.send}"
+  manage              = "${azurerm_eventhub_authorization_rule.test.manage}"
+}
+`, template)
 }

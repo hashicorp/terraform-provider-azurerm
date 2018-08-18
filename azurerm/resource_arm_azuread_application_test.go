@@ -33,29 +33,6 @@ func TestAccAzureRMActiveDirectoryApplication_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMActiveDirectoryApplication_requiresImport(t *testing.T) {
-	resourceName := "azurerm_azuread_application.test"
-	id := uuid.New().String()
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMActiveDirectoryApplication_basic(id),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMActiveDirectoryApplicationExists(resourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMActiveDirectoryApplication_requiresImport(id),
-				ExpectError: testRequiresImportError("azurerm_azuread_application"),
-			},
-		},
-	})
-}
-
 func TestAccAzureRMActiveDirectoryApplication_availableToOtherTenants(t *testing.T) {
 	resourceName := "azurerm_azuread_application.test"
 	id := uuid.New().String()

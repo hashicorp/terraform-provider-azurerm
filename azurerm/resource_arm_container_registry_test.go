@@ -320,7 +320,7 @@ func testAccAzureRMContainerRegistry_requiresImport(rInt int, location string, s
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_container_registry" "test" {
+resource "azurerm_container_registry" "import" {
   name                = "${azurerm_container_registry.test.name}"
   resource_group_name = "${azurerm_container_registry.test.resource_group_name}"
   location            = "${azurerm_container_registry.test.location}"

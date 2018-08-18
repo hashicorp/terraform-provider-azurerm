@@ -218,7 +218,7 @@ func testAccAzureRMDataLakeAnalyticsFirewallRule_requiresImport(rInt int, locati
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_data_lake_analytics_firewall_rule" "test" {
+resource "azurerm_data_lake_analytics_firewall_rule" "import" {
   name                = "${azurerm_data_lake_analytics_firewall_rule.test.name}"
   account_name        = "${azurerm_data_lake_analytics_firewall_rule.test.account_name}"
   resource_group_name = "${azurerm_data_lake_analytics_firewall_rule.test.resource_group_name}"

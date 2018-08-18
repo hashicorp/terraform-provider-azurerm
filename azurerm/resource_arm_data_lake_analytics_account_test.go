@@ -188,7 +188,7 @@ resource "azurerm_data_lake_analytics_account" "test" {
 }
 
 func testAccAzureRMDataLakeAnalyticsAccount_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMDataLakeStore_basic(rInt, location)
+	template := testAccAzureRMDataLakeAnalyticsAccount_basic(rInt, location)
 	return fmt.Sprintf(`
 %s
 

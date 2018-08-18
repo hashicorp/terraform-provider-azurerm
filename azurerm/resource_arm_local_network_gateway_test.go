@@ -346,12 +346,11 @@ func testAccAzureRMLocalNetworkGatewayConfig_requiresImport(rInt int, location s
 
 resource "azurerm_local_network_gateway" "import" {
   name                = "${azurerm_local_network_gateway.test.name}"
-  location            = "${azurerm_local_network_gateway.test.location}
-  resource_group_name = "${azurerm_local_network_gateway.test.resource_group_name}
-  gateway_address     = "${azurerm_local_network_gateway.test.gateway_address}
+  location            = "${azurerm_local_network_gateway.test.location}"
+  resource_group_name = "${azurerm_local_network_gateway.test.resource_group_name}"
+  gateway_address     = "${azurerm_local_network_gateway.test.gateway_address}"
   address_space       = "${azurerm_local_network_gateway.test.address_space}"
 }
-
 `, template)
 }
 

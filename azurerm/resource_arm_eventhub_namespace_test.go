@@ -357,7 +357,7 @@ func testAccAzureRMEventHubNamespace_requiresImport(rInt int, location string) s
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_eventhub_namespace" "test" {
+resource "azurerm_eventhub_namespace" "import" {
   name                = "${azurerm_eventhub_namespace.test.name}"
   location            = "${azurerm_eventhub_namespace.test.location}"
   resource_group_name = "${azurerm_eventhub_namespace.test.resource_group_name}"

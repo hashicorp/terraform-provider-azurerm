@@ -160,8 +160,7 @@ resource "azurerm_postgresql_firewall_rule" "test" {
 func testAccAzureRMPostgreSQLFirewallRule_requiresImport(rInt int, location string) string {
 	template := testAccAzureRMPostgreSQLFirewallRule_basic(rInt, location)
 	return fmt.Sprintf(`
-%scement              = "Enabled"
-}
+%s
 
 resource "azurerm_postgresql_firewall_rule" "import" {
   name                = "${azurerm_postgresql_firewall_rule.test.name}"

@@ -120,6 +120,20 @@ func resourceArmExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, m
 	circuitName := d.Get("express_route_circuit_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resourceGroup, circuitName, peeringType)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of Peering %q (ExpressRoute Circuit %q / Resource Group %q): %+v", peeringType, circuitName, resourceGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_express_route_circuit_peering", *resp.ID)
+		}
+	}
+
 	sharedKey := d.Get("shared_key").(string)
 	primaryPeerAddressPrefix := d.Get("primary_peer_address_prefix").(string)
 	secondaryPeerAddressPrefix := d.Get("secondary_peer_address_prefix").(string)
