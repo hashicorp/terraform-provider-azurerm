@@ -23,13 +23,15 @@ func TestAccAzureRMAutomationDscNodeConfiguration_basic(t *testing.T) {
 				Config: testAccAzureRMAutomationDscNodeConfiguration_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationDscNodeConfigurationExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "configuration_name", "test"),
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"content"},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				// Cannot check content_embedded at this time as it is not exposed via REST API / Azure SDK
+				ImportStateVerifyIgnore: []string{"content_embedded"},
 			},
 		},
 	})
@@ -132,7 +134,7 @@ resource "azurerm_automation_dsc_nodeconfiguration" "test" {
   resource_group_name     = "${azurerm_resource_group.test.name}"
   automation_account_name = "${azurerm_automation_account.test.name}"
   depends_on              = ["azurerm_automation_dsc_configuration.test"]
-  content                 = <<mofcontent
+  content_embedded        = <<mofcontent
 instance of MSFT_FileDirectoryConfiguration as $MSFT_FileDirectoryConfiguration1ref
 {
   ResourceID = "[File]bla";

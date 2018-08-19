@@ -32,7 +32,7 @@ resource "azurerm_automation_dsc_configuration" "example" {
   resource_group_name     = "${azurerm_resource_group.example.name}"
   automation_account_name = "${azurerm_automation_account.example.name}"
   location                = "${azurerm_resource_group.example.location}"
-  content                 = "configuration test {}"
+  content_embedded        = "configuration test {}"
 }
 
 resource "azurerm_automation_dsc_nodeconfiguration" "example" {
@@ -40,7 +40,7 @@ resource "azurerm_automation_dsc_nodeconfiguration" "example" {
   resource_group_name     = "${azurerm_resource_group.example.name}"
   automation_account_name = "${azurerm_automation_account.example.name}"
   depends_on              = ["azurerm_automation_dsc_configuration.example"]
-  content                 = <<mofcontent
+  content_embedded        = <<mofcontent
 instance of MSFT_FileDirectoryConfiguration as $MSFT_FileDirectoryConfiguration1ref
 {
   ResourceID = "[File]bla";
@@ -76,7 +76,7 @@ The following arguments are supported:
 
 * `automation_account_name` - (Required) The name of the automation account in which the DSC Node Configuration is created. Changing this forces a new resource to be created.
 
-* `content` - (Required) The PowerShell DSC Node Configuration (mof content).
+* `content_embedded` - (Required) The PowerShell DSC Node Configuration (mof content).
 
 ## Attributes Reference
 

@@ -39,10 +39,15 @@ func resourceArmAutomationDscNodeConfiguration() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameSchema(),
 
-			"content": {
+			"content_embedded": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.NoZeroValues,
+			},
+
+			"configuration_name": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -57,9 +62,12 @@ func resourceArmAutomationDscNodeConfigurationCreateUpdate(d *schema.ResourceDat
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	accName := d.Get("automation_account_name").(string)
-	content := d.Get("content").(string)
+	content := d.Get("content_embedded").(string)
 
-	s := strings.Split(name, ".")
+	// configuration name is always the first part of the dsc node configuration
+	// e.g. webserver.prod or webserver.local will be associated to the dsc configuration webserver
+
+	configurationName := strings.Split(name, ".")[0]
 
 	parameters := automation.DscNodeConfigurationCreateOrUpdateParameters{
 		Source: &automation.ContentSource{
@@ -67,7 +75,7 @@ func resourceArmAutomationDscNodeConfigurationCreateUpdate(d *schema.ResourceDat
 			Value: &content,
 		},
 		Configuration: &automation.DscConfigurationAssociationProperty{
-			Name: &s[0],
+			Name: &configurationName,
 		},
 		Name: &name,
 	}
@@ -116,6 +124,9 @@ func resourceArmAutomationDscNodeConfigurationRead(d *schema.ResourceData, meta 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("automation_account_name", accName)
+	d.Set("configuration_name", resp.Configuration.Name)
+
+	// cannot read back content_embedded as not part of body nor exposed through method
 
 	return nil
 }
