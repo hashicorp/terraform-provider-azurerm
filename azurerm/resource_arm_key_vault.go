@@ -233,7 +233,7 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("enabled_for_disk_encryption", props.EnabledForDiskEncryption)
 		d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
 		if err := d.Set("sku", flattenKeyVaultSku(props.Sku)); err != nil {
-			return fmt.Errorf("Error flattening `sku` for KeyVault %q: %+v", *resp.Name, err)
+			return fmt.Errorf("Error flattening `sku` for KeyVault %s: %+v", *resp.Name, err)
 		}
 
 		flattenedPolicies := azure.FlattenKeyVaultAccessPolicies(props.AccessPolicies)
