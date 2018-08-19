@@ -139,12 +139,12 @@ func dataSourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("enabled_for_disk_encryption", props.EnabledForDiskEncryption)
 		d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
 		if err := d.Set("sku", flattenKeyVaultDataSourceSku(props.Sku)); err != nil {
-			return fmt.Errorf("Error flattening `sku` for KeyVault %q: %+v", resp.Name, err)
+			return fmt.Errorf("Error flattening `sku` for KeyVault %q: %+v", *resp.Name, err)
 		}
 
 		flattenedPolicies := azure.FlattenKeyVaultAccessPolicies(props.AccessPolicies)
 		if err := d.Set("access_policy", flattenedPolicies); err != nil {
-			return fmt.Errorf("Error flattening `access_policy` for KeyVault %q: %+v", resp.Name, err)
+			return fmt.Errorf("Error flattening `access_policy` for KeyVault %q: %+v", *resp.Name, err)
 		}
 		d.Set("vault_uri", props.VaultURI)
 	}
