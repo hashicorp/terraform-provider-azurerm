@@ -101,7 +101,7 @@ func resourceArmAutomationModuleCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Automation Module '%s' (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read Automation Module %q (resource group %q) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -128,7 +128,7 @@ func resourceArmAutomationModuleRead(d *schema.ResourceData, meta interface{}) e
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM Automation Module '%s': %+v", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM Automation Module %q: %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -156,7 +156,7 @@ func resourceArmAutomationModuleDelete(d *schema.ResourceData, meta interface{})
 			return nil
 		}
 
-		return fmt.Errorf("Error issuing AzureRM delete request for Automation Module '%s': %+v", name, err)
+		return fmt.Errorf("Error issuing AzureRM delete request for Automation Module %q: %+v", name, err)
 	}
 
 	return nil

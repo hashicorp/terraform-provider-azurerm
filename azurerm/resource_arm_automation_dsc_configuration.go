@@ -107,7 +107,7 @@ func resourceArmAutomationDscConfigurationCreateUpdate(d *schema.ResourceData, m
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Automation Dsc Configuration '%s' (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read Automation Dsc Configuration %q (resource group %q) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -134,7 +134,7 @@ func resourceArmAutomationDscConfigurationRead(d *schema.ResourceData, meta inte
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM Automation Dsc Configuration '%s': %+v", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM Automation Dsc Configuration %q: %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -176,7 +176,7 @@ func resourceArmAutomationDscConfigurationDelete(d *schema.ResourceData, meta in
 			return nil
 		}
 
-		return fmt.Errorf("Error issuing AzureRM delete request for Automation Dsc Configuration '%s': %+v", name, err)
+		return fmt.Errorf("Error issuing AzureRM delete request for Automation Dsc Configuration %q: %+v", name, err)
 	}
 
 	return nil
