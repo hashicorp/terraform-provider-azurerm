@@ -32,6 +32,30 @@ func TestAccAzureRMRouteTable_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMRouteTable_requiresImport(t *testing.T) {
+	resourceName := "azurerm_route_table.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRouteTableDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRouteTable_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRouteTableExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMRouteTable_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_route_table"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMRouteTable_complete(t *testing.T) {
 	resourceName := "azurerm_route_table.test"
 	ri := acctest.RandInt()
@@ -365,6 +389,19 @@ resource "azurerm_route_table" "test" {
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMRouteTable_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMRouteTable_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_route_table" "import" {
+  name                = "${azurerm_route_table.test.name}"
+  location            = "${azurerm_route_table.test.location}"
+  resource_group_name = "${azurerm_route_table.test.resource_group_name}"
+}
+`, template)
 }
 
 func testAccAzureRMRouteTable_complete(rInt int, location string) string {
