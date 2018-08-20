@@ -66,7 +66,7 @@ func resourceArmServiceBusNamespaceAuthorizationRuleCreateUpdate(d *schema.Resou
 		resp, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Error checking for the existence of Service Bus Namespace Authorization Rule %q (Resource Group %q / Namespace %q): %+v", name, resourceGroup, namespaceName, err)
+				return fmt.Errorf("Error checking for the existence of Service Bus Namespace Authorization Rule %q (Namespace %q / Resource Group %q): %+v", name, namespaceName, resourceGroup, err)
 			}
 		}
 		if resp.ID != nil {
