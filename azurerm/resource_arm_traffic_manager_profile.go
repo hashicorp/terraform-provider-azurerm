@@ -2,25 +2,33 @@ package azurerm
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmTrafficManagerProfile() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmTrafficManagerProfileCreate,
+		Create: resourceArmTrafficManagerProfileCreateUpdate,
 		Read:   resourceArmTrafficManagerProfileRead,
-		Update: resourceArmTrafficManagerProfileCreate,
+		Update: resourceArmTrafficManagerProfileCreateUpdate,
 		Delete: resourceArmTrafficManagerProfileDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -114,15 +122,31 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 	}
 }
 
-func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmTrafficManagerProfileCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).trafficManagerProfilesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM virtual network creation.")
 
 	name := d.Get("name").(string)
+	resGroup := d.Get("resource_group_name").(string)
+
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of Traffic Manager Profile %q (Resource Group %q): %+v", name, resGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_traffic_manager_profile", *resp.ID)
+		}
+	}
+
 	// must be provided in request
 	location := "global"
-	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
 	profile := trafficmanager.Profile{
@@ -132,8 +156,9 @@ func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interfa
 		Tags:              expandTags(tags),
 	}
 
-	ctx := meta.(*ArmClient).StopContext
-	_, err := client.CreateOrUpdate(ctx, resGroup, name, profile)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	_, err := client.CreateOrUpdate(waitCtx, resGroup, name, profile)
 	if err != nil {
 		return err
 	}
@@ -195,6 +220,7 @@ func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface
 
 func resourceArmTrafficManagerProfileDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).trafficManagerProfilesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -203,8 +229,9 @@ func resourceArmTrafficManagerProfileDelete(d *schema.ResourceData, meta interfa
 	resGroup := id.ResourceGroup
 	name := id.Path["trafficManagerProfiles"]
 
-	ctx := meta.(*ArmClient).StopContext
-	resp, err := client.Delete(ctx, resGroup, name)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	resp, err := client.Delete(waitCtx, resGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
 			return err
