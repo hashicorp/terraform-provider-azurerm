@@ -21,15 +21,13 @@ func resourceArmServiceBusSubscriptionRule() *schema.Resource {
 		Read:   resourceArmServiceBusSubscriptionRuleRead,
 		Update: resourceArmServiceBusSubscriptionRuleCreateUpdate,
 		Delete: resourceArmServiceBusSubscriptionRuleDelete,
-
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
-
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(time.Minute * 30),
 			Update: schema.DefaultTimeout(time.Minute * 30),
 			Delete: schema.DefaultTimeout(time.Minute * 30),
+		},
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -146,7 +144,7 @@ func resourceArmServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, m
 		resp, err := client.Get(ctx, resourceGroup, namespaceName, topicName, subscriptionName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Error checking for the existence of Service Bus Subscription Rule %q (Resource Group %q / Namespace %q / Topic %q): %+v", name, resourceGroup, namespaceName, topicName, err)
+				return fmt.Errorf("Error checking for the existence of Service Bus Subscription Rule %q (Topic %q / Namespace %q / Resource Group %q): %+v", name, topicName, namespaceName, resourceGroup, err)
 			}
 		}
 		if resp.ID != nil {

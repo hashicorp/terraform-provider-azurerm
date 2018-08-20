@@ -223,8 +223,8 @@ resource "azurerm_servicebus_subscription_rule" "test" {
   topic_name          = "${azurerm_servicebus_topic.test.name}"
   subscription_name   = "${azurerm_servicebus_subscription.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  filter_type 		= "SqlFilter"
-  sql_filter  		= "2=2"
+  filter_type         = "SqlFilter"
+  sql_filter          = "2=2"
 }
 `, template, rInt)
 }
@@ -240,8 +240,8 @@ resource "azurerm_servicebus_subscription_rule" "test" {
   topic_name          = "${azurerm_servicebus_topic.test.name}"
   subscription_name   = "${azurerm_servicebus_subscription.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  filter_type 		= "SqlFilter"
-  sql_filter  		= "3=3"
+  filter_type 		  = "SqlFilter"
+  sql_filter          = "3=3"
 }
 `, template, rInt)
 }
@@ -257,9 +257,9 @@ resource "azurerm_servicebus_subscription_rule" "test" {
   topic_name          = "${azurerm_servicebus_topic.test.name}"
   subscription_name   = "${azurerm_servicebus_subscription.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  filter_type 		= "SqlFilter"
-  sql_filter  		= "2=2"
-  action      		= "SET Test='true'"
+  filter_type         = "SqlFilter"
+  sql_filter          = "2=2"
+  action              = "SET Test='true'"
 }
 `, template, rInt)
 }
@@ -275,9 +275,9 @@ resource "azurerm_servicebus_subscription_rule" "test" {
   topic_name          = "${azurerm_servicebus_topic.test.name}"
   subscription_name   = "${azurerm_servicebus_subscription.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  filter_type 		= "CorrelationFilter"
+  filter_type 		  = "CorrelationFilter"
 
-  correlation_filter 	= {
+  correlation_filter {
     correlation_id      = "test_correlation_id"
     message_id          = "test_message_id"
     to                  = "test_to"
@@ -304,7 +304,7 @@ resource "azurerm_servicebus_subscription_rule" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   filter_type 		= "CorrelationFilter"
 
-  correlation_filter 	= {
+  correlation_filter {
     correlation_id	= "test_correlation_id"
     message_id		= "test_message_id"
   }
@@ -325,7 +325,7 @@ resource "azurerm_servicebus_subscription_rule" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   filter_type         = "CorrelationFilter"
 
-  correlation_filter 	= {
+  correlation_filter {
     correlation_id	= "test_correlation_id"
     message_id		= "test_message_id_updated"
     reply_to		= "test_reply_to_added" 
@@ -348,7 +348,7 @@ resource "azurerm_servicebus_subscription_rule" "test" {
   action      		  = "SET Test='true'"
   filter_type 		  = "CorrelationFilter"
 
-  correlation_filter = {
+  correlation_filter {
     correlation_id = "test_correlation_id"
     message_id     = "test_message_id"
   }
