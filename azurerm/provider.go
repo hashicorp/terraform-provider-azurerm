@@ -383,6 +383,7 @@ func determineAzureResourceProvidersToRegister(providerList []resources.Provider
 		"microsoft.insights":            {},
 		"Microsoft.Logic":               {},
 		"Microsoft.ManagedIdentity":     {},
+		"Microsoft.Management":          {},
 		"Microsoft.Network":             {},
 		"Microsoft.NotificationHubs":    {},
 		"Microsoft.OperationalInsights": {},

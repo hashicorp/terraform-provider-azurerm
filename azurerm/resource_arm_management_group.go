@@ -30,8 +30,6 @@ func resourceManagementGroup() *schema.Resource {
 			"subscription_ids": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Required: false,
-				Computed: false,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -51,49 +49,42 @@ func resourceManagementGroupCreateUpdate(d *schema.ResourceData, meta interface{
 	subscriptionIds := d.Get("subscription_ids").([]interface{})
 	log.Printf("[INFO] Creating management group %q", name)
 
-	createParentGroupInfo := managementgroups.CreateParentGroupInfo{
-		ID: utils.String("/providers/Microsoft.Management/managementGroups/" + armTenantID),
-	}
-	details := managementgroups.CreateManagementGroupDetails{
-		Parent: &createParentGroupInfo,
-	}
-
-	managementGroupProperties := managementgroups.CreateManagementGroupProperties{
-		TenantID:    &armTenantID,
-		DisplayName: &name,
-		Details:     &details,
-	}
-
-	createManagementGroupRequest := managementgroups.CreateManagementGroupRequest{
-		ID:   nil,
+	parentID := fmt.Sprintf("/providers/Microsoft.Management/managementGroups/%s", armTenantID)
+	properties := managementgroups.CreateManagementGroupRequest{
+		CreateManagementGroupProperties: &managementgroups.CreateManagementGroupProperties{
+			TenantID:    &armTenantID,
+			DisplayName: &name,
+			Details: &managementgroups.CreateManagementGroupDetails{
+				Parent: &managementgroups.CreateParentGroupInfo{
+					ID: utils.String(parentID),
+				},
+			},
+		},
 		Type: utils.String("/providers/Microsoft.Management/managementGroups"),
 		Name: &name,
-		CreateManagementGroupProperties: &managementGroupProperties,
 	}
 
 	log.Printf("[DEBUG] Invoking managementGroupClient")
-	createManagementGroupFuture, err := client.CreateOrUpdate(ctx, name, createManagementGroupRequest, "no-cache")
+	createManagementGroupFuture, err := client.CreateOrUpdate(ctx, name, properties, "no-cache")
 	if err != nil {
-		log.Printf("[DEBUG] Error invoking REST API call")
-		return err
+		log.Printf("[DEBUG] Error creating Management Group %q: %+v", name, err)
+		return fmt.Errorf("Error creating Management Group %q: %+v", name, err)
 	}
 
 	err = createManagementGroupFuture.WaitForCompletion(ctx, client.Client)
-
-	_, err = createManagementGroupFuture.Result(client)
 	if err != nil {
-		log.Printf("[DEBUG] Error in API response")
-		return err
+		return fmt.Errorf("Error waiting for creation of Management Group %q: %+v", name, err)
 	}
 
 	recurse := false
 
-	getResp, getErr := client.Get(ctx, name, "", &recurse, "", "no-cache")
-	if getErr != nil {
-		log.Printf("[DEBUG] Error retrieving management group details")
-		return err
+	resp, err := client.Get(ctx, name, "", &recurse, "", "no-cache")
+	if err != nil {
+		log.Printf("[DEBUG] Error retrieving Management Group %q: %+v", name, err)
+		return fmt.Errorf("Error retrieving Management Group %q: %+v", name, err)
 	}
-	d.SetId(*getResp.ID)
+
+	d.SetId(*resp.ID)
 
 	for _, subscription := range subscriptionIds {
 		data := subscription.(string)
@@ -125,15 +116,18 @@ func resourceManagementGroupRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	subscriptionIds := []string{}
-	children := resp.Children
-	if children != nil {
-		for _, child := range *children {
-			subscriptionID, err := parseSubscriptionID(*child.ID)
-			if err != nil {
-				log.Printf("%q", err)
+
+	if props := resp.Properties; props != nil {
+		if children := props.Children; children != nil {
+			for _, child := range *children {
+				subscriptionID, err := parseSubscriptionID(*child.ID)
+				if err != nil {
+					log.Printf("%q", err)
+					return fmt.Errorf("Unable to parse child subscription ID %+v", err)
+				}
+				log.Printf("[INFO] Reading subscription %q from management group %q", subscriptionID, d.Get("name").(string))
+				subscriptionIds = append(subscriptionIds, subscriptionID)
 			}
-			log.Printf("[INFO] Reading subscription %q from management group %q", subscriptionID, d.Get("name").(string))
-			subscriptionIds = append(subscriptionIds, subscriptionID)
 		}
 	}
 

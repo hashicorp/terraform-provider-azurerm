@@ -43,11 +43,25 @@ func TestAccAzureRMManagementGroup_withSubscriptions(t *testing.T) {
 		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
+				Config: testAzureRmManagementGroup_NoSubscriptions(ri, subscriptionID),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMManagementGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "subscription_ids.#", "0"),
+				),
+			},
+			{
 				Config: testAzureRmManagementGroup_withSubscriptions(ri, subscriptionID),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagementGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "subscription_ids.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "subscription_ids.#", subscriptionID),
+				),
+			},
+			{
+				Config: testAzureRmManagementGroup_NoSubscriptions(ri, subscriptionID),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMManagementGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "subscription_ids.#", "0"),
 				),
 			},
 		},
@@ -98,7 +112,7 @@ func testCheckAzureRMManagementGroupDestroy(s *terraform.State) error {
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("policy still exists:%s", *resp.Name)
+			return fmt.Errorf("Management group still exists:%s", *resp.Name)
 		}
 	}
 
@@ -120,6 +134,15 @@ resource "azurerm_management_group" "test" {
   name         = "acctestmg-%d"
   subscription_ids = [
 	  "%q" 
+	]
 }
 `, ri, subscriptionID)
+}
+func testAzureRmManagementGroup_NoSubscriptions(ri int, subscriptionID string) string {
+
+	return fmt.Sprintf(`
+resource "azurerm_management_group" "test" {
+  name         = "acctestmg-%d"
+}
+`, ri)
 }
