@@ -19,15 +19,13 @@ func resourceArmServiceBusNamespaceAuthorizationRule() *schema.Resource {
 		Read:   resourceArmServiceBusNamespaceAuthorizationRuleRead,
 		Update: resourceArmServiceBusNamespaceAuthorizationRuleCreateUpdate,
 		Delete: resourceArmServiceBusNamespaceAuthorizationRuleDelete,
-
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
-
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(time.Minute * 30),
 			Update: schema.DefaultTimeout(time.Minute * 30),
 			Delete: schema.DefaultTimeout(time.Minute * 30),
+		},
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
 		},
 
 		//function takes a schema map and adds the authorization rule properties to it

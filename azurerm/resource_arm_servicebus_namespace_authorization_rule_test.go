@@ -28,6 +28,30 @@ func TestAccAzureRMServiceBusNamespaceAuthorizationRule_manage(t *testing.T) {
 	testAccAzureRMServiceBusNamespaceAuthorizationRule(t, true, true, true)
 }
 
+func TestAccAzureRMServiceBusNamespaceAuthorizationRule_requiresImport(t *testing.T) {
+	resourceName := "azurerm_servicebus_namespace_authorization_rule.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceBusNamespaceAuthorizationRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceBusNamespaceAuthorizationRule_base(ri, location, true, true, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMServiceBusNamespaceAuthorizationRule_requiresImport(ri, location, true, true, true),
+				ExpectError: testRequiresImportError("azurerm_servicebus_namespace_authorization_rule"),
+			},
+		},
+	})
+}
+
 func testAccAzureRMServiceBusNamespaceAuthorizationRule(t *testing.T, listen, send, manage bool) {
 	resourceName := "azurerm_servicebus_namespace_authorization_rule.test"
 
@@ -179,4 +203,20 @@ resource "azurerm_servicebus_namespace_authorization_rule" "test" {
   manage              = %[5]t
 }
 `, rInt, location, listen, send, manage)
+}
+
+func testAccAzureRMServiceBusNamespaceAuthorizationRule_requiresImport(rInt int, location string, listen, send, manage bool) string {
+	template := testAccAzureRMServiceBusNamespaceAuthorizationRule_base(rInt, location, listen, send, manage)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_servicebus_namespace_authorization_rule" "import" {
+  name                = "${azurerm_servicebus_namespace_authorization_rule.test.name}"
+  namespace_name      = "${azurerm_servicebus_namespace_authorization_rule.test.namespace_name}"
+  resource_group_name = "${azurerm_servicebus_namespace_authorization_rule.test.resource_group_name}"
+  listen              = "${azurerm_servicebus_namespace_authorization_rule.test.listen}"
+  send                = "${azurerm_servicebus_namespace_authorization_rule.test.send}"
+  manage              = "${azurerm_servicebus_namespace_authorization_rule.test.manage}"
+}
+`, template)
 }
