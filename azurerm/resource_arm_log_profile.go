@@ -111,7 +111,7 @@ func resourceArmLogProfileCreateOrUpdate(d *schema.ResourceData, meta interface{
 		LogProfileProperties: &logProfileProperties,
 	}
 
-	result, createErr := client.CreateOrUpdate(ctx, name, parameters)
+	_, createErr := client.CreateOrUpdate(ctx, name, parameters)
 	if createErr != nil {
 		return fmt.Errorf("Error Creating/Updating Log Profile %q: %+v", name, createErr)
 	}
@@ -233,7 +233,7 @@ func retryLogProfilesClientGet(name string, meta interface{}) func() *resource.R
 		client := meta.(*ArmClient).logProfilesClient
 		ctx := meta.(*ArmClient).StopContext
 
-		read, err := client.Get(ctx, name)
+		_, err := client.Get(ctx, name)
 		if err != nil {
 			return resource.RetryableError(err)
 		}
