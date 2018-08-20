@@ -36,6 +36,30 @@ func TestAccAzureRMVirtualNetworkGateway_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualNetworkGateway_requiresImport(t *testing.T) {
+	resourceName := "azurerm_virtual_network_gateway.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualNetworkGateway_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkGatewayExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMVirtualNetworkGateway_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_virtual_network_gateway"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMVirtualNetworkGateway_lowerCaseSubnetName(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_virtual_network_gateway.test"
@@ -278,6 +302,27 @@ resource "azurerm_virtual_network_gateway" "test" {
   }
 }
 `, rInt, location, rInt, rInt, rInt)
+}
+func testAccAzureRMVirtualNetworkGateway_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMVirtualNetworkGateway_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_network_gateway" "import" {
+  name                = "${azurerm_virtual_network_gateway.test.name}"
+  location            = "${azurerm_virtual_network_gateway.test.location}"
+  resource_group_name = "${azurerm_virtual_network_gateway.test.resource_group_name}"
+  type                = "${azurerm_virtual_network_gateway.test.type}"
+  vpn_type            = "${azurerm_virtual_network_gateway.test.vpn_type}"
+  sku                 = "${azurerm_virtual_network_gateway.test.sku}"
+
+  ip_configuration {
+    public_ip_address_id          = "${azurerm_public_ip.test.id}"
+    private_ip_address_allocation = "Dynamic"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMVirtualNetworkGateway_lowerCaseSubnetName(rInt int, location string) string {
