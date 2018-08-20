@@ -35,6 +35,30 @@ func TestAccAzureRMTrafficManagerEndpoint_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMTrafficManagerEndpoint_requiresImport(t *testing.T) {
+	azureResourceName := "azurerm_traffic_manager_endpoint.testAzure"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMTrafficManagerEndpoint_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMTrafficManagerEndpointExists(azureResourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMTrafficManagerEndpoint_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_traffic_manager_endpoint"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMTrafficManagerEndpoint_disappears(t *testing.T) {
 	azureResourceName := "azurerm_traffic_manager_endpoint.testAzure"
 	externalResourceName := "azurerm_traffic_manager_endpoint.testExternal"
@@ -388,6 +412,22 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
 }
 
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMTrafficManagerEndpoint_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMTrafficManagerEndpoint_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_traffic_manager_endpoint" "import" {
+  name                = "${azurerm_traffic_manager_endpoint.testExternal.name}"
+  type                = "${azurerm_traffic_manager_endpoint.testExternal.type}"
+  target              = "${azurerm_traffic_manager_endpoint.testExternal.target}"
+  weight              = "${azurerm_traffic_manager_endpoint.testExternal.weight}"
+  profile_name        = "${azurerm_traffic_manager_endpoint.testExternal.profile_name}"
+  resource_group_name = "${azurerm_traffic_manager_endpoint.testExternal.resource_group_name}"
+}
+`, template)
 }
 
 func testAccAzureRMTrafficManagerEndpoint_basicDisableExternal(rInt int, location string) string {
