@@ -19,15 +19,13 @@ func resourceArmServiceBusQueueAuthorizationRule() *schema.Resource {
 		Read:   resourceArmServiceBusQueueAuthorizationRuleRead,
 		Update: resourceArmServiceBusQueueAuthorizationRuleCreateUpdate,
 		Delete: resourceArmServiceBusQueueAuthorizationRuleDelete,
-
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
-
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(time.Minute * 30),
 			Update: schema.DefaultTimeout(time.Minute * 30),
 			Delete: schema.DefaultTimeout(time.Minute * 30),
+		},
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: azure.ServiceBusAuthorizationRuleSchemaFrom(map[string]*schema.Schema{
@@ -75,7 +73,7 @@ func resourceArmServiceBusQueueAuthorizationRuleCreateUpdate(d *schema.ResourceD
 		resp, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, queueName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Error checking for the existence of Service Bus Queue Authorization Rule %q (Resource Group %q / Namespace %q): %+v", name, resourceGroup, namespaceName, err)
+				return fmt.Errorf("Error checking for the existence of Service Bus Queue Authorization Rule %q (Namespace %q / Resource Group %q): %+v", name, namespaceName, resourceGroup, err)
 			}
 		}
 		if resp.ID != nil {
