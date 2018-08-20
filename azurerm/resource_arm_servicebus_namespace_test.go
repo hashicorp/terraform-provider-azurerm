@@ -82,6 +82,30 @@ func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMServiceBusNamespace_requiresImport(t *testing.T) {
+	resourceName := "azurerm_servicebus_namespace.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceBusNamespace_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusNamespaceExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMServiceBusNamespace_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_servicebus_namespace"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMServiceBusNamespace_readDefaultKeys(t *testing.T) {
 	resourceName := "azurerm_servicebus_namespace.test"
 	ri := acctest.RandInt()
@@ -215,29 +239,45 @@ func testCheckAzureRMServiceBusNamespaceExists(name string) resource.TestCheckFu
 func testAccAzureRMServiceBusNamespace_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
+
 resource "azurerm_servicebus_namespace" "test" {
-    name = "acctestservicebusnamespace-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku = "basic"
+  name                = "acctestservicebusnamespace-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "basic"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMServiceBusNamespace_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMServiceBusNamespace_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_servicebus_namespace" "import" {
+  name                = "${azurerm_servicebus_namespace.test.name}"
+  location            = "${azurerm_servicebus_namespace.test.location}"
+  resource_group_name = "${azurerm_servicebus_namespace.test.resource_group_name}"
+  sku                 = "${azurerm_servicebus_namespace.test.sku}"
+}
+`, template)
 }
 
 func testAccAzureRMServiceBusNamespaceNonStandardCasing(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
+
 resource "azurerm_servicebus_namespace" "test" {
-    name = "acctestservicebusnamespace-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku = "Basic"
+  name                = "acctestservicebusnamespace-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Basic"
 }
 `, rInt, location, rInt)
 }
