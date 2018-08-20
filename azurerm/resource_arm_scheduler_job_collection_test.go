@@ -13,8 +13,9 @@ import (
 )
 
 func TestAccAzureRMSchedulerJobCollection_basic(t *testing.T) {
-	ri := acctest.RandInt()
 	resourceName := "azurerm_scheduler_job_collection.test"
+	ri := acctest.RandInt()
+	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -22,7 +23,7 @@ func TestAccAzureRMSchedulerJobCollection_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobCollectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJobCollection_basic(ri, testLocation(), ""),
+				Config: testAccAzureRMSchedulerJobCollection_basic(ri, location),
 				Check:  checkAccAzureRMSchedulerJobCollection_basic(resourceName),
 			},
 			{
@@ -34,9 +35,10 @@ func TestAccAzureRMSchedulerJobCollection_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSchedulerJobCollection_complete(t *testing.T) {
-	ri := acctest.RandInt()
+func TestAccAzureRMSchedulerJobCollection_requiresImport(t *testing.T) {
 	resourceName := "azurerm_scheduler_job_collection.test"
+	ri := acctest.RandInt()
+	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -44,11 +46,33 @@ func TestAccAzureRMSchedulerJobCollection_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobCollectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJobCollection_basic(ri, testLocation(), ""),
+				Config: testAccAzureRMSchedulerJobCollection_basic(ri, location),
 				Check:  checkAccAzureRMSchedulerJobCollection_basic(resourceName),
 			},
 			{
-				Config: testAccAzureRMSchedulerJobCollection_complete(ri, testLocation()),
+				Config:      testAccAzureRMSchedulerJobCollection_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_scheduler_job_collection"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMSchedulerJobCollection_complete(t *testing.T) {
+	resourceName := "azurerm_scheduler_job_collection.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSchedulerJobCollectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSchedulerJobCollection_basic(ri, location),
+				Check:  checkAccAzureRMSchedulerJobCollection_basic(resourceName),
+			},
+			{
+				Config: testAccAzureRMSchedulerJobCollection_complete(ri, location),
 				Check:  checkAccAzureRMSchedulerJobCollection_complete(resourceName),
 			},
 			{
@@ -118,8 +142,38 @@ func testCheckAzureRMSchedulerJobCollectionExists(name string) resource.TestChec
 	}
 }
 
-func testAccAzureRMSchedulerJobCollection_basic(rInt int, location string, additional string) string {
+func testAccAzureRMSchedulerJobCollection_basic(rInt int, location string) string {
 	return fmt.Sprintf(` 
+resource "azurerm_resource_group" "test" { 
+  name     = "acctestRG-%d" 
+  location = "%s" 
+}
+ 
+resource "azurerm_scheduler_job_collection" "test" { 
+  name                = "acctest-%d" 
+  location            = "${azurerm_resource_group.test.location}" 
+  resource_group_name = "${azurerm_resource_group.test.name}" 
+  sku                 = "Standard"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMSchedulerJobCollection_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMSchedulerJobCollection_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+ 
+resource "azurerm_scheduler_job_collection" "import" { 
+  name                = "${azurerm_scheduler_job_collection.test.name}" 
+  location            = "${azurerm_scheduler_job_collection.test.location}" 
+  resource_group_name = "${azurerm_scheduler_job_collection.test.resource_group_name}" 
+  sku                 = "${azurerm_scheduler_job_collection.test.sku}"
+}
+`, template)
+}
+
+func testAccAzureRMSchedulerJobCollection_complete(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" { 
   name     = "acctestRG-%d" 
   location = "%s" 
@@ -128,22 +182,16 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_scheduler_job_collection" "test" { 
   name                = "acctest-%d" 
   location            = "${azurerm_resource_group.test.location}" 
-  resource_group_name = "${azurerm_resource_group.test.name}" 
-  sku                 = "Standard" 
-%s 
-} 
-`, rInt, location, rInt, additional)
-}
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  state               = "disabled" 
 
-func testAccAzureRMSchedulerJobCollection_complete(rInt int, location string) string {
-	return testAccAzureRMSchedulerJobCollection_basic(rInt, location, ` 
-  state = "disabled" 
   quota { 
     max_recurrence_frequency = "Hour" 
     max_recurrence_interval  = 10  
     max_job_count            = 10 
   } 
-`)
+}
+`, rInt, location, rInt)
 }
 
 func checkAccAzureRMSchedulerJobCollection_basic(resourceName string) resource.TestCheckFunc {

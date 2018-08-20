@@ -41,6 +41,7 @@ func TestAccDataSourceAzureRMSchedulerJobCollection_complete(t *testing.T) {
 }
 
 func testAccDataSourceSchedulerJobCollection_basic(rInt int, location string) string {
+	template := testAccAzureRMSchedulerJobCollection_basic(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -48,10 +49,11 @@ data "azurerm_scheduler_job_collection" "test" {
   name                = "${azurerm_scheduler_job_collection.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`, testAccAzureRMSchedulerJobCollection_basic(rInt, location, ""))
+`, template)
 }
 
 func testAccDataSourceSchedulerJobCollection_complete(rInt int, location string) string {
+	template := testAccAzureRMSchedulerJobCollection_complete(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -59,5 +61,5 @@ data "azurerm_scheduler_job_collection" "test" {
   name                = "${azurerm_scheduler_job_collection.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`, testAccAzureRMSchedulerJobCollection_complete(rInt, location))
+`, template)
 }
