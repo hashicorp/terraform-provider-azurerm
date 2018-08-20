@@ -1,11 +1,14 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -13,12 +16,17 @@ var subnetResourceName = "azurerm_subnet"
 
 func resourceArmSubnet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSubnetCreate,
+		Create: resourceArmSubnetCreateUpdate,
 		Read:   resourceArmSubnetRead,
-		Update: resourceArmSubnetCreate,
+		Update: resourceArmSubnetCreateUpdate,
 		Delete: resourceArmSubnetDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -68,7 +76,7 @@ func resourceArmSubnet() *schema.Resource {
 	}
 }
 
-func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).subnetClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -77,6 +85,21 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 	name := d.Get("name").(string)
 	vnetName := d.Get("virtual_network_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
+
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resGroup, vnetName, name, "")
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_subnet", *resp.ID)
+		}
+	}
+
 	addressPrefix := d.Get("address_prefix").(string)
 
 	azureRMLockByName(vnetName, virtualNetworkResourceName)
@@ -133,7 +156,9 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error Creating/Updating Subnet %q (VN %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for completion of Subnet %q (VN %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
 	}
@@ -247,8 +272,11 @@ func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error deleting Subnet %q (VN %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion for Subnet %q (VN %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Error waiting for deletion of Subnet %q (VN %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
 	}
 
 	return nil

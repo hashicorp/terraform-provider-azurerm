@@ -14,7 +14,6 @@ import (
 )
 
 func TestAccAzureRMSubnet_basic(t *testing.T) {
-
 	ri := acctest.RandInt()
 	config := testAccAzureRMSubnet_basic(ri, testLocation())
 
@@ -28,6 +27,29 @@ func TestAccAzureRMSubnet_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSubnetExists("azurerm_subnet.test"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMSubnet_requiresImport(t *testing.T) {
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSubnetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSubnet_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSubnetExists("azurerm_subnet.test"),
+				),
+			},
+			{
+				Config:      testAccAzureRMSubnet_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_subnet"),
 			},
 		},
 	})
@@ -366,6 +388,20 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMSubnet_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMSubnet_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "import" {
+  name                 = "${azurerm_subnet.test.name}"
+  resource_group_name  = "${azurerm_subnet.test.resource_group_name}"
+  virtual_network_name = "${azurerm_subnet.test.virtual_network_name}"
+  address_prefix       = "${azurerm_subnet.test.address_prefix}"
+}
+`, template)
 }
 
 func testAccAzureRMSubnet_routeTable(rInt int, location string) string {
