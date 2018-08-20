@@ -7,7 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -72,7 +72,7 @@ func resourceArmAppServiceSlot() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"site_config": azSchema.AppServiceSiteConfigSchema(),
+			"site_config": azure.SchemaAppServiceSiteConfig(),
 
 			"client_affinity_enabled": {
 				Type:     schema.TypeBool,
@@ -159,7 +159,7 @@ func resourceArmAppServiceSlotCreate(d *schema.ResourceData, meta interface{}) e
 	httpsOnly := d.Get("https_only").(bool)
 	tags := d.Get("tags").(map[string]interface{})
 
-	siteConfig := azSchema.ExpandAppServiceSiteConfig(d.Get("site_config"))
+	siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
 	siteEnvelope := web.Site{
 		Location: &location,
 		Tags:     expandTags(tags),
@@ -230,7 +230,7 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	appServicePlanId := d.Get("app_service_plan_id").(string)
 	slot := id.Path["slots"]
-	siteConfig := azSchema.ExpandAppServiceSiteConfig(d.Get("site_config"))
+	siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
 	enabled := d.Get("enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
 	tags := d.Get("tags").(map[string]interface{})
@@ -259,7 +259,7 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 	if d.HasChange("site_config") {
 		// update the main configuration
-		siteConfig := azSchema.ExpandAppServiceSiteConfig(d.Get("site_config"))
+		siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
 		siteConfigResource := web.SiteConfigResource{
 			SiteConfig: &siteConfig,
 		}
@@ -372,7 +372,7 @@ func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 
-	siteConfig := azSchema.FlattenAppServiceSiteConfig(configResp.SiteConfig)
+	siteConfig := azure.FlattenAppServiceSiteConfig(configResp.SiteConfig)
 	if err := d.Set("site_config", siteConfig); err != nil {
 		return err
 	}
