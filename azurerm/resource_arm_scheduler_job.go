@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"regexp"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -27,12 +29,15 @@ func resourceArmSchedulerJob() *schema.Resource {
 		Read:   resourceArmSchedulerJobRead,
 		Update: resourceArmSchedulerJobCreateUpdate,
 		Delete: resourceArmSchedulerJobDelete,
-
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-
 		CustomizeDiff: resourceArmSchedulerJobCustomizeDiff,
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -479,6 +484,20 @@ func resourceArmSchedulerJobCreateUpdate(d *schema.ResourceData, meta interface{
 	resourceGroup := d.Get("resource_group_name").(string)
 	jobCollection := d.Get("job_collection_name").(string)
 
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resourceGroup, jobCollection, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of Scheduler Job %q (Job Collection %q / Resource Group %q): %+v", name, jobCollection, resourceGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_scheduler_job", *resp.ID)
+		}
+	}
+
 	job := scheduler.JobDefinition{
 		Properties: &scheduler.JobProperties{
 			Action: expandAzureArmSchedulerJobAction(d, meta),
@@ -505,7 +524,9 @@ func resourceArmSchedulerJobCreateUpdate(d *schema.ResourceData, meta interface{
 		job.Properties.State = scheduler.JobState(state.(string))
 	}
 
-	resp, err := client.CreateOrUpdate(ctx, resourceGroup, jobCollection, name, job)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	resp, err := client.CreateOrUpdate(waitCtx, resourceGroup, jobCollection, name, job)
 	if err != nil {
 		return fmt.Errorf("Error creating/updating Scheduler Job %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -624,7 +645,9 @@ func resourceArmSchedulerJobDelete(d *schema.ResourceData, meta interface{}) err
 
 	log.Printf("[DEBUG] Deleting Scheduler Job %q (resource group %q)", name, resourceGroup)
 
-	resp, err := client.Delete(ctx, resourceGroup, jobCollection, name)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	resp, err := client.Delete(waitCtx, resourceGroup, jobCollection, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return fmt.Errorf("Error issuing delete request for Scheduler Job %q (Resource Group %q): %+v", name, resourceGroup, err)

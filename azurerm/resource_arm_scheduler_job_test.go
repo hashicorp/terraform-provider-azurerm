@@ -38,6 +38,30 @@ func TestAccAzureRMSchedulerJob_web_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSchedulerJob_requiresImport(t *testing.T) {
+	resourceName := "azurerm_scheduler_job.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSchedulerJob_web_basic(ri, location),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMSchedulerJobExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMSchedulerJob_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_scheduler_job"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMSchedulerJob_storageQueue(t *testing.T) {
 	resourceName := "azurerm_scheduler_job.test"
 	ri := acctest.RandInt()
@@ -551,7 +575,9 @@ resource "azurerm_scheduler_job_collection" "test" {
 
 func testAccAzureRMSchedulerJob_web_basic(rInt int, location string) string {
 	//need a valid URL here otherwise on a slow connection job might fault before the test check
-	return fmt.Sprintf(`%s
+	return fmt.Sprintf(`
+%s
+
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -561,7 +587,26 @@ resource "azurerm_scheduler_job" "test" {
     url    = "http://example.com"
     method = "get"
   } 
-}`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
+}
+`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
+}
+
+func testAccAzureRMSchedulerJob_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMSchedulerJob_web_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_scheduler_job" "import" {
+  name                = "${azurerm_scheduler_job.test.name}"
+  resource_group_name = "${azurerm_scheduler_job.test.resource_group_name}"
+  job_collection_name = "${azurerm_scheduler_job.test.job_collection_name}"
+
+  action_web {
+    url    = "http://example.com"
+    method = "get"
+  } 
+}
+`, template)
 }
 
 func testAccAzureRMSchedulerJob_web_put(rInt int, location string) string {
