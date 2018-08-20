@@ -1,12 +1,15 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -17,6 +20,10 @@ func resourceArmSearchService() *schema.Resource {
 		Delete: resourceArmSearchServiceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -68,8 +75,21 @@ func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+
+	// first check if there's one in this subscription requiring import
+	resp, err := client.Get(ctx, resourceGroup, name, nil)
+	if err != nil {
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Error checking for the existence of Search Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	}
+
+	if resp.ID != nil {
+		return tf.ImportAsExistsError("azurerm_search_service", *resp.ID)
+	}
+
 	location := azureRMNormalizeLocation(d.Get("location").(string))
-	resourceGroupName := d.Get("resource_group_name").(string)
 	skuName := d.Get("sku").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -92,12 +112,14 @@ func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface
 		properties.ServiceProperties.PartitionCount = utils.Int32(partitionCount)
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroupName, name, properties, nil)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutCreate))
+	defer cancel()
+	_, err = client.CreateOrUpdate(waitCtx, resourceGroup, name, properties, nil)
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, resourceGroupName, name, nil)
+	resp, err = client.Get(ctx, resourceGroup, name, nil)
 	if err != nil {
 		return err
 	}
@@ -165,8 +187,9 @@ func resourceArmSearchServiceDelete(d *schema.ResourceData, meta interface{}) er
 	resourceGroup := id.ResourceGroup
 	name := id.Path["searchServices"]
 
-	resp, err := client.Delete(ctx, resourceGroup, name, nil)
-
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	resp, err := client.Delete(waitCtx, resourceGroup, name, nil)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil

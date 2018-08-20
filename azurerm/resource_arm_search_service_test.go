@@ -31,6 +31,30 @@ func TestAccAzureRMSearchService_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSearchService_requiresImport(t *testing.T) {
+	resourceName := "azurerm_search_service.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSearchService_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSearchServiceExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMSearchService_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_search_service"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMSearchService_complete(t *testing.T) {
 	resourceName := "azurerm_search_service.test"
 	ri := acctest.RandInt()
@@ -127,6 +151,24 @@ resource "azurerm_search_service" "test" {
     }
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMSearchService_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMSearchService_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_search_service" "import" {
+  name                = "${azurerm_search_service.test.name}"
+  resource_group_name = "${azurerm_search_service.test.resource_group_name}"
+  location            = "${azurerm_search_service.test.location}"
+  sku                 = "standard"
+
+  tags {
+    environment = "staging"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMSearchService_complete(rInt int, location string) string {
