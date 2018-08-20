@@ -44,6 +44,29 @@ func TestAccAzureRMServiceFabricCluster_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMServiceFabricCluster_requiresImport(t *testing.T) {
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceFabricCluster_basic(ri, location, 3),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceFabricClusterExists("azurerm_service_fabric_cluster.test"),
+				),
+			},
+			{
+				Config:      testAccAzureRMServiceFabricCluster_requiresImport(ri, location, 3),
+				ExpectError: testRequiresImportError("azurerm_service_fabric_cluster"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMServiceFabricCluster_addOnFeatures(t *testing.T) {
 	resourceName := "azurerm_service_fabric_cluster.test"
 	ri := acctest.RandInt()
@@ -430,6 +453,31 @@ resource "azurerm_service_fabric_cluster" "test" {
   }
 }
 `, rInt, location, rInt, count)
+}
+
+func testAccAzureRMServiceFabricCluster_requiresImport(rInt int, location string, count int) string {
+	template := testAccAzureRMServiceFabricCluster_basic(rInt, location, count)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_service_fabric_cluster" "import" {
+  name                = "${azurerm_service_fabric_cluster.test.name}"
+  resource_group_name = "${azurerm_service_fabric_cluster.test.resource_group_name}"
+  location            = "${azurerm_service_fabric_cluster.test.location}"
+  reliability_level   = "${azurerm_service_fabric_cluster.test.reliability_level}"
+  upgrade_mode        = "${azurerm_service_fabric_cluster.test.upgrade_mode}"
+  vm_image            = "${azurerm_service_fabric_cluster.test.vm_image}"
+  management_endpoint = "${azurerm_service_fabric_cluster.test.management_endpoint}"
+
+  node_type {
+    name                 = "${azurerm_service_fabric_cluster.test.node_type.0.name}"
+    instance_count       = "${azurerm_service_fabric_cluster.test.node_type.0.instance_count}"
+    is_primary           = "${azurerm_service_fabric_cluster.test.node_type.0.is_primary}"
+    client_endpoint_port = "${azurerm_service_fabric_cluster.test.node_type.0.client_endpoint_port}"
+    http_endpoint_port   = "${azurerm_service_fabric_cluster.test.node_type.0.http_endpoint_port}"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMServiceFabricCluster_addOnFeatures(rInt int, location string) string {

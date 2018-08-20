@@ -1,13 +1,16 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2018-02-01/servicefabric"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,6 +22,11 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 		Delete: resourceArmServiceFabricClusterDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -271,6 +279,19 @@ func resourceArmServiceFabricClusterCreate(d *schema.ResourceData, meta interfac
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
+
+	// first check if there's one in this subscription requiring import
+	resp, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Error checking for the existence of Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	}
+
+	if resp.ID != nil {
+		return tf.ImportAsExistsError("azurerm_service_fabric_cluster", *resp.ID)
+	}
+
 	location := d.Get("location").(string)
 	reliabilityLevel := d.Get("reliability_level").(string)
 	managementEndpoint := d.Get("management_endpoint").(string)
@@ -318,7 +339,9 @@ func resourceArmServiceFabricClusterCreate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("Error creating Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutCreate))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for creation of Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -381,7 +404,9 @@ func resourceArmServiceFabricClusterUpdate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("Error updating Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutUpdate))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for update of Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -474,7 +499,9 @@ func resourceArmServiceFabricClusterDelete(d *schema.ResourceData, meta interfac
 
 	log.Printf("[DEBUG] Deleting Service Fabric Cluster %q (Resource Group %q)", name, resourceGroup)
 
-	resp, err := client.Delete(ctx, resourceGroup, name)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	resp, err := client.Delete(waitCtx, resourceGroup, name)
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("Error deleting Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
