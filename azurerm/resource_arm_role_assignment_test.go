@@ -263,7 +263,7 @@ resource "azurerm_role_assignment" "import" {
   role_definition_name = "${azurerm_role_assignment.test.role_definition_name}"
   principal_id         = "${azurerm_role_assignment.test.principal_id}"
 }
-`, id)
+`, template)
 }
 
 func testAccAzureRMRoleAssignment_dataActionsConfig(id string) string {
