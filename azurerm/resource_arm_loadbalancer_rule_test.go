@@ -297,12 +297,12 @@ func testCheckAzureRMLoadBalancerRuleDisappears(ruleName string, lb *network.Loa
 
 		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, *lb.Name, *lb)
 		if err != nil {
-			return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q): %+v", lb.Name, id.ResourceGroup, err)
+			return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q): %+v", *lb.Name, id.ResourceGroup, err)
 		}
 
 		err = future.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
-			return fmt.Errorf("Error waiting for completion of Load Balancer %q (Resource Group %q): %+v", lb.Name, id.ResourceGroup, err)
+			return fmt.Errorf("Error waiting for completion of Load Balancer %q (Resource Group %q): %+v", *lb.Name, id.ResourceGroup, err)
 		}
 
 		_, err = client.Get(ctx, id.ResourceGroup, *lb.Name, "")
