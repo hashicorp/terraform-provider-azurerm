@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -45,7 +46,7 @@ func resourceArmPostgreSQLVirtualNetworkRule() *schema.Resource {
 			"subnet_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"ignore_missing_vnet_service_endpoint": {
