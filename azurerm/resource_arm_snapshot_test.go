@@ -79,7 +79,7 @@ func TestAccAzureRMSnapshot_fromManagedDisk(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSnapshot_fromManagedDisk(t *testing.T) {
+func TestAccAzureRMSnapshot_requiresImport(t *testing.T) {
 	resourceName := "azurerm_snapshot.test"
 	ri := acctest.RandInt()
 	location := testLocation()
