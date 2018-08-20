@@ -35,6 +35,29 @@ func TestAccAzureRMRoute_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMRoute_requiresImport(t *testing.T) {
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRouteDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRoute_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRouteExists("azurerm_route.test"),
+				),
+			},
+			{
+				Config:      testAccAzureRMRoute_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_route"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMRoute_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMRoute_basic(ri, testLocation())
@@ -195,6 +218,21 @@ resource "azurerm_route" "test" {
     next_hop_type  = "vnetlocal"
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMRoute_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMRoute_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_route" "import" {
+  name                = "${azurerm_route.test.name}"
+  resource_group_name = "${azurerm_route.test.resource_group_name}"
+  route_table_name    = "${azurerm_route.test.route_table_name}"
+  address_prefix      = "${azurerm_route.test.address_prefix}"
+  next_hop_type       = "${azurerm_route.test.next_hop_type}"
+}
+`, template)
 }
 
 func testAccAzureRMRoute_multipleRoutes(rInt int, location string) string {
