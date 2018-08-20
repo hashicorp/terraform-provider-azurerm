@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"encoding/json"
 
@@ -20,6 +21,11 @@ func resourceArmLogicAppActionCustom() *schema.Resource {
 		Delete: resourceArmLogicAppActionCustomDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -57,7 +63,7 @@ func resourceArmLogicAppActionCustomCreateUpdate(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error unmarshalling JSON for Custom Action %q: %+v", name, err)
 	}
 
-	err = resourceLogicAppActionUpdate(d, meta, logicAppId, name, body)
+	err = resourceLogicAppActionUpdate(d, meta, logicAppId, name, body, "azurerm_logic_app_action_custom")
 	if err != nil {
 		return err
 	}

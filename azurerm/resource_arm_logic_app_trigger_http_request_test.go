@@ -28,6 +28,30 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLogicAppTriggerHttpRequest_requiresImport(t *testing.T) {
+	resourceName := "azurerm_logic_app_trigger_http_request.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLogicAppTriggerHttpRequest_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogicAppTriggerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "schema", "{}"),
+				),
+			},
+			{
+				Config:      testAccAzureRMLogicAppTriggerHttpRequest_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_logic_app_trigger_http_request"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMLogicAppTriggerHttpRequest_fullSchema(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_http_request.test"
 	ri := acctest.RandInt()
@@ -128,6 +152,19 @@ resource "azurerm_logic_app_trigger_http_request" "test" {
   name         = "some-http-trigger"
   logic_app_id = "${azurerm_logic_app_workflow.test.id}"
   schema       = "{}"
+}
+`, template)
+}
+
+func testAccAzureRMLogicAppTriggerHttpRequest_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMLogicAppTriggerHttpRequest_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_trigger_http_request" "import" {
+  name         = "${azurerm_logic_app_trigger_http_request.test.name}"
+  logic_app_id = "${azurerm_logic_app_trigger_http_request.test.logic_app_id}"
+  schema       = "${azurerm_logic_app_trigger_http_request.test.schema}"
 }
 `, template)
 }

@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -17,6 +18,11 @@ func resourceArmLogicAppTriggerRecurrence() *schema.Resource {
 		Delete: resourceArmLogicAppTriggerRecurrenceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -66,7 +72,7 @@ func resourceArmLogicAppTriggerRecurrenceCreateUpdate(d *schema.ResourceData, me
 
 	logicAppId := d.Get("logic_app_id").(string)
 	name := d.Get("name").(string)
-	err := resourceLogicAppTriggerUpdate(d, meta, logicAppId, name, trigger)
+	err := resourceLogicAppTriggerUpdate(d, meta, logicAppId, name, trigger, "azurerm_logic_app_trigger_recurrence")
 	if err != nil {
 		return err
 	}

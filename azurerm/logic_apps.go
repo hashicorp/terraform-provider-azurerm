@@ -1,25 +1,27 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // NOTE: this file is not a recommended way of developing Terraform resources; this exists to work around the fact that this API is dynamic (by it's nature)
 
-func resourceLogicAppActionUpdate(d *schema.ResourceData, meta interface{}, logicAppId string, name string, vals map[string]interface{}) error {
-	return resourceLogicAppComponentUpdate(d, meta, "Action", "actions", logicAppId, name, vals)
+func resourceLogicAppActionUpdate(d *schema.ResourceData, meta interface{}, logicAppId string, name string, vals map[string]interface{}, resourceName string) error {
+	return resourceLogicAppComponentUpdate(d, meta, "Action", "actions", logicAppId, name, vals, resourceName)
 }
 
-func resourceLogicAppTriggerUpdate(d *schema.ResourceData, meta interface{}, logicAppId string, name string, vals map[string]interface{}) error {
-	return resourceLogicAppComponentUpdate(d, meta, "Trigger", "triggers", logicAppId, name, vals)
+func resourceLogicAppTriggerUpdate(d *schema.ResourceData, meta interface{}, logicAppId string, name string, vals map[string]interface{}, resourceName string) error {
+	return resourceLogicAppComponentUpdate(d, meta, "Trigger", "triggers", logicAppId, name, vals, resourceName)
 }
 
-func resourceLogicAppComponentUpdate(d *schema.ResourceData, meta interface{}, kind string, propertyName string, logicAppId string, name string, vals map[string]interface{}) error {
+func resourceLogicAppComponentUpdate(d *schema.ResourceData, meta interface{}, kind string, propertyName string, logicAppId string, name string, vals map[string]interface{}, resourceName string) error {
 	client := meta.(*ArmClient).logicWorkflowsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -56,6 +58,14 @@ func resourceLogicAppComponentUpdate(d *schema.ResourceData, meta interface{}, k
 
 	definition := read.WorkflowProperties.Definition.(map[string]interface{})
 	vs := definition[propertyName].(map[string]interface{})
+
+	idString := fmt.Sprintf("%s/%s/%s", *read.ID, propertyName, name)
+	if d.IsNewResource() {
+		if _, exists := vs[name]; exists {
+			return tf.ImportAsExistsError(resourceName, idString)
+		}
+	}
+
 	vs[name] = vals
 	definition[propertyName] = vs
 
@@ -68,13 +78,15 @@ func resourceLogicAppComponentUpdate(d *schema.ResourceData, meta interface{}, k
 		Tags: read.Tags,
 	}
 
-	_, err = client.CreateOrUpdate(ctx, resourceGroup, logicAppName, properties)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	_, err = client.CreateOrUpdate(waitCtx, resourceGroup, logicAppName, properties)
 	if err != nil {
 		return fmt.Errorf("Error updating Logic App Workspace %q (Resource Group %q) for %s %q: %+v", logicAppName, resourceGroup, kind, name, err)
 	}
 
 	if d.IsNewResource() {
-		d.SetId(fmt.Sprintf("%s/%s/%s", *read.ID, propertyName, name))
+		d.SetId(idString)
 	}
 
 	return nil
@@ -130,7 +142,9 @@ func resourceLogicAppComponentRemove(d *schema.ResourceData, meta interface{}, k
 		Tags: read.Tags,
 	}
 
-	_, err = client.CreateOrUpdate(ctx, resourceGroup, logicAppName, properties)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	_, err = client.CreateOrUpdate(waitCtx, resourceGroup, logicAppName, properties)
 	if err != nil {
 		return fmt.Errorf("Error removing %s %q from Logic App Workspace %q (Resource Group %q): %+v", kind, name, logicAppName, resourceGroup, err)
 	}

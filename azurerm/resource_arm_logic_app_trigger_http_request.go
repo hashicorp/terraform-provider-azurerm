@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"time"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/structure"
@@ -21,6 +22,11 @@ func resourceArmLogicAppTriggerHttpRequest() *schema.Resource {
 		Delete: resourceArmLogicAppTriggerHttpRequestDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
@@ -106,7 +112,7 @@ func resourceArmLogicAppTriggerHttpRequestCreateUpdate(d *schema.ResourceData, m
 
 	logicAppId := d.Get("logic_app_id").(string)
 	name := d.Get("name").(string)
-	err = resourceLogicAppTriggerUpdate(d, meta, logicAppId, name, trigger)
+	err = resourceLogicAppTriggerUpdate(d, meta, logicAppId, name, trigger, "azurerm_logic_app_trigger_http_request")
 	if err != nil {
 		return err
 	}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"net/http"
 
@@ -20,6 +21,11 @@ func resourceArmLogicAppActionHTTP() *schema.Resource {
 		Delete: resourceArmLogicAppActionHTTPDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -90,7 +96,7 @@ func resourceArmLogicAppActionHTTPCreateUpdate(d *schema.ResourceData, meta inte
 
 	logicAppId := d.Get("logic_app_id").(string)
 	name := d.Get("name").(string)
-	err = resourceLogicAppActionUpdate(d, meta, logicAppId, name, action)
+	err = resourceLogicAppActionUpdate(d, meta, logicAppId, name, action, "azurerm_logic_app_action_http")
 	if err != nil {
 		return err
 	}

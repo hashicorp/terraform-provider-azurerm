@@ -29,6 +29,29 @@ func TestAccAzureRMLogicAppTriggerRecurrence_month(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLogicAppTriggerRecurrence_requiresImport(t *testing.T) {
+	resourceName := "azurerm_logic_app_trigger_recurrence.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLogicAppTriggerRecurrence_basic(ri, location, "Month", 1),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogicAppTriggerExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMLogicAppTriggerRecurrence_requiresImport(ri, location, "Month", 1),
+				ExpectError: testRequiresImportError("azurerm_logic_app_trigger_recurrence"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMLogicAppTriggerRecurrence_week(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_recurrence.test"
 	ri := acctest.RandInt()
@@ -183,4 +206,18 @@ resource "azurerm_logic_app_trigger_recurrence" "test" {
   interval     = %d
 }
 `, rInt, location, rInt, frequency, interval)
+}
+
+func testAccAzureRMLogicAppTriggerRecurrence_requiresImport(rInt int, location, frequency string, interval int) string {
+	template := testAccAzureRMLogicAppTriggerRecurrence_basic(rInt, location, frequency, interval)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_trigger_recurrence" "import" {
+  name         = "${azurerm_logic_app_trigger_recurrence.test.name}"
+  logic_app_id = "${azurerm_logic_app_trigger_recurrence.test.logic_app_id}"
+  frequency    = "${azurerm_logic_app_trigger_recurrence.test.frequency}"
+  interval     = "${azurerm_logic_app_trigger_recurrence.test.interval}"
+}
+`, template)
 }
