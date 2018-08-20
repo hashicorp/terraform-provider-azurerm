@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/subscription"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 func dataSourceArmSubscriptions() *schema.Resource {
@@ -16,7 +16,7 @@ func dataSourceArmSubscriptions() *schema.Resource {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
-					Schema: subscription.SubscriptionSchema(false),
+					Schema: azure.SchemaSubscription(false),
 				},
 			},
 		},

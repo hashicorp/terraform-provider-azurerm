@@ -1,4 +1,4 @@
-package schema
+package azure
 
 import (
 	"log"
@@ -8,10 +8,11 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func AppServiceSiteConfigSchema() *schema.Schema {
+func SchemaAppServiceSiteConfig() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -39,7 +40,7 @@ func AppServiceSiteConfigSchema() *schema.Schema {
 						"v2.0",
 						"v4.0",
 					}, true),
-					DiffSuppressFunc: IgnoreCaseDiffSuppressFunc,
+					DiffSuppressFunc: suppress.CaseDifference,
 				},
 
 				"http2_enabled": {
@@ -83,7 +84,7 @@ func AppServiceSiteConfigSchema() *schema.Schema {
 						"JETTY",
 						"TOMCAT",
 					}, true),
-					DiffSuppressFunc: IgnoreCaseDiffSuppressFunc,
+					DiffSuppressFunc: suppress.CaseDifference,
 				},
 
 				"java_container_version": {
@@ -105,7 +106,7 @@ func AppServiceSiteConfigSchema() *schema.Schema {
 						string(web.Classic),
 						string(web.Integrated),
 					}, true),
-					DiffSuppressFunc: IgnoreCaseDiffSuppressFunc,
+					DiffSuppressFunc: suppress.CaseDifference,
 				},
 
 				"php_version": {
@@ -144,7 +145,7 @@ func AppServiceSiteConfigSchema() *schema.Schema {
 						"VS2015",
 						"VS2017",
 					}, true),
-					DiffSuppressFunc: IgnoreCaseDiffSuppressFunc,
+					DiffSuppressFunc: suppress.CaseDifference,
 				},
 
 				"scm_type": {
