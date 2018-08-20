@@ -20,15 +20,13 @@ func resourceArmServiceBusTopic() *schema.Resource {
 		Read:   resourceArmServiceBusTopicRead,
 		Update: resourceArmServiceBusTopicCreateUpdate,
 		Delete: resourceArmServiceBusTopicDelete,
-
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
-
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(time.Minute * 30),
 			Update: schema.DefaultTimeout(time.Minute * 30),
 			Delete: schema.DefaultTimeout(time.Minute * 30),
+		},
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -133,28 +131,28 @@ func resourceArmServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interfa
 	name := d.Get("name").(string)
 	namespaceName := d.Get("namespace_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	status := d.Get("status").(string)
-
-	enableBatchedOps := d.Get("enable_batched_operations").(bool)
-	enableExpress := d.Get("enable_express").(bool)
-	enablePartitioning := d.Get("enable_partitioning").(bool)
-	maxSize := int32(d.Get("max_size_in_megabytes").(int))
-	requiresDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
-	supportOrdering := d.Get("support_ordering").(bool)
 
 	if d.IsNewResource() {
 		// first check if there's one in this subscription requiring import
 		resp, err := client.Get(ctx, resourceGroup, namespaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Error checking for the existence of Service Bus Topic %q (Resource Group %q / Namespace %q): %+v", name, resourceGroup, namespaceName, err)
+				return fmt.Errorf("Error checking for the existence of Service Bus Topic %q (Namespace %q / Resource Group %q): %+v", name, namespaceName, resourceGroup, err)
 			}
 		}
+
 		if resp.ID != nil {
 			return tf.ImportAsExistsError("azurerm_servicebus_topic", *resp.ID)
 		}
 	}
 
+	status := d.Get("status").(string)
+	enableBatchedOps := d.Get("enable_batched_operations").(bool)
+	enableExpress := d.Get("enable_express").(bool)
+	enablePartitioning := d.Get("enable_partitioning").(bool)
+	maxSize := int32(d.Get("max_size_in_megabytes").(int))
+	requiresDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
+	supportOrdering := d.Get("support_ordering").(bool)
 	parameters := servicebus.SBTopic{
 		Name: &name,
 		SBTopicProperties: &servicebus.SBTopicProperties{

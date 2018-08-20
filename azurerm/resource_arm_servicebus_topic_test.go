@@ -31,6 +31,30 @@ func TestAccAzureRMServiceBusTopic_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMServiceBusTopic_requiresImport(t *testing.T) {
+	resourceName := "azurerm_servicebus_topic.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceBusTopic_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusTopicExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMServiceBusTopic_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_servicebus_topic"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMServiceBusTopic_basicDisabled(t *testing.T) {
 	resourceName := "azurerm_servicebus_topic.test"
 	ri := acctest.RandInt()
@@ -305,6 +329,19 @@ resource "azurerm_servicebus_topic" "test" {
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMServiceBusTopic_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMServiceBusTopic_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_servicebus_topic" "import" {
+  name                = "${azurerm_servicebus_topic.test.name}"
+  namespace_name      = "${azurerm_servicebus_topic.test.namespace_name}"
+  resource_group_name = "${azurerm_servicebus_topic.test.resource_group_name}"
+}
+`, template)
 }
 
 func testAccAzureRMServiceBusTopic_basicDisabled(rInt int, location string) string {
