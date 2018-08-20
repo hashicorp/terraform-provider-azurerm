@@ -33,6 +33,30 @@ func TestAccAzureRMServiceBusQueue_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMServiceBusQueue_requiresImport(t *testing.T) {
+	resourceName := "azurerm_servicebus_queue.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceBusQueue_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusQueueExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMServiceBusQueue_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_servicebus_queue"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMServiceBusQueue_update(t *testing.T) {
 	resourceName := "azurerm_servicebus_queue.test"
 	ri := acctest.RandInt()
@@ -334,6 +358,19 @@ resource "azurerm_servicebus_queue" "test" {
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMServiceBusQueue_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMServiceBusQueue_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_servicebus_queue" "import" {
+  name                = "${azurerm_servicebus_queue.test.name}"
+  resource_group_name = "${azurerm_servicebus_queue.test.resource_group_name}"
+  namespace_name      = "${azurerm_servicebus_queue.test.namespace_name}"
+}
+`, template)
 }
 
 func testAccAzureRMServiceBusQueue_Premium(rInt int, location string) string {

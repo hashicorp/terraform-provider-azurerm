@@ -19,15 +19,13 @@ func resourceArmServiceBusQueue() *schema.Resource {
 		Read:   resourceArmServiceBusQueueRead,
 		Update: resourceArmServiceBusQueueCreateUpdate,
 		Delete: resourceArmServiceBusQueueDelete,
-
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
-
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(time.Minute * 30),
 			Update: schema.DefaultTimeout(time.Minute * 30),
 			Delete: schema.DefaultTimeout(time.Minute * 30),
+		},
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -140,19 +138,12 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 	namespaceName := d.Get("namespace_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	enableExpress := d.Get("enable_express").(bool)
-	enablePartitioning := d.Get("enable_partitioning").(bool)
-	maxSize := int32(d.Get("max_size_in_megabytes").(int))
-	requiresDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
-	requiresSession := d.Get("requires_session").(bool)
-	deadLetteringOnMessageExpiration := d.Get("dead_lettering_on_message_expiration").(bool)
-
 	if d.IsNewResource() {
 		// first check if there's one in this subscription requiring import
 		resp, err := client.Get(ctx, resourceGroup, namespaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Error checking for the existence of Service Bus queue %q (Resource Group %q / Namespace %q): %+v", name, resourceGroup, namespaceName, err)
+				return fmt.Errorf("Error checking for the existence of Service Bus Queue %q (Namespace %q / Resource Group %q): %+v", name, namespaceName, resourceGroup, err)
 			}
 		}
 		if resp.ID != nil {
@@ -160,6 +151,12 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 		}
 	}
 
+	enableExpress := d.Get("enable_express").(bool)
+	enablePartitioning := d.Get("enable_partitioning").(bool)
+	maxSize := int32(d.Get("max_size_in_megabytes").(int))
+	requiresDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
+	requiresSession := d.Get("requires_session").(bool)
+	deadLetteringOnMessageExpiration := d.Get("dead_lettering_on_message_expiration").(bool)
 	parameters := servicebus.SBQueue{
 		Name: &name,
 		SBQueueProperties: &servicebus.SBQueueProperties{
