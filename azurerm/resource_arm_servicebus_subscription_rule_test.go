@@ -30,6 +30,30 @@ func TestAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMServiceBusSubscriptionRule_requiresImport(t *testing.T) {
+	resourceName := "azurerm_servicebus_subscription_rule.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusSubscriptionRuleExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMServiceBusSubscriptionRule_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_servicebus_subscription_rule"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMServiceBusSubscriptionRule_basicCorrelationFilter(t *testing.T) {
 	resourceName := "azurerm_servicebus_subscription_rule.test"
 	ri := acctest.RandInt()
@@ -227,6 +251,23 @@ resource "azurerm_servicebus_subscription_rule" "test" {
   sql_filter          = "2=2"
 }
 `, template, rInt)
+}
+
+func testAccAzureRMServiceBusSubscriptionRule_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_servicebus_subscription_rule" "import" {
+  name                = "${azurerm_servicebus_subscription_rule.test.name}"
+  namespace_name      = "${azurerm_servicebus_subscription_rule.test.namespace_name}"
+  topic_name          = "${azurerm_servicebus_subscription_rule.test.topic_name}"
+  subscription_name   = "${azurerm_servicebus_subscription_rule.test.subscription_name}"
+  resource_group_name = "${azurerm_servicebus_subscription_rule.test.resource_group_name}"
+  filter_type         = "${azurerm_servicebus_subscription_rule.test.filter_type}"
+  sql_filter          = "${azurerm_servicebus_subscription_rule.test.sql_filter}"
+}
+`, template)
 }
 
 func testAccAzureRMServiceBusSubscriptionRule_basicSqlFilterUpdated(rInt int, location string) string {
