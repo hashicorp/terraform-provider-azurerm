@@ -26,9 +26,10 @@ func TestAccAzureRMAutomationModule_basic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				// Module link is not returned by api in Get operation
 				ImportStateVerifyIgnore: []string{"module_link"},
 			},
 		},
