@@ -34,6 +34,31 @@ func TestAccAzureRMUserAssignedIdentity_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMUserAssignedIdentity_requiresImport(t *testing.T) {
+	resourceName := "azurerm_user_assigned_identity.test"
+	ri := acctest.RandInt()
+	rs := acctest.RandString(14)
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMUserAssignedIdentityDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMUserAssignedIdentity_basic(ri, location, rs),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMUserAssignedIdentityExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMUserAssignedIdentity_requiresImport(ri, location, rs),
+				ExpectError: testRequiresImportError("azurerm_user_assigned_identity"),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMUserAssignedIdentityExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -105,4 +130,17 @@ resource "azurerm_user_assigned_identity" "test" {
   location = "${azurerm_resource_group.test.location}"
 }
 `, rInt, location, rString)
+}
+
+func testAccAzureRMUserAssignedIdentity_requiresImport(rInt int, location string, rString string) string {
+	template := testAccAzureRMUserAssignedIdentity_basic(rInt, location, rString)
+	return fmt.Sprintf(
+		`
+%s
+
+resource "azurerm_user_assigned_identity" "import" {
+  name                = "${azurerm_user_assigned_identity.test.name}"
+  resource_group_name = "${azurerm_user_assigned_identity.test.resource_group_name}"
+  location            = "${azurerm_user_assigned_identity.test.location}"
+}`, template)
 }
