@@ -30,6 +30,29 @@ func TestAccAzureRMServiceBusSubscription_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMServiceBusSubscription_requiresImport(t *testing.T) {
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceBusSubscription_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusSubscriptionExists("azurerm_servicebus_subscription.test"),
+				),
+			},
+			{
+				Config:      testAccAzureRMServiceBusSubscription_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_servicebus_subscription"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMServiceBusSubscription_defaultTtl(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMServiceBusSubscription_withDefaultTtl(ri, testLocation())
@@ -200,35 +223,51 @@ func testCheckAzureRMServiceBusSubscriptionExists(name string) resource.TestChec
 
 const testAccAzureRMServiceBusSubscription_tfTemplate = `
 resource "azurerm_resource_group" "test" {
-    name     = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-    name                = "acctestservicebusnamespace-%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku                 = "standard"
+  name                = "acctestservicebusnamespace-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {
-    name                = "acctestservicebustopic-%d"
-    namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestservicebustopic-%d"
+  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_servicebus_subscription" "test" {
-    name                = "acctestservicebussubscription-%d"
-    namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-    topic_name          = "${azurerm_servicebus_topic.test.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    max_delivery_count  = 10
-	%s
+  name                = "acctestservicebussubscription-%d"
+  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+  topic_name          = "${azurerm_servicebus_topic.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  max_delivery_count  = 10
+  %s
 }
 `
 
 func testAccAzureRMServiceBusSubscription_basic(rInt int, location string) string {
 	return fmt.Sprintf(testAccAzureRMServiceBusSubscription_tfTemplate, rInt, location, rInt, rInt, rInt, "")
+}
+
+func testAccAzureRMServiceBusSubscription_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMServiceBusSubscription_basic(rInt, location)
+	return fmt.Sprintf(
+		`
+%s
+
+resource "azurerm_servicebus_subscription" "import" {
+  name                = "${azurerm_servicebus_subscription.test.name}"
+  namespace_name      = "${azurerm_servicebus_subscription.test.namespace_name}"
+  topic_name          = "${azurerm_servicebus_subscription.test.topic_name}"
+  resource_group_name = "${azurerm_servicebus_subscription.test.resource_group_name}"
+  max_delivery_count  = "${azurerm_servicebus_subscription.test.max_delivery_count}"
+}
+`, template)
 }
 
 func testAccAzureRMServiceBusSubscription_withDefaultTtl(rInt int, location string) string {
@@ -250,9 +289,9 @@ func testAccAzureRMServiceBusSubscription_updateForwardTo(rInt int, location str
 	forwardToTf := testAccAzureRMServiceBusSubscription_tfTemplate + `
 
 resource "azurerm_servicebus_topic" "forward_to" {
-    name = "acctestservicebustopic-forward_to-%d"
-    namespace_name = "${azurerm_servicebus_namespace.test.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name = "acctestservicebustopic-forward_to-%d"
+  namespace_name = "${azurerm_servicebus_namespace.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 `

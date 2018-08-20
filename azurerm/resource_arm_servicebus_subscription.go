@@ -20,15 +20,13 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 		Read:   resourceArmServiceBusSubscriptionRead,
 		Update: resourceArmServiceBusSubscriptionCreateUpdate,
 		Delete: resourceArmServiceBusSubscriptionDelete,
-
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
-
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(time.Minute * 30),
 			Update: schema.DefaultTimeout(time.Minute * 30),
 			Delete: schema.DefaultTimeout(time.Minute * 30),
+		},
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -122,17 +120,12 @@ func resourceArmServiceBusSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 	namespaceName := d.Get("namespace_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	deadLetteringExpiration := d.Get("dead_lettering_on_message_expiration").(bool)
-	enableBatchedOps := d.Get("enable_batched_operations").(bool)
-	maxDeliveryCount := int32(d.Get("max_delivery_count").(int))
-	requiresSession := d.Get("requires_session").(bool)
-
 	if d.IsNewResource() {
 		// first check if there's one in this subscription requiring import
 		resp, err := client.Get(ctx, resourceGroup, namespaceName, topicName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Error checking for the existence of Service Bus Subscription %q (Resource Group %q / Namespace %q / Topic %q): %+v", name, resourceGroup, namespaceName, topicName, err)
+				return fmt.Errorf("Error checking for the existence of Service Bus Subscription %q (Topic %q / Namespace %q / Resource Group %q): %+v", name, topicName, namespaceName, resourceGroup, err)
 			}
 		}
 		if resp.ID != nil {
@@ -140,6 +133,10 @@ func resourceArmServiceBusSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 		}
 	}
 
+	deadLetteringExpiration := d.Get("dead_lettering_on_message_expiration").(bool)
+	enableBatchedOps := d.Get("enable_batched_operations").(bool)
+	maxDeliveryCount := int32(d.Get("max_delivery_count").(int))
+	requiresSession := d.Get("requires_session").(bool)
 	parameters := servicebus.SBSubscription{
 		SBSubscriptionProperties: &servicebus.SBSubscriptionProperties{
 			DeadLetteringOnMessageExpiration: &deadLetteringExpiration,
