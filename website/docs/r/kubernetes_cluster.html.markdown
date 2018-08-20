@@ -193,6 +193,7 @@ The following arguments are supported:
 * `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS managed cluster. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade).
 
 * `network_profile` - (Optional) A Network Profile block as documented below.
+-> **NOTE:** If `network_profile` is not defined, `kubenet` profile will be used by default.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -266,6 +267,7 @@ A `network_profile` block supports the following:
 * `docker_bridge_cidr` - (Optional) IP address (in CIDR notation) used as the Docker bridge IP address on nodes. This is required when `network_plugin` is set to `kubenet`. Changing this forces a new resource to be created.
 
 * `pod_cidr` - (Optional) The CIDR to use for pod IP addresses. Changing this forces a new resource to be created.
+-> **NOTE:** When `network_plugin` is set to `azure` - the `pod_cidr` filed should be ignored.
 
 Here's an example of configuring the `kubenet` Networking Profile:
 
