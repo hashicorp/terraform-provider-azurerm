@@ -29,6 +29,29 @@ func TestAccAzureRMSqlElasticPool_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSqlElasticPool_requiresImport(t *testing.T) {
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlElasticPoolDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSqlElasticPool_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlElasticPoolExists("azurerm_sql_elasticpool.test"),
+				),
+			},
+			{
+				Config:      testAccAzureRMSqlElasticPool_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_sql_elasticpool"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMSqlElasticPool_disappears(t *testing.T) {
 	resourceName := "azurerm_sql_elasticpool.test"
 	ri := acctest.RandInt()
@@ -187,6 +210,23 @@ resource "azurerm_sql_elasticpool" "test" {
     pool_size = 5000
 }
 `, rInt, location)
+}
+
+func testAccAzureRMSqlElasticPool_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMSqlElasticPool_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sql_elasticpool" "import" {
+  name                = "${azurerm_sql_elasticpool.test.name}"
+  resource_group_name = "${azurerm_sql_elasticpool.test.resource_group_name}"
+  location            = "${azurerm_sql_elasticpool.test.location}"
+  server_name         = "${azurerm_sql_elasticpool.test.server_name}"
+  edition             = "${azurerm_sql_elasticpool.test.edition}"
+  dtu                 = "${azurerm_sql_elasticpool.test.dtu}"
+  pool_size           = "${azurerm_sql_elasticpool.test.pool_size}"
+}
+`, template)
 }
 
 func testAccAzureRMSqlElasticPool_resizedDtu(rInt int, location string) string {

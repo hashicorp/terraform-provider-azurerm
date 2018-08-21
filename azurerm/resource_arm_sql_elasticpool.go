@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -8,17 +9,23 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmSqlElasticPool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSqlElasticPoolCreate,
+		Create: resourceArmSqlElasticPoolCreateUpdate,
 		Read:   resourceArmSqlElasticPoolRead,
-		Update: resourceArmSqlElasticPoolCreate,
+		Update: resourceArmSqlElasticPoolCreateUpdate,
 		Delete: resourceArmSqlElasticPoolDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -39,10 +46,14 @@ func resourceArmSqlElasticPool() *schema.Resource {
 			},
 
 			"edition": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validateSqlElasticPoolEdition(),
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(sql.ElasticPoolEditionBasic),
+					string(sql.ElasticPoolEditionStandard),
+					string(sql.ElasticPoolEditionPremium),
+				}, false),
 			},
 
 			"dtu": {
@@ -78,7 +89,7 @@ func resourceArmSqlElasticPool() *schema.Resource {
 	}
 }
 
-func resourceArmSqlElasticPoolCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).sqlElasticPoolsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -86,8 +97,23 @@ func resourceArmSqlElasticPoolCreate(d *schema.ResourceData, meta interface{}) e
 
 	name := d.Get("name").(string)
 	serverName := d.Get("server_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
+
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resGroup, serverName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of SQL ElasticPool %q (Server %q / Resource Group %q): %+v", name, serverName, resGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_sql_elasticpool", *resp.ID)
+		}
+	}
+
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
 	elasticPool := sql.ElasticPool{
@@ -102,7 +128,9 @@ func resourceArmSqlElasticPoolCreate(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -171,7 +199,9 @@ func resourceArmSqlElasticPoolDelete(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	_, err = client.Delete(ctx, resGroup, serverName, name)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	_, err = client.Delete(waitCtx, resGroup, serverName, name)
 
 	return err
 }
@@ -210,12 +240,4 @@ func parseArmSqlElasticPoolId(sqlElasticPoolId string) (string, string, string, 
 	}
 
 	return id.ResourceGroup, id.Path["servers"], id.Path["elasticPools"], nil
-}
-
-func validateSqlElasticPoolEdition() schema.SchemaValidateFunc {
-	return validation.StringInSlice([]string{
-		string(sql.ElasticPoolEditionBasic),
-		string(sql.ElasticPoolEditionStandard),
-		string(sql.ElasticPoolEditionPremium),
-	}, false)
 }
