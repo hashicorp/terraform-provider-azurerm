@@ -440,14 +440,14 @@ resource "azurerm_subnet" "test" {
   service_endpoints = ["Microsoft.Sql"]
 }
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctestpsqlsvr-%d"
+  name                = "acctestpostgresqlsvr-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku {
-    name     = "B_Gen4_2"
+    name     = "GP_Gen5_2"
     capacity = 2
-    tier     = "Basic"
-    family   = "Gen4"
+    tier     = "GeneralPurpose"
+    family   = "Gen5"
   }
   storage_profile {
     storage_mb            = 51200
@@ -460,7 +460,7 @@ resource "azurerm_postgresql_server" "test" {
   ssl_enforcement              = "Enabled"
 }
 resource "azurerm_postgresql_virtual_network_rule" "test" {
-  name = "acctestsqlvnetrule%d"
+  name = "acctestpostgresqlvnetrule%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   server_name = "${azurerm_postgresql_server.test.name}"
   subnet_id = "${azurerm_subnet.test.id}"
@@ -494,14 +494,14 @@ resource "azurerm_subnet" "test" {
   service_endpoints = ["Microsoft.Sql"]
 }
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctestpsqlsvr-%d"
+  name                = "acctestpostgresqlsvr-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku {
-    name     = "B_Gen4_2"
+    name     = "GP_Gen5_2"
     capacity = 2
-    tier     = "Basic"
-    family   = "Gen4"
+    tier     = "GeneralPurpose"
+    family   = "Gen5"
   }
   storage_profile {
     storage_mb            = 51200
@@ -514,7 +514,7 @@ resource "azurerm_postgresql_server" "test" {
   ssl_enforcement              = "Enabled"
 }
 resource "azurerm_postgresql_virtual_network_rule" "test" {
-  name = "acctestsqlvnetrule%d"
+  name = "acctestpostgresqlvnetrule%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   server_name = "${azurerm_postgresql_server.test.name}"
   subnet_id = "${azurerm_subnet.test.id}"
@@ -555,14 +555,14 @@ resource "azurerm_subnet" "test2" {
   service_endpoints = ["Microsoft.Sql"]
 }
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctestpsqlsvr-%d"
+  name                = "acctestpostgresqlsvr-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku {
-    name     = "B_Gen4_2"
+    name     = "GP_Gen5_2"
     capacity = 2
-    tier     = "Basic"
-    family   = "Gen4"
+    tier     = "GeneralPurpose"
+    family   = "Gen5"
   }
   storage_profile {
     storage_mb            = 51200
@@ -575,7 +575,7 @@ resource "azurerm_postgresql_server" "test" {
   ssl_enforcement              = "Enabled"
 }
 resource "azurerm_postgresql_virtual_network_rule" "test" {
-  name = "acctestsqlvnetrule%d"
+  name = "acctestpostgresqlvnetrule%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   server_name = "${azurerm_postgresql_server.test.name}"
   subnet_id = "${azurerm_subnet.test1.id}"
@@ -616,14 +616,14 @@ resource "azurerm_subnet" "test2" {
   service_endpoints = ["Microsoft.Sql"]
 }
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctestpsqlsvr-%d"
+  name                = "acctestpostgresqlsvr-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku {
-    name     = "B_Gen4_2"
+    name     = "GP_Gen5_2"
     capacity = 2
-    tier     = "Basic"
-    family   = "Gen4"
+    tier     = "GeneralPurpose"
+    family   = "Gen5"
   }
   storage_profile {
     storage_mb            = 51200
@@ -636,7 +636,7 @@ resource "azurerm_postgresql_server" "test" {
   ssl_enforcement              = "Enabled"
 }
 resource "azurerm_postgresql_virtual_network_rule" "test" {
-  name = "acctestsqlvnetrule%d"
+  name = "acctestpostgresqlvnetrule%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   server_name = "${azurerm_postgresql_server.test.name}"
   subnet_id = "${azurerm_subnet.test2.id}"
@@ -670,14 +670,14 @@ resource "azurerm_subnet" "test" {
   service_endpoints = ["Microsoft.Storage"]
 }
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctestpsqlsvr-%d"
+  name                = "acctestpostgresqlsvr-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku {
-    name     = "B_Gen4_2"
+    name     = "GP_Gen5_2"
     capacity = 2
-    tier     = "Basic"
-    family   = "Gen4"
+    tier     = "GeneralPurpose"
+    family   = "Gen5"
   }
   storage_profile {
     storage_mb            = 51200
@@ -690,7 +690,7 @@ resource "azurerm_postgresql_server" "test" {
   ssl_enforcement              = "Enabled"
 }
 resource "azurerm_postgresql_virtual_network_rule" "test" {
-  name = "acctestsqlvnetrule%d"
+  name = "acctestpostgresqlvnetrule%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   server_name = "${azurerm_postgresql_server.test.name}"
   subnet_id = "${azurerm_subnet.test.id}"
@@ -725,14 +725,14 @@ resource "azurerm_subnet" "test" {
   service_endpoints = ["Microsoft.Storage"]
 }
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctestpsqlsvr-%d"
+  name                = "acctestpostgresqlsvr-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku {
-    name     = "B_Gen4_2"
+    name     = "GP_Gen5_2"
     capacity = 2
-    tier     = "Basic"
-    family   = "Gen4"
+    tier     = "GeneralPurpose"
+    family   = "Gen5"
   }
   storage_profile {
     storage_mb            = 51200
@@ -745,7 +745,7 @@ resource "azurerm_postgresql_server" "test" {
   ssl_enforcement              = "Enabled"
 }
 resource "azurerm_postgresql_virtual_network_rule" "test" {
-  name = "acctestsqlvnetrule%d"
+  name = "acctestpostgresqlvnetrule%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   server_name = "${azurerm_postgresql_server.test.name}"
   subnet_id = "${azurerm_subnet.test.id}"
@@ -799,14 +799,14 @@ resource "azurerm_subnet" "vnet2_subnet1" {
   service_endpoints = ["Microsoft.Sql"]
 }
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctestpsqlsvr-%d"
+  name                = "acctestpostgresqlsvr-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku {
-    name     = "B_Gen4_2"
+    name     = "GP_Gen5_2"
     capacity = 2
-    tier     = "Basic"
-    family   = "Gen4"
+    tier     = "GeneralPurpose"
+    family   = "Gen5"
   }
   storage_profile {
     storage_mb            = 51200
@@ -819,21 +819,21 @@ resource "azurerm_postgresql_server" "test" {
   ssl_enforcement              = "Enabled"
 }
 resource "azurerm_postgresql_virtual_network_rule" "rule1" {
-  name = "acctestsqlvnetrule1%d"
+  name = "acctestpostgresqlvnetrule1%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   server_name = "${azurerm_postgresql_server.test.name}"
   subnet_id = "${azurerm_subnet.vnet1_subnet1.id}"
   ignore_missing_vnet_service_endpoint = false
 }
 resource "azurerm_postgresql_virtual_network_rule" "rule2" {
-  name = "acctestsqlvnetrule2%d"
+  name = "acctestpostgresqlvnetrule2%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   server_name = "${azurerm_postgresql_server.test.name}"
   subnet_id = "${azurerm_subnet.vnet1_subnet2.id}"
   ignore_missing_vnet_service_endpoint = false
 }
 resource "azurerm_postgresql_virtual_network_rule" "rule3" {
-  name = "acctestsqlvnetrule3%d"
+  name = "acctestpostgresqlvnetrule3%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   server_name = "${azurerm_postgresql_server.test.name}"
   subnet_id = "${azurerm_subnet.vnet2_subnet1.id}"
