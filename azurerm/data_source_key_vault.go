@@ -105,6 +105,16 @@ func dataSourceArmKeyVault() *schema.Resource {
 				Computed: true,
 			},
 
+			"enabled_for_soft_delete": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
+			"enabled_for_purge_protection": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
 			"tags": tagsForDataSourceSchema(),
 		},
 	}
@@ -138,6 +148,9 @@ func dataSourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("enabled_for_deployment", props.EnabledForDeployment)
 		d.Set("enabled_for_disk_encryption", props.EnabledForDiskEncryption)
 		d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
+		d.Set("enabled_for_soft_delete", props.EnableSoftDelete)
+		d.Set("enabled_for_purge_protection", props.EnablePurgeProtection)
+
 		if err := d.Set("sku", flattenKeyVaultDataSourceSku(props.Sku)); err != nil {
 			return fmt.Errorf("Error flattening `sku` for KeyVault %q: %+v", *resp.Name, err)
 		}

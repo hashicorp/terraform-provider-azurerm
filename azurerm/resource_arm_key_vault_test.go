@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -166,6 +167,61 @@ func TestAccAzureRMKeyVault_update(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKeyVault_soft_delete(t *testing.T) {
+	ri := acctest.RandInt()
+	resourceName := "azurerm_key_vault.test"
+	preConfig := testAccAzureRMKeyVault_basic(ri, testLocation())
+	postConfig := testAccAzureRMKeyVault_enable_soft_delete(ri, testLocation())
+	purgeConfig := testAccAzureRMKeyVault_purge_vault(ri, testLocation())
+
+	expectedError := fmt.Sprintf("^Check failed: Check 1/1 error: Not found: %s", resourceName)
+
+	errorRegEx, _ := regexp.Compile(expectedError)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "access_policy.0.key_permissions.0", "create"),
+					resource.TestCheckResourceAttr(resourceName, "access_policy.0.secret_permissions.0", "set"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "access_policy.0.key_permissions.0", "get"),
+					resource.TestCheckResourceAttr(resourceName, "access_policy.0.secret_permissions.0", "get"),
+					resource.TestCheckResourceAttr(resourceName, "enabled_for_soft_delete", "true"),
+					resource.TestCheckResourceAttr(resourceName, "enabled_for_purge_protection", "false"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
+				),
+			},
+			{
+				Config:      purgeConfig,
+				ExpectError: errorRegEx,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(resourceName),
+				),
+			},
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "access_policy.0.key_permissions.0", "create"),
+					resource.TestCheckResourceAttr(resourceName, "access_policy.0.secret_permissions.0", "set"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMKeyVaultDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).keyVaultClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -281,7 +337,11 @@ resource "azurerm_key_vault" "test" {
 
     secret_permissions = [
       "set",
-    ]
+		]
+	}
+
+	tags {
+    environment = "Production"
   }
 }
 `, rInt, location, rInt)
@@ -330,6 +390,59 @@ resource "azurerm_key_vault" "test" {
 `, rInt, location, rInt)
 }
 
+func testAccAzureRMKeyVault_enable_soft_delete(rInt int, location string) string {
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "vault%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+
+  sku {
+    name = "premium"
+	}
+
+  access_policy {
+    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+    object_id = "${data.azurerm_client_config.current.client_id}"
+
+    key_permissions = [
+      "get",
+    ]
+
+    secret_permissions = [
+      "get",
+    ]
+  }
+
+	enabled_for_soft_delete = true
+  purge_on_delete = true
+
+  tags {
+    environment = "Production"
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMKeyVault_purge_vault(rInt int, location string) string {
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+`, rInt, location)
+}
+
 func testAccAzureRMKeyVault_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
@@ -348,7 +461,7 @@ resource "azurerm_key_vault" "test" {
   sku {
     name = "premium"
   }
-
+	
   access_policy {
     tenant_id      = "${data.azurerm_client_config.current.tenant_id}"
     object_id      = "${data.azurerm_client_config.current.client_id}"
