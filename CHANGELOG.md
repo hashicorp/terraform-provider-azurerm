@@ -2,6 +2,10 @@
 
 IMPROVEMENTS:
 
+* `azurerm_iothub` - exporting the `event_hub_events_endpoint`, `event_hub_events_path`, `event_hub_operations_endpoint` and `event_hub_operations_path` fields [GH-1789]
+
+BUG FIXES:
+
 * `azurerm_eventhub` - updating the validation to support periods, hyphens and underscores [GH-1795]
 * `azurerm_eventhub_authorization_rule` - updating the validation error [GH-1795]
 * `azurerm_eventhub_consumer_group` - updating the validation to support periods, hyphens and underscores [GH-1795]
