@@ -260,11 +260,13 @@ func resourceArmSqlDatabase() *schema.Resource {
 							Type:      schema.TypeString,
 							Optional:  true,
 							Sensitive: true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 
 						"storage_endpoint": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 
 						"use_server_default": {
