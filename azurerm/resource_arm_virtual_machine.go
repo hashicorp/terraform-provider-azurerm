@@ -1181,6 +1181,9 @@ func flattenAzureRmVirtualMachineOsDisk(disk *compute.OSDisk, diskInfo *compute.
 	if disk.Vhd != nil {
 		result["vhd_uri"] = *disk.Vhd.URI
 	}
+	if disk.Image != nil && disk.Image.URI != nil {
+		result["image_uri"] = *disk.Image.URI
+	}
 	if disk.ManagedDisk != nil {
 		result["managed_disk_type"] = string(disk.ManagedDisk.StorageAccountType)
 		if disk.ManagedDisk.ID != nil {
