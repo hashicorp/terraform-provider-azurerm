@@ -135,6 +135,7 @@ func resourceArmLogAnalyticsSolutionCreateUpdate(d *schema.ResourceData, meta in
 	if err != nil {
 		return fmt.Errorf("Error creating/updating Log Analytics Solution %q (Workspace %q / Resource Group %q): %+v", name, workspaceID, resGroup, err)
 	}
+
 	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
 	defer cancel()
 	err = future.WaitForCompletionRef(waitCtx, client.Client)
