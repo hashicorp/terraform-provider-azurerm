@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,6 +23,11 @@ func resourceArmSqlVirtualNetworkRule() *schema.Resource {
 		Delete: resourceArmSqlVirtualNetworkRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 10),
+			Update: schema.DefaultTimeout(time.Minute * 10),
+			Delete: schema.DefaultTimeout(time.Minute * 10),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -71,6 +77,9 @@ func resourceArmSqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta i
 		},
 	}
 
+	timeout := d.Timeout(tf.TimeoutForCreateUpdate(d))
+	waitCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
 	_, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, parameters)
 	if err != nil {
 		return fmt.Errorf("Error creating SQL Virtual Network Rule %q (SQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
@@ -78,11 +87,13 @@ func resourceArmSqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta i
 
 	//Wait for the provisioning state to become ready
 	log.Printf("[DEBUG] Waiting for SQL Virtual Network Rule %q (SQL Server: %q, Resource Group: %q) to become ready: %+v", name, serverName, resourceGroup, err)
+	waitCtx, cancel = context.WithTimeout(ctx, timeout)
+	defer cancel()
 	stateConf := &resource.StateChangeConf{
 		Pending:                   []string{"Initializing", "InProgress", "Unknown", "ResponseNotFound"},
 		Target:                    []string{"Ready"},
-		Refresh:                   sqlVirtualNetworkStateStatusCodeRefreshFunc(ctx, client, resourceGroup, serverName, name),
-		Timeout:                   10 * time.Minute,
+		Refresh:                   sqlVirtualNetworkStateStatusCodeRefreshFunc(waitCtx, client, resourceGroup, serverName, name),
+		Timeout:                   timeout,
 		MinTimeout:                1 * time.Minute,
 		ContinuousTargetOccurence: 5,
 	}
@@ -159,7 +170,9 @@ func resourceArmSqlVirtualNetworkRuleDelete(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error deleting SQL Virtual Network Rule %q (SQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
