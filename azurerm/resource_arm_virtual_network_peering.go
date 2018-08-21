@@ -1,27 +1,36 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"sync"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+// TODO: switch over to using the main mutex
 // peerMutex is used to prevent multiple Peering resources being created, updated
 // or deleted at the same time
 var peerMutex = &sync.Mutex{}
 
 func resourceArmVirtualNetworkPeering() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualNetworkPeeringCreate,
+		Create: resourceArmVirtualNetworkPeeringCreateUpdate,
 		Read:   resourceArmVirtualNetworkPeeringRead,
-		Update: resourceArmVirtualNetworkPeeringCreate,
+		Update: resourceArmVirtualNetworkPeeringCreateUpdate,
 		Delete: resourceArmVirtualNetworkPeeringDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -72,7 +81,7 @@ func resourceArmVirtualNetworkPeering() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualNetworkPeeringCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmVirtualNetworkPeeringCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).vnetPeeringsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -81,6 +90,20 @@ func resourceArmVirtualNetworkPeeringCreate(d *schema.ResourceData, meta interfa
 	name := d.Get("name").(string)
 	vnetName := d.Get("virtual_network_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
+
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resGroup, vnetName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of Peering %q (Virtual Network %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_virtual_network_peering", *resp.ID)
+		}
+	}
 
 	peer := network.VirtualNetworkPeering{
 		Name: &name,
@@ -95,7 +118,9 @@ func resourceArmVirtualNetworkPeeringCreate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error Creating/Updating Virtual Network Peering %q (Network %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for completion of Virtual Network Peering %q (Network %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
 	}
@@ -134,17 +159,20 @@ func resourceArmVirtualNetworkPeeringRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error making Read request on Azure virtual network peering %q: %+v", name, err)
 	}
 
-	peer := *resp.VirtualNetworkPeeringPropertiesFormat
-
-	// update appropriate values
-	d.Set("resource_group_name", resGroup)
 	d.Set("name", resp.Name)
+	d.Set("resource_group_name", resGroup)
 	d.Set("virtual_network_name", vnetName)
-	d.Set("allow_virtual_network_access", peer.AllowVirtualNetworkAccess)
-	d.Set("allow_forwarded_traffic", peer.AllowForwardedTraffic)
-	d.Set("allow_gateway_transit", peer.AllowGatewayTransit)
-	d.Set("use_remote_gateways", peer.UseRemoteGateways)
-	d.Set("remote_virtual_network_id", peer.RemoteVirtualNetwork.ID)
+
+	if props := resp.VirtualNetworkPeeringPropertiesFormat; props != nil {
+		d.Set("allow_virtual_network_access", props.AllowVirtualNetworkAccess)
+		d.Set("allow_forwarded_traffic", props.AllowForwardedTraffic)
+		d.Set("allow_gateway_transit", props.AllowGatewayTransit)
+		d.Set("use_remote_gateways", props.UseRemoteGateways)
+
+		if network := props.RemoteVirtualNetwork; network != nil {
+			d.Set("remote_virtual_network_id", network.ID)
+		}
+	}
 
 	return nil
 }
@@ -157,6 +185,7 @@ func resourceArmVirtualNetworkPeeringDelete(d *schema.ResourceData, meta interfa
 	if err != nil {
 		return err
 	}
+
 	resGroup := id.ResourceGroup
 	vnetName := id.Path["virtualNetworks"]
 	name := id.Path["virtualNetworkPeerings"]
@@ -169,7 +198,9 @@ func resourceArmVirtualNetworkPeeringDelete(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error deleting Virtual Network Peering %q (Network %q / RG %q): %+v", name, vnetName, resGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for deletion of Virtual Network Peering %q (Network %q / RG %q): %+v", name, vnetName, resGroup, err)
 	}
@@ -185,12 +216,12 @@ func getVirtualNetworkPeeringProperties(d *schema.ResourceData) *network.Virtual
 	remoteVirtualNetworkID := d.Get("remote_virtual_network_id").(string)
 
 	return &network.VirtualNetworkPeeringPropertiesFormat{
-		AllowVirtualNetworkAccess: &allowVirtualNetworkAccess,
-		AllowForwardedTraffic:     &allowForwardedTraffic,
-		AllowGatewayTransit:       &allowGatewayTransit,
-		UseRemoteGateways:         &useRemoteGateways,
+		AllowVirtualNetworkAccess: utils.Bool(allowVirtualNetworkAccess),
+		AllowForwardedTraffic:     utils.Bool(allowForwardedTraffic),
+		AllowGatewayTransit:       utils.Bool(allowGatewayTransit),
+		UseRemoteGateways:         utils.Bool(useRemoteGateways),
 		RemoteVirtualNetwork: &network.SubResource{
-			ID: &remoteVirtualNetworkID,
+			ID: utils.String(remoteVirtualNetworkID),
 		},
 	}
 }
