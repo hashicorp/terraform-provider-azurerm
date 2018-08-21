@@ -64,13 +64,16 @@ The following attributes are exported:
 
 * `id` - The ID of the IoTHub.
 
+* `event_hub_events_endpoint` -  The EventHub compatible endpoint for events data
+* `event_hub_events_path` -  The EventHub compatible path for events data
+* `event_hub_operations_endpoint` -  The EventHub compatible endpoint for operational data
+* `event_hub_operations_path` -  The EventHub compatible path for operational data
+
+-> **NOTE:** These fields can be used in conjunction with the `shared_access_policy` block to build a connection string
+
 * `hostname` - The hostname of the IotHub Resource.
 
 * `shared_access_policy` - One or more `shared_access_policy` blocks as defined below.
-
-* `event_hub_[events|operations]_endpoint` -  The EventHub compatible endpoint for either the events or operational data (in conjunction with the path and share access policy, can be used to build a connection string)
-
-* `event_hub_[events|operations]_path` -  The EventHub compatible path for either the events or operational data (in conjunction with the endpoint and share access policy, can be used to build a connection string).
 
 ---
 
