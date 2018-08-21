@@ -128,14 +128,15 @@ func resourceArmTrafficManagerEndpointCreate(d *schema.ResourceData, meta interf
 
 	name := d.Get("name").(string)
 	profileName := d.Get("profile_name").(string)
+	endpointType := d.Get("type").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	if d.IsNewResource() {
 		// first check if there's one in this subscription requiring import
-		resp, err := client.Get(ctx, resourceGroup, profileName, name)
+		resp, err := client.Get(ctx, resourceGroup, profileName, endpointType, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Error checking for the existence of Traffic Manager Endpoint %q (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
+				return fmt.Errorf("Error checking for the existence of Traffic Manager Endpoint %q (Endpoint Type %q / Profile %q / Resource Group %q): %+v", name, endpointType, profileName, resourceGroup, err)
 			}
 		}
 
@@ -144,7 +145,6 @@ func resourceArmTrafficManagerEndpointCreate(d *schema.ResourceData, meta interf
 		}
 	}
 
-	endpointType := d.Get("type").(string)
 	fullEndpointType := fmt.Sprintf("Microsoft.Network/TrafficManagerProfiles/%s", endpointType)
 
 	params := trafficmanager.Endpoint{
