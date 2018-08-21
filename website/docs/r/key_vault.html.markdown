@@ -87,6 +87,15 @@ The following arguments are supported:
     Azure Resource Manager is permitted to retrieve secrets from the key vault.
     Defaults to false.
 
+* `enabled_for_soft_delete` - (Optional) Boolean flag to specify whether
+    the key vault is enabled for soft delete. Once enabled you can not disable this setting anymore!
+
+* `purge_on_delete` - (Optional) Boolean flag to specify if the KeyVault should be purged on delete. This purges KeyVaults enabled for soft delete on resource deletition!
+
+* `enabled_for_purge_protection` - (Optional) Boolean flag to specify whether
+    the key vault is enabled for purge protection, this conflicts with `purge_on_delete`. Once enabled you can not disable this setting anymore!
+
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 `sku` supports the following:
