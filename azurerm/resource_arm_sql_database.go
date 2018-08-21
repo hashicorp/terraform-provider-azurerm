@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -12,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,6 +25,11 @@ func resourceArmSqlDatabase() *schema.Resource {
 		Delete: resourceArmSqlDatabaseDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -309,10 +316,25 @@ func resourceArmSqlDatabase() *schema.Resource {
 
 func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).sqlDatabasesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	serverName := d.Get("server_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resourceGroup, serverName, name, "")
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of SQL Database %q (Server %q / Resource Group %q): %+v", name, serverName, resourceGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_sql_database", *resp.ID)
+		}
+	}
 
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	createMode := d.Get("create_mode").(string)
@@ -399,13 +421,14 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 		properties.DatabaseProperties.RequestedServiceObjectiveID = nil
 	}
 
-	ctx := meta.(*ArmClient).StopContext
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, properties)
 	if err != nil {
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -425,7 +448,9 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 		// for most imports
 		client.Client.PollingDuration = 60 * time.Minute
 
-		err = importFuture.WaitForCompletionRef(ctx, client.Client)
+		waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+		defer cancel()
+		err = importFuture.WaitForCompletionRef(waitCtx, client.Client)
 		if err != nil {
 			return err
 		}
@@ -535,7 +560,9 @@ func resourceArmSqlDatabaseDelete(d *schema.ResourceData, meta interface{}) erro
 	serverName := id.Path["servers"]
 	name := id.Path["databases"]
 
-	resp, err := client.Delete(ctx, resourceGroup, serverName, name)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	resp, err := client.Delete(waitCtx, resourceGroup, serverName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil
