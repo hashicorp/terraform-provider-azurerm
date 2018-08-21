@@ -2,7 +2,11 @@
 
 IMPROVEMENTS:
 
-* Event Hub resources:  correcting validation for properties referncing Event Hubs, Event Hub names, Event Hub consumers, and Event Hub authorization rule names [GH-1795]
+* `azurerm_eventhub` - updating the validation to support periods, hyphens and underscores [GH-1795]
+* `azurerm_eventhub_authorization_rule` - updating the validation error [GH-1795]
+* `azurerm_eventhub_consumer_group` - updating the validation to support periods, hyphens and underscores [GH-1795]
+* `azurerm_eventhub_namespace` - updating the validation error [GH-1795]
+* `azurerm_kubernetes_cluster` - removing validation for the `pod_cidr` field when `network_plugin` is set to `azure` [GH-1798]
 
 ## 1.13.0 (August 15, 2018)
 
