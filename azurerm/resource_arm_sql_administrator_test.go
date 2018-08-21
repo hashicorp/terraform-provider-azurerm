@@ -39,6 +39,30 @@ func TestAccAzureRMSqlAdministrator_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSqlAdministrator_requiresImport(t *testing.T) {
+	resourceName := "azurerm_sql_active_directory_administrator.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlAdministratorDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSqlAdministrator_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlAdministratorExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMSqlAdministrator_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_sql_active_directory_administrator"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMSqlAdministrator_disappears(t *testing.T) {
 	resourceName := "azurerm_sql_active_directory_administrator.test"
 	ri := acctest.RandInt()
@@ -158,6 +182,21 @@ resource "azurerm_sql_active_directory_administrator" "test" {
     object_id = "${data.azurerm_client_config.current.client_id}"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMSqlAdministrator_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMSqlAdministrator_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sql_active_directory_administrator" "import" {
+  server_name         = "${azurerm_sql_active_directory_administrator.test.server_name}"
+  resource_group_name = "${azurerm_sql_active_directory_administrator.test.resource_group_name}"
+  login               = "${azurerm_sql_active_directory_administrator.test.login}"
+  tenant_id           = "${azurerm_sql_active_directory_administrator.test.tenant_id}"
+  object_id           = "${azurerm_sql_active_directory_administrator.test.object_id}"
+}
+`, template)
 }
 
 func testAccAzureRMSqlAdministrator_withUpdates(rInt int, location string) string {
