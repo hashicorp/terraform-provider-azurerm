@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -118,6 +119,7 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachineUseExistingOsDiskImage(t *tes
 					testCheckAzureRMVirtualMachineExists("azurerm_virtual_machine.mirror", &mirrorVm),
 					testCheckAzureRMVirtualMachineVHDExistence("myosdisk1.vhd", true),
 					testCheckAzureRMVirtualMachineVHDExistence("mirrorosdisk.vhd", true),
+					resource.TestMatchResourceAttr("azurerm_virtual_machine.mirror", "storage_os_disk.0.image_uri", regexp.MustCompile("myosdisk1.vhd$")),
 				),
 			},
 		},
