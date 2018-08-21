@@ -1,4 +1,9 @@
 ## 1.14.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* Event Hub resources:  correcting validation for properties referncing Event Hubs, Event Hub names, Event Hub consumers, and Event Hub authorization rule names [GH-1795]
+
 ## 1.13.0 (August 15, 2018)
 
 FEATURES:
