@@ -1,14 +1,12 @@
 package azurerm
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
-	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -69,25 +67,6 @@ func findLoadBalancerRuleByName(lb *network.LoadBalancer, name string) (*network
 	}
 
 	return nil, -1, false
-}
-
-func loadbalancerStateRefreshFunc(ctx context.Context, client network.LoadBalancersClient, resourceGroupName string, loadbalancer string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, resourceGroupName, loadbalancer, "")
-		if err != nil {
-			return nil, "", fmt.Errorf("Error issuing read request in loadbalancerStateRefreshFunc to Azure ARM for Load Balancer '%s' (RG: '%s'): %s", loadbalancer, resourceGroupName, err)
-		}
-
-		return res, *res.LoadBalancerPropertiesFormat.ProvisioningState, nil
-	}
-}
-
-func validateLoadBalancerPrivateIpAddressAllocation(v interface{}, k string) (ws []string, errors []error) {
-	value := strings.ToLower(v.(string))
-	if value != "static" && value != "dynamic" {
-		errors = append(errors, fmt.Errorf("LoadBalancer Allocations can only be Static or Dynamic"))
-	}
-	return
 }
 
 // sets the loadbalancer_id in the ResourceData from the sub resources full id

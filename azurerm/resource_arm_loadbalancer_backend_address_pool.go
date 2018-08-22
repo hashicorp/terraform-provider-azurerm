@@ -163,8 +163,9 @@ func resourceArmLoadBalancerBackendAddressPoolRead(d *schema.ResourceData, meta 
 		return err
 	}
 	name := id.Path["backendAddressPools"]
+	loadBalancerId := d.Get("loadbalancer_id").(string)
 
-	loadBalancer, exists, err := retrieveLoadBalancerById(d.Get("loadbalancer_id").(string), meta)
+	loadBalancer, exists, err := retrieveLoadBalancerById(loadBalancerId, meta)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Load Balancer by ID: %+v", err)
 	}
