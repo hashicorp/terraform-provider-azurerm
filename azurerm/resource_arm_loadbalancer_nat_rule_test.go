@@ -46,6 +46,31 @@ func TestAccAzureRMLoadBalancerNatRule_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLoadBalancerNatRule_requiresImport(t *testing.T) {
+	var lb network.LoadBalancer
+	ri := acctest.RandInt()
+	location := testLocation()
+	natRuleName := fmt.Sprintf("NatRule-%d", ri)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLoadBalancerNatRule_basic(ri, natRuleName, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
+				),
+			},
+			{
+				Config:      testAccAzureRMLoadBalancerNatRule_requiresImport(ri, natRuleName, location),
+				ExpectError: testRequiresImportError("azurerm_lb_nat_rule"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMLoadBalancerNatRule_removal(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := acctest.RandInt()
@@ -316,6 +341,24 @@ resource "azurerm_lb_nat_rule" "test" {
   frontend_ip_configuration_name = "one-%d"
 }
 `, rInt, location, rInt, rInt, rInt, natRuleName, rInt)
+}
+
+func testAccAzureRMLoadBalancerNatRule_requiresImport(rInt int, natRuleName string, location string) string {
+	template := testAccAzureRMLoadBalancerNatRule_basic(rInt, natRuleName, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_lb_nat_rule" "import" {
+  name                           = "${azurerm_lb_nat_rule.test.name}"
+  location                       = "${azurerm_lb_nat_rule.test.location}"
+  resource_group_name            = "${azurerm_lb_nat_rule.test.resource_group_name}"
+  loadbalancer_id                = "${azurerm_lb_nat_rule.test.loadbalancer_id}"
+  protocol                       = "${azurerm_lb_nat_rule.test.protocol}"
+  frontend_port                  = "${azurerm_lb_nat_rule.test.frontend_port}"
+  backend_port                   = "${azurerm_lb_nat_rule.test.backend_port}"
+  frontend_ip_configuration_name = "${azurerm_lb_nat_rule.test.frontend_ip_configuration_name}"
+}
+`, template)
 }
 
 func testAccAzureRMLoadBalancerNatRule_removal(rInt int, location string) string {
