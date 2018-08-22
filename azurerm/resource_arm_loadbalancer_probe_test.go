@@ -46,6 +46,31 @@ func TestAccAzureRMLoadBalancerProbe_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLoadBalancerProbe_requiresImport(t *testing.T) {
+	var lb network.LoadBalancer
+	ri := acctest.RandInt()
+	location := testLocation()
+	probeName := fmt.Sprintf("probe-%d", ri)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLoadBalancerProbe_basic(ri, probeName, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
+				),
+			},
+			{
+				Config:      testAccAzureRMLoadBalancerProbe_requiresImport(ri, probeName, location),
+				ExpectError: testRequiresImportError("azurerm_lb_probe"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMLoadBalancerProbe_removal(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := acctest.RandInt()
@@ -197,7 +222,7 @@ func TestAccAzureRMLoadBalancerProbe_disappears(t *testing.T) {
 
 func testCheckAzureRMLoadBalancerProbeExists(natRuleName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		_, _, exists := findLoadBalancerProbeByName(lb, natRuleName)
+		_, exists := findAzureRMLoadBalancerProbeByName(lb, natRuleName)
 		if !exists {
 			return fmt.Errorf("A Probe with name %q cannot be found.", natRuleName)
 		}
@@ -208,7 +233,7 @@ func testCheckAzureRMLoadBalancerProbeExists(natRuleName string, lb *network.Loa
 
 func testCheckAzureRMLoadBalancerProbeNotExists(natRuleName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		_, _, exists := findLoadBalancerProbeByName(lb, natRuleName)
+		_, exists := findAzureRMLoadBalancerProbeByName(lb, natRuleName)
 		if exists {
 			return fmt.Errorf("A Probe with name %q has been found.", natRuleName)
 		}
@@ -222,7 +247,7 @@ func testCheckAzureRMLoadBalancerProbeDisappears(addressPoolName string, lb *net
 		client := testAccProvider.Meta().(*ArmClient).loadBalancerClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, i, exists := findLoadBalancerProbeByName(lb, addressPoolName)
+		i, exists := findAzureRMLoadBalancerProbeByName(lb, addressPoolName)
 		if !exists {
 			return fmt.Errorf("A Probe with name %q cannot be found.", addressPoolName)
 		}
@@ -249,6 +274,20 @@ func testCheckAzureRMLoadBalancerProbeDisappears(addressPoolName string, lb *net
 		_, err = client.Get(ctx, id.ResourceGroup, *lb.Name, "")
 		return err
 	}
+}
+
+func findAzureRMLoadBalancerProbeByName(lb *network.LoadBalancer, name string) (int, bool) {
+	if lb == nil || lb.LoadBalancerPropertiesFormat == nil || lb.LoadBalancerPropertiesFormat.Probes == nil {
+		return -1, false
+	}
+
+	for i, p := range *lb.LoadBalancerPropertiesFormat.Probes {
+		if p.Name != nil && *p.Name == name {
+			return i, true
+		}
+	}
+
+	return -1, false
 }
 
 func testAccAzureRMLoadBalancerProbe_basic(rInt int, probeName string, location string) string {
@@ -284,6 +323,22 @@ resource "azurerm_lb_probe" "test" {
   port                = 22
 }
 `, rInt, location, rInt, rInt, rInt, probeName)
+}
+
+func testAccAzureRMLoadBalancerProbe_requiresImport(rInt int, probeName string, location string) string {
+	template := testAccAzureRMLoadBalancerProbe_basic(rInt, probeName, location)
+	return fmt.Sprintf(
+		`
+%s
+
+resource "azurerm_lb_probe" "import" {
+  name                = "${azurerm_lb_probe.test.name}"
+  location            = "${azurerm_lb_probe.test.location}"
+  resource_group_name = "${azurerm_lb_probe.test.resource_group_name}"
+  loadbalancer_id     = "${azurerm_lb_probe.test.loadbalancer_id}"
+  port                = "${azurerm_lb_probe.test.port}"
+}
+`, template)
 }
 
 func testAccAzureRMLoadBalancerProbe_removal(rInt int, location string) string {

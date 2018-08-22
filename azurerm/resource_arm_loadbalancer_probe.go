@@ -1,16 +1,17 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
-	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -23,6 +24,11 @@ func resourceArmLoadBalancerProbe() *schema.Resource {
 		Delete: resourceArmLoadBalancerProbeDelete,
 		Importer: &schema.ResourceImporter{
 			State: loadBalancerSubResourceStateImporter,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -98,7 +104,9 @@ func resourceArmLoadBalancerProbeCreateUpdate(d *schema.ResourceData, meta inter
 	client := meta.(*ArmClient).loadBalancerClient
 	ctx := meta.(*ArmClient).StopContext
 
+	name := d.Get("name").(string)
 	loadBalancerID := d.Get("loadbalancer_id").(string)
+
 	armMutexKV.Lock(loadBalancerID)
 	defer armMutexKV.Unlock(loadBalancerID)
 
@@ -108,23 +116,52 @@ func resourceArmLoadBalancerProbeCreateUpdate(d *schema.ResourceData, meta inter
 	}
 	if !exists {
 		d.SetId("")
-		log.Printf("[INFO] Load Balancer %q not found. Removing from state", d.Get("name").(string))
+		log.Printf("[INFO] Load Balancer %q not found. Removing from state", name)
 		return nil
 	}
 
-	newProbe := expandAzureRmLoadBalancerProbe(d)
-	probes := append(*loadBalancer.LoadBalancerPropertiesFormat.Probes, *newProbe)
-
-	existingProbe, existingProbeIndex, exists := findLoadBalancerProbeByName(loadBalancer, d.Get("name").(string))
-	if exists {
-		if d.Get("name").(string) == *existingProbe.Name {
-			// this probe is being updated/reapplied remove old copy from the slice
-			probes = append(probes[:existingProbeIndex], probes[existingProbeIndex+1:]...)
-		}
+	props := loadBalancer.LoadBalancerPropertiesFormat
+	if props == nil {
+		return fmt.Errorf("Error updating Load Balancer Probes: props was nil")
 	}
 
-	loadBalancer.LoadBalancerPropertiesFormat.Probes = &probes
-	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(d.Get("loadbalancer_id").(string))
+	probes := props.Probes
+	if probes == nil {
+		return fmt.Errorf("Error updating Load Balancer Probes: props.Probes was nil")
+	}
+	existingProbes := *probes
+
+	newProbe := expandAzureRmLoadBalancerProbe(d)
+	if d.IsNewResource() {
+		// firstly check if it exists
+		for _, probe := range existingProbes {
+			if probe.Name != nil && *probe.Name == name {
+				return tf.ImportAsExistsError("azurerm_lb_probe", *probe.ID)
+			}
+		}
+
+		// then append it if not
+		existingProbes = append(existingProbes, *newProbe)
+	} else {
+		// swap it in-place
+		index := -1
+		for i, probe := range existingProbes {
+			if probe.Name != nil && *probe.Name == name {
+				index = i
+				break
+			}
+		}
+
+		if index == -1 {
+			// should have been caught by the Read
+			return fmt.Errorf("Error: Probe %q was not found on Load Balancer %q", name, loadBalancerID)
+		}
+
+		existingProbes[index] = *newProbe
+	}
+
+	loadBalancer.LoadBalancerPropertiesFormat.Probes = &existingProbes
+	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(loadBalancerID)
 	if err != nil {
 		return fmt.Errorf("Error Getting Load Balancer Name and Group: %+v", err)
 	}
@@ -134,7 +171,9 @@ func resourceArmLoadBalancerProbeCreateUpdate(d *schema.ResourceData, meta inter
 		return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for completion of Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
 	}
@@ -147,29 +186,22 @@ func resourceArmLoadBalancerProbeCreateUpdate(d *schema.ResourceData, meta inter
 		return fmt.Errorf("Cannot read Load Balancer %q (resource group %q) ID", loadBalancerName, resGroup)
 	}
 
-	var createdProbeId string
-	for _, Probe := range *(*read.LoadBalancerPropertiesFormat).Probes {
-		if *Probe.Name == d.Get("name").(string) {
-			createdProbeId = *Probe.ID
+	var probeId string
+	if props := read.LoadBalancerPropertiesFormat; props != nil {
+		if probes := props.Probes; probes != nil {
+			for _, probe := range *probes {
+				if *probe.Name == name {
+					probeId = *probe.ID
+				}
+			}
 		}
 	}
 
-	if createdProbeId == "" {
-		return fmt.Errorf("Cannot find created Load Balancer Probe ID %q", createdProbeId)
+	if probeId == "" {
+		return fmt.Errorf("Cannot find created Load Balancer Probe ID %q", probeId)
 	}
 
-	d.SetId(createdProbeId)
-
-	log.Printf("[DEBUG] Waiting for Load Balancer (%s) to become available", loadBalancerName)
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{"Accepted", "Updating"},
-		Target:  []string{"Succeeded"},
-		Refresh: loadbalancerStateRefreshFunc(ctx, client, resGroup, loadBalancerName),
-		Timeout: 10 * time.Minute,
-	}
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Load Balancer (%q - Resource Group %q) to become available: %+v", loadBalancerName, resGroup, err)
-	}
+	d.SetId(probeId)
 
 	return resourceArmLoadBalancerProbeRead(d, meta)
 }
@@ -191,33 +223,44 @@ func resourceArmLoadBalancerProbeRead(d *schema.ResourceData, meta interface{}) 
 		return nil
 	}
 
-	config, _, exists := findLoadBalancerProbeByName(loadBalancer, name)
-	if !exists {
-		d.SetId("")
+	var probe *network.Probe
+	if props := loadBalancer.LoadBalancerPropertiesFormat; props != nil {
+		if probes := props.Probes; probes != nil {
+			for _, p := range *probes {
+				if p.Name != nil && *p.Name == name {
+					probe = &p
+					break
+				}
+			}
+		}
+	}
+
+	if probe == nil {
 		log.Printf("[INFO] Load Balancer Probe %q not found. Removing from state", name)
+		d.SetId("")
 		return nil
 	}
 
-	d.Set("name", config.Name)
+	d.Set("name", name)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if properties := config.ProbePropertiesFormat; properties != nil {
+	if properties := probe.ProbePropertiesFormat; properties != nil {
 		d.Set("protocol", properties.Protocol)
 		d.Set("interval_in_seconds", properties.IntervalInSeconds)
 		d.Set("number_of_probes", properties.NumberOfProbes)
 		d.Set("port", properties.Port)
 		d.Set("request_path", properties.RequestPath)
 
-		var load_balancer_rules []string
+		loadBalancerRules := make([]string, 0)
 		if rules := properties.LoadBalancingRules; rules != nil {
 			for _, ruleConfig := range *rules {
 				if id := ruleConfig.ID; id != nil {
-					load_balancer_rules = append(load_balancer_rules, *id)
+					loadBalancerRules = append(loadBalancerRules, *id)
 				}
 			}
 		}
-		if err := d.Set("load_balancer_rules", load_balancer_rules); err != nil {
-			return fmt.Errorf("Error setting `load_balancer_rules` (Load Balancer Probe %q): %+v", name, err)
+		if err := d.Set("load_balancer_rules", loadBalancerRules); err != nil {
+			return fmt.Errorf("Error setting `load_balancer_rules`: %+v", err)
 		}
 	}
 
@@ -228,7 +271,9 @@ func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}
 	client := meta.(*ArmClient).loadBalancerClient
 	ctx := meta.(*ArmClient).StopContext
 
+	name := d.Get("name").(string)
 	loadBalancerID := d.Get("loadbalancer_id").(string)
+
 	armMutexKV.Lock(loadBalancerID)
 	defer armMutexKV.Unlock(loadBalancerID)
 
@@ -241,16 +286,30 @@ func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}
 		return nil
 	}
 
-	_, index, exists := findLoadBalancerProbeByName(loadBalancer, d.Get("name").(string))
-	if !exists {
+	props := loadBalancer.LoadBalancerPropertiesFormat
+	if props == nil {
+		log.Printf("[INFO] props was nil for Load Balancer %q - removing from state", loadBalancerID)
+		d.SetId("")
 		return nil
 	}
 
-	oldProbes := *loadBalancer.LoadBalancerPropertiesFormat.Probes
-	newProbes := append(oldProbes[:index], oldProbes[index+1:]...)
+	probes := props.Probes
+	if probes == nil {
+		log.Printf("[INFO] props.Probes was nil for Load Balancer %q - removing from state", loadBalancerID)
+		d.SetId("")
+		return nil
+	}
+
+	newProbes := make([]network.Probe, 0)
+	for _, probe := range *probes {
+		if probe.Name != nil && *probe.Name != name {
+			newProbes = append(newProbes, probe)
+		}
+	}
+
 	loadBalancer.LoadBalancerPropertiesFormat.Probes = &newProbes
 
-	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(d.Get("loadbalancer_id").(string))
+	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(loadBalancerID)
 	if err != nil {
 		return fmt.Errorf("Error Getting Load Balancer Name and Group:: %+v", err)
 	}
@@ -260,7 +319,9 @@ func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for completion of Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
 	}
@@ -277,7 +338,6 @@ func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}
 }
 
 func expandAzureRmLoadBalancerProbe(d *schema.ResourceData) *network.Probe {
-
 	properties := network.ProbePropertiesFormat{
 		NumberOfProbes:    utils.Int32(int32(d.Get("number_of_probes").(int))),
 		IntervalInSeconds: utils.Int32(int32(d.Get("interval_in_seconds").(int))),
