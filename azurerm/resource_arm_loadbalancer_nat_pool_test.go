@@ -46,6 +46,31 @@ func TestAccAzureRMLoadBalancerNatPool_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLoadBalancerNatPool_requiresImport(t *testing.T) {
+	var lb network.LoadBalancer
+	ri := acctest.RandInt()
+	natPoolName := fmt.Sprintf("NatPool-%d", ri)
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLoadBalancerNatPool_basic(ri, natPoolName, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
+				),
+			},
+			{
+				Config:      testAccAzureRMLoadBalancerNatPool_requiresImport(ri, natPoolName, location),
+				ExpectError: testRequiresImportError("azurerm_lb_nat_pool"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMLoadBalancerNatPool_removal(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := acctest.RandInt()
@@ -166,7 +191,7 @@ func TestAccAzureRMLoadBalancerNatPool_disappears(t *testing.T) {
 
 func testCheckAzureRMLoadBalancerNatPoolExists(natPoolName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		_, _, exists := findLoadBalancerNatPoolByName(lb, natPoolName)
+		_, exists := findAzureRMLoadBalancerNatPoolByName(lb, natPoolName)
 		if !exists {
 			return fmt.Errorf("A NAT Pool with name %q cannot be found.", natPoolName)
 		}
@@ -177,7 +202,7 @@ func testCheckAzureRMLoadBalancerNatPoolExists(natPoolName string, lb *network.L
 
 func testCheckAzureRMLoadBalancerNatPoolNotExists(natPoolName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		_, _, exists := findLoadBalancerNatPoolByName(lb, natPoolName)
+		_, exists := findAzureRMLoadBalancerNatPoolByName(lb, natPoolName)
 		if exists {
 			return fmt.Errorf("A NAT Pool with name %q has been found.", natPoolName)
 		}
@@ -191,7 +216,7 @@ func testCheckAzureRMLoadBalancerNatPoolDisappears(natPoolName string, lb *netwo
 		client := testAccProvider.Meta().(*ArmClient).loadBalancerClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, i, exists := findLoadBalancerNatPoolByName(lb, natPoolName)
+		i, exists := findAzureRMLoadBalancerNatPoolByName(lb, natPoolName)
 		if !exists {
 			return fmt.Errorf("A Nat Pool with name %q cannot be found.", natPoolName)
 		}
@@ -218,6 +243,20 @@ func testCheckAzureRMLoadBalancerNatPoolDisappears(natPoolName string, lb *netwo
 		_, err = client.Get(ctx, id.ResourceGroup, *lb.Name, "")
 		return err
 	}
+}
+
+func findAzureRMLoadBalancerNatPoolByName(lb *network.LoadBalancer, name string) (int, bool) {
+	if lb == nil || lb.LoadBalancerPropertiesFormat == nil || lb.LoadBalancerPropertiesFormat.InboundNatPools == nil {
+		return -1, false
+	}
+
+	for i, np := range *lb.LoadBalancerPropertiesFormat.InboundNatPools {
+		if np.Name != nil && *np.Name == name {
+			return i, true
+		}
+	}
+
+	return -1, false
 }
 
 func testAccAzureRMLoadBalancerNatPool_basic(rInt int, natPoolName string, location string) string {
@@ -257,6 +296,25 @@ resource "azurerm_lb_nat_pool" "test" {
   frontend_ip_configuration_name = "one-%d"
 }
 `, rInt, location, rInt, rInt, rInt, natPoolName, rInt)
+}
+
+func testAccAzureRMLoadBalancerNatPool_requiresImport(rInt int, natPoolName string, location string) string {
+	template := testAccAzureRMLoadBalancerNatPool_basic(rInt, natPoolName, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_lb_nat_pool" "import" {
+  name                           = "${azurerm_lb_nat_pool.test.name}"
+  location                       = "${azurerm_lb_nat_pool.test.location}"
+  resource_group_name            = "${azurerm_lb_nat_pool.test.resource_group_name}"
+  loadbalancer_id                = "${azurerm_lb_nat_pool.test.loadbalancer_id}"
+  protocol                       = "${azurerm_lb_nat_pool.test.protocol}"
+  frontend_port_start            = "${azurerm_lb_nat_pool.test.frontend_port_start}"
+  frontend_port_end              = "${azurerm_lb_nat_pool.test.frontend_port_end}"
+  backend_port                   = "${azurerm_lb_nat_pool.test.backend_port}"
+  frontend_ip_configuration_name = "${azurerm_lb_nat_pool.test.frontend_ip_configuration_name}"
+}
+`, template)
 }
 
 func testAccAzureRMLoadBalancerNatPool_removal(rInt int, location string) string {

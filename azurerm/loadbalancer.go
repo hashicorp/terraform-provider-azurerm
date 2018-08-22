@@ -85,20 +85,6 @@ func findLoadBalancerNatRuleByName(lb *network.LoadBalancer, name string) (*netw
 	return nil, -1, false
 }
 
-func findLoadBalancerNatPoolByName(lb *network.LoadBalancer, name string) (*network.InboundNatPool, int, bool) {
-	if lb == nil || lb.LoadBalancerPropertiesFormat == nil || lb.LoadBalancerPropertiesFormat.InboundNatPools == nil {
-		return nil, -1, false
-	}
-
-	for i, np := range *lb.LoadBalancerPropertiesFormat.InboundNatPools {
-		if np.Name != nil && *np.Name == name {
-			return &np, i, true
-		}
-	}
-
-	return nil, -1, false
-}
-
 func findLoadBalancerProbeByName(lb *network.LoadBalancer, name string) (*network.Probe, int, bool) {
 	if lb == nil || lb.LoadBalancerPropertiesFormat == nil || lb.LoadBalancerPropertiesFormat.Probes == nil {
 		return nil, -1, false
