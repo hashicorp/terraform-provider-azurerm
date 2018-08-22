@@ -71,20 +71,6 @@ func findLoadBalancerRuleByName(lb *network.LoadBalancer, name string) (*network
 	return nil, -1, false
 }
 
-func findLoadBalancerNatRuleByName(lb *network.LoadBalancer, name string) (*network.InboundNatRule, int, bool) {
-	if lb == nil || lb.LoadBalancerPropertiesFormat == nil || lb.LoadBalancerPropertiesFormat.InboundNatRules == nil {
-		return nil, -1, false
-	}
-
-	for i, nr := range *lb.LoadBalancerPropertiesFormat.InboundNatRules {
-		if nr.Name != nil && *nr.Name == name {
-			return &nr, i, true
-		}
-	}
-
-	return nil, -1, false
-}
-
 func loadbalancerStateRefreshFunc(ctx context.Context, client network.LoadBalancersClient, resourceGroupName string, loadbalancer string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroupName, loadbalancer, "")
