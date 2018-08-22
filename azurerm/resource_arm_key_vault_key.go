@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"encoding/base64"
 	"fmt"
 	"log"
 
@@ -195,6 +196,13 @@ func resourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error 
 
 		d.Set("n", key.N)
 		d.Set("e", key.E)
+		if key.N != nil {
+			nBytes, err := base64.RawURLEncoding.DecodeString(*key.N)
+			if err != nil {
+				return fmt.Errorf("Could not decode N: %+v", err)
+			}
+			d.Set("key_size", len(nBytes)*8)
+		}
 	}
 
 	// Computed
