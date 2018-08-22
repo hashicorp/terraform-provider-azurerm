@@ -102,6 +102,31 @@ func TestAccAzureRMLoadBalancerRule_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLoadBalancerRule_requiresImport(t *testing.T) {
+	var lb network.LoadBalancer
+	ri := acctest.RandInt()
+	location := testLocation()
+	lbRuleName := fmt.Sprintf("LbRule-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLoadBalancerRule_basic(ri, lbRuleName, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
+				),
+			},
+			{
+				Config:      testAccAzureRMLoadBalancerRule_requiresImport(ri, lbRuleName, location),
+				ExpectError: testRequiresImportError("azurerm_lb_rule"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMLoadBalancerRule_removal(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := acctest.RandInt()
@@ -263,7 +288,7 @@ func TestAccAzureRMLoadBalancerRule_disappears(t *testing.T) {
 
 func testCheckAzureRMLoadBalancerRuleExists(lbRuleName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		_, _, exists := findLoadBalancerRuleByName(lb, lbRuleName)
+		_, exists := findAzureRMLoadBalancerRuleByName(lb, lbRuleName)
 		if !exists {
 			return fmt.Errorf("A Load Balancer Rule with name %q cannot be found.", lbRuleName)
 		}
@@ -274,7 +299,7 @@ func testCheckAzureRMLoadBalancerRuleExists(lbRuleName string, lb *network.LoadB
 
 func testCheckAzureRMLoadBalancerRuleNotExists(lbRuleName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		_, _, exists := findLoadBalancerRuleByName(lb, lbRuleName)
+		_, exists := findAzureRMLoadBalancerRuleByName(lb, lbRuleName)
 		if exists {
 			return fmt.Errorf("A Load Balancer Rule with name %q has been found.", lbRuleName)
 		}
@@ -288,7 +313,7 @@ func testCheckAzureRMLoadBalancerRuleDisappears(ruleName string, lb *network.Loa
 		client := testAccProvider.Meta().(*ArmClient).loadBalancerClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, i, exists := findLoadBalancerRuleByName(lb, ruleName)
+		i, exists := findAzureRMLoadBalancerRuleByName(lb, ruleName)
 		if !exists {
 			return fmt.Errorf("A Rule with name %q cannot be found.", ruleName)
 		}
@@ -315,6 +340,20 @@ func testCheckAzureRMLoadBalancerRuleDisappears(ruleName string, lb *network.Loa
 		_, err = client.Get(ctx, id.ResourceGroup, *lb.Name, "")
 		return err
 	}
+}
+
+func findAzureRMLoadBalancerRuleByName(lb *network.LoadBalancer, name string) (int, bool) {
+	if lb == nil || lb.LoadBalancerPropertiesFormat == nil || lb.LoadBalancerPropertiesFormat.LoadBalancingRules == nil {
+		return -1, false
+	}
+
+	for i, lbr := range *lb.LoadBalancerPropertiesFormat.LoadBalancingRules {
+		if lbr.Name != nil && *lbr.Name == name {
+			return i, true
+		}
+	}
+
+	return -1, false
 }
 
 func testAccAzureRMLoadBalancerRule_basic(rInt int, lbRuleName string, location string) string {
@@ -353,6 +392,24 @@ resource "azurerm_lb_rule" "test" {
   frontend_ip_configuration_name = "one-%d"
 }
 `, rInt, location, rInt, rInt, rInt, lbRuleName, rInt)
+}
+
+func testAccAzureRMLoadBalancerRule_requiresImport(rInt int, lbRuleName string, location string) string {
+	template := testAccAzureRMLoadBalancerRule_basic(rInt, lbRuleName, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_lb_rule" "import" {
+  name                           = "${azurerm_lb_rule.test.name}"
+  location                       = "${azurerm_lb_rule.test.location}"
+  resource_group_name            = "${azurerm_lb_rule.test.resource_group_name}"
+  loadbalancer_id                = "${azurerm_lb_rule.test.loadbalancer_id}"
+  frontend_ip_configuration_name = "${azurerm_lb_rule.test.frontend_ip_configuration_name}"
+  protocol                       = "${azurerm_lb_rule.test.protocol}"
+  frontend_port                  = "${azurerm_lb_rule.test.frontend_port}"
+  backend_port                   = "${azurerm_lb_rule.test.backend_port}"
+}
+`, template)
 }
 
 func testAccAzureRMLoadBalancerRule_removal(rInt int, location string) string {

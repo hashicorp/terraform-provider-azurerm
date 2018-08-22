@@ -1,30 +1,35 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
-	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmLoadBalancerRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLoadBalancerRuleCreate,
+		Create: resourceArmLoadBalancerRuleCreateUpdate,
 		Read:   resourceArmLoadBalancerRuleRead,
-		Update: resourceArmLoadBalancerRuleCreate,
+		Update: resourceArmLoadBalancerRuleCreateUpdate,
 		Delete: resourceArmLoadBalancerRuleDelete,
-
 		Importer: &schema.ResourceImporter{
 			State: loadBalancerSubResourceStateImporter,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -115,10 +120,11 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 	}
 }
 
-func resourceArmLoadBalancerRuleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).loadBalancerClient
 	ctx := meta.(*ArmClient).StopContext
 
+	name := d.Get("name").(string)
 	loadBalancerID := d.Get("loadbalancer_id").(string)
 	armMutexKV.Lock(loadBalancerID)
 	defer armMutexKV.Unlock(loadBalancerID)
@@ -129,27 +135,54 @@ func resourceArmLoadBalancerRuleCreate(d *schema.ResourceData, meta interface{})
 	}
 	if !exists {
 		d.SetId("")
-		log.Printf("[INFO] Load Balancer %q not found. Removing from state", d.Get("name").(string))
+		log.Printf("[INFO] Load Balancer %q not found. Removing from state", name)
 		return nil
 	}
+
+	props := loadBalancer.LoadBalancerPropertiesFormat
+	if props == nil {
+		return fmt.Errorf("Error updating Load Balancer Rules: props was nil")
+	}
+
+	rules := props.LoadBalancingRules
+	if rules == nil {
+		return fmt.Errorf("Error updating Load Balancer Rules: props.LoadBalancingRules was nil")
+	}
+	lbRules := *rules
 
 	newLbRule, err := expandAzureRmLoadBalancerRule(d, loadBalancer)
 	if err != nil {
 		return fmt.Errorf("Error Exanding Load Balancer Rule: %+v", err)
 	}
 
-	lbRules := append(*loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules, *newLbRule)
-
-	existingRule, existingRuleIndex, exists := findLoadBalancerRuleByName(loadBalancer, d.Get("name").(string))
-	if exists {
-		if d.Get("name").(string) == *existingRule.Name {
-			// this rule is being updated/reapplied remove old copy from the slice
-			lbRules = append(lbRules[:existingRuleIndex], lbRules[existingRuleIndex+1:]...)
+	if d.IsNewResource() {
+		// check if it requires import
+		for _, rule := range lbRules {
+			if rule.Name != nil && *rule.Name == name {
+				return tf.ImportAsExistsError("azurerm_lb_rule", *rule.ID)
+			}
 		}
+
+		// otherwise just append it
+		lbRules = append(lbRules, *newLbRule)
+	} else {
+		index := -1
+		for i, v := range lbRules {
+			if v.Name != nil && *v.Name == name {
+				index = i
+				break
+			}
+		}
+
+		if index == -1 {
+			// should be caught by the Read
+		}
+
+		lbRules[index] = *newLbRule
 	}
 
 	loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules = &lbRules
-	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(d.Get("loadbalancer_id").(string))
+	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(loadBalancerID)
 	if err != nil {
 		return fmt.Errorf("Error Getting Load Balancer Name and Group:: %+v", err)
 	}
@@ -159,7 +192,9 @@ func resourceArmLoadBalancerRuleCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error Creating/Updating LoadBalancer: %+v", err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for completion for Load Balancer updates: %+v", err)
 	}
@@ -173,9 +208,13 @@ func resourceArmLoadBalancerRuleCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	var ruleId string
-	for _, LoadBalancingRule := range *(*read.LoadBalancerPropertiesFormat).LoadBalancingRules {
-		if *LoadBalancingRule.Name == d.Get("name").(string) {
-			ruleId = *LoadBalancingRule.ID
+	if props := read.LoadBalancerPropertiesFormat; props != nil {
+		if rules := props.LoadBalancingRules; rules != nil {
+			for _, rule := range *rules {
+				if rule.Name != nil && *rule.Name == name {
+					ruleId = *rule.ID
+				}
+			}
 		}
 	}
 
@@ -184,17 +223,6 @@ func resourceArmLoadBalancerRuleCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	d.SetId(ruleId)
-
-	log.Printf("[DEBUG] Waiting for Load Balancer (%s) to become available", loadBalancerName)
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{"Accepted", "Updating"},
-		Target:  []string{"Succeeded"},
-		Refresh: loadbalancerStateRefreshFunc(ctx, client, resGroup, loadBalancerName),
-		Timeout: 10 * time.Minute,
-	}
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Load Balancer (%s) to become available: %s", loadBalancerName, err)
-	}
 
 	return resourceArmLoadBalancerRuleRead(d, meta)
 }
@@ -205,8 +233,9 @@ func resourceArmLoadBalancerRuleRead(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 	name := id.Path["loadBalancingRules"]
+	loadBalancerId := d.Get("loadbalancer_id").(string)
 
-	loadBalancer, exists, err := retrieveLoadBalancerById(d.Get("loadbalancer_id").(string), meta)
+	loadBalancer, exists, err := retrieveLoadBalancerById(loadBalancerId, meta)
 	if err != nil {
 		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
 	}
@@ -216,17 +245,28 @@ func resourceArmLoadBalancerRuleRead(d *schema.ResourceData, meta interface{}) e
 		return nil
 	}
 
-	config, _, exists := findLoadBalancerRuleByName(loadBalancer, name)
-	if !exists {
+	var rule *network.LoadBalancingRule
+	if props := loadBalancer.LoadBalancerPropertiesFormat; props != nil {
+		if rules := props.LoadBalancingRules; rules != nil {
+			for _, r := range *rules {
+				if r.Name != nil && *r.Name == name {
+					rule = &r
+					break
+				}
+			}
+		}
+	}
+
+	if rule == nil {
 		d.SetId("")
 		log.Printf("[INFO] Load Balancer Rule %q not found. Removing from state", name)
 		return nil
 	}
 
-	d.Set("name", config.Name)
+	d.Set("name", name)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if properties := config.LoadBalancingRulePropertiesFormat; properties != nil {
+	if properties := rule.LoadBalancingRulePropertiesFormat; properties != nil {
 		d.Set("protocol", properties.Protocol)
 		d.Set("frontend_port", properties.FrontendPort)
 		d.Set("backend_port", properties.BackendPort)
@@ -269,7 +309,9 @@ func resourceArmLoadBalancerRuleDelete(d *schema.ResourceData, meta interface{})
 	client := meta.(*ArmClient).loadBalancerClient
 	ctx := meta.(*ArmClient).StopContext
 
+	name := d.Get("name").(string)
 	loadBalancerID := d.Get("loadbalancer_id").(string)
+
 	armMutexKV.Lock(loadBalancerID)
 	defer armMutexKV.Unlock(loadBalancerID)
 
@@ -282,26 +324,38 @@ func resourceArmLoadBalancerRuleDelete(d *schema.ResourceData, meta interface{})
 		return nil
 	}
 
-	_, index, exists := findLoadBalancerRuleByName(loadBalancer, d.Get("name").(string))
-	if !exists {
-		return nil
+	props := loadBalancer.LoadBalancerPropertiesFormat
+	if props == nil {
+		return fmt.Errorf("Error updating Load Balancer Rules: props was nil")
 	}
 
-	oldLbRules := *loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules
-	newLbRules := append(oldLbRules[:index], oldLbRules[index+1:]...)
-	loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules = &newLbRules
+	rules := props.LoadBalancingRules
+	if rules == nil {
+		return fmt.Errorf("Error updating Load Balancer Rules: props.LoadBalancingRules was nil")
+	}
+	lbRules := *rules
 
-	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(d.Get("loadbalancer_id").(string))
+	newRules := make([]network.LoadBalancingRule, 0)
+	for _, rule := range lbRules {
+		if rule.Name != nil && *rule.Name != name {
+			newRules = append(newRules, rule)
+		}
+	}
+	loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules = &newRules
+
+	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(loadBalancerID)
 	if err != nil {
 		return fmt.Errorf("Error Getting Load Balancer Name and Group:: %+v", err)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, loadBalancerName, *loadBalancer)
 	if err != nil {
-		return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
+		return fmt.Errorf("Error Updating Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for completion of Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
 	}
@@ -318,7 +372,6 @@ func resourceArmLoadBalancerRuleDelete(d *schema.ResourceData, meta interface{})
 }
 
 func expandAzureRmLoadBalancerRule(d *schema.ResourceData, lb *network.LoadBalancer) (*network.LoadBalancingRule, error) {
-
 	properties := network.LoadBalancingRulePropertiesFormat{
 		Protocol:         network.TransportProtocol(d.Get("protocol").(string)),
 		FrontendPort:     utils.Int32(int32(d.Get("frontend_port").(int))),

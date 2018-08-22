@@ -55,20 +55,6 @@ func findLoadBalancerFrontEndIpConfigurationByName(lb *network.LoadBalancer, nam
 	return nil, -1, false
 }
 
-func findLoadBalancerRuleByName(lb *network.LoadBalancer, name string) (*network.LoadBalancingRule, int, bool) {
-	if lb == nil || lb.LoadBalancerPropertiesFormat == nil || lb.LoadBalancerPropertiesFormat.LoadBalancingRules == nil {
-		return nil, -1, false
-	}
-
-	for i, lbr := range *lb.LoadBalancerPropertiesFormat.LoadBalancingRules {
-		if lbr.Name != nil && *lbr.Name == name {
-			return &lbr, i, true
-		}
-	}
-
-	return nil, -1, false
-}
-
 // sets the loadbalancer_id in the ResourceData from the sub resources full id
 func loadBalancerSubResourceStateImporter(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	r, err := regexp.Compile(`.+\/loadBalancers\/.+?\/`)
