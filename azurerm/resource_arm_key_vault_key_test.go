@@ -191,6 +191,31 @@ func TestAccAzureRMKeyVaultKey_importRSA(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKeyVaultKey_importEC(t *testing.T) {
+	resourceName := "azurerm_key_vault_key.test"
+	rs := acctest.RandString(6)
+	config := testAccAzureRMKeyVaultKey_basicEC(rs, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultKeyExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMKeyVaultKeyDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext

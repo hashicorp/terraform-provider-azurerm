@@ -50,8 +50,9 @@ func resourceArmKeyVaultKey() *schema.Resource {
 			},
 
 			"key_size": {
-				Type:     schema.TypeInt,
-				Required: true,
+				Type:             schema.TypeInt,
+				Required:         true,
+				DiffSuppressFunc: ignoreKeySizeChangesForEC,
 			},
 
 			"key_opts": {
@@ -91,6 +92,14 @@ func resourceArmKeyVaultKey() *schema.Resource {
 			"tags": tagsSchema(),
 		},
 	}
+}
+
+func ignoreKeySizeChangesForEC(k, old, new string, d *schema.ResourceData) bool {
+	keyType := keyvault.JSONWebKeyType(d.Get("key_type").(string))
+	if keyType == keyvault.EC || keyType == keyvault.ECHSM {
+		return true
+	}
+	return old == new
 }
 
 func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) error {
