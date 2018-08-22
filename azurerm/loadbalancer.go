@@ -43,20 +43,6 @@ func retrieveLoadBalancerById(loadBalancerId string, meta interface{}) (*network
 	return &resp, true, nil
 }
 
-func findLoadBalancerBackEndAddressPoolByName(lb *network.LoadBalancer, name string) (*network.BackendAddressPool, int, bool) {
-	if lb == nil || lb.LoadBalancerPropertiesFormat == nil || lb.LoadBalancerPropertiesFormat.BackendAddressPools == nil {
-		return nil, -1, false
-	}
-
-	for i, apc := range *lb.LoadBalancerPropertiesFormat.BackendAddressPools {
-		if apc.Name != nil && *apc.Name == name {
-			return &apc, i, true
-		}
-	}
-
-	return nil, -1, false
-}
-
 func findLoadBalancerFrontEndIpConfigurationByName(lb *network.LoadBalancer, name string) (*network.FrontendIPConfiguration, int, bool) {
 	if lb == nil || lb.LoadBalancerPropertiesFormat == nil || lb.LoadBalancerPropertiesFormat.FrontendIPConfigurations == nil {
 		return nil, -1, false

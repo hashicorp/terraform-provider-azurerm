@@ -1,15 +1,16 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
-	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,6 +21,10 @@ func resourceArmLoadBalancerBackendAddressPool() *schema.Resource {
 		Delete: resourceArmLoadBalancerBackendAddressPoolDelete,
 		Importer: &schema.ResourceImporter{
 			State: loadBalancerSubResourceStateImporter,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -68,7 +73,13 @@ func resourceArmLoadBalancerBackendAddressPoolCreate(d *schema.ResourceData, met
 	client := meta.(*ArmClient).loadBalancerClient
 	ctx := meta.(*ArmClient).StopContext
 
+	name := d.Get("name").(string)
 	loadBalancerID := d.Get("loadbalancer_id").(string)
+	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(loadBalancerID)
+	if err != nil {
+		return fmt.Errorf("Error parsing Load Balancer Name and Group: %+v", err)
+	}
+
 	armMutexKV.Lock(loadBalancerID)
 	defer armMutexKV.Unlock(loadBalancerID)
 
@@ -78,33 +89,44 @@ func resourceArmLoadBalancerBackendAddressPoolCreate(d *schema.ResourceData, met
 	}
 	if !exists {
 		d.SetId("")
-		log.Printf("[INFO] Load Balancer %q not found. Removing from state", d.Get("name").(string))
+		log.Printf("[INFO] Load Balancer %q not found. Removing from state", name)
 		return nil
 	}
 
-	backendAddressPools := append(*loadBalancer.LoadBalancerPropertiesFormat.BackendAddressPools, expandAzureRmLoadBalancerBackendAddressPools(d))
-	existingPool, existingPoolIndex, exists := findLoadBalancerBackEndAddressPoolByName(loadBalancer, d.Get("name").(string))
-	if exists {
-		if d.Get("name").(string) == *existingPool.Name {
-			// this pool is being updated/reapplied remove old copy from the slice
-			backendAddressPools = append(backendAddressPools[:existingPoolIndex], backendAddressPools[existingPoolIndex+1:]...)
+	props := loadBalancer.LoadBalancerPropertiesFormat
+	if props == nil {
+		return fmt.Errorf("[ERROR] Load Balancer Properties was nil - unable to configure Backend Address Pool")
+	}
+
+	pools := props.BackendAddressPools
+	if pools == nil {
+		return fmt.Errorf("[ERROR] Load Balancer Backend Address Pools was nil - unable to configure Backend Address Pool")
+	}
+
+	// firstly does this already exist
+	for _, pool := range *pools {
+		if pool.Name != nil && *pool.Name == name {
+			return tf.ImportAsExistsError("azurerm_lb_backend_address_pool", *pool.ID)
 		}
 	}
 
-	loadBalancer.LoadBalancerPropertiesFormat.BackendAddressPools = &backendAddressPools
-	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(d.Get("loadbalancer_id").(string))
-	if err != nil {
-		return fmt.Errorf("Error parsing Load Balancer Name and Group: %+v", err)
+	// as such we should just be able to append and send
+	newPool := network.BackendAddressPool{
+		Name: utils.String(name),
 	}
+	backendAddressPools := append(*pools, newPool)
+	loadBalancer.LoadBalancerPropertiesFormat.BackendAddressPools = &backendAddressPools
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, loadBalancerName, *loadBalancer)
 	if err != nil {
-		return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
+		return fmt.Errorf("Error Updating Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutCreate))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
+		return fmt.Errorf("Error Updating Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, loadBalancerName, "")
@@ -116,9 +138,13 @@ func resourceArmLoadBalancerBackendAddressPoolCreate(d *schema.ResourceData, met
 	}
 
 	var poolId string
-	for _, BackendAddressPool := range *(*read.LoadBalancerPropertiesFormat).BackendAddressPools {
-		if *BackendAddressPool.Name == d.Get("name").(string) {
-			poolId = *BackendAddressPool.ID
+	if props := read.LoadBalancerPropertiesFormat; props != nil {
+		if pools := props.BackendAddressPools; pools != nil {
+			for _, pool := range *pools {
+				if pool.Name != nil && *pool.Name == name {
+					poolId = *pool.ID
+				}
+			}
 		}
 	}
 
@@ -127,18 +153,6 @@ func resourceArmLoadBalancerBackendAddressPoolCreate(d *schema.ResourceData, met
 	}
 
 	d.SetId(poolId)
-
-	// TODO: is this still needed?
-	log.Printf("[DEBUG] Waiting for Load Balancer (%s) to become available", loadBalancerName)
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{"Accepted", "Updating"},
-		Target:  []string{"Succeeded"},
-		Refresh: loadbalancerStateRefreshFunc(ctx, client, resGroup, loadBalancerName),
-		Timeout: 10 * time.Minute,
-	}
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Load Balancer (%q Resource Group %q) to become available: %+v", loadBalancerName, resGroup, err)
-	}
 
 	return resourceArmLoadBalancerBackendAddressPoolRead(d, meta)
 }
@@ -160,20 +174,31 @@ func resourceArmLoadBalancerBackendAddressPoolRead(d *schema.ResourceData, meta 
 		return nil
 	}
 
-	config, _, exists := findLoadBalancerBackEndAddressPoolByName(loadBalancer, name)
-	if !exists {
+	var pool *network.BackendAddressPool
+	if props := loadBalancer.LoadBalancerPropertiesFormat; props != nil {
+		if pools := props.BackendAddressPools; pools != nil {
+			for _, p := range *pools {
+				if p.Name != nil && *p.Name == name {
+					pool = &p
+					break
+				}
+			}
+		}
+	}
+
+	if pool == nil {
 		d.SetId("")
-		log.Printf("[INFO] Load Balancer Backend Address Pool %q not found. Removing from state", name)
+		log.Printf("[INFO] Backend Address Pool %q was not found on Load Balancer %q. Removing from state", name, *loadBalancer.ID)
 		return nil
 	}
 
-	d.Set("name", config.Name)
+	d.Set("name", name)
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	var backendIpConfigurations []string
 	var loadBalancingRules []string
 
-	if props := config.BackendAddressPoolPropertiesFormat; props != nil {
+	if props := pool.BackendAddressPoolPropertiesFormat; props != nil {
 		if configs := props.BackendIPConfigurations; configs != nil {
 			for _, backendConfig := range *configs {
 				backendIpConfigurations = append(backendIpConfigurations, *backendConfig.ID)
@@ -197,6 +222,7 @@ func resourceArmLoadBalancerBackendAddressPoolDelete(d *schema.ResourceData, met
 	client := meta.(*ArmClient).loadBalancerClient
 	ctx := meta.(*ArmClient).StopContext
 
+	name := d.Get("name").(string)
 	loadBalancerID := d.Get("loadbalancer_id").(string)
 	armMutexKV.Lock(loadBalancerID)
 	defer armMutexKV.Unlock(loadBalancerID)
@@ -206,20 +232,29 @@ func resourceArmLoadBalancerBackendAddressPoolDelete(d *schema.ResourceData, met
 		return fmt.Errorf("Error retrieving Load Balancer by ID: %+v", err)
 	}
 	if !exists {
-		d.SetId("")
 		return nil
 	}
 
-	_, index, exists := findLoadBalancerBackEndAddressPoolByName(loadBalancer, d.Get("name").(string))
-	if !exists {
+	props := loadBalancer.LoadBalancerPropertiesFormat
+	if props == nil {
 		return nil
 	}
 
-	oldBackEndPools := *loadBalancer.LoadBalancerPropertiesFormat.BackendAddressPools
-	newBackEndPools := append(oldBackEndPools[:index], oldBackEndPools[index+1:]...)
+	pools := props.BackendAddressPools
+	if pools == nil {
+		return nil
+	}
+
+	newBackEndPools := make([]network.BackendAddressPool, 0)
+	for _, pool := range *pools {
+		if pool.Name != nil && *pool.Name != name {
+			newBackEndPools = append(newBackEndPools, pool)
+		}
+	}
+
 	loadBalancer.LoadBalancerPropertiesFormat.BackendAddressPools = &newBackEndPools
 
-	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(d.Get("loadbalancer_id").(string))
+	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(loadBalancerID)
 	if err != nil {
 		return fmt.Errorf("Error Getting Load Balancer Name and Group:: %+v", err)
 	}
@@ -229,7 +264,9 @@ func resourceArmLoadBalancerBackendAddressPoolDelete(d *schema.ResourceData, met
 		return fmt.Errorf("Error Creating/Updating LoadBalancer: %+v", err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for the completion for the LoadBalancer: %+v", err)
 	}
@@ -243,10 +280,4 @@ func resourceArmLoadBalancerBackendAddressPoolDelete(d *schema.ResourceData, met
 	}
 
 	return nil
-}
-
-func expandAzureRmLoadBalancerBackendAddressPools(d *schema.ResourceData) network.BackendAddressPool {
-	return network.BackendAddressPool{
-		Name: utils.String(d.Get("name").(string)),
-	}
 }

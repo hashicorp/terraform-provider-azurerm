@@ -46,6 +46,31 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLoadBalancerBackEndAddressPool_requiresImport(t *testing.T) {
+	var lb network.LoadBalancer
+	ri := acctest.RandInt()
+	addressPoolName := fmt.Sprintf("%d-address-pool", ri)
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLoadBalancerBackEndAddressPool_basic(ri, addressPoolName, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
+				),
+			},
+			{
+				Config:      testAccAzureRMLoadBalancerBackEndAddressPool_requiresImport(ri, addressPoolName, location),
+				ExpectError: testRequiresImportError("azurerm_lb_backend_address_pool"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMLoadBalancerBackEndAddressPool_removal(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := acctest.RandInt()
@@ -126,7 +151,7 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_disappears(t *testing.T) {
 
 func testCheckAzureRMLoadBalancerBackEndAddressPoolExists(addressPoolName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		_, _, exists := findLoadBalancerBackEndAddressPoolByName(lb, addressPoolName)
+		_, exists := findAzureRMLoadBalancerBackEndAddressPoolByName(lb, addressPoolName)
 		if !exists {
 			return fmt.Errorf("A BackEnd Address Pool with name %q cannot be found.", addressPoolName)
 		}
@@ -137,7 +162,7 @@ func testCheckAzureRMLoadBalancerBackEndAddressPoolExists(addressPoolName string
 
 func testCheckAzureRMLoadBalancerBackEndAddressPoolNotExists(addressPoolName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		_, _, exists := findLoadBalancerBackEndAddressPoolByName(lb, addressPoolName)
+		_, exists := findAzureRMLoadBalancerBackEndAddressPoolByName(lb, addressPoolName)
 		if exists {
 			return fmt.Errorf("A BackEnd Address Pool with name %q has been found.", addressPoolName)
 		}
@@ -151,7 +176,7 @@ func testCheckAzureRMLoadBalancerBackEndAddressPoolDisappears(addressPoolName st
 		client := testAccProvider.Meta().(*ArmClient).loadBalancerClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, i, exists := findLoadBalancerBackEndAddressPoolByName(lb, addressPoolName)
+		i, exists := findAzureRMLoadBalancerBackEndAddressPoolByName(lb, addressPoolName)
 		if !exists {
 			return fmt.Errorf("A BackEnd Address Pool with name %q cannot be found.", addressPoolName)
 		}
@@ -178,6 +203,20 @@ func testCheckAzureRMLoadBalancerBackEndAddressPoolDisappears(addressPoolName st
 		_, err = client.Get(ctx, id.ResourceGroup, *lb.Name, "")
 		return err
 	}
+}
+
+func findAzureRMLoadBalancerBackEndAddressPoolByName(lb *network.LoadBalancer, name string) (int, bool) {
+	if lb == nil || lb.LoadBalancerPropertiesFormat == nil || lb.LoadBalancerPropertiesFormat.BackendAddressPools == nil {
+		return -1, false
+	}
+
+	for i, apc := range *lb.LoadBalancerPropertiesFormat.BackendAddressPools {
+		if apc.Name != nil && *apc.Name == name {
+			return i, true
+		}
+	}
+
+	return -1, false
 }
 
 func testAccAzureRMLoadBalancerBackEndAddressPool_basic(rInt int, addressPoolName string, location string) string {
@@ -213,6 +252,20 @@ resource "azurerm_lb_backend_address_pool" "test" {
 }
 
 `, rInt, location, rInt, rInt, rInt, addressPoolName)
+}
+
+func testAccAzureRMLoadBalancerBackEndAddressPool_requiresImport(rInt int, addressPoolName string, location string) string {
+	template := testAccAzureRMLoadBalancerBackEndAddressPool_basic(rInt, addressPoolName, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_lb_backend_address_pool" "import" {
+  name                = "${azurerm_lb_backend_address_pool.test.name}"
+  location            = "${azurerm_lb_backend_address_pool.test.location}"
+  resource_group_name = "${azurerm_lb_backend_address_pool.test.resource_group_name}"
+  loadbalancer_id     = "${azurerm_lb_backend_address_pool.test.loadbalancer_id}"
+}
+`, template)
 }
 
 func testAccAzureRMLoadBalancerBackEndAddressPool_removal(rInt int, location string) string {
