@@ -44,6 +44,7 @@ func resourceArmKeyVaultKey() *schema.Resource {
 					// TODO: add `oct` back in once this is fixed
 					// https://github.com/Azure/azure-rest-api-specs/issues/1739#issuecomment-332236257
 					string(keyvault.EC),
+					string(keyvault.ECHSM),
 					string(keyvault.RSA),
 					string(keyvault.RSAHSM),
 				}, false),
@@ -51,8 +52,9 @@ func resourceArmKeyVaultKey() *schema.Resource {
 
 			"key_size": {
 				Type:             schema.TypeInt,
-				Required:         true,
+				Optional:         true,
 				DiffSuppressFunc: ignoreKeySizeChangesForEC,
+				ConflictsWith:    []string{"curve"},
 			},
 
 			"key_opts": {
@@ -73,6 +75,22 @@ func resourceArmKeyVaultKey() *schema.Resource {
 				},
 			},
 
+			"curve": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(keyvault.P256),
+					string(keyvault.P384),
+					string(keyvault.P521),
+					string(keyvault.SECP256K1),
+				}, false),
+				// TODO: the curve name should probably be mandatory for EC in the future,
+				// but handle the diff so that we don't break existing configurations and
+				// imported EC keys
+				DiffSuppressFunc: ignoreEmptyCurveChanges,
+				ConflictsWith:    []string{"key_size"},
+			},
+
 			// Computed
 			"version": {
 				Type:     schema.TypeString,
@@ -89,6 +107,16 @@ func resourceArmKeyVaultKey() *schema.Resource {
 				Computed: true,
 			},
 
+			"x": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"y": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -100,6 +128,10 @@ func ignoreKeySizeChangesForEC(k, old, new string, d *schema.ResourceData) bool 
 		return true
 	}
 	return old == new
+}
+
+func ignoreEmptyCurveChanges(k, old, new string, d *schema.ResourceData) bool {
+	return new == "" || old == new
 }
 
 func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) error {
@@ -122,9 +154,22 @@ func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) erro
 		KeyAttributes: &keyvault.KeyAttributes{
 			Enabled: utils.Bool(true),
 		},
-		KeySize: utils.Int32(int32(d.Get("key_size").(int))),
-		Tags:    expandTags(tags),
+
+		Tags: expandTags(tags),
 	}
+
+	if parameters.Kty == keyvault.EC || parameters.Kty == keyvault.ECHSM {
+		curveName := d.Get("curve").(string)
+		parameters.Curve = keyvault.JSONWebKeyCurveName(curveName)
+	} else if parameters.Kty == keyvault.RSA || parameters.Kty == keyvault.RSAHSM {
+		keySize, ok := d.GetOk("key_size")
+		if !ok {
+			return fmt.Errorf("Key size is required when creating an RSA key")
+		}
+		parameters.KeySize = utils.Int32(int32(keySize.(int)))
+	}
+	// TODO: support `oct` once this is fixed
+	// https://github.com/Azure/azure-rest-api-specs/issues/1739#issuecomment-332236257
 
 	_, err := client.CreateKey(ctx, keyVaultBaseUrl, name, parameters)
 	if err != nil {
@@ -151,7 +196,7 @@ func resourceArmKeyVaultKeyUpdate(d *schema.ResourceData, meta interface{}) erro
 	if err != nil {
 		return err
 	}
-	if d.HasChange("key_size") || d.HasChange("key_type") {
+	if d.HasChange("key_size") || d.HasChange("key_type") || d.HasChange("curve") {
 		return resourceArmKeyVaultKeyCreate(d, meta)
 	}
 	keyOptions := expandKeyVaultKeyOptions(d)
@@ -205,6 +250,8 @@ func resourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error 
 
 		d.Set("n", key.N)
 		d.Set("e", key.E)
+		d.Set("x", key.X)
+		d.Set("y", key.Y)
 		if key.N != nil {
 			nBytes, err := base64.RawURLEncoding.DecodeString(*key.N)
 			if err != nil {
@@ -212,6 +259,8 @@ func resourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error 
 			}
 			d.Set("key_size", len(nBytes)*8)
 		}
+
+		d.Set("curve", key.Crv)
 	}
 
 	// Computed

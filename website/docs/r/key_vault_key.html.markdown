@@ -82,9 +82,11 @@ The following arguments are supported:
 
 * `vault_uri` - (Required) Specifies the URI used to access the Key Vault instance, available on the `azurerm_key_vault` resource.
 
-* `key_type` - (Required) Specifies the Key Type to use for this Key Vault Key. Possible values are `EC` (Elliptic Curve), `Oct` (Octet), `RSA` and `RSA-HSM`.
+* `key_type` - (Required) Specifies the Key Type to use for this Key Vault Key. Possible values are `EC` (Elliptic Curve), `EC-HSM`, `Oct` (Octet), `RSA` and `RSA-HSM`.
 
-* `key_size` - (Required) Specifies the Size of the Key to create in bytes. For example, 1024 or 2048.
+* `key_size` - (Optional) Specifies the Size of the RSA key to create in bytes. For example, 1024 or 2048. *Note*: This field is required if `key_type` is `RSA` or `RSA-HSM`.
+
+* `curve` - (Optional) Specifies the curve to use when creating an `EC` key. Possible values are `P-256`, `P-384`, `P-521`, and `SECP256K1`. This field will be required in a future relese if `key_type` is `EC` or `EC-HSM`.
 
 * `key_opts` - (Required) A list of JSON web key operations. Possible values include: `decrypt`, `encrypt`, `sign`, `unwrapKey`, `verify` and `wrapKey`. Please note these values are case sensitive.
 
@@ -98,6 +100,8 @@ The following attributes are exported:
 * `version` - The current version of the Key Vault Key.
 * `n` - The RSA modulus of this Key Vault Key.
 * `e` - The RSA public exponent of this Key Vault Key.
+* `x` - The EC X component of this Key Vault Key.
+* `y` - The EC Y component of this Key Vault Key.
 
 
 ## Import
