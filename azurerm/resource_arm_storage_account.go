@@ -1,15 +1,18 @@
 package azurerm
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	tf "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,12 +24,16 @@ func resourceArmStorageAccount() *schema.Resource {
 		Read:   resourceArmStorageAccountRead,
 		Update: resourceArmStorageAccountUpdate,
 		Delete: resourceArmStorageAccountDelete,
-
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 		MigrateState:  resourceStorageAccountMigrateState,
 		SchemaVersion: 2,
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -299,36 +306,25 @@ func resourceArmStorageAccount() *schema.Resource {
 	}
 }
 
-func validateAzureRMStorageAccountTags(v interface{}, _ string) (ws []string, es []error) {
-	tagsMap := v.(map[string]interface{})
-
-	if len(tagsMap) > 15 {
-		es = append(es, errors.New("a maximum of 15 tags can be applied to each ARM resource"))
-	}
-
-	for k, v := range tagsMap {
-		if len(k) > 128 {
-			es = append(es, fmt.Errorf("the maximum length for a tag key is 128 characters: %q is %d characters", k, len(k)))
-		}
-
-		value, err := tagValueToString(v)
-		if err != nil {
-			es = append(es, err)
-		} else if len(value) > 256 {
-			es = append(es, fmt.Errorf("the maximum length for a tag value is 256 characters: the value for %q is %d characters", k, len(value)))
-		}
-	}
-
-	return ws, es
-}
-
 func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).storageServiceClient
+	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroupName := d.Get("resource_group_name").(string)
 	storageAccountName := d.Get("name").(string)
-	accountKind := d.Get("account_kind").(string)
 
+	if d.IsNewResource() {
+		resp, err := client.GetProperties(ctx, resourceGroupName, storageAccountName)
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Error checking for the existence of Storage Account %q (Resource Group %q): %+v", storageAccountName, resourceGroupName, err)
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_storage_account", *resp.ID)
+		}
+	}
+
+	accountKind := d.Get("account_kind").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 	enableBlobEncryption := d.Get("enable_blob_encryption").(bool)
@@ -393,13 +389,14 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	// Create
-	ctx := meta.(*ArmClient).StopContext
 	future, err := client.Create(ctx, resourceGroupName, storageAccountName, parameters)
 	if err != nil {
 		return fmt.Errorf("Error creating Azure Storage Account %q: %+v", storageAccountName, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutCreate))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for Azure Storage Account %q to be created: %+v", storageAccountName, err)
 	}
@@ -423,8 +420,8 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 // and idempotent operation for CreateOrUpdate. In particular updating all of the parameters
 // available requires a call to Update per parameter...
 func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).storageServiceClient
+	ctx := meta.(*ArmClient).StopContext
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -453,7 +450,9 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		opts := storage.AccountUpdateParameters{
 			Sku: &sku,
 		}
-		_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
+		waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutUpdate))
+		defer cancel()
+		_, err := client.Update(waitCtx, resourceGroupName, storageAccountName, opts)
 		if err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account type %q: %+v", storageAccountName, err)
 		}
@@ -470,7 +469,9 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 			},
 		}
 
-		_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
+		waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutUpdate))
+		defer cancel()
+		_, err := client.Update(waitCtx, resourceGroupName, storageAccountName, opts)
 		if err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account access_tier %q: %+v", storageAccountName, err)
 		}
@@ -484,7 +485,10 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		opts := storage.AccountUpdateParameters{
 			Tags: expandTags(tags),
 		}
-		_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
+
+		waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutUpdate))
+		defer cancel()
+		_, err := client.Update(waitCtx, resourceGroupName, storageAccountName, opts)
 		if err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account tags %q: %+v", storageAccountName, err)
 		}
@@ -521,7 +525,9 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 			d.SetPartial("enable_file_encryption")
 		}
 
-		_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
+		waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutUpdate))
+		defer cancel()
+		_, err := client.Update(waitCtx, resourceGroupName, storageAccountName, opts)
 		if err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account Encryption %q: %+v", storageAccountName, err)
 		}
@@ -535,7 +541,9 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 			},
 		}
 
-		_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
+		waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutUpdate))
+		defer cancel()
+		_, err := client.Update(waitCtx, resourceGroupName, storageAccountName, opts)
 		if err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account Custom Domain %q: %+v", storageAccountName, err)
 		}
@@ -549,7 +557,10 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 				EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
 			},
 		}
-		_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
+
+		waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutUpdate))
+		defer cancel()
+		_, err := client.Update(waitCtx, resourceGroupName, storageAccountName, opts)
 		if err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account enable_https_traffic_only %q: %+v", storageAccountName, err)
 		}
@@ -563,7 +574,10 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		opts := storage.AccountUpdateParameters{
 			Identity: storageAccountIdentity,
 		}
-		_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
+
+		waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutUpdate))
+		defer cancel()
+		_, err := client.Update(waitCtx, resourceGroupName, storageAccountName, opts)
 		if err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account identity %q: %+v", storageAccountName, err)
 		}
@@ -577,7 +591,10 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 				NetworkRuleSet: networkRules,
 			},
 		}
-		_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
+
+		waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutUpdate))
+		defer cancel()
+		_, err := client.Update(waitCtx, resourceGroupName, storageAccountName, opts)
 		if err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account network_rules %q: %+v", storageAccountName, err)
 		}
@@ -732,7 +749,9 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 	name := id.Path["storageAccounts"]
 	resGroup := id.ResourceGroup
 
-	_, err = client.Delete(ctx, resGroup, name)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	_, err = client.Delete(waitCtx, resGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error issuing AzureRM delete request for storage account %q: %+v", name, err)
 	}
@@ -927,4 +946,27 @@ func flattenAzureRmStorageAccountIdentity(identity *storage.Identity) []interfac
 	}
 
 	return []interface{}{result}
+}
+
+func validateAzureRMStorageAccountTags(v interface{}, _ string) (ws []string, es []error) {
+	tagsMap := v.(map[string]interface{})
+
+	if len(tagsMap) > 15 {
+		es = append(es, errors.New("a maximum of 15 tags can be applied to each ARM resource"))
+	}
+
+	for k, v := range tagsMap {
+		if len(k) > 128 {
+			es = append(es, fmt.Errorf("the maximum length for a tag key is 128 characters: %q is %d characters", k, len(k)))
+		}
+
+		value, err := tagValueToString(v)
+		if err != nil {
+			es = append(es, err)
+		} else if len(value) > 256 {
+			es = append(es, fmt.Errorf("the maximum length for a tag value is 256 characters: the value for %q is %d characters", k, len(value)))
+		}
+	}
+
+	return ws, es
 }

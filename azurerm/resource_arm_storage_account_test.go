@@ -89,6 +89,32 @@ func TestAccAzureRMStorageAccount_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageAccount_requiresImport(t *testing.T) {
+	resourceName := "azurerm_storage_account.testsa"
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageAccount_basic(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+				),
+			},
+
+			{
+				Config:      testAccAzureRMStorageAccount_requiresImport(ri, rs, location),
+				ExpectError: testRequiresImportError("azurerm_storage_account"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMStorageAccount_premium(t *testing.T) {
 	resourceName := "azurerm_storage_account.testsa"
 	ri := acctest.RandInt()
@@ -572,6 +598,25 @@ resource "azurerm_storage_account" "testsa" {
     }
 }
 `, rInt, location, rString)
+}
+
+func testAccAzureRMStorageAccount_requiresImport(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageAccount_basic(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "import" {
+  name                     = "${azurem_storage_account.test.name}"
+  resource_group_name      = "${azurem_storage_account.test.resource_group_name}"
+  location                 = "${azurem_storage_account.test.location}"
+  account_tier             = "${azurem_storage_account.test.account_tier}"
+  account_replication_type = "${azurem_storage_account.test.account_replication_type}"
+
+  tags {
+    environment = "production"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMStorageAccount_premium(rInt int, rString string, location string) string {
