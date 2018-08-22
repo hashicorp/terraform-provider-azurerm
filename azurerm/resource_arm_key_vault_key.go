@@ -37,7 +37,6 @@ func resourceArmKeyVaultKey() *schema.Resource {
 			"key_type": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 				// turns out Azure's *really* sensitive about the casing of these
 				// issue: https://github.com/Azure/azure-rest-api-specs/issues/1739
 				ValidateFunc: validation.StringInSlice([]string{
@@ -52,7 +51,6 @@ func resourceArmKeyVaultKey() *schema.Resource {
 			"key_size": {
 				Type:     schema.TypeInt,
 				Required: true,
-				ForceNew: true,
 			},
 
 			"key_opts": {
@@ -143,7 +141,9 @@ func resourceArmKeyVaultKeyUpdate(d *schema.ResourceData, meta interface{}) erro
 	if err != nil {
 		return err
 	}
-
+	if d.HasChange("key_size") || d.HasChange("key_type") {
+		return resourceArmKeyVaultKeyCreate(d, meta)
+	}
 	keyOptions := expandKeyVaultKeyOptions(d)
 	tags := d.Get("tags").(map[string]interface{})
 
