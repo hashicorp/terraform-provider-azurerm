@@ -10,7 +10,33 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMLogProfile_basic(t *testing.T) {
+func TestAccAzureRMLogProfile(t *testing.T) {
+	// NOTE: this is a combined test rather than separate split out tests due to
+	// Azure only being happy about provisioning one per subscription at once
+	// (which our test suite can't easily workaround)
+	testCases := map[string]map[string]func(t *testing.T){
+		"basic": {
+			"basic":      testAccAzureRMLogProfile_basic,
+			"servicebus": testAccAzureRMLogProfile_servicebus,
+			"complete":   testAccAzureRMLogProfile_complete,
+			"disappears": testAccAzureRMLogProfile_disappears,
+		},
+	}
+
+	for group, m := range testCases {
+		m := m
+		t.Run(group, func(t *testing.T) {
+			for name, tc := range m {
+				tc := tc
+				t.Run(name, func(t *testing.T) {
+					tc(t)
+				})
+			}
+		})
+	}
+}
+
+func testAccAzureRMLogProfile_basic(t *testing.T) {
 	resourceName := "azurerm_log_profile.test"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(10)
@@ -21,7 +47,7 @@ func TestAccAzureRMLogProfile_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLogProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogProfile_basic(ri, rs, testLocation()),
+				Config: testAccAzureRMLogProfile_basicConfig(ri, rs, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogProfileExists(resourceName),
 				),
@@ -35,49 +61,51 @@ func TestAccAzureRMLogProfile_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogProfile_servicebus(t *testing.T) {
-	ri := acctest.RandInt()
-	rs := acctest.RandString(10)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMLogProfileDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogProfile_servicebus(ri, rs, testLocation()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogProfileExists("azurerm_log_profile.test"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMLogProfile_complete(t *testing.T) {
-	ri := acctest.RandInt()
-	rs := acctest.RandString(10)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMLogProfileDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogProfile_complete(ri, rs, testLocation()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogProfileExists("azurerm_log_profile.test"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMLogProfile_disappears(t *testing.T) {
+func testAccAzureRMLogProfile_servicebus(t *testing.T) {
 	resourceName := "azurerm_log_profile.test"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(10)
-	config := testAccAzureRMLogProfile_basic(ri, rs, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLogProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLogProfile_servicebusConfig(ri, rs, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogProfileExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
+func testAccAzureRMLogProfile_complete(t *testing.T) {
+	resourceName := "azurerm_log_profile.test"
+	ri := acctest.RandInt()
+	rs := acctest.RandString(10)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLogProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLogProfile_completeConfig(ri, rs, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogProfileExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
+func testAccAzureRMLogProfile_disappears(t *testing.T) {
+	resourceName := "azurerm_log_profile.test"
+	ri := acctest.RandInt()
+	rs := acctest.RandString(10)
+	config := testAccAzureRMLogProfile_basicConfig(ri, rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -108,10 +136,10 @@ func testCheckAzureRMLogProfileDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resp, err := client.Get(ctx, name)
 		if err != nil {
-			return nil
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Log Profile still exists:\n%#v", *resp.ID)
+			}
 		}
-
-		return fmt.Errorf("Log Profile still exists:\n%#v", *resp.ID)
 	}
 
 	return nil
@@ -164,10 +192,10 @@ func testCheckAzureRMLogProfileDisappears(name string) resource.TestCheckFunc {
 	}
 }
 
-func testAccAzureRMLogProfile_basic(rInt int, rString string, location string) string {
+func testAccAzureRMLogProfile_basicConfig(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctest%d-rg"
+	name     = "acctestrg-%d"
 	location = "%s"
 }
 
@@ -180,7 +208,7 @@ resource "azurerm_storage_account" "test" {
 }
 	
 resource "azurerm_log_profile" "test" {
-	name = "basic"
+	name = "acctestlp-%d"
 
 	categories = [
 		"Action",
@@ -197,13 +225,13 @@ resource "azurerm_log_profile" "test" {
 		days = 7
 	}
 }
-`, rInt, location, rString, location)
+`, rInt, location, rString, rInt, location)
 }
 
-func testAccAzureRMLogProfile_servicebus(rInt int, rString string, location string) string {
+func testAccAzureRMLogProfile_servicebusConfig(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctest%d-rg"
+	name     = "acctestrg-%d"
 	location = "%s"
 }
 	
@@ -225,7 +253,7 @@ resource "azurerm_servicebus_namespace_authorization_rule" "test" {
 }
 
 resource "azurerm_log_profile" "test" {
-	name = "default"
+	name = "acctestlp-%d"
 
 	categories = [
 		"Action"
@@ -242,13 +270,13 @@ resource "azurerm_log_profile" "test" {
 		days = 0
 	}
 }
-`, rInt, location, rString, rString, location)
+`, rInt, location, rString, rString, rInt, location)
 }
 
-func testAccAzureRMLogProfile_complete(rInt int, rString string, location string) string {
+func testAccAzureRMLogProfile_completeConfig(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctest%d-rg"
+	name     = "acctestrg-%d"
 	location = "%s"
 }
 
@@ -269,7 +297,7 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_log_profile" "test" {
-	name = "complete"
+	name = "acctestlp-%d"
 
 	categories = [
 		"Action",
@@ -320,5 +348,5 @@ resource "azurerm_log_profile" "test" {
 		days = 7
 	}
 }
-`, rInt, location, rString, rString)
+`, rInt, location, rString, rString, rInt)
 }

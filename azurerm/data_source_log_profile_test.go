@@ -8,7 +8,31 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccDataSourceAzureRMLogProfile_storageaccount(t *testing.T) {
+func TestAccDataSourceAzureRMLogProfile(t *testing.T) {
+	// NOTE: this is a combined test rather than separate split out tests due to
+	// Azure only being happy about provisioning one per subscription at once
+	// (which our test suite can't easily workaround)
+	testCases := map[string]map[string]func(t *testing.T){
+		"basic": {
+			"eventhub":       testAccDataSourceAzureRMLogProfile_eventhub,
+			"storageaccount": testAccDataSourceAzureRMLogProfile_storageaccount,
+		},
+	}
+
+	for group, m := range testCases {
+		m := m
+		t.Run(group, func(t *testing.T) {
+			for name, tc := range m {
+				tc := tc
+				t.Run(name, func(t *testing.T) {
+					tc(t)
+				})
+			}
+		})
+	}
+}
+
+func testAccDataSourceAzureRMLogProfile_storageaccount(t *testing.T) {
 	dataSourceName := "data.azurerm_log_profile.test"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(10)
@@ -19,7 +43,7 @@ func TestAccDataSourceAzureRMLogProfile_storageaccount(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLogProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMLogProfile_storageaccount(ri, rs, testLocation()),
+				Config: testAccDataSourceAzureRMLogProfile_storageaccountConfig(ri, rs, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "categories.#"),
@@ -35,7 +59,7 @@ func TestAccDataSourceAzureRMLogProfile_storageaccount(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMLogProfile_eventhub(t *testing.T) {
+func testAccDataSourceAzureRMLogProfile_eventhub(t *testing.T) {
 	dataSourceName := "data.azurerm_log_profile.test"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(10)
@@ -46,7 +70,7 @@ func TestAccDataSourceAzureRMLogProfile_eventhub(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLogProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMLogProfile_eventhub(ri, rs, testLocation()),
+				Config: testAccDataSourceAzureRMLogProfile_eventhubConfig(ri, rs, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "categories.#"),
@@ -62,10 +86,10 @@ func TestAccDataSourceAzureRMLogProfile_eventhub(t *testing.T) {
 	})
 }
 
-func testAccDataSourceAzureRMLogProfile_storageaccount(rInt int, rString string, location string) string {
+func testAccDataSourceAzureRMLogProfile_storageaccountConfig(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 		resource "azurerm_resource_group" "test" {
-			name     = "acctest%d-rg"
+			name     = "acctestrg-%d"
 			location = "%s"
 		}
 		
@@ -78,7 +102,7 @@ func testAccDataSourceAzureRMLogProfile_storageaccount(rInt int, rString string,
 		}
 			
 		resource "azurerm_log_profile" "test" {
-			name = "storageaccounttest-logprofile"
+			name = "acctestlp-%d"
 		
 			categories = [
 				"Action",
@@ -99,13 +123,13 @@ func testAccDataSourceAzureRMLogProfile_storageaccount(rInt int, rString string,
 		data "azurerm_log_profile" "test" {
 			name = "${azurerm_log_profile.test.name}"
 		}
-	`, rInt, location, rString, location)
+	`, rInt, location, rString, rInt, location)
 }
 
-func testAccDataSourceAzureRMLogProfile_eventhub(rInt int, rString string, location string) string {
+func testAccDataSourceAzureRMLogProfile_eventhubConfig(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 		resource "azurerm_resource_group" "test" {
-			name     = "acctest%d-rg"
+			name     = "acctestrg-%d"
 			location = "%s"
 		}
 		
@@ -118,7 +142,7 @@ func testAccDataSourceAzureRMLogProfile_eventhub(rInt int, rString string, locat
 		}
 			
 		resource "azurerm_log_profile" "test" {
-			name = "eventhubtest-logprofile"
+			name = "acctestlp-%d"
 		
 			categories = [
 				"Action",
@@ -140,5 +164,5 @@ func testAccDataSourceAzureRMLogProfile_eventhub(rInt int, rString string, locat
 		data "azurerm_log_profile" "test" {
 			name = "${azurerm_log_profile.test.name}"
 		}
-	`, rInt, location, rString, location)
+	`, rInt, location, rString, rInt, location)
 }

@@ -117,8 +117,7 @@ func resourceArmLogProfileCreateOrUpdate(d *schema.ResourceData, meta interface{
 	}
 
 	// Wait for Log Profile to become available
-	err := resource.Retry(300*time.Second, retryLogProfilesClientGet(name, meta))
-	if err != nil {
+	if err := resource.Retry(300*time.Second, retryLogProfilesClientGet(name, meta)); err != nil {
 		return err
 	}
 
