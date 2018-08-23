@@ -141,6 +141,7 @@ func TestAccAzureRMPostgreSQLVirtualNetworkRule_IgnoreEndpointValid(t *testing.T
 	is still applied since the endpoint validation will be set to false.
 */
 func TestAccAzureRMPostgreSQLVirtualNetworkRule_IgnoreEndpointInvalid(t *testing.T) {
+	t.Skip("This test is being skipped because the ARM response is 202 Accepted instead of 400 Bad Request.")
 	ri := acctest.RandInt()
 	config := testAccAzureRMPostgreSQLVirtualNetworkRule_ignoreEndpointInvalid(ri, testLocation())
 
