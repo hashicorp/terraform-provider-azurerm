@@ -7,22 +7,26 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/url"
 	"os"
 	"runtime"
 	"strings"
 	"sync"
 
 	"github.com/Azure/azure-sdk-for-go/storage"
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
 func resourceArmStorageBlob() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStorageBlobCreate,
-		Read:   resourceArmStorageBlobRead,
-		Update: resourceArmStorageBlobUpdate,
-		Exists: resourceArmStorageBlobExists,
-		Delete: resourceArmStorageBlobDelete,
+		Create:        resourceArmStorageBlobCreate,
+		Read:          resourceArmStorageBlobRead,
+		Update:        resourceArmStorageBlobUpdate,
+		Exists:        resourceArmStorageBlobExists,
+		Delete:        resourceArmStorageBlobDelete,
+		MigrateState:  resourceStorageBlobMigrateState,
+		SchemaVersion: 1,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -140,6 +144,7 @@ func validateArmStorageBlobType(v interface{}, k string) (ws []string, errors []
 func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
 	ctx := armClient.StopContext
+	env := armClient.environment
 
 	resourceGroupName := d.Get("resource_group_name").(string)
 	storageAccountName := d.Get("storage_account_name").(string)
@@ -210,7 +215,9 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	d.SetId(name)
+	// gives us https://example.core.windows.net/container/file.vhd
+	id := fmt.Sprintf("https://%s.%s/%s/%s", storageAccountName, env.StorageEndpointSuffix, cont, name)
+	d.SetId(id)
 	return resourceArmStorageBlobRead(d, meta)
 }
 
@@ -573,15 +580,26 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 	armClient := meta.(*ArmClient)
 	ctx := armClient.StopContext
 
-	resourceGroupName := d.Get("resource_group_name").(string)
-	storageAccountName := d.Get("storage_account_name").(string)
+	id, err := parseStorageBlobID(d.Id(), armClient.environment)
+	if err != nil {
+		return err
+	}
 
-	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
+	resourceGroup, err := determineResourceGroupForStorageAccount(id.storageAccountName, armClient)
+	if err != nil {
+		return err
+	}
+
+	if resourceGroup == nil {
+		return fmt.Errorf("Unable to determine Resource Group for Storage Account %q", id.storageAccountName)
+	}
+
+	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, *resourceGroup, id.storageAccountName)
 	if err != nil {
 		return err
 	}
 	if !accountExists {
-		log.Printf("[DEBUG] Storage account %q not found, removing blob %q from state", storageAccountName, d.Id())
+		log.Printf("[DEBUG] Storage account %q not found, removing blob %q from state", id.storageAccountName, d.Id())
 		d.SetId("")
 		return nil
 	}
@@ -596,22 +614,19 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 		return nil
 	}
 
-	name := d.Get("name").(string)
-	storageContainerName := d.Get("storage_container_name").(string)
-
-	container := blobClient.GetContainerReference(storageContainerName)
-	blob := container.GetBlobReference(name)
+	container := blobClient.GetContainerReference(id.containerName)
+	blob := container.GetBlobReference(id.blobName)
 
 	options := &storage.GetBlobPropertiesOptions{}
 	err = blob.GetProperties(options)
 	if err != nil {
-		return fmt.Errorf("Error getting properties of blob %s (container %s, storage account %s): %+v", name, storageContainerName, storageAccountName, err)
+		return fmt.Errorf("Error getting properties of blob %s (container %s, storage account %s): %+v", id.blobName, id.containerName, id.storageAccountName, err)
 	}
 	d.Set("content_type", blob.Properties.ContentType)
 
 	url := blob.GetURL()
 	if url == "" {
-		log.Printf("[INFO] URL for %q is empty", name)
+		log.Printf("[INFO] URL for %q is empty", id.blobName)
 	}
 	d.Set("url", url)
 
@@ -622,32 +637,39 @@ func resourceArmStorageBlobExists(d *schema.ResourceData, meta interface{}) (boo
 	armClient := meta.(*ArmClient)
 	ctx := armClient.StopContext
 
-	resourceGroupName := d.Get("resource_group_name").(string)
-	storageAccountName := d.Get("storage_account_name").(string)
+	id, err := parseStorageBlobID(d.Id(), armClient.environment)
+	if err != nil {
+		return false, err
+	}
 
-	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
+	resourceGroup, err := determineResourceGroupForStorageAccount(id.storageAccountName, armClient)
+	if err != nil {
+		return false, fmt.Errorf("Unable to determine Resource Group for Storage Account %q: %+v", id.storageAccountName, err)
+	}
+	if resourceGroup == nil {
+		return false, nil
+	}
+
+	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, *resourceGroup, id.storageAccountName)
 	if err != nil {
 		return false, err
 	}
 	if !accountExists {
-		log.Printf("[DEBUG] Storage account %q not found, removing blob %q from state", storageAccountName, d.Id())
+		log.Printf("[DEBUG] Storage account %q not found, removing blob %q from state", id.storageAccountName, d.Id())
 		d.SetId("")
 		return false, nil
 	}
 
-	name := d.Get("name").(string)
-	storageContainerName := d.Get("storage_container_name").(string)
-
-	log.Printf("[INFO] Checking for existence of storage blob %q.", name)
-	container := blobClient.GetContainerReference(storageContainerName)
-	blob := container.GetBlobReference(name)
+	log.Printf("[INFO] Checking for existence of storage blob %q.", id.blobName)
+	container := blobClient.GetContainerReference(id.containerName)
+	blob := container.GetBlobReference(id.blobName)
 	exists, err := blob.Exists()
 	if err != nil {
-		return false, fmt.Errorf("error testing existence of storage blob %q: %s", name, err)
+		return false, fmt.Errorf("error testing existence of storage blob %q: %s", id.blobName, err)
 	}
 
 	if !exists {
-		log.Printf("[INFO] Storage blob %q no longer exists, removing from state...", name)
+		log.Printf("[INFO] Storage blob %q no longer exists, removing from state...", id.blobName)
 		d.SetId("")
 	}
 
@@ -658,30 +680,92 @@ func resourceArmStorageBlobDelete(d *schema.ResourceData, meta interface{}) erro
 	armClient := meta.(*ArmClient)
 	ctx := armClient.StopContext
 
-	resourceGroupName := d.Get("resource_group_name").(string)
-	storageAccountName := d.Get("storage_account_name").(string)
+	id, err := parseStorageBlobID(d.Id(), armClient.environment)
+	if err != nil {
+		return err
+	}
 
-	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
+	resourceGroup, err := determineResourceGroupForStorageAccount(id.storageAccountName, armClient)
+	if err != nil {
+		return fmt.Errorf("Unable to determine Resource Group for Storage Account %q: %+v", id.storageAccountName, err)
+	}
+	if resourceGroup == nil {
+		log.Printf("[INFO] Resource Group doesn't exist so the blob won't exist")
+		return nil
+	}
+
+	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, *resourceGroup, id.storageAccountName)
 	if err != nil {
 		return err
 	}
 	if !accountExists {
-		log.Printf("[INFO]Storage Account %q doesn't exist so the blob won't exist", storageAccountName)
+		log.Printf("[INFO] Storage Account %q doesn't exist so the blob won't exist", id.storageAccountName)
 		return nil
 	}
 
-	name := d.Get("name").(string)
-	storageContainerName := d.Get("storage_container_name").(string)
-
-	log.Printf("[INFO] Deleting storage blob %q", name)
+	log.Printf("[INFO] Deleting storage blob %q", id.blobName)
 	options := &storage.DeleteBlobOptions{}
-	container := blobClient.GetContainerReference(storageContainerName)
-	blob := container.GetBlobReference(name)
+	container := blobClient.GetContainerReference(id.containerName)
+	blob := container.GetBlobReference(id.blobName)
 	_, err = blob.DeleteIfExists(options)
 	if err != nil {
-		return fmt.Errorf("Error deleting storage blob %q: %s", name, err)
+		return fmt.Errorf("Error deleting storage blob %q: %s", id.blobName, err)
 	}
 
-	d.SetId("")
 	return nil
+}
+
+type storageBlobId struct {
+	storageAccountName string
+	containerName      string
+	blobName           string
+}
+
+func parseStorageBlobID(input string, environment azure.Environment) (*storageBlobId, error) {
+	uri, err := url.Parse(input)
+	if err != nil {
+		return nil, fmt.Errorf("Error parsing %q as URI: %+v", input, err)
+	}
+
+	segments := strings.Split(uri.Path, "/")
+	if len(segments) < 2 {
+		return nil, fmt.Errorf("Expected number of segments in the path to be < 2 but got %d", len(segments))
+	}
+
+	storageAccountName := strings.Replace(uri.Host, fmt.Sprintf(".%s", environment.StorageEndpointSuffix), "", 1)
+	containerName := segments[0]
+	blobName := strings.TrimPrefix(uri.Path, fmt.Sprintf("/%s/", containerName))
+
+	id := storageBlobId{
+		storageAccountName: storageAccountName,
+		containerName:      containerName,
+		blobName:           blobName,
+	}
+	return &id, nil
+}
+
+func determineResourceGroupForStorageAccount(accountName string, client *ArmClient) (*string, error) {
+	storageClient := client.storageServiceClient
+	ctx := client.StopContext
+
+	// first locate which resource group the storage account is in
+	groupsResp, err := storageClient.List(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("Error loading the Resource Groups for Storage Account %q: %+v", accountName, err)
+	}
+
+	if groups := groupsResp.Value; groups != nil {
+		for _, group := range *groups {
+			if group.Name != nil && *group.Name == accountName {
+				groupId, err := parseAzureResourceID(*group.ID)
+				if err != nil {
+					return nil, err
+				}
+
+				return &groupId.ResourceGroup, nil
+			}
+		}
+	}
+
+	return nil, nil
 }
