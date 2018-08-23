@@ -1,12 +1,15 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
 	"github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -23,6 +26,11 @@ func resourceArmStorageShare() *schema.Resource {
 		},
 		SchemaVersion: 1,
 		MigrateState:  resourceStorageShareMigrateState,
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -57,7 +65,9 @@ func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) err
 	resourceGroupName := d.Get("resource_group_name").(string)
 	storageAccountName := d.Get("storage_account_name").(string)
 
-	fileClient, accountExists, err := armClient.getFileServiceClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutCreate))
+	defer cancel()
+	fileClient, accountExists, err := armClient.getFileServiceClientForStorageAccount(waitCtx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return err
 	}
@@ -69,8 +79,18 @@ func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) err
 	metaData := make(map[string]string) // TODO: support MetaData
 	options := &storage.FileRequestOptions{}
 
-	log.Printf("[INFO] Creating share %q in storage account %q", name, storageAccountName)
 	reference := fileClient.GetShareReference(name)
+	exists, err := reference.Exists()
+	if err != nil {
+		return fmt.Errorf("Error checking if the Share %q already exists within Storage Account %q: %+v", name, storageAccountName, err)
+	}
+
+	id := fmt.Sprintf("%s/%s/%s", name, resourceGroupName, storageAccountName)
+	if exists {
+		return tf.ImportAsExistsError("azurerm_storage_share", id)
+	}
+
+	log.Printf("[INFO] Creating share %q in storage account %q", name, storageAccountName)
 	err = reference.Create(options)
 
 	log.Printf("[INFO] Setting share %q metadata in storage account %q", name, storageAccountName)
@@ -81,9 +101,12 @@ func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) err
 	reference.Properties = storage.ShareProperties{
 		Quota: d.Get("quota").(int),
 	}
-	reference.SetProperties(options)
+	err = reference.SetProperties(options)
+	if err != nil {
+		return fmt.Errorf("Error setting properties on Share %q within Storage Account %q: %+v", name, storageAccountName, err)
+	}
 
-	d.SetId(fmt.Sprintf("%s/%s/%s", name, resourceGroupName, storageAccountName))
+	d.SetId(id)
 	return resourceArmStorageShareRead(d, meta)
 }
 
@@ -148,7 +171,9 @@ func resourceArmStorageShareUpdate(d *schema.ResourceData, meta interface{}) err
 	resourceGroupName := id[1]
 	storageAccountName := id[2]
 
-	fileClient, accountExists, err := armClient.getFileServiceClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutUpdate))
+	defer cancel()
+	fileClient, accountExists, err := armClient.getFileServiceClientForStorageAccount(waitCtx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return err
 	}
@@ -164,7 +189,10 @@ func resourceArmStorageShareUpdate(d *schema.ResourceData, meta interface{}) err
 	reference.Properties = storage.ShareProperties{
 		Quota: d.Get("quota").(int),
 	}
-	reference.SetProperties(options)
+	err = reference.SetProperties(options)
+	if err != nil {
+		return fmt.Errorf("Error setting properties on Share %q within Storage Account %q: %+v", name, storageAccountName, err)
+	}
 
 	return resourceArmStorageShareRead(d, meta)
 }
@@ -181,12 +209,14 @@ func resourceArmStorageShareDelete(d *schema.ResourceData, meta interface{}) err
 	resourceGroupName := id[1]
 	storageAccountName := id[2]
 
-	fileClient, accountExists, err := armClient.getFileServiceClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	fileClient, accountExists, err := armClient.getFileServiceClientForStorageAccount(waitCtx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return err
 	}
 	if !accountExists {
-		log.Printf("[INFO]Storage Account %q doesn't exist so the file won't exist", storageAccountName)
+		log.Printf("[INFO] Storage Account %q doesn't exist so the file won't exist", storageAccountName)
 		return nil
 	}
 
