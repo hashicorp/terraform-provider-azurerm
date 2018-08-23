@@ -1,26 +1,33 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/url"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func resourceArmStorageQueue() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStorageQueueCreate,
-		Read:   resourceArmStorageQueueRead,
-		Delete: resourceArmStorageQueueDelete,
+		Create:        resourceArmStorageQueueCreate,
+		Read:          resourceArmStorageQueueRead,
+		Delete:        resourceArmStorageQueueDelete,
+		SchemaVersion: 1,
+		MigrateState:  resourceStorageQueueMigrateState,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-		SchemaVersion: 1,
-		MigrateState:  resourceStorageQueueMigrateState,
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -39,35 +46,6 @@ func resourceArmStorageQueue() *schema.Resource {
 	}
 }
 
-func validateArmStorageQueueName(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(string)
-
-	if !regexp.MustCompile(`^[a-z0-9-]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"only lowercase alphanumeric characters and hyphens allowed in %q", k))
-	}
-
-	if regexp.MustCompile(`^-`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("%q cannot start with a hyphen", k))
-	}
-
-	if regexp.MustCompile(`-$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("%q cannot end with a hyphen", k))
-	}
-
-	if len(value) > 63 {
-		errors = append(errors, fmt.Errorf(
-			"%q cannot be longer than 63 characters", k))
-	}
-
-	if len(value) < 3 {
-		errors = append(errors, fmt.Errorf(
-			"%q must be at least 3 characters", k))
-	}
-
-	return
-}
-
 func resourceArmStorageQueueCreate(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
 	ctx := armClient.StopContext
@@ -77,7 +55,9 @@ func resourceArmStorageQueueCreate(d *schema.ResourceData, meta interface{}) err
 	resourceGroupName := d.Get("resource_group_name").(string)
 	storageAccountName := d.Get("storage_account_name").(string)
 
-	queueClient, accountExists, err := armClient.getQueueServiceClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutCreate))
+	defer cancel()
+	queueClient, accountExists, err := armClient.getQueueServiceClientForStorageAccount(waitCtx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return err
 	}
@@ -85,8 +65,17 @@ func resourceArmStorageQueueCreate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Storage Account %q Not Found", storageAccountName)
 	}
 
-	log.Printf("[INFO] Creating queue %q in storage account %q", name, storageAccountName)
 	queueReference := queueClient.GetQueueReference(name)
+	exists, err := queueReference.Exists()
+	if err != nil {
+		return fmt.Errorf("Error checking for the existence of queue %q in storage account %q: %+v", name, storageAccountName, err)
+	}
+
+	if exists {
+		return tf.ImportAsExistsError("azurerm_storage_queue", name)
+	}
+
+	log.Printf("[INFO] Creating queue %q in storage account %q", name, storageAccountName)
 	options := &storage.QueueServiceOptions{}
 	err = queueReference.Create(options)
 	if err != nil {
@@ -167,10 +156,13 @@ func resourceArmStorageQueueDelete(d *schema.ResourceData, meta interface{}) err
 		return nil
 	}
 
-	queueClient, accountExists, err := armClient.getQueueServiceClientForStorageAccount(ctx, *resourceGroup, id.storageAccountName)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	queueClient, accountExists, err := armClient.getQueueServiceClientForStorageAccount(waitCtx, *resourceGroup, id.storageAccountName)
 	if err != nil {
 		return err
 	}
+
 	if !accountExists {
 		log.Printf("[INFO]Storage Account %q doesn't exist so the blob won't exist", id.storageAccountName)
 		return nil
@@ -211,4 +203,33 @@ func parseStorageQueueID(input string) (*storageQueueId, error) {
 	}
 
 	return nil, nil
+}
+
+func validateArmStorageQueueName(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+
+	if !regexp.MustCompile(`^[a-z0-9-]+$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"only lowercase alphanumeric characters and hyphens allowed in %q", k))
+	}
+
+	if regexp.MustCompile(`^-`).MatchString(value) {
+		errors = append(errors, fmt.Errorf("%q cannot start with a hyphen", k))
+	}
+
+	if regexp.MustCompile(`-$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf("%q cannot end with a hyphen", k))
+	}
+
+	if len(value) > 63 {
+		errors = append(errors, fmt.Errorf(
+			"%q cannot be longer than 63 characters", k))
+	}
+
+	if len(value) < 3 {
+		errors = append(errors, fmt.Errorf(
+			"%q must be at least 3 characters", k))
+	}
+
+	return
 }
