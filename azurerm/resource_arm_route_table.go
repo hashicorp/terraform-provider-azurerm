@@ -255,10 +255,10 @@ func flattenRouteTableRoutes(input *[]network.Route) []interface{} {
 	return results
 }
 
-func flattenRouteTableSubnets(input *[]network.Subnet) []string {
+func flattenRouteTableSubnets(subnets *[]network.Subnet) []string {
 	output := []string{}
 
-	if subnets := input; subnets != nil {
+	if subnets != nil {
 		for _, subnet := range *subnets {
 			output = append(output, *subnet.ID)
 		}
