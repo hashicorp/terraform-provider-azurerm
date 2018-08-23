@@ -134,7 +134,7 @@ func TestAccAzureRMStorageBlob_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageBlob_basic(t *testing.T) {
+func TestAccAzureRMStorageBlob_requiresImport(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 	rs := strings.ToLower(acctest.RandString(11))

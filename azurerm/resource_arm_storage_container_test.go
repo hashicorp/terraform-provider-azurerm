@@ -40,7 +40,7 @@ func TestAccAzureRMStorageContainer_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageContainer_basic(t *testing.T) {
+func TestAccAzureRMStorageContainer_requiresImport(t *testing.T) {
 	var c storage.Container
 
 	ri := acctest.RandInt()
