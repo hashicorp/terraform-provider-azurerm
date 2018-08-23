@@ -87,5 +87,5 @@ The following attributes are exported in addition to the arguments listed above:
 Storage Blob's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_storage_blob.blob1 https://example.core.windows.net/container/blob.vhd
+terraform import azurerm_storage_blob.blob1 https://example.blob.core.windows.net/container/blob.vhd
 ```

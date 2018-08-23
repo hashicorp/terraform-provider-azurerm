@@ -64,5 +64,5 @@ The following attributes are exported in addition to the arguments listed above:
 Storage Containers can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_storage_container.container1 https://example.core.windows.net/container
+terraform import azurerm_storage_container.container1 https://example.blob.core.windows.net/container
 ```

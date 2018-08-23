@@ -30,7 +30,7 @@ func migrateStorageBlobStateV0toV1(is *terraform.InstanceState, meta interface{}
 	blobName := is.Attributes["name"]
 	containerName := is.Attributes["storage_container_name"]
 	storageAccountName := is.Attributes["storage_account_name"]
-	newID := fmt.Sprintf("https://%s.%s/%s/%s", storageAccountName, environment.StorageEndpointSuffix, containerName, blobName)
+	newID := fmt.Sprintf("https://%s.blob.%s/%s/%s", storageAccountName, environment.StorageEndpointSuffix, containerName, blobName)
 	is.Attributes["id"] = newID
 	is.ID = newID
 

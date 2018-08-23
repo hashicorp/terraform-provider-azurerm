@@ -29,7 +29,7 @@ func migrateStorageContainerStateV0toV1(is *terraform.InstanceState, meta interf
 
 	containerName := is.Attributes["name"]
 	storageAccountName := is.Attributes["storage_account_name"]
-	newID := fmt.Sprintf("https://%s.%s/%s", storageAccountName, environment.StorageEndpointSuffix, containerName)
+	newID := fmt.Sprintf("https://%s.blob.%s/%s", storageAccountName, environment.StorageEndpointSuffix, containerName)
 	is.Attributes["id"] = newID
 	is.ID = newID
 

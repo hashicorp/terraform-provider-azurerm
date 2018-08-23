@@ -129,7 +129,7 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error setting permissions for container %s in storage account %s: %+v", name, storageAccountName, err)
 	}
 
-	id := fmt.Sprintf("https://%s.%s/%s", storageAccountName, armClient.environment.StorageEndpointSuffix, name)
+	id := fmt.Sprintf("https://%s.blob.%s/%s", storageAccountName, armClient.environment.StorageEndpointSuffix, name)
 	d.SetId(id)
 	return resourceArmStorageContainerRead(d, meta)
 }
@@ -310,7 +310,7 @@ func parseStorageContainerID(input string, environment azure.Environment) (*stor
 		return nil, fmt.Errorf("Expected number of segments in the path to be < 1 but got %d", len(segments))
 	}
 
-	storageAccountName := strings.Replace(uri.Host, fmt.Sprintf(".%s", environment.StorageEndpointSuffix), "", 1)
+	storageAccountName := strings.Replace(uri.Host, fmt.Sprintf(".blob.%s", environment.StorageEndpointSuffix), "", 1)
 	containerName := segments[0]
 
 	id := storageContainerId{

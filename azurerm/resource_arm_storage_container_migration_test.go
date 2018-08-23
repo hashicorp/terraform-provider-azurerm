@@ -40,7 +40,7 @@ func TestAccAzureRMStorageContainerMigrateState(t *testing.T) {
 				"storage_account_name": "example",
 			},
 			ExpectedAttributes: map[string]string{
-				"id": fmt.Sprintf("https://example.%s/container", suffix),
+				"id": fmt.Sprintf("https://example.blob.%s/container", suffix),
 			},
 		},
 	}

@@ -218,8 +218,8 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	// gives us https://example.core.windows.net/container/file.vhd
-	id := fmt.Sprintf("https://%s.%s/%s/%s", storageAccountName, env.StorageEndpointSuffix, cont, name)
+	// gives us https://example.blob.core.windows.net/container/file.vhd
+	id := fmt.Sprintf("https://%s.blob.%s/%s/%s", storageAccountName, env.StorageEndpointSuffix, cont, name)
 	d.SetId(id)
 	return resourceArmStorageBlobRead(d, meta)
 }
@@ -735,7 +735,7 @@ func parseStorageBlobID(input string, environment azure.Environment) (*storageBl
 		return nil, fmt.Errorf("Expected number of segments in the path to be < 2 but got %d", len(segments))
 	}
 
-	storageAccountName := strings.Replace(uri.Host, fmt.Sprintf(".%s", environment.StorageEndpointSuffix), "", 1)
+	storageAccountName := strings.Replace(uri.Host, fmt.Sprintf(".blob.%s", environment.StorageEndpointSuffix), "", 1)
 	containerName := segments[0]
 	blobName := strings.TrimPrefix(uri.Path, fmt.Sprintf("/%s/", containerName))
 
