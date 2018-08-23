@@ -27,6 +27,9 @@ func resourceArmStorageBlob() *schema.Resource {
 		Delete:        resourceArmStorageBlobDelete,
 		MigrateState:  resourceStorageBlobMigrateState,
 		SchemaVersion: 1,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {

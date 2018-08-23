@@ -144,6 +144,7 @@ func TestResourceAzureRMStorageBlobAttempts_validation(t *testing.T) {
 }
 
 func TestAccAzureRMStorageBlob_basic(t *testing.T) {
+	resourceName := "azurerm_storage_blob.test"
 	ri := acctest.RandInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageBlob_basic(ri, rs, testLocation())
@@ -156,14 +157,20 @@ func TestAccAzureRMStorageBlob_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageBlobExists("azurerm_storage_blob.test"),
+					testCheckAzureRMStorageBlobExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func TestAccAzureRMStorageBlob_disappears(t *testing.T) {
+	resourceName := "azurerm_storage_blob.test"
 	ri := acctest.RandInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageBlob_basic(ri, rs, testLocation())
@@ -176,8 +183,8 @@ func TestAccAzureRMStorageBlob_disappears(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageBlobExists("azurerm_storage_blob.test"),
-					testCheckAzureRMStorageBlobDisappears("azurerm_storage_blob.test"),
+					testCheckAzureRMStorageBlobExists(resourceName),
+					testCheckAzureRMStorageBlobDisappears(resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -221,6 +228,7 @@ func TestAccAzureRMStorageBlobBlock_source(t *testing.T) {
 }
 
 func TestAccAzureRMStorageBlobPage_source(t *testing.T) {
+	resourceName := "azurerm_storage_blob.source"
 	ri := acctest.RandInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	sourceBlob, err := ioutil.TempFile("", "")
@@ -272,14 +280,20 @@ func TestAccAzureRMStorageBlobPage_source(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageBlobMatchesFile("azurerm_storage_blob.source", storage.BlobTypePage, sourceBlob.Name()),
+					testCheckAzureRMStorageBlobMatchesFile(resourceName, storage.BlobTypePage, sourceBlob.Name()),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func TestAccAzureRMStorageBlob_source_uri(t *testing.T) {
+	resourceName := "azurerm_storage_blob.destination"
 	ri := acctest.RandInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	sourceBlob, err := ioutil.TempFile("", "")
@@ -307,8 +321,13 @@ func TestAccAzureRMStorageBlob_source_uri(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageBlobMatchesFile("azurerm_storage_blob.destination", storage.BlobTypeBlock, sourceBlob.Name()),
+					testCheckAzureRMStorageBlobMatchesFile(resourceName, storage.BlobTypeBlock, sourceBlob.Name()),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
