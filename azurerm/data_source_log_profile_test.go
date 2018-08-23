@@ -70,7 +70,7 @@ func testAccDataSourceAzureRMLogProfile_storageaccount(rInt int, rString string,
 		}
 		
 		resource "azurerm_storage_account" "test" {
-			name                     = "%s"
+			name                     = "acctestsa%s"
 			resource_group_name      = "${azurerm_resource_group.test.name}"
 			location                 = "${azurerm_resource_group.test.location}"
 			account_tier             = "Standard"
@@ -110,7 +110,7 @@ func testAccDataSourceAzureRMLogProfile_eventhub(rInt int, rString string, locat
 		}
 		
 		resource "azurerm_eventhub_namespace" "test" {
-			name                = "a%s"
+			name                = "acctestehns-%s"
 			location            = "${azurerm_resource_group.test.location}"
 			resource_group_name = "${azurerm_resource_group.test.name}"
 			sku                 = "Standard"

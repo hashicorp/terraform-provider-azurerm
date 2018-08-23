@@ -11,6 +11,7 @@ import (
 )
 
 func TestAccAzureRMLogProfile_basic(t *testing.T) {
+	resourceName := "azurerm_log_profile.test"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(10)
 
@@ -22,8 +23,13 @@ func TestAccAzureRMLogProfile_basic(t *testing.T) {
 			{
 				Config: testAccAzureRMLogProfile_basic(ri, rs, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogProfileExists("azurerm_log_profile.test"),
+					testCheckAzureRMLogProfileExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -166,7 +172,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-	name                     = "%s"
+	name                     = "acctestsa%s"
 	resource_group_name      = "${azurerm_resource_group.test.name}"
 	location                 = "${azurerm_resource_group.test.location}"
 	account_tier             = "Standard"
@@ -202,14 +208,14 @@ resource "azurerm_resource_group" "test" {
 }
 	
 resource "azurerm_servicebus_namespace" "test" {
-  name                = "a%s"
+  name                = "acctestsbns-%s"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "standard"
 }
 
 resource "azurerm_servicebus_namespace_authorization_rule" "test" {
-  name                = "%s"
+  name                = "acctestsbrule-%s"
   namespace_name      = "${azurerm_servicebus_namespace.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -247,7 +253,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "%s"
+  name                     = "acctestsa%s"
   resource_group_name      = "${azurerm_resource_group.test.name}"
   location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
@@ -255,7 +261,7 @@ resource "azurerm_storage_account" "test" {
 }
 	
 resource "azurerm_eventhub_namespace" "test" {
-  name                = "a%s"
+  name                = "acctestehns-%s"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
