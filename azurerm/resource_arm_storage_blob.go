@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
@@ -12,10 +13,13 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func resourceArmStorageBlob() *schema.Resource {
@@ -28,6 +32,11 @@ func resourceArmStorageBlob() *schema.Resource {
 		SchemaVersion: 1,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -48,10 +57,13 @@ func resourceArmStorageBlob() *schema.Resource {
 				ForceNew: true,
 			},
 			"type": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validateArmStorageBlobType,
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"block",
+					"page",
+				}, false),
 			},
 			"size": {
 				Type:         schema.TypeInt,
@@ -78,10 +90,6 @@ func resourceArmStorageBlob() *schema.Resource {
 				ForceNew:      true,
 				ConflictsWith: []string{"source"},
 			},
-			"url": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"parallelism": {
 				Type:         schema.TypeInt,
 				Optional:     true,
@@ -96,51 +104,12 @@ func resourceArmStorageBlob() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validateArmStorageBlobAttempts,
 			},
+			"url": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
-}
-
-func validateArmStorageBlobParallelism(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(int)
-
-	if value <= 0 {
-		errors = append(errors, fmt.Errorf("Blob Parallelism %q is invalid, must be greater than 0", value))
-	}
-
-	return
-}
-
-func validateArmStorageBlobAttempts(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(int)
-
-	if value <= 0 {
-		errors = append(errors, fmt.Errorf("Blob Attempts %q is invalid, must be greater than 0", value))
-	}
-
-	return
-}
-
-func validateArmStorageBlobSize(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(int)
-
-	if value%512 != 0 {
-		errors = append(errors, fmt.Errorf("Blob Size %q is invalid, must be a multiple of 512", value))
-	}
-
-	return
-}
-
-func validateArmStorageBlobType(v interface{}, k string) (ws []string, errors []error) {
-	value := strings.ToLower(v.(string))
-	validTypes := map[string]struct{}{
-		"block": {},
-		"page":  {},
-	}
-
-	if _, ok := validTypes[value]; !ok {
-		errors = append(errors, fmt.Errorf("Blob type %q is invalid, must be %q or %q", value, "block", "page"))
-	}
-	return
 }
 
 func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) error {
@@ -151,7 +120,9 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 	resourceGroupName := d.Get("resource_group_name").(string)
 	storageAccountName := d.Get("storage_account_name").(string)
 
-	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutCreate))
+	defer cancel()
+	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(waitCtx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return err
 	}
@@ -160,14 +131,32 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	name := d.Get("name").(string)
-	blobType := d.Get("type").(string)
 	containerName := d.Get("storage_container_name").(string)
+
+	container := blobClient.GetContainerReference(containerName)
+	exists, err := container.Exists()
+	if err != nil {
+		return fmt.Errorf("Error checking if container %q exists in storage account %q: %+v", containerName, storageAccountName, err)
+	}
+
+	if !exists {
+		return fmt.Errorf("Container %q doesn't exist within Storage Account %q", containerName, storageAccountName)
+	}
+
+	blob := container.GetBlobReference(name)
+	exists, err = blob.Exists()
+	if err != nil {
+		return fmt.Errorf("Error checking if blob %q exists in container %q: %+v", name, containerName, err)
+	}
+	if exists {
+		return tf.ImportAsExistsError("azurerm_storage_blob", name)
+	}
+
+	blobType := d.Get("type").(string)
 	sourceUri := d.Get("source_uri").(string)
 	contentType := d.Get("content_type").(string)
 
 	log.Printf("[INFO] Creating blob %q in container %q within storage account %q", name, containerName, storageAccountName)
-	container := blobClient.GetContainerReference(containerName)
-	blob := container.GetBlobReference(name)
 
 	if sourceUri != "" {
 		options := &storage.CopyOptions{}
@@ -188,7 +177,6 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 			if source != "" {
 				parallelism := d.Get("parallelism").(int)
 				attempts := d.Get("attempts").(int)
-
 				if err := resourceArmStorageBlobBlockUploadFromSource(containerName, name, source, contentType, blobClient, parallelism, attempts); err != nil {
 					return fmt.Errorf("Error creating storage blob on Azure: %s", err)
 				}
@@ -198,14 +186,12 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 			if source != "" {
 				parallelism := d.Get("parallelism").(int)
 				attempts := d.Get("attempts").(int)
-
 				if err := resourceArmStorageBlobPageUploadFromSource(containerName, name, source, contentType, blobClient, parallelism, attempts); err != nil {
 					return fmt.Errorf("Error creating storage blob on Azure: %s", err)
 				}
 			} else {
 				size := int64(d.Get("size").(int))
 				options := &storage.PutBlobOptions{}
-
 				blob.Properties.ContentLength = size
 				blob.Properties.ContentType = contentType
 				err := blob.PutPageBlob(options)
@@ -242,6 +228,7 @@ func resourceArmStorageBlobPageUploadFromSource(container, name, source, content
 	}
 
 	options := &storage.PutBlobOptions{}
+	// we don't bother re-checking if they exist here, since this is done in the Create
 	containerRef := client.GetContainerReference(container)
 	blob := containerRef.GetBlobReference(name)
 	blob.Properties.ContentLength = blobSize
@@ -561,7 +548,9 @@ func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Unable to determine Resource Group for Storage Account %q", id.storageAccountName)
 	}
 
-	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, *resourceGroup, id.storageAccountName)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutUpdate))
+	defer cancel()
+	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(waitCtx, *resourceGroup, id.storageAccountName)
 	if err != nil {
 		return fmt.Errorf("Error getting storage account %s: %+v", id.storageAccountName, err)
 	}
@@ -649,6 +638,7 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 	if url == "" {
 		log.Printf("[INFO] URL for %q is empty", id.blobName)
 	}
+
 	d.Set("url", url)
 
 	return nil
@@ -672,7 +662,9 @@ func resourceArmStorageBlobDelete(d *schema.ResourceData, meta interface{}) erro
 		return nil
 	}
 
-	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, *resourceGroup, id.storageAccountName)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(waitCtx, *resourceGroup, id.storageAccountName)
 	if err != nil {
 		return err
 	}
@@ -747,4 +739,34 @@ func determineResourceGroupForStorageAccount(accountName string, client *ArmClie
 	}
 
 	return nil, nil
+}
+
+func validateArmStorageBlobAttempts(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(int)
+
+	if value <= 0 {
+		errors = append(errors, fmt.Errorf("Blob Attempts %q is invalid, must be greater than 0", value))
+	}
+
+	return
+}
+
+func validateArmStorageBlobSize(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(int)
+
+	if value%512 != 0 {
+		errors = append(errors, fmt.Errorf("Blob Size %q is invalid, must be a multiple of 512", value))
+	}
+
+	return
+}
+
+func validateArmStorageBlobParallelism(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(int)
+
+	if value <= 0 {
+		errors = append(errors, fmt.Errorf("Blob Parallelism %q is invalid, must be greater than 0", value))
+	}
+
+	return
 }

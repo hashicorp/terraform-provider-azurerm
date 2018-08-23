@@ -15,42 +15,6 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestResourceAzureRMStorageBlobType_validation(t *testing.T) {
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{
-			Value:    "unknown",
-			ErrCount: 1,
-		},
-		{
-			Value:    "page",
-			ErrCount: 0,
-		},
-		{
-			Value:    "block",
-			ErrCount: 0,
-		},
-		{
-			Value:    "BLOCK",
-			ErrCount: 0,
-		},
-		{
-			Value:    "Block",
-			ErrCount: 0,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := validateArmStorageBlobType(tc.Value, "azurerm_storage_blob")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Azure RM Storage Blob type to trigger a validation error")
-		}
-	}
-}
-
 func TestResourceAzureRMStorageBlobSize_validation(t *testing.T) {
 	cases := []struct {
 		Value    int
@@ -165,6 +129,30 @@ func TestAccAzureRMStorageBlob_basic(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMStorageBlob_basic(t *testing.T) {
+	ri := acctest.RandInt()
+	location := testLocation()
+	rs := strings.ToLower(acctest.RandString(11))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageBlob_basic(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageBlobExists("azurerm_storage_blob.test"),
+				),
+			},
+			{
+				Config:      testAccAzureRMStorageBlob_requiresImport(ri, rs, location),
+				ExpectError: testRequiresImportError("azurerm_storage_blob"),
 			},
 		},
 	})
@@ -595,6 +583,22 @@ resource "azurerm_storage_blob" "test" {
     size = 5120
 }
 `, rInt, location, rString)
+}
+
+func testAccAzureRMStorageBlob_requiresImport(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageBlob_basic(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_blob" "import" {
+  name                   = "${azurerm_storage_blob.test.name}"
+  resource_group_name    = "${azurerm_storage_blob.test.resource_group_name}"
+  storage_account_name   = "${azurerm_storage_blob.test.storage_account_name}"
+  storage_container_name = "${azurerm_storage_blob.test.storage_container_name}"
+  type                   = "${azurerm_storage_blob.test.type}"
+  size                   = "${azurerm_storage_blob.test.size}"
+}
+`, template)
 }
 
 func testAccAzureRMStorageBlobBlock_source(rInt int, rString string, sourceBlobName string, location string) string {
