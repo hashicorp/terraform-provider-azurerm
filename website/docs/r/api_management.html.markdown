@@ -178,8 +178,6 @@ The following attributes are exported:
 
 * `id` - The ID of the App Service Plan component.
 
-* `created` - Creation date of the API Management service.
-
 * `gateway_url` - Gateway URL of the API Management service.
 
 * `gateway_regional_url` - Gateway URL of the API Management service in the Default Region.

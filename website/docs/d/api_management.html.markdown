@@ -43,8 +43,6 @@ output "api_management_id" {
 
 * `notification_sender_email` - Email address from which the notification will be sent.
 
-* `created` - Creation date of the API Management service.
-
 * `gateway_url` - Gateway URL of the API Management service.
 
 * `gateway_regional_url` - Gateway URL of the API Management service in the Default Region.
