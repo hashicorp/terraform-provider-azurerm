@@ -9,18 +9,19 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func resourceArmStorageTable() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStorageTableCreate,
-		Read:   resourceArmStorageTableRead,
-		Delete: resourceArmStorageTableDelete,
+		Create:        resourceArmStorageTableCreate,
+		Read:          resourceArmStorageTableRead,
+		Delete:        resourceArmStorageTableDelete,
+		SchemaVersion: 1,
+		MigrateState:  resourceStorageTableMigrateState,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-		SchemaVersion: 1,
-		MigrateState:  resourceStorageTableMigrateState,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -37,22 +38,6 @@ func resourceArmStorageTable() *schema.Resource {
 			},
 		},
 	}
-}
-
-func validateArmStorageTableName(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(string)
-	if value == "table" {
-		errors = append(errors, fmt.Errorf(
-			"Table Storage %q cannot use the word `table`: %q",
-			k, value))
-	}
-	if !regexp.MustCompile(`^[A-Za-z][A-Za-z0-9]{2,62}$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"Table Storage %q cannot begin with a numeric character, only alphanumeric characters are allowed and must be between 3 and 63 characters long: %q",
-			k, value))
-	}
-
-	return
 }
 
 func resourceArmStorageTableCreate(d *schema.ResourceData, meta interface{}) error {
@@ -72,10 +57,20 @@ func resourceArmStorageTableCreate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Storage Account %q Not Found", storageAccountName)
 	}
 
-	table := tableClient.GetTableReference(name)
+	// firstly check if the table already exists and needs importing
+	tables, err := tableClient.QueryTables(storage.MinimalMetadata, &storage.QueryTablesOptions{})
+	if err != nil {
+		return fmt.Errorf("Failed to retrieve storage tables in account %q: %s", name, err)
+	}
+
+	for _, t := range tables.Tables {
+		if t.Name == name {
+			return tf.ImportAsExistsError("azurerm_storage_table", t.Name)
+		}
+	}
 
 	log.Printf("[INFO] Creating table %q in storage account %q.", name, storageAccountName)
-
+	table := tableClient.GetTableReference(name)
 	timeout := uint(60)
 	options := &storage.TableOptions{}
 	err = table.Create(timeout, storage.NoMetadata, options)
@@ -119,9 +114,8 @@ func resourceArmStorageTableRead(d *schema.ResourceData, meta interface{}) error
 		return nil
 	}
 
-	metaDataLevel := storage.MinimalMetadata
 	options := &storage.QueryTablesOptions{}
-	tables, err := tableClient.QueryTables(metaDataLevel, options)
+	tables, err := tableClient.QueryTables(storage.MinimalMetadata, options)
 	if err != nil {
 		return fmt.Errorf("Failed to retrieve Tables in Storage Account %q: %s", id.tableName, err)
 	}
@@ -211,4 +205,20 @@ func parseStorageTableID(input string) (*storageTableId, error) {
 	}
 
 	return nil, nil
+}
+
+func validateArmStorageTableName(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+	if value == "table" {
+		errors = append(errors, fmt.Errorf(
+			"Table Storage %q cannot use the word `table`: %q",
+			k, value))
+	}
+	if !regexp.MustCompile(`^[A-Za-z][A-Za-z0-9]{2,62}$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"Table Storage %q cannot begin with a numeric character, only alphanumeric characters are allowed and must be between 3 and 63 characters long: %q",
+			k, value))
+	}
+
+	return
 }
