@@ -71,7 +71,8 @@ func resourceArmLogProfile() *schema.Resource {
 						},
 						"days": {
 							Type:     schema.TypeInt,
-							Required: true,
+							Optional: true,
+							Default:  0,
 						},
 					},
 				},
@@ -84,42 +85,39 @@ func resourceArmLogProfileCreateOrUpdate(d *schema.ResourceData, meta interface{
 	client := meta.(*ArmClient).logProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
+	name := d.Get("name").(string)
+	storageAccountID := d.Get("storage_account_id").(string)
+	serviceBusRuleID := d.Get("service_bus_rule_id").(string)
+
 	categories := expandLogProfileCategories(d)
 	locations := expandLogProfileLocations(d)
-	retentionPolicy, err := expandAzureRmLogProfileRetentionPolicy(d)
-	if err != nil {
-		return err
-	}
+	retentionPolicy := expandAzureRmLogProfileRetentionPolicy(d)
 
-	logProfileProperties := insights.LogProfileProperties{
+	logProfileProperties := &insights.LogProfileProperties{
 		Categories:      &categories,
 		Locations:       &locations,
-		RetentionPolicy: retentionPolicy,
+		RetentionPolicy: &retentionPolicy,
 	}
 
-	storageAccountID := d.Get("storage_account_id").(string)
 	if storageAccountID != "" {
 		logProfileProperties.StorageAccountID = utils.String(storageAccountID)
 	}
 
-	serviceBusRuleID := d.Get("service_bus_rule_id").(string)
 	if serviceBusRuleID != "" {
 		logProfileProperties.ServiceBusRuleID = utils.String(serviceBusRuleID)
 	}
 
-	name := d.Get("name").(string)
 	parameters := insights.LogProfileResource{
 		Name:                 utils.String(name),
-		LogProfileProperties: &logProfileProperties,
+		LogProfileProperties: logProfileProperties,
 	}
 
-	_, createErr := client.CreateOrUpdate(ctx, name, parameters)
-	if createErr != nil {
-		return fmt.Errorf("Error Creating/Updating Log Profile %q: %+v", name, createErr)
+	if _, err := client.CreateOrUpdate(ctx, name, parameters); err != nil {
+		return fmt.Errorf("Error Creating/Updating Log Profile %q: %+v", name, err)
 	}
 
 	// Wait for Log Profile to become available
-	err = resource.Retry(300*time.Second, retryLogProfilesClientGet(name, meta))
+	err := resource.Retry(300*time.Second, retryLogProfilesClientGet(name, meta))
 	if err != nil {
 		return err
 	}
@@ -156,14 +154,9 @@ func resourceArmLogProfileRead(d *schema.ResourceData, meta interface{}) error {
 	if props := resp.LogProfileProperties; props != nil {
 		d.Set("storage_account_id", props.StorageAccountID)
 		d.Set("service_bus_rule_id", props.ServiceBusRuleID)
-
-		locations := make([]string, len(*props.Locations))
-		for index, location := range *props.Locations {
-			locations[index] = azureRMNormalizeLocation(location)
-		}
-		d.Set("locations", locations)
 		d.Set("categories", props.Categories)
 
+		d.Set("locations", flattenAzureRmLogProfileLocations(props.Locations))
 		d.Set("retention_policy", flattenAzureRmLogProfileRetentionPolicy(props.RetentionPolicy))
 	}
 
@@ -200,32 +193,45 @@ func expandLogProfileLocations(d *schema.ResourceData) []string {
 	locations := []string{}
 
 	for _, location := range logProfileLocations {
-		locations = append(locations, location.(string))
+		locations = append(locations, azureRMNormalizeLocation(location.(string)))
 	}
 
 	return locations
 }
 
-func expandAzureRmLogProfileRetentionPolicy(d *schema.ResourceData) (*insights.RetentionPolicy, error) {
-	retentionPolicies := d.Get("retention_policy").([]interface{})
-
-	if len(retentionPolicies) > 0 {
-		retentionPolicy := retentionPolicies[0].(map[string]interface{})
-		logProfileRetentionPolicy := &insights.RetentionPolicy{
-			Enabled: utils.Bool(retentionPolicy["enabled"].(bool)),
-			Days:    utils.Int32(int32(retentionPolicy["days"].(int))),
-		}
-
-		return logProfileRetentionPolicy, nil
+func expandAzureRmLogProfileRetentionPolicy(d *schema.ResourceData) insights.RetentionPolicy {
+	enabled := d.Get("retention_policy.0.enabled")
+	days := d.Get("retention_policy.0.days")
+	logProfileRetentionPolicy := insights.RetentionPolicy{
+		Enabled: utils.Bool(enabled.(bool)),
+		Days:    utils.Int32(int32(days.(int))),
 	}
 
-	return nil, fmt.Errorf("[ERROR] Retention policy must be set")
+	return logProfileRetentionPolicy
+}
+
+func flattenAzureRmLogProfileLocations(input *[]string) []string {
+	result := make([]string, 0)
+	if input != nil {
+		for _, location := range *input {
+			result = append(result, azureRMNormalizeLocation(location))
+		}
+	}
+
+	return result
 }
 
 func flattenAzureRmLogProfileRetentionPolicy(input *insights.RetentionPolicy) []interface{} {
 	result := make(map[string]interface{})
-	result["enabled"] = *input.Enabled
-	result["days"] = *input.Days
+	if input != nil {
+		if input.Enabled != nil {
+			result["enabled"] = *input.Enabled
+		}
+
+		if input.Days != nil {
+			result["days"] = *input.Days
+		}
+	}
 
 	return []interface{}{result}
 }

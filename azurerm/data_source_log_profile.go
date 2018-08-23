@@ -67,7 +67,7 @@ func dataSourceArmLogProfileRead(d *schema.ResourceData, meta interface{}) error
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
-			return nil
+			return fmt.Errorf("Error: Log Profile %q was not found", name)
 		}
 		return fmt.Errorf("Error reading Log Profile: %+v", err)
 	}
@@ -77,14 +77,9 @@ func dataSourceArmLogProfileRead(d *schema.ResourceData, meta interface{}) error
 	if props := resp.LogProfileProperties; props != nil {
 		d.Set("storage_account_id", props.StorageAccountID)
 		d.Set("service_bus_rule_id", props.ServiceBusRuleID)
-
-		locations := make([]string, len(*props.Locations))
-		for index, location := range *props.Locations {
-			locations[index] = azureRMNormalizeLocation(location)
-		}
-		d.Set("locations", locations)
 		d.Set("categories", props.Categories)
 
+		d.Set("locations", flattenAzureRmLogProfileLocations(props.Locations))
 		d.Set("retention_policy", flattenAzureRmLogProfileRetentionPolicy(props.RetentionPolicy))
 	}
 
