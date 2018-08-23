@@ -177,65 +177,66 @@ resource "azurerm_resource_group" "test2" {
 }
 
 resource "azurerm_api_management" "test" {
-  name                			= "acctestAM-%d"
-  publisher_name      			= "pub1"
-  publisher_email     			= "pub1@email.com"
-	notification_sender_email = "notification@email.com"
+  name                      = "acctestAM-%d"
+  publisher_name            = "pub1"
+  publisher_email           = "pub1@email.com"
+  notification_sender_email = "notification@email.com"
 
-	additional_location {
-		location			= "${azurerm_resource_group.test2.location}"
-		sku {
-			name = "Premium"
-		}
-	}
+  additional_location {
+    location = "${azurerm_resource_group.test2.location}"
 
-	certificate {
-		encoded_certificate		= "${base64encode(file("testdata/api_management_api_test.pfx"))}"
-		certificate_password  = "terraform"
-		store_name						= "CertificateAuthority"
-	}
+    sku {
+      name = "Premium"
+    }
+  }
 
-	certificate {
-		encoded_certificate		= "${base64encode(file("testdata/api_management_api_test.pfx"))}"
-		certificate_password  = "terraform"
-		store_name						= "Root"
-	}
+  certificate {
+    encoded_certificate  = "${base64encode(file("testdata/api_management_api_test.pfx"))}"
+    certificate_password = "terraform"
+    store_name           = "CertificateAuthority"
+  }
 
-	custom_properties {
-		Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168 = "true"
-	}
+  certificate {
+    encoded_certificate  = "${base64encode(file("testdata/api_management_api_test.pfx"))}"
+    certificate_password = "terraform"
+    store_name           = "Root"
+  }
 
-	hostname_configuration {
-		type													= "Proxy"
-		host_name 										= "api.terraform.io"
-		certificate 									= "${base64encode(file("testdata/api_management_api_test.pfx"))}"
-		certificate_password 					= "terraform"
-		default_ssl_binding 					= true
-		negotiate_client_certificate 	= false
-	}
+  custom_properties {
+    Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168 = "true"
+  }
 
-	hostname_configuration {
-		type 													= "Proxy"
-		host_name 										= "api2.terraform.io"
-		certificate 									= "${base64encode(file("testdata/api_management_api2_test.pfx"))}"
-		certificate_password 					= "terraform"
-		negotiate_client_certificate 	= true
-	}
+  hostname_configuration {
+    type                         = "Proxy"
+    host_name                    = "api.terraform.io"
+    certificate                  = "${base64encode(file("testdata/api_management_api_test.pfx"))}"
+    certificate_password         = "terraform"
+    default_ssl_binding          = true
+    negotiate_client_certificate = false
+  }
 
-	hostname_configuration {
-		type 													= "Portal"
-		host_name 										= "portal.terraform.io"
-		certificate 									= "${base64encode(file("testdata/api_management_portal_test.pfx"))}"
-		certificate_password 					= "terraform"
-	}
+  hostname_configuration {
+    type                         = "Proxy"
+    host_name                    = "api2.terraform.io"
+    certificate                  = "${base64encode(file("testdata/api_management_api2_test.pfx"))}"
+    certificate_password         = "terraform"
+    negotiate_client_certificate = true
+  }
+
+  hostname_configuration {
+    type                 = "Portal"
+    host_name            = "portal.terraform.io"
+    certificate          = "${base64encode(file("testdata/api_management_portal_test.pfx"))}"
+    certificate_password = "terraform"
+  }
 
   sku {
     name = "Premium"
   }
 
-	tags {
-		test = "true"
-	}
+  tags {
+    test = "true"
+  }
 
   location            = "${azurerm_resource_group.test1.location}"
   resource_group_name = "${azurerm_resource_group.test1.name}"

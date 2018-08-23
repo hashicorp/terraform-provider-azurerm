@@ -55,11 +55,6 @@ func dataSourceApiManagementService() *schema.Resource {
 				Computed: true,
 			},
 
-			"created": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"gateway_url": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -194,42 +189,34 @@ func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("publisher_name", props.PublisherName)
 
 		d.Set("notification_sender_email", props.NotificationSenderEmail)
-		d.Set("created", props.CreatedAtUtc.Format(time.RFC3339))
 		d.Set("gateway_url", props.GatewayURL)
 		d.Set("gateway_regional_url", props.GatewayRegionalURL)
 		d.Set("portal_url", props.PortalURL)
 		d.Set("management_api_url", props.ManagementAPIURL)
 		d.Set("scm_url", props.ScmURL)
 		d.Set("static_ips", props.StaticIps)
-		d.Set("custom_properties", &props.CustomProperties)
 
-		hostnameConfigurations, err := flattenDataSourceApiManagementHostnameConfigurations(d, props.HostnameConfigurations)
-		if err != nil {
-			return err
+		if err := d.Set("custom_properties", flattenApiManagementCustomProperties(props.CustomProperties)); err != nil {
+			return fmt.Errorf("Error setting `custom_properties`: %+v", err)
 		}
 
-		if err := d.Set("hostname_configuration", hostnameConfigurations); err != nil {
+		if err := d.Set("hostname_configuration", flattenApiManagementHostnameConfigurations(d, props.HostnameConfigurations)); err != nil {
 			return fmt.Errorf("Error setting `hostname_configuration`: %+v", err)
 		}
 
-		additionalLocations := flattenDataSourceApiManagementAdditionalLocations(props.AdditionalLocations)
-		if err := d.Set("additional_location", additionalLocations); err != nil {
+		if err := d.Set("additional_location", flattenApiManagementAdditionalLocations(props.AdditionalLocations)); err != nil {
 			return fmt.Errorf("Error setting `additional_location`: %+v", err)
 		}
 
-		certificates, err := flattenDataSourceApiManagementCertificates(d, props.Certificates)
-
-		if err != nil {
-			return err
-		}
-
-		if err := d.Set("certificate", certificates); err != nil {
+		if err := d.Set("certificate", flattenApiManagementCertificates(d, props.Certificates)); err != nil {
 			return fmt.Errorf("Error setting `certificate`: %+v", err)
 		}
 	}
 
 	if sku := resp.Sku; sku != nil {
-		d.Set("sku", flattenDataSourceApiManagementServiceSku(sku))
+		if err := d.Set("sku", flattenApiManagementServiceSku(sku)); err != nil {
+			return fmt.Errorf("Error flattening `sku`: %+v", err)
+		}
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -261,7 +248,7 @@ func apiManagementDataSourceCertificateInfoSchema() *schema.Schema {
 }
 
 func flattenDataSourceApiManagementHostnameConfigurations(d *schema.ResourceData, configs *[]apimanagement.HostnameConfiguration) ([]interface{}, error) {
-	host_configs := make([]interface{}, 0, 1)
+	host_configs := make([]interface{}, 0)
 
 	if configs != nil {
 		for i, config := range *configs {
@@ -310,15 +297,20 @@ func flattenDataSourceApiManagementHostnameConfigurations(d *schema.ResourceData
 
 func flattenDataSourceApiManagementCertificate(cert *apimanagement.CertificateInformation) []interface{} {
 	certificate := make(map[string]interface{}, 2)
-	certInfos := make([]interface{}, 0, 1)
+	certInfos := make([]interface{}, 0)
 
 	if cert != nil {
 		if cert.Expiry != nil {
 			certificate["expiry"] = cert.Expiry.Format(time.RFC3339)
 		}
 
-		certificate["thumbprint"] = *cert.Thumbprint
-		certificate["subject"] = *cert.Subject
+		if cert.Thumbprint != nil {
+			certificate["thumbprint"] = *cert.Thumbprint
+		}
+
+		if cert.Subject != nil {
+			certificate["subject"] = *cert.Subject
+		}
 
 		certInfos = append(certInfos, certificate)
 	}
@@ -327,7 +319,7 @@ func flattenDataSourceApiManagementCertificate(cert *apimanagement.CertificateIn
 }
 
 func flattenDataSourceApiManagementAdditionalLocations(props *[]apimanagement.AdditionalLocation) []interface{} {
-	additional_locations := make([]interface{}, 0, 1)
+	additional_locations := make([]interface{}, 0)
 
 	if props != nil {
 		for _, prop := range *props {
@@ -353,15 +345,13 @@ func flattenDataSourceApiManagementAdditionalLocations(props *[]apimanagement.Ad
 }
 
 func flattenDataSourceApiManagementCertificates(d *schema.ResourceData, props *[]apimanagement.CertificateConfiguration) ([]interface{}, error) {
-	certificates := make([]interface{}, 0, 1)
+	certificates := make([]interface{}, 0)
 
 	if props != nil {
 		for i, prop := range *props {
 			certificate := make(map[string]interface{}, 2)
 
-			if prop.StoreName != "" {
-				certificate["store_name"] = string(prop.StoreName)
-			}
+			certificate["store_name"] = string(prop.StoreName)
 
 			if cert := flattenDataSourceApiManagementCertificate(prop.Certificate); cert != nil {
 				certificate["certificate_info"] = cert
@@ -393,8 +383,13 @@ func flattenDataSourceApiManagementServiceSku(profile *apimanagement.ServiceSkuP
 	sku := make(map[string]interface{}, 2)
 
 	if profile != nil {
-		sku["name"] = string(profile.Name)
-		sku["capacity"] = *profile.Capacity
+		if profile.Name != "" {
+			sku["name"] = string(profile.Name)
+		}
+
+		if profile.Capacity != nil {
+			sku["capacity"] = *profile.Capacity
+		}
 	}
 
 	skus = append(skus, sku)

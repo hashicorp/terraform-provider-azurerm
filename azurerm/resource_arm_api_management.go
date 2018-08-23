@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2017-03-01/apimanagement"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -188,11 +187,6 @@ func resourceArmApiManagementService() *schema.Resource {
 
 			"tags": tagsSchema(),
 
-			"created": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"gateway_url": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -237,28 +231,49 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 		sku = expandAzureRmApiManagementSku(skuConfig)
 	}
 
-	properties := expandAzureRmApiManagementProperties(d, sku)
+	publisher_name := d.Get("publisher_name").(string)
+	publisher_email := d.Get("publisher_email").(string)
+	notification_sender_email := d.Get("notification_sender_email").(string)
+
+	custom_properties := expandApiManagementCustomProperties(d)
+
+	additional_locations := expandAzureRmApiManagementAdditionalLocations(d, sku)
+	certificates := expandAzureRmApiManagementCertificates(d)
+	hostname_configurations := expandAzureRmApiManagementHostnameConfigurations(d)
+
+	properties := apimanagement.ServiceProperties{
+		PublisherName:          utils.String(publisher_name),
+		PublisherEmail:         utils.String(publisher_email),
+		CustomProperties:       custom_properties,
+		AdditionalLocations:    additional_locations,
+		Certificates:           certificates,
+		HostnameConfigurations: hostname_configurations,
+	}
+
+	if notification_sender_email != "" {
+		properties.NotificationSenderEmail = &notification_sender_email
+	}
 
 	apiManagement := apimanagement.ServiceResource{
 		Location:          &location,
-		ServiceProperties: properties,
+		ServiceProperties: &properties,
 		Tags:              expandTags(tags),
 		Sku:               sku,
 	}
 
-	createFuture, err := client.CreateOrUpdate(ctx, resGroup, name, apiManagement)
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, apiManagement)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating API Management Service %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = createFuture.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error waiting for creation of API Management Service %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving API Management Service %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if read.ID == nil {
@@ -305,37 +320,26 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		d.Set("publisher_name", props.PublisherName)
 
 		d.Set("notification_sender_email", props.NotificationSenderEmail)
-		d.Set("created", props.CreatedAtUtc.Format(time.RFC3339))
 		d.Set("gateway_url", props.GatewayURL)
 		d.Set("gateway_regional_url", props.GatewayRegionalURL)
 		d.Set("portal_url", props.PortalURL)
 		d.Set("management_api_url", props.ManagementAPIURL)
 		d.Set("scm_url", props.ScmURL)
 		d.Set("static_ips", props.StaticIps)
-		d.Set("custom_properties", &props.CustomProperties)
 
-		hostnameConfigurations, err := flattenApiManagementHostnameConfigurations(d, props.HostnameConfigurations)
-
-		if err != nil {
-			return err
+		if err := d.Set("custom_properties", flattenApiManagementCustomProperties(props.CustomProperties)); err != nil {
+			return fmt.Errorf("Error setting `custom_properties`: %+v", err)
 		}
 
-		if err := d.Set("hostname_configuration", hostnameConfigurations); err != nil {
+		if err := d.Set("hostname_configuration", flattenApiManagementHostnameConfigurations(d, props.HostnameConfigurations)); err != nil {
 			return fmt.Errorf("Error setting `hostname_configuration`: %+v", err)
 		}
 
-		additionalLocations := flattenApiManagementAdditionalLocations(props.AdditionalLocations)
-		if err := d.Set("additional_location", additionalLocations); err != nil {
+		if err := d.Set("additional_location", flattenApiManagementAdditionalLocations(props.AdditionalLocations)); err != nil {
 			return fmt.Errorf("Error setting `additional_location`: %+v", err)
 		}
 
-		certificates := flattenApiManagementCertificates(d, props.Certificates)
-
-		if err != nil {
-			return err
-		}
-
-		if err := d.Set("certificate", certificates); err != nil {
+		if err := d.Set("certificate", flattenApiManagementCertificates(d, props.Certificates)); err != nil {
 			return fmt.Errorf("Error setting `certificate`: %+v", err)
 		}
 	}
@@ -349,6 +353,16 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil
+}
+
+func flattenApiManagementCustomProperties(custProps map[string]*string) map[string]interface{} {
+	output := make(map[string]interface{}, 0)
+
+	for k, v := range custProps {
+		output[k] = v
+	}
+
+	return output
 }
 
 func resourceArmApiManagementDelete(d *schema.ResourceData, meta interface{}) error {
@@ -377,40 +391,9 @@ func resourceArmApiManagementDelete(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func expandAzureRmApiManagementProperties(d *schema.ResourceData, sku *apimanagement.ServiceSkuProperties) *apimanagement.ServiceProperties {
-	publisher_name := d.Get("publisher_name").(string)
-	publisher_email := d.Get("publisher_email").(string)
-	notification_sender_email := d.Get("notification_sender_email").(string)
-
-	custom_properties := expandApiManagementCustomProperties(d)
-
-	additional_locations := expandAzureRmApiManagementAdditionalLocations(d, sku)
-	certificates := expandAzureRmApiManagementCertificates(d)
-	hostname_configurations := expandAzureRmApiManagementHostnameConfigurations(d)
-
-	properties := apimanagement.ServiceProperties{
-		PublisherName:          utils.String(publisher_name),
-		PublisherEmail:         utils.String(publisher_email),
-		CustomProperties:       custom_properties,
-		AdditionalLocations:    additional_locations,
-		Certificates:           certificates,
-		HostnameConfigurations: hostname_configurations,
-	}
-
-	if notification_sender_email != "" {
-		properties.NotificationSenderEmail = &notification_sender_email
-	}
-
-	return &properties
-}
-
 func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*string {
 	input := d.Get("custom_properties").(map[string]interface{})
-	output := make(map[string]*string, len(input))
-
-	if input == nil {
-		return nil
-	}
+	output := make(map[string]*string, 0)
 
 	for k, v := range input {
 		output[k] = utils.String(v.(string))
@@ -422,11 +405,11 @@ func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*str
 func expandAzureRmApiManagementHostnameConfigurations(d *schema.ResourceData) *[]apimanagement.HostnameConfiguration {
 	hostnameConfigs := d.Get("hostname_configuration").([]interface{})
 
-	if hostnameConfigs == nil || len(hostnameConfigs) == 0 {
+	if hostnameConfigs == nil {
 		return nil
 	}
 
-	hostnames := make([]apimanagement.HostnameConfiguration, 0, len(hostnameConfigs))
+	hostnames := make([]apimanagement.HostnameConfiguration, 0)
 
 	for _, v := range hostnameConfigs {
 		config := v.(map[string]interface{})
@@ -456,10 +439,6 @@ func expandAzureRmApiManagementHostnameConfigurations(d *schema.ResourceData) *[
 func expandAzureRmApiManagementCertificates(d *schema.ResourceData) *[]apimanagement.CertificateConfiguration {
 	certConfigs := d.Get("certificate").([]interface{})
 
-	if certConfigs == nil || len(certConfigs) == 0 {
-		return nil
-	}
-
 	certificates := make([]apimanagement.CertificateConfiguration, 0)
 
 	for _, v := range certConfigs {
@@ -483,10 +462,6 @@ func expandAzureRmApiManagementCertificates(d *schema.ResourceData) *[]apimanage
 
 func expandAzureRmApiManagementAdditionalLocations(d *schema.ResourceData, sku *apimanagement.ServiceSkuProperties) *[]apimanagement.AdditionalLocation {
 	inputLocations := d.Get("additional_location").([]interface{})
-
-	if inputLocations == nil || len(inputLocations) == 0 {
-		return nil
-	}
 
 	additionalLocations := make([]apimanagement.AdditionalLocation, 0)
 
@@ -521,15 +496,13 @@ func expandAzureRmApiManagementSku(configs []interface{}) *apimanagement.Service
 }
 
 func flattenApiManagementCertificates(d *schema.ResourceData, props *[]apimanagement.CertificateConfiguration) []interface{} {
-	certificates := make([]interface{}, 0, 1)
+	certificates := make([]interface{}, 0)
 
 	if props != nil {
 		for i, prop := range *props {
-			certificate := make(map[string]interface{}, 2)
+			certificate := make(map[string]interface{}, 0)
 
-			if prop.StoreName != "" {
-				certificate["store_name"] = string(prop.StoreName)
-			}
+			certificate["store_name"] = string(prop.StoreName)
 
 			// certificate password isn't returned, so let's look it up
 			passwKey := fmt.Sprintf("certificate.%d.certificate_password", i)
@@ -553,11 +526,11 @@ func flattenApiManagementCertificates(d *schema.ResourceData, props *[]apimanage
 }
 
 func flattenApiManagementAdditionalLocations(props *[]apimanagement.AdditionalLocation) []interface{} {
-	additional_locations := make([]interface{}, 0, 1)
+	additional_locations := make([]interface{}, 0)
 
 	if props != nil {
 		for _, prop := range *props {
-			additional_location := make(map[string]interface{}, 2)
+			additional_location := make(map[string]interface{}, 0)
 
 			if prop.Location != nil {
 				additional_location["location"] = *prop.Location
@@ -578,12 +551,12 @@ func flattenApiManagementAdditionalLocations(props *[]apimanagement.AdditionalLo
 	return additional_locations
 }
 
-func flattenApiManagementHostnameConfigurations(d *schema.ResourceData, configs *[]apimanagement.HostnameConfiguration) ([]interface{}, error) {
-	host_configs := make([]interface{}, 0, 1)
+func flattenApiManagementHostnameConfigurations(d *schema.ResourceData, configs *[]apimanagement.HostnameConfiguration) []interface{} {
+	host_configs := make([]interface{}, 0)
 
 	if configs != nil {
 		for i, config := range *configs {
-			host_config := make(map[string]interface{}, 2)
+			host_config := make(map[string]interface{}, 0)
 
 			if config.Type != "" {
 				host_config["type"] = string(config.Type)
@@ -619,12 +592,12 @@ func flattenApiManagementHostnameConfigurations(d *schema.ResourceData, configs 
 		}
 	}
 
-	return host_configs, nil
+	return host_configs
 }
 
 func flattenApiManagementServiceSku(profile *apimanagement.ServiceSkuProperties) []interface{} {
-	skus := make([]interface{}, 0, 1)
-	sku := make(map[string]interface{}, 2)
+	skus := make([]interface{}, 0)
+	sku := make(map[string]interface{}, 0)
 
 	if profile != nil {
 		if profile.Name != "" {
