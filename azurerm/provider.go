@@ -450,8 +450,7 @@ func ignoreCaseStateFunc(val interface{}) string {
 }
 
 func userDataDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
-	oldValue := userDataStateFunc(old)
-	return oldValue == new
+	return userDataStateFunc(old) == new
 }
 
 func userDataStateFunc(v interface{}) string {
