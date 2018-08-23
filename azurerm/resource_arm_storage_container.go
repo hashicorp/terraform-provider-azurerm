@@ -22,6 +22,9 @@ func resourceArmStorageContainer() *schema.Resource {
 		Delete:        resourceArmStorageContainerDelete,
 		MigrateState:  resourceStorageContainerMigrateState,
 		SchemaVersion: 1,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {

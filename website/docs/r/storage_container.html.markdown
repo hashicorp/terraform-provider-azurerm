@@ -58,3 +58,11 @@ The following attributes are exported in addition to the arguments listed above:
 
 * `id` - The storage container Resource ID.
 * `properties` - Key-value definition of additional properties associated to the storage container
+
+## Import
+
+Storage Containers can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_storage_container.container1 https://example.core.windows.net/container
+```
