@@ -87,7 +87,7 @@ The `retention_policy` block supports:
 
 * `enabled` - (Required) A boolean value to indicate whether the retention policy is enabled.
 
-* `days` - (Required) The number of days for the retention policy.
+* `days` - (Optional) The number of days for the retention policy. Defaults to 0.
 
 ## Attributes Reference
 
