@@ -387,7 +387,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     client_secret = "%s"
   }
 }
-`, rInt, location, rInt, rInt, rInt, clientId, clientSecret)
+`, rInt, location, rInt, rInt, linuxProfile, clientId, clientSecret)
 }
 
 func testAccAzureRMKubernetesCluster_addAgent(rInt int, clientId string, clientSecret string, location string) string {
