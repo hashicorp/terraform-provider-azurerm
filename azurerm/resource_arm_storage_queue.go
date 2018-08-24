@@ -3,7 +3,9 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"net/url"
 	"regexp"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -13,8 +15,12 @@ func resourceArmStorageQueue() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmStorageQueueCreate,
 		Read:   resourceArmStorageQueueRead,
-		Exists: resourceArmStorageQueueExists,
 		Delete: resourceArmStorageQueueDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
+		SchemaVersion: 1,
+		MigrateState:  resourceStorageQueueMigrateState,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -65,7 +71,9 @@ func validateArmStorageQueueName(v interface{}, k string) (ws []string, errors [
 func resourceArmStorageQueueCreate(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
 	ctx := armClient.StopContext
+	environment := armClient.environment
 
+	name := d.Get("name").(string)
 	resourceGroupName := d.Get("resource_group_name").(string)
 	storageAccountName := d.Get("storage_account_name").(string)
 
@@ -77,8 +85,6 @@ func resourceArmStorageQueueCreate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Storage Account %q Not Found", storageAccountName)
 	}
 
-	name := d.Get("name").(string)
-
 	log.Printf("[INFO] Creating queue %q in storage account %q", name, storageAccountName)
 	queueReference := queueClient.GetQueueReference(name)
 	options := &storage.QueueServiceOptions{}
@@ -87,84 +93,122 @@ func resourceArmStorageQueueCreate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error creating storage queue on Azure: %s", err)
 	}
 
-	d.SetId(name)
+	id := fmt.Sprintf("https://%s.queue.%s/%s", storageAccountName, environment.StorageEndpointSuffix, name)
+	d.SetId(id)
 	return resourceArmStorageQueueRead(d, meta)
 }
 
 func resourceArmStorageQueueRead(d *schema.ResourceData, meta interface{}) error {
+	armClient := meta.(*ArmClient)
+	ctx := armClient.StopContext
 
-	exists, err := resourceArmStorageQueueExists(d, meta)
+	id, err := parseStorageQueueID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if !exists {
-		// Exists already removed this from state
+	resourceGroup, err := determineResourceGroupForStorageAccount(id.storageAccountName, armClient)
+	if err != nil {
+		return err
+	}
+
+	if resourceGroup == nil {
+		log.Printf("[WARN] Unable to determine Resource Group for Storage Account %q (assuming removed) - removing from state", id.storageAccountName)
+		d.SetId("")
 		return nil
 	}
 
-	return nil
-}
-
-func resourceArmStorageQueueExists(d *schema.ResourceData, meta interface{}) (bool, error) {
-	armClient := meta.(*ArmClient)
-	ctx := armClient.StopContext
-
-	resourceGroupName := d.Get("resource_group_name").(string)
-	storageAccountName := d.Get("storage_account_name").(string)
-
-	queueClient, accountExists, err := armClient.getQueueServiceClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
+	queueClient, accountExists, err := armClient.getQueueServiceClientForStorageAccount(ctx, *resourceGroup, id.storageAccountName)
 	if err != nil {
-		return false, err
+		return err
 	}
 	if !accountExists {
-		log.Printf("[DEBUG] Storage account %q not found, removing queue %q from state", storageAccountName, d.Id())
+		log.Printf("[DEBUG] Storage account %q not found, removing queue %q from state", id.storageAccountName, id.queueName)
 		d.SetId("")
-		return false, nil
+		return nil
 	}
 
-	name := d.Get("name").(string)
-
-	log.Printf("[INFO] Checking for existence of storage queue %q.", name)
-	queueReference := queueClient.GetQueueReference(name)
+	log.Printf("[INFO] Checking for existence of storage queue %q.", id.queueName)
+	queueReference := queueClient.GetQueueReference(id.queueName)
 	exists, err := queueReference.Exists()
 	if err != nil {
-		return false, fmt.Errorf("error testing existence of storage queue %q: %s", name, err)
+		return fmt.Errorf("error checking if storage queue %q exists: %s", id.queueName, err)
 	}
 
 	if !exists {
-		log.Printf("[INFO] Storage queue %q no longer exists, removing from state...", name)
+		log.Printf("[INFO] Storage queue %q no longer exists, removing from state...", id.queueName)
 		d.SetId("")
+		return nil
 	}
 
-	return exists, nil
+	d.Set("name", id.queueName)
+	d.Set("storage_account_name", id.storageAccountName)
+	d.Set("resource_group_name", *resourceGroup)
+
+	return nil
 }
 
 func resourceArmStorageQueueDelete(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
 	ctx := armClient.StopContext
 
-	resourceGroupName := d.Get("resource_group_name").(string)
-	storageAccountName := d.Get("storage_account_name").(string)
+	id, err := parseStorageQueueID(d.Id())
+	if err != nil {
+		return err
+	}
 
-	queueClient, accountExists, err := armClient.getQueueServiceClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
+	resourceGroup, err := determineResourceGroupForStorageAccount(id.storageAccountName, armClient)
+	if err != nil {
+		return err
+	}
+
+	if resourceGroup == nil {
+		log.Printf("[WARN] Unable to determine Resource Group for Storage Account %q (assuming removed) - removing from state", id.storageAccountName)
+		return nil
+	}
+
+	queueClient, accountExists, err := armClient.getQueueServiceClientForStorageAccount(ctx, *resourceGroup, id.storageAccountName)
 	if err != nil {
 		return err
 	}
 	if !accountExists {
-		log.Printf("[INFO]Storage Account %q doesn't exist so the blob won't exist", storageAccountName)
+		log.Printf("[INFO]Storage Account %q doesn't exist so the blob won't exist", id.storageAccountName)
 		return nil
 	}
 
-	name := d.Get("name").(string)
-
-	log.Printf("[INFO] Deleting storage queue %q", name)
-	queueReference := queueClient.GetQueueReference(name)
+	log.Printf("[INFO] Deleting storage queue %q", id.queueName)
+	queueReference := queueClient.GetQueueReference(id.queueName)
 	options := &storage.QueueServiceOptions{}
 	if err = queueReference.Delete(options); err != nil {
-		return fmt.Errorf("Error deleting storage queue %q: %s", name, err)
+		return fmt.Errorf("Error deleting storage queue %q: %s", id.queueName, err)
 	}
 
-	d.SetId("")
 	return nil
+}
+
+type storageQueueId struct {
+	storageAccountName string
+	queueName          string
+}
+
+func parseStorageQueueID(input string) (*storageQueueId, error) {
+	// https://myaccount.queue.core.windows.net/myqueue
+	uri, err := url.Parse(input)
+	if err != nil {
+		return nil, fmt.Errorf("Error parsing %q as a URI: %+v", input, err)
+	}
+
+	segments := strings.Split(uri.Host, ".")
+	if len(segments) > 0 {
+		storageAccountName := segments[0]
+		// remove the
+		queue := strings.Replace(uri.Path, "/", "", 1)
+		id := storageQueueId{
+			storageAccountName: storageAccountName,
+			queueName:          queue,
+		}
+		return &id, nil
+	}
+
+	return nil, nil
 }

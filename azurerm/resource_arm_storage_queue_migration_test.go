@@ -9,7 +9,7 @@ import (
 
 // NOTE: this is intentionally an acceptance test (and we're not explicitly setting the env)
 // as we want to run this depending on the cloud we're in.
-func TestAccAzureRMStorageContainerMigrateState(t *testing.T) {
+func TestAccAzureRMStorageQueueMigrateState(t *testing.T) {
 	config := testGetAzureConfig(t)
 	if config == nil {
 		t.SkipNow()
@@ -36,11 +36,11 @@ func TestAccAzureRMStorageContainerMigrateState(t *testing.T) {
 			StateVersion: 0,
 			ID:           "some_id",
 			InputAttributes: map[string]string{
-				"name":                 "container",
+				"name":                 "queue",
 				"storage_account_name": "example",
 			},
 			ExpectedAttributes: map[string]string{
-				"id": fmt.Sprintf("https://example.blob.%s/container", suffix),
+				"id": fmt.Sprintf("https://example.queue.%s/queue", suffix),
 			},
 		},
 	}
@@ -50,7 +50,7 @@ func TestAccAzureRMStorageContainerMigrateState(t *testing.T) {
 			ID:         tc.ID,
 			Attributes: tc.InputAttributes,
 		}
-		is, err := resourceStorageContainerMigrateState(tc.StateVersion, is, client)
+		is, err := resourceStorageQueueMigrateState(tc.StateVersion, is, client)
 
 		if err != nil {
 			t.Fatalf("bad: %s, err: %#v", tn, err)
@@ -59,7 +59,7 @@ func TestAccAzureRMStorageContainerMigrateState(t *testing.T) {
 		for k, v := range tc.ExpectedAttributes {
 			actual := is.Attributes[k]
 			if actual != v {
-				t.Fatalf("Bad Storage Container Migrate for %q: %q\n\n expected: %q", k, actual, v)
+				t.Fatalf("Bad Storage Queue Migrate for %q: %q\n\n expected: %q", k, actual, v)
 			}
 		}
 	}
