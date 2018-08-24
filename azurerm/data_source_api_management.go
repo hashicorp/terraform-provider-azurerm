@@ -196,7 +196,12 @@ func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("scm_url", props.ScmURL)
 		d.Set("static_ips", props.StaticIps)
 
-		if err := d.Set("custom_properties", flattenApiManagementCustomProperties(props.CustomProperties)); err != nil {
+		customProps, err := flattenApiManagementCustomProperties(props.CustomProperties)
+		if err != nil {
+			return err
+		}
+
+		if err := d.Set("custom_properties", customProps); err != nil {
 			return fmt.Errorf("Error setting `custom_properties`: %+v", err)
 		}
 

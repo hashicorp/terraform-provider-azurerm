@@ -198,9 +198,9 @@ resource "azurerm_api_management" "test" {
     store_name           = "Root"
   }
 
-  custom_properties {
-    Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168 = "true"
-  }
+	security {
+		disable_backend_tls11 = true
+	}
 
   hostname_configuration {
     type                         = "Proxy"
