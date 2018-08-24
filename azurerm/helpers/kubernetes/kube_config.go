@@ -27,6 +27,26 @@ type user struct {
 	ClientKeyData        string `yaml:"client-key-data"`
 }
 
+type userItemRBAC struct {
+	Name string   `yaml:"name"`
+	User userRBAC `yaml:"user"`
+}
+
+type userRBAC struct {
+	AuthProvider authProvider `yaml:"auth-provider"`
+}
+
+type authProvider struct {
+	Name   string            `yaml:"name"`
+	Config configRBACAzureAD `yaml:"config"`
+}
+
+type configRBACAzureAD struct {
+	APIServerID string `yaml:"apiserver-id,omitempty"`
+	ClientID    string `yaml:"client-id,omitempty"`
+	TenantID    string `yaml:"tenant-id,omitempty"`
+}
+
 type contextItem struct {
 	Name    string  `yaml:"name"`
 	Context context `yaml:"context"`
@@ -42,6 +62,16 @@ type KubeConfig struct {
 	APIVersion     string                 `yaml:"apiVersion"`
 	Clusters       []clusterItem          `yaml:"clusters"`
 	Users          []userItem             `yaml:"users"`
+	Contexts       []contextItem          `yaml:"contexts,omitempty"`
+	CurrentContext string                 `yaml:"current-context,omitempty"`
+	Kind           string                 `yaml:"kind,omitempty"`
+	Preferences    map[string]interface{} `yaml:"preferences,omitempty"`
+}
+
+type KubeConfigRBAC struct {
+	APIVersion     string                 `yaml:"apiVersion"`
+	Clusters       []clusterItem          `yaml:"clusters"`
+	Users          []userItemRBAC         `yaml:"users"`
 	Contexts       []contextItem          `yaml:"contexts,omitempty"`
 	CurrentContext string                 `yaml:"current-context,omitempty"`
 	Kind           string                 `yaml:"kind,omitempty"`
@@ -65,6 +95,28 @@ func ParseKubeConfig(config string) (*KubeConfig, error) {
 	if user.Token == "" && (user.ClientCertificteData == "" || user.ClientKeyData == "") {
 		return nil, fmt.Errorf("Config requires either token or certificate auth for user %+v", user)
 	}
+	cluster := kubeConfig.Clusters[0].Cluster
+	if cluster.Server == "" {
+		return nil, fmt.Errorf("Config has invalid or non existent server for cluster %+v", cluster)
+	}
+
+	return &kubeConfig, nil
+}
+
+func ParseKubeConfigRBAC(config string) (*KubeConfigRBAC, error) {
+	if config == "" {
+		return nil, fmt.Errorf("Cannot parse empty config")
+	}
+
+	var kubeConfig KubeConfigRBAC
+	err := yaml.Unmarshal([]byte(config), &kubeConfig)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to unmarshal YAML config with error %+v", err)
+	}
+	if len(kubeConfig.Clusters) <= 0 || len(kubeConfig.Users) <= 0 {
+		return nil, fmt.Errorf("Config %+v contains no valid clusters or users", kubeConfig)
+	}
+
 	cluster := kubeConfig.Clusters[0].Cluster
 	if cluster.Server == "" {
 		return nil, fmt.Errorf("Config has invalid or non existent server for cluster %+v", cluster)

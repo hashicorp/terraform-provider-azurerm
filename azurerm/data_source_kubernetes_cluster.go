@@ -38,6 +38,11 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"enable_rbac": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
 			"kube_config": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -161,6 +166,35 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			"aad_profile": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"server_app_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"server_app_secret": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+
+						"client_app_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": tagsForDataSourceSchema(),
 		},
 	}
@@ -200,6 +234,7 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 		d.Set("dns_prefix", props.DNSPrefix)
 		d.Set("fqdn", props.Fqdn)
 		d.Set("kubernetes_version", props.KubernetesVersion)
+		d.Set("enable_rbac", props.EnableRBAC)
 
 		linuxProfile := flattenKubernetesClusterDataSourceLinuxProfile(props.LinuxProfile)
 		if err := d.Set("linux_profile", linuxProfile); err != nil {
@@ -214,6 +249,11 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 		servicePrincipal := flattenKubernetesClusterDataSourceServicePrincipalProfile(resp.ManagedClusterProperties.ServicePrincipalProfile)
 		if err := d.Set("service_principal", servicePrincipal); err != nil {
 			return fmt.Errorf("Error setting `service_principal`: %+v", err)
+		}
+
+		aadProfile := flattenKubernetesClusterDataSourceAadProfile(resp.ManagedClusterProperties.AadProfile)
+		if err := d.Set("aad_profile", aadProfile); err != nil {
+			return fmt.Errorf("Error setting `aad_profile`: %+v", err)
 		}
 	}
 
@@ -332,6 +372,32 @@ func flattenKubernetesClusterDataSourceAccessProfile(profile *containerservice.M
 	}
 
 	return nil, []interface{}{}
+}
+
+func flattenKubernetesClusterDataSourceAadProfile(profile *containerservice.ManagedClusterAADProfile) []interface{} {
+	if profile == nil {
+		return nil
+	}
+
+	values := make(map[string]interface{})
+
+	if serverAppId := profile.ServerAppID; serverAppId != nil {
+		values["server_app_id"] = *serverAppId
+	}
+
+	if serverAppSecret := profile.ServerAppSecret; serverAppSecret != nil {
+		values["server_app_secret"] = *serverAppSecret
+	}
+
+	if clientAppId := profile.ClientAppID; clientAppId != nil {
+		values["client_app_id"] = *clientAppId
+	}
+
+	if tenantId := profile.TenantID; tenantId != nil {
+		values["tenant_id"] = *tenantId
+	}
+
+	return []interface{}{values}
 }
 
 func flattenKubernetesClusterDataSourceKubeConfig(config kubernetes.KubeConfig) []interface{} {
