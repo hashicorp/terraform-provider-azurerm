@@ -40,6 +40,12 @@ func resourceArmAutomationDscConfiguration() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
+			"content_embedded": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.NoZeroValues,
+			},
+
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"location": locationSchema(),
@@ -53,12 +59,6 @@ func resourceArmAutomationDscConfiguration() *schema.Resource {
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
-			},
-
-			"content_embedded": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"state": {
@@ -85,7 +85,7 @@ func resourceArmAutomationDscConfigurationCreateUpdate(d *schema.ResourceData, m
 
 	parameters := automation.DscConfigurationCreateOrUpdateParameters{
 		DscConfigurationCreateOrUpdateProperties: &automation.DscConfigurationCreateOrUpdateProperties{
-			LogVerbose:  &logVerbose,
+			LogVerbose:  utils.Bool(logVerbose),
 			Description: &description,
 			Source: &automation.ContentSource{
 				Type:  automation.EmbeddedContent,
