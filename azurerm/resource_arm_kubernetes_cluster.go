@@ -135,7 +135,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 
 			"linux_profile": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -403,7 +403,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 			AgentPoolProfiles:       &agentProfiles,
 			DNSPrefix:               &dnsPrefix,
 			KubernetesVersion:       &kubernetesVersion,
-			LinuxProfile:            &linuxProfile,
+			LinuxProfile:            linuxProfile,
 			ServicePrincipalProfile: servicePrincipalProfile,
 			NetworkProfile:          networkProfile,
 		},
@@ -690,8 +690,13 @@ func flattenKubernetesClusterKubeConfig(config kubernetes.KubeConfig) []interfac
 	return []interface{}{values}
 }
 
-func expandAzureRmKubernetesClusterLinuxProfile(d *schema.ResourceData) containerservice.LinuxProfile {
+func expandAzureRmKubernetesClusterLinuxProfile(d *schema.ResourceData) *containerservice.LinuxProfile {
 	profiles := d.Get("linux_profile").([]interface{})
+
+	if len(profiles) == 0 {
+		return nil
+	}
+
 	config := profiles[0].(map[string]interface{})
 
 	adminUsername := config["admin_username"].(string)
@@ -714,7 +719,7 @@ func expandAzureRmKubernetesClusterLinuxProfile(d *schema.ResourceData) containe
 		},
 	}
 
-	return profile
+	return &profile
 }
 
 func expandAzureRmKubernetesClusterServicePrincipal(d *schema.ResourceData) *containerservice.ServicePrincipalProfile {

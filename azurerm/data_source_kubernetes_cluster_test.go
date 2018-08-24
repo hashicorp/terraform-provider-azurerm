@@ -233,7 +233,7 @@ func TestAccDataSourceAzureRMKubernetesCluster_addOnProfileRouting(t *testing.T)
 }
 
 func testAccDataSourceAzureRMKubernetesCluster_basic(rInt int, clientId string, clientSecret string, location string) string {
-	resource := testAccAzureRMKubernetesCluster_basic(rInt, clientId, clientSecret, location)
+	resource := testAccAzureRMKubernetesCluster_basic(rInt, clientId, clientSecret, location, "")
 	return fmt.Sprintf(`
 %s
 
