@@ -91,8 +91,8 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 				Default:  true,
-      },
-      
+			},
+
 			"node_resource_group": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -292,12 +292,12 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						"tenant_id": {
 							Type:     schema.TypeString,
 							Required: true,
-            },
-          },
-        },
-      },
+						},
+					},
+				},
+			},
 
-      "network_profile": {
+			"network_profile": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,

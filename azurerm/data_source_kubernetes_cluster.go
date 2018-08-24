@@ -40,8 +40,8 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 
 			"enable_rbac": {
 				Type:     schema.TypeBool,
-        Computed: true,
-      },
+				Computed: true,
+			},
 
 			"node_resource_group": {
 				Type:     schema.TypeString,
@@ -177,33 +177,33 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 			},
 
 			"aad_profile": {
-        Type:     schema.TypeList,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-            "server_app_id": {
-              Type:     schema.TypeString,
-              Computed: true,
-            },
-            
-            "server_app_secret": {
+						"server_app_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"server_app_secret": {
 							Type:      schema.TypeString,
 							Computed:  true,
 							Sensitive: true,
 						},
-            
-            "client_app_id": {
-              Type:     schema.TypeString,
+
+						"client_app_id": {
+							Type:     schema.TypeString,
 							Computed: true,
 						},
-            
-            "tenant_id": {
-              Type:     schema.TypeString,
+
+						"tenant_id": {
+							Type:     schema.TypeString,
 							Computed: true,
-            },
-          },
-        },
-      },
+						},
+					},
+				},
+			},
 
 			"network_profile": {
 				Type:     schema.TypeList,
@@ -214,7 +214,7 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-            
+
 						"service_cidr": {
 							Type:     schema.TypeString,
 							Computed: true,
