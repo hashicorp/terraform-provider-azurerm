@@ -130,7 +130,7 @@ The following arguments are supported:
 
 * `certificate` - (Optional) List of Certificates that is installed in the API Management service. Max supported certificates that can be installed is 10. The `certificate` block is documented below.
 
-* `custom_properties` - (Optional) Custom properties of the API Management service. The property `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168` means the cipher TLS_RSA_WITH_3DES_EDE_CBC_SHA is disabled for all TLS(1.0, 1.1 and 1.2). The property `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11` means just TLS 1.1 is disabled and the property `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10` means TLS 1.0 is disabled on an API Management service.
+* `security` - Optionally disable certain security features. The `security` block is documented below.
 
 * `hostname_configuration` - (Optional) Custom hostname configuration of the API Management service. The `hostname_configuration` block is documented below.
 
@@ -157,6 +157,22 @@ The following arguments are supported:
 * `certificate_password` - (Required) Certificate password.
 
 * `store_name` - (Required) The local certificate store location. Only Root and CertificateAuthority are valid locations. Possible values include: `CertificateAuthority`, `Root`.
+
+`security` block supports the following:
+
+* `disable_backend_ssl30` - Disables SSL 3.0 on the backend side of the gateway
+
+* `disable_backend_tls10` - Disables TLS 1.0 on the backend side of the gateway
+
+* `disable_backend_tls11` - Disables TLS 1.1 on the backend side of the gateway
+
+* `disable_triple_des_chipers` - Disables the cipher TLS_RSA_WITH_3DES_EDE_CBC_SHA for all TLS versions (1.0, 1.1 and 1.2)
+
+* `disable_frontend_ssl30` - Disables SSL 3.0 on the frontend side of the gateway
+
+* `disable_frontend_tls10` - Disables TLS 1.0 on the frontend side of the gateway
+
+* `disable_frontend_tls11` - Disables TLS 1.1 on the frontend side of the gateway
 
 `hostname_configuration` block supports the following:
 
