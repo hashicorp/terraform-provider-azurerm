@@ -166,7 +166,7 @@ func resourceArmPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error Creating/Updating Public IP %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for completion of Public IP %q (Resource Group %q): %+v", name, resGroup, err)
 	}
@@ -259,7 +259,7 @@ func resourceArmPublicIpDelete(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error deleting Public IP %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for deletion of Public IP %q (Resource Group %q): %+v", name, resGroup, err)
 	}

@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_lake_store"
-sidebar_current: "docs-azurerm-resource-data-lake-store"
+sidebar_current: "docs-azurerm-resource-data-lake-store-x"
 description: |-
   Manage an Azure Data Lake Store.
 ---
@@ -13,29 +13,22 @@ Manage an Azure Data Lake Store.
 ## Example Usage
 
 ```hcl
-# Pay As You Go
-resource "azurerm_resource_group" "test" {
-  name     = "test"
+resource "azurerm_resource_group" "example" {
+  name     = "example"
   location = "northeurope"
 }
 
-resource "azurerm_data_lake_store" "consumption" {
+resource "azurerm_data_lake_store" "example" {
   name                = "consumptiondatalake"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "northeurope"
-}
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
 
-# Monthly Commitment Tier
-resource "azurerm_resource_group" "test" {
-  name     = "test"
-  location = "westeurope"
-}
-
-resource "azurerm_data_lake_store" "monthly" {
-  name                = "monthlydatalake"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "westeurope"
-  tier                = "Commitment_1TB"
+  encrytpion {
+    type = "UserManaged"
+    key_vault_id = "${azurerm_key_vault.example.id}"
+    key_name     = "${azurerm_key_vault_key.example.name}"
+    key_version  = "${azurerm_key_vault_key.example.version}"
+  }
 }
 ```
 
@@ -50,6 +43,16 @@ The following arguments are supported:
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
 * `tier` - (Optional) The monthly commitment tier for Data Lake Store. Accepted values are `Consumption`, `Commitment_1TB`, `Commitment_10TB`, `Commitment_100TB`, `Commitment_500TB`, `Commitment_1PB` or `Commitment_5PB`.
+
+* `encryption_state` - (Optional) Is Encryption enabled on this Data Lake Store Account? Possible values are `Enabled` or `Disabled`. Defaults to `Enabled`.
+
+* `encryption_type` - (Optional) The Encryption Type used for this Data Lake Store Account. Currently can be set to `SystemManaged` when `encryption_state` is `Enabled` - and must be a blank string when it's Disabled.
+
+-> **NOTE:** Support for User Managed encryption will be supported in the future once a bug in the API is fixed.
+
+* `firewall_allow_azure_ips` - are Azure Service IP's allowed through the firewall? Possible values are `Enabled` and `Disabled`. Defaults to `Enabled.`
+
+* `firewall_state` - the state of the Firewall. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled.`
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

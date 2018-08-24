@@ -402,7 +402,7 @@ func testCheckAzureRMSqlVirtualNetworkRuleDisappears(name string) resource.TestC
 			return fmt.Errorf("Error deleting SQL Virtual Network Rule: %+v", err)
 		}
 
-		err = future.WaitForCompletion(ctx, client.Client)
+		err = future.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
 			//Same deal as before. Just in case.
 			if response.WasNotFound(future.Response()) {

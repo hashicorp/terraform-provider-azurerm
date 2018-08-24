@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -32,21 +33,24 @@ func resourceArmServiceBusSubscriptionRule() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"namespace_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateServiceBusNamespaceName(),
 			},
 
 			"topic_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateServiceBusTopicName(),
 			},
 
 			"subscription_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateServiceBusSubscriptionName(),
 			},
 
 			"filter_type": {
@@ -266,15 +270,38 @@ func expandAzureRmServiceBusCorrelationFilter(d *schema.ResourceData) (*serviceb
 		return nil, fmt.Errorf("At least one property must be set in the `correlation_filter` block")
 	}
 
-	correlationFilter := servicebus.CorrelationFilter{
-		CorrelationID:    utils.String(correlationID),
-		MessageID:        utils.String(messageID),
-		To:               utils.String(to),
-		ReplyTo:          utils.String(replyTo),
-		Label:            utils.String(label),
-		SessionID:        utils.String(sessionID),
-		ReplyToSessionID: utils.String(replyToSessionID),
-		ContentType:      utils.String(contentType),
+	correlationFilter := servicebus.CorrelationFilter{}
+
+	if correlationID != "" {
+		correlationFilter.CorrelationID = utils.String(correlationID)
+	}
+
+	if messageID != "" {
+		correlationFilter.MessageID = utils.String(messageID)
+	}
+
+	if to != "" {
+		correlationFilter.To = utils.String(to)
+	}
+
+	if replyTo != "" {
+		correlationFilter.ReplyTo = utils.String(replyTo)
+	}
+
+	if label != "" {
+		correlationFilter.Label = utils.String(label)
+	}
+
+	if sessionID != "" {
+		correlationFilter.SessionID = utils.String(sessionID)
+	}
+
+	if replyToSessionID != "" {
+		correlationFilter.ReplyToSessionID = utils.String(replyToSessionID)
+	}
+
+	if contentType != "" {
+		correlationFilter.ContentType = utils.String(contentType)
 	}
 
 	return &correlationFilter, nil

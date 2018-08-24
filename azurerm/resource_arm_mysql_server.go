@@ -80,7 +80,6 @@ func resourceArmMySqlServer() *schema.Resource {
 						"tier": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(mysql.Basic),
 								string(mysql.GeneralPurpose),
@@ -92,7 +91,6 @@ func resourceArmMySqlServer() *schema.Resource {
 						"family": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Gen4",
 								"Gen5",
@@ -135,7 +133,6 @@ func resourceArmMySqlServer() *schema.Resource {
 						"storage_mb": {
 							Type:         schema.TypeInt,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: validateIntBetweenDivisibleBy(5120, 4194304, 1024),
 						},
 						"backup_retention_days": {
@@ -227,7 +224,7 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error creating MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for creation of MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -278,7 +275,7 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error updating MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for MySQL Server %q (Resource Group %q) to finish updating: %+v", name, resourceGroup, err)
 	}
@@ -361,7 +358,7 @@ func resourceArmMySqlServerDelete(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error deleting MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for deletion of MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}

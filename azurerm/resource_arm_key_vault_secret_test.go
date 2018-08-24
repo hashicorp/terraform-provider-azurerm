@@ -31,6 +31,49 @@ func TestAccAzureRMKeyVaultSecret_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKeyVaultSecret_disappears(t *testing.T) {
+	resourceName := "azurerm_key_vault_secret.test"
+	rs := acctest.RandString(6)
+	config := testAccAzureRMKeyVaultSecret_basic(rs, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultSecretExists(resourceName),
+					testCheckAzureRMKeyVaultSecretDisappears(resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMKeyVaultSecret_disappearsWhenParentKeyVaultDeleted(t *testing.T) {
+	rs := acctest.RandString(6)
+	config := testAccAzureRMKeyVaultSecret_basic(rs, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultSecretExists("azurerm_key_vault_secret.test"),
+					testCheckAzureRMKeyVaultDisappears("azurerm_key_vault.test"),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMKeyVaultSecret_complete(t *testing.T) {
 	resourceName := "azurerm_key_vault_secret.test"
 	rs := acctest.RandString(6)
@@ -129,6 +172,32 @@ func testCheckAzureRMKeyVaultSecretExists(name string) resource.TestCheckFunc {
 			}
 
 			return fmt.Errorf("Bad: Get on keyVaultManagementClient: %+v", err)
+		}
+
+		return nil
+	}
+}
+
+func testCheckAzureRMKeyVaultSecretDisappears(name string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return fmt.Errorf("Not found: %s", name)
+		}
+		name := rs.Primary.Attributes["name"]
+		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
+
+		client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		resp, err := client.DeleteSecret(ctx, vaultBaseUrl, name)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return nil
+			}
+
+			return fmt.Errorf("Bad: Delete on keyVaultManagementClient: %+v", err)
 		}
 
 		return nil

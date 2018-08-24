@@ -67,6 +67,22 @@
 			"versionExact": "v18.0.0"
 		},
 		{
+			"checksumSHA1": "9oNfXIzF5S8ninqAOSfpVf5rNEY=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account",
+			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
+			"revisionTime": "2018-07-03T19:15:42Z",
+			"version": "=v18.0.0",
+			"versionExact": "v18.0.0"
+		},
+		{
+			"checksumSHA1": "owtUC3Li102StpaZ1Ahh0SvifP4=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem",
+			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
+			"revisionTime": "2018-07-03T19:15:42Z",
+			"version": "v18.0.0",
+			"versionExact": "v18.0.0"
+		},
+		{
 			"checksumSHA1": "koKSQ4PgeyIgykEPNEeE2tzRm18=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account",
 			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
@@ -99,8 +115,8 @@
 			"versionExact": "v18.0.0"
 		},
 		{
-			"checksumSHA1": "UllFPDJZazs7Vy9wdcfKPe0r1u0=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2017-07-01/devices",
+			"checksumSHA1": "kVhbkr1IPBMGfJbFHY4fbr/c2wU=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2018-04-01/devices",
 			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
 			"revisionTime": "2018-07-03T19:15:42Z",
 			"version": "=v18.0.0",
@@ -123,8 +139,8 @@
 			"versionExact": "v18.0.0"
 		},
 		{
-			"checksumSHA1": "E+QgVQ3X1EvmDta96Xa2aPHrkt4=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2018-03-01/insights",
+			"checksumSHA1": "EvqsEQeq/NRGDZ1RW4tGkgolGh0=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic",
 			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
 			"revisionTime": "2018-07-03T19:15:42Z",
 			"version": "=v18.0.0",
@@ -141,6 +157,14 @@
 		{
 			"checksumSHA1": "FmSD121uiCzfR8QJpQKkKYuLmBw=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network",
+			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
+			"revisionTime": "2018-07-03T19:15:42Z",
+			"version": "=v18.0.0",
+			"versionExact": "v18.0.0"
+		},
+		{
+			"checksumSHA1": "gKWc9f9h+qlpzYqyoG3CZR+7q/U=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs",
 			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
 			"revisionTime": "2018-07-03T19:15:42Z",
 			"version": "=v18.0.0",
@@ -165,6 +189,14 @@
 		{
 			"checksumSHA1": "3wqT8RCanN6aSM1HM2HWZp+MNAw=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns",
+			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
+			"revisionTime": "2018-07-03T19:15:42Z",
+			"version": "=v18.0.0",
+			"versionExact": "v18.0.0"
+		},
+		{
+			"checksumSHA1": "L16Pxc0aJF+bq2H9T6iIJsUK2G8=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights",
 			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
 			"revisionTime": "2018-07-03T19:15:42Z",
 			"version": "=v18.0.0",
@@ -283,6 +315,14 @@
 			"versionExact": "v18.0.0"
 		},
 		{
+			"checksumSHA1": "E6K9qLJIuos/ZGzhOpfbCxb77MQ=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2018-02-01/servicefabric",
+			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
+			"revisionTime": "2018-07-03T19:15:42Z",
+			"version": "=v18.0.0",
+			"versionExact": "v18.0.0"
+		},
+		{
 			"checksumSHA1": "ySkjHczHi2zN8B1TuWfvKVLGetw=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage",
 			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
@@ -299,8 +339,8 @@
 			"versionExact": "v18.0.0"
 		},
 		{
-			"checksumSHA1": "5pBl4zi0xNzebxzIn2dLrZm+D10=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/web/mgmt/2016-09-01/web",
+			"checksumSHA1": "uVds2OpEcn05T/4BahVAtqBUD1A=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web",
 			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
 			"revisionTime": "2018-07-03T19:15:42Z",
 			"version": "=v18.0.0",
@@ -696,9 +736,10 @@
 			"revisionTime": "2017-08-14T14:36:39Z"
 		},
 		{
-			"checksumSHA1": "cdOCt0Yb+hdErz8NAQqayxPmRsY=",
+			"checksumSHA1": "dVqCmA2mEDIDr8tEXu4gTaK9uPs=",
 			"path": "github.com/hashicorp/errwrap",
-			"revision": "7554cd9344cec97297fa6649b055a8c98c2a1e55"
+			"revision": "d6c0cd88035724dd42e0f335ae30161c20575ecc",
+			"revisionTime": "2018-07-15T04:49:06Z"
 		},
 		{
 			"checksumSHA1": "b8F628srIitj5p7Y130xc9k0QWs=",
@@ -1126,10 +1167,10 @@
 			"revisionTime": "2016-10-13T19:53:42Z"
 		},
 		{
-			"checksumSHA1": "V/quM7+em2ByJbWBLOsEwnY3j/Q=",
+			"checksumSHA1": "Li0PaRmaVBdibS/zs8myzc07L6o=",
 			"path": "github.com/mitchellh/go-homedir",
-			"revision": "b8bc1bf767474819792c23f32d8286a45736f1c6",
-			"revisionTime": "2016-12-03T19:45:07Z"
+			"revision": "58046073cbffe2f25d425fe1331102f55cf719de",
+			"revisionTime": "2018-08-01T23:32:06Z"
 		},
 		{
 			"checksumSHA1": "6TBW88DSxRHf4WvOC9K5ilBZx/8=",
@@ -1183,12 +1224,6 @@
 			"path": "github.com/posener/complete/match",
 			"revision": "88e59760adaddb8276c9b15511302890690e2dae",
 			"revisionTime": "2017-09-08T12:52:45Z"
-		},
-		{
-			"checksumSHA1": "u5s2PZ7fzCOqQX7bVPf9IJ+qNLQ=",
-			"path": "github.com/rancher/go-rancher",
-			"revision": "ec24b7f12fca9f78fbfcd62a0ea8bce14ade8792",
-			"revisionTime": "2017-04-07T04:09:43Z"
 		},
 		{
 			"checksumSHA1": "zmC8/3V4ls53DJlNTKDZwPSC/dA=",

@@ -66,7 +66,7 @@ func resourceArmPostgreSQLConfigurationCreateUpdate(d *schema.ResourceData, meta
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -148,7 +148,7 @@ func resourceArmPostgreSQLConfigurationDelete(d *schema.ResourceData, meta inter
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil

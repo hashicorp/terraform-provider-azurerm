@@ -27,6 +27,26 @@ func dataSourceArmDataLakeStoreAccount() *schema.Resource {
 				Computed: true,
 			},
 
+			"encryption_state": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"encryption_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"firewall_state": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"firewall_allow_azure_ips": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tagsForDataSourceSchema(),
 		},
 	}
@@ -42,7 +62,7 @@ func dataSourceArmDateLakeStoreAccountRead(d *schema.ResourceData, meta interfac
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] DataLakeStoreAccount '%s' was not found (resource group '%s')", name, resourceGroup)
+			log.Printf("[WARN] DataLakeStoreAccount %q was not found (Resource Group %q)", name, resourceGroup)
 			d.SetId("")
 			return nil
 		}
@@ -59,6 +79,14 @@ func dataSourceArmDateLakeStoreAccountRead(d *schema.ResourceData, meta interfac
 
 	if properties := resp.DataLakeStoreAccountProperties; properties != nil {
 		d.Set("tier", string(properties.CurrentTier))
+
+		d.Set("encryption_state", string(properties.EncryptionState))
+		d.Set("firewall_allow_azure_ips", string(properties.FirewallAllowAzureIps))
+		d.Set("firewall_state", string(properties.FirewallState))
+
+		if config := properties.EncryptionConfig; config != nil {
+			d.Set("encryption_type", string(config.Type))
+		}
 	}
 
 	flattenAndSetTags(d, resp.Tags)

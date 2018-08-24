@@ -27,6 +27,7 @@ func TestAccAzureRMFunctionApp_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFunctionAppExists(resourceName),
+					testCheckAzureRMFunctionAppHasNoContentShare(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "version", "~1"),
 				),
 			},
@@ -107,6 +108,7 @@ func TestAccAzureRMFunctionApp_appSettings(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFunctionAppExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "app_settings.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "site_credential.#", "1"),
 				),
 			},
 			{
@@ -328,6 +330,7 @@ func TestAccAzureRMFunctionApp_consumptionPlan(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFunctionAppExists(resourceName),
+					testCheckAzureRMFunctionAppHasContentShare(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.use_32_bit_worker_process", "true"),
 				),
 			},
@@ -447,6 +450,70 @@ func testCheckAzureRMFunctionAppExists(name string) resource.TestCheckFunc {
 			}
 
 			return fmt.Errorf("Bad: Get on appServicesClient: %+v", err)
+		}
+
+		return nil
+	}
+}
+
+func testCheckAzureRMFunctionAppHasContentShare(name string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return fmt.Errorf("Not found: %s", name)
+		}
+
+		functionAppName := rs.Primary.Attributes["name"]
+		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for Function App: %s", functionAppName)
+		}
+
+		client := testAccProvider.Meta().(*ArmClient).appServicesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		appSettingsResp, err := client.ListApplicationSettings(ctx, resourceGroup, functionAppName)
+		if err != nil {
+			return fmt.Errorf("Error making Read request on AzureRM Function App AppSettings %q: %+v", functionAppName, err)
+		}
+
+		for k, _ := range appSettingsResp.Properties {
+			if strings.EqualFold("WEBSITE_CONTENTSHARE", k) {
+				return nil
+			}
+		}
+
+		return fmt.Errorf("Function App %q does not contain the Website Content Share!", functionAppName)
+	}
+}
+
+func testCheckAzureRMFunctionAppHasNoContentShare(name string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return fmt.Errorf("Not found: %s", name)
+		}
+
+		functionAppName := rs.Primary.Attributes["name"]
+		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for Function App: %s", functionAppName)
+		}
+
+		client := testAccProvider.Meta().(*ArmClient).appServicesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		appSettingsResp, err := client.ListApplicationSettings(ctx, resourceGroup, functionAppName)
+		if err != nil {
+			return fmt.Errorf("Error making Read request on AzureRM Function App AppSettings %q: %+v", functionAppName, err)
+		}
+
+		for k, v := range appSettingsResp.Properties {
+			if strings.EqualFold("WEBSITE_CONTENTSHARE", k) && v != nil && *v != "" {
+				return fmt.Errorf("Function App %q contains the Website Content Share!", functionAppName)
+			}
 		}
 
 		return nil

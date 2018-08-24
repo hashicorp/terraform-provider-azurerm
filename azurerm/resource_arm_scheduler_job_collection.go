@@ -199,7 +199,7 @@ func resourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interfac
 		d.Set("state", string(properties.State))
 
 		if err := d.Set("quota", flattenAzureArmSchedulerJobCollectionQuota(properties.Quota)); err != nil {
-			return fmt.Errorf("Error flattening quota for Job Collection %q (Resource Group %q): %+v", collection.Name, resourceGroup, err)
+			return fmt.Errorf("Error flattening quota for Job Collection %q (Resource Group %q): %+v", *collection.Name, resourceGroup, err)
 		}
 	}
 
@@ -227,7 +227,7 @@ func resourceArmSchedulerJobCollectionDelete(d *schema.ResourceData, meta interf
 		}
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("Error waiting for deletion of Scheduler Job Collection %q (Resource Group %q): %+v", name, resourceGroup, err)

@@ -170,7 +170,7 @@ resource "azurerm_redis_cache" "test" {
 
 ```hcl
 redis_configuration {
-  maxmemory_reserve  = 10
+  maxmemory_reserved = 10
   maxmemory_delta    = 2
   maxmemory_policy   = "allkeys-lru"
 }

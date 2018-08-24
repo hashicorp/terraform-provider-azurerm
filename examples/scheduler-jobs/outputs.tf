@@ -1,5 +1,5 @@
 output "job_collection-id" {
-  value = "${azurerm_scheduler_job_collection.jc.id}"
+  value = "${azurerm_scheduler_job_collection.example.id}"
 }
 
 output "job-web-once-url" {

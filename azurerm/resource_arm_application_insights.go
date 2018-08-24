@@ -38,8 +38,12 @@ func resourceArmApplicationInsights() *schema.Resource {
 				ForceNew:         true,
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(insights.Web),
-					string(insights.Other),
+					"web",
+					"other",
+					"java",
+					"phone",
+					"store",
+					"ios",
 				}, true),
 			},
 
@@ -84,14 +88,19 @@ func resourceArmApplicationInsightsCreateOrUpdate(d *schema.ResourceData, meta i
 		Tags: expandTags(tags),
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resGroup, name, insightProperties)
+	resp, err := client.CreateOrUpdate(ctx, resGroup, name, insightProperties)
 	if err != nil {
-		return err
+		// @tombuildsstuff - from 2018-08-14 the Create call started returning a 201 instead of 200
+		// which doesn't match the Swagger - this works around it until that's fixed
+		// BUG: https://github.com/Azure/azure-sdk-for-go/issues/2465
+		if resp.StatusCode != http.StatusCreated {
+			return fmt.Errorf("Error creating Application Insights %q (Resource Group %q): %+v", name, resGroup, err)
+		}
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving Application Insights %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read AzureRM Application Insights '%s' (Resource Group %s) ID", name, resGroup)

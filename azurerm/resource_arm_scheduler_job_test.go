@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -32,6 +33,66 @@ func TestAccAzureRMSchedulerJob_web_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMSchedulerJob_storageQueue(t *testing.T) {
+	resourceName := "azurerm_scheduler_job.test"
+	ri := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSchedulerJob_storageQueue(ri, testLocation()),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMSchedulerJobExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "action_storage_queue.0.storage_account_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "action_storage_queue.0.storage_queue_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "action_storage_queue.0.sas_token"),
+					resource.TestCheckResourceAttr(resourceName, "action_storage_queue.0.message", "storage message"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"action_storage_queue.0.sas_token"},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMSchedulerJob_storageQueue_errorAction(t *testing.T) {
+	resourceName := "azurerm_scheduler_job.test"
+	ri := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSchedulerJob_storageQueue_errorAction(ri, testLocation()),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMSchedulerJobExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "http://example.com"),
+					resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
+					resource.TestCheckResourceAttrSet(resourceName, "error_action_storage_queue.0.storage_account_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "error_action_storage_queue.0.storage_queue_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "error_action_storage_queue.0.sas_token"),
+					resource.TestCheckResourceAttr(resourceName, "error_action_storage_queue.0.message", "storage message"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"error_action_storage_queue.0.sas_token"},
 			},
 		},
 	})
@@ -479,7 +540,7 @@ resource "azurerm_resource_group" "test" {
 } 
  
 resource "azurerm_scheduler_job_collection" "test" {
-    name                = "acctestRG-%[1]d-job_collection"
+    name                = "acctest-%[1]d-job_collection"
     location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     sku                 = "standard"
@@ -492,7 +553,7 @@ func testAccAzureRMSchedulerJob_web_basic(rInt int, location string) string {
 	//need a valid URL here otherwise on a slow connection job might fault before the test check
 	return fmt.Sprintf(`%s
 resource "azurerm_scheduler_job" "test" {
-  name                = "acctestRG-%d-job"
+  name                = "acctest-%d-job"
   resource_group_name = "${azurerm_resource_group.test.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
 
@@ -506,7 +567,7 @@ resource "azurerm_scheduler_job" "test" {
 func testAccAzureRMSchedulerJob_web_put(rInt int, location string) string {
 	return fmt.Sprintf(`%s 
 resource "azurerm_scheduler_job" "test" {
-  name                = "acctestRG-%d-job"
+  name                = "acctest-%d-job"
   resource_group_name = "${azurerm_resource_group.test.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
 
@@ -526,7 +587,7 @@ resource "azurerm_scheduler_job" "test" {
 func testAccAzureRMSchedulerJob_web_authBasic(rInt int, location string) string {
 	return fmt.Sprintf(`%s 
 resource "azurerm_scheduler_job" "test" {
-  name                = "acctestRG-%d-job"
+  name                = "acctest-%d-job"
   resource_group_name = "${azurerm_resource_group.test.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
 
@@ -546,7 +607,7 @@ resource "azurerm_scheduler_job" "test" {
 func testAccAzureRMSchedulerJob_web_authCert(rInt int, location string) string {
 	return fmt.Sprintf(`%s 
 resource "azurerm_scheduler_job" "test" {
-  name                = "acctestRG-%d-job"
+  name                = "acctest-%d-job"
   resource_group_name = "${azurerm_resource_group.test.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
 
@@ -566,7 +627,7 @@ resource "azurerm_scheduler_job" "test" {
 func testAccAzureRMSchedulerJob_web_authAd(rInt int, location, tenantId, clientId, secret, audience string) string {
 	return fmt.Sprintf(`%s 
 resource "azurerm_scheduler_job" "test" {
-  name                = "acctestRG-%d-job"
+  name                = "acctest-%d-job"
   resource_group_name = "${azurerm_resource_group.test.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
 
@@ -588,7 +649,7 @@ resource "azurerm_scheduler_job" "test" {
 func testAccAzureRMSchedulerJob_web_retry(rInt int, location string) string {
 	return fmt.Sprintf(`%s 
 resource "azurerm_scheduler_job" "test" {
-  name                = "acctestRG-%d-job"
+  name                = "acctest-%d-job"
   resource_group_name = "${azurerm_resource_group.test.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
 
@@ -609,7 +670,7 @@ resource "azurerm_scheduler_job" "test" {
 func testAccAzureRMSchedulerJob_web_recurring(rInt int, location string) string {
 	return fmt.Sprintf(`%s 
 resource "azurerm_scheduler_job" "test" {
-  name                = "acctestRG-%d-job"
+  name                = "acctest-%d-job"
   resource_group_name = "${azurerm_resource_group.test.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
 
@@ -631,7 +692,7 @@ resource "azurerm_scheduler_job" "test" {
 func testAccAzureRMSchedulerJob_web_recurringDaily(rInt int, location string) string {
 	return fmt.Sprintf(`%s 
 resource "azurerm_scheduler_job" "test" {
-  name                = "acctestRG-%d-job"
+  name                = "acctest-%d-job"
   resource_group_name = "${azurerm_resource_group.test.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
 
@@ -654,7 +715,7 @@ resource "azurerm_scheduler_job" "test" {
 func testAccAzureRMSchedulerJob_web_recurringWeekly(rInt int, location string) string {
 	return fmt.Sprintf(`%s 
 resource "azurerm_scheduler_job" "test" {
-  name                = "acctestRG-%d-job"
+  name                = "acctest-%d-job"
   resource_group_name = "${azurerm_resource_group.test.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
 
@@ -676,7 +737,7 @@ resource "azurerm_scheduler_job" "test" {
 func testAccAzureRMSchedulerJob_web_recurringMonthly(rInt int, location string) string {
 	return fmt.Sprintf(`%s 
 resource "azurerm_scheduler_job" "test" {
-  name                = "acctestRG-%d-job"
+  name                = "acctest-%d-job"
   resource_group_name = "${azurerm_resource_group.test.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
 
@@ -698,7 +759,7 @@ resource "azurerm_scheduler_job" "test" {
 func testAccAzureRMSchedulerJob_web_recurringMonthlyOccurrences(rInt int, location string) string {
 	return fmt.Sprintf(`%s 
 resource "azurerm_scheduler_job" "test" {
-  name                = "acctestRG-%d-job"
+  name                = "acctest-%d-job"
   resource_group_name = "${azurerm_resource_group.test.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
 
@@ -733,7 +794,7 @@ resource "azurerm_scheduler_job" "test" {
 func testAccAzureRMSchedulerJob_web_errorAction(rInt int, location string) string {
 	return fmt.Sprintf(`%s 
 resource "azurerm_scheduler_job" "test" {
-  name                = "acctestRG-%d-job"
+  name                = "acctest-%d-job"
   resource_group_name = "${azurerm_resource_group.test.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
 
@@ -754,7 +815,7 @@ resource "azurerm_scheduler_job" "test" {
 func testAccAzureRMSchedulerJob_web_complete(rInt int, location, time string) string {
 	return fmt.Sprintf(`%s 
 resource "azurerm_scheduler_job" "test" {
-  name                = "acctestRG-%d-job"
+  name                = "acctest-%d-job"
   resource_group_name = "${azurerm_resource_group.test.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
 
@@ -783,4 +844,71 @@ resource "azurerm_scheduler_job" "test" {
   start_time = "%s"
 
 }`, testAccAzureRMSchedulerJob_template(rInt, location), rInt, time)
+}
+
+func testAccAzureRMSchedulerJob_storageQueue(rInt int, location string) string {
+	//need a valid URL here otherwise on a slow connection job might fault before the test check
+	return fmt.Sprintf(`%[1]s
+resource "azurerm_storage_account" "test" {
+  name                     = "acctest%[2]s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_queue" "test" {
+  name                 = "acctest-%[3]d-job"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.test.name}"
+}
+
+resource "azurerm_scheduler_job" "test" {
+  name                = "acctest-%[3]d-job"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
+
+  action_storage_queue = {
+    storage_account_name = "${azurerm_storage_account.test.name}"
+    storage_queue_name   = "${azurerm_storage_queue.test.name}"
+    sas_token            = "${azurerm_storage_account.test.primary_access_key}"
+    message              = "storage message"
+  }
+}`, testAccAzureRMSchedulerJob_template(rInt, location), strconv.Itoa(rInt)[0:5], rInt)
+}
+
+func testAccAzureRMSchedulerJob_storageQueue_errorAction(rInt int, location string) string {
+	//need a valid URL here otherwise on a slow connection job might fault before the test check
+	return fmt.Sprintf(`%[1]s
+resource "azurerm_storage_account" "test" {
+  name                     = "acctest%[2]s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_queue" "test" {
+  name                 = "acctest-%[3]d-job"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.test.name}"
+}
+
+resource "azurerm_scheduler_job" "test" {
+  name                = "acctest-%[3]d-job"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
+
+  action_web {
+    url    = "http://example.com"
+    method = "get"
+  } 
+
+  error_action_storage_queue = {
+    storage_account_name = "${azurerm_storage_account.test.name}"
+    storage_queue_name   = "${azurerm_storage_queue.test.name}"
+    sas_token            = "${azurerm_storage_account.test.primary_access_key}"
+    message              = "storage message"
+  }
+}`, testAccAzureRMSchedulerJob_template(rInt, location), strconv.Itoa(rInt)[0:5], rInt)
 }
