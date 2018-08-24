@@ -14,7 +14,7 @@ func TestAccAzureRMKubernetesCluster_importBasic(t *testing.T) {
 	ri := acctest.RandInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_basic(ri, clientId, clientSecret, testLocation())
+	config := testAccAzureRMKubernetesCluster_basic(ri, clientId, clientSecret, testLocation(), "")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
