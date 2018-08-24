@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sql_elasticpool"
 sidebar_current: "docs-azurerm-resource-database-sql-elasticpool"
 description: |-
-  Create a SQL Elastic Pool.
+  Manages a SQL Elastic Pool.
 ---
 
 # azurerm_sql_elasticpool

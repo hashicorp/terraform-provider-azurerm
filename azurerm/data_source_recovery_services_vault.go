@@ -11,9 +11,6 @@ import (
 func dataSourceArmRecoveryServicesVault() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmRecoveryServicesVaultRead,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {

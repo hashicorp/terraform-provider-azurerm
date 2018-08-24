@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_blob"
 sidebar_current: "docs-azurerm-resource-storage-blob"
 description: |-
-  Create a Azure Storage Blob.
+  Manages a Azure Storage Blob.
 ---
 
 # azurerm_storage_blob

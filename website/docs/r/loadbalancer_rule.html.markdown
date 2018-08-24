@@ -3,14 +3,14 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_lb_rule"
 sidebar_current: "docs-azurerm-resource-loadbalancer-rule"
 description: |-
-  Create a LoadBalancer Rule.
+  Manages a Load Balancer Rule.
 ---
 
 # azurerm_lb_rule
 
-Create a LoadBalancer Rule.
+Manages a Load Balancer Rule.
 
-~> **NOTE** When using this resource, the LoadBalancer needs to have a FrontEnd IP Configuration Attached
+~> **NOTE** When using this resource, the Load Balancer needs to have a FrontEnd IP Configuration Attached
 
 ## Example Usage
 
@@ -55,9 +55,9 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the LB Rule.
 * `resource_group_name` - (Required) The name of the resource group in which to create the resource.
-* `loadbalancer_id` - (Required) The ID of the LoadBalancer in which to create the Rule.
+* `loadbalancer_id` - (Required) The ID of the Load Balancer in which to create the Rule.
 * `frontend_ip_configuration_name` - (Required) The name of the frontend IP configuration to which the rule is associated.
-* `protocol` - (Required) The transport protocol for the external endpoint. Possible values are `Udp` or `Tcp`.
+* `protocol` - (Required) The transport protocol for the external endpoint. Possible values are `Tcp`, `Udp` or `All`.
 * `frontend_port` - (Required) The port for the external endpoint. Port numbers for each Rule must be unique within the Load Balancer. Possible values range between 1 and 65534, inclusive.
 * `backend_port` - (Required) The port used for internal connections on the endpoint. Possible values range between 1 and 65535, inclusive.
 * `backend_address_pool_id` - (Optional) A reference to a Backend Address Pool over which this Load Balancing Rule operates.
@@ -70,7 +70,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the LoadBalancer to which the resource is attached.
+* `id` - The ID of the Load Balancer to which the resource is attached.
 
 ## Import
 

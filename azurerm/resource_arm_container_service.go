@@ -323,7 +323,7 @@ func resourceArmContainerServiceDelete(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error issuing Azure ARM delete request of Container Service '%s': %s", name, err)
 	}
 
-	err = future.WaitForCompletion(ctx, containerServiceClient.Client)
+	err = future.WaitForCompletionRef(ctx, containerServiceClient.Client)
 	if err != nil {
 		return err
 	}

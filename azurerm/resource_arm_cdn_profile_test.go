@@ -52,7 +52,7 @@ func testSweepCDNProfiles(region string) error {
 			return err
 		}
 
-		err = future.WaitForCompletion(ctx, client.Client)
+		err = future.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
 			return err
 		}

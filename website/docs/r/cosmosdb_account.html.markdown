@@ -6,7 +6,7 @@ description: |-
   Manages a CosmosDB (formally DocumentDB) Account.
 ---
 
-# azurerm_cosmos_db_account
+# azurerm_cosmosdb_account
 
 Manages a CosmosDB (formally DocumentDB) Account.
 

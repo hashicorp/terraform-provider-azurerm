@@ -153,6 +153,8 @@ The following attributes are exported:
 
 * `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this App Service.
 
+* `site_credential` - A `site_credential` block as defined below, which contains the site-level credentials used to publish to this App Service.
+
 ---
 
 `identity` exports the following:
@@ -160,6 +162,12 @@ The following attributes are exported:
 * `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this App Service.
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this App Service.
+
+
+`site_credential` exports the following:
+
+* `username` - The username which can be used to publish to this App Service
+* `password` - The password associated with the username, which can be used to publish to this App Service.
 
 
 ## Import

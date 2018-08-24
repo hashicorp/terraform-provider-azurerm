@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
-	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -458,6 +457,12 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Required: true,
 						},
 
+						"minimum_servers": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Default:  0,
+						},
+
 						"match": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -749,7 +754,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error Creating/Updating ApplicationGateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error Creating/Updating ApplicationGateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
@@ -770,12 +775,12 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return errwrap.Wrapf("Error parsing ApplicationGateway ID {{err}}", err)
+		return fmt.Errorf("Error parsing ApplicationGateway ID: %+v", err)
 	}
 
 	applicationGateway, exists, err := retrieveApplicationGatewayById(d.Id(), meta)
 	if err != nil {
-		return errwrap.Wrapf("Error Getting ApplicationGateway By ID {{err}}", err)
+		return fmt.Errorf("Error Getting ApplicationGateway By ID: %+v", err)
 	}
 	if !exists {
 		d.SetId("")
@@ -841,7 +846,7 @@ func resourceArmApplicationGatewayDelete(d *schema.ResourceData, meta interface{
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return errwrap.Wrapf("Error Parsing Azure Resource ID {{err}}", err)
+		return fmt.Errorf("Error Parsing Azure Resource ID: %+v", err)
 	}
 	resGroup := id.ResourceGroup
 	name := id.Path["applicationGateways"]
@@ -851,7 +856,7 @@ func resourceArmApplicationGatewayDelete(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error deleting for AppGateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for deletion of AppGateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
@@ -877,7 +882,7 @@ func retrieveApplicationGatewayById(applicationGatewayID string, meta interface{
 
 	resGroup, name, err := ApplicationGatewayResGroupAndNameFromID(applicationGatewayID)
 	if err != nil {
-		return nil, false, errwrap.Wrapf("Error Getting ApplicationGateway Name and Group: {{err}}", err)
+		return nil, false, fmt.Errorf("Error Getting ApplicationGateway Name and Group:: %+v", err)
 	}
 
 	resp, err := client.Get(ctx, resGroup, name)
@@ -1172,6 +1177,7 @@ func expandApplicationGatewayProbes(d *schema.ResourceData) *[]network.Applicati
 		interval := int32(data["interval"].(int))
 		timeout := int32(data["timeout"].(int))
 		unhealthyThreshold := int32(data["unhealthy_threshold"].(int))
+		minServers := int32(data["minimum_servers"].(int))
 
 		setting := network.ApplicationGatewayProbe{
 			Name: &name,
@@ -1182,6 +1188,7 @@ func expandApplicationGatewayProbes(d *schema.ResourceData) *[]network.Applicati
 				Interval:           &interval,
 				Timeout:            &timeout,
 				UnhealthyThreshold: &unhealthyThreshold,
+				MinServers:         &minServers,
 			},
 		}
 
@@ -1646,6 +1653,10 @@ func flattenApplicationGatewayProbes(input *[]network.ApplicationGatewayProbe) [
 
 				if threshold := props.UnhealthyThreshold; threshold != nil {
 					settings["unhealthy_threshold"] = int(*threshold)
+				}
+
+				if minServers := props.MinServers; minServers != nil {
+					settings["minimum_servers"] = int(*minServers)
 				}
 
 				if match := props.Match; match != nil {

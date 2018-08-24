@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_zone"
 sidebar_current: "docs-azurerm-resource-dns-zone"
 description: |-
-  Create a DNS Zone.
+  Manages a DNS Zone.
 ---
 
 # azurerm_dns_zone

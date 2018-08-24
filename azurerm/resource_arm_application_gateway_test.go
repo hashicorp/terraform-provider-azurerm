@@ -60,7 +60,7 @@ func testSweepApplicationGateways(region string) error {
 			return err
 		}
 
-		err = future.WaitForCompletion(ctx, client.Client)
+		err = future.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
 			if response.WasNotFound(future.Response()) {
 				continue
@@ -1498,6 +1498,7 @@ resource "azurerm_application_gateway" "test" {
     timeout             = 120
     interval            = 300
     unhealthy_threshold = 8
+    minimum_servers     = 2
     match               = {
       body              = "*"
       status_code       = [

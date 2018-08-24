@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"regexp"
@@ -20,6 +21,7 @@ func resourceArmStorageAccount() *schema.Resource {
 		Read:   resourceArmStorageAccountRead,
 		Update: resourceArmStorageAccountUpdate,
 		Delete: resourceArmStorageAccountDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -287,9 +289,37 @@ func resourceArmStorageAccount() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": {
+				Type:         schema.TypeMap,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateAzureRMStorageAccountTags,
+			},
 		},
 	}
+}
+
+func validateAzureRMStorageAccountTags(v interface{}, _ string) (ws []string, es []error) {
+	tagsMap := v.(map[string]interface{})
+
+	if len(tagsMap) > 15 {
+		es = append(es, errors.New("a maximum of 15 tags can be applied to each ARM resource"))
+	}
+
+	for k, v := range tagsMap {
+		if len(k) > 128 {
+			es = append(es, fmt.Errorf("the maximum length for a tag key is 128 characters: %q is %d characters", k, len(k)))
+		}
+
+		value, err := tagValueToString(v)
+		if err != nil {
+			es = append(es, err)
+		} else if len(value) > 256 {
+			es = append(es, fmt.Errorf("the maximum length for a tag value is 256 characters: the value for %q is %d characters", k, len(value)))
+		}
+	}
+
+	return ws, es
 }
 
 func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
@@ -369,7 +399,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error creating Azure Storage Account %q: %+v", storageAccountName, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for Azure Storage Account %q to be created: %+v", storageAccountName, err)
 	}
@@ -671,7 +701,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		}
 
 		networkRules := props.NetworkRuleSet
-		if networkRules != nil && len(*networkRules.IPRules) > 0 && len(*networkRules.VirtualNetworkRules) > 0 {
+		if networkRules != nil {
 			if err := d.Set("network_rules", flattenStorageAccountNetworkRules(networkRules)); err != nil {
 				return fmt.Errorf("Error flattening `network_rules`: %+v", err)
 			}
@@ -799,6 +829,9 @@ func expandStorageAccountBypass(networkRule map[string]interface{}) storage.Bypa
 }
 
 func flattenStorageAccountNetworkRules(input *storage.NetworkRuleSet) []interface{} {
+	if len(*input.IPRules) == 0 && len(*input.VirtualNetworkRules) == 0 {
+		return []interface{}{}
+	}
 	networkRules := make(map[string]interface{}, 0)
 
 	networkRules["ip_rules"] = schema.NewSet(schema.HashString, flattenStorageAccountIPRules(input.IPRules))
@@ -810,8 +843,10 @@ func flattenStorageAccountNetworkRules(input *storage.NetworkRuleSet) []interfac
 
 func flattenStorageAccountIPRules(input *[]storage.IPRule) []interface{} {
 	ipRules := make([]interface{}, len(*input))
-	for i, ipRule := range *input {
-		ipRules[i] = *ipRule.IPAddressOrRange
+	if input != nil {
+		for i, ipRule := range *input {
+			ipRules[i] = *ipRule.IPAddressOrRange
+		}
 	}
 
 	return ipRules
@@ -819,8 +854,11 @@ func flattenStorageAccountIPRules(input *[]storage.IPRule) []interface{} {
 
 func flattenStorageAccountVirtualNetworks(input *[]storage.VirtualNetworkRule) []interface{} {
 	virtualNetworks := make([]interface{}, len(*input))
-	for i, virtualNetwork := range *input {
-		virtualNetworks[i] = *virtualNetwork.VirtualNetworkResourceID
+
+	if input != nil {
+		for i, virtualNetwork := range *input {
+			virtualNetworks[i] = *virtualNetwork.VirtualNetworkResourceID
+		}
 	}
 
 	return virtualNetworks

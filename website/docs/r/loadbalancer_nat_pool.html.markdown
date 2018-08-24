@@ -3,14 +3,14 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_lb_nat_pool"
 sidebar_current: "docs-azurerm-resource-loadbalancer-nat-pool"
 description: |-
-  Create a LoadBalancer NAT Pool.
+  Manages a Load Balancer NAT Pool.
 ---
 
 # azurerm_lb_nat_pool
 
-Create a LoadBalancer NAT pool.
+Manages a Load Balancer NAT pool.
 
-~> **NOTE** When using this resource, the LoadBalancer needs to have a FrontEnd IP Configuration Attached
+~> **NOTE** When using this resource, the Load Balancer needs to have a FrontEnd IP Configuration Attached
 
 ## Example Usage
 
@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the NAT pool.
 * `resource_group_name` - (Required) The name of the resource group in which to create the resource.
-* `loadbalancer_id` - (Required) The ID of the LoadBalancer in which to create the NAT pool.
+* `loadbalancer_id` - (Required) The ID of the Load Balancer in which to create the NAT pool.
 * `frontend_ip_configuration_name` - (Required) The name of the frontend IP configuration exposing this rule.
 * `protocol` - (Required) The transport protocol for the external endpoint. Possible values are `Udp` or `Tcp`.
 * `frontend_port_start` - (Required) The first port number in the range of external ports that will be used to provide Inbound Nat to NICs associated with this Load Balancer. Possible values range between 1 and 65534, inclusive.
@@ -67,7 +67,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the LoadBalancer to which the resource is attached.
+* `id` - The ID of the Load Balancer to which the resource is attached.
 
 ## Import
 

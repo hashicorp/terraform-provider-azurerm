@@ -126,7 +126,7 @@ func resourceArmTemplateDeploymentCreate(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error creating deployment: %+v", err)
 	}
 
-	err = future.WaitForCompletion(ctx, deployClient.Client)
+	err = future.WaitForCompletionRef(ctx, deployClient.Client)
 	if err != nil {
 		return fmt.Errorf("Error creating deployment: %+v", err)
 	}

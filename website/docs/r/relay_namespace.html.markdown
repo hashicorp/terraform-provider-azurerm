@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_relay_namespace"
-sidebar_current: "docs-azurerm-resource-relay-namespace"
+sidebar_current: "docs-azurerm-resource-messaging-relay-namespace"
 description: |-
   Manages an Azure Relay Namespace.
 
