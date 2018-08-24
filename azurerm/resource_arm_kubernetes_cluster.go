@@ -51,6 +51,13 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"enable_rbac": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+				Default:  true,
+			},
+
 			"kube_config": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -209,6 +216,38 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Set: resourceAzureRMKubernetesClusterServicePrincipalProfileHash,
 			},
 
+			"aad_profile": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				// TODO: Validation Function
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"server_app_id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+
+						"server_app_secret": {
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
+						},
+
+						"client_app_id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -225,10 +264,12 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	dnsPrefix := d.Get("dns_prefix").(string)
 	kubernetesVersion := d.Get("kubernetes_version").(string)
+	enableRbac := d.Get("enable_rbac").(bool)
 
 	linuxProfile := expandAzureRmKubernetesClusterLinuxProfile(d)
 	agentProfiles := expandAzureRmKubernetesClusterAgentProfiles(d)
 	servicePrincipalProfile := expandAzureRmKubernetesClusterServicePrincipal(d)
+	aadProfile := expandAzureRmKubernetesClusterAadProfile(d)
 
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -239,8 +280,10 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 			AgentPoolProfiles:       &agentProfiles,
 			DNSPrefix:               &dnsPrefix,
 			KubernetesVersion:       &kubernetesVersion,
+			EnableRBAC:              &enableRbac,
 			LinuxProfile:            &linuxProfile,
 			ServicePrincipalProfile: servicePrincipalProfile,
+			AadProfile:              aadProfile,
 		},
 		Tags: expandTags(tags),
 	}
@@ -307,6 +350,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("dns_prefix", props.DNSPrefix)
 		d.Set("fqdn", props.Fqdn)
 		d.Set("kubernetes_version", props.KubernetesVersion)
+		d.Set("enable_rbac", props.EnableRBAC)
 
 		linuxProfile := flattenAzureRmKubernetesClusterLinuxProfile(props.LinuxProfile)
 		if err := d.Set("linux_profile", linuxProfile); err != nil {
@@ -322,13 +366,25 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		if err := d.Set("service_principal", servicePrincipal); err != nil {
 			return fmt.Errorf("Error setting `service_principal`: %+v", err)
 		}
+
+		aadProfile := flattenAzureRmKubernetesClusterAadProfile(resp.ManagedClusterProperties.AadProfile)
+		if err := d.Set("aad_profile", aadProfile); err != nil {
+			return fmt.Errorf("Error setting `aad_profile`: %+v", err)
+		}
 	}
 
-	kubeConfigRaw, kubeConfig := flattenAzureRmKubernetesClusterAccessProfile(&profile)
-	d.Set("kube_config_raw", kubeConfigRaw)
-
-	if err := d.Set("kube_config", kubeConfig); err != nil {
-		return fmt.Errorf("Error setting `kube_config`: %+v", err)
+	if d.Get("enable_rbac") == true {
+		kubeConfigRaw, kubeConfig := flattenAzureRmKubernetesClusterAccessProfileRBAC(&profile)
+		d.Set("kube_config_raw", kubeConfigRaw)
+		if err := d.Set("kube_config", kubeConfig); err != nil {
+			return fmt.Errorf("Error setting `kube_config`: %+v", err)
+		}
+	} else {
+		kubeConfigRaw, kubeConfig := flattenAzureRmKubernetesClusterAccessProfile(&profile)
+		d.Set("kube_config_raw", kubeConfigRaw)
+		if err := d.Set("kube_config", kubeConfig); err != nil {
+			return fmt.Errorf("Error setting `kube_config`: %+v", err)
+		}
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -450,6 +506,32 @@ func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerse
 	return servicePrincipalProfiles
 }
 
+func flattenAzureRmKubernetesClusterAadProfile(profile *containerservice.ManagedClusterAADProfile) []interface{} {
+	if profile == nil {
+		return nil
+	}
+
+	values := make(map[string]interface{})
+
+	if serverAppId := profile.ServerAppID; serverAppId != nil {
+		values["server_app_id"] = *serverAppId
+	}
+
+	if serverAppSecret := profile.ServerAppSecret; serverAppSecret != nil {
+		values["server_app_secret"] = *serverAppSecret
+	}
+
+	if clientAppId := profile.ClientAppID; clientAppId != nil {
+		values["client_app_id"] = *clientAppId
+	}
+
+	if tenantId := profile.TenantID; tenantId != nil {
+		values["tenant_id"] = *tenantId
+	}
+
+	return []interface{}{values}
+}
+
 func flattenAzureRmKubernetesClusterAccessProfile(profile *containerservice.ManagedClusterAccessProfile) (*string, []interface{}) {
 	if profile != nil {
 		if accessProfile := profile.AccessProfile; accessProfile != nil {
@@ -469,6 +551,25 @@ func flattenAzureRmKubernetesClusterAccessProfile(profile *containerservice.Mana
 	return nil, []interface{}{}
 }
 
+func flattenAzureRmKubernetesClusterAccessProfileRBAC(profile *containerservice.ManagedClusterAccessProfile) (*string, []interface{}) {
+	if profile != nil {
+		if accessProfile := profile.AccessProfile; accessProfile != nil {
+			if kubeConfigRaw := accessProfile.KubeConfig; kubeConfigRaw != nil {
+				rawConfig := string(*kubeConfigRaw)
+
+				kubeConfigRBAC, err := kubernetes.ParseKubeConfigRBAC(rawConfig)
+				if err != nil {
+					return utils.String(rawConfig), []interface{}{}
+				}
+
+				flattenedKubeConfig := flattenKubernetesClusterKubeConfigRBAC(*kubeConfigRBAC)
+				return utils.String(rawConfig), flattenedKubeConfig
+			}
+		}
+	}
+	return nil, []interface{}{}
+}
+
 func flattenKubernetesClusterKubeConfig(config kubernetes.KubeConfig) []interface{} {
 	values := make(map[string]interface{})
 
@@ -481,6 +582,24 @@ func flattenKubernetesClusterKubeConfig(config kubernetes.KubeConfig) []interfac
 	values["password"] = user.Token
 	values["client_certificate"] = user.ClientCertificteData
 	values["client_key"] = user.ClientKeyData
+	values["cluster_ca_certificate"] = cluster.ClusterAuthorityData
+
+	return []interface{}{values}
+}
+
+func flattenKubernetesClusterKubeConfigRBAC(config kubernetes.KubeConfigRBAC) []interface{} {
+	values := make(map[string]interface{})
+
+	cluster := config.Clusters[0].Cluster
+	name := config.Users[0].Name
+
+	values["host"] = cluster.Server
+	values["username"] = name
+
+	values["password"] = ""
+	values["client_certificate"] = ""
+	values["client_key"] = ""
+
 	values["cluster_ca_certificate"] = cluster.ClusterAuthorityData
 
 	return []interface{}{values}
@@ -564,6 +683,30 @@ func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []conta
 	profiles = append(profiles, profile)
 
 	return profiles
+}
+
+func expandAzureRmKubernetesClusterAadProfile(d *schema.ResourceData) *containerservice.ManagedClusterAADProfile {
+	value, exists := d.GetOk("aad_profile")
+	if !exists {
+		return nil
+	}
+
+	profiles := value.([]interface{})
+	profile := profiles[0].(map[string]interface{})
+
+	serverAppId := profile["server_app_id"].(string)
+	serverAppSecret := profile["server_app_secret"].(string)
+	clientAppId := profile["client_app_id"].(string)
+	tenantId := profile["tenant_id"].(string)
+
+	aadProfile := containerservice.ManagedClusterAADProfile{
+		ServerAppID:     &serverAppId,
+		ServerAppSecret: &serverAppSecret,
+		ClientAppID:     &clientAppId,
+		TenantID:        &tenantId,
+	}
+
+	return &aadProfile
 }
 
 func resourceAzureRMKubernetesClusterServicePrincipalProfileHash(v interface{}) int {
