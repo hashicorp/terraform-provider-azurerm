@@ -118,9 +118,41 @@ func dataSourceApiManagementService() *schema.Resource {
 				},
 			},
 
-			"custom_properties": {
-				Type:     schema.TypeMap,
-				Computed: true,
+			"security": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"disable_backend_ssl30": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"disable_backend_tls10": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"disable_backend_tls11": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"disable_triple_des_chipers": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"disable_frontend_ssl30": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"disable_frontend_tls10": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"disable_frontend_tls11": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"hostname_configuration": {
@@ -201,8 +233,8 @@ func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error
 			return err
 		}
 
-		if err := d.Set("custom_properties", customProps); err != nil {
-			return fmt.Errorf("Error setting `custom_properties`: %+v", err)
+		if err := d.Set("security", customProps); err != nil {
+			return fmt.Errorf("Error setting `security`: %+v", err)
 		}
 
 		if err := d.Set("hostname_configuration", flattenApiManagementHostnameConfigurations(d, props.HostnameConfigurations)); err != nil {
