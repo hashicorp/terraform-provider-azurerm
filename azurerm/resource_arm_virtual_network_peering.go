@@ -48,7 +48,7 @@ func resourceArmVirtualNetworkPeering() *schema.Resource {
 			"allow_virtual_network_access": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Computed: true,
+				Default: true,
 			},
 
 			"allow_forwarded_traffic": {
