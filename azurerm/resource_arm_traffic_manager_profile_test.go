@@ -20,10 +20,58 @@ func getTrafficManagerFQDN(hostname string) (string, error) {
 	return fmt.Sprintf("%s.%s", hostname, dnsSuffix), nil
 }
 
+func TestAccAzureRMTrafficManagerProfile_geographic(t *testing.T) {
+	resourceName := "azurerm_traffic_manager_profile.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMTrafficManagerProfile_geographic(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMTrafficManagerProfileExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "traffic_routing_method", "Geographic"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMTrafficManagerProfile_weighted(t *testing.T) {
 	resourceName := "azurerm_traffic_manager_profile.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMTrafficManagerProfile_weighted(ri, testLocation())
+
+	fqdn, err := getTrafficManagerFQDN(fmt.Sprintf("acctesttmp%d", ri))
+	if err != nil {
+		t.Fatalf("Error obtaining Azure Region: %+v", err)
+	}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMTrafficManagerProfileExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "traffic_routing_method", "Weighted"),
+					resource.TestCheckResourceAttr(resourceName, "fqdn", fqdn),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMTrafficManagerProfile_weightedTCP(t *testing.T) {
+	resourceName := "azurerm_traffic_manager_profile.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMTrafficManagerProfile_weightedTCP(ri, testLocation())
 
 	fqdn, err := getTrafficManagerFQDN(fmt.Sprintf("acctesttmp%d", ri))
 	if err != nil {
@@ -133,6 +181,78 @@ func TestAccAzureRMTrafficManagerProfile_withTags(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMTrafficManagerProfile_performanceToGeographic(t *testing.T) {
+	resourceName := "azurerm_traffic_manager_profile.test"
+	ri := acctest.RandInt()
+	preConfig := testAccAzureRMTrafficManagerProfile_performance(ri, testLocation())
+	postConfig := testAccAzureRMTrafficManagerProfile_geographic(ri, testLocation())
+
+	fqdn, err := getTrafficManagerFQDN(fmt.Sprintf("acctesttmp%d", ri))
+	if err != nil {
+		t.Fatalf("Error obtaining Azure Region: %+v", err)
+	}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMTrafficManagerProfileExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "traffic_routing_method", "Performance"),
+					resource.TestCheckResourceAttr(resourceName, "fqdn", fqdn),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMTrafficManagerProfileExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "traffic_routing_method", "Geographic"),
+					resource.TestCheckResourceAttr(resourceName, "fqdn", fqdn),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMTrafficManagerProfile_priorityToWeighted(t *testing.T) {
+	resourceName := "azurerm_traffic_manager_profile.test"
+	ri := acctest.RandInt()
+	preConfig := testAccAzureRMTrafficManagerProfile_priority(ri, testLocation())
+	postConfig := testAccAzureRMTrafficManagerProfile_weighted(ri, testLocation())
+
+	fqdn, err := getTrafficManagerFQDN(fmt.Sprintf("acctesttmp%d", ri))
+	if err != nil {
+		t.Fatalf("Error obtaining Azure Region: %+v", err)
+	}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMTrafficManagerProfileExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "traffic_routing_method", "Priority"),
+					resource.TestCheckResourceAttr(resourceName, "fqdn", fqdn),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMTrafficManagerProfileExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "traffic_routing_method", "Weighted"),
+					resource.TestCheckResourceAttr(resourceName, "fqdn", fqdn),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMTrafficManagerProfileExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -149,8 +269,8 @@ func testCheckAzureRMTrafficManagerProfileExists(name string) resource.TestCheck
 
 		// Ensure resource group/virtual network combination exists in API
 		conn := testAccProvider.Meta().(*ArmClient).trafficManagerProfilesClient
-
-		resp, err := conn.Get(resourceGroup, name)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on trafficManagerProfilesClient: %+v", err)
 		}
@@ -175,8 +295,8 @@ func testCheckAzureRMTrafficManagerProfileDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(resourceGroup, name)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return nil
 		}
@@ -187,6 +307,32 @@ func testCheckAzureRMTrafficManagerProfileDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func testAccAzureRMTrafficManagerProfile_geographic(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_traffic_manager_profile" "test" {
+    name = "acctesttmp%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    traffic_routing_method = "Geographic"
+
+    dns_config {
+        relative_name = "acctesttmp%d"
+        ttl = 30
+    }
+
+    monitor_config {
+        protocol = "https"
+        port = 443
+        path = "/"
+    }
+}
+`, rInt, location, rInt, rInt)
 }
 
 func testAccAzureRMTrafficManagerProfile_weighted(rInt int, location string) string {
@@ -210,6 +356,31 @@ resource "azurerm_traffic_manager_profile" "test" {
         protocol = "https"
         port = 443
         path = "/"
+    }
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMTrafficManagerProfile_weightedTCP(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_traffic_manager_profile" "test" {
+    name = "acctesttmp%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    traffic_routing_method = "Weighted"
+
+    dns_config {
+        relative_name = "acctesttmp%d"
+        ttl = 30
+    }
+
+    monitor_config {
+        protocol = "tcp"
+        port = 443
     }
 }
 `, rInt, location, rInt, rInt)

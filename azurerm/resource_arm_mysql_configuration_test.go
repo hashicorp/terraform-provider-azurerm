@@ -111,8 +111,9 @@ func testCheckAzureRMMySQLConfigurationValue(resourceName string, value string) 
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).mysqlConfigurationsClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(resourceGroup, serverName, name)
+		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: MySQL Configuration %q (server %q resource group: %q) does not exist", name, serverName, resourceGroup)
@@ -136,8 +137,9 @@ func testCheckAzureRMMySQLConfigurationValueReset(rInt int, configurationName st
 		serverName := fmt.Sprintf("acctestmysqlsvr-%d", rInt)
 
 		client := testAccProvider.Meta().(*ArmClient).mysqlConfigurationsClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(resourceGroup, serverName, configurationName)
+		resp, err := client.Get(ctx, resourceGroup, serverName, configurationName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: MySQL Configuration %q (server %q resource group: %q) does not exist", configurationName, serverName, resourceGroup)
@@ -158,6 +160,7 @@ func testCheckAzureRMMySQLConfigurationValueReset(rInt int, configurationName st
 
 func testCheckAzureRMMySQLConfigurationDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).mysqlConfigurationsClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_mysql_configuration" {
@@ -168,7 +171,7 @@ func testCheckAzureRMMySQLConfigurationDestroy(s *terraform.State) error {
 		serverName := rs.Primary.Attributes["server_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.Get(resourceGroup, serverName, name)
+		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -220,15 +223,21 @@ resource "azurerm_mysql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name     = "MYSQLB50"
-    capacity = 50
+    name     = "B_Gen4_2"
+    capacity = 2
     tier     = "Basic"
+    family   = "Gen4"
+  }
+
+  storage_profile {
+    storage_mb = 51200
+    backup_retention_days = 7
+    geo_redundant_backup = "Disabled"
   }
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "5.7"
-  storage_mb                   = 51200
   ssl_enforcement              = "Enabled"
 }
 `, rInt, location, rInt)

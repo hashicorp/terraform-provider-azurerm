@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func dataSourceArmBuiltInRoleDefinition() *schema.Resource {
@@ -14,12 +13,6 @@ func dataSourceArmBuiltInRoleDefinition() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Contributor",
-					"Reader",
-					"Owner",
-					"VirtualMachineContributor",
-				}, false),
 			},
 
 			// Computed
@@ -66,26 +59,34 @@ func dataSourceArmBuiltInRoleDefinition() *schema.Resource {
 
 func dataSourceArmBuiltInRoleDefinitionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).roleDefinitionsClient
+	ctx := meta.(*ArmClient).StopContext
+
 	name := d.Get("name").(string)
-	roleDefinitionIds := map[string]string{
-		"Contributor":               "/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c",
-		"Owner":                     "/providers/Microsoft.Authorization/roleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635",
-		"Reader":                    "/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7",
-		"VirtualMachineContributor": "/providers/Microsoft.Authorization/roleDefinitions/d73bb868-a0df-4d4d-bd69-98a00b01fccb",
+	if name == "VirtualMachineContributor" {
+		name = "Virtual Machine Contributor"
 	}
-	roleDefinitionId := roleDefinitionIds[name]
+	filter := fmt.Sprintf("roleName eq '%s'", name)
+	roleDefinitions, err := client.List(ctx, "", filter)
+	if err != nil {
+		return fmt.Errorf("Error loading Role Definition List: %+v", err)
+	}
+	if len(roleDefinitions.Values()) != 1 {
+		return fmt.Errorf("Error loading Role Definition List: could not find role '%s'", name)
+	}
+
+	roleDefinitionId := *roleDefinitions.Values()[0].ID
 
 	d.SetId(roleDefinitionId)
 
-	role, err := client.GetByID(roleDefinitionId)
+	role, err := client.GetByID(ctx, roleDefinitionId)
 	if err != nil {
-		return fmt.Errorf("Error loadng Role Definition: %+v", err)
+		return fmt.Errorf("Error loading Role Definition: %+v", err)
 	}
 
-	if props := role.Properties; props != nil {
+	if props := role.RoleDefinitionProperties; props != nil {
 		d.Set("name", props.RoleName)
 		d.Set("description", props.Description)
-		d.Set("type", props.Type)
+		d.Set("type", props.RoleType)
 
 		permissions := flattenRoleDefinitionPermissions(props.Permissions)
 		if err := d.Set("permissions", permissions); err != nil {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/arm/search"
+	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -65,9 +65,10 @@ func resourceArmSearchService() *schema.Resource {
 
 func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).searchServicesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resourceGroupName := d.Get("resource_group_name").(string)
 	skuName := d.Get("sku").(string)
 	tags := d.Get("tags").(map[string]interface{})
@@ -82,22 +83,21 @@ func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("replica_count"); ok {
-		replica_count := int32(v.(int))
-		properties.ServiceProperties.ReplicaCount = utils.Int32(replica_count)
+		replicaCount := int32(v.(int))
+		properties.ServiceProperties.ReplicaCount = utils.Int32(replicaCount)
 	}
 
 	if v, ok := d.GetOk("partition_count"); ok {
-		partition_count := int32(v.(int))
-		properties.ServiceProperties.PartitionCount = utils.Int32(partition_count)
+		partitionCount := int32(v.(int))
+		properties.ServiceProperties.PartitionCount = utils.Int32(partitionCount)
 	}
 
-	_, createErr := client.CreateOrUpdate(resourceGroupName, name, properties, nil, make(chan struct{}))
-	err := <-createErr
+	_, err := client.CreateOrUpdate(ctx, resourceGroupName, name, properties, nil)
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(resourceGroupName, name, nil)
+	resp, err := client.Get(ctx, resourceGroupName, name, nil)
 	if err != nil {
 		return err
 	}
@@ -109,6 +109,7 @@ func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface
 
 func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).searchServicesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -117,7 +118,7 @@ func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) erro
 	resourceGroup := id.ResourceGroup
 	name := id.Path["searchServices"]
 
-	resp, err := client.Get(resourceGroup, name, nil)
+	resp, err := client.Get(ctx, resourceGroup, name, nil)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading Search Service %q - removing from state", d.Id())
@@ -130,19 +131,21 @@ func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) erro
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
-	if resp.Sku != nil {
-		d.Set("sku", string(resp.Sku.Name))
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku", string(sku.Name))
 	}
 
 	if props := resp.ServiceProperties; props != nil {
-		if props.PartitionCount != nil {
-			d.Set("partition_count", int(*props.PartitionCount))
+		if count := props.PartitionCount; count != nil {
+			d.Set("partition_count", int(*count))
 		}
 
-		if props.ReplicaCount != nil {
-			d.Set("replica_count", int(*props.ReplicaCount))
+		if count := props.ReplicaCount; count != nil {
+			d.Set("replica_count", int(*count))
 		}
 	}
 
@@ -153,6 +156,7 @@ func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) erro
 
 func resourceArmSearchServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).searchServicesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -161,14 +165,14 @@ func resourceArmSearchServiceDelete(d *schema.ResourceData, meta interface{}) er
 	resourceGroup := id.ResourceGroup
 	name := id.Path["searchServices"]
 
-	resp, err := client.Delete(resourceGroup, name, nil)
+	resp, err := client.Delete(ctx, resourceGroup, name, nil)
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting Search Service: %+v", err)
+		return fmt.Errorf("Error deleting Search Service %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
 	return nil

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMServiceBusTopic_basic(t *testing.T) {
@@ -147,7 +148,7 @@ func TestAccAzureRMServiceBusTopic_enablePartitioningPremium(t *testing.T) {
 	resourceName := "azurerm_servicebus_topic.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	preConfig := testAccAzureRMServiceBusTopic_basic(ri, location)
+	preConfig := testAccAzureRMServiceBusTopic_basicPremium(ri, location)
 	postConfig := testAccAzureRMServiceBusTopic_enablePartitioningPremium(ri, location)
 
 	resource.Test(t, resource.TestCase{
@@ -164,7 +165,7 @@ func TestAccAzureRMServiceBusTopic_enablePartitioningPremium(t *testing.T) {
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "enable_partitioning", "true"),
+					resource.TestCheckResourceAttr(resourceName, "enable_partitioning", "false"),
 					resource.TestCheckResourceAttr(resourceName, "max_size_in_megabytes", "81920"),
 				),
 			},
@@ -202,6 +203,7 @@ func TestAccAzureRMServiceBusTopic_enableDuplicateDetection(t *testing.T) {
 
 func testCheckAzureRMServiceBusTopicDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).serviceBusTopicsClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_servicebus_topic" {
@@ -212,9 +214,9 @@ func testCheckAzureRMServiceBusTopicDestroy(s *terraform.State) error {
 		namespaceName := rs.Primary.Attributes["namespace_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.Get(resourceGroup, namespaceName, name)
+		resp, err := client.Get(ctx, resourceGroup, namespaceName, name)
 		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
+			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
 			}
 			return err
@@ -244,8 +246,9 @@ func testCheckAzureRMServiceBusTopicExists(name string) resource.TestCheckFunc {
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).serviceBusTopicsClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(resourceGroup, namespaceName, topicName)
+		resp, err := client.Get(ctx, resourceGroup, namespaceName, topicName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on serviceBusTopicsClient: %+v", err)
 		}
@@ -327,6 +330,30 @@ resource "azurerm_servicebus_topic" "test" {
 `, rInt, location, rInt, rInt)
 }
 
+func testAccAzureRMServiceBusTopic_basicPremium(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+    name = "acctestservicebusnamespace-%d"
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    sku = "Premium"
+    capacity = 1
+}
+
+resource "azurerm_servicebus_topic" "test" {
+    name = "acctestservicebustopic-%d"
+    namespace_name = "${azurerm_servicebus_namespace.test.name}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    enable_partitioning = false
+}
+`, rInt, location, rInt, rInt)
+}
+
 func testAccAzureRMServiceBusTopic_enablePartitioningStandard(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -370,7 +397,7 @@ resource "azurerm_servicebus_topic" "test" {
     name = "acctestservicebustopic-%d"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    enable_partitioning = true
+    enable_partitioning = false
     max_size_in_megabytes = 81920
 }
 `, rInt, location, rInt, rInt)

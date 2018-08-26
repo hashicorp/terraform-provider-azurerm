@@ -25,14 +25,15 @@ func testSweepCDNProfiles(region string) error {
 	}
 
 	client := (*armClient).cdnProfilesClient
+	ctx := (*armClient).StopContext
 
 	log.Printf("Retrieving the CDN Profiles..")
-	results, err := client.List()
+	results, err := client.List(ctx)
 	if err != nil {
 		return fmt.Errorf("Error Listing on CDN Profiles: %+v", err)
 	}
 
-	for _, profile := range *results.Value {
+	for _, profile := range results.Values() {
 		if !shouldSweepAcceptanceTestResource(*profile.Name, *profile.Location, region) {
 			continue
 		}
@@ -46,54 +47,18 @@ func testSweepCDNProfiles(region string) error {
 		name := resourceId.Path["profiles"]
 
 		log.Printf("Deleting CDN Profile '%s' in Resource Group '%s'", name, resourceGroup)
-		_, error := client.Delete(resourceGroup, name, make(chan struct{}))
-		err = <-error
+		future, err := client.Delete(ctx, resourceGroup, name)
+		if err != nil {
+			return err
+		}
+
+		err = future.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
 			return err
 		}
 	}
 
 	return nil
-}
-
-func TestResourceAzureRMCdnProfileSKU_validation(t *testing.T) {
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{
-			Value:    "Random",
-			ErrCount: 1,
-		},
-		{
-			Value:    "Standard_Verizon",
-			ErrCount: 0,
-		},
-		{
-			Value:    "Premium_Verizon",
-			ErrCount: 0,
-		},
-		{
-			Value:    "Standard_Akamai",
-			ErrCount: 0,
-		},
-		{
-			Value:    "STANDARD_AKAMAI",
-			ErrCount: 0,
-		},
-		{
-			Value:    "standard_akamai",
-			ErrCount: 0,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := validateCdnProfileSku(tc.Value, "azurerm_cdn_profile")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Azure RM CDN Profile SKU to trigger a validation error for '%s'", tc.Value)
-		}
-	}
 }
 
 func TestAccAzureRMCdnProfile_basic(t *testing.T) {
@@ -173,6 +138,77 @@ func TestAccAzureRMCdnProfile_NonStandardCasing(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCdnProfile_basicToStandardAkamai(t *testing.T) {
+	resourceName := "azurerm_cdn_profile.test"
+	ri := acctest.RandInt()
+	preConfig := testAccAzureRMCdnProfile_basic(ri, testLocation())
+	postConfig := testAccAzureRMCdnProfile_standardAkamai(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCdnProfileExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku", "Standard_Verizon"),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCdnProfileExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku", "Standard_Akamai"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMCdnProfile_standardAkamai(t *testing.T) {
+	resourceName := "azurerm_cdn_profile.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMCdnProfile_standardAkamai(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCdnProfileExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku", "Standard_Akamai"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMCdnProfile_standardMicrosoft(t *testing.T) {
+	resourceName := "azurerm_cdn_profile.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMCdnProfile_standardMicrosoft(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCdnProfileExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku", "Standard_Microsoft"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMCdnProfileExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -188,8 +224,9 @@ func testCheckAzureRMCdnProfileExists(name string) resource.TestCheckFunc {
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).cdnProfilesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on cdnProfilesClient: %+v", err)
 		}
@@ -204,6 +241,7 @@ func testCheckAzureRMCdnProfileExists(name string) resource.TestCheckFunc {
 
 func testCheckAzureRMCdnProfileDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).cdnProfilesClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_cdn_profile" {
@@ -213,7 +251,7 @@ func testCheckAzureRMCdnProfileDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			return nil
@@ -296,6 +334,38 @@ resource "azurerm_cdn_profile" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "standard_verizon"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMCdnProfile_standardAkamai(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_cdn_profile" "test" {
+  name                = "acctestcdnprof%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard_Akamai"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMCdnProfile_standardMicrosoft(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_cdn_profile" "test" {
+  name                = "acctestcdnprof%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard_Microsoft"
 }
 `, rInt, location, rInt)
 }

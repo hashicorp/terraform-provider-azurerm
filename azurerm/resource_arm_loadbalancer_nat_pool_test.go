@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/arm/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -17,8 +17,8 @@ func TestAccAzureRMLoadBalancerNatPool_basic(t *testing.T) {
 	natPoolName := fmt.Sprintf("NatPool-%d", ri)
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	natPool_id := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestrg-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/inboundNatPools/%s",
+	natPoolId := fmt.Sprintf(
+		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/inboundNatPools/%s",
 		subscriptionID, ri, ri, natPoolName)
 
 	resource.Test(t, resource.TestCase{
@@ -32,7 +32,7 @@ func TestAccAzureRMLoadBalancerNatPool_basic(t *testing.T) {
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerNatPoolExists(natPoolName, &lb),
 					resource.TestCheckResourceAttr(
-						"azurerm_lb_nat_pool.test", "id", natPool_id),
+						"azurerm_lb_nat_pool.test", "id", natPoolId),
 				),
 			},
 		},
@@ -181,7 +181,8 @@ func testCheckAzureRMLoadBalancerNatPoolNotExists(natPoolName string, lb *networ
 
 func testCheckAzureRMLoadBalancerNatPoolDisappears(natPoolName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*ArmClient).loadBalancerClient
+		client := testAccProvider.Meta().(*ArmClient).loadBalancerClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		_, i, exists := findLoadBalancerNatPoolByName(lb, natPoolName)
 		if !exists {
@@ -197,13 +198,17 @@ func testCheckAzureRMLoadBalancerNatPoolDisappears(natPoolName string, lb *netwo
 			return err
 		}
 
-		_, error := conn.CreateOrUpdate(id.ResourceGroup, *lb.Name, *lb, make(chan struct{}))
-		err = <-error
+		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, *lb.Name, *lb)
 		if err != nil {
-			return fmt.Errorf("Error Creating/Updating LoadBalancer %+v", err)
+			return fmt.Errorf("Error Creating/Updating Load Balancer %+v", err)
 		}
 
-		_, err = conn.Get(id.ResourceGroup, *lb.Name, "")
+		err = future.WaitForCompletionRef(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("Error waiting for the completion of Load Balancer %+v", err)
+		}
+
+		_, err = client.Get(ctx, id.ResourceGroup, *lb.Name, "")
 		return err
 	}
 }
@@ -211,7 +216,7 @@ func testCheckAzureRMLoadBalancerNatPoolDisappears(natPoolName string, lb *netwo
 func testAccAzureRMLoadBalancerNatPool_basic(rInt int, natPoolName string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -250,7 +255,7 @@ resource "azurerm_lb_nat_pool" "test" {
 func testAccAzureRMLoadBalancerNatPool_removal(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -278,49 +283,52 @@ func testAccAzureRMLoadBalancerNatPool_multiplePools(rInt int, natPoolName, natP
 	return fmt.Sprintf(`
 
 resource "azurerm_resource_group" "test" {
-    name = "acctestrg-%d"
+    name     = "acctestRG-%d"
     location = "%s"
 }
 
 resource "azurerm_public_ip" "test" {
-    name = "test-ip-%d"
-    location = "${azurerm_resource_group.test.location}"
+    name                = "test-ip-%d"
+    location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
+
     public_ip_address_allocation = "static"
 }
 
 resource "azurerm_lb" "test" {
-    name = "arm-test-loadbalancer-%d"
-    location = "${azurerm_resource_group.test.location}"
+    name                = "arm-test-loadbalancer-%d"
+    location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     frontend_ip_configuration {
-      name = "one-%d"
+      name                 = "one-%d"
       public_ip_address_id = "${azurerm_public_ip.test.id}"
     }
 }
 
 resource "azurerm_lb_nat_pool" "test" {
-  location = "${azurerm_resource_group.test.location}"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  loadbalancer_id = "${azurerm_lb.test.id}"
-  name = "%s"
-  protocol = "Tcp"
+  loadbalancer_id     = "${azurerm_lb.test.id}"
+  name                = "%s"
+  protocol            = "Tcp"
   frontend_port_start = 80
-  frontend_port_end = 81
-  backend_port = 3389
+  frontend_port_end   = 81
+  backend_port        = 3389
+
   frontend_ip_configuration_name = "one-%d"
 }
 
 resource "azurerm_lb_nat_pool" "test2" {
-  location = "${azurerm_resource_group.test.location}"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  loadbalancer_id = "${azurerm_lb.test.id}"
-  name = "%s"
-  protocol = "Tcp"
+  loadbalancer_id     = "${azurerm_lb.test.id}"
+  name                = "%s"
+  protocol            = "Tcp"
   frontend_port_start = 82
-  frontend_port_end = 83
-  backend_port = 3390
+  frontend_port_end   = 83
+  backend_port        = 3390
+
   frontend_ip_configuration_name = "one-%d"
 }
 `, rInt, location, rInt, rInt, rInt, natPoolName, rInt, natPool2Name, rInt)
@@ -329,7 +337,7 @@ resource "azurerm_lb_nat_pool" "test2" {
 func testAccAzureRMLoadBalancerNatPool_multiplePoolsUpdate(rInt int, natPoolName, natPool2Name string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

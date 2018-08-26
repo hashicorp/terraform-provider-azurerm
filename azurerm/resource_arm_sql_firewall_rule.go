@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/arm/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -51,6 +51,7 @@ func resourceArmSqlFirewallRule() *schema.Resource {
 
 func resourceArmSqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).sqlFirewallRulesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	serverName := d.Get("server_name").(string)
@@ -65,12 +66,12 @@ func resourceArmSqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta interfa
 		},
 	}
 
-	_, err := client.CreateOrUpdate(resourceGroup, serverName, name, parameters)
+	_, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, parameters)
 	if err != nil {
 		return fmt.Errorf("Error creating SQL Firewall Rule: %+v", err)
 	}
 
-	resp, err := client.Get(resourceGroup, serverName, name)
+	resp, err := client.Get(ctx, resourceGroup, serverName, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving SQL Firewall Rule: %+v", err)
 	}
@@ -82,6 +83,7 @@ func resourceArmSqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta interfa
 
 func resourceArmSqlFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).sqlFirewallRulesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -92,7 +94,7 @@ func resourceArmSqlFirewallRuleRead(d *schema.ResourceData, meta interface{}) er
 	serverName := id.Path["servers"]
 	name := id.Path["firewallRules"]
 
-	resp, err := client.Get(resourceGroup, serverName, name)
+	resp, err := client.Get(ctx, resourceGroup, serverName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading SQL Firewall Rule %q - removing from state", d.Id())
@@ -114,6 +116,7 @@ func resourceArmSqlFirewallRuleRead(d *schema.ResourceData, meta interface{}) er
 
 func resourceArmSqlFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).sqlFirewallRulesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -124,7 +127,7 @@ func resourceArmSqlFirewallRuleDelete(d *schema.ResourceData, meta interface{}) 
 	serverName := id.Path["servers"]
 	name := id.Path["firewallRules"]
 
-	resp, err := client.Delete(resourceGroup, serverName, name)
+	resp, err := client.Delete(ctx, resourceGroup, serverName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil

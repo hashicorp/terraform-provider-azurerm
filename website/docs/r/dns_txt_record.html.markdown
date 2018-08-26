@@ -3,10 +3,10 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_txt_record"
 sidebar_current: "docs-azurerm-resource-dns-txt-record"
 description: |-
-  Create a DNS TXT Record.
+  Manages a DNS TXT Record.
 ---
 
-# azurerm\_dns\_txt\_record
+# azurerm_dns_txt_record
 
 Enables you to manage DNS TXT Records within Azure DNS.
 

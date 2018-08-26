@@ -25,35 +25,29 @@ func testSweepResourceGroups(region string) error {
 		return err
 	}
 
-	client := (*armClient).resourceGroupClient
+	client := (*armClient).resourceGroupsClient
+	ctx := (*armClient).StopContext
 
 	log.Printf("Retrieving the Resource Groups..")
-	results, err := client.List("", utils.Int32(int32(1000)))
+	results, err := client.List(ctx, "", utils.Int32(int32(1000)))
 	if err != nil {
 		return fmt.Errorf("Error Listing on Resource Groups: %+v", err)
 	}
 
-	for _, profile := range *results.Value {
-		if !shouldSweepAcceptanceTestResource(*profile.Name, *profile.Location, region) {
+	for _, resourceGroup := range results.Values() {
+		if !shouldSweepAcceptanceTestResource(*resourceGroup.Name, *resourceGroup.Location, region) {
 			continue
 		}
 
-		resourceId, err := parseAzureResourceID(*profile.ID)
+		name := *resourceGroup.Name
+		log.Printf("Deleting Resource Group %q", name)
+		deleteFuture, err := client.Delete(ctx, name)
 		if err != nil {
 			return err
 		}
 
-		name := resourceId.ResourceGroup
-
-		log.Printf("Deleting Resource Group %q", name)
-		deleteResponse, deleteErr := client.Delete(name, make(chan struct{}))
-		resp := <-deleteResponse
-		err = <-deleteErr
+		err = deleteFuture.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
-			if utils.ResponseWasNotFound(resp) {
-				continue
-			}
-
 			return err
 		}
 	}
@@ -146,9 +140,10 @@ func testCheckAzureRMResourceGroupExists(name string) resource.TestCheckFunc {
 		resourceGroup := rs.Primary.Attributes["name"]
 
 		// Ensure resource group exists in API
-		conn := testAccProvider.Meta().(*ArmClient).resourceGroupClient
+		client := testAccProvider.Meta().(*ArmClient).resourceGroupsClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup)
+		resp, err := client.Get(ctx, resourceGroup)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on resourceGroupClient: %+v", err)
 		}
@@ -172,12 +167,17 @@ func testCheckAzureRMResourceGroupDisappears(name string) resource.TestCheckFunc
 		resourceGroup := rs.Primary.Attributes["name"]
 
 		// Ensure resource group exists in API
-		conn := testAccProvider.Meta().(*ArmClient).resourceGroupClient
+		client := testAccProvider.Meta().(*ArmClient).resourceGroupsClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, error := conn.Delete(resourceGroup, make(chan struct{}))
-		err := <-error
+		deleteFuture, err := client.Delete(ctx, resourceGroup)
 		if err != nil {
-			return fmt.Errorf("Bad: Delete on resourceGroupClient: %+v", err)
+			return fmt.Errorf("Failed deleting Resource Group %q: %+v", resourceGroup, err)
+		}
+
+		err = deleteFuture.WaitForCompletionRef(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("Failed long polling for the deletion of Resource Group %q: %+v", resourceGroup, err)
 		}
 
 		return nil
@@ -185,7 +185,8 @@ func testCheckAzureRMResourceGroupDisappears(name string) resource.TestCheckFunc
 }
 
 func testCheckAzureRMResourceGroupDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).resourceGroupClient
+	client := testAccProvider.Meta().(*ArmClient).resourceGroupsClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_resource_group" {
@@ -194,7 +195,7 @@ func testCheckAzureRMResourceGroupDestroy(s *terraform.State) error {
 
 		resourceGroup := rs.Primary.ID
 
-		resp, err := conn.Get(resourceGroup)
+		resp, err := client.Get(ctx, resourceGroup)
 		if err != nil {
 			return nil
 		}

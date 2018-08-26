@@ -3,23 +3,23 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_schedule"
 sidebar_current: "docs-azurerm-resource-automation-schedule"
 description: |-
-  Creates a new Automation Schedule.
+  Manages a Automation Schedule.
 ---
 
-# azurerm\_automation\_schedule
+# azurerm_automation_schedule
 
-Creates a new Automation Schedule.
+Manages a Automation Schedule.
 
 ## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "example" {
- name = "resourceGroup1"
+ name     = "tfex-automation-account"
  location = "West Europe"
 }
 
 resource "azurerm_automation_account" "example" {
-  name                = "account1"
+  name                = "tfex-automation-account"
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
   sku {
@@ -28,13 +28,18 @@ resource "azurerm_automation_account" "example" {
 }
 
 resource "azurerm_automation_schedule" "example" {
-  name                = "schedule1"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  account_name        = "${azurerm_automation_account.example.name}"
-  frequency           = "OneTime"
-  timezone            = "Central Europe Standard Time"
-  start_time	      = "2014-04-15T18:00:15+02:00"
-  description         = "This is an example schedule"
+  name                    = "tfex-automation-schedule"
+  resource_group_name     = "${azurerm_resource_group.example.name}"
+  automation_account_name = "${azurerm_automation_account.example.name}"
+  frequency               = "Week"
+  interval                = 1
+  timezone                = "Central Europe Standard Time"
+  start_time              = "2014-04-15T18:00:15+02:00"
+  description             = "This is an example schedule"
+
+  advanced_schedule {
+    week_days = ["Friday"]
+  }
 }
 ```
 
@@ -46,17 +51,33 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the Schedule is created. Changing this forces a new resource to be created.
 
-* `account_name` - (Required) The name of the automation account in which the Schedule is created. Changing this forces a new resource to be created.
-
-* `description` -  (Optional) A description for this Schedule.
-
-* `start_time` -  (Required) Start time of the schedule. Must be at least five minutes in the future.
-
-* `expiry_time` -  (Optional) The end time of the schedule.
+* `automation_account_name` - (Required) The name of the automation account in which the Schedule is created. Changing this forces a new resource to be created.
 
 * `frequency` - (Required) The frequency of the schedule. - can be either `OneTime`, `Day`, `Hour`, `Week`, or `Month`.
 
-* `timezone` - (Optional) The timezone of the start time. For possible values see: https://msdn.microsoft.com/en-us/library/ms912391(v=winembedded.11).aspx
+* `description` -  (Optional) A description for this Schedule.
+
+* `interval` -  (Optional) The number of `frequency`s between runs. Only valid when frequency is `Day`, `Hour`, `Week`, or `Month` and defaults to `1`.
+
+* `start_time` -  (Optional) Start time of the schedule. Must be at least five minutes in the future. Defaults to seven minutes in the future from the time the resource is created.
+
+* `expiry_time` -  (Optional) The end time of the schedule.
+
+* `timezone` - (Optional) The timezone of the start time. Defaults to `UTC`. For possible values see: https://msdn.microsoft.com/en-us/library/ms912391(v=winembedded.11).aspx
+
+* `week_days` - (Optional) List of days of the week that the job should execute on. Only valid when frequency is `Week`.
+
+* `month_days` - (Optional) List of days of the month that the job should execute on. Must be between `1` and `31`. `-1` for last day of the month. Only valid when frequency is `Month`.
+
+* `monthly_occurrence` - (Optional) List of occurrences of days within a month. Only valid when frequency is `Month`. The `monthly_occurrence` block supports fields documented below.
+
+---
+
+The `monthly_occurrence` block supports:
+
+* `day` - (Required) Day of the occurrence. Must be one of `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, `Sunday`.
+
+* `occurrence` - (Required) Occurrence of the week within the month. Must be between `1` and `5`. `-1` for last week within the month.
 
 ## Attributes Reference
 

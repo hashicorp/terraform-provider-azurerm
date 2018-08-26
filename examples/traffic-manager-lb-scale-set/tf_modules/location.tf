@@ -24,7 +24,7 @@ resource "azurerm_resource_group" "webservers_rg" {
 resource "azurerm_virtual_network" "webservers_vnet" {
   name                = "webservers_vnet"
   address_space       = ["10.1.0.0/24"]
-  location = "${var.location}"
+  location            = "${var.location}"
   resource_group_name = "${azurerm_resource_group.webservers_rg.name}"
 }
 
@@ -38,11 +38,11 @@ resource "azurerm_subnet" "webservers_subnet" {
 
 # Create a public ip for the location LB
 resource "azurerm_public_ip" "webserverpublic_ip" {
-  name                          = "${var.resource_prefix}_publicip"
-  location                      = "${var.location}"
-  resource_group_name           = "${azurerm_resource_group.webservers_rg.name}"
-  public_ip_address_allocation  = "static"
-  domain_name_label             = "${var.lb_dns_label}"
+  name                         = "${var.resource_prefix}_publicip"
+  location                     = "${var.location}"
+  resource_group_name          = "${azurerm_resource_group.webservers_rg.name}"
+  public_ip_address_allocation = "static"
+  domain_name_label            = "${var.lb_dns_label}"
 }
 
 # Create webservers LB
@@ -69,7 +69,7 @@ resource "azurerm_lb_probe" "httpprobe" {
   name                = "httpprobe"
   resource_group_name = "${azurerm_resource_group.webservers_rg.name}"
   loadbalancer_id     = "${azurerm_lb.webservers_lb.id}"
-  protocol            = "tcp"  
+  protocol            = "tcp"
   port                = 80
 }
 
@@ -82,7 +82,7 @@ resource "azurerm_lb_rule" "webservers_lb_http" {
   frontend_port                  = "80"
   backend_port                   = "80"
   frontend_ip_configuration_name = "webserverpublic_ip"
-  probe_id                       = "${azurerm_lb_probe.httpprobe.id}"  
+  probe_id                       = "${azurerm_lb_probe.httpprobe.id}"
   backend_address_pool_id        = "${azurerm_lb_backend_address_pool.webservers_lb_backend.id}"
 }
 
@@ -105,10 +105,10 @@ resource "azurerm_storage_container" "webservers_ct" {
 
 # Configure the scale set using library image
 resource "azurerm_virtual_machine_scale_set" "webserver_ss" {
-  name                 = "webserver_ss"
-  location             = "${var.location}"
-  resource_group_name  = "${azurerm_resource_group.webservers_rg.name}"
-  upgrade_policy_mode  = "Manual"
+  name                = "webserver_ss"
+  location            = "${var.location}"
+  resource_group_name = "${azurerm_resource_group.webservers_rg.name}"
+  upgrade_policy_mode = "Manual"
 
   sku {
     name     = "${var.instance_vmprofile}"
@@ -152,15 +152,15 @@ resource "azurerm_virtual_machine_scale_set" "webserver_ss" {
   }
 
   extension {
-    name = "CustomScriptForLinux"
-    publisher = "Microsoft.OSTCExtensions"
-    type = "CustomScriptForLinux"
+    name                 = "CustomScriptForLinux"
+    publisher            = "Microsoft.OSTCExtensions"
+    type                 = "CustomScriptForLinux"
     type_handler_version = "1.4"
+
     settings = <<SETTINGS
     {
       "commandToExecute" : "sudo apt-get -y install apache2"
     }
     SETTINGS
   }
-
 }

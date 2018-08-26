@@ -97,7 +97,8 @@ func testCheckAzureRMStorageContainerExists(name string, c *storage.Container) r
 		}
 
 		armClient := testAccProvider.Meta().(*ArmClient)
-		blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(resourceGroup, storageAccountName)
+		ctx := armClient.StopContext
+		blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroup, storageAccountName)
 		if err != nil {
 			return err
 		}
@@ -138,6 +139,7 @@ func testAccARMStorageContainerDisappears(name string, c *storage.Container) res
 		}
 
 		armClient := testAccProvider.Meta().(*ArmClient)
+		ctx := armClient.StopContext
 
 		storageAccountName := rs.Primary.Attributes["storage_account_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
@@ -145,7 +147,7 @@ func testAccARMStorageContainerDisappears(name string, c *storage.Container) res
 			return fmt.Errorf("Bad: no resource group found in state for storage container: %s", c.Name)
 		}
 
-		blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(resourceGroup, storageAccountName)
+		blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroup, storageAccountName)
 		if err != nil {
 			return err
 		}
@@ -179,7 +181,8 @@ func testCheckAzureRMStorageContainerDestroy(s *terraform.State) error {
 		}
 
 		armClient := testAccProvider.Meta().(*ArmClient)
-		blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(resourceGroup, storageAccountName)
+		ctx := armClient.StopContext
+		blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroup, storageAccountName)
 		if err != nil {
 			//If we can't get keys then the blob can't exist
 			return nil

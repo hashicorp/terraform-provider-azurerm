@@ -61,6 +61,7 @@ func TestAccAzureRMEventGridTopic_basicWithTags(t *testing.T) {
 
 func testCheckAzureRMEventGridTopicDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).eventGridTopicsClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_eventgrid_topic" {
@@ -70,7 +71,7 @@ func testCheckAzureRMEventGridTopicDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.Get(resourceGroup, name)
+		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
@@ -102,7 +103,8 @@ func testCheckAzureRMEventGridTopicExists(name string) resource.TestCheckFunc {
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).eventGridTopicsClient
-		resp, err := client.Get(resourceGroup, name)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: EventGrid Topic %q (resource group: %s) does not exist", name, resourceGroup)

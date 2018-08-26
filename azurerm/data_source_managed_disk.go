@@ -2,9 +2,9 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmManagedDisk() *schema.Resource {
@@ -18,6 +18,8 @@ func dataSourceArmManagedDisk() *schema.Resource {
 			},
 
 			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+
+			"zones": zonesSchemaComputed(),
 
 			"storage_account_type": {
 				Type:     schema.TypeString,
@@ -50,28 +52,40 @@ func dataSourceArmManagedDisk() *schema.Resource {
 }
 
 func dataSourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error {
-	diskClient := meta.(*ArmClient).diskClient
+	client := meta.(*ArmClient).diskClient
+	ctx := meta.(*ArmClient).StopContext
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
-	resp, err := diskClient.Get(resGroup, name)
+	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
-			d.SetId("")
-			return nil
+		if utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Error: Managed Disk %q (Resource Group %q) was not found", name, resGroup)
 		}
-		return fmt.Errorf("[ERROR] Error making Read request on Azure Managed Disk %s (resource group %s): %s", name, resGroup, err)
+		return fmt.Errorf("[ERROR] Error making Read request on Azure Managed Disk %q (Resource Group %q): %s", name, resGroup, err)
 	}
 
 	d.SetId(*resp.ID)
-	if resp.Properties != nil {
-		flattenAzureRmManagedDiskProperties(d, resp.Properties)
+
+	if sku := resp.Sku; sku != nil {
+		d.Set("storage_account_type", string(sku.Name))
+	}
+
+	if props := resp.DiskProperties; props != nil {
+		if diskSize := props.DiskSizeGB; diskSize != nil {
+			d.Set("disk_size_gb", *diskSize)
+		}
+		if osType := props.OsType; osType != "" {
+			d.Set("os_type", string(osType))
+		}
 	}
 
 	if resp.CreationData != nil {
 		flattenAzureRmManagedDiskCreationData(d, resp.CreationData)
 	}
+
+	d.Set("zones", resp.Zones)
 
 	flattenAndSetTags(d, resp.Tags)
 

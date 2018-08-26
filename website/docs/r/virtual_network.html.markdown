@@ -1,14 +1,14 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azure_virtual_network"
+page_title: "Azure Resource Manager: azurerm_virtual_network"
 sidebar_current: "docs-azurerm-resource-network-virtual-network"
 description: |-
-  Creates a new virtual network including any configured subnets. Each subnet can optionally be configured with a security group to be associated with the subnet.
+  Manages a virtual network including any configured subnets. Each subnet can optionally be configured with a security group to be associated with the subnet.
 ---
 
-# azurerm\_virtual\_network
+# azurerm_virtual_network
 
-Creates a new virtual network including any configured subnets. Each subnet can
+Manages a virtual network including any configured subnets. Each subnet can
 optionally be configured with a security group to be associated with the subnet.
 
 ~> **NOTE on Virtual Networks and Subnet's:** Terraform currently
@@ -19,14 +19,14 @@ At this time you cannot use a Virtual Network with in-line Subnets in conjunctio
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acceptanceTestResourceGroup1"
-  location = "West US"
+  name     = "acceptanceTestResourceGroup1"
+  location = "West US"
 }
 
 resource "azurerm_network_security_group" "test" {
-  name                = "acceptanceTestSecurityGroup1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acceptanceTestSecurityGroup1"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_virtual_network" "test" {

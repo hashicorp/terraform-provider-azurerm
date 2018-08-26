@@ -1,14 +1,15 @@
 ---
 layout: "azurerm"
-page_title: "Provider: Azure Resource Manager"
+page_title: "Provider: Azure"
 sidebar_current: "docs-azurerm-index"
 description: |-
-  The Microsoft AzureRM provider is used to interact with the many resources supported by Azure Resource Manager via the AzureRM API's. The provider needs to be configured with the credentials needed to generate OAuth tokens for the AzureRM API's.
+  The Azure Provider is used to interact with the many resources supported by Azure Resource Manager (also known as AzureRM) through its APIs.
+
 ---
 
-# Microsoft AzureRM Provider
+# Azure Provider
 
-The Microsoft AzureRM provider is used to interact with the many resources supported by Azure Resource Manager via the AzureRM API's. The provider needs to be configured with the credentials needed to generate OAuth tokens for the AzureRM API's.
+The Azure Provider is used to interact with the many resources supported by Azure Resource Manager (AzureRM) through its APIs.
 
 ~> **Note:** This supercedes the [legacy Azure provider](/docs/providers/azure/index.html), which interacts with Azure using the Service Management API.
 
@@ -18,31 +19,28 @@ Use the navigation to the left to read about the available resources.
 
 Terraform supports authenticating to Azure through a Service Principal or the Azure CLI.
 
-We recommend [using a Service Principal when running in a Shared Environment](authenticating_via_service_principal.html) (such as within a CI server/automation) - and [authenticating via the Azure CLI](authenticating_via_azure_cli.html) when you're running Terraform locally.
+We recommend [using a Service Principal when running in a shared environment](authenticating_via_service_principal.html) (such as within a CI server/automation) - and [authenticating via the Azure CLI](authenticating_via_azure_cli.html) when you're running Terraform locally.
+
+~> **NOTE:** Authenticating via the Azure CLI is only supported when using a User Account. If you're using a Service Principal (e.g. via `az login --service-principal`) you should instead [authenticate via the Service Principal directly](authenticating_via_service_principal.html).
 
 ## Example Usage
 
 ```hcl
-# Configure the Microsoft Azure Provider
-provider "azurerm" {
-  subscription_id = "..."
-  client_id       = "..."
-  client_secret   = "..."
-  tenant_id       = "..."
-}
+# Configure the Azure Provider
+provider "azurerm" { }
 
 # Create a resource group
-resource "azurerm_resource_group" "production" {
+resource "azurerm_resource_group" "network" {
   name     = "production"
   location = "West US"
 }
 
-# Create a virtual network in the web_servers resource group
+# Create a virtual network within the resource group
 resource "azurerm_virtual_network" "network" {
-  name                = "productionNetwork"
+  name                = "production-network"
   address_space       = ["10.0.0.0/16"]
-  location            = "West US"
-  resource_group_name = "${azurerm_resource_group.production.name}"
+  location            = "${azurerm_resource_group.network.location}"
+  resource_group_name = "${azurerm_resource_group.network.name}"
 
   subnet {
     name           = "subnet1"
@@ -77,6 +75,13 @@ The following arguments are supported:
 * `tenant_id` - (Optional) The tenant ID to use. It can also be sourced from the
   `ARM_TENANT_ID` environment variable.
 
+* `use_msi` - (Optional) Set to true to authenticate using managed service identity.
+  It can also be sourced from the `ARM_USE_MSI` environment variable.
+
+* `msi_endpoint` - (Optional) The REST endpoint to retrieve an MSI token from. Terraform
+  will attempt to discover this automatically but it can be specified manually here.
+  It can also be sourced from the `ARM_MSI_ENDPOINT` environment variable.
+
 * `environment` - (Optional) The cloud environment to use. It can also be sourced
   from the `ARM_ENVIRONMENT` environment variable. Supported values are:
   * `public` (default)
@@ -87,14 +92,24 @@ The following arguments are supported:
 * `skip_credentials_validation` - (Optional) Prevents the provider from validating
   the given credentials. When set to `true`, `skip_provider_registration` is assumed.
   It can also be sourced from the `ARM_SKIP_CREDENTIALS_VALIDATION` environment
-  variable, defaults to `false`.
+  variable; defaults to `false`.
 
 * `skip_provider_registration` - (Optional) Prevents the provider from registering
   the ARM provider namespaces, this can be used if you don't wish to give the Active
   Directory Application permission to register resource providers. It can also be
-  sourced from the `ARM_SKIP_PROVIDER_REGISTRATION` environment variable, defaults
+  sourced from the `ARM_SKIP_PROVIDER_REGISTRATION` environment variable; defaults
   to `false`.
 
 ## Testing
 
-Credentials must be provided via the `ARM_SUBSCRIPTION_ID`, `ARM_CLIENT_ID`, `ARM_CLIENT_SECRET`, `ARM_TENANT_ID` and `ARM_TEST_LOCATION` environment variables in order to run acceptance tests.
+The following Environment Variables must be set to run the acceptance tests:
+
+~> **NOTE:** The Acceptance Tests require the use of a Service Principal - authenticating via either the Azure CLI or MSI is not supported.
+
+* `ARM_SUBSCRIPTION_ID` - The ID of the Azure Subscription in which to run the Acceptance Tests.
+* `ARM_CLIENT_ID` - The Client ID of the Service Principal.
+* `ARM_CLIENT_SECRET` - The Client Secret associated with the Service Principal.
+* `ARM_TENANT_ID` - The Tenant ID to use.
+* `ARM_ENVIRONMENT` - The Azure Cloud Environment to use, such as `public`, `german` etc. Defaults to `public`.
+* `ARM_TEST_LOCATION` - The primary Azure Region to provision resources in for the Acceptance Tests.
+* `ARM_TEST_LOCATION_ALT` - The secondary Azure Region to provision resources in for the Acceptance Tests. This needs to be a different region to `ARM_TEST_LOCATION`.

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/arm/automation"
+	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -16,6 +16,7 @@ func resourceArmAutomationRunbook() *schema.Resource {
 		Read:   resourceArmAutomationRunbookRead,
 		Update: resourceArmAutomationRunbookCreateUpdate,
 		Delete: resourceArmAutomationRunbookDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -103,6 +104,7 @@ func resourceArmAutomationRunbook() *schema.Resource {
 					},
 				},
 			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -110,10 +112,12 @@ func resourceArmAutomationRunbook() *schema.Resource {
 
 func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).automationRunbookClient
+	ctx := meta.(*ArmClient).StopContext
+
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Runbook creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -138,12 +142,12 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 		Tags:     expandTags(tags),
 	}
 
-	_, err := client.CreateOrUpdate(resGroup, accName, name, parameters)
+	_, err := client.CreateOrUpdate(ctx, resGroup, accName, name, parameters)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resGroup, accName, name)
+	read, err := client.Get(ctx, resGroup, accName, name)
 	if err != nil {
 		return err
 	}
@@ -159,6 +163,8 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 
 func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).automationRunbookClient
+	ctx := meta.(*ArmClient).StopContext
+
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -167,7 +173,7 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 	accName := id.Path["automationAccounts"]
 	name := id.Path["runbooks"]
 
-	resp, err := client.Get(resGroup, accName, name)
+	resp, err := client.Get(ctx, resGroup, accName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -178,8 +184,10 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("resource_group_name", resGroup)
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
 	d.Set("account_name", accName)
 	if props := resp.RunbookProperties; props != nil {
@@ -189,13 +197,16 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("description", props.Description)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
+	if tags := resp.Tags; tags != nil {
+		flattenAndSetTags(d, tags)
+	}
 
 	return nil
 }
 
 func resourceArmAutomationRunbookDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).automationRunbookClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -205,8 +216,7 @@ func resourceArmAutomationRunbookDelete(d *schema.ResourceData, meta interface{}
 	accName := id.Path["automationAccounts"]
 	name := id.Path["runbooks"]
 
-	resp, err := client.Delete(resGroup, accName, name)
-
+	resp, err := client.Delete(ctx, resGroup, accName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil

@@ -3,9 +3,11 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/arm/postgresql"
+	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -34,15 +36,17 @@ func resourceArmPostgreSQLDatabase() *schema.Resource {
 			},
 
 			"charset": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				ForceNew:         true,
 			},
 
 			"collation": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateCollation(),
 			},
 		},
 	}
@@ -50,6 +54,7 @@ func resourceArmPostgreSQLDatabase() *schema.Resource {
 
 func resourceArmPostgreSQLDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).postgresqlDatabasesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Database creation.")
 
@@ -67,13 +72,17 @@ func resourceArmPostgreSQLDatabaseCreate(d *schema.ResourceData, meta interface{
 		},
 	}
 
-	_, error := client.CreateOrUpdate(resGroup, serverName, name, properties, make(chan struct{}))
-	err := <-error
+	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, name, properties)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resGroup, serverName, name)
+	err = future.WaitForCompletionRef(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	read, err := client.Get(ctx, resGroup, serverName, name)
 	if err != nil {
 		return err
 	}
@@ -88,6 +97,7 @@ func resourceArmPostgreSQLDatabaseCreate(d *schema.ResourceData, meta interface{
 
 func resourceArmPostgreSQLDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).postgresqlDatabasesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -97,7 +107,7 @@ func resourceArmPostgreSQLDatabaseRead(d *schema.ResourceData, meta interface{})
 	serverName := id.Path["servers"]
 	name := id.Path["databases"]
 
-	resp, err := client.Get(resGroup, serverName, name)
+	resp, err := client.Get(ctx, resGroup, serverName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[WARN] PostgreSQL Database '%s' was not found (resource group '%s')", name, resGroup)
@@ -111,14 +121,22 @@ func resourceArmPostgreSQLDatabaseRead(d *schema.ResourceData, meta interface{})
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("server_name", serverName)
-	d.Set("charset", resp.Charset)
-	d.Set("collation", resp.Collation)
+
+	if props := resp.DatabaseProperties; props != nil {
+		d.Set("charset", props.Charset)
+
+		if collation := props.Collation; collation != nil {
+			v := strings.Replace(*collation, "-", "_", -1)
+			d.Set("collation", v)
+		}
+	}
 
 	return nil
 }
 
 func resourceArmPostgreSQLDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).postgresqlDatabasesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -128,8 +146,21 @@ func resourceArmPostgreSQLDatabaseDelete(d *schema.ResourceData, meta interface{
 	serverName := id.Path["servers"]
 	name := id.Path["databases"]
 
-	_, error := client.Delete(resGroup, serverName, name, make(chan struct{}))
-	err = <-error
+	future, err := client.Delete(ctx, resGroup, serverName, name)
+	if err != nil {
+		if response.WasNotFound(future.Response()) {
+			return nil
+		}
+		return err
+	}
 
-	return err
+	err = future.WaitForCompletionRef(ctx, client.Client)
+	if err != nil {
+		if response.WasNotFound(future.Response()) {
+			return nil
+		}
+		return err
+	}
+
+	return nil
 }

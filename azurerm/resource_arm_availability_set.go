@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/arm/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -62,11 +62,12 @@ func resourceArmAvailabilitySet() *schema.Resource {
 
 func resourceArmAvailabilitySetCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).availSetClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Availability Set creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	updateDomainCount := d.Get("platform_update_domain_count").(int)
 	faultDomainCount := d.Get("platform_fault_domain_count").(int)
@@ -90,7 +91,7 @@ func resourceArmAvailabilitySetCreate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	resp, err := client.CreateOrUpdate(resGroup, name, availSet)
+	resp, err := client.CreateOrUpdate(ctx, resGroup, name, availSet)
 	if err != nil {
 		return err
 	}
@@ -102,6 +103,7 @@ func resourceArmAvailabilitySetCreate(d *schema.ResourceData, meta interface{}) 
 
 func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).availSetClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -110,19 +112,21 @@ func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) er
 	resGroup := id.ResourceGroup
 	name := id.Path["availabilitySets"]
 
-	resp, err := client.Get(resGroup, name)
+	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure Availability Set %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on Azure Availability Set %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	availSet := *resp.AvailabilitySetProperties
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 	d.Set("platform_update_domain_count", availSet.PlatformUpdateDomainCount)
 	d.Set("platform_fault_domain_count", availSet.PlatformFaultDomainCount)
 
@@ -137,6 +141,7 @@ func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) er
 
 func resourceArmAvailabilitySetDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).availSetClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -145,7 +150,7 @@ func resourceArmAvailabilitySetDelete(d *schema.ResourceData, meta interface{}) 
 	resGroup := id.ResourceGroup
 	name := id.Path["availabilitySets"]
 
-	_, err = client.Delete(resGroup, name)
+	_, err = client.Delete(ctx, resGroup, name)
 
 	return err
 }

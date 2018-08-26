@@ -2,10 +2,10 @@ package azurerm
 
 import (
 	"fmt"
-
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/arm/authorization"
+	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
+	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -23,7 +23,8 @@ func resourceArmRoleDefinition() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"role_definition_id": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
+				Computed: true,
 				ForceNew: true,
 			},
 
@@ -79,8 +80,18 @@ func resourceArmRoleDefinition() *schema.Resource {
 
 func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).roleDefinitionsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	roleDefinitionId := d.Get("role_definition_id").(string)
+	if roleDefinitionId == "" {
+		uuid, err := uuid.GenerateUUID()
+		if err != nil {
+			return fmt.Errorf("Error generating UUID for Role Assignment: %+v", err)
+		}
+
+		roleDefinitionId = uuid
+	}
+
 	name := d.Get("name").(string)
 	scope := d.Get("scope").(string)
 	description := d.Get("description").(string)
@@ -89,21 +100,21 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 	assignableScopes := expandRoleDefinitionAssignableScopes(d)
 
 	properties := authorization.RoleDefinition{
-		Properties: &authorization.RoleDefinitionProperties{
+		RoleDefinitionProperties: &authorization.RoleDefinitionProperties{
 			RoleName:         utils.String(name),
 			Description:      utils.String(description),
-			Type:             utils.String(roleType),
+			RoleType:         utils.String(roleType),
 			Permissions:      &permissions,
 			AssignableScopes: &assignableScopes,
 		},
 	}
 
-	_, err := client.CreateOrUpdate(scope, roleDefinitionId, properties)
+	_, err := client.CreateOrUpdate(ctx, scope, roleDefinitionId, properties)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(scope, roleDefinitionId)
+	read, err := client.Get(ctx, scope, roleDefinitionId)
 	if err != nil {
 		return err
 	}
@@ -117,8 +128,9 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 
 func resourceArmRoleDefinitionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).roleDefinitionsClient
+	ctx := meta.(*ArmClient).StopContext
 
-	resp, err := client.GetByID(d.Id())
+	resp, err := client.GetByID(ctx, d.Id())
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Role Definition %q was not found - removing from state", d.Id())
@@ -129,7 +141,7 @@ func resourceArmRoleDefinitionRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error loading Role Definition %q: %+v", d.Id(), err)
 	}
 
-	if props := resp.Properties; props != nil {
+	if props := resp.RoleDefinitionProperties; props != nil {
 		d.Set("name", props.RoleName)
 		d.Set("description", props.Description)
 
@@ -149,11 +161,12 @@ func resourceArmRoleDefinitionRead(d *schema.ResourceData, meta interface{}) err
 
 func resourceArmRoleDefinitionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).roleDefinitionsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	roleDefinitionId := d.Get("role_definition_id").(string)
 	scope := d.Get("scope").(string)
 
-	resp, err := client.Delete(scope, roleDefinitionId)
+	resp, err := client.Delete(ctx, scope, roleDefinitionId)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil

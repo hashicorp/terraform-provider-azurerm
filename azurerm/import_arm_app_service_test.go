@@ -145,6 +145,29 @@ func TestAccAzureRMAppService_importConnectionStrings(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppService_importIpRestriction(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppService_oneIpRestriction(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAppService_importDefaultDocuments(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
 
@@ -449,6 +472,29 @@ func TestAccAzureRMAppService_importWebSockets(t *testing.T) {
 
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_webSockets(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppService_importMinTls(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppService_minTls(ri, testLocation(), "1.1")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

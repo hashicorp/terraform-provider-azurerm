@@ -1,14 +1,14 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_lb"
-sidebar_current: "docs-azurerm-resource-loadbalancer"
+sidebar_current: "docs-azurerm-resource-loadbalancer-x"
 description: |-
-  Create a LoadBalancer Resource.
+  Manages a Load Balancer Resource.
 ---
 
-# azurerm\_lb
+# azurerm_lb
 
-Create a LoadBalancer Resource.
+Create a Load Balancer Resource.
 
 ## Example Usage
 
@@ -45,6 +45,8 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group in which to create the LoadBalancer.
 * `location` - (Required) Specifies the supported Azure location where the resource exists.
 * `frontend_ip_configuration` - (Optional) A frontend ip configuration block as documented below.
+* `sku` - (Optional) The SKU of the Azure Load Balancer. Accepted values are `Basic` and `Standard`. Defaults to `Basic`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 `frontend_ip_configuration` supports the following:
@@ -54,13 +56,17 @@ The following arguments are supported:
 * `private_ip_address` - (Optional) Private IP Address to assign to the Load Balancer. The last one and first four IPs in any range are reserved and cannot be manually assigned.
 * `private_ip_address_allocation` - (Optional) Defines how a private IP address is assigned. Options are Static or Dynamic.
 * `public_ip_address_id` - (Optional) Reference to Public IP address to be associated with the Load Balancer.
+* `zones` - (Optional) A collection containing the availability zone to allocate the IP in.
+
+-> **Please Note**: Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](http://aka.ms/azenroll).
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The LoadBalancer ID.
-* `private_ip_address` - The private IP address assigned to the load balancer, if any.
+* `id` - The Load Balancer ID.
+* `private_ip_address` - The first private IP address assigned to the load balancer in `frontend_ip_configuration` blocks, if any.
+* `private_ip_addresses` - The list of private IP address assigned to the load balancer in `frontend_ip_configuration` blocks, if any.
 
 ## Import
 

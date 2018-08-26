@@ -1,7 +1,7 @@
 package azurerm
 
 import (
-	"github.com/Azure/azure-sdk-for-go/arm/disk"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -63,9 +63,9 @@ func encryptionSettingsSchema() *schema.Schema {
 	}
 }
 
-func expandManagedDiskEncryptionSettings(settings map[string]interface{}) *disk.EncryptionSettings {
+func expandManagedDiskEncryptionSettings(settings map[string]interface{}) *compute.EncryptionSettings {
 	enabled := settings["enabled"].(bool)
-	config := &disk.EncryptionSettings{
+	config := &compute.EncryptionSettings{
 		Enabled: utils.Bool(enabled),
 	}
 
@@ -74,9 +74,9 @@ func expandManagedDiskEncryptionSettings(settings map[string]interface{}) *disk.
 
 		secretURL := dek["secret_url"].(string)
 		sourceVaultId := dek["source_vault_id"].(string)
-		config.DiskEncryptionKey = &disk.KeyVaultAndSecretReference{
+		config.DiskEncryptionKey = &compute.KeyVaultAndSecretReference{
 			SecretURL: utils.String(secretURL),
-			SourceVault: &disk.SourceVault{
+			SourceVault: &compute.SourceVault{
 				ID: utils.String(sourceVaultId),
 			},
 		}
@@ -87,9 +87,9 @@ func expandManagedDiskEncryptionSettings(settings map[string]interface{}) *disk.
 
 		secretURL := kek["key_url"].(string)
 		sourceVaultId := kek["source_vault_id"].(string)
-		config.KeyEncryptionKey = &disk.KeyVaultAndKeyReference{
+		config.KeyEncryptionKey = &compute.KeyVaultAndKeyReference{
 			KeyURL: utils.String(secretURL),
-			SourceVault: &disk.SourceVault{
+			SourceVault: &compute.SourceVault{
 				ID: utils.String(sourceVaultId),
 			},
 		}
@@ -98,7 +98,7 @@ func expandManagedDiskEncryptionSettings(settings map[string]interface{}) *disk.
 	return config
 }
 
-func flattenManagedDiskEncryptionSettings(encryptionSettings *disk.EncryptionSettings) []interface{} {
+func flattenManagedDiskEncryptionSettings(encryptionSettings *compute.EncryptionSettings) []interface{} {
 	value := map[string]interface{}{
 		"enabled": *encryptionSettings.Enabled,
 	}

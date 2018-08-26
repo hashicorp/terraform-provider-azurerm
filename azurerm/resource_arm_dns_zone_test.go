@@ -30,12 +30,32 @@ func TestAccAzureRMDnsZone_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMDnsZone_withVNets(t *testing.T) {
+	resourceName := "azurerm_dns_zone.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMDnsZone_withVNets(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDnsZoneExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMDnsZone_withTags(t *testing.T) {
 	resourceName := "azurerm_dns_zone.test"
 	ri := acctest.RandInt()
 	location := testLocation()
 	preConfig := testAccAzureRMDnsZone_withTags(ri, location)
-	postConfig := testAccAzureRMDnsZone_withTagsUupdate(ri, location)
+	postConfig := testAccAzureRMDnsZone_withTagsUpdate(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -75,7 +95,8 @@ func testCheckAzureRMDnsZoneExists(name string) resource.TestCheckFunc {
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).zonesClient
-		resp, err := client.Get(resourceGroup, zoneName)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := client.Get(ctx, resourceGroup, zoneName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get DNS zone: %+v", err)
 		}
@@ -90,6 +111,7 @@ func testCheckAzureRMDnsZoneExists(name string) resource.TestCheckFunc {
 
 func testCheckAzureRMDnsZoneDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).zonesClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_dns_zone" {
@@ -99,7 +121,7 @@ func testCheckAzureRMDnsZoneDestroy(s *terraform.State) error {
 		zoneName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, zoneName)
+		resp, err := conn.Get(ctx, resourceGroup, zoneName)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
 				return nil
@@ -117,48 +139,72 @@ func testCheckAzureRMDnsZoneDestroy(s *terraform.State) error {
 func testAccAzureRMDnsZone_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
-    location = "%s"
+  name = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_dns_zone" "test" {
-    name = "acctestzone%d.com"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name = "acctestzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMDnsZone_withVNets(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG_%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvnet%d"
+  location            = "%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  address_space       = ["10.0.0.0/16"]
+  dns_servers         = ["168.63.129.16"]
+}
+
+resource "azurerm_dns_zone" "test" {
+  name = "acctestzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_type = "Private"
+  registration_virtual_network_ids = ["${azurerm_virtual_network.test.id}"]
+}
+`, rInt, location, rInt, location, rInt)
 }
 
 func testAccAzureRMDnsZone_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
-    location = "%s"
+  name = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_dns_zone" "test" {
-    name = "acctestzone%d.com"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    tags {
-	environment = "Production"
-	cost_center = "MSFT"
-    }
+  name = "acctestzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tags {
+    environment = "Production"
+    cost_center = "MSFT"
+  }
 }
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMDnsZone_withTagsUupdate(rInt int, location string) string {
+func testAccAzureRMDnsZone_withTagsUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
 resource "azurerm_dns_zone" "test" {
-    name = "acctestzone%d.com"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    tags {
-	environment = "staging"
-    }
+  name = "acctestzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tags {
+    environment = "staging"
+  }
 }
 `, rInt, location, rInt)
 }

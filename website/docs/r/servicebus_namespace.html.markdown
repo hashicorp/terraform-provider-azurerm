@@ -1,12 +1,12 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_namespace"
-sidebar_current: "docs-azurerm-resource-servicebus-namespace"
+sidebar_current: "docs-azurerm-resource-messaging-servicebus-namespace"
 description: |-
-  Create a ServiceBus Namespace.
+  Manages a ServiceBus Namespace.
 ---
 
-# azurerm\_servicebus\_namespace
+# azurerm_servicebus_namespace
 
 Create a ServiceBus Namespace.
 
@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `sku` - (Required) Defines which tier to use. Options are basic, standard or premium.
 
-* `capacity` - (Optional) Specifies the capacity of a Premium namespace. Can be 1, 2 or 4.
+* `capacity` - (Optional) Specifies the capacity, can only be set when `sku` is `Premium` namespace. Can be `1`, `2` or `4`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

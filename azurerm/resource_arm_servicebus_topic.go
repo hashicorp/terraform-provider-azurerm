@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/arm/servicebus"
+	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -16,21 +17,24 @@ func resourceArmServiceBusTopic() *schema.Resource {
 		Read:   resourceArmServiceBusTopicRead,
 		Update: resourceArmServiceBusTopicCreate,
 		Delete: resourceArmServiceBusTopicDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateServiceBusTopicName(),
 			},
 
 			"namespace_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateServiceBusNamespaceName(),
 			},
 
 			"location": deprecatedLocationSchema(),
@@ -111,11 +115,12 @@ func resourceArmServiceBusTopic() *schema.Resource {
 
 func resourceArmServiceBusTopicCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).serviceBusTopicsClient
-	log.Printf("[INFO] preparing arguments for Azure ARM ServiceBus Topic creation.")
+	ctx := meta.(*ArmClient).StopContext
+	log.Printf("[INFO] preparing arguments for Azure ServiceBus Topic creation.")
 
 	name := d.Get("name").(string)
 	namespaceName := d.Get("namespace_name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 	status := d.Get("status").(string)
 
 	enableBatchedOps := d.Get("enable_batched_operations").(bool)
@@ -150,17 +155,17 @@ func resourceArmServiceBusTopicCreate(d *schema.ResourceData, meta interface{}) 
 		parameters.SBTopicProperties.DuplicateDetectionHistoryTimeWindow = utils.String(duplicateWindow)
 	}
 
-	_, err := client.CreateOrUpdate(resGroup, namespaceName, name, parameters)
+	_, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resGroup, namespaceName, name)
+	read, err := client.Get(ctx, resourceGroup, namespaceName, name)
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read ServiceBus Topic %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read ServiceBus Topic %s (resource group %s) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -170,16 +175,17 @@ func resourceArmServiceBusTopicCreate(d *schema.ResourceData, meta interface{}) 
 
 func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).serviceBusTopicsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	namespaceName := id.Path["namespaces"]
 	name := id.Path["topics"]
 
-	resp, err := client.Get(resGroup, namespaceName, name)
+	resp, err := client.Get(ctx, resourceGroup, namespaceName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -189,7 +195,7 @@ func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("resource_group_name", resourceGroup)
 	d.Set("namespace_name", namespaceName)
 
 	if props := resp.SBTopicProperties; props != nil {
@@ -197,8 +203,8 @@ func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("auto_delete_on_idle", props.AutoDeleteOnIdle)
 		d.Set("default_message_ttl", props.DefaultMessageTimeToLive)
 
-		if props.DuplicateDetectionHistoryTimeWindow != nil && *props.DuplicateDetectionHistoryTimeWindow != "" {
-			d.Set("duplicate_detection_history_time_window", props.DuplicateDetectionHistoryTimeWindow)
+		if window := props.DuplicateDetectionHistoryTimeWindow; window != nil && *window != "" {
+			d.Set("duplicate_detection_history_time_window", *window)
 		}
 
 		d.Set("enable_batched_operations", props.EnableBatchedOperations)
@@ -207,23 +213,26 @@ func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
 		d.Set("support_ordering", props.SupportOrdering)
 
-		maxSize := int(*props.MaxSizeInMegabytes)
+		if maxSizeMB := props.MaxSizeInMegabytes; maxSizeMB != nil {
+			maxSize := int(*props.MaxSizeInMegabytes)
 
-		// if the topic is in a premium namespace and partitioning is enabled then the
-		// max size returned by the API will be 16 times greater than the value set
-		if *props.EnablePartitioning {
-			namespace, err := meta.(*ArmClient).serviceBusNamespacesClient.Get(resGroup, namespaceName)
-			if err != nil {
-				return err
+			// if the topic is in a premium namespace and partitioning is enabled then the
+			// max size returned by the API will be 16 times greater than the value set
+			if partitioning := props.EnablePartitioning; partitioning != nil && *partitioning {
+				namespacesClient := meta.(*ArmClient).serviceBusNamespacesClient
+				namespace, err := namespacesClient.Get(ctx, resourceGroup, namespaceName)
+				if err != nil {
+					return err
+				}
+
+				if namespace.Sku.Name != servicebus.Premium {
+					const partitionCount = 16
+					maxSize = int(*props.MaxSizeInMegabytes / partitionCount)
+				}
 			}
 
-			if namespace.Sku.Name != servicebus.Premium {
-				const partitionCount = 16
-				maxSize = int(*props.MaxSizeInMegabytes / partitionCount)
-			}
+			d.Set("max_size_in_megabytes", maxSize)
 		}
-
-		d.Set("max_size_in_megabytes", maxSize)
 	}
 
 	return nil
@@ -231,16 +240,17 @@ func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) er
 
 func resourceArmServiceBusTopicDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).serviceBusTopicsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	namespaceName := id.Path["namespaces"]
 	name := id.Path["topics"]
 
-	resp, err := client.Delete(resGroup, namespaceName, name)
+	resp, err := client.Delete(ctx, resourceGroup, namespaceName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return err

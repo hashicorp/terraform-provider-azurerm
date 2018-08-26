@@ -123,8 +123,52 @@ func TestAccAzureRMKeyVaultKey_update(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKeyVaultKey_disappears(t *testing.T) {
+	resourceName := "azurerm_key_vault_key.test"
+	rs := acctest.RandString(6)
+	config := testAccAzureRMKeyVaultKey_basicEC(rs, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultKeyExists(resourceName),
+					testCheckAzureRMKeyVaultKeyDisappears(resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMKeyVaultKey_disappearsWhenParentKeyVaultDeleted(t *testing.T) {
+	rs := acctest.RandString(6)
+	config := testAccAzureRMKeyVaultKey_basicEC(rs, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultKeyExists("azurerm_key_vault_key.test"),
+					testCheckAzureRMKeyVaultDisappears("azurerm_key_vault.test"),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMKeyVaultKeyDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_key_vault_key" {
@@ -135,7 +179,7 @@ func testCheckAzureRMKeyVaultKeyDestroy(s *terraform.State) error {
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
 
 		// get the latest version
-		resp, err := client.GetKey(vaultBaseUrl, name, "")
+		resp, err := client.GetKey(ctx, vaultBaseUrl, name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
@@ -160,14 +204,42 @@ func testCheckAzureRMKeyVaultKeyExists(name string) resource.TestCheckFunc {
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
 
 		client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.GetKey(vaultBaseUrl, name, "")
+		resp, err := client.GetKey(ctx, vaultBaseUrl, name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Key Vault Key %q (resource group: %q) does not exist", name, vaultBaseUrl)
 			}
 
 			return fmt.Errorf("Bad: Get on keyVaultManagementClient: %+v", err)
+		}
+
+		return nil
+	}
+}
+
+func testCheckAzureRMKeyVaultKeyDisappears(name string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return fmt.Errorf("Not found: %s", name)
+		}
+
+		name := rs.Primary.Attributes["name"]
+		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
+
+		client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		resp, err := client.DeleteKey(ctx, vaultBaseUrl, name)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return nil
+			}
+
+			return fmt.Errorf("Bad: Delete on keyVaultManagementClient: %+v", err)
 		}
 
 		return nil

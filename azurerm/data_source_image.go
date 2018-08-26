@@ -2,8 +2,13 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
+	"regexp"
+	"sort"
 
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -12,9 +17,23 @@ func dataSourceArmImage() *schema.Resource {
 		Read: dataSourceArmImageRead,
 		Schema: map[string]*schema.Schema{
 
+			"name_regex": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ValidateFunc:  validation.ValidateRegexp,
+				ConflictsWith: []string{"name"},
+			},
+			"sort_descending": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"name_regex"},
 			},
 
 			"resource_group_name": resourceGroupNameForDataSourceSchema(),
@@ -90,39 +109,91 @@ func dataSourceArmImage() *schema.Resource {
 
 func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).imageClient
+	ctx := meta.(*ArmClient).StopContext
 
 	resGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
 
-	resp, err := client.Get(resGroup, name, "")
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+	name := d.Get("name").(string)
+	nameRegex, nameRegexOk := d.GetOk("name_regex")
+
+	if name == "" && !nameRegexOk {
+		return fmt.Errorf("[ERROR] either name or name_regex is required")
+	}
+
+	var img compute.Image
+
+	if !nameRegexOk {
+		var err error
+		if img, err = client.Get(ctx, resGroup, name, ""); err != nil {
+			if utils.ResponseWasNotFound(img.Response) {
+				return fmt.Errorf("Error: Image %q (Resource Group %q) was not found", name, resGroup)
+			}
+			return fmt.Errorf("[ERROR] Error making Read request on Azure Image %q (resource group %q): %+v", name, resGroup, err)
+		}
+	} else {
+		r := regexp.MustCompile(nameRegex.(string))
+
+		list := []compute.Image{}
+		resp, err := client.ListByResourceGroupComplete(ctx, resGroup)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response().Response) {
+				return fmt.Errorf("Error: Image %q (Resource Group %q) was not found", name, resGroup)
+			}
+			return fmt.Errorf("[ERROR] Error getting list of images (resource group %q): %+v", resGroup, err)
+		}
+
+		for resp.NotDone() {
+			img := resp.Value()
+			if r.Match(([]byte)(*img.Name)) {
+				list = append(list, img)
+			}
+			err = resp.Next()
+
+			if err != nil {
+				return err
+			}
+		}
+
+		if len(list) < 1 {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("[ERROR] Error making Read request on Azure Image %q (resource group %q): %+v", name, resGroup, err)
+
+		if len(list) > 1 {
+			desc := d.Get("sort_descending").(bool)
+			log.Printf("[DEBUG] arm_image - multiple results found and `sort_descending` is set to: %t", desc)
+
+			sort.Slice(list, func(i, j int) bool {
+				return (!desc && *list[i].Name < *list[j].Name) ||
+					(desc && *list[i].Name > *list[j].Name)
+			})
+		}
+		img = list[0]
+
 	}
 
-	d.SetId(*resp.ID)
-	d.Set("name", resp.Name)
+	d.SetId(*img.ID)
+	d.Set("name", img.Name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := img.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
-	if profile := resp.StorageProfile; profile != nil {
+	if profile := img.StorageProfile; profile != nil {
 		if disk := profile.OsDisk; disk != nil {
-			if err := d.Set("os_disk", flattenAzureRmImageOSDisk(d, disk)); err != nil {
+			if err := d.Set("os_disk", flattenAzureRmImageOSDisk(disk)); err != nil {
 				return fmt.Errorf("[DEBUG] Error setting AzureRM Image OS Disk error: %+v", err)
 			}
 		}
 
-		if disks := resp.StorageProfile.DataDisks; disks != nil {
-			if err := d.Set("data_disk", flattenAzureRmImageDataDisks(d, disks)); err != nil {
+		if disks := profile.DataDisks; disks != nil {
+			if err := d.Set("data_disk", flattenAzureRmImageDataDisks(disks)); err != nil {
 				return fmt.Errorf("[DEBUG] Error setting AzureRM Image Data Disks error: %+v", err)
 			}
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
+	flattenAndSetTags(d, img.Tags)
 
 	return nil
 }

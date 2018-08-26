@@ -3,10 +3,10 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_machine_scale_set"
 sidebar_current: "docs-azurerm-resource-compute-virtualmachine-scale-set"
 description: |-
-  Create a Virtual Machine scale set.
+  Manages a Virtual Machine scale set.
 ---
 
-# azurerm\_virtual\_machine\_scale\_set
+# azurerm_virtual_machine_scale_set
 
 Create a virtual machine scale set.
 
@@ -17,14 +17,14 @@ Create a virtual machine scale set.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg"
+  name     = "acctestRG"
   location = "West US 2"
 }
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn"
   address_space       = ["10.0.0.0/16"]
-  location            = "West US 2"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -37,7 +37,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_public_ip" "test" {
   name                         = "test"
-  location                     = "West US 2"
+  location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
   public_ip_address_allocation = "static"
   domain_name_label            = "${azurerm_resource_group.test.name}"
@@ -49,7 +49,7 @@ resource "azurerm_public_ip" "test" {
 
 resource "azurerm_lb" "test" {
   name                = "test"
-  location            = "West US 2"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   frontend_ip_configuration {
@@ -78,12 +78,12 @@ resource "azurerm_lb_nat_pool" "lbnatpool" {
 
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "mytestscaleset-1"
-  location            = "West US 2"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   upgrade_policy_mode = "Manual"
 
   sku {
-    name     = "Standard_A0"
+    name     = "Standard_F2"
     tier     = "Standard"
     capacity = 2
   }
@@ -103,7 +103,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_data_disk {
-	  lun 		   = 0
+    lun 		   = 0
     caching        = "ReadWrite"
     create_option  = "Empty"
     disk_size_gb   = 10
@@ -146,7 +146,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg"
+  name     = "acctestRG"
   location = "West US"
 }
 
@@ -190,7 +190,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   upgrade_policy_mode = "Manual"
 
   sku {
-    name     = "Standard_A0"
+    name     = "Standard_F2"
     tier     = "Standard"
     capacity = 2
   }
@@ -245,9 +245,10 @@ The following arguments are supported:
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 * `sku` - (Required) A sku block as documented below.
 * `upgrade_policy_mode` - (Required) Specifies the mode of an upgrade to virtual machines in the scale set. Possible values, `Manual` or `Automatic`.
-* `overprovision` - (Optional) Specifies whether the virtual machine scale set should be overprovisioned.
-* `single_placement_group` - (Optional) Specifies whether the scale set is limited to a single placement group with a maximum size of 100 virtual machines. If set to false, managed disks must be used. Default is true. Changing this forces a
+* `overprovision` - (Optional) Specifies whether the virtual machine scale set should be overprovisioned. Defaults to `true`.
+* `single_placement_group` - (Optional) Specifies whether the scale set is limited to a single placement group with a maximum size of 100 virtual machines. If set to false, managed disks must be used. Defaults to `true`. Changing this forces a
     new resource to be created. See [documentation](http://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-placement-groups) for more information.
+* `license_type` - (Optional, when a Windows machine) Specifies the Windows OS license type. If supplied, the only allowed values are `Windows_Client` and `Windows_Server`.
 * `os_profile` - (Required) A Virtual Machine OS Profile block as documented below.
 * `os_profile_secrets` - (Optional) A collection of Secret blocks as documented below.
 * `os_profile_windows_config` - (Required, when a windows machine) A Windows config block as documented below.
@@ -259,8 +260,11 @@ The following arguments are supported:
 * `extension` - (Optional) Can be specified multiple times to add extension profiles to the scale set. Each `extension` block supports the fields documented below.
 * `boot_diagnostics` - (Optional) A boot diagnostics profile block as referenced below.
 * `plan` - (Optional) A plan block as documented below.
+* `priority` - (Optional) Specifies the priority for the virtual machines in the scale set, defaults to `Regular`. Possible values are `Low` and `Regular`.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+* `zones` - (Optional) A collection of availability zones to spread the Virtual Machines over.
 
+-> **Please Note**: Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](http://aka.ms/azenroll).
 
 `sku` supports the following:
 
@@ -268,12 +272,49 @@ The following arguments are supported:
 * `tier` - (Optional) Specifies the tier of virtual machines in a scale set. Possible values, `standard` or `basic`.
 * `capacity` - (Required) Specifies the number of virtual machines in the scale set.
 
+`identity` supports the following:
+
+* `type` - (Required) Specifies the identity type to be assigned to the scale set. Allowable values are `SystemAssigned` and `UserAssigned`. To enable Managed Service Identity (MSI) on all machines in the scale set, an extension with the type "ManagedIdentityExtensionForWindows" or "ManagedIdentityExtensionForLinux" must also be added. For the `SystemAssigned` identity the scale set's Service Principal ID (SPN) can be retrieved after the scale set has been created. See [documentation](https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/overview) for more information.
+
+* `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned to the VMSS. Required if `type` is `UserAssigned`.
+
+```hcl
+resource "azurerm_virtual_machine_scale_set" "test" {
+  name                = "vm-scaleset"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  sku {
+    name     = "${var.vm_sku}"
+    tier     = "Standard"
+    capacity = "${var.instance_count}"
+  }
+
+  identity {
+    type = "systemAssigned"
+  }
+
+  extension {
+    name                 = "MSILinuxExtension"
+    publisher            = "Microsoft.ManagedIdentity"
+    type                 = "ManagedIdentityExtensionForLinux"
+    type_handler_version = "1.0"
+    settings             = "{\"port\": 50342}"
+  }
+  # ...
+}
+
+output "principal_id" {
+  value = "${lookup(azurerm_virtual_machine_scale_set.test.identity[0], "principal_id")}"
+}
+```
+
 `os_profile` supports the following:
 
-* `computer_name_prefix` - (Required) Specifies the computer name prefix for all of the virtual machines in the scale set. Computer name prefixes must be 1 to 15 characters long.
+* `computer_name_prefix` - (Required) Specifies the computer name prefix for all of the virtual machines in the scale set. Computer name prefixes must be 1 to 9 characters long for windows images and 1 - 58 for linux. Changing this forces a new resource to be created.
 * `admin_username` - (Required) Specifies the administrator account name to use for all the instances of virtual machines in the scale set.
-* `admin_password` - (Required) Specifies the administrator password to use for all the instances of virtual machines in a scale set..
-* `custom_data` - (Optional) Specifies custom data to supply to the machine. On linux-based systems, this can be used as a cloud-init script. On other systems, this will be copied as a file on disk. Internally, Terraform will base64 encode this value before sending it to the API. The maximum length of the binary array is 65535 bytes. Changing this forces a new resource to be created.
+* `admin_password` - (Required) Specifies the administrator password to use for all the instances of virtual machines in a scale set.
+* `custom_data` - (Optional) Specifies custom data to supply to the machine. On linux-based systems, this can be used as a cloud-init script. On other systems, this will be copied as a file on disk. Internally, Terraform will base64 encode this value before sending it to the API. The maximum length of the binary array is 65535 bytes.
 
 `os_profile_secrets` supports the following:
 
@@ -312,23 +353,28 @@ The following arguments are supported:
 
 ~> _**Note:** Please note that the only allowed `path` is `/home/<username>/.ssh/authorized_keys` due to a limitation of Azure_
 
-
 `network_profile` supports the following:
 
 * `name` - (Required) Specifies the name of the network interface configuration.
 * `primary` - (Required) Indicates whether network interfaces created from the network interface configuration will be the primary NIC of the VM.
-* `ip_configuration` - (Required) An ip_configuration block as documented below
+* `ip_configuration` - (Required) An ip_configuration block as documented below.
+* `accelerated_networking` - (Optional) Specifies whether to enable accelerated networking or not. Defaults to `false`.
+* `dns_settings` - (Optional) A dns_settings block as documented below.
+* `ip_forwarding` - (Optional) Whether IP forwarding is enabled on this NIC. Defaults to `false`.
 * `network_security_group_id` - (Optional) Specifies the identifier for the network security group.
+
+`dns_settings` supports the following:
+
+* `dns_servers` - (Required) Specifies an array of dns servers.
 
 `ip_configuration` supports the following:
 
 * `name` - (Required) Specifies name of the IP configuration.
 * `subnet_id` - (Required) Specifies the identifier of the subnet.
+* `application_gateway_backend_address_pool_ids` - (Optional) Specifies an array of references to backend address pools of application gateways. A scale set can reference backend address pools of one application gateway. Multiple scale sets cannot use the same application gateway.
 * `load_balancer_backend_address_pool_ids` - (Optional) Specifies an array of references to backend address pools of load balancers. A scale set can reference backend address pools of one public and one internal load balancer. Multiple scale sets cannot use the same load balancer.
 * `load_balancer_inbound_nat_rules_ids` - (Optional) Specifies an array of references to inbound NAT rules for load balancers.
 * `primary` - (Optional) Specifies if this ip_configuration is the primary one.
-* `accelerated_networking` - (Optional) Specifies whether to enable accelerated networking or not. Defaults to
-false.
 * `public_ip_address_configuration` - (Optional) describes a virtual machines scale set IP Configuration's
  PublicIPAddress configuration. The public_ip_address_configuration is documented below.
 
@@ -392,21 +438,21 @@ machine scale set, as in the [example below](#example-of-storage_profile_image_r
 ## Example of storage_profile_image_reference with id
 
 ```hcl
-
 resource "azurerm_image" "test" {
 	name = "test"
-  ...
+  # ...
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
 	name = "test"
-  ...
+  # ...
 
 	storage_profile_image_reference {
 		id = "${azurerm_image.test.id}"
 	}
 
-...
+  # ...
+}
 ```
 
 ## Attributes Reference
@@ -414,7 +460,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 The following attributes are exported:
 
 * `id` - The virtual machine scale set ID.
-
 
 ## Import
 

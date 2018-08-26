@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/arm/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -17,8 +17,8 @@ func TestAccAzureRMLoadBalancerNatRule_basic(t *testing.T) {
 	natRuleName := fmt.Sprintf("NatRule-%d", ri)
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	natRule_id := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestrg-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/inboundNatRules/%s",
+	natRuleId := fmt.Sprintf(
+		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/inboundNatRules/%s",
 		subscriptionID, ri, ri, natRuleName)
 
 	resource.Test(t, resource.TestCase{
@@ -32,7 +32,7 @@ func TestAccAzureRMLoadBalancerNatRule_basic(t *testing.T) {
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerNatRuleExists(natRuleName, &lb),
 					resource.TestCheckResourceAttr(
-						"azurerm_lb_nat_rule.test", "id", natRule_id),
+						"azurerm_lb_nat_rule.test", "id", natRuleId),
 				),
 			},
 		},
@@ -241,7 +241,8 @@ func testCheckAzureRMLoadBalancerNatRuleNotExists(natRuleName string, lb *networ
 
 func testCheckAzureRMLoadBalancerNatRuleDisappears(natRuleName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*ArmClient).loadBalancerClient
+		client := testAccProvider.Meta().(*ArmClient).loadBalancerClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		_, i, exists := findLoadBalancerNatRuleByName(lb, natRuleName)
 		if !exists {
@@ -257,13 +258,17 @@ func testCheckAzureRMLoadBalancerNatRuleDisappears(natRuleName string, lb *netwo
 			return err
 		}
 
-		_, error := conn.CreateOrUpdate(id.ResourceGroup, *lb.Name, *lb, make(chan struct{}))
-		err = <-error
+		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, *lb.Name, *lb)
 		if err != nil {
-			return fmt.Errorf("Error Creating/Updating LoadBalancer %+v", err)
+			return fmt.Errorf("Error Creating/Updating Load Balancer %+v", err)
 		}
 
-		_, err = conn.Get(id.ResourceGroup, *lb.Name, "")
+		err = future.WaitForCompletionRef(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("Error waiting for the completion of Load Balancer %q (Resource Group %q): %+v", *lb.Name, id.ResourceGroup, err)
+		}
+
+		_, err = client.Get(ctx, id.ResourceGroup, *lb.Name, "")
 		return err
 	}
 }
@@ -271,7 +276,7 @@ func testCheckAzureRMLoadBalancerNatRuleDisappears(natRuleName string, lb *netwo
 func testAccAzureRMLoadBalancerNatRule_basic(rInt int, natRuleName string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -309,7 +314,7 @@ resource "azurerm_lb_nat_rule" "test" {
 func testAccAzureRMLoadBalancerNatRule_removal(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -336,7 +341,7 @@ resource "azurerm_lb" "test" {
 func testAccAzureRMLoadBalancerNatRule_multipleRules(rInt int, natRuleName, natRule2Name string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -385,7 +390,7 @@ resource "azurerm_lb_nat_rule" "test2" {
 func testAccAzureRMLoadBalancerNatRule_multipleRulesUpdate(rInt int, natRuleName, natRule2Name string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -434,7 +439,7 @@ resource "azurerm_lb_nat_rule" "test2" {
 func testAccAzureRMLoadBalancerNatRule_enableFloatingIP(rInt int, natRuleName string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

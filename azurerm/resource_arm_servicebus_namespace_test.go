@@ -2,16 +2,14 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"regexp"
 	"testing"
 
-	"log"
-
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func init() {
@@ -28,14 +26,15 @@ func testSweepServiceBusNamespace(region string) error {
 	}
 
 	client := (*armClient).serviceBusNamespacesClient
+	ctx := armClient.StopContext
 
 	log.Printf("Retrieving the Servicebus Namespaces..")
-	results, err := client.List()
+	results, err := client.List(ctx)
 	if err != nil {
 		return fmt.Errorf("Error Listing on Servicebus Namespaces: %+v", err)
 	}
 
-	for _, profile := range *results.Value {
+	for _, profile := range results.Values() {
 		if !shouldSweepAcceptanceTestResource(*profile.Name, *profile.Location, region) {
 			continue
 		}
@@ -48,52 +47,19 @@ func testSweepServiceBusNamespace(region string) error {
 		resourceGroup := resourceId.ResourceGroup
 		name := resourceId.Path["namespaces"]
 
-		log.Printf("Deleting Servicebus Namespace '%s' in Resource Group '%s'", name, resourceGroup)
-		deleteResponse, error := client.Delete(resourceGroup, name, make(chan struct{}))
-		err = <-error
-		resp := <-deleteResponse
+		log.Printf("Deleting Servicebus Namespace %q in Resource Group %q", name, resourceGroup)
+		deleteFuture, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
-			if utils.ResponseWasNotFound(resp) {
-				return nil
-			}
+			return err
+		}
 
+		err = deleteFuture.WaitForCompletionRef(ctx, client.Client)
+		if err != nil {
 			return err
 		}
 	}
 
 	return nil
-}
-
-func TestAccAzureRMServiceBusNamespaceCapacity_validation(t *testing.T) {
-	cases := []struct {
-		Value    int
-		ErrCount int
-	}{
-		{
-			Value:    17,
-			ErrCount: 1,
-		},
-		{
-			Value:    1,
-			ErrCount: 0,
-		},
-		{
-			Value:    2,
-			ErrCount: 0,
-		},
-		{
-			Value:    4,
-			ErrCount: 0,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := validateServiceBusNamespaceCapacity(tc.Value, "azurerm_servicebus_namespace")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Azure RM ServiceBus Namespace Capacity to trigger a validation error")
-		}
-	}
 }
 
 func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
@@ -171,7 +137,8 @@ func TestAccAzureRMServiceBusNamespace_NonStandardCasing(t *testing.T) {
 }
 
 func testCheckAzureRMServiceBusNamespaceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).serviceBusNamespacesClient
+	client := testAccProvider.Meta().(*ArmClient).serviceBusNamespacesClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_servicebus_namespace" {
@@ -181,7 +148,7 @@ func testCheckAzureRMServiceBusNamespaceDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := client.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			return nil
@@ -209,9 +176,10 @@ func testCheckAzureRMServiceBusNamespaceExists(name string) resource.TestCheckFu
 			return fmt.Errorf("Bad: no resource group found in state for Service Bus Namespace: %s", namespaceName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).serviceBusNamespacesClient
+		client := testAccProvider.Meta().(*ArmClient).serviceBusNamespacesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, namespaceName)
+		resp, err := client.Get(ctx, resourceGroup, namespaceName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on serviceBusNamespacesClient: %+v", err)
 		}

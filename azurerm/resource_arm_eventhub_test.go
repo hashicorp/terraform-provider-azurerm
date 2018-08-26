@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"testing"
 
+	"strconv"
+
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -94,6 +96,74 @@ func TestAccAzureRMEventHubMessageRetentionCount_validation(t *testing.T) {
 	}
 }
 
+func TestAccAzureRMEventHubArchiveNameFormat_validation(t *testing.T) {
+	cases := []struct {
+		Value    string
+		ErrCount int
+	}{
+		{
+			Value:    "",
+			ErrCount: 9,
+		},
+		{
+			Value:    "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}",
+			ErrCount: 0,
+		},
+		{
+			Value:    "Prod_{Eventub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}",
+			ErrCount: 1,
+		},
+		{
+			Value:    "{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}",
+			ErrCount: 1,
+		},
+		{
+			Value:    "{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}",
+			ErrCount: 1,
+		},
+		{
+			Value:    "Prod_{EventHub}/{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}",
+			ErrCount: 1,
+		},
+		{
+			Value:    "Prod_{EventHub}/{Namespace}\\{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}",
+			ErrCount: 1,
+		},
+		{
+			Value:    "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Month}/{Day}/{Hour}/{Minute}/{Second}",
+			ErrCount: 1,
+		},
+		{
+			Value:    "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}/{Day}/{Hour}/{Minute}/{Second}",
+			ErrCount: 1,
+		},
+		{
+			Value:    "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Hour}/{Minute}/{Second}",
+			ErrCount: 1,
+		},
+		{
+			Value:    "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Minute}/{Second}",
+			ErrCount: 1,
+		},
+		{
+			Value:    "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Second}",
+			ErrCount: 1,
+		},
+		{
+			Value:    "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}",
+			ErrCount: 1,
+		},
+	}
+
+	for _, tc := range cases {
+		_, errors := validateEventHubArchiveNameFormat(tc.Value, "azurerm_eventhub")
+
+		if len(errors) != tc.ErrCount {
+			t.Fatalf("Expected %q to trigger a validation error", tc.Value)
+		}
+	}
+}
+
 func TestAccAzureRMEventHub_basic(t *testing.T) {
 
 	ri := acctest.RandInt()
@@ -134,8 +204,92 @@ func TestAccAzureRMEventHub_standard(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMEventHub_captureDescription(t *testing.T) {
+	resourceName := "azurerm_eventhub.test"
+	ri := acctest.RandInt()
+	rs := acctest.RandString(5)
+	config := testAccAzureRMEventHub_captureDescription(ri, rs, testLocation(), true)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMEventHubDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventHubExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "capture_description.0.enabled", "true"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMEventHub_captureDescriptionDisabled(t *testing.T) {
+	resourceName := "azurerm_eventhub.test"
+	ri := acctest.RandInt()
+	rs := acctest.RandString(5)
+	location := testLocation()
+
+	config := testAccAzureRMEventHub_captureDescription(ri, rs, location, true)
+	updatedConfig := testAccAzureRMEventHub_captureDescription(ri, rs, location, false)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMEventHubDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventHubExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "capture_description.0.enabled", "true"),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventHubExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "capture_description.0.enabled", "false"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMEventHub_messageRetentionUpdate(t *testing.T) {
+	resourceName := "azurerm_eventhub.test"
+	ri := acctest.RandInt()
+	preConfig := testAccAzureRMEventHub_standard(ri, testLocation())
+	postConfig := testAccAzureRMEventHub_messageRetentionUpdate(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMEventHubDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventHubExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "message_retention", "7"),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventHubExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "message_retention", "5"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMEventHubDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).eventHubClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_eventhub" {
@@ -146,7 +300,7 @@ func testCheckAzureRMEventHubDestroy(s *terraform.State) error {
 		namespaceName := rs.Primary.Attributes["namespace_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, namespaceName, name)
+		resp, err := conn.Get(ctx, resourceGroup, namespaceName, name)
 
 		if err != nil {
 			return nil
@@ -176,8 +330,9 @@ func testCheckAzureRMEventHubExists(name string) resource.TestCheckFunc {
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).eventHubClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, namespaceName, name)
+		resp, err := conn.Get(ctx, resourceGroup, namespaceName, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on eventHubClient: %+v", err)
 		}
@@ -234,6 +389,84 @@ resource "azurerm_eventhub" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   partition_count     = 2
   message_retention   = 7
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMEventHub_captureDescription(rInt int, rString string, location string, enabled bool) string {
+	enabledString := strconv.FormatBool(enabled)
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "example"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctestehn%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+}
+
+resource "azurerm_eventhub" "test" {
+  name                = "acctesteh%d"
+  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  partition_count     = 2
+  message_retention   = 7
+
+  capture_description {
+    enabled             = %s
+    encoding            = "Avro"
+    interval_in_seconds = 60
+    size_limit_in_bytes = 10485760
+
+    destination {
+      name                = "EventHubArchive.AzureBlockBlob"
+      archive_name_format = "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}"
+      blob_container_name = "${azurerm_storage_container.test.name}"
+      storage_account_id  = "${azurerm_storage_account.test.id}"
+    }
+  }
+}
+`, rInt, location, rString, rInt, rInt, enabledString)
+}
+
+func testAccAzureRMEventHub_messageRetentionUpdate(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctesteventhubnamespace-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+}
+
+resource "azurerm_eventhub" "test" {
+  name                = "acctesteventhub-%d"
+  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  partition_count     = 2
+  message_retention   = 5
 }
 `, rInt, location, rInt, rInt)
 }

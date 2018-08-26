@@ -6,7 +6,7 @@ description: |-
   Get information about the configuration of the azurerm provider.
 ---
 
-# azurerm\_client\_config
+# Data Source: azurerm_client_config
 
 Use this data source to access the configuration of the Azure Resource Manager
 provider.

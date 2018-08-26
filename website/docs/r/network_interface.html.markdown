@@ -1,6 +1,6 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azure_network_interface"
+page_title: "Azure Resource Manager: azurerm_network_interface"
 sidebar_current: "docs-azurerm-resource-network-interface"
 description: |-
   Manages a Network Interface located in a Virtual Network, usually attached to a Virtual Machine.
@@ -66,6 +66,10 @@ The following arguments are supported:
 
 * `enable_ip_forwarding` - (Optional) Enables IP Forwarding on the NIC. Defaults to `false`.
 
+* `enable_accelerated_networking` - (Optional) Enables Azure Accelerated Networking using SR-IOV. Only certain VM instance sizes are supported. Refer to [Create a Virtual Machine with Accelerated Networking](https://docs.microsoft.com/en-us/azure/virtual-network/create-vm-accelerated-networking-cli). Defaults to `false`.
+
+~> **NOTE:** when using Accelerated Networking in an Availability Set - the Availability Set must be deployed on an Accelerated Networking enabled cluster.
+
 * `dns_servers` - (Optional) List of DNS servers IP addresses to use for this NIC, overrides the VNet-level server list
 
 * `ip_configuration` - (Required) One or more `ip_configuration` associated with this NIC as documented below.
@@ -84,9 +88,13 @@ The `ip_configuration` block supports:
 
 * `public_ip_address_id` - (Optional) Reference to a Public IP Address to associate with this NIC
 
+* `application_gateway_backend_address_pools_ids` - (Optional) List of Application Gateway Backend Address Pool IDs references to which this NIC belongs
+
 * `load_balancer_backend_address_pools_ids` - (Optional) List of Load Balancer Backend Address Pool IDs references to which this NIC belongs
 
 * `load_balancer_inbound_nat_rules_ids` - (Optional) List of Load Balancer Inbound Nat Rules IDs involving this NIC
+
+* `application_security_group_ids` - (Optional) List of Application Security Group IDs which should be attached to this NIC
 
 * `primary` - (Optional) Is this the Primary Network Interface? If set to `true` this should be the first `ip_configuration` in the array.
 

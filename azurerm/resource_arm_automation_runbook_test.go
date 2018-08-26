@@ -13,7 +13,6 @@ import (
 func TestAccAzureRMAutomationRunbook_PSWorkflow(t *testing.T) {
 	resourceName := "azurerm_automation_runbook.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMAutomationRunbook_PSWorkflow(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -21,11 +20,17 @@ func TestAccAzureRMAutomationRunbook_PSWorkflow(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationRunbookDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAutomationRunbook_PSWorkflow(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationRunbookExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "runbook_type", "PowerShellWorkflow"),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"publish_content_link"},
 			},
 		},
 	})
@@ -34,7 +39,6 @@ func TestAccAzureRMAutomationRunbook_PSWorkflow(t *testing.T) {
 func TestAccAzureRMAutomationRunbook_PSWorkflowWithHash(t *testing.T) {
 	resourceName := "azurerm_automation_runbook.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMAutomationRunbook_PSWorkflowWithHash(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -42,11 +46,17 @@ func TestAccAzureRMAutomationRunbook_PSWorkflowWithHash(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationRunbookDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAutomationRunbook_PSWorkflowWithHash(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationRunbookExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "runbook_type", "PowerShellWorkflow"),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"publish_content_link"},
 			},
 		},
 	})
@@ -54,6 +64,7 @@ func TestAccAzureRMAutomationRunbook_PSWorkflowWithHash(t *testing.T) {
 
 func testCheckAzureRMAutomationRunbookDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).automationRunbookClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_automation_runbook" {
@@ -62,9 +73,13 @@ func testCheckAzureRMAutomationRunbookDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		accName := rs.Primary.Attributes["account_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, accName, name)
+		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for Automation Runbook: '%s'", name)
+		}
+
+		resp, err := conn.Get(ctx, resourceGroup, accName, name)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -98,8 +113,9 @@ func testCheckAzureRMAutomationRunbookExists(name string) resource.TestCheckFunc
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).automationRunbookClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, accName, name)
+		resp, err := conn.Get(ctx, resourceGroup, accName, name)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -133,7 +149,7 @@ resource "azurerm_automation_runbook" "test" {
   name	 	      = "Get-AzureVMTutorial"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
- 
+
   account_name        = "${azurerm_automation_account.test.name}"
   log_verbose	      = "true"
   log_progress	      = "true"

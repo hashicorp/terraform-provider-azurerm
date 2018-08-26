@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/arm/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -79,14 +79,14 @@ func resourceArmSqlElasticPool() *schema.Resource {
 }
 
 func resourceArmSqlElasticPoolCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	elasticPoolsClient := client.sqlElasticPoolsClient
+	client := meta.(*ArmClient).sqlElasticPoolsClient
+	ctx := meta.(*ArmClient).StopContext
 
-	log.Printf("[INFO] preparing arguments for Azure ARM SQL ElasticPool creation.")
+	log.Printf("[INFO] preparing arguments for SQL ElasticPool creation.")
 
 	name := d.Get("name").(string)
 	serverName := d.Get("server_name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -97,18 +97,22 @@ func resourceArmSqlElasticPoolCreate(d *schema.ResourceData, meta interface{}) e
 		Tags: expandTags(tags),
 	}
 
-	_, error := elasticPoolsClient.CreateOrUpdate(resGroup, serverName, name, elasticPool, make(chan struct{}))
-	err := <-error
+	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, name, elasticPool)
 	if err != nil {
 		return err
 	}
 
-	read, err := elasticPoolsClient.Get(resGroup, serverName, name)
+	err = future.WaitForCompletionRef(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	read, err := client.Get(ctx, resGroup, serverName, name)
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read SQL ElasticPool %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read SQL ElasticPool %q (resource group %q) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -117,15 +121,15 @@ func resourceArmSqlElasticPoolCreate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	elasticPoolsClient := client.sqlElasticPoolsClient
+	client := meta.(*ArmClient).sqlElasticPoolsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	resGroup, serverName, name, err := parseArmSqlElasticPoolId(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := elasticPoolsClient.Get(resGroup, serverName, name)
+	resp, err := client.Get(ctx, resGroup, serverName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -136,20 +140,20 @@ func resourceArmSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 	d.Set("server_name", serverName)
 
-	elasticPool := resp.ElasticPoolProperties
-
-	if elasticPool != nil {
+	if elasticPool := resp.ElasticPoolProperties; elasticPool != nil {
 		d.Set("edition", string(elasticPool.Edition))
 		d.Set("dtu", int(*elasticPool.Dtu))
 		d.Set("db_dtu_min", int(*elasticPool.DatabaseDtuMin))
 		d.Set("db_dtu_max", int(*elasticPool.DatabaseDtuMax))
 		d.Set("pool_size", int(*elasticPool.StorageMB))
 
-		if elasticPool.CreationDate != nil {
-			d.Set("creation_date", elasticPool.CreationDate.Format(time.RFC3339))
+		if date := elasticPool.CreationDate; date != nil {
+			d.Set("creation_date", date.Format(time.RFC3339))
 		}
 	}
 
@@ -159,15 +163,15 @@ func resourceArmSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmSqlElasticPoolDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	elasticPoolsClient := client.sqlElasticPoolsClient
+	client := meta.(*ArmClient).sqlElasticPoolsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	resGroup, serverName, name, err := parseArmSqlElasticPoolId(d.Id())
 	if err != nil {
 		return err
 	}
 
-	_, err = elasticPoolsClient.Delete(resGroup, serverName, name)
+	_, err = client.Delete(ctx, resGroup, serverName, name)
 
 	return err
 }
@@ -202,7 +206,7 @@ func getArmSqlElasticPoolProperties(d *schema.ResourceData) *sql.ElasticPoolProp
 func parseArmSqlElasticPoolId(sqlElasticPoolId string) (string, string, string, error) {
 	id, err := parseAzureResourceID(sqlElasticPoolId)
 	if err != nil {
-		return "", "", "", fmt.Errorf("[ERROR] Unable to parse SQL ElasticPool ID '%s': %+v", sqlElasticPoolId, err)
+		return "", "", "", fmt.Errorf("[ERROR] Unable to parse SQL ElasticPool ID %q: %+v", sqlElasticPoolId, err)
 	}
 
 	return id.ResourceGroup, id.Path["servers"], id.Path["elasticPools"], nil

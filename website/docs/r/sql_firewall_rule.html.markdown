@@ -3,10 +3,10 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sql_firewall_rule"
 sidebar_current: "docs-azurerm-resource-database-sql-firewall_rule"
 description: |-
-  Create a SQL Firewall Rule.
+  Manages a SQL Firewall Rule.
 ---
 
-# azurerm\_sql\_firewall\_rule
+# azurerm_sql_firewall_rule
 
 Allows you to manage an Azure SQL Firewall Rule
 
@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_sql_server" "test" {
-    name = "mysqlserver" 
+    name = "mysqlserver"
     resource_group_name = "${azurerm_resource_group.test.name}"
     location = "West US"
     version = "12.0"
@@ -39,7 +39,7 @@ resource "azurerm_sql_firewall_rule" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the SQL Server.
+* `name` - (Required) The name of the firewall rule.
 
 * `resource_group_name` - (Required) The name of the resource group in which to
     create the sql server.
@@ -49,6 +49,8 @@ The following arguments are supported:
 * `start_ip_address` - (Required) The starting IP address to allow through the firewall for this rule.
 
 * `end_ip_address` - (Required) The ending IP address to allow through the firewall for this rule.
+
+-> **NOTE:** The Azure feature `Allow access to Azure services` can be enabled by setting `start_ip_address` and `end_ip_address` to `0.0.0.0` which ([is documented in the Azure API Docs](https://docs.microsoft.com/en-us/rest/api/sql/firewallrules/createorupdate)).
 
 ## Attributes Reference
 

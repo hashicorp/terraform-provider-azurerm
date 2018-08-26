@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Azure/azure-sdk-for-go/arm/dns"
+	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -76,6 +76,7 @@ func resourceArmDnsSrvRecord() *schema.Resource {
 
 func resourceArmDnsSrvRecordCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dnsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
@@ -99,7 +100,7 @@ func resourceArmDnsSrvRecordCreateOrUpdate(d *schema.ResourceData, meta interfac
 
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	resp, err := client.CreateOrUpdate(resGroup, zoneName, name, dns.SRV, parameters, eTag, ifNoneMatch)
+	resp, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.SRV, parameters, eTag, ifNoneMatch)
 	if err != nil {
 		return err
 	}
@@ -115,6 +116,7 @@ func resourceArmDnsSrvRecordCreateOrUpdate(d *schema.ResourceData, meta interfac
 
 func resourceArmDnsSrvRecordRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dnsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -125,7 +127,7 @@ func resourceArmDnsSrvRecordRead(d *schema.ResourceData, meta interface{}) error
 	name := id.Path["SRV"]
 	zoneName := id.Path["dnszones"]
 
-	resp, err := client.Get(resGroup, zoneName, name, dns.SRV)
+	resp, err := client.Get(ctx, resGroup, zoneName, name, dns.SRV)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -149,6 +151,7 @@ func resourceArmDnsSrvRecordRead(d *schema.ResourceData, meta interface{}) error
 
 func resourceArmDnsSrvRecordDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dnsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -159,7 +162,7 @@ func resourceArmDnsSrvRecordDelete(d *schema.ResourceData, meta interface{}) err
 	name := id.Path["SRV"]
 	zoneName := id.Path["dnszones"]
 
-	resp, error := client.Delete(resGroup, zoneName, name, dns.SRV, "")
+	resp, error := client.Delete(ctx, resGroup, zoneName, name, dns.SRV, "")
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Error deleting DNS SRV Record %s: %+v", name, error)
 	}
@@ -210,12 +213,13 @@ func expandAzureRmDnsSrvRecords(d *schema.ResourceData) ([]dns.SrvRecord, error)
 
 func resourceArmDnsSrvRecordHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
 
-	buf.WriteString(fmt.Sprintf("%d-", m["priority"].(int)))
-	buf.WriteString(fmt.Sprintf("%d-", m["weight"].(int)))
-	buf.WriteString(fmt.Sprintf("%d-", m["port"].(int)))
-	buf.WriteString(fmt.Sprintf("%s-", m["target"].(string)))
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%d-", m["priority"].(int)))
+		buf.WriteString(fmt.Sprintf("%d-", m["weight"].(int)))
+		buf.WriteString(fmt.Sprintf("%d-", m["port"].(int)))
+		buf.WriteString(fmt.Sprintf("%s-", m["target"].(string)))
+	}
 
 	return hashcode.String(buf.String())
 }

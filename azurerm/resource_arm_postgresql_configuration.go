@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/arm/postgresql"
+	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -44,6 +45,7 @@ func resourceArmPostgreSQLConfiguration() *schema.Resource {
 
 func resourceArmPostgreSQLConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).postgresqlConfigurationsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Configuration creation.")
 
@@ -59,13 +61,17 @@ func resourceArmPostgreSQLConfigurationCreateUpdate(d *schema.ResourceData, meta
 		},
 	}
 
-	_, error := client.CreateOrUpdate(resGroup, serverName, name, properties, make(chan struct{}))
-	err := <-error
+	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, name, properties)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resGroup, serverName, name)
+	err = future.WaitForCompletionRef(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	read, err := client.Get(ctx, resGroup, serverName, name)
 	if err != nil {
 		return err
 	}
@@ -80,6 +86,7 @@ func resourceArmPostgreSQLConfigurationCreateUpdate(d *schema.ResourceData, meta
 
 func resourceArmPostgreSQLConfigurationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).postgresqlConfigurationsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -89,7 +96,7 @@ func resourceArmPostgreSQLConfigurationRead(d *schema.ResourceData, meta interfa
 	serverName := id.Path["servers"]
 	name := id.Path["configurations"]
 
-	resp, err := client.Get(resGroup, serverName, name)
+	resp, err := client.Get(ctx, resGroup, serverName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[WARN] PostgreSQL Configuration '%s' was not found (resource group '%s')", name, resGroup)
@@ -110,6 +117,7 @@ func resourceArmPostgreSQLConfigurationRead(d *schema.ResourceData, meta interfa
 
 func resourceArmPostgreSQLConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).postgresqlConfigurationsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -120,7 +128,7 @@ func resourceArmPostgreSQLConfigurationDelete(d *schema.ResourceData, meta inter
 	name := id.Path["configurations"]
 
 	// "delete" = resetting this to the default value
-	resp, err := client.Get(resGroup, serverName, name)
+	resp, err := client.Get(ctx, resGroup, serverName, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Postgresql Configuration '%s': %+v", name, err)
 	}
@@ -132,7 +140,21 @@ func resourceArmPostgreSQLConfigurationDelete(d *schema.ResourceData, meta inter
 		},
 	}
 
-	_, error := client.CreateOrUpdate(resGroup, serverName, name, properties, make(chan struct{}))
-	err = <-error
-	return err
+	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, name, properties)
+	if err != nil {
+		if response.WasNotFound(future.Response()) {
+			return nil
+		}
+		return err
+	}
+
+	err = future.WaitForCompletionRef(ctx, client.Client)
+	if err != nil {
+		if response.WasNotFound(future.Response()) {
+			return nil
+		}
+		return err
+	}
+
+	return nil
 }

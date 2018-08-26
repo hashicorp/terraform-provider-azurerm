@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -96,6 +96,7 @@ func resourceArmKeyVaultKey() *schema.Resource {
 
 func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).keyVaultManagementClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Print("[INFO] preparing arguments for AzureRM KeyVault Key creation.")
 	name := d.Get("name").(string)
@@ -117,13 +118,13 @@ func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) erro
 		Tags:    expandTags(tags),
 	}
 
-	_, err := client.CreateKey(keyVaultBaseUrl, name, parameters)
+	_, err := client.CreateKey(ctx, keyVaultBaseUrl, name, parameters)
 	if err != nil {
 		return fmt.Errorf("Error Creating Key: %+v", err)
 	}
 
 	// "" indicates the latest version
-	read, err := client.GetKey(keyVaultBaseUrl, name, "")
+	read, err := client.GetKey(ctx, keyVaultBaseUrl, name, "")
 	if err != nil {
 		return err
 	}
@@ -135,6 +136,7 @@ func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceArmKeyVaultKeyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).keyVaultManagementClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Print("[INFO] preparing arguments for AzureRM KeyVault Key update.")
 	id, err := parseKeyVaultChildID(d.Id())
@@ -153,7 +155,7 @@ func resourceArmKeyVaultKeyUpdate(d *schema.ResourceData, meta interface{}) erro
 		Tags: expandTags(tags),
 	}
 
-	_, err = client.UpdateKey(id.KeyVaultBaseUrl, id.Name, id.Version, parameters)
+	_, err = client.UpdateKey(ctx, id.KeyVaultBaseUrl, id.Name, id.Version, parameters)
 	if err != nil {
 		return err
 	}
@@ -163,14 +165,21 @@ func resourceArmKeyVaultKeyUpdate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).keyVaultManagementClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseKeyVaultChildID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.GetKey(id.KeyVaultBaseUrl, id.Name, "")
+	resp, err := client.GetKey(ctx, id.KeyVaultBaseUrl, id.Name, "")
 	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[DEBUG] Key %q was not found in Key Vault at URI %q - removing from state", id.Name, id.KeyVaultBaseUrl)
+			d.SetId("")
+			return nil
+		}
+
 		return err
 	}
 
@@ -198,13 +207,14 @@ func resourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error 
 
 func resourceArmKeyVaultKeyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).keyVaultManagementClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseKeyVaultChildID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	_, err = client.DeleteKey(id.KeyVaultBaseUrl, id.Name)
+	_, err = client.DeleteKey(ctx, id.KeyVaultBaseUrl, id.Name)
 
 	return err
 }

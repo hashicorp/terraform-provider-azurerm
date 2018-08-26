@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Azure/azure-sdk-for-go/arm/dns"
+	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -58,6 +58,7 @@ func resourceArmDnsTxtRecord() *schema.Resource {
 
 func resourceArmDnsTxtRecordCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dnsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
@@ -81,7 +82,7 @@ func resourceArmDnsTxtRecordCreateOrUpdate(d *schema.ResourceData, meta interfac
 
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	resp, err := client.CreateOrUpdate(resGroup, zoneName, name, dns.TXT, parameters, eTag, ifNoneMatch)
+	resp, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.TXT, parameters, eTag, ifNoneMatch)
 	if err != nil {
 		return err
 	}
@@ -97,6 +98,7 @@ func resourceArmDnsTxtRecordCreateOrUpdate(d *schema.ResourceData, meta interfac
 
 func resourceArmDnsTxtRecordRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dnsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -107,7 +109,7 @@ func resourceArmDnsTxtRecordRead(d *schema.ResourceData, meta interface{}) error
 	name := id.Path["TXT"]
 	zoneName := id.Path["dnszones"]
 
-	resp, err := client.Get(resGroup, zoneName, name, dns.TXT)
+	resp, err := client.Get(ctx, resGroup, zoneName, name, dns.TXT)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -131,6 +133,7 @@ func resourceArmDnsTxtRecordRead(d *schema.ResourceData, meta interface{}) error
 
 func resourceArmDnsTxtRecordDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dnsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -141,7 +144,7 @@ func resourceArmDnsTxtRecordDelete(d *schema.ResourceData, meta interface{}) err
 	name := id.Path["TXT"]
 	zoneName := id.Path["dnszones"]
 
-	resp, error := client.Delete(resGroup, zoneName, name, dns.TXT, "")
+	resp, error := client.Delete(ctx, resGroup, zoneName, name, dns.TXT, "")
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Error deleting DNS TXT Record %s: %+v", name, error)
 	}

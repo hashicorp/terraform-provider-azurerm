@@ -1,6 +1,6 @@
 variable "prefix" {
   description = "Default prefix to use with your resource names."
-  default = "myapp"
+  default     = "myapp"
 }
 
 variable "location" {
@@ -30,6 +30,7 @@ variable "subnet_names" {
 
 variable "tags" {
   type = "map"
+
   default = {
     tag1 = ""
     tag2 = ""

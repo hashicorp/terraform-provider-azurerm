@@ -75,8 +75,9 @@ func testCheckAzureRMSqlFirewallRuleExists(name string) resource.TestCheckFunc {
 		ruleName := rs.Primary.Attributes["name"]
 
 		client := testAccProvider.Meta().(*ArmClient).sqlFirewallRulesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(resourceGroup, serverName, ruleName)
+		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("SQL Firewall Rule %q (server %q / resource group %q) was not found", ruleName, serverName, resourceGroup)
@@ -100,8 +101,9 @@ func testCheckAzureRMSqlFirewallRuleDestroy(s *terraform.State) error {
 		ruleName := rs.Primary.Attributes["name"]
 
 		client := testAccProvider.Meta().(*ArmClient).sqlFirewallRulesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(resourceGroup, serverName, ruleName)
+		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
@@ -129,8 +131,9 @@ func testCheckAzureRMSqlFirewallRuleDisappears(name string) resource.TestCheckFu
 		ruleName := rs.Primary.Attributes["name"]
 
 		client := testAccProvider.Meta().(*ArmClient).sqlFirewallRulesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Delete(resourceGroup, serverName, ruleName)
+		resp, err := client.Delete(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp) {
 				return nil
@@ -146,7 +149,7 @@ func testCheckAzureRMSqlFirewallRuleDisappears(name string) resource.TestCheckFu
 func testAccAzureRMSqlFirewallRule_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
@@ -172,7 +175,7 @@ resource "azurerm_sql_firewall_rule" "test" {
 func testAccAzureRMSqlFirewallRule_withUpdates(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 

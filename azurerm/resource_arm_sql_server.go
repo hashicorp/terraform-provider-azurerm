@@ -2,12 +2,13 @@ package azurerm
 
 import (
 	"fmt"
-
 	"log"
+	"regexp"
 
-	"github.com/Azure/azure-sdk-for-go/arm/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,10 +24,13 @@ func resourceArmSqlServer() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validateDBAccountName,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile("^[-a-z0-9]{3,50}$"),
+					"SQL server name must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
+				),
 			},
 
 			"location": locationSchema(),
@@ -67,10 +71,11 @@ func resourceArmSqlServer() *schema.Resource {
 
 func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).sqlServersClient
+	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	adminUsername := d.Get("administrator_login").(string)
 	adminPassword := d.Get("administrator_login_password").(string)
 	version := d.Get("version").(string)
@@ -88,19 +93,22 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		},
 	}
 
-	createResp, createErr := client.CreateOrUpdate(resGroup, name, parameters, make(chan struct{}))
-	resp := <-createResp
-	err := <-createErr
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
 	if err != nil {
-		// if the name is in-use, Azure returns a 409 "Unknown Service Error" which is a bad UX
-		if utils.ResponseWasConflict(resp.Response) {
-			return fmt.Errorf("SQL Server names need to be globally unique and '%s' is already in use.", name)
+		return err
+	}
+
+	err = future.WaitForCompletionRef(ctx, client.Client)
+	if err != nil {
+
+		if response.WasConflict(future.Response()) {
+			return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use.", name)
 		}
 
 		return err
 	}
 
-	resp, err = client.Get(resGroup, name)
+	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
@@ -112,6 +120,7 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 
 func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).sqlServersClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -121,7 +130,7 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	resGroup := id.ResourceGroup
 	name := id.Path["servers"]
 
-	resp, err := client.Get(resGroup, name)
+	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading SQL Server %q - removing from state", d.Id())
@@ -134,7 +143,9 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
 	if serverProperties := resp.ServerProperties; serverProperties != nil {
 		d.Set("version", serverProperties.Version)
@@ -149,6 +160,7 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 
 func resourceArmSqlServerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).sqlServersClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -158,15 +170,14 @@ func resourceArmSqlServerDelete(d *schema.ResourceData, meta interface{}) error 
 	resGroup := id.ResourceGroup
 	name := id.Path["servers"]
 
-	deleteResp, deleteErr := client.Delete(resGroup, name, make(chan struct{}))
-	resp := <-deleteResp
-	err = <-deleteErr
+	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp) {
-			return nil
-		}
-
 		return fmt.Errorf("Error deleting SQL Server %s: %+v", name, err)
+	}
+
+	err = future.WaitForCompletionRef(ctx, client.Client)
+	if err != nil {
+		return err
 	}
 
 	return nil

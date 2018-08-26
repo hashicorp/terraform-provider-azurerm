@@ -65,12 +65,13 @@ func testCheckAzureRMSearchServiceExists(name string) resource.TestCheckFunc {
 		searchName := rs.Primary.Attributes["name"]
 
 		client := testAccProvider.Meta().(*ArmClient).searchServicesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(resourceGroup, searchName, nil)
+		resp, err := client.Get(ctx, resourceGroup, searchName, nil)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Search Service '%s' (resource group '%s') was not found: %+v", searchName, resourceGroup, err)
+				return fmt.Errorf("Search Service %q (resource group %q) was not found: %+v", searchName, resourceGroup, err)
 			}
 
 			return fmt.Errorf("Bad: GetSearchService: %+v", err)
@@ -90,8 +91,9 @@ func testCheckAzureRMSearchServiceDestroy(s *terraform.State) error {
 		searchName := rs.Primary.Attributes["name"]
 
 		client := testAccProvider.Meta().(*ArmClient).searchServicesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(resourceGroup, searchName, nil)
+		resp, err := client.Get(ctx, resourceGroup, searchName, nil)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -101,7 +103,7 @@ func testCheckAzureRMSearchServiceDestroy(s *terraform.State) error {
 			return err
 		}
 
-		return fmt.Errorf("Bad: Search Service '%s' (resource group '%s') still exists: %+v", searchName, resourceGroup, resp)
+		return fmt.Errorf("Bad: Search Service %q (resource group %q) still exists: %+v", searchName, resourceGroup, resp)
 	}
 
 	return nil
@@ -110,7 +112,7 @@ func testCheckAzureRMSearchServiceDestroy(s *terraform.State) error {
 func testAccAzureRMSearchService_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
@@ -130,7 +132,7 @@ resource "azurerm_search_service" "test" {
 func testAccAzureRMSearchService_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 resource "azurerm_search_service" "test" {

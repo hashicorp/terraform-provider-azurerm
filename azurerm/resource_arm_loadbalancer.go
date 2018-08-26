@@ -5,19 +5,23 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/arm/network"
-	"github.com/hashicorp/errwrap"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmLoadBalancer() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmLoadBalancerCreate,
-		Read:   resourecArmLoadBalancerRead,
+		Read:   resourceArmLoadBalancerRead,
 		Update: resourceArmLoadBalancerCreate,
 		Delete: resourceArmLoadBalancerDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -33,6 +37,18 @@ func resourceArmLoadBalancer() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameSchema(),
 
+			"sku": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(network.LoadBalancerSkuNameBasic),
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.LoadBalancerSkuNameBasic),
+					string(network.LoadBalancerSkuNameStandard),
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+			},
+
 			"frontend_ip_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -40,50 +56,65 @@ func resourceArmLoadBalancer() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 
 						"subnet_id": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: azure.ValidateResourceIDOrEmpty,
 						},
 
 						"private_ip_address": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validate.IPv4AddressOrEmpty,
 						},
 
 						"public_ip_address_id": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: azure.ValidateResourceIDOrEmpty,
 						},
 
 						"private_ip_address_allocation": {
-							Type:             schema.TypeString,
-							Optional:         true,
-							Computed:         true,
-							ValidateFunc:     validateLoadBalancerPrivateIpAddressAllocation,
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.Dynamic),
+								string(network.Static),
+							}, true),
 							StateFunc:        ignoreCaseStateFunc,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"load_balancer_rules": {
 							Type:     schema.TypeSet,
 							Computed: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.NoZeroValues,
+							},
+							Set: schema.HashString,
 						},
 
 						"inbound_nat_rules": {
 							Type:     schema.TypeSet,
 							Computed: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.NoZeroValues,
+							},
+							Set: schema.HashString,
 						},
+
+						"zones": singleZonesSchema(),
 					},
 				},
 			},
@@ -92,6 +123,13 @@ func resourceArmLoadBalancer() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"private_ip_addresses": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 
 			"tags": tagsSchema(),
 		},
@@ -99,14 +137,17 @@ func resourceArmLoadBalancer() *schema.Resource {
 }
 
 func resourceArmLoadBalancerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	loadBalancerClient := client.loadBalancerClient
+	client := meta.(*ArmClient).loadBalancerClient
+	ctx := meta.(*ArmClient).StopContext
 
-	log.Printf("[INFO] preparing arguments for Azure ARM LoadBalancer creation.")
+	log.Printf("[INFO] preparing arguments for Azure ARM Load Balancer creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
+	sku := network.LoadBalancerSku{
+		Name: network.LoadBalancerSkuName(d.Get("sku").(string)),
+	}
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
 
@@ -116,44 +157,50 @@ func resourceArmLoadBalancerCreate(d *schema.ResourceData, meta interface{}) err
 		properties.FrontendIPConfigurations = expandAzureRmLoadBalancerFrontendIpConfigurations(d)
 	}
 
-	loadbalancer := network.LoadBalancer{
+	loadBalancer := network.LoadBalancer{
 		Name:     utils.String(name),
 		Location: utils.String(location),
 		Tags:     expandedTags,
+		Sku:      &sku,
 		LoadBalancerPropertiesFormat: &properties,
 	}
 
-	_, error := loadBalancerClient.CreateOrUpdate(resGroup, name, loadbalancer, make(chan struct{}))
-	err := <-error
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, loadBalancer)
 	if err != nil {
-		return errwrap.Wrapf("Error Creating/Updating LoadBalancer {{err}}", err)
+		return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	read, err := loadBalancerClient.Get(resGroup, name, "")
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return errwrap.Wrapf("Error Getting LoadBalancer {{err}", err)
+		return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	read, err := client.Get(ctx, resGroup, name, "")
+	if err != nil {
+		return fmt.Errorf("Error Retrieving Load Balancer %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read LoadBalancer %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read Load Balancer %q (resource group %q) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
 
-	log.Printf("[DEBUG] Waiting for LoadBalancer (%s) to become available", name)
+	// TODO: is this still needed?
+	log.Printf("[DEBUG] Waiting for Load Balancer (%q) to become available", name)
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"Accepted", "Updating"},
 		Target:  []string{"Succeeded"},
-		Refresh: loadbalancerStateRefreshFunc(client, resGroup, name),
+		Refresh: loadbalancerStateRefreshFunc(ctx, client, resGroup, name),
 		Timeout: 10 * time.Minute,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for LoadBalancer (%s) to become available: %s", name, err)
+		return fmt.Errorf("Error waiting for Load Balancer (%q - Resource Group %q) to become available: %s", name, resGroup, err)
 	}
 
-	return resourecArmLoadBalancerRead(d, meta)
+	return resourceArmLoadBalancerRead(d, meta)
 }
 
-func resourecArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error {
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -161,29 +208,44 @@ func resourecArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 
 	loadBalancer, exists, err := retrieveLoadBalancerById(d.Id(), meta)
 	if err != nil {
-		return errwrap.Wrapf("Error Getting LoadBalancer By ID {{err}}", err)
+		return fmt.Errorf("Error retrieving Load Balancer by ID %q: %+v", d.Id(), err)
 	}
 	if !exists {
 		d.SetId("")
-		log.Printf("[INFO] LoadBalancer %q not found. Removing from state", d.Get("name").(string))
+		log.Printf("[INFO] Load Balancer %q not found. Removing from state", d.Id())
 		return nil
 	}
 
 	d.Set("name", loadBalancer.Name)
-	d.Set("location", azureRMNormalizeLocation(*loadBalancer.Location))
 	d.Set("resource_group_name", id.ResourceGroup)
+	if location := loadBalancer.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
-	if loadBalancer.LoadBalancerPropertiesFormat != nil && loadBalancer.LoadBalancerPropertiesFormat.FrontendIPConfigurations != nil {
-		ipconfigs := loadBalancer.LoadBalancerPropertiesFormat.FrontendIPConfigurations
-		d.Set("frontend_ip_configuration", flattenLoadBalancerFrontendIpConfiguration(ipconfigs))
+	if sku := loadBalancer.Sku; sku != nil {
+		d.Set("sku", string(sku.Name))
+	}
 
-		for _, config := range *ipconfigs {
-			if config.FrontendIPConfigurationPropertiesFormat.PrivateIPAddress != nil {
-				d.Set("private_ip_address", config.FrontendIPConfigurationPropertiesFormat.PrivateIPAddress)
+	if props := loadBalancer.LoadBalancerPropertiesFormat; props != nil {
+		if feipConfigs := props.FrontendIPConfigurations; feipConfigs != nil {
+			d.Set("frontend_ip_configuration", flattenLoadBalancerFrontendIpConfiguration(feipConfigs))
 
-				// set the private IP address at most once
-				break
+			privateIpAddress := ""
+			privateIpAddresses := make([]string, 0, len(*feipConfigs))
+			for _, config := range *feipConfigs {
+				if feipProps := config.FrontendIPConfigurationPropertiesFormat; feipProps != nil {
+					if ip := feipProps.PrivateIPAddress; ip != nil {
+						if privateIpAddress == "" {
+							privateIpAddress = *feipProps.PrivateIPAddress
+						}
+
+						privateIpAddresses = append(privateIpAddresses, *feipProps.PrivateIPAddress)
+					}
+				}
 			}
+
+			d.Set("private_ip_address", privateIpAddress)
+			d.Set("private_ip_addresses", privateIpAddresses)
 		}
 	}
 
@@ -193,22 +255,26 @@ func resourecArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmLoadBalancerDelete(d *schema.ResourceData, meta interface{}) error {
-	loadBalancerClient := meta.(*ArmClient).loadBalancerClient
+	client := meta.(*ArmClient).loadBalancerClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return errwrap.Wrapf("Error Parsing Azure Resource ID {{err}}", err)
+		return fmt.Errorf("Error Parsing Azure Resource ID: %+v", err)
 	}
 	resGroup := id.ResourceGroup
 	name := id.Path["loadBalancers"]
 
-	_, error := loadBalancerClient.Delete(resGroup, name, make(chan struct{}))
-	err = <-error
+	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
-		return errwrap.Wrapf("Error Deleting LoadBalancer {{err}}", err)
+		return fmt.Errorf("Error deleting Load Balancer %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	d.SetId("")
+	err = future.WaitForCompletionRef(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Error waiting for the deleting Load Balancer %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
 	return nil
 }
 
@@ -219,9 +285,9 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *schema.ResourceData) *
 	for _, configRaw := range configs {
 		data := configRaw.(map[string]interface{})
 
-		private_ip_allocation_method := data["private_ip_address_allocation"].(string)
+		privateIpAllocationMethod := data["private_ip_address_allocation"].(string)
 		properties := network.FrontendIPConfigurationPropertiesFormat{
-			PrivateIPAllocationMethod: network.IPAllocationMethod(private_ip_allocation_method),
+			PrivateIPAllocationMethod: network.IPAllocationMethod(privateIpAllocationMethod),
 		}
 
 		if v := data["private_ip_address"].(string); v != "" {
@@ -241,9 +307,11 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *schema.ResourceData) *
 		}
 
 		name := data["name"].(string)
+		zones := expandZones(data["zones"].([]interface{}))
 		frontEndConfig := network.FrontendIPConfiguration{
 			Name: &name,
 			FrontendIPConfigurationPropertiesFormat: &properties,
+			Zones: zones,
 		}
 
 		frontEndConfigs = append(frontEndConfigs, frontEndConfig)
@@ -257,38 +325,48 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 	for _, config := range *ipConfigs {
 		ipConfig := make(map[string]interface{})
 		ipConfig["name"] = *config.Name
-		ipConfig["private_ip_address_allocation"] = config.FrontendIPConfigurationPropertiesFormat.PrivateIPAllocationMethod
 
-		if config.FrontendIPConfigurationPropertiesFormat.Subnet != nil {
-			ipConfig["subnet_id"] = *config.FrontendIPConfigurationPropertiesFormat.Subnet.ID
+		zones := make([]string, 0)
+		if zs := config.Zones; zs != nil {
+			for _, zone := range *zs {
+				zones = append(zones, zone)
+			}
 		}
+		ipConfig["zones"] = zones
 
-		if config.FrontendIPConfigurationPropertiesFormat.PrivateIPAddress != nil {
-			ipConfig["private_ip_address"] = *config.FrontendIPConfigurationPropertiesFormat.PrivateIPAddress
-		}
+		if props := config.FrontendIPConfigurationPropertiesFormat; props != nil {
+			ipConfig["private_ip_address_allocation"] = props.PrivateIPAllocationMethod
 
-		if config.FrontendIPConfigurationPropertiesFormat.PublicIPAddress != nil {
-			ipConfig["public_ip_address_id"] = *config.FrontendIPConfigurationPropertiesFormat.PublicIPAddress.ID
-		}
-
-		if config.FrontendIPConfigurationPropertiesFormat.LoadBalancingRules != nil {
-			load_balancing_rules := make([]string, 0, len(*config.FrontendIPConfigurationPropertiesFormat.LoadBalancingRules))
-			for _, rule := range *config.FrontendIPConfigurationPropertiesFormat.LoadBalancingRules {
-				load_balancing_rules = append(load_balancing_rules, *rule.ID)
+			if subnet := props.Subnet; subnet != nil {
+				ipConfig["subnet_id"] = *subnet.ID
 			}
 
-			ipConfig["load_balancer_rules"] = load_balancing_rules
-
-		}
-
-		if config.FrontendIPConfigurationPropertiesFormat.InboundNatRules != nil {
-			inbound_nat_rules := make([]string, 0, len(*config.FrontendIPConfigurationPropertiesFormat.InboundNatRules))
-			for _, rule := range *config.FrontendIPConfigurationPropertiesFormat.InboundNatRules {
-				inbound_nat_rules = append(inbound_nat_rules, *rule.ID)
+			if pip := props.PrivateIPAddress; pip != nil {
+				ipConfig["private_ip_address"] = *pip
 			}
 
-			ipConfig["inbound_nat_rules"] = inbound_nat_rules
+			if pip := props.PublicIPAddress; pip != nil {
+				ipConfig["public_ip_address_id"] = *pip.ID
+			}
 
+			if rules := props.LoadBalancingRules; rules != nil {
+				loadBalancingRules := make([]interface{}, 0, len(*rules))
+				for _, rule := range *rules {
+					loadBalancingRules = append(loadBalancingRules, *rule.ID)
+				}
+
+				ipConfig["load_balancer_rules"] = schema.NewSet(schema.HashString, loadBalancingRules)
+			}
+
+			if rules := props.InboundNatRules; rules != nil {
+				inboundNatRules := make([]interface{}, 0, len(*rules))
+				for _, rule := range *rules {
+					inboundNatRules = append(inboundNatRules, *rule.ID)
+				}
+
+				ipConfig["inbound_nat_rules"] = schema.NewSet(schema.HashString, inboundNatRules)
+
+			}
 		}
 
 		result = append(result, ipConfig)

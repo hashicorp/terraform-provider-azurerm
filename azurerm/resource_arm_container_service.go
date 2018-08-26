@@ -4,13 +4,11 @@ import (
 	"fmt"
 	"log"
 
-	"net/http"
-
 	"time"
 
 	"bytes"
 
-	"github.com/Azure/azure-sdk-for-go/arm/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -128,8 +126,9 @@ func resourceArmContainerService() *schema.Resource {
 						},
 
 						"vm_size": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 					},
 				},
@@ -190,7 +189,7 @@ func resourceArmContainerServiceCreate(d *schema.ResourceData, meta interface{})
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 
 	orchestrationPlatform := d.Get("orchestration_platform").(string)
 
@@ -207,7 +206,7 @@ func resourceArmContainerServiceCreate(d *schema.ResourceData, meta interface{})
 		Properties: &containerservice.Properties{
 			MasterProfile: &masterProfile,
 			LinuxProfile:  &linuxProfile,
-			OrchestratorProfile: &containerservice.OrchestratorProfile{
+			OrchestratorProfile: &containerservice.OrchestratorProfileType{
 				OrchestratorType: containerservice.OrchestratorTypes(orchestrationPlatform),
 			},
 			AgentPoolProfiles:  &agentProfiles,
@@ -221,13 +220,13 @@ func resourceArmContainerServiceCreate(d *schema.ResourceData, meta interface{})
 		parameters.ServicePrincipalProfile = servicePrincipalProfile
 	}
 
-	_, error := containerServiceClient.CreateOrUpdate(resGroup, name, parameters, make(chan struct{}))
-	err := <-error
-	if err != nil {
-		return err
+	ctx := meta.(*ArmClient).StopContext
+	_, error := containerServiceClient.CreateOrUpdate(ctx, resGroup, name, parameters)
+	if error != nil {
+		return error
 	}
 
-	read, err := containerServiceClient.Get(resGroup, name)
+	read, err := containerServiceClient.Get(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
@@ -263,7 +262,8 @@ func resourceArmContainerServiceRead(d *schema.ResourceData, meta interface{}) e
 	resGroup := id.ResourceGroup
 	name := id.Path["containerServices"]
 
-	resp, err := containerServiceClient.Get(resGroup, name)
+	ctx := meta.(*ArmClient).StopContext
+	resp, err := containerServiceClient.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -274,8 +274,10 @@ func resourceArmContainerServiceRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("resource_group_name", resGroup)
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
 	d.Set("orchestration_platform", string(resp.Properties.OrchestratorProfile.OrchestratorType))
 
@@ -314,19 +316,18 @@ func resourceArmContainerServiceDelete(d *schema.ResourceData, meta interface{})
 	resGroup := id.ResourceGroup
 	name := id.Path["containerServices"]
 
-	delResp, error := containerServiceClient.Delete(resGroup, name, make(chan struct{}))
-	resp := <-delResp
-	err = <-error
-	if err != nil {
-		return err
-	}
+	ctx := meta.(*ArmClient).StopContext
+	future, err := containerServiceClient.Delete(ctx, resGroup, name)
 
-	if resp.StatusCode != http.StatusOK {
+	if err != nil {
 		return fmt.Errorf("Error issuing Azure ARM delete request of Container Service '%s': %s", name, err)
 	}
 
+	err = future.WaitForCompletionRef(ctx, containerServiceClient.Client)
+	if err != nil {
+		return err
+	}
 	return nil
-
 }
 
 func flattenAzureRmContainerServiceMasterProfile(profile containerservice.MasterProfile) *schema.Set {
@@ -530,7 +531,8 @@ func expandAzureRmContainerServiceAgentProfiles(d *schema.ResourceData) []contai
 
 func containerServiceStateRefreshFunc(client *ArmClient, resourceGroupName string, containerServiceName string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.containerServicesClient.Get(resourceGroupName, containerServiceName)
+		ctx := client.StopContext
+		res, err := client.containerServicesClient.Get(ctx, resourceGroupName, containerServiceName)
 		if err != nil {
 			return nil, "", fmt.Errorf("Error issuing read request in containerServiceStateRefreshFunc to Azure ARM for Container Service '%s' (RG: '%s'): %s", containerServiceName, resourceGroupName, err)
 		}
@@ -541,73 +543,64 @@ func containerServiceStateRefreshFunc(client *ArmClient, resourceGroupName strin
 
 func resourceAzureRMContainerServiceMasterProfileHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
 
-	count := m["count"].(int)
-	dnsPrefix := m["dns_prefix"].(string)
-
-	buf.WriteString(fmt.Sprintf("%d-", count))
-	buf.WriteString(fmt.Sprintf("%s-", dnsPrefix))
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%d-", m["count"].(int)))
+		buf.WriteString(fmt.Sprintf("%s-", m["dns_prefix"].(string)))
+	}
 
 	return hashcode.String(buf.String())
 }
 
 func resourceAzureRMContainerServiceLinuxProfilesHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
 
-	adminUsername := m["admin_username"].(string)
-
-	buf.WriteString(fmt.Sprintf("%s-", adminUsername))
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s-", m["admin_username"].(string)))
+	}
 
 	return hashcode.String(buf.String())
 }
 
 func resourceAzureRMContainerServiceLinuxProfilesSSHKeysHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
 
-	keyData := m["key_data"].(string)
-
-	buf.WriteString(fmt.Sprintf("%s-", keyData))
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s-", m["key_data"].(string)))
+	}
 
 	return hashcode.String(buf.String())
 }
 
 func resourceAzureRMContainerServiceAgentPoolProfilesHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
 
-	count := m["count"].(int)
-	dnsPrefix := m["dns_prefix"].(string)
-	name := m["name"].(string)
-	vm_size := m["vm_size"].(string)
-
-	buf.WriteString(fmt.Sprintf("%d-", count))
-	buf.WriteString(fmt.Sprintf("%s-", dnsPrefix))
-	buf.WriteString(fmt.Sprintf("%s-", name))
-	buf.WriteString(fmt.Sprintf("%s-", vm_size))
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%d-", m["count"].(int)))
+		buf.WriteString(fmt.Sprintf("%s-", m["dns_prefix"].(string)))
+		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
+		buf.WriteString(fmt.Sprintf("%s-", m["vm_size"].(string)))
+	}
 
 	return hashcode.String(buf.String())
 }
 
 func resourceAzureRMContainerServiceServicePrincipalProfileHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
 
-	clientId := m["client_id"].(string)
-	buf.WriteString(fmt.Sprintf("%s-", clientId))
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s-", m["client_id"].(string)))
+	}
 
 	return hashcode.String(buf.String())
 }
 
 func resourceAzureRMContainerServiceDiagnosticProfilesHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
 
-	enabled := m["enabled"].(bool)
-
-	buf.WriteString(fmt.Sprintf("%t", enabled))
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%t", m["enabled"].(bool)))
+	}
 
 	return hashcode.String(buf.String())
 }

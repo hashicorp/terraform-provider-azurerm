@@ -24,7 +24,51 @@ func TestAccAzureRMKeyVaultCertificate_basicImportPFX(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultCertificateExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "certificate_data"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMKeyVaultCertificate_disappears(t *testing.T) {
+	resourceName := "azurerm_key_vault_certificate.test"
+	rs := acctest.RandString(6)
+	config := testAccAzureRMKeyVaultCertificate_basicGenerate(rs, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultCertificateExists(resourceName),
+					testCheckAzureRMKeyVaultCertificateDisappears(resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMKeyVaultCertificate_disappearsWhenParentKeyVaultDeleted(t *testing.T) {
+	rs := acctest.RandString(6)
+	config := testAccAzureRMKeyVaultCertificate_basicGenerate(rs, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultCertificateExists("azurerm_key_vault_certificate.test"),
+					testCheckAzureRMKeyVaultDisappears("azurerm_key_vault.test"),
+				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -44,6 +88,8 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerate(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultCertificateExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "secret_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "certificate_data"),
 				),
 			},
 		},
@@ -64,6 +110,7 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerateTags(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultCertificateExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "certificate_data"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.hello", "world"),
 				),
@@ -74,6 +121,7 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerateTags(t *testing.T) {
 
 func testCheckAzureRMKeyVaultCertificateDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_key_vault_certificate" {
@@ -84,7 +132,7 @@ func testCheckAzureRMKeyVaultCertificateDestroy(s *terraform.State) error {
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
 
 		// get the latest version
-		resp, err := client.GetCertificate(vaultBaseUrl, name, "")
+		resp, err := client.GetCertificate(ctx, vaultBaseUrl, name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
@@ -109,8 +157,9 @@ func testCheckAzureRMKeyVaultCertificateExists(name string) resource.TestCheckFu
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
 
 		client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.GetCertificate(vaultBaseUrl, name, "")
+		resp, err := client.GetCertificate(ctx, vaultBaseUrl, name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Key Vault Certificate %q (resource group: %q) does not exist", name, vaultBaseUrl)
@@ -123,12 +172,38 @@ func testCheckAzureRMKeyVaultCertificateExists(name string) resource.TestCheckFu
 	}
 }
 
+func testCheckAzureRMKeyVaultCertificateDisappears(name string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return fmt.Errorf("Not found: %s", name)
+		}
+		name := rs.Primary.Attributes["name"]
+		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
+
+		client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		resp, err := client.DeleteCertificate(ctx, vaultBaseUrl, name)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return nil
+			}
+
+			return fmt.Errorf("Bad: Delete on keyVaultManagementClient: %+v", err)
+		}
+
+		return nil
+	}
+}
+
 func testAccAzureRMKeyVaultCertificate_basicImportPFX(rString string, location string) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%s"
+  name     = "acctestRG-%s"
   location = "%s"
 }
 
@@ -196,7 +271,7 @@ func testAccAzureRMKeyVaultCertificate_basicGenerate(rString string, location st
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%s"
+  name     = "acctestRG-%s"
   location = "%s"
 }
 
@@ -284,7 +359,7 @@ func testAccAzureRMKeyVaultCertificate_basicGenerateTags(rString string, locatio
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%s"
+  name     = "acctestRG-%s"
   location = "%s"
 }
 

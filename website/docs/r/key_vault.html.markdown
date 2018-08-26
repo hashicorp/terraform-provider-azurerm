@@ -3,12 +3,14 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_key_vault"
 sidebar_current: "docs-azurerm-resource-key-vault-x"
 description: |-
-  Create a Key Vault.
+  Manages a Key Vault.
 ---
 
-# azurerm\_key\_vault
+# azurerm_key_vault
 
-Create a Key Vault.
+Manages a Key Vault.
+
+~> **NOTE:** It's possible to define Key Vault Access Policies both within [the `azurerm_key_vault` resource](key_vault.html) via the `access_policy` block and by using [the `azurerm_key_vault_access_policy` resource](key_vault_access_policy.html). However it's not possible to use both methods to manage Access Policies within a KeyVault, since there'll be conflicts.
 
 ## Example Usage
 
@@ -54,22 +56,24 @@ resource "azurerm_key_vault" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Key Vault resource. Changing this
+* `name` - (Required) Specifies the name of the Key Vault. Changing this
     forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists.
     Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to
-    create the namespace. Changing this forces a new resource to be created.
+    create the Key Vault. Changing this forces a new resource to be created.
 
 * `sku` - (Required) An SKU block as described below.
 
 * `tenant_id` - (Required) The Azure Active Directory tenant ID that should be
     used for authenticating requests to the key vault.
 
-* `access_policy` - (Required) An access policy block as described below. At least
-    one policy is required up to a maximum of 16.
+* `access_policy` - (Optional) An access policy block as described below. A maximum of 16
+    may be declared.
+    
+~> **NOTE:** It's possible to define Key Vault Access Policies both within [the `azurerm_key_vault` resource](key_vault.html) via the `access_policy` block and by using [the `azurerm_key_vault_access_policy` resource](key_vault_access_policy.html). However it's not possible to use both methods to manage Access Policies within a KeyVault, since there'll be conflicts.
 
 * `enabled_for_deployment` - (Optional) Boolean flag to specify whether Azure Virtual
     Machines are permitted to retrieve certificates stored as secrets from the key

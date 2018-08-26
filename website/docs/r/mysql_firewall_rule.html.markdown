@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mysql_firewall_rule"
 sidebar_current: "docs-azurerm-resource-database-mysql-firewall-rule"
 description: |-
-  Creates a Firewall Rule for a MySQL Server.
+  Manages a Firewall Rule for a MySQL Server.
 ---
 
 # azurerm_mysql_firewall_rule
 
-Creates a Firewall Rule for a MySQL Server
+Manages a Firewall Rule for a MySQL Server
 
 ## Example Usage (Single IP Address)
 
@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the MySQL Server exists. Changing this forces a new resource to be created.
 
-* `start_ip_address` - (Required) Specifies the Charset for the MySQL Database. Changing this forces a new resource to be created.
+* `start_ip_address` - (Required) Specifies the Start IP Address associated with this Firewall Rule. Changing this forces a new resource to be created.
 
 * `end_ip_address` - (Required) Specifies the End IP Address associated with this Firewall Rule. Changing this forces a new resource to be created.
 

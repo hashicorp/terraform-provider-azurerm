@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/arm/eventgrid"
+	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2018-01-01/eventgrid"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -54,9 +55,10 @@ func resourceArmEventGridTopic() *schema.Resource {
 
 func resourceArmEventGridTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).eventGridTopicsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -68,13 +70,17 @@ func resourceArmEventGridTopicCreateUpdate(d *schema.ResourceData, meta interfac
 
 	log.Printf("[INFO] preparing arguments for AzureRM EventGrid Topic creation with Properties: %+v.", properties)
 
-	_, createErr := client.CreateOrUpdate(resourceGroup, name, properties, make(chan struct{}))
-	err := <-createErr
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resourceGroup, name)
+	err = future.WaitForCompletionRef(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return err
 	}
@@ -89,6 +95,7 @@ func resourceArmEventGridTopicCreateUpdate(d *schema.ResourceData, meta interfac
 
 func resourceArmEventGridTopicRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).eventGridTopicsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -97,7 +104,7 @@ func resourceArmEventGridTopicRead(d *schema.ResourceData, meta interface{}) err
 	resourceGroup := id.ResourceGroup
 	name := id.Path["topics"]
 
-	resp, err := client.Get(resourceGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[WARN] EventGrid Topic '%s' was not found (resource group '%s')", name, resourceGroup)
@@ -108,14 +115,16 @@ func resourceArmEventGridTopicRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error making Read request on EventGrid Topic '%s': %+v", name, err)
 	}
 
-	keys, err := client.ListSharedAccessKeys(resourceGroup, name)
+	keys, err := client.ListSharedAccessKeys(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Shared Access Keys for EventGrid Topic '%s': %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
 	if props := resp.TopicProperties; props != nil {
 		d.Set("endpoint", props.Endpoint)
@@ -131,6 +140,7 @@ func resourceArmEventGridTopicRead(d *schema.ResourceData, meta interface{}) err
 
 func resourceArmEventGridTopicDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).eventGridTopicsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -139,13 +149,21 @@ func resourceArmEventGridTopicDelete(d *schema.ResourceData, meta interface{}) e
 	resGroup := id.ResourceGroup
 	name := id.Path["topics"]
 
-	deleteResp, deleteErr := client.Delete(resGroup, name, make(chan struct{}))
-	resp := <-deleteResp
-	err = <-deleteErr
-
-	if utils.ResponseWasNotFound(resp) {
-		return nil
+	future, err := client.Delete(ctx, resGroup, name)
+	if err != nil {
+		if response.WasNotFound(future.Response()) {
+			return nil
+		}
+		return fmt.Errorf("Error deleting Event Grid Topic %q: %+v", name, err)
 	}
 
-	return err
+	err = future.WaitForCompletionRef(ctx, client.Client)
+	if err != nil {
+		if response.WasNotFound(future.Response()) {
+			return nil
+		}
+		return fmt.Errorf("Error deleting Event Grid Topic %q: %+v", name, err)
+	}
+
+	return nil
 }

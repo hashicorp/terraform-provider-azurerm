@@ -33,7 +33,7 @@ func TestAzureRMAppServicePlanName_validation(t *testing.T) {
 		},
 		{
 			Value:    "hello_world",
-			ErrCount: 1,
+			ErrCount: 0,
 		},
 		{
 			Value:    "helloworld21!",
@@ -178,6 +178,28 @@ func TestAccAzureRMAppServicePlan_completeWindows(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppServicePlan_consumptionPlan(t *testing.T) {
+	resourceName := "azurerm_app_service_plan.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServicePlan_consumptionPlan(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServicePlanExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "Dynamic"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.size", "Y1"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMAppServicePlanDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).appServicePlansClient
 
@@ -188,8 +210,8 @@ func testCheckAzureRMAppServicePlanDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(resourceGroup, name)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := conn.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -199,7 +221,7 @@ func testCheckAzureRMAppServicePlanDestroy(s *terraform.State) error {
 			return err
 		}
 
-		return fmt.Errorf("App Service Plan still exists:\n%#v", resp)
+		return nil
 	}
 
 	return nil
@@ -220,8 +242,8 @@ func testCheckAzureRMAppServicePlanExists(name string) resource.TestCheckFunc {
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).appServicePlansClient
-
-		resp, err := conn.Get(resourceGroup, appServicePlanName)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := conn.Get(ctx, resourceGroup, appServicePlanName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: App Service Plan %q (resource group: %q) does not exist", appServicePlanName, resourceGroup)
@@ -270,6 +292,10 @@ resource "azurerm_app_service_plan" "test" {
   sku {
     tier = "Basic"
     size = "B1"
+  }
+
+  properties {
+    reserved = true
   }
 }
 `, rInt, location, rInt)
@@ -361,6 +387,27 @@ resource "azurerm_app_service_plan" "test" {
 
   tags {
     environment = "Test"
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMAppServicePlan_consumptionPlan(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  kind                = "FunctionApp"
+
+  sku {
+    tier = "Dynamic"
+    size = "Y1"
   }
 }
 `, rInt, location, rInt)

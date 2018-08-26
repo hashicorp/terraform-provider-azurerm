@@ -1,12 +1,12 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_queue"
-sidebar_current: "docs-azurerm-resource-servicebus-queue"
+sidebar_current: "docs-azurerm-resource-messaging-servicebus-queue"
 description: |-
-  Create a ServiceBus Queue.
+  Manages a ServiceBus Queue.
 ---
 
-# azurerm\_servicebus\_queue
+# azurerm_servicebus_queue
 
 Create and manage a ServiceBus Queue.
 
@@ -86,7 +86,9 @@ The following arguments are supported:
     a new resource to be created. Defaults to `false` for Basic and Standard. For Premium, it MUST
     be set to `true`.
 
-~> **NOTE:** Service Bus Premium namespaces are always partitioned, so `enable_partitioning` MUST be set to `true`.
+-> **NOTE:** Partitioning is available at entity creation for all queues and topics in Basic or Standard SKUs. It is not available for the Premium messaging SKU, but any previously existing partitioned entities in Premium namespaces continue to work as expected. Please [see the documentation](https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-partitioning) for more information.
+
+* `lock_duration` - (Optional) The ISO 8601 timespan duration of a peek-lock; that is, the amount of time that the message is locked for other receivers. Maximum value is 5 minutes. Defaults to 1 minute. (`PT1M`)
 
 * `max_size_in_megabytes` - (Optional) Integer value which controls the size of
     memory allocated for the queue. For supported values see the "Queue/topic size"
@@ -96,6 +98,13 @@ The following arguments are supported:
     the Queue requires duplicate detection. Changing this forces
     a new resource to be created. Defaults to `false`.
 
+* `requires_session` - (Optional) Boolean flag which controls whether the Queue requires sessions. 
+    This will allow ordered handling of unbounded sequences of related messages. With sessions enabled 
+    a queue can guarantee first-in-first-out delivery of messages. 
+    Changing this forces a new resource to be created. Defaults to `false`.
+
+* `dead_lettering_on_message_expiration` - (Optional) Boolean flag which controls whether the Queue has dead letter support when a message expires. Defaults to `false`.
+    
 ### TimeSpan Format
 
 Some arguments for this resource are required in the TimeSpan format which is

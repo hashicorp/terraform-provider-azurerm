@@ -186,7 +186,7 @@ resource "azurerm_container_service" "test" {
     name       = "default"
     count      = 1
     dns_prefix = "acctestagent%d"
-    vm_size    = "Standard_A0"
+    vm_size    = "Standard_F2"
   }
 
   diagnostics_profile {
@@ -226,7 +226,7 @@ resource "azurerm_container_service" "test" {
     name       = "default"
     count      = 1
     dns_prefix = "acctestagent%d"
-    vm_size    = "Standard_A0"
+    vm_size    = "Standard_F2"
   }
 
   service_principal {
@@ -271,7 +271,7 @@ resource "azurerm_container_service" "test" {
     name       = "default"
     count      = 1
     dns_prefix = "acctestagent%d"
-    vm_size    = "Standard_A0"
+    vm_size    = "Standard_F2"
   }
 
   service_principal {
@@ -320,7 +320,7 @@ resource "azurerm_container_service" "test" {
     name       = "default"
     count      = 1
     dns_prefix = "acctestagent%d"
-    vm_size    = "Standard_A0"
+    vm_size    = "Standard_F2"
   }
 
   diagnostics_profile {
@@ -345,8 +345,9 @@ func testCheckAzureRMContainerServiceExists(name string) resource.TestCheckFunc 
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).containerServicesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on containerServicesClient: %+v", err)
 		}
@@ -369,8 +370,9 @@ func testCheckAzureRMContainerServiceDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			return nil

@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/storage"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -68,9 +70,9 @@ func validateArmStorageContainerName(v interface{}, k string) (ws []string, erro
 func validateArmStorageContainerAccessType(v interface{}, k string) (ws []string, errors []error) {
 	value := strings.ToLower(v.(string))
 	validTypes := map[string]struct{}{
-		"private":   struct{}{},
-		"blob":      struct{}{},
-		"container": struct{}{},
+		"private":   {},
+		"blob":      {},
+		"container": {},
 	}
 
 	if _, ok := validTypes[value]; !ok {
@@ -81,11 +83,12 @@ func validateArmStorageContainerAccessType(v interface{}, k string) (ws []string
 
 func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
+	ctx := armClient.StopContext
 
 	resourceGroupName := d.Get("resource_group_name").(string)
 	storageAccountName := d.Get("storage_account_name").(string)
 
-	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(resourceGroupName, storageAccountName)
+	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return err
 	}
@@ -105,8 +108,7 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 	log.Printf("[INFO] Creating container %q in storage account %q.", name, storageAccountName)
 	reference := blobClient.GetContainerReference(name)
 
-	createOptions := &storage.CreateContainerOptions{}
-	_, err = reference.CreateIfNotExists(createOptions)
+	err = resource.Retry(120*time.Second, checkContainerIsCreated(reference))
 	if err != nil {
 		return fmt.Errorf("Error creating container %q in storage account %q: %s", name, storageAccountName, err)
 	}
@@ -124,15 +126,28 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 	return resourceArmStorageContainerRead(d, meta)
 }
 
+func checkContainerIsCreated(reference *storage.Container) func() *resource.RetryError {
+	return func() *resource.RetryError {
+		createOptions := &storage.CreateContainerOptions{}
+		_, err := reference.CreateIfNotExists(createOptions)
+		if err != nil {
+			return resource.RetryableError(err)
+		}
+
+		return nil
+	}
+}
+
 // resourceAzureStorageContainerRead does all the necessary API calls to
 // read the status of the storage container off Azure.
 func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
+	ctx := armClient.StopContext
 
 	resourceGroupName := d.Get("resource_group_name").(string)
 	storageAccountName := d.Get("storage_account_name").(string)
 
-	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(resourceGroupName, storageAccountName)
+	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return err
 	}
@@ -176,11 +191,12 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmStorageContainerExists(d *schema.ResourceData, meta interface{}) (bool, error) {
 	armClient := meta.(*ArmClient)
+	ctx := armClient.StopContext
 
 	resourceGroupName := d.Get("resource_group_name").(string)
 	storageAccountName := d.Get("storage_account_name").(string)
 
-	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(resourceGroupName, storageAccountName)
+	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return false, err
 	}
@@ -211,11 +227,12 @@ func resourceArmStorageContainerExists(d *schema.ResourceData, meta interface{})
 // delete a storage container off Azure.
 func resourceArmStorageContainerDelete(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
+	ctx := armClient.StopContext
 
 	resourceGroupName := d.Get("resource_group_name").(string)
 	storageAccountName := d.Get("storage_account_name").(string)
 
-	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(resourceGroupName, storageAccountName)
+	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return err
 	}

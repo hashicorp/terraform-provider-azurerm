@@ -22,9 +22,10 @@ func TestAccAzureRMVirtualMachineScaleSet_importBasic(t *testing.T) {
 				Config: config,
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"os_profile.0.admin_password"},
 			},
 		},
 	})
@@ -45,9 +46,34 @@ func TestAccAzureRMVirtualMachineScaleSet_importBasic_managedDisk(t *testing.T) 
 				Config: config,
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"os_profile.0.admin_password"},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMVirtualMachineScaleSet_importBasic_managedDisk_withZones(t *testing.T) {
+	resourceName := "azurerm_virtual_machine_scale_set.test"
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMVirtualMachineScaleSet_basicLinux_managedDisk_withZones(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"os_profile.0.admin_password"},
 			},
 		},
 	})
@@ -71,6 +97,10 @@ func TestAccAzureRMVirtualMachineScaleSet_importLinux(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"os_profile.0.admin_password",
+					"os_profile.0.custom_data",
+				},
 			},
 		},
 	})
@@ -91,9 +121,10 @@ func TestAccAzureRMVirtualMachineScaleSet_importLoadBalancer(t *testing.T) {
 				Config: config,
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"os_profile.0.admin_password"},
 			},
 		},
 	})
@@ -116,6 +147,12 @@ func TestAccAzureRMVirtualMachineScaleSet_importOverProvision(t *testing.T) {
 					testCheckAzureRMVirtualMachineScaleSetOverprovision(resourceName),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"os_profile.0.admin_password"},
+			},
 		},
 	})
 }
@@ -137,6 +174,12 @@ func TestAccAzureRMVirtualMachineScaleSet_importExtension(t *testing.T) {
 					testCheckAzureRMVirtualMachineScaleSetExtension(resourceName),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"os_profile.0.admin_password"},
+			},
 		},
 	})
 }
@@ -157,6 +200,12 @@ func TestAccAzureRMVirtualMachineScaleSet_importMultipleExtensions(t *testing.T)
 					testCheckAzureRMVirtualMachineScaleSetExists(resourceName),
 					testCheckAzureRMVirtualMachineScaleSetExtension(resourceName),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"os_profile.0.admin_password"},
 			},
 		},
 	})

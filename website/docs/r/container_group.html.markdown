@@ -6,7 +6,7 @@ description: |-
   Create as an Azure Container Group instance.
 ---
 
-# azurerm\_container\_group
+# azurerm_container_group
 
 Create as an Azure Container Group instance.
 
@@ -23,6 +23,7 @@ resource "azurerm_storage_account" "aci-sa" {
   resource_group_name = "${azurerm_resource_group.aci-rg.name}"
   location            = "${azurerm_resource_group.aci-rg.location}"
   account_tier        = "Standard"
+  
   account_replication_type = "LRS"
 }
 
@@ -40,28 +41,30 @@ resource "azurerm_container_group" "aci-helloworld" {
   location            = "${azurerm_resource_group.aci-rg.location}"
   resource_group_name = "${azurerm_resource_group.aci-rg.name}"
   ip_address_type     = "public"
+  dns_name_label      = "aci-label"
   os_type             = "linux"
 
   container {
-    name = "hw"
-    image = "seanmckenna/aci-hellofiles"
-    cpu ="0.5"
+    name   = "hw"
+    image  = "seanmckenna/aci-hellofiles"
+    cpu    ="0.5"
     memory =  "1.5"
-    port = "80"
+    port   = "80"
 
     environment_variables {
-        "NODE_ENV"="testing"
+      "NODE_ENV" = "testing"
     }
 
-    command = "/bin/bash -c '/path to/myscript.sh'"
+    commands = ["/bin/bash", "-c", "'/path to/myscript.sh'"]
 
     volume {
-      name = "logs"
+      name       = "logs"
       mount_path = "/aci/logs"
-      read_only = false
+      read_only  = false
       share_name = "${azurerm_storage_share.aci-share.name}"
-      storage_account_name = "${azurerm_storage_account.aci-sa.name}"
-      storage_account_key = "${azurerm_storage_account.aci-sa.primary_access_key}"
+      
+      storage_account_name  = "${azurerm_storage_account.aci-sa.name}"
+      storage_account_key   = "${azurerm_storage_account.aci-sa.primary_access_key}"
     }
   }
 
@@ -90,7 +93,13 @@ The following arguments are supported:
 
 * `ip_address_type` - (Optional) Specifies the ip address type of the container. `Public` is the only acceptable value at this time. Changing this forces a new resource to be created.
 
+* `dns_name_label` - (Optional) The DNS label/name for the container groups IP.
+
 * `os_type` - (Required) The OS for the container group. Allowed values are `Linux` and `Windows`. Changing this forces a new resource to be created.
+
+* `restart_policy` - (Optional) Restart policy for the container group. Allowed values are `Always`, `Never`, `OnFailure`. Defaults to `Always`.
+
+* `image_registry_credential` - (Optional) Set image registry credentials for the group as documented in the `image_registry_credential` block below
 
 * `container` - (Required) The definition of a container that is part of the group as documented in the `container` block below. Changing this forces a new resource to be created.
 
@@ -112,6 +121,10 @@ The `container` block supports:
 
 * `command` - (Optional) A command line to be run on the container. Changing this forces a new resource to be created.
 
+~> **NOTE:** The field `command` has been deprecated in favor of `commands` to better match the API.
+
+* `commands` - (Optional) A list of commands which should be run on the container. Changing this forces a new resource to be created.
+
 * `volume` - (Optional) The definition of a volume mount for this container as documented in the `volume` block below. Changing this forces a new resource to be created.
 
 The `volume` block supports:
@@ -128,6 +141,14 @@ The `volume` block supports:
 
 * `share_name` - (Required) The Azure storage share that is to be mounted as a volume. This must be created on the storage account specified as above. Changing this forces a new resource to be created.
 
+The `image_registry_credential` block supports:
+
+* `username` - (Required) The username with which to connect to the registry.
+
+* `password` - (Required) The password with which to connect to the registry.
+
+* `server` - (Required) The address to use to connect to the registry without protocol ("https"/"http"). For example: "myacr.acr.io" 
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -135,3 +156,13 @@ The following attributes are exported:
 * `id` - The container group ID.
 
 * `ip_address` - The IP address allocated to the container group.
+
+* `fqdn` - The FQDN of the container group derived from `dns_name_label`.
+
+## Import
+
+Container Group's can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_container_group.containerGroup1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ContainerInstance/containerGroups/myContainerGroup1
+```

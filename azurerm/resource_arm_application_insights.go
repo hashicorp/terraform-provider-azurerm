@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/Azure/azure-sdk-for-go/arm/appinsights"
+	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -38,8 +38,12 @@ func resourceArmApplicationInsights() *schema.Resource {
 				ForceNew:         true,
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(appinsights.Web),
-					string(appinsights.Other),
+					"web",
+					"other",
+					"java",
+					"phone",
+					"store",
+					"ios",
 				}, true),
 			},
 
@@ -51,8 +55,9 @@ func resourceArmApplicationInsights() *schema.Resource {
 			},
 
 			"instrumentation_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 		},
 	}
@@ -60,21 +65,22 @@ func resourceArmApplicationInsights() *schema.Resource {
 
 func resourceArmApplicationInsightsCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).appInsightsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Application Insights creation.")
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	applicationType := d.Get("application_type").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
-	applicationInsightsComponentProperties := appinsights.ApplicationInsightsComponentProperties{
+	applicationInsightsComponentProperties := insights.ApplicationInsightsComponentProperties{
 		ApplicationID:   &name,
-		ApplicationType: appinsights.ApplicationType(applicationType),
+		ApplicationType: insights.ApplicationType(applicationType),
 	}
 
-	insightProperties := appinsights.ApplicationInsightsComponent{
+	insightProperties := insights.ApplicationInsightsComponent{
 		Name:     &name,
 		Location: &location,
 		Kind:     &applicationType,
@@ -82,14 +88,19 @@ func resourceArmApplicationInsightsCreateOrUpdate(d *schema.ResourceData, meta i
 		Tags: expandTags(tags),
 	}
 
-	_, err := client.CreateOrUpdate(resGroup, name, insightProperties)
+	resp, err := client.CreateOrUpdate(ctx, resGroup, name, insightProperties)
 	if err != nil {
-		return err
+		// @tombuildsstuff - from 2018-08-14 the Create call started returning a 201 instead of 200
+		// which doesn't match the Swagger - this works around it until that's fixed
+		// BUG: https://github.com/Azure/azure-sdk-for-go/issues/2465
+		if resp.StatusCode != http.StatusCreated {
+			return fmt.Errorf("Error creating Application Insights %q (Resource Group %q): %+v", name, resGroup, err)
+		}
 	}
 
-	read, err := client.Get(resGroup, name)
+	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving Application Insights %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read AzureRM Application Insights '%s' (Resource Group %s) ID", name, resGroup)
@@ -102,6 +113,7 @@ func resourceArmApplicationInsightsCreateOrUpdate(d *schema.ResourceData, meta i
 
 func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).appInsightsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -113,7 +125,7 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 	resGroup := id.ResourceGroup
 	name := id.Path["components"]
 
-	resp, err := client.Get(resGroup, name)
+	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -124,7 +136,9 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
 	if props := resp.ApplicationInsightsComponentProperties; props != nil {
 		d.Set("application_type", string(props.ApplicationType))
@@ -138,7 +152,8 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmApplicationInsightsDelete(d *schema.ResourceData, meta interface{}) error {
-	AppInsightsClient := meta.(*ArmClient).appInsightsClient
+	client := meta.(*ArmClient).appInsightsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -149,7 +164,7 @@ func resourceArmApplicationInsightsDelete(d *schema.ResourceData, meta interface
 
 	log.Printf("[DEBUG] Deleting AzureRM Application Insights '%s' (resource group '%s')", name, resGroup)
 
-	resp, err := AppInsightsClient.Delete(resGroup, name)
+	resp, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
 			return nil

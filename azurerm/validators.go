@@ -2,11 +2,14 @@ package azurerm
 
 import (
 	"fmt"
+	"math"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/satori/uuid"
 )
 
@@ -48,29 +51,198 @@ func validateUUID(v interface{}, k string) (ws []string, errors []error) {
 	return
 }
 
-func validateDBAccountName(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(string)
+func evaluateSchemaValidateFunc(i interface{}, k string, validateFunc schema.SchemaValidateFunc) (bool, error) {
+	_, es := validateFunc(i, k)
 
-	r, _ := regexp.Compile("^[a-z0-9\\-]+$")
-	if !r.MatchString(value) {
-		errors = append(errors, fmt.Errorf("Account Name can only contain lower-case characters, numbers and the `-` character."))
+	if len(es) > 0 {
+		return false, es[0]
 	}
 
-	length := len(value)
-	if length > 50 || 3 > length {
-		errors = append(errors, fmt.Errorf("Account Name can only be between 3 and 50 seconds."))
-	}
-
-	return
+	return true, nil
 }
 
-func validateStringLength(maxLength int) schema.SchemaValidateFunc {
-	return func(v interface{}, k string) (ws []string, errors []error) {
-		value := v.(string)
-		if len(value) > maxLength {
-			errors = append(errors, fmt.Errorf(
-				"The %q can be no longer than %d chars", k, maxLength))
+func validateIso8601Duration() schema.SchemaValidateFunc {
+	return func(i interface{}, k string) (s []string, es []error) {
+		v, ok := i.(string)
+		if !ok {
+			es = append(es, fmt.Errorf("expected type of %s to be string", k))
+			return
 		}
+
+		matched, _ := regexp.MatchString(`^P([0-9]+Y)?([0-9]+M)?([0-9]+W)?([0-9]+D)?(T([0-9]+H)?([0-9]+M)?([0-9]+(\.?[0-9]+)?S)?)?$`, v)
+
+		if !matched {
+			es = append(es, fmt.Errorf("expected %s to be in ISO 8601 duration format, got %s", k, v))
+		}
+		return
+	}
+}
+
+func validateAzureVirtualMachineTimeZone() schema.SchemaValidateFunc {
+	// Candidates are listed here: http://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/
+	candidates := []string{
+		"",
+		"Afghanistan Standard Time",
+		"Alaskan Standard Time",
+		"Arab Standard Time",
+		"Arabian Standard Time",
+		"Arabic Standard Time",
+		"Argentina Standard Time",
+		"Atlantic Standard Time",
+		"AUS Central Standard Time",
+		"AUS Eastern Standard Time",
+		"Azerbaijan Standard Time",
+		"Azores Standard Time",
+		"Bahia Standard Time",
+		"Bangladesh Standard Time",
+		"Belarus Standard Time",
+		"Canada Central Standard Time",
+		"Cape Verde Standard Time",
+		"Caucasus Standard Time",
+		"Cen. Australia Standard Time",
+		"Central America Standard Time",
+		"Central Asia Standard Time",
+		"Central Brazilian Standard Time",
+		"Central Europe Standard Time",
+		"Central European Standard Time",
+		"Central Pacific Standard Time",
+		"Central Standard Time (Mexico)",
+		"Central Standard Time",
+		"China Standard Time",
+		"Dateline Standard Time",
+		"E. Africa Standard Time",
+		"E. Australia Standard Time",
+		"E. Europe Standard Time",
+		"E. South America Standard Time",
+		"Eastern Standard Time (Mexico)",
+		"Eastern Standard Time",
+		"Egypt Standard Time",
+		"Ekaterinburg Standard Time",
+		"Fiji Standard Time",
+		"FLE Standard Time",
+		"Georgian Standard Time",
+		"GMT Standard Time",
+		"Greenland Standard Time",
+		"Greenwich Standard Time",
+		"GTB Standard Time",
+		"Hawaiian Standard Time",
+		"India Standard Time",
+		"Iran Standard Time",
+		"Israel Standard Time",
+		"Jordan Standard Time",
+		"Kaliningrad Standard Time",
+		"Korea Standard Time",
+		"Libya Standard Time",
+		"Line Islands Standard Time",
+		"Magadan Standard Time",
+		"Mauritius Standard Time",
+		"Middle East Standard Time",
+		"Montevideo Standard Time",
+		"Morocco Standard Time",
+		"Mountain Standard Time (Mexico)",
+		"Mountain Standard Time",
+		"Myanmar Standard Time",
+		"N. Central Asia Standard Time",
+		"Namibia Standard Time",
+		"Nepal Standard Time",
+		"New Zealand Standard Time",
+		"Newfoundland Standard Time",
+		"North Asia East Standard Time",
+		"North Asia Standard Time",
+		"Pacific SA Standard Time",
+		"Pacific Standard Time (Mexico)",
+		"Pacific Standard Time",
+		"Pakistan Standard Time",
+		"Paraguay Standard Time",
+		"Romance Standard Time",
+		"Russia Time Zone 10",
+		"Russia Time Zone 11",
+		"Russia Time Zone 3",
+		"Russian Standard Time",
+		"SA Eastern Standard Time",
+		"SA Pacific Standard Time",
+		"SA Western Standard Time",
+		"Samoa Standard Time",
+		"SE Asia Standard Time",
+		"Singapore Standard Time",
+		"South Africa Standard Time",
+		"Sri Lanka Standard Time",
+		"Syria Standard Time",
+		"Taipei Standard Time",
+		"Tasmania Standard Time",
+		"Tokyo Standard Time",
+		"Tonga Standard Time",
+		"Turkey Standard Time",
+		"Ulaanbaatar Standard Time",
+		"US Eastern Standard Time",
+		"US Mountain Standard Time",
+		"UTC",
+		"UTC+12",
+		"UTC-02",
+		"UTC-11",
+		"Venezuela Standard Time",
+		"Vladivostok Standard Time",
+		"W. Australia Standard Time",
+		"W. Central Africa Standard Time",
+		"W. Europe Standard Time",
+		"West Asia Standard Time",
+		"West Pacific Standard Time",
+		"Yakutsk Standard Time",
+	}
+	return validation.StringInSlice(candidates, true)
+}
+
+// intBetweenDivisibleBy returns a SchemaValidateFunc which tests if the provided value
+// is of type int and is between min and max (inclusive) and is divisible by a given number
+func validateIntBetweenDivisibleBy(min, max, divisor int) schema.SchemaValidateFunc {
+	return func(i interface{}, k string) (s []string, es []error) {
+		v, ok := i.(int)
+		if !ok {
+			es = append(es, fmt.Errorf("expected type of %s to be int", k))
+			return
+		}
+
+		if v < min || v > max {
+			es = append(es, fmt.Errorf("expected %s to be in the range (%d - %d), got %d", k, min, max, v))
+			return
+		}
+
+		if math.Mod(float64(v), float64(divisor)) != 0 {
+			es = append(es, fmt.Errorf("expected %s to be divisible by %d", k, divisor))
+			return
+		}
+
+		return
+	}
+}
+
+func validateCollation() schema.SchemaValidateFunc {
+	return func(i interface{}, k string) (s []string, es []error) {
+		v, ok := i.(string)
+		if !ok {
+			es = append(es, fmt.Errorf("expected type of %s to be string", k))
+			return
+		}
+
+		matched, _ := regexp.MatchString(`^[A-Za-z0-9_. ]+$`, v)
+
+		if !matched {
+			es = append(es, fmt.Errorf("%s contains invalid characters, only underscores are supported, got %s", k, v))
+			return
+		}
+
+		return
+	}
+}
+
+func validateFilePath() schema.SchemaValidateFunc {
+	return func(v interface{}, k string) (ws []string, es []error) {
+		val := v.(string)
+
+		if !strings.HasPrefix(val, "/") {
+			es = append(es, fmt.Errorf("%q must start with `/`", k))
+		}
+
 		return
 	}
 }

@@ -25,14 +25,15 @@ func testSweepSQLServer(region string) error {
 	}
 
 	client := (*armClient).sqlServersClient
+	ctx := (*armClient).StopContext
 
 	log.Printf("Retrieving the SQL Servers..")
-	results, err := client.List()
+	results, err := client.List(ctx)
 	if err != nil {
 		return fmt.Errorf("Error Listing on SQL Servers: %+v", err)
 	}
 
-	for _, server := range *results.Value {
+	for _, server := range results.Values() {
 		if !shouldSweepAcceptanceTestResource(*server.Name, *server.Location, region) {
 			continue
 		}
@@ -46,8 +47,12 @@ func testSweepSQLServer(region string) error {
 		name := resourceId.Path["servers"]
 
 		log.Printf("Deleting SQL Server '%s' in Resource Group '%s'", name, resourceGroup)
-		_, deleteErr := client.Delete(resourceGroup, name, make(chan struct{}))
-		err = <-deleteErr
+		future, err := client.Delete(ctx, resourceGroup, name)
+		if err != nil {
+			return err
+		}
+
+		err = future.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
 			return err
 		}
@@ -142,7 +147,8 @@ func testCheckAzureRMSqlServerExists(name string) resource.TestCheckFunc {
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).sqlServersClient
-		resp, err := conn.Get(resourceGroup, sqlServerName)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := conn.Get(ctx, resourceGroup, sqlServerName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: SQL Server %s (resource group: %s) does not exist", sqlServerName, resourceGroup)
@@ -156,6 +162,7 @@ func testCheckAzureRMSqlServerExists(name string) resource.TestCheckFunc {
 
 func testCheckAzureRMSqlServerDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).sqlServersClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_sql_server" {
@@ -165,7 +172,7 @@ func testCheckAzureRMSqlServerDestroy(s *terraform.State) error {
 		sqlServerName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, sqlServerName)
+		resp, err := conn.Get(ctx, resourceGroup, sqlServerName)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -194,14 +201,16 @@ func testCheckAzureRMSqlServerDisappears(name string) resource.TestCheckFunc {
 		serverName := rs.Primary.Attributes["name"]
 
 		client := testAccProvider.Meta().(*ArmClient).sqlServersClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		deleteResp, deleteErr := client.Delete(resourceGroup, serverName, make(chan struct{}))
-		resp := <-deleteResp
-		err := <-deleteErr
+		future, err := client.Delete(ctx, resourceGroup, serverName)
 		if err != nil {
-			if !utils.ResponseWasNotFound(resp) {
-				return fmt.Errorf("Bad: Delete on sqlServersClient: %+v", err)
-			}
+			return err
+		}
+
+		err = future.WaitForCompletionRef(ctx, client.Client)
+		if err != nil {
+			return err
 		}
 
 		return nil
@@ -211,7 +220,7 @@ func testCheckAzureRMSqlServerDisappears(name string) resource.TestCheckFunc {
 func testAccAzureRMSqlServer_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
@@ -229,7 +238,7 @@ resource "azurerm_sql_server" "test" {
 func testAccAzureRMSqlServer_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
@@ -252,7 +261,7 @@ resource "azurerm_sql_server" "test" {
 func testAccAzureRMSqlServer_withTagsUpdated(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 

@@ -5,7 +5,7 @@ import (
 	"log"
 	"regexp"
 
-	"github.com/Azure/azure-sdk-for-go/arm/operationalinsights"
+	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -44,6 +44,7 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 					string(operationalinsights.Standalone),
 					string(operationalinsights.Standard),
 					string(operationalinsights.Unlimited),
+					string(operationalinsights.PerGB2018),
 				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
@@ -66,13 +67,15 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 			},
 
 			"primary_shared_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"secondary_shared_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"tags": tagsSchema(),
@@ -82,10 +85,11 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 
 func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).workspacesClient
+	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics workspace creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 
 	skuName := d.Get("sku").(string)
@@ -107,13 +111,17 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 		},
 	}
 
-	_, error := client.CreateOrUpdate(resGroup, name, parameters, make(chan struct{}))
-	err := <-error
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resGroup, name)
+	err = future.WaitForCompletionRef(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
@@ -129,8 +137,8 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
-
 	client := meta.(*ArmClient).workspacesClient
+	ctx := meta.(*ArmClient).StopContext
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -138,7 +146,7 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 	resGroup := id.ResourceGroup
 	name := id.Path["workspaces"]
 
-	resp, err := client.Get(resGroup, name)
+	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -148,8 +156,11 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("location", resp.Location)
 	d.Set("resource_group_name", resGroup)
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
+
 	d.Set("workspace_id", resp.CustomerID)
 	d.Set("portal_url", resp.PortalURL)
 	if sku := resp.Sku; sku != nil {
@@ -157,7 +168,7 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 	}
 	d.Set("retention_in_days", resp.RetentionInDays)
 
-	sharedKeys, err := client.GetSharedKeys(resGroup, name)
+	sharedKeys, err := client.GetSharedKeys(ctx, resGroup, name)
 	if err != nil {
 		log.Printf("[ERROR] Unable to List Shared keys for Log Analytics workspaces %s: %+v", name, err)
 	} else {
@@ -171,7 +182,7 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 
 func resourceArmLogAnalyticsWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).workspacesClient
-
+	ctx := meta.(*ArmClient).StopContext
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -179,7 +190,7 @@ func resourceArmLogAnalyticsWorkspaceDelete(d *schema.ResourceData, meta interfa
 	resGroup := id.ResourceGroup
 	name := id.Path["workspaces"]
 
-	resp, err := client.Delete(resGroup, name)
+	resp, err := client.Delete(ctx, resGroup, name)
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {

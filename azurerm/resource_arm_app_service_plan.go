@@ -5,7 +5,7 @@ import (
 	"log"
 	"regexp"
 
-	"github.com/Azure/azure-sdk-for-go/arm/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -39,6 +39,10 @@ func resourceArmAppServicePlan() *schema.Resource {
 				Default:  "Windows",
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
+					// @tombuildsstuff: I believe `app` is the older representation of `Windows`
+					// thus we need to support it to be able to import resources without recreating them.
+					"App",
+					"FunctionApp",
 					"Linux",
 					"Windows",
 				}, true),
@@ -75,6 +79,11 @@ func resourceArmAppServicePlan() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"app_service_environment_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
+						},
 						"reserved": {
 							Type:     schema.TypeBool,
 							Optional: true,
@@ -101,17 +110,18 @@ func resourceArmAppServicePlan() *schema.Resource {
 
 func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).appServicePlansClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM App Service Plan creation.")
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	kind := d.Get("kind").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
 	sku := expandAzureRmAppServicePlanSku(d)
-	properties := expandAppServicePlanProperties(d)
+	properties := expandAppServicePlanProperties(d, name)
 
 	appServicePlan := web.AppServicePlan{
 		Location:                 &location,
@@ -121,18 +131,22 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 		Sku:  &sku,
 	}
 
-	_, createErr := client.CreateOrUpdate(resGroup, name, appServicePlan, make(chan struct{}))
-	err := <-createErr
+	createFuture, err := client.CreateOrUpdate(ctx, resGroup, name, appServicePlan)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resGroup, name)
+	err = createFuture.WaitForCompletionRef(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read AzureRM App Service Plan %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read AzureRM App Service Plan %q (resource group %q) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -153,7 +167,8 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 	resGroup := id.ResourceGroup
 	name := id.Path["serverfarms"]
 
-	resp, err := client.Get(resGroup, name)
+	ctx := meta.(*ArmClient).StopContext
+	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -165,7 +180,9 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 	d.Set("kind", resp.Kind)
 
 	if props := resp.AppServicePlanProperties; props != nil {
@@ -187,6 +204,7 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 
 func resourceArmAppServicePlanDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).appServicePlansClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -197,9 +215,17 @@ func resourceArmAppServicePlanDelete(d *schema.ResourceData, meta interface{}) e
 
 	log.Printf("[DEBUG] Deleting app service plan %s: %s", resGroup, name)
 
-	_, err = client.Delete(resGroup, name)
+	resp, err := client.Delete(ctx, resGroup, name)
 
-	return err
+	if err != nil {
+		if utils.ResponseWasNotFound(resp) {
+			return nil
+		}
+
+		return err
+	}
+
+	return nil
 }
 
 func expandAzureRmAppServicePlanSku(d *schema.ResourceData) web.SkuDescription {
@@ -239,13 +265,20 @@ func flattenAppServicePlanSku(profile *web.SkuDescription) []interface{} {
 	return skus
 }
 
-func expandAppServicePlanProperties(d *schema.ResourceData) *web.AppServicePlanProperties {
+func expandAppServicePlanProperties(d *schema.ResourceData, name string) *web.AppServicePlanProperties {
 	configs := d.Get("properties").([]interface{})
 	properties := web.AppServicePlanProperties{}
 	if len(configs) == 0 {
 		return &properties
 	}
 	config := configs[0].(map[string]interface{})
+
+	appServiceEnvironmentId := config["app_service_environment_id"].(string)
+	if appServiceEnvironmentId != "" {
+		properties.HostingEnvironmentProfile = &web.HostingEnvironmentProfile{
+			ID: utils.String(appServiceEnvironmentId),
+		}
+	}
 
 	perSiteScaling := config["per_site_scaling"].(bool)
 	properties.PerSiteScaling = utils.Bool(perSiteScaling)
@@ -259,6 +292,10 @@ func expandAppServicePlanProperties(d *schema.ResourceData) *web.AppServicePlanP
 func flattenAppServiceProperties(props *web.AppServicePlanProperties) []interface{} {
 	result := make([]interface{}, 0, 1)
 	properties := make(map[string]interface{}, 0)
+
+	if props.HostingEnvironmentProfile != nil {
+		properties["app_service_environment_id"] = *props.HostingEnvironmentProfile.ID
+	}
 
 	if props.PerSiteScaling != nil {
 		properties["per_site_scaling"] = *props.PerSiteScaling
@@ -275,8 +312,8 @@ func flattenAppServiceProperties(props *web.AppServicePlanProperties) []interfac
 func validateAppServicePlanName(v interface{}, k string) (ws []string, es []error) {
 	value := v.(string)
 
-	if matched := regexp.MustCompile(`^[0-9a-zA-Z-]+$`).Match([]byte(value)); !matched {
-		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters and dashes", k))
+	if matched := regexp.MustCompile(`^[0-9a-zA-Z-_]{1,60}$`).Match([]byte(value)); !matched {
+		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters, dashes and underscores up to 60 characters in length", k))
 	}
 
 	return

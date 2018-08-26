@@ -1,12 +1,12 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_subscription"
-sidebar_current: "docs-azurerm-datasource-subscription"
+sidebar_current: "docs-azurerm-datasource-subscription-x"
 description: |-
   Get information about the specified subscription.
 ---
 
-# azurerm\_subscription
+# Data Source: azurerm_subscription
 
 Use this data source to access the properties of an Azure subscription.
 

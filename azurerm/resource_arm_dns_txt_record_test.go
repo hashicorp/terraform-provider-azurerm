@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/arm/dns"
+	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -105,7 +105,8 @@ func testCheckAzureRMDnsTxtRecordExists(name string) resource.TestCheckFunc {
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).dnsClient
-		resp, err := conn.Get(resourceGroup, zoneName, txtName, dns.TXT)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := conn.Get(ctx, resourceGroup, zoneName, txtName, dns.TXT)
 		if err != nil {
 			return fmt.Errorf("Bad: Get TXT RecordSet: %+v", err)
 		}
@@ -120,6 +121,7 @@ func testCheckAzureRMDnsTxtRecordExists(name string) resource.TestCheckFunc {
 
 func testCheckAzureRMDnsTxtRecordDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).dnsClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_dns_txt_record" {
@@ -130,7 +132,7 @@ func testCheckAzureRMDnsTxtRecordDestroy(s *terraform.State) error {
 		zoneName := rs.Primary.Attributes["zone_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, zoneName, txtName, dns.TXT)
+		resp, err := conn.Get(ctx, resourceGroup, zoneName, txtName, dns.TXT)
 
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
@@ -149,7 +151,7 @@ func testCheckAzureRMDnsTxtRecordDestroy(s *terraform.State) error {
 func testAccAzureRMDnsTxtRecord_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
@@ -178,7 +180,7 @@ resource "azurerm_dns_txt_record" "test" {
 func testAccAzureRMDnsTxtRecord_updateRecords(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
@@ -211,7 +213,7 @@ resource "azurerm_dns_txt_record" "test" {
 func testAccAzureRMDnsTxtRecord_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
@@ -245,7 +247,7 @@ resource "azurerm_dns_txt_record" "test" {
 func testAccAzureRMDnsTxtRecord_withTagsUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 

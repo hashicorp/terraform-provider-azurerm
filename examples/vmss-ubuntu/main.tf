@@ -4,14 +4,14 @@
 #   client_secret   = "${var.client_secret}"
 #   tenant_id       = "${var.tenant_id}"
 # }
-    
+
 resource "azurerm_resource_group" "rg" {
-  name     = "${var.resource_group}"
+  name     = "${var.resource_group_name}"
   location = "${var.location}"
 }
 
 resource "azurerm_virtual_network" "vnet" {
-  name                = "${var.resource_group}vnet"
+  name                = "${var.resource_group_name}vnet"
   location            = "${azurerm_resource_group.rg.location}"
   address_space       = ["10.0.0.0/16"]
   resource_group_name = "${azurerm_resource_group.rg.name}"
@@ -62,7 +62,7 @@ resource "azurerm_lb_nat_pool" "np" {
 }
 
 resource "azurerm_storage_account" "stor" {
-  name                     = "${var.resource_group}stor"
+  name                     = "${var.resource_group_name}stor"
   location                 = "${azurerm_resource_group.rg.location}"
   resource_group_name      = "${azurerm_resource_group.rg.name}"
   account_tier             = "${var.storage_account_tier}"
@@ -91,7 +91,7 @@ resource "azurerm_virtual_machine_scale_set" "scaleset" {
   }
 
   os_profile {
-    computer_name_prefix = "${var.vmss_name}"
+    computer_name_prefix = "${var.vmss_name_prefix}"
     admin_username       = "${var.admin_username}"
     admin_password       = "${var.admin_password}"
   }

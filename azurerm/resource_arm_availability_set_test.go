@@ -103,8 +103,8 @@ func TestAccAzureRMAvailabilitySet_withDomainCounts(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAvailabilitySetExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "platform_update_domain_count", "10"),
-					resource.TestCheckResourceAttr(resourceName, "platform_fault_domain_count", "1"),
+					resource.TestCheckResourceAttr(resourceName, "platform_update_domain_count", "3"),
+					resource.TestCheckResourceAttr(resourceName, "platform_fault_domain_count", "3"),
 				),
 			},
 		},
@@ -147,7 +147,8 @@ func testCheckAzureRMAvailabilitySetExists(name string) resource.TestCheckFunc {
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).availSetClient
-		resp, err := client.Get(resourceGroup, availSetName)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := client.Get(ctx, resourceGroup, availSetName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Availability Set %q (resource group: %q) does not exist", name, resourceGroup)
@@ -175,7 +176,8 @@ func testCheckAzureRMAvailabilitySetDisappears(name string) resource.TestCheckFu
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).availSetClient
-		resp, err := client.Delete(resourceGroup, availSetName)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := client.Delete(ctx, resourceGroup, availSetName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Delete on availSetClient: %+v", err)
@@ -196,7 +198,8 @@ func testCheckAzureRMAvailabilitySetDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		client := testAccProvider.Meta().(*ArmClient).availSetClient
-		resp, err := client.Get(resourceGroup, name)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := client.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -276,8 +279,8 @@ resource "azurerm_availability_set" "test" {
   name                         = "acctestavset-%d"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
-  platform_update_domain_count = 10
-  platform_fault_domain_count  = 1
+  platform_update_domain_count = 3
+  platform_fault_domain_count  = 3
 }
 `, rInt, location, rInt)
 }
@@ -293,8 +296,8 @@ resource "azurerm_availability_set" "test" {
   name                         = "acctestavset-%d"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
-  platform_update_domain_count = 10
-  platform_fault_domain_count  = 1
+  platform_update_domain_count = 3
+  platform_fault_domain_count  = 3
   managed                      = true
 }
 `, rInt, location, rInt)

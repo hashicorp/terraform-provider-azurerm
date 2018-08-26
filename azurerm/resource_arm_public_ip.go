@@ -6,8 +6,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/arm/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -17,6 +18,7 @@ func resourceArmPublicIp() *schema.Resource {
 		Read:   resourceArmPublicIpRead,
 		Update: resourceArmPublicIpCreate,
 		Delete: resourceArmPublicIpDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 				id, err := parseAzureResourceID(d.Id())
@@ -42,25 +44,36 @@ func resourceArmPublicIp() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameSchema(),
 
+			"zones": singleZonesSchema(),
+
+			//should this perhaps be allocation_method?
 			"public_ip_address_allocation": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ValidateFunc:     validatePublicIpAllocation,
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.Static),
+					string(network.Dynamic),
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				StateFunc:        ignoreCaseStateFunc,
+			},
+
+			"sku": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(network.PublicIPAddressSkuNameBasic),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.PublicIPAddressSkuNameBasic),
+					string(network.PublicIPAddressSkuNameStandard),
+				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"idle_timeout_in_minutes": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(int)
-					if value < 4 || value > 30 {
-						errors = append(errors, fmt.Errorf(
-							"The idle timeout must be between 4 and 30 minutes"))
-					}
-					return
-				},
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(4, 30),
 			},
 
 			"domain_name_label": {
@@ -90,64 +103,80 @@ func resourceArmPublicIp() *schema.Resource {
 }
 
 func resourceArmPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	publicIPClient := client.publicIPClient
+	client := meta.(*ArmClient).publicIPClient
+	ctx := meta.(*ArmClient).StopContext
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Public IP creation.")
+	log.Printf("[INFO] preparing arguments for AzureRM Public IP creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
+	sku := network.PublicIPAddressSku{
+		Name: network.PublicIPAddressSkuName(d.Get("sku").(string)),
+	}
 	tags := d.Get("tags").(map[string]interface{})
+	zones := expandZones(d.Get("zones").([]interface{}))
 
-	properties := network.PublicIPAddressPropertiesFormat{
-		PublicIPAllocationMethod: network.IPAllocationMethod(d.Get("public_ip_address_allocation").(string)),
+	ipAllocationMethod := network.IPAllocationMethod(d.Get("public_ip_address_allocation").(string))
+
+	if strings.ToLower(string(sku.Name)) == "standard" {
+		if strings.ToLower(string(ipAllocationMethod)) != "static" {
+			return fmt.Errorf("Static IP allocation must be used when creating Standard SKU public IP addresses.")
+		}
 	}
 
-	dnl, hasDnl := d.GetOk("domain_name_label")
-	rfqdn, hasRfqdn := d.GetOk("reverse_fqdn")
+	properties := network.PublicIPAddressPropertiesFormat{
+		PublicIPAllocationMethod: ipAllocationMethod,
+	}
 
-	if hasDnl || hasRfqdn {
+	dnl, dnlOk := d.GetOk("domain_name_label")
+	rfqdn, rfqdnOk := d.GetOk("reverse_fqdn")
+
+	if dnlOk || rfqdnOk {
 		dnsSettings := network.PublicIPAddressDNSSettings{}
 
-		if hasRfqdn {
-			reverse_fqdn := rfqdn.(string)
-			dnsSettings.ReverseFqdn = &reverse_fqdn
+		if rfqdnOk {
+			reverseFqdn := rfqdn.(string)
+			dnsSettings.ReverseFqdn = &reverseFqdn
 		}
 
-		if hasDnl {
-			domain_name_label := dnl.(string)
-			dnsSettings.DomainNameLabel = &domain_name_label
-
+		if dnlOk {
+			domainNameLabel := dnl.(string)
+			dnsSettings.DomainNameLabel = &domainNameLabel
 		}
 
 		properties.DNSSettings = &dnsSettings
 	}
 
 	if v, ok := d.GetOk("idle_timeout_in_minutes"); ok {
-		idle_timeout := int32(v.(int))
-		properties.IdleTimeoutInMinutes = &idle_timeout
+		properties.IdleTimeoutInMinutes = utils.Int32(int32(v.(int)))
 	}
 
 	publicIp := network.PublicIPAddress{
-		Name:                            &name,
-		Location:                        &location,
+		Name:     &name,
+		Location: &location,
+		Sku:      &sku,
 		PublicIPAddressPropertiesFormat: &properties,
-		Tags: expandTags(tags),
+		Tags:  expandTags(tags),
+		Zones: zones,
 	}
 
-	_, error := publicIPClient.CreateOrUpdate(resGroup, name, publicIp, make(chan struct{}))
-	err := <-error
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, publicIp)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error Creating/Updating Public IP %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	read, err := publicIPClient.Get(resGroup, name, "")
+	err = future.WaitForCompletionRef(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Error waiting for completion of Public IP %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	read, err := client.Get(ctx, resGroup, name, "")
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Public IP %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read Public IP %q (resource group %q) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -156,7 +185,8 @@ func resourceArmPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
-	publicIPClient := meta.(*ArmClient).publicIPClient
+	client := meta.(*ArmClient).publicIPClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -165,26 +195,47 @@ func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
 	resGroup := id.ResourceGroup
 	name := id.Path["publicIPAddresses"]
 
-	resp, err := publicIPClient.Get(resGroup, name, "")
+	resp, err := client.Get(ctx, resGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure public ip %s: %s", name, err)
+
+		return fmt.Errorf("Error making Read request on Public IP %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("name", resp.Name)
+	d.Set("resource_group_name", resGroup)
+	d.Set("zones", resp.Zones)
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
+
 	d.Set("public_ip_address_allocation", strings.ToLower(string(resp.PublicIPAddressPropertiesFormat.PublicIPAllocationMethod)))
 
-	if resp.PublicIPAddressPropertiesFormat.DNSSettings != nil && resp.PublicIPAddressPropertiesFormat.DNSSettings.Fqdn != nil && *resp.PublicIPAddressPropertiesFormat.DNSSettings.Fqdn != "" {
-		d.Set("fqdn", resp.PublicIPAddressPropertiesFormat.DNSSettings.Fqdn)
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku", string(sku.Name))
 	}
 
-	if resp.PublicIPAddressPropertiesFormat.IPAddress != nil && *resp.PublicIPAddressPropertiesFormat.IPAddress != "" {
-		d.Set("ip_address", resp.PublicIPAddressPropertiesFormat.IPAddress)
+	if props := resp.PublicIPAddressPropertiesFormat; props != nil {
+		d.Set("public_ip_address_allocation", strings.ToLower(string(props.PublicIPAllocationMethod)))
+
+		if settings := props.DNSSettings; settings != nil {
+			if fqdn := settings.Fqdn; fqdn != nil {
+				d.Set("fqdn", fqdn)
+			} else {
+				d.Set("fqdn", "")
+			}
+
+			d.Set("domain_name_label", settings.DomainNameLabel)
+		}
+
+		if ip := props.IPAddress; ip != nil {
+			d.Set("ip_address", ip)
+		} else {
+			d.Set("ip_address", "")
+		}
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -193,7 +244,8 @@ func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmPublicIpDelete(d *schema.ResourceData, meta interface{}) error {
-	publicIPClient := meta.(*ArmClient).publicIPClient
+	client := meta.(*ArmClient).publicIPClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -202,23 +254,17 @@ func resourceArmPublicIpDelete(d *schema.ResourceData, meta interface{}) error {
 	resGroup := id.ResourceGroup
 	name := id.Path["publicIPAddresses"]
 
-	_, error := publicIPClient.Delete(resGroup, name, make(chan struct{}))
-	err = <-error
-
-	return err
-}
-
-func validatePublicIpAllocation(v interface{}, k string) (ws []string, errors []error) {
-	value := strings.ToLower(v.(string))
-	allocations := map[string]bool{
-		"static":  true,
-		"dynamic": true,
+	future, err := client.Delete(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error deleting Public IP %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	if !allocations[value] {
-		errors = append(errors, fmt.Errorf("Public IP Allocation can only be Static of Dynamic"))
+	err = future.WaitForCompletionRef(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Error waiting for deletion of Public IP %q (Resource Group %q): %+v", name, resGroup, err)
 	}
-	return
+
+	return nil
 }
 
 func validatePublicIpDomainNameLabel(v interface{}, k string) (ws []string, errors []error) {

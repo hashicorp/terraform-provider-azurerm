@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/arm/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/structure"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -80,9 +80,10 @@ func resourceArmVirtualMachineExtensions() *schema.Resource {
 
 func resourceArmVirtualMachineExtensionsCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).vmExtensionClient
+	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	vmName := d.Get("virtual_machine_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	publisher := d.Get("publisher").(string)
@@ -118,13 +119,17 @@ func resourceArmVirtualMachineExtensionsCreate(d *schema.ResourceData, meta inte
 		extension.VirtualMachineExtensionProperties.ProtectedSettings = &protectedSettings
 	}
 
-	_, error := client.CreateOrUpdate(resGroup, vmName, name, extension, make(chan struct{}))
-	err := <-error
+	future, err := client.CreateOrUpdate(ctx, resGroup, vmName, name, extension)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resGroup, vmName, name, "")
+	err = future.WaitForCompletionRef(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	read, err := client.Get(ctx, resGroup, vmName, name, "")
 	if err != nil {
 		return err
 	}
@@ -140,6 +145,7 @@ func resourceArmVirtualMachineExtensionsCreate(d *schema.ResourceData, meta inte
 
 func resourceArmVirtualMachineExtensionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).vmExtensionClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -149,7 +155,7 @@ func resourceArmVirtualMachineExtensionsRead(d *schema.ResourceData, meta interf
 	vmName := id.Path["virtualMachines"]
 	name := id.Path["extensions"]
 
-	resp, err := client.Get(resGroup, vmName, name, "")
+	resp, err := client.Get(ctx, resGroup, vmName, name, "")
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -160,20 +166,29 @@ func resourceArmVirtualMachineExtensionsRead(d *schema.ResourceData, meta interf
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 	d.Set("virtual_machine_name", vmName)
 	d.Set("resource_group_name", resGroup)
-	d.Set("publisher", resp.VirtualMachineExtensionProperties.Publisher)
-	d.Set("type", resp.VirtualMachineExtensionProperties.Type)
-	d.Set("type_handler_version", resp.VirtualMachineExtensionProperties.TypeHandlerVersion)
-	d.Set("auto_upgrade_minor_version", resp.VirtualMachineExtensionProperties.AutoUpgradeMinorVersion)
+
+	if props := resp.VirtualMachineExtensionProperties; props != nil {
+		d.Set("publisher", props.Publisher)
+		d.Set("type", props.Type)
+		d.Set("type_handler_version", props.TypeHandlerVersion)
+		d.Set("auto_upgrade_minor_version", props.AutoUpgradeMinorVersion)
+
+		if settings := props.Settings; settings != nil {
+			settingsVal := settings.(map[string]interface{})
+			settingsJson, err := structure.FlattenJsonToString(settingsVal)
+			if err != nil {
+				return fmt.Errorf("unable to parse settings from response: %s", err)
+			}
+			d.Set("settings", settingsJson)
+		}
+	}
 
 	if resp.VirtualMachineExtensionProperties.Settings != nil {
-		settings, err := structure.FlattenJsonToString(*resp.VirtualMachineExtensionProperties.Settings)
-		if err != nil {
-			return fmt.Errorf("unable to parse settings from response: %s", err)
-		}
-		d.Set("settings", settings)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -183,6 +198,7 @@ func resourceArmVirtualMachineExtensionsRead(d *schema.ResourceData, meta interf
 
 func resourceArmVirtualMachineExtensionsDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).vmExtensionClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -192,8 +208,15 @@ func resourceArmVirtualMachineExtensionsDelete(d *schema.ResourceData, meta inte
 	name := id.Path["extensions"]
 	vmName := id.Path["virtualMachines"]
 
-	_, error := client.Delete(resGroup, vmName, name, make(chan struct{}))
-	err = <-error
+	future, err := client.Delete(ctx, resGroup, vmName, name)
+	if err != nil {
+		return err
+	}
 
-	return err
+	err = future.WaitForCompletionRef(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

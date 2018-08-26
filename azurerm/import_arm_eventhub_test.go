@@ -30,3 +30,28 @@ func TestAccAzureRMEventHub_importBasic(t *testing.T) {
 		},
 	})
 }
+
+func TestAccAzureRMEventHub_importCaptureDescription(t *testing.T) {
+	resourceName := "azurerm_eventhub.test"
+
+	ri := acctest.RandInt()
+	rs := acctest.RandString(5)
+	config := testAccAzureRMEventHub_captureDescription(ri, rs, testLocation(), true)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMEventHubDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}

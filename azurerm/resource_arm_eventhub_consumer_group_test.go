@@ -50,8 +50,37 @@ func TestAccAzureRMEventHubConsumerGroup_complete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMEventHubConsumerGroup_userMetadataUpdate(t *testing.T) {
+	resourceName := "azurerm_eventhub_consumer_group.test"
+	ri := acctest.RandInt()
+	preConfig := testAccAzureRMEventHubConsumerGroup_basic(ri, testLocation())
+	postConfig := testAccAzureRMEventHubConsumerGroup_complete(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMEventHubConsumerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventHubConsumerGroupExists(resourceName),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventHubConsumerGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "user_metadata", "some-meta-data"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMEventHubConsumerGroupDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).eventHubConsumerGroupClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_eventhub_consumer_group" {
@@ -63,7 +92,7 @@ func testCheckAzureRMEventHubConsumerGroupDestroy(s *terraform.State) error {
 		namespaceName := rs.Primary.Attributes["namespace_name"]
 		eventHubName := rs.Primary.Attributes["eventhub_name"]
 
-		resp, err := conn.Get(resourceGroup, namespaceName, eventHubName, name)
+		resp, err := conn.Get(ctx, resourceGroup, namespaceName, eventHubName, name)
 
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
@@ -90,11 +119,12 @@ func testCheckAzureRMEventHubConsumerGroupExists(name string) resource.TestCheck
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).eventHubConsumerGroupClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		namespaceName := rs.Primary.Attributes["namespace_name"]
 		eventHubName := rs.Primary.Attributes["eventhub_name"]
 
-		resp, err := conn.Get(resourceGroup, namespaceName, eventHubName, name)
+		resp, err := conn.Get(ctx, resourceGroup, namespaceName, eventHubName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Event Hub Consumer Group %q (resource group: %q) does not exist", name, resourceGroup)

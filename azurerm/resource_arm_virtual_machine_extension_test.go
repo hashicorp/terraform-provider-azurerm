@@ -96,9 +96,10 @@ func testCheckAzureRMVirtualMachineExtensionExists(name string) resource.TestChe
 		vmName := rs.Primary.Attributes["virtual_machine_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).vmExtensionClient
+		client := testAccProvider.Meta().(*ArmClient).vmExtensionClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, vmName, name, "")
+		resp, err := client.Get(ctx, resourceGroup, vmName, name, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get on vmExtensionClient: %s", err)
 		}
@@ -112,7 +113,8 @@ func testCheckAzureRMVirtualMachineExtensionExists(name string) resource.TestChe
 }
 
 func testCheckAzureRMVirtualMachineExtensionDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).vmExtensionClient
+	client := testAccProvider.Meta().(*ArmClient).vmExtensionClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_virtual_machine_extension" {
@@ -123,7 +125,7 @@ func testCheckAzureRMVirtualMachineExtensionDestroy(s *terraform.State) error {
 		vmName := rs.Primary.Attributes["virtual_machine_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, vmName, name, "")
+		resp, err := client.Get(ctx, resourceGroup, vmName, name, "")
 
 		if err != nil {
 			return nil
@@ -140,7 +142,7 @@ func testCheckAzureRMVirtualMachineExtensionDestroy(s *terraform.State) error {
 func testAccAzureRMVirtualMachineExtension_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestrg-%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
@@ -194,7 +196,7 @@ resource "azurerm_virtual_machine" "test" {
     location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
-    vm_size = "Standard_A0"
+    vm_size = "Standard_F2"
 
     storage_image_reference {
 		publisher = "Canonical"
@@ -246,7 +248,7 @@ SETTINGS
 func testAccAzureRMVirtualMachineExtension_basicUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestrg-%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
@@ -300,7 +302,7 @@ resource "azurerm_virtual_machine" "test" {
     location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
-    vm_size = "Standard_A0"
+    vm_size = "Standard_F2"
 
     storage_image_reference {
 		publisher = "Canonical"
@@ -353,7 +355,7 @@ SETTINGS
 func testAccAzureRMVirtualMachineExtension_concurrent(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestrg-%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
@@ -407,7 +409,7 @@ resource "azurerm_virtual_machine" "test" {
     location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
-    vm_size = "Standard_A0"
+    vm_size = "Standard_F2"
 
     storage_image_reference {
 	publisher = "Canonical"
@@ -471,7 +473,7 @@ SETTINGS
 func testAccAzureRMVirtualMachineExtension_linuxDiagnostics(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestrg-%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
@@ -525,7 +527,7 @@ resource "azurerm_virtual_machine" "test" {
     location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
-    vm_size = "Standard_A0"
+    vm_size = "Standard_F2"
 
     storage_image_reference {
 	publisher = "Canonical"

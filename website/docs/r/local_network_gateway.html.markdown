@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_local_network_gateway"
 sidebar_current: "docs-azurerm-resource-network-local-network-gateway"
 description: |-
-  Creates a new local network gateway connection over which specific connections can be configured.
+  Manages a local network gateway connection over which specific connections can be configured.
 ---
 
-# azurerm\_local\_network\_gateway
+# azurerm_local_network_gateway
 
-Creates a new local network gateway connection over which specific connections can be configured.
+Manages a local network gateway connection over which specific connections can be configured.
 
 ## Example Usage
 
@@ -38,7 +38,7 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group in which to
     create the local network gateway.
 
-* `location` - (Required) The location/region where the local network gatway is
+* `location` - (Required) The location/region where the local network gateway is
     created. Changing this forces a new resource to be created.
 
 * `gateway_address` - (Required) The IP address of the gateway to which to
@@ -46,6 +46,23 @@ The following arguments are supported:
 
 * `address_space` - (Required) The list of string CIDRs representing the
     address spaces the gateway exposes.
+
+* `bgp_settings` - (Optional) A `bgp_settings` block as defined below containing the
+    Local Network Gateway's BGP speaker settings.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+`bgp_settings` supports the following:
+
+* `asn` - (Required) The BGP speaker's ASN.
+
+* `bgp_peering_address` - (Required) The BGP peering address and BGP identifier
+    of this BGP speaker.
+
+* `peer_weight` - (Optional) The weight added to routes learned from this
+    BGP speaker.
 
 ## Attributes Reference
 

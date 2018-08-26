@@ -232,7 +232,18 @@ func (c *Client) Get() error {
 		// Destination is the base name of the URL path in "any" mode when
 		// a file source is detected.
 		if mode == ClientModeFile {
-			dst = filepath.Join(dst, filepath.Base(u.Path))
+			filename := filepath.Base(u.Path)
+
+			// Determine if we have a custom file name
+			if v := q.Get("filename"); v != "" {
+				// Delete the query parameter if we have it.
+				q.Del("filename")
+				u.RawQuery = q.Encode()
+
+				filename = v
+			}
+
+			dst = filepath.Join(dst, filename)
 		}
 	}
 
@@ -305,7 +316,13 @@ func (c *Client) Get() error {
 			return err
 		}
 
-		return copyDir(realDst, filepath.Join(dst, subDir), false)
+		// Process any globs
+		subDir, err := SubdirGlob(dst, subDir)
+		if err != nil {
+			return err
+		}
+
+		return copyDir(realDst, subDir, false)
 	}
 
 	return nil

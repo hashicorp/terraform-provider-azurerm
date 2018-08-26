@@ -50,10 +50,10 @@ func TestAccAzureRMMySQLServer_basicFiveSeven(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMySqlServer_standard(t *testing.T) {
+func TestAccAzureRMMySqlServer_generalPurpose(t *testing.T) {
 	resourceName := "azurerm_mysql_server.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMMySQLServer_standard(ri, testLocation())
+	config := testAccAzureRMMySQLServer_generalPurpose(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -70,6 +70,104 @@ func TestAccAzureRMMySqlServer_standard(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMySqlServer_memoryOptimized(t *testing.T) {
+	resourceName := "azurerm_mysql_server.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMMySQLServer_memoryOptimizedGeoRedundant(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMySQLServerExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMMySQLServer_basicFiveSevenUpdated(t *testing.T) {
+	resourceName := "azurerm_mysql_server.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+	config := testAccAzureRMMySQLServer_basicFiveSeven(ri, location)
+	updatedConfig := testAccAzureRMMySQLServer_basicFiveSevenUpdated(ri, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMySQLServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "B_Gen5_2"),
+					resource.TestCheckResourceAttr(resourceName, "version", "5.7"),
+					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "51200"),
+					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMySQLServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "B_Gen5_1"),
+					resource.TestCheckResourceAttr(resourceName, "version", "5.7"),
+					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "640000"),
+					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMMySQLServer_updateSKU(t *testing.T) {
+	resourceName := "azurerm_mysql_server.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+	config := testAccAzureRMMySQLServer_generalPurpose(ri, location)
+	updatedConfig := testAccAzureRMMySQLServer_memoryOptimized(ri, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMySQLServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "GP_Gen4_32"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "32"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "GeneralPurpose"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.family", "Gen4"),
+					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "640000"),
+					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMySQLServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "MO_Gen5_16"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "16"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "MemoryOptimized"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.family", "Gen5"),
+					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "4194304"),
+					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
+				),
+			},
+		},
+	})
+}
+
+//
+
 func testCheckAzureRMMySQLServerExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -85,14 +183,15 @@ func testCheckAzureRMMySQLServerExists(name string) resource.TestCheckFunc {
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).mysqlServersClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(resourceGroup, name)
+		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: MySQL Server %q (resource group: %q) does not exist", name, resourceGroup)
 			}
 
-			return fmt.Errorf("Bad: Get on mysqlServersClient: %s", err)
+			return fmt.Errorf("Bad: Get on mysqlServersClient: %+v", err)
 		}
 
 		return nil
@@ -101,6 +200,7 @@ func testCheckAzureRMMySQLServerExists(name string) resource.TestCheckFunc {
 
 func testCheckAzureRMMySQLServerDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).mysqlServersClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_mysql_server" {
@@ -110,7 +210,7 @@ func testCheckAzureRMMySQLServerDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.Get(resourceGroup, name)
+		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
@@ -136,15 +236,21 @@ resource "azurerm_mysql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name     = "MYSQLB50"
-    capacity = 50
+    name     = "B_Gen4_2"
+    capacity = 2
     tier     = "Basic"
+    family   = "Gen4"
+  }
+
+  storage_profile {
+    storage_mb            = 51200
+    backup_retention_days = 7
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "5.6"
-  storage_mb                   = 51200
   ssl_enforcement              = "Enabled"
 }
 `, rInt, location, rInt)
@@ -163,21 +269,27 @@ resource "azurerm_mysql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name     = "MYSQLB50"
-    capacity = 50
+    name     = "B_Gen5_2"
+    capacity = 2
     tier     = "Basic"
+    family   = "Gen5"
+  }
+
+  storage_profile {
+    storage_mb            = 51200
+    backup_retention_days = 7
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "5.7"
-  storage_mb                   = 51200
   ssl_enforcement              = "Enabled"
 }
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMMySQLServer_standard(rInt int, location string) string {
+func testAccAzureRMMySQLServer_basicFiveSevenUpdated(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -190,15 +302,120 @@ resource "azurerm_mysql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name     = "MYSQLS200"
-    capacity = 200
-    tier     = "Standard"
+    name     = "B_Gen5_1"
+    capacity = 1
+    tier     = "Basic"
+    family   = "Gen5"
+  }
+
+  storage_profile {
+    storage_mb            = 640000
+    backup_retention_days = 7
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "5.7"
-  storage_mb                   = 640000
+  ssl_enforcement              = "Enabled"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMMySQLServer_generalPurpose(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_mysql_server" "test" {
+  name                = "acctestmysqlsvr-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name     = "GP_Gen4_32"
+    capacity = 32
+    tier     = "GeneralPurpose"
+    family   = "Gen4"
+  }
+
+  storage_profile {
+    storage_mb            = 640000
+    backup_retention_days = 7
+    geo_redundant_backup  = "Disabled"
+  }
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+  version                      = "5.7"
+  ssl_enforcement              = "Enabled"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMMySQLServer_memoryOptimized(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_mysql_server" "test" {
+  name                = "acctestmysqlsvr-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name     = "MO_Gen5_16"
+    capacity = 16
+    tier     = "MemoryOptimized"
+    family   = "Gen5"
+  }
+
+  storage_profile {
+    storage_mb            = 4194304,
+    backup_retention_days = 7
+    geo_redundant_backup  = "Disabled"
+  }
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+  version                      = "5.7"
+  ssl_enforcement              = "Enabled"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMMySQLServer_memoryOptimizedGeoRedundant(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_mysql_server" "test" {
+  name                = "acctestmysqlsvr-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name     = "MO_Gen5_16"
+    capacity = 16
+    tier     = "MemoryOptimized"
+    family   = "Gen5"
+  }
+
+  storage_profile {
+    storage_mb            = 4194304,
+    backup_retention_days = 7
+    geo_redundant_backup  = "Enabled"
+  }
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+  version                      = "5.7"
   ssl_enforcement              = "Enabled"
 }
 `, rInt, location, rInt)

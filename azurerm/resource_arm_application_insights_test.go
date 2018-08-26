@@ -13,7 +13,7 @@ import (
 func TestAccAzureRMApplicationInsights_basicWeb(t *testing.T) {
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMApplicationInsights_basicWeb(ri, testLocation())
+	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "web")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -24,6 +24,28 @@ func TestAccAzureRMApplicationInsights_basicWeb(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationInsightsExists("azurerm_application_insights.test"),
+					resource.TestCheckResourceAttr("azurerm_application_insights.test", "application_type", "web"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMApplicationInsights_basicJava(t *testing.T) {
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "java")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationInsightsExists("azurerm_application_insights.test"),
+					resource.TestCheckResourceAttr("azurerm_application_insights.test", "application_type", "java"),
 				),
 			},
 		},
@@ -33,7 +55,7 @@ func TestAccAzureRMApplicationInsights_basicWeb(t *testing.T) {
 func TestAccAzureRMApplicationInsights_basicOther(t *testing.T) {
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMApplicationInsights_basicOther(ri, testLocation())
+	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "other")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -44,6 +66,70 @@ func TestAccAzureRMApplicationInsights_basicOther(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationInsightsExists("azurerm_application_insights.test"),
+					resource.TestCheckResourceAttr("azurerm_application_insights.test", "application_type", "other"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMApplicationInsights_basicPhone(t *testing.T) {
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "phone")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationInsightsExists("azurerm_application_insights.test"),
+					resource.TestCheckResourceAttr("azurerm_application_insights.test", "application_type", "phone"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMApplicationInsights_basicStore(t *testing.T) {
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "store")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationInsightsExists("azurerm_application_insights.test"),
+					resource.TestCheckResourceAttr("azurerm_application_insights.test", "application_type", "store"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMApplicationInsights_basiciOS(t *testing.T) {
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "ios")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationInsightsExists("azurerm_application_insights.test"),
+					resource.TestCheckResourceAttr("azurerm_application_insights.test", "application_type", "ios"),
 				),
 			},
 		},
@@ -52,6 +138,7 @@ func TestAccAzureRMApplicationInsights_basicOther(t *testing.T) {
 
 func testCheckAzureRMApplicationInsightsDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).appInsightsClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_application_insights" {
@@ -61,7 +148,7 @@ func testCheckAzureRMApplicationInsightsDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			return nil
@@ -90,8 +177,9 @@ func testCheckAzureRMApplicationInsightsExists(name string) resource.TestCheckFu
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).appInsightsClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on appInsightsClient: %+v", err)
 		}
@@ -104,7 +192,7 @@ func testCheckAzureRMApplicationInsightsExists(name string) resource.TestCheckFu
 	}
 }
 
-func testAccAzureRMApplicationInsights_basicWeb(rInt int, location string) string {
+func testAccAzureRMApplicationInsights_basic(rInt int, location string, applicationType string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -115,23 +203,7 @@ resource "azurerm_application_insights" "test" {
   name                = "acctestappinsights-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  application_type    = "web"
+  application_type    = "%s"
 }
-`, rInt, location, rInt)
-}
-
-func testAccAzureRMApplicationInsights_basicOther(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_application_insights" "test" {
-  name                = "acctestappinsights-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  application_type    = "other"
-}
-`, rInt, location, rInt)
+`, rInt, location, rInt, applicationType)
 }

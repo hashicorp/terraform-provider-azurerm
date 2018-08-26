@@ -1,12 +1,12 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_topic"
-sidebar_current: "docs-azurerm-resource-servicebus-topic"
+sidebar_current: "docs-azurerm-resource-messaging-servicebus-topic"
 description: |-
-  Create a ServiceBus Topic.
+  Manages a ServiceBus Topic.
 ---
 
-# azurerm\_servicebus\_topic
+# azurerm_servicebus_topic
 
 Create a ServiceBus Topic.
 
@@ -84,6 +84,8 @@ The following arguments are supported:
 * `enable_partitioning` - (Optional) Boolean flag which controls whether to enable
     the topic to be partitioned across multiple message brokers. Defaults to false.
     Changing this forces a new resource to be created.
+
+-> **NOTE:** Partitioning is available at entity creation for all queues and topics in Basic or Standard SKUs. It is not available for the Premium messaging SKU, but any previously existing partitioned entities in Premium namespaces continue to work as expected. Please [see the documentation](https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-partitioning) for more information.
 
 * `max_size_in_megabytes` - (Optional) Integer value which controls the size of
     memory allocated for the topic. For supported values see the "Queue/topic size"

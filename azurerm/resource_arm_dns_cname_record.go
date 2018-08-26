@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Azure/azure-sdk-for-go/arm/dns"
+	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -58,6 +58,7 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 
 func resourceArmDnsCNameRecordCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
 	dnsClient := meta.(*ArmClient).dnsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
@@ -79,7 +80,7 @@ func resourceArmDnsCNameRecordCreateOrUpdate(d *schema.ResourceData, meta interf
 
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	resp, err := dnsClient.CreateOrUpdate(resGroup, zoneName, name, dns.CNAME, parameters, eTag, ifNoneMatch)
+	resp, err := dnsClient.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.CNAME, parameters, eTag, ifNoneMatch)
 	if err != nil {
 		return err
 	}
@@ -95,6 +96,7 @@ func resourceArmDnsCNameRecordCreateOrUpdate(d *schema.ResourceData, meta interf
 
 func resourceArmDnsCNameRecordRead(d *schema.ResourceData, meta interface{}) error {
 	dnsClient := meta.(*ArmClient).dnsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -105,7 +107,7 @@ func resourceArmDnsCNameRecordRead(d *schema.ResourceData, meta interface{}) err
 	name := id.Path["CNAME"]
 	zoneName := id.Path["dnszones"]
 
-	resp, err := dnsClient.Get(resGroup, zoneName, name, dns.CNAME)
+	resp, err := dnsClient.Get(ctx, resGroup, zoneName, name, dns.CNAME)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -132,6 +134,7 @@ func resourceArmDnsCNameRecordRead(d *schema.ResourceData, meta interface{}) err
 
 func resourceArmDnsCNameRecordDelete(d *schema.ResourceData, meta interface{}) error {
 	dnsClient := meta.(*ArmClient).dnsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -142,7 +145,7 @@ func resourceArmDnsCNameRecordDelete(d *schema.ResourceData, meta interface{}) e
 	name := id.Path["CNAME"]
 	zoneName := id.Path["dnszones"]
 
-	resp, error := dnsClient.Delete(resGroup, zoneName, name, dns.CNAME, "")
+	resp, error := dnsClient.Delete(ctx, resGroup, zoneName, name, dns.CNAME, "")
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Error deleting DNS CNAME Record %s: %+v", name, error)
 	}

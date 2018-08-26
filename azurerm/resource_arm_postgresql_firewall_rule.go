@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/arm/postgresql"
+	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -50,6 +51,7 @@ func resourceArmPostgreSQLFirewallRule() *schema.Resource {
 
 func resourceArmPostgreSQLFirewallRuleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).postgresqlFirewallRulesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Firewall Rule creation.")
 
@@ -66,13 +68,17 @@ func resourceArmPostgreSQLFirewallRuleCreate(d *schema.ResourceData, meta interf
 		},
 	}
 
-	_, error := client.CreateOrUpdate(resGroup, serverName, name, properties, make(chan struct{}))
-	err := <-error
+	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, name, properties)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resGroup, serverName, name)
+	err = future.WaitForCompletionRef(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	read, err := client.Get(ctx, resGroup, serverName, name)
 	if err != nil {
 		return err
 	}
@@ -87,6 +93,7 @@ func resourceArmPostgreSQLFirewallRuleCreate(d *schema.ResourceData, meta interf
 
 func resourceArmPostgreSQLFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).postgresqlFirewallRulesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -96,7 +103,7 @@ func resourceArmPostgreSQLFirewallRuleRead(d *schema.ResourceData, meta interfac
 	serverName := id.Path["servers"]
 	name := id.Path["firewallRules"]
 
-	resp, err := client.Get(resGroup, serverName, name)
+	resp, err := client.Get(ctx, resGroup, serverName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[WARN] PostgreSQL Firewall Rule '%s' was not found (resource group '%s')", name, resGroup)
@@ -118,6 +125,7 @@ func resourceArmPostgreSQLFirewallRuleRead(d *schema.ResourceData, meta interfac
 
 func resourceArmPostgreSQLFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).postgresqlFirewallRulesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -127,8 +135,21 @@ func resourceArmPostgreSQLFirewallRuleDelete(d *schema.ResourceData, meta interf
 	serverName := id.Path["servers"]
 	name := id.Path["firewallRules"]
 
-	_, error := client.Delete(resGroup, serverName, name, make(chan struct{}))
-	err = <-error
+	future, err := client.Delete(ctx, resGroup, serverName, name)
+	if err != nil {
+		if response.WasNotFound(future.Response()) {
+			return nil
+		}
+		return err
+	}
 
-	return err
+	err = future.WaitForCompletionRef(ctx, client.Client)
+	if err != nil {
+		if response.WasNotFound(future.Response()) {
+			return nil
+		}
+		return err
+	}
+
+	return nil
 }
