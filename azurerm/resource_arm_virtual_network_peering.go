@@ -48,7 +48,7 @@ func resourceArmVirtualNetworkPeering() *schema.Resource {
 			"allow_virtual_network_access": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default: true,
+				Default:  true,
 			},
 
 			"allow_forwarded_traffic": {
@@ -83,7 +83,7 @@ func resourceArmVirtualNetworkPeeringCreate(d *schema.ResourceData, meta interfa
 	resGroup := d.Get("resource_group_name").(string)
 
 	peer := network.VirtualNetworkPeering{
-		Name: &name,
+		Name:                                  &name,
 		VirtualNetworkPeeringPropertiesFormat: getVirtualNetworkPeeringProperties(d),
 	}
 
