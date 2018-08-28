@@ -510,6 +510,8 @@ func resourceArmFunctionAppDelete(d *schema.ResourceData, meta interface{}) erro
 }
 
 func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier string) []web.NameValuePair {
+	// TODO: This is a workaround since there are no public Functions API
+	// You may track the API request here: https://github.com/Azure/azure-rest-api-specs/issues/3750
 	dashboardPropName := "AzureWebJobsDashboard"
 	storagePropName := "AzureWebJobsStorage"
 	functionVersionPropName := "FUNCTIONS_EXTENSION_VERSION"
