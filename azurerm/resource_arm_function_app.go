@@ -518,7 +518,7 @@ func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier strin
 
 	storageConnection := d.Get("storage_connection_string").(string)
 	functionVersion := d.Get("version").(string)
-	contentShare := d.Get("name").(string) + "-content"
+	contentShare := strings.ToLower(d.Get("name").(string)) + "-content"
 
 	basicSettings := []web.NameValuePair{
 		{Name: &dashboardPropName, Value: &storageConnection},
