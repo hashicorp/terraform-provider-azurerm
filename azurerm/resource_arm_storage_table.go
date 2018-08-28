@@ -202,7 +202,6 @@ func parseStorageTableID(input string) (*storageTableId, error) {
 	segments := strings.Split(uri.Host, ".")
 	if len(segments) > 0 {
 		storageAccountName := segments[0]
-		// remove the
 		table := strings.Replace(uri.Path, "/", "", 1)
 		id := storageTableId{
 			storageAccountName: storageAccountName,

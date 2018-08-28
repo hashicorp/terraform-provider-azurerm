@@ -201,7 +201,6 @@ func parseStorageQueueID(input string) (*storageQueueId, error) {
 	segments := strings.Split(uri.Host, ".")
 	if len(segments) > 0 {
 		storageAccountName := segments[0]
-		// remove the
 		queue := strings.Replace(uri.Path, "/", "", 1)
 		id := storageQueueId{
 			storageAccountName: storageAccountName,
