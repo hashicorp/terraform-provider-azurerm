@@ -82,9 +82,7 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The ID of the subnet that the PostgreSQL server will be connected to.
 
-* `ignore_missing_vnet_service_endpoint` - (Optional) Create the virtual network rule before the subnet has the virtual network service endpoint enabled. The default value is false.
-
-~> **NOTE:** If `ignore_missing_vnet_service_endpoint` is false, and the target subnet does not contain the `Microsoft.SQL` endpoint in the `service_endpoints` array, the deployment will fail when it tries to create the PostgreSQL virtual network rule.
+~> **NOTE:** The resource is configured with `ignore_missing_vnet_service_endpoint` set to `true`, meaning the deployment will succeed even if the target subnet does not contain the `Microsoft.Sql` endpoint in the `service_endpoints` array. This attribute will be introduced once the API behaviour is consistent.
 
 ## Attributes Reference
 

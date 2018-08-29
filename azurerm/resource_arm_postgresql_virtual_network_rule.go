@@ -48,12 +48,6 @@ func resourceArmPostgreSQLVirtualNetworkRule() *schema.Resource {
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
-
-			"ignore_missing_vnet_service_endpoint": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false, //When not provided, Azure defaults to false
-			},
 		},
 	}
 }
@@ -66,12 +60,11 @@ func resourceArmPostgreSQLVirtualNetworkRuleCreateUpdate(d *schema.ResourceData,
 	serverName := d.Get("server_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	virtualNetworkSubnetId := d.Get("subnet_id").(string)
-	ignoreMissingVnetServiceEndpoint := d.Get("ignore_missing_vnet_service_endpoint").(bool)
 
 	parameters := postgresql.VirtualNetworkRule{
 		VirtualNetworkRuleProperties: &postgresql.VirtualNetworkRuleProperties{
 			VirtualNetworkSubnetID:           utils.String(virtualNetworkSubnetId),
-			IgnoreMissingVnetServiceEndpoint: utils.Bool(ignoreMissingVnetServiceEndpoint),
+			IgnoreMissingVnetServiceEndpoint: utils.Bool(true),
 		},
 	}
 
