@@ -18,6 +18,7 @@ BUG FIXES:
 * `azurerm_eventhub_namespace` - updating the validation error [GH-1795]
 * `azurerm_function_app` - support for names in upper-case [GH-1835]
 * `azurerm_kubernetes_cluster` - removing validation for the `pod_cidr` field when `network_plugin` is set to `azure` [GH-1798]
+* `azurerm_logic_app_workflow` - ensuring parameters are strings [GH-1843]
 * `azurerm_virtual_machine` - setting the `image_uri` property within the `storage_os_disk` block [GH-1799]
 
 ## 1.13.0 (August 15, 2018)
