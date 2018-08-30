@@ -4,6 +4,10 @@ IMPROVEMENTS:
 
 * `azurerm_iothub` - exporting the `event_hub_events_endpoint`, `event_hub_events_path`, `event_hub_operations_endpoint` and `event_hub_operations_path` fields [GH-1789]
 * `azurerm_iothub` - support for `endpoint` and `route` blocks [GH-1693]
+* `azurerm_storage_blob` - support for import [GH-1816]
+* `azurerm_storage_container` - support for import [GH-1816]
+* `azurerm_storage_queue` - support for import [GH-1816]
+* `azurerm_storage_table` - support for import [GH-1816]
 
 BUG FIXES:
 
