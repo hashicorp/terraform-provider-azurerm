@@ -13,15 +13,24 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmTemplateDeployment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmTemplateDeploymentCreate,
+		Create: resourceArmTemplateDeploymentCreateUpdate,
 		Read:   resourceArmTemplateDeploymentRead,
-		Update: resourceArmTemplateDeploymentCreate,
+		Update: resourceArmTemplateDeploymentCreateUpdate,
 		Delete: resourceArmTemplateDeploymentDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 60),
+			Update: schema.DefaultTimeout(time.Minute * 60),
+			Delete: schema.DefaultTimeout(time.Minute * 60),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -70,16 +79,29 @@ func resourceArmTemplateDeployment() *schema.Resource {
 	}
 }
 
-func resourceArmTemplateDeploymentCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	deployClient := client.deploymentsClient
-	ctx := client.StopContext
+func resourceArmTemplateDeploymentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).deploymentsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	deploymentMode := d.Get("deployment_mode").(string)
+
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of Template Deployment %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_template_deployment", *resp.ID)
+		}
+	}
 
 	log.Printf("[INFO] preparing arguments for AzureRM Template Deployment creation.")
+	deploymentMode := d.Get("deployment_mode").(string)
 	properties := resources.DeploymentProperties{
 		Mode: resources.DeploymentMode(deploymentMode),
 	}
@@ -121,17 +143,19 @@ func resourceArmTemplateDeploymentCreate(d *schema.ResourceData, meta interface{
 		Properties: &properties,
 	}
 
-	future, err := deployClient.CreateOrUpdate(ctx, resourceGroup, name, deployment)
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, deployment)
 	if err != nil {
 		return fmt.Errorf("Error creating deployment: %+v", err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, deployClient.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error creating deployment: %+v", err)
 	}
 
-	read, err := deployClient.Get(ctx, resourceGroup, name)
+	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return err
 	}
@@ -145,9 +169,8 @@ func resourceArmTemplateDeploymentCreate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmTemplateDeploymentRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	deployClient := client.deploymentsClient
-	ctx := client.StopContext
+	client := meta.(*ArmClient).deploymentsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -159,7 +182,7 @@ func resourceArmTemplateDeploymentRead(d *schema.ResourceData, meta interface{})
 		name = id.Path["Deployments"]
 	}
 
-	resp, err := deployClient.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -211,9 +234,8 @@ func resourceArmTemplateDeploymentRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmTemplateDeploymentDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	deployClient := client.deploymentsClient
-	ctx := client.StopContext
+	client := meta.(*ArmClient).deploymentsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -225,12 +247,13 @@ func resourceArmTemplateDeploymentDelete(d *schema.ResourceData, meta interface{
 		name = id.Path["Deployments"]
 	}
 
-	_, err = deployClient.Delete(ctx, resourceGroup, name)
+	_, err = client.Delete(ctx, resourceGroup, name)
 	if err != nil {
 		return err
 	}
 
-	return waitForTemplateDeploymentToBeDeleted(ctx, deployClient, resourceGroup, name)
+	timeout := d.Timeout(schema.TimeoutDelete)
+	return waitForTemplateDeploymentToBeDeleted(ctx, client, resourceGroup, name, timeout)
 }
 
 // TODO: move this out into the new `helpers` structure
@@ -265,14 +288,16 @@ func normalizeJson(jsonString interface{}) string {
 	return string(b[:])
 }
 
-func waitForTemplateDeploymentToBeDeleted(ctx context.Context, client resources.DeploymentsClient, resourceGroup, name string) error {
+func waitForTemplateDeploymentToBeDeleted(ctx context.Context, client resources.DeploymentsClient, resourceGroup, name string, timeout time.Duration) error {
+	waitCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
 	// we can't use the Waiter here since the API returns a 200 once it's deleted which is considered a polling status code..
 	log.Printf("[DEBUG] Waiting for Template Deployment (%q in Resource Group %q) to be deleted", name, resourceGroup)
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"200"},
 		Target:  []string{"404"},
-		Refresh: templateDeploymentStateStatusCodeRefreshFunc(ctx, client, resourceGroup, name),
-		Timeout: 40 * time.Minute,
+		Refresh: templateDeploymentStateStatusCodeRefreshFunc(waitCtx, client, resourceGroup, name),
+		Timeout: timeout,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Template Deployment (%q in Resource Group %q) to be deleted: %+v", name, resourceGroup, err)

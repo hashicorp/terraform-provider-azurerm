@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -24,6 +25,29 @@ func TestAccAzureRMTemplateDeployment_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMTemplateDeploymentExists("azurerm_template_deployment.test"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMTemplateDeployment_requiresImport(t *testing.T) {
+	resourceName := "azurerm_template_deployment.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMTemplateDeployment_basicSingle(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMTemplateDeploymentExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMTemplateDeployment_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_template_deployment"),
 			},
 		},
 	})
@@ -184,7 +208,8 @@ func testCheckAzureRMTemplateDeploymentDisappears(name string) resource.TestChec
 			return fmt.Errorf("Failed deleting Deployment %q (Resource Group %q): %+v", deploymentName, resourceGroup, err)
 		}
 
-		return waitForTemplateDeploymentToBeDeleted(ctx, client, resourceGroup, deploymentName)
+		timeout := 40 * time.Minute
+		return waitForTemplateDeploymentToBeDeleted(ctx, client, resourceGroup, deploymentName, timeout)
 	}
 }
 
@@ -253,6 +278,21 @@ DEPLOY
     deployment_mode = "Complete"
   }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMTemplateDeployment_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMTemplateDeployment_basicSingle(rInt, location)
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_template_deployment" "import" {
+  name                = "${azurerm_template_deployment.test.name}"
+  resource_group_name = "${azurerm_template_deployment.test.resource_group_name}"
+  template_body       = "${azurerm_template_deployment.test.template_body}"
+  deployment_mode     = "${azurerm_template_deployment.test.deployment_mode}"
+}
+`, template)
 }
 
 func testAccAzureRMTemplateDeployment_basicMultiple(rInt int, location string) string {

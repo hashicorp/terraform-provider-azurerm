@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_template_deployment"
 sidebar_current: "docs-azurerm-resource-template-deployment"
 description: |-
-  Manages a template deployment of resources.
+  Manages the deployment of an ARM Template.
 ---
 
 # azurerm_template_deployment
 
-Manage a template deployment of resources
+Manages the deployment of an ARM Template
 
 ~> **Note on ARM Template Deployments:** Due to the way the underlying Azure API is designed, Terraform can only manage the deployment of the ARM Template - and not any resources which are created by it.
 This means that when deleting the `azurerm_template_deployment` resource, Terraform will only remove the reference to the deployment, whilst leaving any resources created by that ARM Template Deployment.
@@ -131,3 +131,12 @@ The following attributes are exported:
 ## Note
 
 Terraform does not know about the individual resources created by Azure using a deployment template and therefore cannot delete these resources during a destroy. Destroying a template deployment removes the associated deployment operations, but will not delete the Azure resources created by the deployment. In order to delete these resources, the containing resource group must also be destroyed. [More information](https://docs.microsoft.com/en-us/rest/api/resources/deployments#Deployments_Delete).
+
+## Import
+
+Template Deployments can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_template_deployment.test /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.Resources/deployments/deployment1
+```
+
