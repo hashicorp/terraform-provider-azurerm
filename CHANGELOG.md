@@ -2,6 +2,7 @@
 
 IMPROVEMENTS:
 
+* authentication: making the client registration consistent [GH-1845]
 * `azurerm_iothub` - exporting the `event_hub_events_endpoint`, `event_hub_events_path`, `event_hub_operations_endpoint` and `event_hub_operations_path` fields [GH-1789]
 * `azurerm_iothub` - support for `endpoint` and `route` blocks [GH-1693]
 * `azurerm_kubernetes_cluster` - making `linux_profile` optional [GH-1821]
