@@ -323,9 +323,17 @@ func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Autho
 	setUserAgent(client)
 	client.Authorizer = auth
 	//client.RequestInspector = azure.WithClientID(clientRequestID())
-	client.Sender = autorest.CreateSender(withRequestLogging())
+	client.Sender = buildSender()
 	client.SkipResourceProviderRegistration = c.skipProviderRegistration
 	client.PollingDuration = 60 * time.Minute
+}
+
+func buildSender() autorest.Sender {
+	return autorest.DecorateSender(&http.Client{
+		Transport: &http.Transport{
+			Proxy: http.ProxyFromEnvironment,
+		},
+	}, withRequestLogging())
 }
 
 func withRequestLogging() autorest.SendDecorator {
@@ -451,7 +459,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 		return nil, fmt.Errorf("Unable to configure OAuthConfig for tenant %s", c.TenantID)
 	}
 
-	sender := autorest.CreateSender(withRequestLogging())
+	sender := buildSender()
 
 	// Resource Manager endpoints
 	endpoint := env.ResourceManagerEndpoint
