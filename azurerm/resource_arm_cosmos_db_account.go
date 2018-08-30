@@ -198,6 +198,7 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 								"EnableTable",
 								"EnableGremlin",
 								`EnableCassandra`,
+								"EnableAggregationPipeline",
 							}, true),
 						},
 					},
