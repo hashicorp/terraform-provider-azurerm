@@ -13,6 +13,7 @@ import (
 )
 
 func TestAccAzureRMStorageTable_basic(t *testing.T) {
+	resourceName := "azurerm_storage_table.test"
 	var table storage.Table
 
 	ri := acctest.RandInt()
@@ -27,8 +28,13 @@ func TestAccAzureRMStorageTable_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageTableExists("azurerm_storage_table.test", &table),
+					testCheckAzureRMStorageTableExists(resourceName, &table),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

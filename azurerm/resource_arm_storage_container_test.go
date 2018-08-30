@@ -13,6 +13,7 @@ import (
 )
 
 func TestAccAzureRMStorageContainer_basic(t *testing.T) {
+	resourceName := "azurerm_storage_container.test"
 	var c storage.Container
 
 	ri := acctest.RandInt()
@@ -27,8 +28,13 @@ func TestAccAzureRMStorageContainer_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists("azurerm_storage_container.test", &c),
+					testCheckAzureRMStorageContainerExists(resourceName, &c),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -59,6 +65,7 @@ func TestAccAzureRMStorageContainer_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMStorageContainer_root(t *testing.T) {
+	resourceName := "azurerm_storage_container.test"
 	var c storage.Container
 
 	ri := acctest.RandInt()
@@ -73,9 +80,14 @@ func TestAccAzureRMStorageContainer_root(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists("azurerm_storage_container.test", &c),
-					resource.TestCheckResourceAttr("azurerm_storage_container.test", "name", "$root"),
+					testCheckAzureRMStorageContainerExists(resourceName, &c),
+					resource.TestCheckResourceAttr(resourceName, "name", "$root"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
