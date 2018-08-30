@@ -161,9 +161,10 @@ func TestAccAzureRMStorageBlob_basic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
 			},
 		},
 	})
@@ -283,11 +284,6 @@ func TestAccAzureRMStorageBlobPage_source(t *testing.T) {
 					testCheckAzureRMStorageBlobMatchesFile(resourceName, storage.BlobTypePage, sourceBlob.Name()),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
 		},
 	})
 }
@@ -325,9 +321,10 @@ func TestAccAzureRMStorageBlob_source_uri(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
 			},
 		},
 	})
@@ -702,31 +699,32 @@ resource "azurerm_storage_account" "source" {
 }
 
 resource "azurerm_storage_container" "source" {
-    name = "source"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    storage_account_name = "${azurerm_storage_account.source.name}"
-    container_access_type = "blob"
+  name = "source"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.source.name}"
+  container_access_type = "blob"
 }
 
 resource "azurerm_storage_blob" "source" {
-    name = "source.vhd"
+  name = "source.vhd"
 
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    storage_account_name = "${azurerm_storage_account.source.name}"
-    storage_container_name = "${azurerm_storage_container.source.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.source.name}"
+  storage_container_name = "${azurerm_storage_container.source.name}"
 
-    type = "block"
-    source = "%s"
-    parallelism = 4
-    attempts = 2
+  type = "block"
+  source = "%s"
+  parallelism = 4
+  attempts = 2
 }
 
 resource "azurerm_storage_blob" "destination" {
-    name = "destination.vhd"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    storage_account_name = "${azurerm_storage_account.source.name}"
-    storage_container_name = "${azurerm_storage_container.source.name}"
-    source_uri = "${azurerm_storage_blob.source.url}"
+  name = "destination.vhd"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.source.name}"
+  storage_container_name = "${azurerm_storage_container.source.name}"
+  source_uri = "${azurerm_storage_blob.source.url}"
+  type = "block"
 }
 `, rInt, location, rString, sourceBlobName)
 }

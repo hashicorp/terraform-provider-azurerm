@@ -18,7 +18,6 @@ func resourceArmStorageContainer() *schema.Resource {
 	return &schema.Resource{
 		Create:        resourceArmStorageContainerCreate,
 		Read:          resourceArmStorageContainerRead,
-		Exists:        resourceArmStorageContainerExists,
 		Delete:        resourceArmStorageContainerDelete,
 		MigrateState:  resourceStorageContainerMigrateState,
 		SchemaVersion: 1,
@@ -92,6 +91,7 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 	armClient := meta.(*ArmClient)
 	ctx := armClient.StopContext
 
+	name := d.Get("name").(string)
 	resourceGroupName := d.Get("resource_group_name").(string)
 	storageAccountName := d.Get("storage_account_name").(string)
 
@@ -102,8 +102,6 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 	if !accountExists {
 		return fmt.Errorf("Storage Account %q Not Found", storageAccountName)
 	}
-
-	name := d.Get("name").(string)
 
 	var accessType storage.ContainerAccessType
 	if d.Get("container_access_type").(string) == "private" {
@@ -187,6 +185,17 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 		return nil
 	}
 
+	d.Set("name", id.containerName)
+	d.Set("storage_account_name", id.storageAccountName)
+	d.Set("resource_group_name", resourceGroup)
+
+	// for historical reasons, "private" above is an empty string in the API
+	if container.Properties.PublicAccess == storage.ContainerAccessTypePrivate {
+		d.Set("container_access_type", "private")
+	} else {
+		d.Set("container_access_type", string(container.Properties.PublicAccess))
+	}
+
 	output := make(map[string]interface{})
 
 	output["last_modified"] = container.Properties.LastModified
@@ -199,48 +208,6 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	return nil
-}
-
-func resourceArmStorageContainerExists(d *schema.ResourceData, meta interface{}) (bool, error) {
-	armClient := meta.(*ArmClient)
-	ctx := armClient.StopContext
-
-	id, err := parseStorageContainerID(d.Id(), armClient.environment)
-	if err != nil {
-		return false, err
-	}
-
-	resourceGroup, err := determineResourceGroupForStorageAccount(id.storageAccountName, armClient)
-	if err != nil {
-		return false, err
-	}
-	if resourceGroup == nil {
-		log.Printf("Cannot locate Resource Group for Storage Account %q (presuming it's gone) - removing from state", id.storageAccountName)
-		return false, nil
-	}
-
-	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, *resourceGroup, id.storageAccountName)
-	if err != nil {
-		return false, err
-	}
-	if !accountExists {
-		log.Printf("[DEBUG] Storage account %q not found, removing container %q from state", id.storageAccountName, d.Id())
-		d.SetId("")
-		return false, nil
-	}
-
-	log.Printf("[INFO] Checking existence of storage container %q in storage account %q", id.containerName, id.storageAccountName)
-	reference := blobClient.GetContainerReference(id.containerName)
-	exists, err := reference.Exists()
-	if err != nil {
-		return false, fmt.Errorf("Error querying existence of storage container %q in storage account %q: %s", id.containerName, id.storageAccountName, err)
-	}
-
-	if !exists {
-		log.Printf("[INFO] Storage container %q does not exist in account %q, removing from state...", id.containerName, id.storageAccountName)
-	}
-
-	return exists, nil
 }
 
 // resourceAzureStorageContainerDelete does all the necessary API calls to
@@ -305,7 +272,8 @@ func parseStorageContainerID(input string, environment azure.Environment) (*stor
 		return nil, fmt.Errorf("Error parsing %q as URI: %+v", input, err)
 	}
 
-	segments := strings.Split(uri.Path, "/")
+	// remove the leading `/`
+	segments := strings.Split(strings.TrimPrefix(uri.Path, "/"), "/")
 	if len(segments) < 1 {
 		return nil, fmt.Errorf("Expected number of segments in the path to be < 1 but got %d", len(segments))
 	}
