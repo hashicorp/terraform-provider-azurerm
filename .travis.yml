@@ -14,11 +14,9 @@ install:
 - bash scripts/gogetcookie.sh
 - go get github.com/kardianos/govendor
 
+# Any step fails will stop the Travis CI from running.
 script:
-- make test
-- make vendor-status
-- make vet
-- make website-test
+- make ci-test
 
 branches:
   only:
