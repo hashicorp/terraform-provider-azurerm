@@ -191,46 +191,73 @@ func resourceArmTemplateDeploymentRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error making Read request on Azure RM Template Deployment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	outputs := make(map[string]string, 0)
-	if outs := resp.Properties.Outputs; outs != nil {
-		outsVal := outs.(map[string]interface{})
-		if len(outsVal) > 0 {
-			for key, output := range outsVal {
-				log.Printf("[DEBUG] Processing deployment output %s", key)
-				outputMap := output.(map[string]interface{})
-				outputValue, ok := outputMap["value"]
-				if !ok {
-					log.Printf("[DEBUG] No value - skipping")
-					continue
-				}
-				outputType, ok := outputMap["type"]
-				if !ok {
-					log.Printf("[DEBUG] No type - skipping")
-					continue
-				}
-
-				var outputValueString string
-				switch strings.ToLower(outputType.(string)) {
-				case "bool":
-					outputValueString = strconv.FormatBool(outputValue.(bool))
-
-				case "string":
-					outputValueString = outputValue.(string)
-
-				case "int":
-					outputValueString = fmt.Sprint(outputValue)
-
-				default:
-					log.Printf("[WARN] Ignoring output %s: Outputs of type %s are not currently supported in azurerm_template_deployment.",
-						key, outputType)
-					continue
-				}
-				outputs[key] = outputValueString
-			}
-		}
+	templ, err := client.ExportTemplate(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error exporting ARM Template for Template Deployment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	return d.Set("outputs", outputs)
+	d.Set("name", name)
+	d.Set("resource_group_name", resourceGroup)
+
+	if props := resp.Properties; props != nil {
+		outputs := flattenTemplateDeploymentOutputs(props.Outputs)
+		if err := d.Set("outputs", outputs); err != nil {
+			return fmt.Errorf("Error setting `outputs`: %+v", err)
+		}
+
+		d.Set("deployment_mode", string(props.Mode))
+	}
+
+	template, err := flattenTemplateBody(templ.Template)
+	if err != nil {
+		return fmt.Errorf("Error flattening `template_body`: %s", err)
+	}
+	d.Set("template_body", template)
+
+	return nil
+}
+
+func flattenTemplateDeploymentOutputs(input interface{}) map[string]string {
+	outputs := make(map[string]string, 0)
+	if input == nil {
+		return outputs
+	}
+
+	outsVal := input.(map[string]interface{})
+	for key, output := range outsVal {
+		log.Printf("[DEBUG] Processing deployment output %s", key)
+		outputMap := output.(map[string]interface{})
+		outputValue, ok := outputMap["value"]
+		if !ok {
+			log.Printf("[DEBUG] No value - skipping")
+			continue
+		}
+		outputType, ok := outputMap["type"]
+		if !ok {
+			log.Printf("[DEBUG] No type - skipping")
+			continue
+		}
+
+		var outputValueString string
+		switch strings.ToLower(outputType.(string)) {
+		case "bool":
+			outputValueString = strconv.FormatBool(outputValue.(bool))
+
+		case "string":
+			outputValueString = outputValue.(string)
+
+		case "int":
+			outputValueString = fmt.Sprint(outputValue)
+
+		default:
+			log.Printf("[WARN] Ignoring output %s: Outputs of type %s are not currently supported in azurerm_template_deployment.",
+				key, outputType)
+			continue
+		}
+		outputs[key] = outputValueString
+	}
+
+	return outputs
 }
 
 func resourceArmTemplateDeploymentDelete(d *schema.ResourceData, meta interface{}) error {
@@ -273,6 +300,21 @@ func expandTemplateBody(template string) (map[string]interface{}, error) {
 		return nil, fmt.Errorf("Error Expanding the template_body for Azure RM Template Deployment")
 	}
 	return templateBody, nil
+}
+
+func flattenTemplateBody(input interface{}) (*string, error) {
+	if input == nil {
+		return nil, nil
+	}
+
+	v := input.(map[string]interface{})
+	bytes, err := json.Marshal(v)
+	if err != nil {
+		return nil, fmt.Errorf("Error marshalling the ARM Template: %+v", err)
+	}
+
+	str := string(bytes)
+	return &str, nil
 }
 
 func normalizeJson(jsonString interface{}) string {

@@ -13,6 +13,7 @@ import (
 )
 
 func TestAccAzureRMTemplateDeployment_basic(t *testing.T) {
+	resourceName := "azurerm_template_deployment.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMTemplateDeployment_basicMultiple(ri, testLocation())
 	resource.Test(t, resource.TestCase{
@@ -23,8 +24,13 @@ func TestAccAzureRMTemplateDeployment_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTemplateDeploymentExists("azurerm_template_deployment.test"),
+					testCheckAzureRMTemplateDeploymentExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -311,7 +317,7 @@ func testAccAzureRMTemplateDeployment_basicMultiple(rInt int, location string) s
   "contentVersion": "1.0.0.0",
   "parameters": {
     "storageAccountType": {
-      "type": "string",
+      "type": "String",
       "defaultValue": "Standard_LRS",
       "allowedValues": [
         "Standard_LRS",
@@ -394,8 +400,7 @@ resource "azurerm_key_vault" "test-kv" {
   access_policy {
     key_permissions = []
     object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
-    secret_permissions = [
-      "get","list","set","purge"]
+    secret_permissions = ["get","list","set","purge"]
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
   }
 }
@@ -433,7 +438,7 @@ resource "azurerm_template_deployment" "test" {
   "contentVersion": "1.0.0.0",
   "parameters": {
     "storageAccountType": {
-      "type": "string",
+      "type": "String",
       "defaultValue": "Standard_LRS",
       "allowedValues": [
         "Standard_LRS",
@@ -445,7 +450,7 @@ resource "azurerm_template_deployment" "test" {
       }
     },
     "dnsLabelPrefix": {
-      "type": "string",
+      "type": "String",
       "metadata": {
         "description": "DNS Label for the Public IP. Must be lowercase. It should match with the following regular expression: ^[a-z][a-z0-9-]{1,61}[a-z0-9]$ or it will raise an error."
       }
@@ -483,11 +488,11 @@ resource "azurerm_template_deployment" "test" {
   ],
   "outputs": {
     "testOutput": {
-      "type": "string",
+      "type": "String",
       "value": "Output Value"
     },
     "accountName": {
-      "type": "string",
+      "type": "String",
       "value": "[variables('storageAccountName')]"
     }
   }
@@ -529,7 +534,7 @@ func testAccAzureRMTemplateDeployment_withParams(rInt int, location string) stri
   "contentVersion": "1.0.0.0",
   "parameters": {
     "storageAccountType": {
-      "type": "string",
+      "type": "String",
       "defaultValue": "Standard_LRS",
       "allowedValues": [
         "Standard_LRS",
@@ -541,7 +546,7 @@ func testAccAzureRMTemplateDeployment_withParams(rInt int, location string) stri
       }
     },
     "dnsLabelPrefix": {
-      "type": "string",
+      "type": "String",
       "metadata": {
         "description": "DNS Label for the Public IP. Must be lowercase. It should match with the following regular expression: ^[a-z][a-z0-9-]{1,61}[a-z0-9]$ or it will raise an error."
       }
@@ -579,19 +584,19 @@ func testAccAzureRMTemplateDeployment_withParams(rInt int, location string) stri
   ],
   "outputs": {
     "testOutput": {
-      "type": "string",
+      "type": "String",
       "value": "Output Value"
     },
     "accountName": {
-      "type": "string",
+      "type": "String",
       "value": "[variables('storageAccountName')]"
     }
   }
 }
 DEPLOY
     parameters {
-	dnsLabelPrefix = "terraform-test-%d"
-	storageAccountType = "Standard_GRS"
+	  dnsLabelPrefix = "terraform-test-%d"
+	  storageAccountType = "Standard_GRS"
     }
     deployment_mode = "Complete"
   }
@@ -630,7 +635,7 @@ func testAccAzureRMTemplateDeployment_withOutputs(rInt int, location string) str
   "contentVersion": "1.0.0.0",
   "parameters": {
     "storageAccountType": {
-      "type": "string",
+      "type": "String",
       "defaultValue": "Standard_LRS",
       "allowedValues": [
         "Standard_LRS",
@@ -642,21 +647,21 @@ func testAccAzureRMTemplateDeployment_withOutputs(rInt int, location string) str
       }
     },
     "dnsLabelPrefix": {
-      "type": "string",
+      "type": "String",
       "metadata": {
         "description": "DNS Label for the Public IP. Must be lowercase. It should match with the following regular expression: ^[a-z][a-z0-9-]{1,61}[a-z0-9]$ or it will raise an error."
       }
     },
     "intParameter": {
-      "type": "int",
+      "type": "Int",
       "defaultValue": -123
     },
     "falseParameter": {
-      "type": "bool",
+      "type": "Bool",
       "defaultValue": false
     },
     "trueParameter": {
-      "type": "bool",
+      "type": "Bool",
       "defaultValue": true
     }
   },
@@ -692,19 +697,19 @@ func testAccAzureRMTemplateDeployment_withOutputs(rInt int, location string) str
   ],
   "outputs": {
     "stringOutput": {
-      "type": "string",
+      "type": "String",
       "value": "[parameters('storageAccountType')]"
     },
     "intOutput": {
-      "type": "int",
+      "type": "Int",
       "value": "[parameters('intParameter')]"
     },
     "falseOutput": {
-      "type": "bool",
+      "type": "Bool",
       "value": "[parameters('falseParameter')]"
     },
     "trueOutput": {
-      "type": "bool",
+      "type": "Bool",
       "value": "[parameters('trueParameter')]"
     }
   }
@@ -740,7 +745,7 @@ resource "azurerm_resource_group" "test" {
   "contentVersion": "1.0.0.0",
   "parameters": {
     "storageAccountType": {
-      "type": "string",
+      "type": "String",
       "defaultValue": "Standard_LRS",
       "allowedValues": [
         "Standard_LRS",
@@ -770,7 +775,7 @@ resource "azurerm_resource_group" "test" {
   ],
   "outputs": {
     "testOutput": {
-      "type": "string",
+      "type": "String",
       "value": "Output Value"
     }
   }
