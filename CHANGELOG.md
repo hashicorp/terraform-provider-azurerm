@@ -21,6 +21,7 @@ BUG FIXES:
 * `azurerm_kubernetes_cluster` - removing validation for the `pod_cidr` field when `network_plugin` is set to `azure` [GH-1798]
 * `azurerm_logic_app_workflow` - ensuring parameters are strings [GH-1843]
 * `azurerm_virtual_machine` - setting the `image_uri` property within the `storage_os_disk` block [GH-1799]
+* `azurerm_virtual_machine_data_disk_attachment` - obtaining a basic view, rather than the entire instance view of the Virtual Machine to work around an issue in the API [GH-1855]
 
 ## 1.13.0 (August 15, 2018)
 
