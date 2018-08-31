@@ -142,7 +142,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 
 			"linux_profile": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -445,7 +445,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 			DNSPrefix:               &dnsPrefix,
 			KubernetesVersion:       &kubernetesVersion,
 			EnableRBAC:              &enableRbac,
-			LinuxProfile:            &linuxProfile,
+			LinuxProfile:            linuxProfile,
 			ServicePrincipalProfile: servicePrincipalProfile,
 			AadProfile:              aadProfile,
 			NetworkProfile:          networkProfile,
@@ -588,33 +588,40 @@ func resourceArmKubernetesClusterDelete(d *schema.ResourceData, meta interface{}
 	return future.WaitForCompletionRef(ctx, kubernetesClustersClient.Client)
 }
 
-func flattenAzureRmKubernetesClusterLinuxProfile(input *containerservice.LinuxProfile) []interface{} {
+func flattenAzureRmKubernetesClusterLinuxProfile(profile *containerservice.LinuxProfile) []interface{} {
+	if profile == nil {
+		return []interface{}{}
+	}
+
 	values := make(map[string]interface{})
 	sshKeys := make([]interface{}, 0)
 
-	if profile := input; profile != nil {
-		if username := profile.AdminUsername; username != nil {
-			values["admin_username"] = *username
-		}
+	if username := profile.AdminUsername; username != nil {
+		values["admin_username"] = *username
+	}
 
-		if ssh := profile.SSH; ssh != nil {
-			if keys := ssh.PublicKeys; keys != nil {
-				for _, sshKey := range *keys {
-					outputs := make(map[string]interface{}, 0)
-					if keyData := sshKey.KeyData; keyData != nil {
-						outputs["key_data"] = *keyData
-					}
-					sshKeys = append(sshKeys, outputs)
+	if ssh := profile.SSH; ssh != nil {
+		if keys := ssh.PublicKeys; keys != nil {
+			for _, sshKey := range *keys {
+				outputs := make(map[string]interface{}, 0)
+				if keyData := sshKey.KeyData; keyData != nil {
+					outputs["key_data"] = *keyData
 				}
+				sshKeys = append(sshKeys, outputs)
 			}
 		}
 	}
+
 	values["ssh_key"] = sshKeys
 
 	return []interface{}{values}
 }
 
 func flattenAzureRmKubernetesClusterAgentPoolProfiles(profiles *[]containerservice.ManagedClusterAgentPoolProfile, fqdn *string) []interface{} {
+	if profiles == nil {
+		return []interface{}{}
+	}
+
 	agentPoolProfiles := make([]interface{}, 0)
 
 	for _, profile := range *profiles {
@@ -751,6 +758,10 @@ func flattenAzureRmKubernetesClusterAccessProfileRBAC(profile *containerservice.
 }
 
 func flattenAzureRmKubernetesClusterNetworkProfile(profile *containerservice.NetworkProfile) []interface{} {
+	if profile == nil {
+		return []interface{}{}
+	}
+
 	values := make(map[string]interface{})
 
 	values["network_plugin"] = profile.NetworkPlugin
@@ -809,8 +820,13 @@ func flattenKubernetesClusterKubeConfigRBAC(config kubernetes.KubeConfigRBAC) []
 	return []interface{}{values}
 }
 
-func expandAzureRmKubernetesClusterLinuxProfile(d *schema.ResourceData) containerservice.LinuxProfile {
+func expandAzureRmKubernetesClusterLinuxProfile(d *schema.ResourceData) *containerservice.LinuxProfile {
 	profiles := d.Get("linux_profile").([]interface{})
+
+	if len(profiles) == 0 {
+		return nil
+	}
+
 	config := profiles[0].(map[string]interface{})
 
 	adminUsername := config["admin_username"].(string)
@@ -833,7 +849,7 @@ func expandAzureRmKubernetesClusterLinuxProfile(d *schema.ResourceData) containe
 		},
 	}
 
-	return profile
+	return &profile
 }
 
 func expandAzureRmKubernetesClusterServicePrincipal(d *schema.ResourceData) *containerservice.ServicePrincipalProfile {

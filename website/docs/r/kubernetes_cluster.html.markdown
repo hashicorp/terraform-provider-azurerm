@@ -27,14 +27,6 @@ resource "azurerm_kubernetes_cluster" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   dns_prefix          = "acctestagent1"
 
-  linux_profile {
-    admin_username = "acctestuser1"
-
-    ssh_key {
-      key_data = "ssh-rsa ..."
-    }
-  }
-
   agent_pool_profile {
     name            = "default"
     count           = 1
@@ -180,7 +172,7 @@ The following arguments are supported:
 
 * `dns_prefix` - (Required) DNS prefix specified when creating the managed cluster.
 
-* `linux_profile` - (Required) A Linux Profile block as documented below.
+* `linux_profile` - (Optional) A Linux Profile block as documented below.
 
 * `agent_pool_profile` - (Required) One or more Agent Pool Profile's block as documented below.
 
