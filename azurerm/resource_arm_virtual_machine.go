@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"net/url"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"golang.org/x/net/context"
 )
@@ -21,12 +22,17 @@ var virtualMachineResourceName = "azurerm_virtual_machine"
 
 func resourceArmVirtualMachine() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualMachineCreate,
+		Create: resourceArmVirtualMachineCreateUpdate,
 		Read:   resourceArmVirtualMachineRead,
-		Update: resourceArmVirtualMachineCreate,
+		Update: resourceArmVirtualMachineCreateUpdate,
 		Delete: resourceArmVirtualMachineDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 60),
+			Update: schema.DefaultTimeout(time.Minute * 60),
+			Delete: schema.DefaultTimeout(time.Minute * 60),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -551,15 +557,30 @@ func resourceArmVirtualMachine() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualMachineCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmVirtualMachineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).vmClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Virtual Machine creation.")
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
+
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resGroup, name, "")
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of Virtual Machine %q (Resource Group %q): %+v", name, resGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_virtual_machine", *resp.ID)
+		}
+	}
+
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
 	zones := expandZones(d.Get("zones").([]interface{}))
@@ -657,7 +678,9 @@ func resourceArmVirtualMachineCreate(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -835,7 +858,9 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -850,11 +875,11 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 		}
 
 		if osDisk.Vhd != nil {
-			if err = resourceArmVirtualMachineDeleteVhd(*osDisk.Vhd.URI, meta); err != nil {
+			if err = resourceArmVirtualMachineDeleteVhd(waitCtx, *osDisk.Vhd.URI, meta); err != nil {
 				return fmt.Errorf("Error deleting OS Disk VHD: %+v", err)
 			}
 		} else if osDisk.ManagedDisk != nil {
-			if err = resourceArmVirtualMachineDeleteManagedDisk(*osDisk.ManagedDisk.ID, meta); err != nil {
+			if err = resourceArmVirtualMachineDeleteManagedDisk(waitCtx, *osDisk.ManagedDisk.ID, meta); err != nil {
 				return fmt.Errorf("Error deleting OS Managed Disk: %+v", err)
 			}
 		} else {
@@ -873,11 +898,11 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 
 		for _, disk := range disks {
 			if disk.Vhd != nil {
-				if err = resourceArmVirtualMachineDeleteVhd(*disk.Vhd.URI, meta); err != nil {
+				if err = resourceArmVirtualMachineDeleteVhd(waitCtx, *disk.Vhd.URI, meta); err != nil {
 					return fmt.Errorf("Error deleting Data Disk VHD: %+v", err)
 				}
 			} else if disk.ManagedDisk != nil {
-				if err = resourceArmVirtualMachineDeleteManagedDisk(*disk.ManagedDisk.ID, meta); err != nil {
+				if err = resourceArmVirtualMachineDeleteManagedDisk(waitCtx, *disk.ManagedDisk.ID, meta); err != nil {
 					return fmt.Errorf("Error deleting Data Managed Disk: %+v", err)
 				}
 			} else {
@@ -889,45 +914,31 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceArmVirtualMachineDeleteVhd(uri string, meta interface{}) error {
+func resourceArmVirtualMachineDeleteVhd(ctx context.Context, uri string, meta interface{}) error {
 	armClient := meta.(*ArmClient)
-	ctx := armClient.StopContext
 	environment := armClient.environment
 
-	vhdURL, err := url.Parse(uri)
-	if err != nil {
-		return fmt.Errorf("Cannot parse Disk VHD URI: %s", err)
-	}
-
-	blobDomainSuffix := environment.StorageEndpointSuffix
-	if !strings.HasSuffix(strings.ToLower(vhdURL.Host), strings.ToLower(blobDomainSuffix)) {
-		return fmt.Errorf("Error: Disk VHD URI %q doesn't appear to be a Blob Storage URI (%q) - expected a suffix of %q)", uri, vhdURL.Host, blobDomainSuffix)
-	}
-
 	// VHD URI is in the form: https://storageAccountName.blob.core.windows.net/containerName/blobName
-	storageAccountName := strings.Split(vhdURL.Host, ".")[0]
-	path := strings.Split(strings.TrimPrefix(vhdURL.Path, "/"), "/")
-	containerName := path[0]
-	blobName := path[1]
+	blobId, err := parseStorageBlobID(uri, environment)
 
-	resourceGroupName, err := findStorageAccountResourceGroup(meta, storageAccountName)
+	resourceGroupName, err := findStorageAccountResourceGroup(meta, blobId.storageAccountName)
 	if err != nil {
-		return fmt.Errorf("Error finding resource group for storage account %s: %+v", storageAccountName, err)
+		return fmt.Errorf("Error finding resource group for storage account %s: %+v", blobId.storageAccountName, err)
 	}
 
-	blobClient, saExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
+	blobClient, saExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroupName, blobId.storageAccountName)
 	if err != nil {
 		return fmt.Errorf("Error creating blob store client for VHD deletion: %+v", err)
 	}
 
 	if !saExists {
-		log.Printf("[INFO] Storage Account %q in resource group %q doesn't exist so the VHD blob won't exist", storageAccountName, resourceGroupName)
+		log.Printf("[INFO] Storage Account %q in resource group %q doesn't exist so the VHD blob won't exist", blobId.storageAccountName, resourceGroupName)
 		return nil
 	}
 
-	log.Printf("[INFO] Deleting VHD blob %s", blobName)
-	container := blobClient.GetContainerReference(containerName)
-	blob := container.GetBlobReference(blobName)
+	log.Printf("[INFO] Deleting VHD blob %s", blobId.blobName)
+	container := blobClient.GetContainerReference(blobId.containerName)
+	blob := container.GetBlobReference(blobId.blobName)
 	options := &storage.DeleteBlobOptions{}
 	err = blob.Delete(options)
 	if err != nil {
@@ -937,9 +948,8 @@ func resourceArmVirtualMachineDeleteVhd(uri string, meta interface{}) error {
 	return nil
 }
 
-func resourceArmVirtualMachineDeleteManagedDisk(managedDiskID string, meta interface{}) error {
+func resourceArmVirtualMachineDeleteManagedDisk(ctx context.Context, managedDiskID string, meta interface{}) error {
 	client := meta.(*ArmClient).diskClient
-	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(managedDiskID)
 	if err != nil {
@@ -963,6 +973,7 @@ func resourceArmVirtualMachineDeleteManagedDisk(managedDiskID string, meta inter
 
 func flattenAzureRmVirtualMachinePlan(plan *compute.Plan) []interface{} {
 	result := make(map[string]interface{})
+
 	result["name"] = *plan.Name
 	result["publisher"] = *plan.Publisher
 	result["product"] = *plan.Product

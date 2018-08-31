@@ -12,6 +12,30 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
+func TestAccAzureRMVirtualMachine_requiresImport(t *testing.T) {
+	resourceName := "azurerm_virtual_machine.test"
+	var vm compute.VirtualMachine
+	ri := acctest.RandInt()
+	location := testLocation()
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualMachine_basicLinuxMachine(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineExists(resourceName, &vm),
+				),
+			},
+			{
+				Config:      testAccAzureRMVirtualMachine_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_virtual_machine"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMVirtualMachine_winTimeZone(t *testing.T) {
 	resourceName := "azurerm_virtual_machine.test"
 	var vm compute.VirtualMachine

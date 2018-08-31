@@ -684,6 +684,51 @@ resource "azurerm_virtual_machine" "test" {
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
 }
 
+func testAccAzureRMVirtualMachine_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMVirtualMachine_basicLinuxMachine(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_machine" "import" {
+  name                  = "${azurerm_virtual_machine.test.name}"
+  location              = "${azurerm_virtual_machine.test.location}"
+  resource_group_name   = "${azurerm_virtual_machine.test.resource_group_name}"
+  vm_size               = "${azurerm_virtual_machine.test.vm_size}"
+  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  storage_os_disk {
+    name            = "myosdisk1"
+    vhd_uri         = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+    caching         = "ReadWrite"
+    create_option   = "FromImage"
+    disk_size_gb    = 45
+  }
+
+  os_profile {
+    computer_name  = "hn%d"
+    admin_username = "testadmin"
+    admin_password = "Password1234!"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
+
+  tags {
+    environment = "Production"
+    cost-center = "Ops"
+  }
+}
+`, template, rInt)
+}
+
 func testAccAzureRMVirtualMachine_basicLinuxMachine_destroyVM(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
