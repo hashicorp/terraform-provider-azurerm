@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"regexp"
@@ -151,9 +152,16 @@ func resourceArmAutomationDscConfigurationRead(d *schema.ResourceData, meta inte
 		d.Set("state", resp.State)
 	}
 
-	//TODO: client.GetContent to fetch content
-	//This function from Azure GO SDK currently is broken as it tries to unmarshal json while return is string
-	//https://github.com/Azure/azure-sdk-for-go/issues/2486
+	contentresp, contenterr := client.GetContent(ctx, resGroup, accName, name)
+	if contenterr != nil {
+		return fmt.Errorf("Error making Read request on AzureRM Automation Dsc Configuration content %q: %+v", name, contenterr)
+	}
+
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(contentresp.Body)
+	content := buf.String()
+
+	d.Set("content_embedded", content)
 
 	return nil
 }

@@ -27,14 +27,13 @@ func TestAccAzureRMAutomationDscConfiguration_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "description", "test"),
 					resource.TestCheckResourceAttrSet(resourceName, "log_verbose"),
 					resource.TestCheckResourceAttrSet(resourceName, "state"),
+					resource.TestCheckResourceAttr(resourceName, "content_embedded", "configuration test {}"),
 				),
 			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				// Cannot check content_embedded at this time as GetContent function from Azure GO SDK is currently broken
-				ImportStateVerifyIgnore: []string{"content_embedded"},
 			},
 		},
 	})
