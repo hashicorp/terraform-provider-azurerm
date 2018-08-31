@@ -74,6 +74,29 @@ func TestAccAzureRMResourceGroup_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMResourceGroup_requiresImport(t *testing.T) {
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMResourceGroup_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMResourceGroupExists("azurerm_resource_group.test"),
+				),
+			},
+			{
+				Config:      testAccAzureRMResourceGroup_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_resource_group"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMResourceGroup_disappears(t *testing.T) {
 	resourceName := "azurerm_resource_group.test"
 	ri := acctest.RandInt()
@@ -215,6 +238,18 @@ resource "azurerm_resource_group" "test" {
     location = "%s"
 }
 `, rInt, location)
+}
+
+func testAccAzureRMResourceGroup_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMResourceGroup_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_resource_group" "import" {
+  name     = "${azurerm_resource_group.test.name}"
+  location = "${azurerm_resource_group.test.location}"
+}
+`, template)
 }
 
 func testAccAzureRMResourceGroup_withTags(rInt int, location string) string {
