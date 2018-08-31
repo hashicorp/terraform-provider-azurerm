@@ -98,6 +98,30 @@ func TestAccAzureRMVirtualNetwork_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualNetwork_requiresImport(t *testing.T) {
+	resourceName := "azurerm_virtual_network.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualNetworkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualNetwork_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMVirtualNetwork_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_virtual_network"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMVirtualNetwork_disappears(t *testing.T) {
 	resourceName := "azurerm_virtual_network.test"
 	ri := acctest.RandInt()
@@ -264,6 +288,25 @@ func testCheckAzureRMVirtualNetworkDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func testAccAzureRMVirtualNetwork_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMVirtualNetwork_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_network" "import" {
+  name                = "${azurerm_virtual_network.test.name}"
+  location            = "${azurerm_virtual_network.test.location}"
+  resource_group_name = "${azurerm_virtual_network.test.resource_group_name}"
+  address_space       = ["10.0.0.0/16"]
+
+  subnet {
+    name           = "subnet1"
+    address_prefix = "10.0.1.0/24"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMVirtualNetwork_basic(rInt int, location string) string {
