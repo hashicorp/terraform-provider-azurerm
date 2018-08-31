@@ -178,6 +178,8 @@ The following arguments are supported:
 
 * `service_principal` - (Required) A Service Principal block as documented below.
 
+* `enable_rbac` - (Optional) True or False. Enables or Disables Kubernetes Role Based Access Control (RBAC). Defaults to True. Changing this forces a new resource to be created.
+
 ---
 
 * `addon_profile` - (Optional) A `addon_profile` block.
@@ -186,6 +188,8 @@ The following arguments are supported:
 
 * `network_profile` - (Optional) A Network Profile block as documented below.
 -> **NOTE:** If `network_profile` is not defined, `kubenet` profile will be used by default.
+
+* `aad_profile` - (Optional) An `aad_profile` block. Used to integrate AzureAD with RBAC. `enable_rbac` must be set to true.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -284,6 +288,38 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 [**Find out more about AKS Advanced Networking**](https://docs.microsoft.com/en-us/azure/aks/networking-overview#advanced-networking)
 
+---
+
+A `aad_profile` block supports the following:
+
+* `server_app_id` - (Required) AzureAD Server Application ID.
+
+* `server_app_secret` - (Required) AzureAD Server Application Secret.
+
+* `client_id` - (Required) AzureAD Client Application ID.
+
+* `tenant_id` - (Required) AzureAD Tenant ID.
+
+
+Here's an example of configuring an AzureAD RBAC Handler:
+
+```
+resource "azurerm_kubernetes_cluster" "test" {
+  # ...
+
+  enable_rbac = true
+
+  aad_profile {
+    client_id = "..."
+    server_app_id = "..."
+    server_app_secret = "..."
+    tenant_id = "..."
+  }
+}
+```
+
+[**Find out more about AKS RBAC using AzureAD**](https://docs.microsoft.com/en-us/azure/aks/aad-integration)
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -294,6 +330,8 @@ The following attributes are exported:
 
 * `node_resource_group` - Auto-generated Resource Group containing AKS Cluster resources.
 
+* `enable_rbac` - Whether Role Based Access Control is currently enabled.
+
 * `kube_config_raw` - Raw Kubernetes config to be used by
     [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and
     other compatible tools
@@ -301,6 +339,8 @@ The following attributes are exported:
 * `http_application_routing` - A `http_application_routing` block as defined below.
 
 * `kube_config` - A `kube_config` block as defined below.
+
+* `aad_profile` - If AzureAD integration with RBAC is in use a `aad_profile` block as defined below.
 
 ---
 
@@ -337,6 +377,20 @@ provider "kubernetes" {
   cluster_ca_certificate = "${base64decode(azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)}"
 }
 ```
+
+
+---
+
+A `aap_profile` block exports the following:
+
+* `server_app_id` - AzureAD Server Application ID.
+
+* `server_app_secret` - AzureAD Server Application Secret.
+
+* `client_id` - AzureAD Client Application ID.
+
+* `tenant_id` - AzureAD Tenant ID.
+
 
 ## Import
 

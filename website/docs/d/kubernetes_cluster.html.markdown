@@ -39,6 +39,8 @@ The following attributes are exported:
 
 * `fqdn` - The FQDN of the Azure Kubernetes Managed Cluster.
 
+* `enable_rbac` - Whether Role Based Access Control is currently enabled.
+
 * `kube_config_raw` - Base64 encoded Kubernetes configuration.
 
 * `node_resource_group` - Auto-generated Resource Group containing AKS Cluster resources.
@@ -60,6 +62,8 @@ The following attributes are exported:
 * `service_principal` - A `service_principal` block as documented below.
 
 * `network_profile` - A `network_profile` block as documented below.
+
+* `aad_profile` - If AzureAD integration with RBAC is in use, a `aad_profile` block as documented below.
 
 * `tags` - A mapping of tags assigned to this resource.
 
@@ -141,6 +145,18 @@ A `oms_agent` block exports the following:
 * `enabled` - Is the OMS Agent Enabled?
 
 * `log_analytics_workspace_id` - The ID of the Log Analytics Workspace which the OMS Agent should send data to.
+
+---
+
+A `aad_profile` block exports the following:
+
+* `server_app_id` - AzureAD Server Application ID.
+
+* `server_app_secret` - AzureAD Server Application Secret.
+
+* `client_id` - AzureAD Client Application ID.
+
+* `tenant_id` - AzureAD Tenant ID.
 
 ---
 
