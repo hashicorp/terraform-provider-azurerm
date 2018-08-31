@@ -8,7 +8,6 @@ import (
 	"net/http/httputil"
 	"os"
 	"sync"
-	"time"
 
 	appinsights "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
@@ -264,7 +263,6 @@ func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Autho
 	client.Authorizer = auth
 	client.Sender = autorest.CreateSender(withRequestLogging())
 	client.SkipResourceProviderRegistration = c.skipProviderRegistration
-	client.PollingDuration = 60 * time.Minute
 }
 
 func withRequestLogging() autorest.SendDecorator {
