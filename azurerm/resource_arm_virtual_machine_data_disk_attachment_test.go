@@ -35,6 +35,29 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualMachineDataDiskAttachment_requiresImport(t *testing.T) {
+	resourceName := "azurerm_virtual_machine_data_disk_attachment.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualMachineDataDiskAttachment_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMVirtualMachineDataDiskAttachment_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_virtual_machine_data_disk_attachment"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(t *testing.T) {
 	firstResourceName := "azurerm_virtual_machine_data_disk_attachment.first"
 	secondResourceName := "azurerm_virtual_machine_data_disk_attachment.second"
@@ -238,6 +261,20 @@ resource "azurerm_virtual_machine_data_disk_attachment" "test" {
   virtual_machine_id = "${azurerm_virtual_machine.test.id}"
   lun                = "0"
   caching            = "None"
+}
+`, template)
+}
+
+func testAccAzureRMVirtualMachineDataDiskAttachment_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMVirtualMachineDataDiskAttachment_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_machine_data_disk_attachment" "import" {
+  managed_disk_id    = "${azurerm_virtual_machine_data_disk_attachment.test.managed_disk_id}"
+  virtual_machine_id = "${azurerm_virtual_machine_data_disk_attachment.test.virtual_machine_id}"
+  lun                = "${azurerm_virtual_machine_data_disk_attachment.test.lun}"
+  caching            = "${azurerm_virtual_machine_data_disk_attachment.test.caching}"
 }
 `, template)
 }

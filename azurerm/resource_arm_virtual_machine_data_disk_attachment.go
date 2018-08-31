@@ -1,13 +1,16 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,6 +22,11 @@ func resourceArmVirtualMachineDataDiskAttachment() *schema.Resource {
 		Delete: resourceArmVirtualMachineDataDiskAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -130,18 +138,24 @@ func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceD
 	}
 
 	disks := *virtualMachine.StorageProfile.DataDisks
+
+	// iterate over the disks and swap it out in-place
+	existingIndex := -1
+	for i, disk := range disks {
+		if *disk.Name == name {
+			existingIndex = i
+			break
+		}
+	}
+
+	id := fmt.Sprintf("%s/dataDisks/%s", virtualMachineId, name)
 	if d.IsNewResource() {
-		disks = append(disks, expandedDisk)
-	} else {
-		// iterate over the disks and swap it out in-place
-		existingIndex := -1
-		for i, disk := range disks {
-			if *disk.Name == name {
-				existingIndex = i
-				break
-			}
+		if existingIndex >= 0 {
+			return tf.ImportAsExistsError("azurerm_virtual_machine_data_disk_attachment", id)
 		}
 
+		disks = append(disks, expandedDisk)
+	} else {
 		if existingIndex == -1 {
 			return fmt.Errorf("Unable to find Disk %q attached to Virtual Machine %q (Resource Group %q)", name, virtualMachineName, resourceGroup)
 		}
@@ -159,13 +173,14 @@ func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceD
 		return fmt.Errorf("Error updating Virtual Machine %q (Resource Group %q) with Disk %q: %+v", virtualMachineName, resourceGroup, name, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for Virtual Machine %q (Resource Group %q) to finish updating Disk %q: %+v", virtualMachineName, resourceGroup, name, err)
 	}
 
-	d.SetId(fmt.Sprintf("%s/dataDisks/%s", virtualMachineId, name))
-
+	d.SetId(id)
 	return resourceArmVirtualMachineDataDiskAttachmentRead(d, meta)
 }
 
@@ -266,7 +281,9 @@ func resourceArmVirtualMachineDataDiskAttachmentDelete(d *schema.ResourceData, m
 		return fmt.Errorf("Error removing Disk %q from Virtual Machine %q (Resource Group %q): %+v", name, virtualMachineName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for Disk %q to be removed from Virtual Machine %q (Resource Group %q): %+v", name, virtualMachineName, resourceGroup, err)
 	}
