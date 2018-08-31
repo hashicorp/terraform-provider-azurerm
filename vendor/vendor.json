@@ -11,12 +11,12 @@
 			"versionExact": "v18.0.0"
 		},
 		{
-			"checksumSHA1": "j10oMaF3ShS83b71sfCW9dub5k4=",
+			"checksumSHA1": "stiogNKwVm0Y0v6nxqIPlXG9tnw=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation",
-			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
-			"revisionTime": "2018-07-03T19:15:42Z",
-			"version": "=v18.0.0",
-			"versionExact": "v18.0.0"
+			"revision": "10168cd12bce031c69650b4423cc5c8955db5e3d",
+			"revisionTime": "2018-08-30T20:56:40Z",
+			"version": "=v20.0.0",
+			"versionExact": "v20.0.0"
 		},
 		{
 			"checksumSHA1": "qVMpxe1n/pINpOpjfaZDDtKpOO0=",
