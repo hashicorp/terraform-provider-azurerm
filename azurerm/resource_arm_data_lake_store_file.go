@@ -22,6 +22,9 @@ func resourceArmDataLakeStoreFile() *schema.Resource {
 		Delete:        resourceArmDataLakeStoreFileDelete,
 		MigrateState:  resourceDataLakeStoreFileMigrateState,
 		SchemaVersion: 1,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"account_name": {
@@ -98,6 +101,9 @@ func resourceArmDataLakeStoreFileRead(d *schema.ResourceData, meta interface{}) 
 
 		return fmt.Errorf("Error making Read request on Azure Data Lake Store File %q (Account %q): %+v", id.filePath, id.storageAccountName, err)
 	}
+
+	d.Set("account_name", id.storageAccountName)
+	d.Set("remote_file_path", id.filePath)
 
 	return nil
 }
