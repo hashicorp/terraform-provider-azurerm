@@ -92,7 +92,7 @@ func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceD
 	azureRMLockByName(virtualMachineName, virtualMachineResourceName)
 	defer azureRMUnlockByName(virtualMachineName, virtualMachineResourceName)
 
-	virtualMachine, err := client.Get(ctx, resourceGroup, virtualMachineName, compute.InstanceView)
+	virtualMachine, err := client.Get(ctx, resourceGroup, virtualMachineName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(virtualMachine.Response) {
 			return fmt.Errorf("Virtual Machine %q (Resource Group %q) was not found", virtualMachineName, resourceGroup)
