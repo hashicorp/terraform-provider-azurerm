@@ -133,14 +133,17 @@ type dataLakeStoreFileId struct {
 }
 
 func parseDataLakeStoreFileId(input string, suffix string) (*dataLakeStoreFileId, error) {
-	uri, err := url.Parse(input)
+	// Example: tomdevdls1.azuredatalakestore.net/test/example.txt
+	// we add a scheme to the start of this so it parses correctly
+	uri, err := url.Parse(fmt.Sprintf("https://%s", input))
 	if err != nil {
 		return nil, fmt.Errorf("Error parsing %q as URI: %+v", input, err)
 	}
 
 	// TODO: switch to pulling this from the Environment when it's available there
 	// BUG: https://github.com/Azure/go-autorest/issues/312
-	accountName := strings.Replace(input, fmt.Sprintf(".%s", suffix), "", 1)
+	replacement := fmt.Sprintf(".%s", suffix)
+	accountName := strings.Replace(uri.Host, replacement, "", -1)
 
 	file := dataLakeStoreFileId{
 		storageAccountName: accountName,
