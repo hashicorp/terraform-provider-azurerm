@@ -1,23 +1,31 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/structure"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmVirtualMachineExtensions() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualMachineExtensionsCreate,
+		Create: resourceArmVirtualMachineExtensionsCreateUpdate,
 		Read:   resourceArmVirtualMachineExtensionsRead,
-		Update: resourceArmVirtualMachineExtensionsCreate,
+		Update: resourceArmVirtualMachineExtensionsCreateUpdate,
 		Delete: resourceArmVirtualMachineExtensionsDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 60),
+			Update: schema.DefaultTimeout(time.Minute * 60),
+			Delete: schema.DefaultTimeout(time.Minute * 60),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -78,14 +86,29 @@ func resourceArmVirtualMachineExtensions() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualMachineExtensionsCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmVirtualMachineExtensionsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).vmExtensionClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
 	vmName := d.Get("virtual_machine_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
+
+	if d.IsNewResource() {
+		// first check if there's one in this subscription requiring import
+		resp, err := client.Get(ctx, resGroup, vmName, name, "")
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of VM Extension %q (Virtual Machine %q / Resource Group %q): %+v", name, vmName, resGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_virtual_machine_extension", *resp.ID)
+		}
+	}
+
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	publisher := d.Get("publisher").(string)
 	extensionType := d.Get("type").(string)
 	typeHandlerVersion := d.Get("type_handler_version").(string)
@@ -124,7 +147,9 @@ func resourceArmVirtualMachineExtensionsCreate(d *schema.ResourceData, meta inte
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -210,7 +235,9 @@ func resourceArmVirtualMachineExtensionsDelete(d *schema.ResourceData, meta inte
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return err
 	}
