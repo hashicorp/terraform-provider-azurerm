@@ -97,6 +97,11 @@ func resourceArmDataLakeStore() *schema.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
+			"endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -227,6 +232,8 @@ func resourceArmDateLakeStoreRead(d *schema.ResourceData, meta interface{}) erro
 		if config := properties.EncryptionConfig; config != nil {
 			d.Set("encryption_type", string(config.Type))
 		}
+
+		d.Set("endpoint", properties.Endpoint)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
