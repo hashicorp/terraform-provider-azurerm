@@ -49,4 +49,12 @@ The following arguments are supported:
 
 The following attributes are exported in addition to the arguments listed above:
 
-* `id` - The storage queue Resource ID.
+* `id` - The ID of the Storage Queue.
+
+## Import
+
+Storage Queue's can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_storage_queue.queue1 https://example.queue.core.windows.net/queue1
+```

@@ -51,6 +51,7 @@ func TestResourceAzureRMStorageQueueName_Validation(t *testing.T) {
 }
 
 func TestAccAzureRMStorageQueue_basic(t *testing.T) {
+	resourceName := "azurerm_storage_queue.test"
 	ri := acctest.RandInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageQueue_basic(ri, rs, testLocation())
@@ -63,8 +64,13 @@ func TestAccAzureRMStorageQueue_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageQueueExists("azurerm_storage_queue.test"),
+					testCheckAzureRMStorageQueueExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
