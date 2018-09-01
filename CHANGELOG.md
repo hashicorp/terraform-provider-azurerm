@@ -13,6 +13,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_data_lake_store_file` - updating the Resource ID to match the file path [GH-1856]
 * `azurerm_eventhub` - updating the validation to support periods, hyphens and underscores [GH-1795]
 * `azurerm_eventhub_authorization_rule` - updating the validation error [GH-1795]
 * `azurerm_eventhub_consumer_group` - updating the validation to support periods, hyphens and underscores [GH-1795]
