@@ -9,6 +9,7 @@ import (
 	"log"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 	"github.com/Azure/go-autorest/autorest/adal"
@@ -331,7 +332,10 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 		// replaces the context between tests
 		p.MetaReset = func() error {
-			client.StopContext = p.StopContext()
+			// TODO: is this the right place for this?
+			timeout := 2 * time.Hour
+			ctx, _ := context.WithTimeout(p.StopContext(), timeout)
+			client.StopContext = ctx
 			return nil
 		}
 
