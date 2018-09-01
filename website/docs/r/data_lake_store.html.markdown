@@ -62,6 +62,8 @@ The following attributes are exported:
 
 * `id` - The Date Lake Store ID.
 
+* `endpoint` - The Endpoint for the Data Lake Store.
+
 ## Import
 
 Date Lake Store can be imported using the `resource id`, e.g.
