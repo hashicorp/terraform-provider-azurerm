@@ -82,17 +82,17 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The ID of the subnet that the PostgreSQL server will be connected to.
 
-~> **NOTE:** The resource is configured with `ignore_missing_vnet_service_endpoint` set to `true`, meaning the deployment will succeed even if the target subnet does not contain the `Microsoft.Sql` endpoint in the `service_endpoints` array. This attribute will be introduced once the API behaviour is consistent.
+~> **NOTE:** Due to [a bug in the Azure API](https://github.com/Azure/azure-rest-api-specs/issues/3719) this resource currently doesn't expose the `ignore_missing_vnet_service_endpoint` field and defaults this to `false`. Terraform will check during the provisioning of the Virtual Network Rule that the Subnet contains the Service Rule to verify that the Virtual Network Rule can be created.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The ID of the SQL virtual network rule.
+* `id` - The ID of the PostgreSQL Virtual Network Rule.
 
 ## Import
 
-SQL Virtual Network Rules can be imported using the `resource id`, e.g.
+PostgreSQL Virtual Network Rules can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_postgresql_virtual_network_rule.rule1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.DBforPostgreSQL/servers/myserver/virtualNetworkRules/vnetrulename
