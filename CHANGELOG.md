@@ -1,5 +1,9 @@
 ## 1.14.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_postgresql_virtual_network_rule` [GH-1774]
+
 IMPROVEMENTS:
 
 * authentication: making the client registration consistent [GH-1845]
