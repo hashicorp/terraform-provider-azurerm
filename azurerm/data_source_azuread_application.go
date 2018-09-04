@@ -73,6 +73,8 @@ func dataSourceArmAzureADApplicationRead(d *schema.ResourceData, meta interface{
 	var application graphrbac.Application
 
 	if oId, ok := d.GetOk("object_id"); ok {
+
+		// use the object_id to find the Azure AD application
 		objectId := oId.(string)
 		resp, err := client.Get(ctx, objectId)
 		if err != nil {
