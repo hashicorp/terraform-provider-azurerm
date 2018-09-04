@@ -35,6 +35,14 @@
 			"versionExact": "v20.1.0"
 		},
 		{
+			"checksumSHA1": "wtmW+JAAM9+DSwf7TZOy4SnAGwM=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute",
+			"revision": "2935c0241c74bd8549b843978dd6fc1be6f48b4a",
+			"revisionTime": "2018-08-31T14:25:13Z",
+			"version": "v20.1.0",
+			"versionExact": "v20.1.0"
+		},
+		{
 			"checksumSHA1": "a/mbRxz450lwbacAUuG77DpKKJU=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-04-01/containerinstance",
 			"revision": "2935c0241c74bd8549b843978dd6fc1be6f48b4a",
