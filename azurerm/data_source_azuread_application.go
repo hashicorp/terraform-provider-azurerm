@@ -2,10 +2,10 @@ package azurerm
 
 import (
 	"fmt"
-
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"log"
 )
 
 func dataSourceArmAzureADApplication() *schema.Resource {
@@ -85,12 +85,17 @@ func dataSourceArmAzureADApplicationRead(d *schema.ResourceData, meta interface{
 
 		application = resp
 	} else {
-		resp, err := client.ListComplete(ctx, "")
+
+		// use the name to find the Azure AD application
+		name := d.Get("name").(string)
+		filter := "displayName eq '" + name + "'"
+		log.Printf("[DEBUG] [data_source_azuread_application] Using filter %q", filter)
+
+		resp, err := client.ListComplete(ctx, filter)
+
 		if err != nil {
 			return fmt.Errorf("Error listing Azure AD Applications: %+v", err)
 		}
-
-		name := d.Get("name").(string)
 
 		var app *graphrbac.Application
 		for _, v := range *resp.Response().Value {
