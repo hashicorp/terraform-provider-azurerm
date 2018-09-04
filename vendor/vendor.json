@@ -363,20 +363,18 @@
 			"versionExact": "v20.1.0"
 		},
 		{
-			"checksumSHA1": "pbHi9xc373inHdf5me73LGIFV1w=",
 			"path": "github.com/Azure/azure-sdk-for-go/storage",
-			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
-			"revisionTime": "2018-07-03T19:15:42Z",
-			"version": "=v18.0.0",
-			"versionExact": "v18.0.0"
+			"revision": "2935c0241c74bd8549b843978dd6fc1be6f48b4a",
+			"revisionTime": "2018-08-31T14:25:13Z",
+			"version": "v20.1.0",
+			"versionExact": "v20.1.0"
 		},
 		{
-			"checksumSHA1": "i9j2DVhEl/QdhuYhiq59MGkUAvs=",
 			"path": "github.com/Azure/azure-sdk-for-go/version",
-			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
-			"revisionTime": "2018-07-03T19:15:42Z",
-			"version": "=v18.0.0",
-			"versionExact": "v18.0.0"
+			"revision": "2935c0241c74bd8549b843978dd6fc1be6f48b4a",
+			"revisionTime": "2018-08-31T14:25:13Z",
+			"version": "v20.1.0",
+			"versionExact": "v20.1.0"
 		},
 		{
 			"checksumSHA1": "1Y2+bSzYrdPHQqRjR1OrBMHAvxY=",
