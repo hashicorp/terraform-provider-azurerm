@@ -109,6 +109,7 @@ type ArmClient struct {
 	roleDefinitionsClient   authorization.RoleDefinitionsClient
 	applicationsClient      graphrbac.ApplicationsClient
 	servicePrincipalsClient graphrbac.ServicePrincipalsClient
+	usersClient             graphrbac.UsersClient
 
 	// Autoscale Settings
 	autoscaleSettingsClient insights.AutoscaleSettingsClient
@@ -483,6 +484,10 @@ func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscription
 	servicePrincipalsClient := graphrbac.NewServicePrincipalsClientWithBaseURI(graphEndpoint, tenantId)
 	c.configureClient(&servicePrincipalsClient.Client, graphAuth)
 	c.servicePrincipalsClient = servicePrincipalsClient
+
+	usersClient := graphrbac.NewUsersClientWithBaseURI(graphEndpoint, tenantId)
+	c.configureClient(&usersClient.Client, graphAuth)
+	c.usersClient = usersClient
 }
 
 func (c *ArmClient) registerCDNClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
