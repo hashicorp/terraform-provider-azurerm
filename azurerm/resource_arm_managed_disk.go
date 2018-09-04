@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -39,8 +39,8 @@ func resourceArmManagedDisk() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.StandardLRS),
-					string(compute.PremiumLRS),
+					string(compute.StorageAccountTypesStandardLRS),
+					string(compute.StorageAccountTypesPremiumLRS),
 				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
@@ -124,10 +124,11 @@ func resourceArmManagedDiskCreate(d *schema.ResourceData, meta interface{}) erro
 	zones := expandZones(d.Get("zones").([]interface{}))
 
 	var skuName compute.StorageAccountTypes
-	if strings.ToLower(storageAccountType) == strings.ToLower(string(compute.PremiumLRS)) {
-		skuName = compute.PremiumLRS
+	// TODO: support for the StandardSSD
+	if strings.EqualFold(storageAccountType, string(compute.StorageAccountTypesPremiumLRS)) {
+		skuName = compute.StorageAccountTypesPremiumLRS
 	} else {
-		skuName = compute.StandardLRS
+		skuName = compute.StorageAccountTypesStandardLRS
 	}
 
 	createDisk := compute.Disk{
