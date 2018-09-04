@@ -27,14 +27,6 @@
 			"versionExact": "v20.1.0"
 		},
 		{
-			"checksumSHA1": "5D+IUqHLUbHYLm+w0gvx0N8zAac=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute",
-			"revision": "2935c0241c74bd8549b843978dd6fc1be6f48b4a",
-			"revisionTime": "2018-08-31T14:25:13Z",
-			"version": "v20.1.0",
-			"versionExact": "v20.1.0"
-		},
-		{
 			"checksumSHA1": "wtmW+JAAM9+DSwf7TZOy4SnAGwM=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute",
 			"revision": "2935c0241c74bd8549b843978dd6fc1be6f48b4a",
@@ -363,6 +355,7 @@
 			"versionExact": "v20.1.0"
 		},
 		{
+			"checksumSHA1": "pbHi9xc373inHdf5me73LGIFV1w=",
 			"path": "github.com/Azure/azure-sdk-for-go/storage",
 			"revision": "2935c0241c74bd8549b843978dd6fc1be6f48b4a",
 			"revisionTime": "2018-08-31T14:25:13Z",
@@ -370,6 +363,7 @@
 			"versionExact": "v20.1.0"
 		},
 		{
+			"checksumSHA1": "ReHJLxfmyGiXR+5r/5x+9OxBIY4=",
 			"path": "github.com/Azure/azure-sdk-for-go/version",
 			"revision": "2935c0241c74bd8549b843978dd6fc1be6f48b4a",
 			"revisionTime": "2018-08-31T14:25:13Z",
