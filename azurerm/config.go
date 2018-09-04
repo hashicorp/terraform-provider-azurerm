@@ -142,6 +142,7 @@ type ArmClient struct {
 	postgresqlDatabasesClient            postgresql.DatabasesClient
 	postgresqlFirewallRulesClient        postgresql.FirewallRulesClient
 	postgresqlServersClient              postgresql.ServersClient
+	postgresqlVirtualNetworkRulesClient  postgresql.VirtualNetworkRulesClient
 	sqlDatabasesClient                   sql.DatabasesClient
 	sqlElasticPoolsClient                sql.ElasticPoolsClient
 	sqlFirewallRulesClient               sql.FirewallRulesClient
@@ -604,6 +605,10 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	postgresqlSrvClient := postgresql.NewServersClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&postgresqlSrvClient.Client, auth)
 	c.postgresqlServersClient = postgresqlSrvClient
+
+	postgresqlVNRClient := postgresql.NewVirtualNetworkRulesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&postgresqlVNRClient.Client, auth)
+	c.postgresqlVirtualNetworkRulesClient = postgresqlVNRClient
 
 	// SQL Azure
 	sqlDBClient := sql.NewDatabasesClientWithBaseURI(endpoint, subscriptionId)
