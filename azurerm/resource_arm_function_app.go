@@ -52,10 +52,6 @@ func resourceArmFunctionApp() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "~1",
-				ValidateFunc: validation.StringInSlice([]string{
-					"~1",
-					"beta",
-				}, false),
 			},
 
 			"storage_connection_string": {

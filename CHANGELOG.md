@@ -14,6 +14,7 @@ IMPROVEMENTS:
 * `azurerm_storage_container` - support for import [GH-1816]
 * `azurerm_storage_queue` - support for import [GH-1816]
 * `azurerm_storage_table` - support for import [GH-1816]
+* `azurerm_function_app` - support for specific versions [GH-1731]
 
 BUG FIXES:
 

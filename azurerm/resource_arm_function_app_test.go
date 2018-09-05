@@ -234,8 +234,8 @@ func TestAccAzureRMFunctionApp_updateVersion(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
 	ri := acctest.RandInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	preConfig := testAccAzureRMFunctionApp_version(ri, rs, testLocation(), "beta")
-	postConfig := testAccAzureRMFunctionApp_version(ri, rs, testLocation(), "~1")
+	preConfig := testAccAzureRMFunctionApp_version(ri, rs, testLocation(), "~1")
+	postConfig := testAccAzureRMFunctionApp_version(ri, rs, testLocation(), "~2")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -246,7 +246,7 @@ func TestAccAzureRMFunctionApp_updateVersion(t *testing.T) {
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFunctionAppExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "version", "beta"),
+					resource.TestCheckResourceAttr(resourceName, "version", "~1"),
 				),
 			},
 			{
