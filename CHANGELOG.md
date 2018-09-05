@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_management_group` [GH-1788]
 * **New Resource:** `azurerm_postgresql_virtual_network_rule` [GH-1774]
 
 IMPROVEMENTS:
