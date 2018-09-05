@@ -35,12 +35,10 @@
 			"versionExact": "v18.0.0"
 		},
 		{
-			"checksumSHA1": "a/mbRxz450lwbacAUuG77DpKKJU=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-04-01/containerinstance",
-			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
-			"revisionTime": "2018-07-03T19:15:42Z",
-			"version": "=v18.0.0",
-			"versionExact": "v18.0.0"
+			"checksumSHA1": "eB6b4vGKEbAND0MUWfKLTn6H7uw=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-06-01/containerinstance",
+			"revision": "2935c0241c74bd8549b843978dd6fc1be6f48b4a",
+			"revisionTime": "2018-08-31T14:25:13Z"
 		},
 		{
 			"checksumSHA1": "A4GmPiUDP7xdTUYkvmO/Y3LPCZU=",
@@ -417,6 +415,18 @@
 			"revisionTime": "2018-06-28T21:22:21Z",
 			"version": "=v10.12.0",
 			"versionExact": "v10.12.0"
+		},
+		{
+			"checksumSHA1": "b2lrPJRxf+MEfmMafN40wepi5WM=",
+			"path": "github.com/Azure/go-autorest/logger",
+			"revision": "a35eae345f69bbfbe3b8fa0b1d3fe98f8430b21a",
+			"revisionTime": "2018-08-30T19:44:05Z"
+		},
+		{
+			"checksumSHA1": "scpSozMdk4sqSpkbQqupLKUfLiM=",
+			"path": "github.com/Azure/go-autorest/version",
+			"revision": "a35eae345f69bbfbe3b8fa0b1d3fe98f8430b21a",
+			"revisionTime": "2018-08-30T19:44:05Z"
 		},
 		{
 			"checksumSHA1": "jQh1fnoKPKMURvKkpdRjN695nAQ=",
@@ -1452,6 +1462,12 @@
 			"path": "golang.org/x/text/internal/colltab",
 			"revision": "1cbadb444a806fd9430d14ad08967ed91da4fa0a",
 			"revisionTime": "2017-09-13T19:45:57Z"
+		},
+		{
+			"checksumSHA1": "hyNCcTwMQnV6/MK8uUW9E5H0J0M=",
+			"path": "golang.org/x/text/internal/tag",
+			"revision": "6e3c4e7365ddcc329f090f96e4348398f6310088",
+			"revisionTime": "2018-08-07T15:59:08Z"
 		},
 		{
 			"checksumSHA1": "YsHNCKLl/81IAeBJUjHE4uqAPLM=",

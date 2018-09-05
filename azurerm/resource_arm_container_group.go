@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-04-01/containerinstance"
+	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-06-01/containerinstance"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -167,6 +167,13 @@ func resourceArmContainerGroup() *schema.Resource {
 							Type:     schema.TypeMap,
 							Optional: true,
 							ForceNew: true,
+						},
+
+						"secure_environment_variables": {
+							Type:      schema.TypeMap,
+							Optional:  true,
+							ForceNew:  true,
+							Sensitive: true,
 						},
 
 						"command": {
@@ -564,9 +571,23 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 			containerGroupPorts = append(containerGroupPorts, containerGroupPort)
 		}
 
+		// Set both secure and non-secure environment variables
+		var evar *[]containerinstance.EnvironmentVariable
+		var secevar *[]containerinstance.EnvironmentVariable
+
 		if v, ok := data["environment_variables"]; ok {
-			container.EnvironmentVariables = expandContainerEnvironmentVariables(v)
+			evar = expandContainerEnvironmentVariables(v, false)
 		}
+
+		if v, ok := data["secure_environment_variables"]; ok {
+			secevar = expandContainerEnvironmentVariables(v, true)
+		}
+
+		for _, v := range *secevar {
+			*evar = append(*evar, v)
+		}
+
+		container.EnvironmentVariables = evar
 
 		if v, ok := data["commands"]; ok {
 			c := v.([]interface{})
@@ -599,18 +620,33 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 	return &containers, &containerGroupPorts, &containerGroupVolumes
 }
 
-func expandContainerEnvironmentVariables(input interface{}) *[]containerinstance.EnvironmentVariable {
+func expandContainerEnvironmentVariables(input interface{}, secure bool) *[]containerinstance.EnvironmentVariable {
+
 	envVars := input.(map[string]interface{})
 	output := make([]containerinstance.EnvironmentVariable, 0)
 
-	for k, v := range envVars {
-		ev := containerinstance.EnvironmentVariable{
-			Name:  utils.String(k),
-			Value: utils.String(v.(string)),
-		}
-		output = append(output, ev)
-	}
+	if secure == true {
 
+		for k, v := range envVars {
+			ev := containerinstance.EnvironmentVariable{
+				Name:        utils.String(k),
+				SecureValue: utils.String(v.(string)),
+			}
+
+			output = append(output, ev)
+		}
+
+	} else {
+
+		for k, v := range envVars {
+			ev := containerinstance.EnvironmentVariable{
+				Name:  utils.String(k),
+				Value: utils.String(v.(string)),
+			}
+
+			output = append(output, ev)
+		}
+	}
 	return &output
 }
 
