@@ -253,7 +253,7 @@ func TestAccAzureRMFunctionApp_updateVersion(t *testing.T) {
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFunctionAppExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "version", "~1"),
+					resource.TestCheckResourceAttr(resourceName, "version", "~2"),
 				),
 			},
 		},
