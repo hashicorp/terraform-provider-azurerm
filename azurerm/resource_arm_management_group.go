@@ -6,187 +6,359 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/management"
+	"github.com/google/uuid"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceManagementGroup() *schema.Resource {
+var managementGroupCacheControl = "no-cache"
+
+func resourceArmManagementGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceManagementGroupCreateUpdate,
-		Update: resourceManagementGroupCreateUpdate,
-		Read:   resourceManagementGroupRead,
-		Delete: resourceManagementGroupDelete,
+		Create: resourceArmManagementGroupCreateUpdate,
+		Update: resourceArmManagementGroupCreateUpdate,
+		Read:   resourceArmManagementGroupRead,
+		Delete: resourceArmManagementGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": {
+			"group_id": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
+				Computed: true,
 				ForceNew: true,
 			},
 
-			"subscription_ids": {
-				Type:     schema.TypeList,
+			"display_name": {
+				Type:     schema.TypeString,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
+				Computed: true,
+			},
+
+			"parent_management_group_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+
+			"subscription_ids": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Set:      schema.HashString,
 			},
 		},
 	}
 }
 
-func resourceManagementGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-
+func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).managementGroupsClient
 	subscriptionsClient := meta.(*ArmClient).managementGroupsSubscriptionClient
 	ctx := meta.(*ArmClient).StopContext
-
 	armTenantID := meta.(*ArmClient).tenantId
-	name := d.Get("name").(string)
-	subscriptionIds := d.Get("subscription_ids").([]interface{})
-	log.Printf("[INFO] Creating management group %q", name)
 
-	parentID := fmt.Sprintf("/providers/Microsoft.Management/managementGroups/%s", armTenantID)
+	groupId := d.Get("group_id").(string)
+	if groupId == "" {
+		groupId = uuid.New().String()
+	}
+	parentManagementGroupId := d.Get("parent_management_group_id").(string)
+	if parentManagementGroupId == "" {
+		parentManagementGroupId = fmt.Sprintf("/providers/Microsoft.Management/managementGroups/%s", armTenantID)
+	}
+
+	log.Printf("[INFO] Creating Management Group %q", groupId)
+
 	properties := managementgroups.CreateManagementGroupRequest{
+		Name: utils.String(groupId),
 		CreateManagementGroupProperties: &managementgroups.CreateManagementGroupProperties{
-			TenantID:    &armTenantID,
-			DisplayName: &name,
+			TenantID: utils.String(armTenantID),
 			Details: &managementgroups.CreateManagementGroupDetails{
 				Parent: &managementgroups.CreateParentGroupInfo{
-					ID: utils.String(parentID),
+					ID: utils.String(parentManagementGroupId),
 				},
 			},
 		},
-		Type: utils.String("/providers/Microsoft.Management/managementGroups"),
-		Name: &name,
 	}
 
-	log.Printf("[DEBUG] Invoking managementGroupClient")
-	createManagementGroupFuture, err := client.CreateOrUpdate(ctx, name, properties, "no-cache")
-	if err != nil {
-		log.Printf("[DEBUG] Error creating Management Group %q: %+v", name, err)
-		return fmt.Errorf("Error creating Management Group %q: %+v", name, err)
+	if v, ok := d.GetOk("display_name"); ok {
+		properties.CreateManagementGroupProperties.DisplayName = utils.String(v.(string))
 	}
 
-	err = createManagementGroupFuture.WaitForCompletion(ctx, client.Client)
+	future, err := client.CreateOrUpdate(ctx, groupId, properties, managementGroupCacheControl)
 	if err != nil {
-		return fmt.Errorf("Error waiting for creation of Management Group %q: %+v", name, err)
+		return fmt.Errorf("Error creating Management Group %q: %+v", groupId, err)
+	}
+
+	err = future.WaitForCompletionRef(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Error waiting for creation of Management Group %q: %+v", groupId, err)
 	}
 
 	recurse := false
-
-	resp, err := client.Get(ctx, name, "", &recurse, "", "no-cache")
+	resp, err := client.Get(ctx, groupId, "children", &recurse, "", managementGroupCacheControl)
 	if err != nil {
-		log.Printf("[DEBUG] Error retrieving Management Group %q: %+v", name, err)
-		return fmt.Errorf("Error retrieving Management Group %q: %+v", name, err)
+		return fmt.Errorf("Error retrieving Management Group %q: %+v", groupId, err)
 	}
 
 	d.SetId(*resp.ID)
 
-	for _, subscription := range subscriptionIds {
-		data := subscription.(string)
-		log.Printf("[DEBUG] Adding subscriptionId %q to management group %q", data, name)
-		_, err = subscriptionsClient.Create(ctx, name, data, "no-cache")
-		if err != nil {
-			log.Printf("[DEBUG] Error assigning subscription %q to management group %q", data, name)
-			return err
+	subscriptionIds := expandManagementGroupSubscriptionIds(d.Get("subscription_ids").(*schema.Set))
+
+	// first remove any which need to be removed
+	if !d.IsNewResource() {
+		log.Printf("[DEBUG] Determine which Subscriptions should be removed from Management Group %q", groupId)
+		if props := resp.Properties; props != nil {
+			subscriptionIdsToRemove, err := determineManagementGroupSubscriptionsIdsToRemove(props.Children, subscriptionIds)
+			if err != nil {
+				return fmt.Errorf("Error determing which subscriptions should be removed from Management Group %q: %+v", groupId, err)
+			}
+
+			for _, subscriptionId := range *subscriptionIdsToRemove {
+				log.Printf("[DEBUG] De-associating Subscription ID %q from Management Group %q", subscriptionId, groupId)
+				deleteResp, err := subscriptionsClient.Delete(ctx, groupId, subscriptionId, managementGroupCacheControl)
+				if err != nil {
+					if !response.WasNotFound(deleteResp.Response) {
+						return fmt.Errorf("Error de-associating Subscription %q from Management Group %q: %+v", subscriptionId, groupId, err)
+					}
+				}
+			}
 		}
 	}
 
-	return resourceManagementGroupRead(d, meta)
+	// then add the new ones
+	log.Printf("[DEBUG] Preparing to assign Subscriptions to Management Group %q", groupId)
+	for _, subscriptionId := range subscriptionIds {
+		log.Printf("[DEBUG] Assigning Subscription ID %q to management group %q", subscriptionId, groupId)
+		_, err = subscriptionsClient.Create(ctx, groupId, subscriptionId, managementGroupCacheControl)
+		if err != nil {
+			return fmt.Errorf("[DEBUG] Error assigning Subscription ID %q to Management Group %q", subscriptionId, groupId)
+		}
+	}
+
+	return resourceArmManagementGroupRead(d, meta)
 }
 
-func resourceManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).managementGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
+	id, err := parseManagementGroupId(d.Id())
+	if err != nil {
+		return err
+	}
+
 	recurse := true
-	resp, err := client.Get(ctx, d.Get("name").(string), "children", &recurse, "", "no-cache")
+	resp, err := client.Get(ctx, id.groupId, "children", &recurse, "", managementGroupCacheControl)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading Management Group %q - removing from state", d.Id())
+			log.Printf("[INFO] Management Group %q doesn't exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Management Group %+v", err)
+		return fmt.Errorf("Error reading Management Group %q: %+v", d.Id(), err)
 	}
 
-	subscriptionIds := []string{}
+	d.Set("group_id", id.groupId)
 
 	if props := resp.Properties; props != nil {
-		if children := props.Children; children != nil {
-			for _, child := range *children {
-				subscriptionID, err := parseSubscriptionID(*child.ID)
-				if err != nil {
-					log.Printf("%q", err)
-					return fmt.Errorf("Unable to parse child subscription ID %+v", err)
+		d.Set("display_name", props.DisplayName)
+
+		subscriptionIds, err := flattenArmManagementGroupSubscriptionIds(props.Children)
+		if err != nil {
+			return fmt.Errorf("Error flattening `subscription_ids`: %+v", err)
+		}
+		d.Set("subscription_ids", subscriptionIds)
+
+		parentId := ""
+		if details := props.Details; details != nil {
+			if parent := details.Parent; parent != nil {
+				if pid := parent.ID; pid != nil {
+					parentId = *pid
 				}
-				log.Printf("[INFO] Reading subscription %q from management group %q", subscriptionID, d.Get("name").(string))
-				subscriptionIds = append(subscriptionIds, subscriptionID)
 			}
 		}
-	}
+		d.Set("parent_management_group_id", parentId)
 
-	d.Set("subscription_ids", subscriptionIds)
+	}
 
 	return nil
 }
 
-func resourceManagementGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	//before deleting a management group, return any subscriptions to the root management group
-
+func resourceArmManagementGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).managementGroupsClient
 	subscriptionsClient := meta.(*ArmClient).managementGroupsSubscriptionClient
 	ctx := meta.(*ArmClient).StopContext
-	armTenantID := meta.(*ArmClient).tenantId
-	name := d.Get("name").(string)
 
-	subscriptionIds := d.Get("subscription_ids").([]interface{})
-	if subscriptionIds != nil {
-		for _, subscription := range subscriptionIds {
-			data := subscription.(string)
-			log.Printf("[DEBUG] Adding subscriptionId %q to management group %q", data, armTenantID)
-			_, err := subscriptionsClient.Create(ctx, armTenantID, data, "no-cache")
-			if err != nil {
-				log.Printf("[DEBUG] Error assigning subscription %q to management group %q", data, armTenantID)
-				return err
+	id, err := parseManagementGroupId(d.Id())
+	if err != nil {
+		return err
+	}
+
+	recurse := true
+	group, err := client.Get(ctx, id.groupId, "children", &recurse, "", managementGroupCacheControl)
+	if err != nil {
+		if utils.ResponseWasNotFound(group.Response) {
+			log.Printf("[DEBUG] Management Group %q doesn't exist in Azure - nothing to do!", id.groupId)
+			return nil
+		}
+
+		return fmt.Errorf("Error retrieving Management Group %q: %+v", id.groupId, err)
+	}
+
+	// before deleting a management group, return any subscriptions to the root management group
+	if props := group.Properties; props != nil {
+		if children := props.Children; children != nil {
+			for _, v := range *children {
+				if v.ID == nil {
+					continue
+				}
+
+				subscriptionId := *v.ID
+				log.Printf("[DEBUG] De-associating Subscription %q from Management Group %q..", subscriptionId, id.groupId)
+				// NOTE: whilst this says `Delete` it's actually `Deassociate` - which is /really/ helpful
+				deleteResp, err := subscriptionsClient.Delete(ctx, id.groupId, subscriptionId, managementGroupCacheControl)
+				if err != nil {
+					if !response.WasNotFound(deleteResp.Response) {
+						return fmt.Errorf("Error de-associating Subscription %q from Management Group %q: %+v", subscriptionId, id.groupId, err)
+					}
+				}
 			}
 		}
 	}
 
-	resp, err := client.Delete(ctx, name, "no-cache")
+	resp, err := client.Delete(ctx, id.groupId, managementGroupCacheControl)
 	if err != nil {
-		log.Printf("[DEBUG] Error deleting management group %q", name)
-		return fmt.Errorf("Error deleting management group %q", name)
+		return fmt.Errorf("Error deleting Management Group %q: %+v", id.groupId, err)
 	}
 
-	err = resp.WaitForCompletion(ctx, client.Client)
+	err = resp.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error deleting management group %q", name)
-	}
-
-	_, err = resp.Result(client)
-
-	if err != nil {
-		return fmt.Errorf("Error deleting management group %q", name)
+		return fmt.Errorf("Error waiting for the deletion of Management Group %q: %+v", id.groupId, err)
 	}
 
 	return nil
 }
-func parseSubscriptionID(id string) (string, error) {
-	components := strings.Split(id, "/")
+
+func expandManagementGroupSubscriptionIds(input *schema.Set) []string {
+	output := make([]string, 0)
+
+	if input != nil {
+		for _, v := range input.List() {
+			output = append(output, v.(string))
+		}
+	}
+
+	return output
+}
+
+func flattenArmManagementGroupSubscriptionIds(input *[]managementgroups.ChildInfo) (*schema.Set, error) {
+	subscriptionIds := &schema.Set{F: schema.HashString}
+	if input == nil {
+		return subscriptionIds, nil
+	}
+
+	for _, child := range *input {
+		if child.ID == nil {
+			continue
+		}
+
+		id, err := parseManagementGroupSubscriptionID(*child.ID)
+		if err != nil {
+			return nil, fmt.Errorf("Unable to parse child subscription ID %+v", err)
+		}
+
+		if id != nil {
+			subscriptionIds.Add(id.subscriptionId)
+		}
+	}
+
+	return subscriptionIds, nil
+}
+
+type managementGroupId struct {
+	groupId string
+}
+
+type subscriptionId struct {
+	subscriptionId string
+}
+
+func parseManagementGroupId(input string) (*managementGroupId, error) {
+	// /providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000
+	segments := strings.Split(input, "/")
+	if len(segments) != 5 {
+		return nil, fmt.Errorf("Expected there to be 5 segments but got %d", len(segments))
+	}
+
+	id := managementGroupId{
+		groupId: segments[4],
+	}
+	return &id, nil
+}
+
+func parseManagementGroupSubscriptionID(input string) (*subscriptionId, error) {
+	// this is either:
+	// /subscriptions/00000000-0000-0000-0000-000000000000
+	// /providers/Microsoft.Management/managementGroups/e4115b99-6be7-4153-a73f-5ff5e778ce28
+
+	// we skip out the managementGroup ID's
+	if strings.HasPrefix(input, "/providers/Microsoft.Management/managementGroups/") {
+		return nil, nil
+	}
+
+	components := strings.Split(input, "/")
 
 	if len(components) == 0 {
-		return "", fmt.Errorf("Subscription Id is empty or not formatted correctly: %s", id)
+		return nil, fmt.Errorf("Subscription Id is empty or not formatted correctly: %s", input)
 	}
 
 	if len(components) != 3 {
-		return "", fmt.Errorf("Subscription Id should have 2 segments, got %d: '%s'", len(components)-1, id)
+		return nil, fmt.Errorf("Subscription Id should have 2 segments, got %d: %q", len(components)-1, input)
 	}
 
-	return components[2], nil
+	id := subscriptionId{
+		subscriptionId: components[2],
+	}
+	return &id, nil
+}
+
+func determineManagementGroupSubscriptionsIdsToRemove(existing *[]managementgroups.ChildInfo, updated []string) (*[]string, error) {
+	subscriptionIdsToRemove := make([]string, 0)
+	if existing == nil {
+		return &subscriptionIdsToRemove, nil
+	}
+
+	for _, v := range *existing {
+		if v.ID == nil {
+			continue
+		}
+
+		id, err := parseManagementGroupSubscriptionID(*v.ID)
+		if err != nil {
+			return nil, fmt.Errorf("Error parsing Subscription ID %q: %+v", *v.ID, err)
+		}
+
+		// not a Subscription - so let's skip it
+		if id == nil {
+			continue
+		}
+
+		found := false
+		for _, subId := range updated {
+			if id.subscriptionId == subId {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			subscriptionIdsToRemove = append(subscriptionIdsToRemove, id.subscriptionId)
+		}
+	}
+
+	return &subscriptionIdsToRemove, nil
 }

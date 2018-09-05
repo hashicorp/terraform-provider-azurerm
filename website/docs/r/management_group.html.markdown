@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_management_group
 
-Create a management group with subscription assignments.
+Manages a Management Group.
 
 ## Example Usage
 
@@ -16,11 +16,10 @@ Create a management group with subscription assignments.
 
 data "azurerm_subscription" "current" {}
 
-resource "azurerm_management_group" "testmanagementgroup" {
-    name = "TestManagementGroup"
-    subscription_ids = [
-        "${data.azurerm_subscription.current.id}"
-    ]
+resource "azurerm_management_group" "test" {
+  subscription_ids = [
+    "${data.azurerm_subscription.current.id}"
+  ]
 }
 ```
 
@@ -28,20 +27,24 @@ resource "azurerm_management_group" "testmanagementgroup" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name & id of the management group. This needs to be unique across your AAD tenant.
+* `group_id` - (Optional) The UUID for this Management Group, which needs to be unique across your tenant - which will be generated if not provided. Changing this forces a new resource to be created.
 
-* `subscription_ids` - (Optional) List of subscription IDs to be assigned to the management group.
+* `display_name` - (Optional) A friendly name for this Management Group. If not specified, this'll be the same as the `group_id`.
+
+* `parent_management_group_id` - (Required) The ID of the Parent Management Group. Changing this forces a new resource to be created.
+
+* `subscription_ids` - (Optional) A list of Subscription ID's which should be assigned to the Management Group.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The management group id.
+* `id` - The ID of the Management Group.
 
 ## Import
 
-Management groups can be imported using the `management group resource id`, e.g.
+Management Groups can be imported using the `management group resource id`, e.g.
 
 ```shell
-terraform import azurerm_management_group.test  /providers/Microsoft.Management/ManagementGroups/group1
+terraform import azurerm_management_group.test /providers/Microsoft.Management/ManagementGroups/group1
 ```
