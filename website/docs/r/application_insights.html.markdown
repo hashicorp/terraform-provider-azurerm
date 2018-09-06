@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `application_type` - (Required) Specifies the type of Application Insights to create. Valid values are `Web`, `Java`, `Phone`, `Store`, `iOS` and `Other`.
+* `application_type` - (Required) Specifies the type of Application Insights to create. Valid values are `Java`, `iOS`, `MobileCenter`, `Other`, `Phone`, `Store` and `Web`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
