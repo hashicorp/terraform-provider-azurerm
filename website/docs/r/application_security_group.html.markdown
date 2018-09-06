@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_application_security_group
 
-Create an Application Security Group.
+Manage an Application Security Group.
 
 ## Example Usage
 

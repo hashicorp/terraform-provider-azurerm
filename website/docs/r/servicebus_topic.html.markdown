@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_servicebus_topic
 
-Create a ServiceBus Topic.
+Manage a ServiceBus Topic.
 
 **Note** Topics can only be created in Namespaces with an SKU of `standard` or higher.
 

@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_public_ip
 
-Create a Public IP Address.
+Manage a Public IP Address.
 
 ## Example Usage
 

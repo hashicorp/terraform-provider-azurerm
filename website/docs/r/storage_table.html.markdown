@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_storage_table
 
-Create an Azure Storage Table.
+Manage an Azure Storage Table.
 
 ## Example Usage
 
