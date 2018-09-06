@@ -41,6 +41,7 @@ func resourceArmApplicationInsights() *schema.Resource {
 					"web",
 					"other",
 					"java",
+					"MobileCenter",
 					"phone",
 					"store",
 					"ios",
