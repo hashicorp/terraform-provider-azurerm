@@ -1,39 +1,39 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_postgresql_virtual_network_rule"
-sidebar_current: "docs-azurerm-resource-database-sql-virtual-network-rule"
+sidebar_current: "docs-azurerm-resource-database-postgresql-virtual-network-rule"
 description: |-
   Manages a PostgreSQL Virtual Network Rule.
 ---
 
 # azurerm_postgresql_virtual_network_rule
 
-Allows you to add, update, or remove an Azure PostgreSQL server to a subnet of a virtual network.
+Manages a PostgreSQL Virtual Network Rule.
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "example" {
-  name     = "example-postgresql-server-vnet-rule"
+resource "azurerm_resource_group" "test" {
+  name     = "example-resources"
   location = "West US"
 }
 
-resource "azurerm_virtual_network" "vnet" {
+resource "azurerm_virtual_network" "test" {
   name                = "example-vnet"
   address_space       = ["10.7.29.0/29"]
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
-resource "azurerm_subnet" "subnet" {
-  name                 = "example-subnet"
+resource "azurerm_subnet" "internal" {
+  name                 = "internal"
   resource_group_name  = "${azurerm_resource_group.example.name}"
   virtual_network_name = "${azurerm_virtual_network.vnet.name}"
   address_prefix       = "10.7.29.0/29"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
-resource "azurerm_postgresql_server" "postgresql_server" {
+resource "azurerm_postgresql_server" "test" {
   name                = "postgresql-server-1"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -57,11 +57,11 @@ resource "azurerm_postgresql_server" "postgresql_server" {
   ssl_enforcement = "Enabled"
 }
 
-resource "azurerm_postgresql_virtual_network_rule" "postgresqlsql_virtual_network_rule" {
+resource "azurerm_postgresql_virtual_network_rule" "test" {
   name                = "postgresql-vnet-rule"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  server_name         = "${azurerm_postgresql_server.postgresql_server.name}"
-  subnet_id           = "${azurerm_subnet.subnet.id}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  server_name         = "${azurerm_postgresql_server.test.name}"
+  subnet_id           = "${azurerm_subnet.internal.id}"
 }
 ```
 
@@ -69,7 +69,7 @@ resource "azurerm_postgresql_virtual_network_rule" "postgresqlsql_virtual_networ
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the SQL virtual network rule. Cannot be empty and must only contain alphanumeric characters and hyphens. Cannot start with a number, and cannot start or end with a hyphen. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the PostgreSQL virtual network rule. Cannot be empty and must only contain alphanumeric characters and hyphens. Cannot start with a number, and cannot start or end with a hyphen. Changing this forces a new resource to be created.
 
 ~> **NOTE:** `name` must be between 1-128 characters long and must satisfy all of the requirements below:
 1. Contains only alphanumeric and hyphen characters
