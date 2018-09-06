@@ -140,6 +140,7 @@ type ArmClient struct {
 	mysqlDatabasesClient                 mysql.DatabasesClient
 	mysqlFirewallRulesClient             mysql.FirewallRulesClient
 	mysqlServersClient                   mysql.ServersClient
+	mysqlVirtualNetworkRulesClient       mysql.VirtualNetworkRulesClient
 	postgresqlConfigurationsClient       postgresql.ConfigurationsClient
 	postgresqlDatabasesClient            postgresql.DatabasesClient
 	postgresqlFirewallRulesClient        postgresql.FirewallRulesClient
@@ -595,6 +596,10 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	mysqlServersClient := mysql.NewServersClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&mysqlServersClient.Client, auth)
 	c.mysqlServersClient = mysqlServersClient
+
+	mysqlVirtualNetworkRulesClient := mysql.NewVirtualNetworkRulesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&mysqlVirtualNetworkRulesClient.Client, auth)
+	c.mysqlVirtualNetworkRulesClient = mysqlVirtualNetworkRulesClient
 
 	// PostgreSQL
 	postgresqlConfigClient := postgresql.NewConfigurationsClientWithBaseURI(endpoint, subscriptionId)
