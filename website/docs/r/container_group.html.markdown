@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_container_group
 
-Create as an Azure Container Group instance.
+Manage as an Azure Container Group instance.
 
 ## Example Usage
 

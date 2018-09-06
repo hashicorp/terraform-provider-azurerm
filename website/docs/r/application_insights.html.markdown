@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_application_insights
 
-Create an Application Insights component.
+Manage an Application Insights component.
 
 ## Example Usage
 
