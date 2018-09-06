@@ -1,36 +1,36 @@
-## 1.14.0 (Unreleased)
+## 1.14.0 (September 06, 2018)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_management_group` [GH-1877]
-* **New Resource:** `azurerm_management_group` [GH-1788]
-* **New Resource:** `azurerm_postgresql_virtual_network_rule` [GH-1774]
+* **New Data Source:** `azurerm_management_group` ([#1877](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1877))
+* **New Resource:** `azurerm_management_group` ([#1788](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1788))
+* **New Resource:** `azurerm_postgresql_virtual_network_rule` ([#1774](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1774))
 
 IMPROVEMENTS:
 
-* authentication: making the client registration consistent [GH-1845]
-* `azurerm_application_insights` - support for the `MobileCenter` kind [GH-1878]
-* `azurerm_function_app` - removing validation from the `version` field [GH-1872]
-* `azurerm_iothub` - exporting the `event_hub_events_endpoint`, `event_hub_events_path`, `event_hub_operations_endpoint` and `event_hub_operations_path` fields [GH-1789]
-* `azurerm_iothub` - support for `endpoint` and `route` blocks [GH-1693]
-* `azurerm_kubernetes_cluster` - making `linux_profile` optional [GH-1821]
-* `azurerm_storage_blob` - support for import [GH-1816]
-* `azurerm_storage_container` - support for import [GH-1816]
-* `azurerm_storage_queue` - support for import [GH-1816]
-* `azurerm_storage_table` - support for import [GH-1816]
+* authentication: making the client registration consistent ([#1845](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1845))
+* `azurerm_application_insights` - support for the `MobileCenter` kind ([#1878](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1878))
+* `azurerm_function_app` - removing validation from the `version` field ([#1872](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1872))
+* `azurerm_iothub` - exporting the `event_hub_events_endpoint`, `event_hub_events_path`, `event_hub_operations_endpoint` and `event_hub_operations_path` fields ([#1789](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1789))
+* `azurerm_iothub` - support for `endpoint` and `route` blocks ([#1693](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1693))
+* `azurerm_kubernetes_cluster` - making `linux_profile` optional ([#1821](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1821))
+* `azurerm_storage_blob` - support for import ([#1816](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1816))
+* `azurerm_storage_container` - support for import ([#1816](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1816))
+* `azurerm_storage_queue` - support for import ([#1816](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1816))
+* `azurerm_storage_table` - support for import ([#1816](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1816))
 
 BUG FIXES:
 
-* `azurerm_data_lake_store_file` - updating the Resource ID to match the file path [GH-1856]
-* `azurerm_eventhub` - updating the validation to support periods, hyphens and underscores [GH-1795]
-* `azurerm_eventhub_authorization_rule` - updating the validation error [GH-1795]
-* `azurerm_eventhub_consumer_group` - updating the validation to support periods, hyphens and underscores [GH-1795]
-* `azurerm_eventhub_namespace` - updating the validation error [GH-1795]
-* `azurerm_function_app` - support for names in upper-case [GH-1835]
-* `azurerm_kubernetes_cluster` - removing validation for the `pod_cidr` field when `network_plugin` is set to `azure` [GH-1798]
-* `azurerm_logic_app_workflow` - ensuring parameters are strings [GH-1843]
-* `azurerm_virtual_machine` - setting the `image_uri` property within the `storage_os_disk` block [GH-1799]
-* `azurerm_virtual_machine_data_disk_attachment` - obtaining a basic view, rather than the entire instance view of the Virtual Machine to work around an issue in the API [GH-1855]
+* `azurerm_data_lake_store_file` - updating the Resource ID to match the file path ([#1856](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1856))
+* `azurerm_eventhub` - updating the validation to support periods, hyphens and underscores ([#1795](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1795))
+* `azurerm_eventhub_authorization_rule` - updating the validation error ([#1795](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1795))
+* `azurerm_eventhub_consumer_group` - updating the validation to support periods, hyphens and underscores ([#1795](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1795))
+* `azurerm_eventhub_namespace` - updating the validation error ([#1795](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1795))
+* `azurerm_function_app` - support for names in upper-case ([#1835](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1835))
+* `azurerm_kubernetes_cluster` - removing validation for the `pod_cidr` field when `network_plugin` is set to `azure` ([#1798](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1798))
+* `azurerm_logic_app_workflow` - ensuring parameters are strings ([#1843](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1843))
+* `azurerm_virtual_machine` - setting the `image_uri` property within the `storage_os_disk` block ([#1799](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1799))
+* `azurerm_virtual_machine_data_disk_attachment` - obtaining a basic view, rather than the entire instance view of the Virtual Machine to work around an issue in the API ([#1855](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1855))
 
 ## 1.13.0 (August 15, 2018)
 
