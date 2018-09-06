@@ -1,4 +1,10 @@
 ## 1.15.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_role_assignment` - parsing the Resource ID during deletion [GH-1887]
+* `azurerm_role_definition` - parsing the Resource ID during deletion [GH-1887]
+
 ## 1.14.0 (September 06, 2018)
 
 FEATURES:
