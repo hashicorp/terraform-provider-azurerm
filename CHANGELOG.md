@@ -9,6 +9,7 @@ FEATURES:
 IMPROVEMENTS:
 
 * authentication: making the client registration consistent [GH-1845]
+* `azurerm_application_insights` - support for the `MobileCenter` kind [GH-1878]
 * `azurerm_function_app` - removing validation from the `version` field [GH-1872]
 * `azurerm_iothub` - exporting the `event_hub_events_endpoint`, `event_hub_events_path`, `event_hub_operations_endpoint` and `event_hub_operations_path` fields [GH-1789]
 * `azurerm_iothub` - support for `endpoint` and `route` blocks [GH-1693]
