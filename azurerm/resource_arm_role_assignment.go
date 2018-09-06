@@ -154,10 +154,12 @@ func resourceArmRoleAssignmentDelete(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).roleAssignmentsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	scope := d.Get("scope").(string)
-	name := d.Get("name").(string)
+	id, err := parseRoleAssignmentId(d.Id())
+	if err != nil {
+		return err
+	}
 
-	resp, err := client.Delete(ctx, scope, name)
+	resp, err := client.Delete(ctx, id.scope, id.name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
 			return err
@@ -193,4 +195,23 @@ func retryRoleAssignmentsClient(scope string, name string, properties authorizat
 		return nil
 
 	}
+}
+
+type roleAssignmentId struct {
+	scope string
+	name  string
+}
+
+func parseRoleAssignmentId(input string) (*roleAssignmentId, error) {
+	segments := strings.Split(input, "/providers/Microsoft.Authorization/roleAssignments/")
+	if len(segments) != 2 {
+		return nil, fmt.Errorf("Expected Role Assignment ID to be in the format `{scope}/providers/Microsoft.Authorization/roleAssignments/{name}` but got %q", input)
+	}
+
+	// /{scope}/providers/Microsoft.Authorization/roleAssignments/{roleAssignmentName}
+	id := roleAssignmentId{
+		scope: strings.TrimPrefix(segments[0], "/"),
+		name:  segments[1],
+	}
+	return &id, nil
 }
