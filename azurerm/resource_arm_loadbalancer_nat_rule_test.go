@@ -35,6 +35,13 @@ func TestAccAzureRMLoadBalancerNatRule_basic(t *testing.T) {
 						"azurerm_lb_nat_rule.test", "id", natRuleId),
 				),
 			},
+			{
+				ResourceName:      "azurerm_lb.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				// location is deprecated and was never actually used
+				ImportStateVerifyIgnore: []string{"location"},
+			},
 		},
 	})
 }
