@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
 	"github.com/hashicorp/go-uuid"
@@ -163,7 +164,8 @@ func resourceArmRoleDefinitionDelete(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).roleDefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	roleDefinitionId := d.Get("role_definition_id").(string)
+	parts := strings.Split(d.Id(), "/")
+	roleDefinitionId := parts[len(parts)-1]
 	scope := d.Get("scope").(string)
 
 	resp, err := client.Delete(ctx, scope, roleDefinitionId)
