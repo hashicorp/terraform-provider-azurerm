@@ -31,6 +31,30 @@ func TestAccAzureRMPostgreSQLVirtualNetworkRule_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPostgreSQLVirtualNetworkRule_requiresImport(t *testing.T) {
+	resourceName := "azurerm_postgresql_virtual_network_rule.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPostgreSQLVirtualNetworkRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPostgreSQLVirtualNetworkRule_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLVirtualNetworkRuleExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMPostgreSQLVirtualNetworkRule_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_postgresql_virtual_network_rule"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMPostgreSQLVirtualNetworkRule_switchSubnets(t *testing.T) {
 	resourceName := "azurerm_postgresql_virtual_network_rule.test"
 	ri := acctest.RandInt()
@@ -259,6 +283,20 @@ resource "azurerm_postgresql_virtual_network_rule" "test" {
 }
 
 `, rInt, location, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMPostgreSQLVirtualNetworkRule_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMPostgreSQLVirtualNetworkRule_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_virtual_network_rule" "import" {
+  name                = "${azurerm_postgresql_virtual_network_rule.test.name}"
+  resource_group_name = "${azurerm_postgresql_virtual_network_rule.test.resource_group_name}"
+  server_name         = "${azurerm_postgresql_virtual_network_rule.test.server_name}"
+  subnet_id           = "${azurerm_postgresql_virtual_network_rule.test.subnet_id}"
+}
+`, template)
 }
 
 func testAccAzureRMPostgreSQLVirtualNetworkRule_subnetSwitchPre(rInt int, location string) string {

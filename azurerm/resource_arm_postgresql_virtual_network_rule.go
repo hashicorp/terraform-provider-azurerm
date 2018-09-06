@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -25,6 +26,11 @@ func resourceArmPostgreSQLVirtualNetworkRule() *schema.Resource {
 		Delete: resourceArmPostgreSQLVirtualNetworkRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -61,6 +67,19 @@ func resourceArmPostgreSQLVirtualNetworkRuleCreateUpdate(d *schema.ResourceData,
 	serverName := d.Get("server_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	subnetId := d.Get("subnet_id").(string)
+
+	if d.IsNewResource() {
+		resp, err := client.Get(ctx, resourceGroup, serverName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error checking for the existence of Virtual Network Rule %q (Server %q / Resource Group %q): %+v", name, serverName, resourceGroup, err)
+			}
+		}
+
+		if resp.ID != nil {
+			return tf.ImportAsExistsError("azurerm_postgresql_virtual_network_rule", *resp.ID)
+		}
+	}
 
 	// due to a bug in the API we have to ensure the Subnet's configured correctly or the API call will timeout
 	// BUG: https://github.com/Azure/azure-rest-api-specs/issues/3719
@@ -113,11 +132,14 @@ func resourceArmPostgreSQLVirtualNetworkRuleCreateUpdate(d *schema.ResourceData,
 
 	// Wait for the provisioning state to become ready
 	log.Printf("[DEBUG] Waiting for PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q) to become ready: %+v", name, serverName, resourceGroup, err)
+	timeout := d.Timeout(tf.TimeoutForCreateUpdate(d))
+	waitCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
 	stateConf := &resource.StateChangeConf{
 		Pending:                   []string{"Initializing", "InProgress", "Unknown", "ResponseNotFound"},
 		Target:                    []string{"Ready"},
-		Refresh:                   postgreSQLVirtualNetworkStateStatusCodeRefreshFunc(ctx, client, resourceGroup, serverName, name),
-		Timeout:                   10 * time.Minute,
+		Refresh:                   postgreSQLVirtualNetworkStateStatusCodeRefreshFunc(waitCtx, client, resourceGroup, serverName, name),
+		Timeout:                   timeout,
 		MinTimeout:                1 * time.Minute,
 		ContinuousTargetOccurence: 5,
 	}
@@ -193,7 +215,9 @@ func resourceArmPostgreSQLVirtualNetworkRuleDelete(d *schema.ResourceData, meta 
 		return fmt.Errorf("Error deleting PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
