@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"path/filepath"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
 	"github.com/hashicorp/go-uuid"
@@ -82,14 +83,17 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 	client := meta.(*ArmClient).roleDefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	roleDefinitionId := d.Get("role_definition_id").(string)
-	if roleDefinitionId == "" {
-		uuid, err := uuid.GenerateUUID()
-		if err != nil {
-			return fmt.Errorf("Error generating UUID for Role Assignment: %+v", err)
-		}
+	roleDefinitionId := filepath.Base(d.Id())
+	if roleDefinitionId == "." {
+		roleDefinitionId = d.Get("role_definition_id").(string)
+		if roleDefinitionId == "" {
+			uuid, err := uuid.GenerateUUID()
+			if err != nil {
+				return fmt.Errorf("Error generating UUID for Role Assignment: %+v", err)
+			}
 
-		roleDefinitionId = uuid
+			roleDefinitionId = uuid
+		}
 	}
 
 	name := d.Get("name").(string)
@@ -163,16 +167,15 @@ func resourceArmRoleDefinitionDelete(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).roleDefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	roleDefinitionId := d.Get("role_definition_id").(string)
 	scope := d.Get("scope").(string)
 
-	resp, err := client.Delete(ctx, scope, roleDefinitionId)
+	resp, err := client.Delete(ctx, scope, filepath.Base(d.Id()))
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting Role Definition %q: %+v", roleDefinitionId, err)
+		return fmt.Errorf("Error deleting Role Definition %q: %+v", filepath.Base(d.Id()), err)
 	}
 
 	return nil
