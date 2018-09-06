@@ -99,6 +99,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_log_analytics_workspace":               dataSourceLogAnalyticsWorkspace(),
 			"azurerm_logic_app_workflow":                    dataSourceArmLogicAppWorkflow(),
 			"azurerm_managed_disk":                          dataSourceArmManagedDisk(),
+			"azurerm_management_group":                      dataSourceArmManagementGroup(),
 			"azurerm_network_interface":                     dataSourceArmNetworkInterface(),
 			"azurerm_network_security_group":                dataSourceArmNetworkSecurityGroup(),
 			"azurerm_notification_hub":                      dataSourceNotificationHub(),
