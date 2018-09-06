@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/management"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -49,9 +48,7 @@ func dataSourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) 
 	resp, err := client.Get(ctx, groupId, "children", &recurse, "", managementGroupCacheControl)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Management Group %q doesn't exist - removing from state", d.Id())
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Management Group %q was not found", groupId)
 		}
 
 		return fmt.Errorf("Error reading Management Group %q: %+v", d.Id(), err)
