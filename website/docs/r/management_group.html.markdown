@@ -31,7 +31,7 @@ The following arguments are supported:
 
 * `display_name` - (Optional) A friendly name for this Management Group. If not specified, this'll be the same as the `group_id`.
 
-* `parent_management_group_id` - (Required) The ID of the Parent Management Group. Changing this forces a new resource to be created.
+* `parent_management_group_id` - (Optional) The ID of the Parent Management Group. Changing this forces a new resource to be created.
 
 * `subscription_ids` - (Optional) A list of Subscription ID's which should be assigned to the Management Group.
 

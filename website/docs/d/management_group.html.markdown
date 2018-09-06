@@ -1,0 +1,42 @@
+---
+layout: "azurerm"
+page_title: "Azure Resource Manager: azurerm_management_group"
+sidebar_current: "docs-azurerm-datasource-management-group"
+description: |-
+  Get information about the specified Management Group.
+---
+
+# Data Source: azurerm_management_group
+
+Use this data source to access the properties of a Management Group.
+
+## Example Usage
+
+```hcl
+data "azurerm_management_group" "test" {
+  group_id = "00000000-0000-0000-0000-000000000000"
+}
+
+output "display_name" {
+  value = "${data.azurerm_management_group.test.display_name}"
+}
+```
+
+## Argument Reference
+
+The following arguments are supported:
+
+* `group_id` - (Required) Specifies the UUID of this Management Group.
+
+## Attributes Reference
+
+The following attributes are exported:
+
+* `id` - The ID of the Management Group.
+
+* `display_name` - A friendly name for the Management Group.
+
+* `parent_management_group_id` - The ID of any Parent Management Group.
+
+* `subscription_ids` - A list of Subscription ID's which are assigned to the Management Group.
+
