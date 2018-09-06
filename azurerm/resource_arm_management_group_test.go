@@ -34,6 +34,28 @@ func TestAccAzureRMManagementGroup_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMManagementGroup_requiresImport(t *testing.T) {
+	resourceName := "azurerm_management_group.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAzureRMManagementGroup_basic(),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMManagementGroupExists(resourceName),
+				),
+			},
+			{
+				Config:      testAzureRMManagementGroup_requiresImport(),
+				ExpectError: testRequiresImportError("azurerm_management_group"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMManagementGroup_nested(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -239,6 +261,18 @@ func testAzureRMManagementGroup_basic() string {
 resource "azurerm_management_group" "test" {
 }
 `)
+}
+
+func testAzureRMManagementGroup_requiresImport() string {
+	template := testAzureRMManagementGroup_basic()
+	return fmt.Sprintf(`
+
+%s
+
+resource "azurerm_management_group" "import" {
+  group_id = "${azurerm_management_group.test.group_id}"
+}
+`, template)
 }
 
 func testAzureRMManagementGroup_nested() string {

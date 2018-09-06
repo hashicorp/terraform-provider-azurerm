@@ -1,14 +1,17 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/management"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,6 +25,11 @@ func resourceArmManagementGroup() *schema.Resource {
 		Delete: resourceArmManagementGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(time.Minute * 30),
+			Update: schema.DefaultTimeout(time.Minute * 30),
+			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -63,7 +71,23 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 	groupId := d.Get("group_id").(string)
 	if groupId == "" {
 		groupId = uuid.New().String()
+	} else {
+		if d.IsNewResource() {
+			// first check if there's one in this subscription requiring import
+			recurse := true
+			resp, err := client.Get(ctx, groupId, "", &recurse, "", managementGroupCacheControl)
+			if err != nil {
+				if !utils.ResponseWasNotFound(resp.Response) {
+					return fmt.Errorf("Error checking for the existence of Management Group %q: %+v", groupId, err)
+				}
+			}
+
+			if resp.ID != nil {
+				return tf.ImportAsExistsError("azurerm_management_group", *resp.ID)
+			}
+		}
 	}
+
 	parentManagementGroupId := d.Get("parent_management_group_id").(string)
 	if parentManagementGroupId == "" {
 		parentManagementGroupId = fmt.Sprintf("/providers/Microsoft.Management/managementGroups/%s", armTenantID)
@@ -92,7 +116,9 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error creating Management Group %q: %+v", groupId, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(tf.TimeoutForCreateUpdate(d)))
+	defer cancel()
+	err = future.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for creation of Management Group %q: %+v", groupId, err)
 	}
@@ -209,6 +235,9 @@ func resourceArmManagementGroupDelete(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error retrieving Management Group %q: %+v", id.groupId, err)
 	}
 
+	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
+	defer cancel()
+
 	// before deleting a management group, return any subscriptions to the root management group
 	if props := group.Properties; props != nil {
 		if children := props.Children; children != nil {
@@ -220,7 +249,7 @@ func resourceArmManagementGroupDelete(d *schema.ResourceData, meta interface{}) 
 				subscriptionId := *v.ID
 				log.Printf("[DEBUG] De-associating Subscription %q from Management Group %q..", subscriptionId, id.groupId)
 				// NOTE: whilst this says `Delete` it's actually `Deassociate` - which is /really/ helpful
-				deleteResp, err := subscriptionsClient.Delete(ctx, id.groupId, subscriptionId, managementGroupCacheControl)
+				deleteResp, err := subscriptionsClient.Delete(waitCtx, id.groupId, subscriptionId, managementGroupCacheControl)
 				if err != nil {
 					if !response.WasNotFound(deleteResp.Response) {
 						return fmt.Errorf("Error de-associating Subscription %q from Management Group %q: %+v", subscriptionId, id.groupId, err)
@@ -235,7 +264,7 @@ func resourceArmManagementGroupDelete(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error deleting Management Group %q: %+v", id.groupId, err)
 	}
 
-	err = resp.WaitForCompletionRef(ctx, client.Client)
+	err = resp.WaitForCompletionRef(waitCtx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for the deletion of Management Group %q: %+v", id.groupId, err)
 	}
