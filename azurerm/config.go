@@ -475,10 +475,7 @@ func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, a
 	c.automationScheduleClient = scheduleClient
 
 	runbookDraftClient := automation.NewRunbookDraftClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&runbookDraftClient.Client)
-	runbookDraftClient.Authorizer = auth
-	runbookDraftClient.Sender = sender
-	runbookDraftClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&runbookDraftClient.Client, auth)
 	c.automationRunbookDraftClient = runbookDraftClient
 }
 

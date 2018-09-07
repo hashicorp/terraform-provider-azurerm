@@ -151,7 +151,7 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 
 	_, err := client.CreateOrUpdate(ctx, resGroup, accName, name, parameters)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating/updating Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
 	}
 
 	if v, ok := d.GetOk("content"); ok {
@@ -160,21 +160,22 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 		draftClient := meta.(*ArmClient).automationRunbookDraftClient
 		_, err := draftClient.ReplaceContent(ctx, resGroup, accName, name, reader)
 		if err != nil {
-			return err
+			return fmt.Errorf("Error setting the draft Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
 		}
+
 		_, err = draftClient.Publish(ctx, resGroup, accName, name)
 		if err != nil {
-			return err
+			return fmt.Errorf("Error publishing the updated Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
 		}
 	}
 
 	read, err := client.Get(ctx, resGroup, accName, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Automation Runbook '%s' (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read Automation Runbook %q (Account %q / Resource Group %q) ID", name, accName, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -201,7 +202,7 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM Automation Runbook '%s': %+v", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -224,13 +225,16 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 
 	response, err := client.GetContent(ctx, resGroup, accName, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving content for Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
 	}
-	if contentBytes := *response.Value; contentBytes != nil {
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(contentBytes)
-		content := buf.String()
-		d.Set("content", content)
+
+	if v := response.Value; v != nil {
+		if contentBytes := *response.Value; contentBytes != nil {
+			buf := new(bytes.Buffer)
+			buf.ReadFrom(contentBytes)
+			content := buf.String()
+			d.Set("content", content)
+		}
 	}
 
 	return nil
