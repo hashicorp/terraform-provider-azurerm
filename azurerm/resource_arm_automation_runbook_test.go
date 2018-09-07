@@ -62,6 +62,33 @@ func TestAccAzureRMAutomationRunbook_PSWorkflowWithHash(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAutomationRunbook_PSWithContent(t *testing.T) {
+	resourceName := "azurerm_automation_runbook.test"
+	ri := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAutomationRunbookDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAutomationRunbook_PSWithContent(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAutomationRunbookExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "runbook_type", "PowerShell"),
+					resource.TestCheckResourceAttr(resourceName, "content", "# Some test content\n# for Terraform acceptance test\n"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"publish_content_link"},
+			},
+		},
+	})
+}
+
 func testCheckAzureRMAutomationRunbookDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).automationRunbookClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -196,6 +223,46 @@ resource "azurerm_automation_runbook" "test" {
 		value = "115775B8FF2BE672D8A946BD0B489918C724DDE15A440373CA54461D53010A80"
 	}
   }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMAutomationRunbook_PSWithContent(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctest-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name = "Basic"
+  }
+}
+
+resource "azurerm_automation_runbook" "test" {
+  name                = "Get-AzureVMTutorial"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  account_name = "${azurerm_automation_account.test.name}"
+  log_verbose  = "true"
+  log_progress = "true"
+  description  = "This is a test runbook for terraform acceptance test"
+  runbook_type = "PowerShell"
+
+  publish_content_link {
+    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
+  }
+
+  content = <<CONTENT
+# Some test content
+# for Terraform acceptance test
+CONTENT
 }
 `, rInt, location, rInt)
 }
