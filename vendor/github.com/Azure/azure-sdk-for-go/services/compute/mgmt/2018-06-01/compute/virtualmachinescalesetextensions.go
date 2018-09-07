@@ -41,10 +41,11 @@ func NewVirtualMachineScaleSetExtensionsClientWithBaseURI(baseURI string, subscr
 }
 
 // CreateOrUpdate the operation to create or update an extension.
-//
-// resourceGroupName is the name of the resource group. VMScaleSetName is the name of the VM scale set where the
-// extension should be create or updated. vmssExtensionName is the name of the VM scale set extension.
-// extensionParameters is parameters supplied to the Create VM scale set Extension operation.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// VMScaleSetName - the name of the VM scale set where the extension should be create or updated.
+// vmssExtensionName - the name of the VM scale set extension.
+// extensionParameters - parameters supplied to the Create VM scale set Extension operation.
 func (client VirtualMachineScaleSetExtensionsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, VMScaleSetName string, vmssExtensionName string, extensionParameters VirtualMachineScaleSetExtension) (result VirtualMachineScaleSetExtensionsCreateOrUpdateFuture, err error) {
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, VMScaleSetName, vmssExtensionName, extensionParameters)
 	if err != nil {
@@ -70,7 +71,7 @@ func (client VirtualMachineScaleSetExtensionsClient) CreateOrUpdatePreparer(ctx 
 		"vmssExtensionName": autorest.Encode("path", vmssExtensionName),
 	}
 
-	const APIVersion = "2017-12-01"
+	const APIVersion = "2018-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -88,15 +89,17 @@ func (client VirtualMachineScaleSetExtensionsClient) CreateOrUpdatePreparer(ctx 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client VirtualMachineScaleSetExtensionsClient) CreateOrUpdateSender(req *http.Request) (future VirtualMachineScaleSetExtensionsCreateOrUpdateFuture, err error) {
-	sender := autorest.DecorateSender(client, azure.DoRetryWithRegistration(client.Client))
-	future.Future = azure.NewFuture(req)
-	future.req = req
-	_, err = future.Done(sender)
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
-	err = autorest.Respond(future.Response(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated))
+	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
 	return
 }
 
@@ -114,9 +117,10 @@ func (client VirtualMachineScaleSetExtensionsClient) CreateOrUpdateResponder(res
 }
 
 // Delete the operation to delete the extension.
-//
-// resourceGroupName is the name of the resource group. VMScaleSetName is the name of the VM scale set where the
-// extension should be deleted. vmssExtensionName is the name of the VM scale set extension.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// VMScaleSetName - the name of the VM scale set where the extension should be deleted.
+// vmssExtensionName - the name of the VM scale set extension.
 func (client VirtualMachineScaleSetExtensionsClient) Delete(ctx context.Context, resourceGroupName string, VMScaleSetName string, vmssExtensionName string) (result VirtualMachineScaleSetExtensionsDeleteFuture, err error) {
 	req, err := client.DeletePreparer(ctx, resourceGroupName, VMScaleSetName, vmssExtensionName)
 	if err != nil {
@@ -142,7 +146,7 @@ func (client VirtualMachineScaleSetExtensionsClient) DeletePreparer(ctx context.
 		"vmssExtensionName": autorest.Encode("path", vmssExtensionName),
 	}
 
-	const APIVersion = "2017-12-01"
+	const APIVersion = "2018-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -158,36 +162,38 @@ func (client VirtualMachineScaleSetExtensionsClient) DeletePreparer(ctx context.
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client VirtualMachineScaleSetExtensionsClient) DeleteSender(req *http.Request) (future VirtualMachineScaleSetExtensionsDeleteFuture, err error) {
-	sender := autorest.DecorateSender(client, azure.DoRetryWithRegistration(client.Client))
-	future.Future = azure.NewFuture(req)
-	future.req = req
-	_, err = future.Done(sender)
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
-	err = autorest.Respond(future.Response(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent))
+	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
 	return
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (client VirtualMachineScaleSetExtensionsClient) DeleteResponder(resp *http.Response) (result OperationStatusResponse, err error) {
+func (client VirtualMachineScaleSetExtensionsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
-		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
+	result.Response = resp
 	return
 }
 
 // Get the operation to get the extension.
-//
-// resourceGroupName is the name of the resource group. VMScaleSetName is the name of the VM scale set containing
-// the extension. vmssExtensionName is the name of the VM scale set extension. expand is the expand expression to
-// apply on the operation.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// VMScaleSetName - the name of the VM scale set containing the extension.
+// vmssExtensionName - the name of the VM scale set extension.
+// expand - the expand expression to apply on the operation.
 func (client VirtualMachineScaleSetExtensionsClient) Get(ctx context.Context, resourceGroupName string, VMScaleSetName string, vmssExtensionName string, expand string) (result VirtualMachineScaleSetExtension, err error) {
 	req, err := client.GetPreparer(ctx, resourceGroupName, VMScaleSetName, vmssExtensionName, expand)
 	if err != nil {
@@ -219,7 +225,7 @@ func (client VirtualMachineScaleSetExtensionsClient) GetPreparer(ctx context.Con
 		"vmssExtensionName": autorest.Encode("path", vmssExtensionName),
 	}
 
-	const APIVersion = "2017-12-01"
+	const APIVersion = "2018-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -256,9 +262,9 @@ func (client VirtualMachineScaleSetExtensionsClient) GetResponder(resp *http.Res
 }
 
 // List gets a list of all extensions in a VM scale set.
-//
-// resourceGroupName is the name of the resource group. VMScaleSetName is the name of the VM scale set containing
-// the extension.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// VMScaleSetName - the name of the VM scale set containing the extension.
 func (client VirtualMachineScaleSetExtensionsClient) List(ctx context.Context, resourceGroupName string, VMScaleSetName string) (result VirtualMachineScaleSetExtensionListResultPage, err error) {
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx, resourceGroupName, VMScaleSetName)
@@ -290,7 +296,7 @@ func (client VirtualMachineScaleSetExtensionsClient) ListPreparer(ctx context.Co
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2017-12-01"
+	const APIVersion = "2018-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

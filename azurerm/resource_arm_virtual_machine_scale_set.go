@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -958,13 +958,13 @@ func flattenAzureRmVirtualMachineScaleSetIdentity(identity *compute.VirtualMachi
 		result["principal_id"] = *identity.PrincipalID
 	}
 
-	identity_ids := make([]string, 0)
-	if identity.IdentityIds != nil {
-		for _, id := range *identity.IdentityIds {
-			identity_ids = append(identity_ids, id)
+	identityIds := make([]string, 0)
+	if identity.UserAssignedIdentities != nil {
+		for key, _ := range identity.UserAssignedIdentities {
+			identityIds = append(identityIds, key)
 		}
 	}
-	result["identity_ids"] = identity_ids
+	result["identity_ids"] = identityIds
 
 	return []interface{}{result}
 }
@@ -1651,9 +1651,9 @@ func expandAzureRmVirtualMachineScaleSetIdentity(d *schema.ResourceData) *comput
 	identity := identities[0].(map[string]interface{})
 	identityType := compute.ResourceIdentityType(identity["type"].(string))
 
-	identityIds := []string{}
+	identityIds := make(map[string]*compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue, 0)
 	for _, id := range identity["identity_ids"].([]interface{}) {
-		identityIds = append(identityIds, id.(string))
+		identityIds[id.(string)] = &compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue{}
 	}
 
 	vmssIdentity := compute.VirtualMachineScaleSetIdentity{
@@ -1661,7 +1661,7 @@ func expandAzureRmVirtualMachineScaleSetIdentity(d *schema.ResourceData) *comput
 	}
 
 	if vmssIdentity.Type == compute.ResourceIdentityTypeUserAssigned {
-		vmssIdentity.IdentityIds = &identityIds
+		vmssIdentity.UserAssignedIdentities = identityIds
 	}
 
 	return &vmssIdentity

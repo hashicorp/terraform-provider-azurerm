@@ -40,10 +40,11 @@ func NewVirtualMachineExtensionsClientWithBaseURI(baseURI string, subscriptionID
 }
 
 // CreateOrUpdate the operation to create or update the extension.
-//
-// resourceGroupName is the name of the resource group. VMName is the name of the virtual machine where the
-// extension should be create or updated. VMExtensionName is the name of the virtual machine extension.
-// extensionParameters is parameters supplied to the Create Virtual Machine Extension operation.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// VMName - the name of the virtual machine where the extension should be created or updated.
+// VMExtensionName - the name of the virtual machine extension.
+// extensionParameters - parameters supplied to the Create Virtual Machine Extension operation.
 func (client VirtualMachineExtensionsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, VMName string, VMExtensionName string, extensionParameters VirtualMachineExtension) (result VirtualMachineExtensionsCreateOrUpdateFuture, err error) {
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, VMName, VMExtensionName, extensionParameters)
 	if err != nil {
@@ -69,7 +70,7 @@ func (client VirtualMachineExtensionsClient) CreateOrUpdatePreparer(ctx context.
 		"vmName":            autorest.Encode("path", VMName),
 	}
 
-	const APIVersion = "2017-12-01"
+	const APIVersion = "2018-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -87,15 +88,17 @@ func (client VirtualMachineExtensionsClient) CreateOrUpdatePreparer(ctx context.
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client VirtualMachineExtensionsClient) CreateOrUpdateSender(req *http.Request) (future VirtualMachineExtensionsCreateOrUpdateFuture, err error) {
-	sender := autorest.DecorateSender(client, azure.DoRetryWithRegistration(client.Client))
-	future.Future = azure.NewFuture(req)
-	future.req = req
-	_, err = future.Done(sender)
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
-	err = autorest.Respond(future.Response(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated))
+	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
 	return
 }
 
@@ -113,9 +116,10 @@ func (client VirtualMachineExtensionsClient) CreateOrUpdateResponder(resp *http.
 }
 
 // Delete the operation to delete the extension.
-//
-// resourceGroupName is the name of the resource group. VMName is the name of the virtual machine where the
-// extension should be deleted. VMExtensionName is the name of the virtual machine extension.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// VMName - the name of the virtual machine where the extension should be deleted.
+// VMExtensionName - the name of the virtual machine extension.
 func (client VirtualMachineExtensionsClient) Delete(ctx context.Context, resourceGroupName string, VMName string, VMExtensionName string) (result VirtualMachineExtensionsDeleteFuture, err error) {
 	req, err := client.DeletePreparer(ctx, resourceGroupName, VMName, VMExtensionName)
 	if err != nil {
@@ -141,7 +145,7 @@ func (client VirtualMachineExtensionsClient) DeletePreparer(ctx context.Context,
 		"vmName":            autorest.Encode("path", VMName),
 	}
 
-	const APIVersion = "2017-12-01"
+	const APIVersion = "2018-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -157,36 +161,38 @@ func (client VirtualMachineExtensionsClient) DeletePreparer(ctx context.Context,
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client VirtualMachineExtensionsClient) DeleteSender(req *http.Request) (future VirtualMachineExtensionsDeleteFuture, err error) {
-	sender := autorest.DecorateSender(client, azure.DoRetryWithRegistration(client.Client))
-	future.Future = azure.NewFuture(req)
-	future.req = req
-	_, err = future.Done(sender)
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
-	err = autorest.Respond(future.Response(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent))
+	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
 	return
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (client VirtualMachineExtensionsClient) DeleteResponder(resp *http.Response) (result OperationStatusResponse, err error) {
+func (client VirtualMachineExtensionsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
-		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
+	result.Response = resp
 	return
 }
 
 // Get the operation to get the extension.
-//
-// resourceGroupName is the name of the resource group. VMName is the name of the virtual machine containing the
-// extension. VMExtensionName is the name of the virtual machine extension. expand is the expand expression to
-// apply on the operation.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// VMName - the name of the virtual machine containing the extension.
+// VMExtensionName - the name of the virtual machine extension.
+// expand - the expand expression to apply on the operation.
 func (client VirtualMachineExtensionsClient) Get(ctx context.Context, resourceGroupName string, VMName string, VMExtensionName string, expand string) (result VirtualMachineExtension, err error) {
 	req, err := client.GetPreparer(ctx, resourceGroupName, VMName, VMExtensionName, expand)
 	if err != nil {
@@ -218,7 +224,7 @@ func (client VirtualMachineExtensionsClient) GetPreparer(ctx context.Context, re
 		"vmName":            autorest.Encode("path", VMName),
 	}
 
-	const APIVersion = "2017-12-01"
+	const APIVersion = "2018-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -244,6 +250,153 @@ func (client VirtualMachineExtensionsClient) GetSender(req *http.Request) (*http
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
 func (client VirtualMachineExtensionsClient) GetResponder(resp *http.Response) (result VirtualMachineExtension, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// List the operation to get all extensions of a Virtual Machine.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// VMName - the name of the virtual machine containing the extension.
+// expand - the expand expression to apply on the operation.
+func (client VirtualMachineExtensionsClient) List(ctx context.Context, resourceGroupName string, VMName string, expand string) (result VirtualMachineExtensionsListResult, err error) {
+	req, err := client.ListPreparer(ctx, resourceGroupName, VMName, expand)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "compute.VirtualMachineExtensionsClient", "List", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "compute.VirtualMachineExtensionsClient", "List", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.ListResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "compute.VirtualMachineExtensionsClient", "List", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// ListPreparer prepares the List request.
+func (client VirtualMachineExtensionsClient) ListPreparer(ctx context.Context, resourceGroupName string, VMName string, expand string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"vmName":            autorest.Encode("path", VMName),
+	}
+
+	const APIVersion = "2018-06-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+	if len(expand) > 0 {
+		queryParameters["$expand"] = autorest.Encode("query", expand)
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute/virtualMachines/{vmName}/extensions", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListSender sends the List request. The method will close the
+// http.Response Body if it receives an error.
+func (client VirtualMachineExtensionsClient) ListSender(req *http.Request) (*http.Response, error) {
+	return autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListResponder handles the response to the List request. The method always
+// closes the http.Response Body.
+func (client VirtualMachineExtensionsClient) ListResponder(resp *http.Response) (result VirtualMachineExtensionsListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// Update the operation to update the extension.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// VMName - the name of the virtual machine where the extension should be updated.
+// VMExtensionName - the name of the virtual machine extension.
+// extensionParameters - parameters supplied to the Update Virtual Machine Extension operation.
+func (client VirtualMachineExtensionsClient) Update(ctx context.Context, resourceGroupName string, VMName string, VMExtensionName string, extensionParameters VirtualMachineExtensionUpdate) (result VirtualMachineExtensionsUpdateFuture, err error) {
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, VMName, VMExtensionName, extensionParameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "compute.VirtualMachineExtensionsClient", "Update", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.UpdateSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "compute.VirtualMachineExtensionsClient", "Update", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// UpdatePreparer prepares the Update request.
+func (client VirtualMachineExtensionsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, VMName string, VMExtensionName string, extensionParameters VirtualMachineExtensionUpdate) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"vmExtensionName":   autorest.Encode("path", VMExtensionName),
+		"vmName":            autorest.Encode("path", VMName),
+	}
+
+	const APIVersion = "2018-06-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPatch(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute/virtualMachines/{vmName}/extensions/{vmExtensionName}", pathParameters),
+		autorest.WithJSON(extensionParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// UpdateSender sends the Update request. The method will close the
+// http.Response Body if it receives an error.
+func (client VirtualMachineExtensionsClient) UpdateSender(req *http.Request) (future VirtualMachineExtensionsUpdateFuture, err error) {
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// UpdateResponder handles the response to the Update request. The method always
+// closes the http.Response Body.
+func (client VirtualMachineExtensionsClient) UpdateResponder(resp *http.Response) (result VirtualMachineExtension, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),

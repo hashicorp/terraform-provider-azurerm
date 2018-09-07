@@ -42,8 +42,8 @@ func NewUsageClientWithBaseURI(baseURI string, subscriptionID string) UsageClien
 
 // List gets, for the specified location, the current compute resource usage information as well as the limits for
 // compute resources under the subscription.
-//
-// location is the location for which resource usage is queried.
+// Parameters:
+// location - the location for which resource usage is queried.
 func (client UsageClient) List(ctx context.Context, location string) (result ListUsagesResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: location,
@@ -80,7 +80,7 @@ func (client UsageClient) ListPreparer(ctx context.Context, location string) (*h
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-12-01"
+	const APIVersion = "2018-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
