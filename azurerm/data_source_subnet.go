@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -12,19 +13,18 @@ func dataSourceArmSubnet() *schema.Resource {
 		Read: dataSourceArmSubnetRead,
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"virtual_network_name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
+			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 
 			"address_prefix": {
 				Type:     schema.TypeString,
@@ -92,8 +92,7 @@ func dataSourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("route_table_id", "")
 		}
 
-		ips := flattenSubnetIPConfigurations(props.IPConfigurations)
-		if err := d.Set("ip_configurations", ips); err != nil {
+		if err := d.Set("ip_configurations", flattenSubnetIPConfigurations(props.IPConfigurations)); err != nil {
 			return err
 		}
 	}
