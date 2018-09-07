@@ -90,7 +90,7 @@ func dataSourceArmAzureADApplicationRead(d *schema.ResourceData, meta interface{
 
 		// use the name to find the Azure AD application
 		name := d.Get("name").(string)
-		filter := "displayName eq '" + name + "'"
+		filter := fmt.Sprintf("displayName eq '%s'", name)
 		log.Printf("[DEBUG] [data_source_azuread_application] Using filter %q", filter)
 
 		resp, err := client.ListComplete(ctx, filter)

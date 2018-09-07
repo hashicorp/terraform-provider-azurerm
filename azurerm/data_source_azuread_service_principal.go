@@ -62,7 +62,7 @@ func dataSourceArmActiveDirectoryServicePrincipalRead(d *schema.ResourceData, me
 
 		// use the display_name to find the Azure AD service principal
 		displayName := d.Get("display_name").(string)
-		filter := "displayName eq '" + displayName + "'"
+		filter := fmt.Sprintf("displayName eq '%s'", displayName)
 		log.Printf("[DEBUG] [data_source_azuread_service_principal] Using filter %q", filter)
 
 		apps, err := client.ListComplete(ctx, filter)
@@ -89,7 +89,7 @@ func dataSourceArmActiveDirectoryServicePrincipalRead(d *schema.ResourceData, me
 
 		// use the application_id to find the Azure AD service principal
 		applicationId := d.Get("application_id").(string)
-		filter := "appId eq '" + applicationId + "'"
+		filter := fmt.Sprintf("appId eq '%s'", applicationId)
 		log.Printf("[DEBUG] [data_source_azuread_service_principal] Using filter %q", filter)
 
 		apps, err := client.ListComplete(ctx, filter)
