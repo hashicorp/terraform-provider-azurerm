@@ -38,7 +38,9 @@
 			"checksumSHA1": "eB6b4vGKEbAND0MUWfKLTn6H7uw=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-06-01/containerinstance",
 			"revision": "2935c0241c74bd8549b843978dd6fc1be6f48b4a",
-			"revisionTime": "2018-08-31T14:25:13Z"
+			"revisionTime": "2018-08-31T14:25:13Z",
+			"version": "v20.1.0",
+			"versionExact": "v20.1.0"
 		},
 		{
 			"checksumSHA1": "H1TUOYWg58oXWMDoZYNtJKo+woU=",
