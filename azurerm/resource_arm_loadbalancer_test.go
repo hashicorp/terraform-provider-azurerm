@@ -62,6 +62,11 @@ func TestAccAzureRMLoadBalancer_basic(t *testing.T) {
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 				),
 			},
+			{
+				ResourceName:      "azurerm_lb.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -80,6 +85,11 @@ func TestAccAzureRMLoadBalancer_standard(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 				),
+			},
+			{
+				ResourceName:      "azurerm_lb.test",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -102,6 +112,11 @@ func TestAccAzureRMLoadBalancer_frontEndConfig(t *testing.T) {
 					testCheckAzureRMLoadBalancerExists(resourceName, &lb),
 					resource.TestCheckResourceAttr(resourceName, "frontend_ip_configuration.#", "2"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAzureRMLoadBalancer_frontEndConfigRemovalWithIP(ri, location),

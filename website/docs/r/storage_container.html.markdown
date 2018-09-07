@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_storage_container
 
-Create an Azure Storage Container.
+Manage an Azure Storage Container.
 
 ## Example Usage
 

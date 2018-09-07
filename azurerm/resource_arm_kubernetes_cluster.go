@@ -183,9 +183,11 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							ValidateFunc: validation.IntBetween(1, 50),
 						},
 
+						// TODO: remove this field in the next major version
 						"dns_prefix": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:       schema.TypeString,
+							Computed:   true,
+							Deprecated: "This field has been removed by Azure",
 						},
 
 						"fqdn": {
@@ -575,10 +577,6 @@ func flattenAzureRmKubernetesClusterAgentPoolProfiles(profiles *[]containerservi
 			agentPoolProfile["count"] = int(*profile.Count)
 		}
 
-		if profile.DNSPrefix != nil {
-			agentPoolProfile["dns_prefix"] = *profile.DNSPrefix
-		}
-
 		if fqdn != nil {
 			// temporarily persist the parent FQDN here until `fqdn` is removed from the `agent_pool_profile`
 			agentPoolProfile["fqdn"] = *fqdn
@@ -614,7 +612,7 @@ func flattenAzureRmKubernetesClusterAgentPoolProfiles(profiles *[]containerservi
 	return agentPoolProfiles
 }
 
-func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerservice.ServicePrincipalProfile) *schema.Set {
+func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerservice.ManagedClusterServicePrincipalProfile) *schema.Set {
 	if profile == nil {
 		return nil
 	}
@@ -733,7 +731,7 @@ func expandAzureRmKubernetesClusterLinuxProfile(d *schema.ResourceData) *contain
 	return &profile
 }
 
-func expandAzureRmKubernetesClusterServicePrincipal(d *schema.ResourceData) *containerservice.ServicePrincipalProfile {
+func expandAzureRmKubernetesClusterServicePrincipal(d *schema.ResourceData) *containerservice.ManagedClusterServicePrincipalProfile {
 	value, exists := d.GetOk("service_principal")
 	if !exists {
 		return nil
@@ -746,7 +744,7 @@ func expandAzureRmKubernetesClusterServicePrincipal(d *schema.ResourceData) *con
 	clientId := config["client_id"].(string)
 	clientSecret := config["client_secret"].(string)
 
-	principal := containerservice.ServicePrincipalProfile{
+	principal := containerservice.ManagedClusterServicePrincipalProfile{
 		ClientID: &clientId,
 		Secret:   &clientSecret,
 	}
@@ -761,7 +759,6 @@ func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []conta
 
 	name := config["name"].(string)
 	count := int32(config["count"].(int))
-	dnsPrefix := config["dns_prefix"].(string)
 	vmSize := config["vm_size"].(string)
 	osDiskSizeGB := int32(config["os_disk_size_gb"].(int))
 	osType := config["os_type"].(string)
@@ -770,7 +767,6 @@ func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []conta
 		Name:           utils.String(name),
 		Count:          utils.Int32(count),
 		VMSize:         containerservice.VMSizeTypes(vmSize),
-		DNSPrefix:      utils.String(dnsPrefix),
 		OsDiskSizeGB:   utils.Int32(osDiskSizeGB),
 		StorageProfile: containerservice.ManagedDisks,
 		OsType:         containerservice.OSType(osType),

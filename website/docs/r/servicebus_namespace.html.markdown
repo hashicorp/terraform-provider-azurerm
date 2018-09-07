@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_servicebus_namespace
 
-Create a ServiceBus Namespace.
+Manage a ServiceBus Namespace.
 
 ## Example Usage
 

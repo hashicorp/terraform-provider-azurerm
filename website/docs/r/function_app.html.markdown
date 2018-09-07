@@ -107,7 +107,7 @@ The following arguments are supported:
 
 * `https_only` - (Optional) Can the Function App only be accessed via HTTPS? Defaults to `false`.
 
-* `version` - (Optional) The runtime version associated with the Function App. Possible values are `~1` and `beta`. Defaults to `~1`.
+* `version` - (Optional) The runtime version associated with the Function App. Defaults to `~1`.
 
 * `site_config` - (Optional) A `site_config` object as defined below.
 

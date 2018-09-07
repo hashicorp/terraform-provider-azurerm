@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azure_user_assigned_identity"
-sidebar_current: "docs-azurerm-resource-user-assigned-identity"
+sidebar_current: "docs-azurerm-resource-authorization-user-assigned-identity"
 description: |-
   Manages a new user assigned identity.
 ---

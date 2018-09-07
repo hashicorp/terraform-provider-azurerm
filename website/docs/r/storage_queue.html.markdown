@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_storage_queue
 
-Create an Azure Storage Queue.
+Manage an Azure Storage Queue.
 
 ## Example Usage
 
