@@ -60,7 +60,7 @@ func dataSourceArmAzureADGroupRead(d *schema.ResourceData, meta interface{}) err
 
 		// use the name to find the Azure AD group
 		name := d.Get("name").(string)
-		filter := "displayName eq '" + name + "'"
+		filter := fmt.Sprintf("displayName eq '%s'", name)
 		log.Printf("[DEBUG] [data_source_azuread_group] Using filter %q", filter)
 
 		resp, err := client.ListComplete(ctx, filter)
