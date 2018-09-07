@@ -73,6 +73,7 @@ func resourceArmAutomationRunbook() *schema.Resource {
 			"content": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 
 			"publish_content_link": {
