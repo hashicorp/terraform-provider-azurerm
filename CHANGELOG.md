@@ -9,6 +9,9 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+
+* Data Source: `azurerm_azuread_service_principal` - passing a filter containing the name to Azure rather than querying locally [GH-1862]
+* Data Source: `azurerm_azuread_service_principal` - passing a filter containing the name to Azure rather than querying locally [GH-1862]
 * `azurerm_role_assignment` - parsing the Resource ID during deletion [GH-1887]
 * `azurerm_role_definition` - parsing the Resource ID during deletion [GH-1887]
 
