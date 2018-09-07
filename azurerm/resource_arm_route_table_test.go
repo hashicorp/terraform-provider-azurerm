@@ -83,6 +83,7 @@ func TestAccAzureRMRouteTable_update(t *testing.T) {
 }
 
 func TestAccAzureRMRouteTable_singleRoute(t *testing.T) {
+	resourceName := "azurerm_route_table.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMRouteTable_singleRoute(ri, testLocation())
 
@@ -94,8 +95,13 @@ func TestAccAzureRMRouteTable_singleRoute(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRouteTableExists("azurerm_route_table.test"),
+					testCheckAzureRMRouteTableExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -217,6 +223,11 @@ func TestAccAzureRMRouteTable_multipleRoutes(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "route.1.address_prefix", "10.2.0.0/16"),
 					resource.TestCheckResourceAttr(resourceName, "route.1.next_hop_type", "VnetLocal"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

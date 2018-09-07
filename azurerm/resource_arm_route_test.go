@@ -26,6 +26,11 @@ func TestAccAzureRMRoute_basic(t *testing.T) {
 					testCheckAzureRMRouteExists("azurerm_route.test"),
 				),
 			},
+			{
+				ResourceName:      "azurerm_route.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
