@@ -6,6 +6,7 @@ IMPROVEMENTS:
 * dependencies: upgrading to v10.15.3 of `github.com/Azure/go-autorest` [GH-1861]
 * sdk: upgrading to version `2018-06-01` of the Compute API's [GH-1861]
 * `azurerm_automation_runbook` - support for specifying the content field [GH-1696]
+* `azurerm_virtual_network` - adding validation to `name` preventing empty values [GH-1898]
 
 BUG FIXES:
 
