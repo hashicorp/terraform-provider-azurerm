@@ -147,7 +147,7 @@ type ArmClient struct {
 	postgresqlServersClient                  postgresql.ServersClient
 	postgresqlVirtualNetworkRulesClient      postgresql.VirtualNetworkRulesClient
 	sqlDatabasesClient                       sql.DatabasesClient
-  sqlDatabaseThreatDetectionPoliciesClient sql.DatabaseThreatDetectionPoliciesClient
+	sqlDatabaseThreatDetectionPoliciesClient sql.DatabaseThreatDetectionPoliciesClient
 	sqlElasticPoolsClient                    sql.ElasticPoolsClient
 	sqlFirewallRulesClient                   sql.FirewallRulesClient
 	sqlServersClient                         sql.ServersClient
