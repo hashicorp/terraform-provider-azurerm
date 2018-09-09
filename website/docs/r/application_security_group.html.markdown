@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_application_security_group"
 sidebar_current: "docs-azurerm-resource-network-application-security-group"
 description: |-
-  Create an Application Security Group.
+  Manages an Application Security Group.
 ---
 
 # azurerm_application_security_group
 
-Create an Application Security Group.
+Manage an Application Security Group.
 
 ## Example Usage
 

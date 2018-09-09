@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_table"
 sidebar_current: "docs-azurerm-resource-storage-table"
 description: |-
-  Create a Azure Storage Table.
+  Manages a Azure Storage Table.
 ---
 
 # azurerm_storage_table
 
-Create an Azure Storage Table.
+Manage an Azure Storage Table.
 
 ## Example Usage
 
@@ -49,4 +49,12 @@ The following arguments are supported:
 
 The following attributes are exported in addition to the arguments listed above:
 
-* `id` - The storage table Resource ID.
+* `id` - The ID of the Storage Table.
+
+## Import
+
+Storage Table's can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_storage_table.table1 https://example.table.core.windows.net/table1
+```

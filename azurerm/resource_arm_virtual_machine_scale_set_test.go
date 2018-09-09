@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -28,6 +28,12 @@ func TestAccAzureRMVirtualMachineScaleSet_basic(t *testing.T) {
 					// testing default scaleset values
 					testCheckAzureRMVirtualMachineScaleSetSinglePlacementGroup(resourceName, true),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"os_profile.0.admin_password"},
 			},
 		},
 	})
@@ -273,6 +279,12 @@ func TestAccAzureRMVirtualMachineScaleSet_basicLinux_managedDisk(t *testing.T) {
 					testCheckAzureRMVirtualMachineScaleSetExists(resourceName),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"os_profile.0.admin_password"},
+			},
 		},
 	})
 }
@@ -453,6 +465,12 @@ func TestAccAzureRMVirtualMachineScaleSet_loadBalancer(t *testing.T) {
 					testCheckAzureRMVirtualMachineScaleSetHasLoadbalancer(resourceName),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"os_profile.0.admin_password"},
+			},
 		},
 	})
 }
@@ -492,6 +510,12 @@ func TestAccAzureRMVirtualMachineScaleSet_overprovision(t *testing.T) {
 					testCheckAzureRMVirtualMachineScaleSetExists(resourceName),
 					testCheckAzureRMVirtualMachineScaleSetOverprovision(resourceName),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"os_profile.0.admin_password"},
 			},
 		},
 	})
@@ -578,6 +602,12 @@ func TestAccAzureRMVirtualMachineScaleSet_extension(t *testing.T) {
 					testCheckAzureRMVirtualMachineScaleSetExtension(resourceName),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"os_profile.0.admin_password"},
+			},
 		},
 	})
 }
@@ -627,6 +657,12 @@ func TestAccAzureRMVirtualMachineScaleSet_multipleExtensions(t *testing.T) {
 					testCheckAzureRMVirtualMachineScaleSetExtension(resourceName),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"os_profile.0.admin_password"},
+			},
 		},
 	})
 }
@@ -671,6 +707,33 @@ func TestAccAzureRMVirtualMachineScaleSet_NonStandardCasing(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualMachineScaleSet_importLinux(t *testing.T) {
+	resourceName := "azurerm_virtual_machine_scale_set.test"
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMVirtualMachineScaleSet_linux(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"os_profile.0.admin_password",
+					"os_profile.0.custom_data",
+				},
+			},
+		},
+	})
+}
+
 func TestAccAzureRMVirtualMachineScaleSet_multipleNetworkProfiles(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
 	ri := acctest.RandInt()
@@ -685,6 +748,30 @@ func TestAccAzureRMVirtualMachineScaleSet_multipleNetworkProfiles(t *testing.T) 
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineScaleSetExists(resourceName),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMVirtualMachineScaleSet_importBasic_managedDisk_withZones(t *testing.T) {
+	resourceName := "azurerm_virtual_machine_scale_set.test"
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMVirtualMachineScaleSet_basicLinux_managedDisk_withZones(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"os_profile.0.admin_password"},
 			},
 		},
 	})
@@ -749,7 +836,7 @@ func testCheckAzureRMVirtualMachineScaleSetDisappears(name string) resource.Test
 			return fmt.Errorf("Bad: Delete on vmScaleSetClient: %+v", err)
 		}
 
-		err = future.WaitForCompletion(ctx, client.Client)
+		err = future.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
 			return fmt.Errorf("Bad: Delete on vmScaleSetClient: %+v", err)
 		}
@@ -1849,7 +1936,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   upgrade_policy_mode = "Automatic"
 
   sku {
-    name     = "Standard_A0"
+    name     = "Standard_F2"
     tier     = "Standard"
     capacity = "1"
   }
@@ -1963,7 +2050,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   upgrade_policy_mode = "Automatic"
 
   sku {
-    name     = "Standard_A0"
+    name     = "Standard_F2"
     tier     = "Standard"
     capacity = "1"
   }
@@ -2081,7 +2168,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   upgrade_policy_mode = "Automatic"
 
   sku {
-    name     = "Standard_A0"
+    name     = "Standard_F2"
     tier     = "Standard"
     capacity = "1"
   }
@@ -3530,7 +3617,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   upgrade_policy_mode = "Manual"
 
   sku {
-    name     = "Standard_A0"
+    name     = "Standard_F2"
     tier     = "Standard"
     capacity = 1
   }
@@ -3625,7 +3712,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   upgrade_policy_mode = "Manual"
 
   sku {
-    name     = "Standard_A0"
+    name     = "Standard_F2"
     tier     = "standard"
     capacity = 2
   }

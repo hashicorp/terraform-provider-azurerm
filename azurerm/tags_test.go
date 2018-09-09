@@ -90,7 +90,7 @@ func TestExpandARMTags(t *testing.T) {
 		}
 
 		if *expanded[k] != strVal {
-			t.Fatalf("Expanded value %q incorrect: expected %q, got %q", k, strVal, expanded[k])
+			t.Fatalf("Expanded value %q incorrect: expected %q, got %q", k, strVal, *expanded[k])
 		}
 	}
 }

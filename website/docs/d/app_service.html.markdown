@@ -73,6 +73,8 @@ output "app_service_id" {
 
 * `http2_enabled` - Is HTTP2 Enabled on this App Service?
 
+* `ftps_state` - State of FTP / FTPS service for this AppService.
+
 * `ip_restriction` - One or more `ip_restriction` blocks as defined below.
 
 * `java_version` - The version of Java in use.
@@ -81,9 +83,13 @@ output "app_service_id" {
 
 * `java_container_version` - The version of the Java Container in use.
 
+* `linux_fx_version` - Linux App Framework and version for the AppService.
+
 * `local_mysql_enabled` - Is "MySQL In App" Enabled? This runs a local MySQL instance with your app and shares resources from the App Service plan.
 
 * `managed_pipeline_mode` - The Managed Pipeline Mode used in this App Service.
+
+* `min_tls_version` - The minimum supported TLS version for this App Service.
 
 * `php_version` - The version of PHP used in this App Service.
 
@@ -99,9 +105,7 @@ output "app_service_id" {
 
 * `websockets_enabled` - Are WebSockets enabled for this App Service?
 
-* `ftps_state` - State of FTP / FTPS service for this AppService.
-
-* `linux_fx_version` - Linux App Framework and version for the AppService.
+* `virtual_network_name` - The name of the Virtual Network which this App Service is attached to.
 
 ---
 

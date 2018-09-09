@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_topic_authorization_rule"
-sidebar_current: "docs-azurerm-resource-servicebus-topic-authorization-rule"
+sidebar_current: "docs-azurerm-resource-messaging-servicebus-topic-authorization-rule"
 description: |-
   Manages a ServiceBus Topic authorization Rule within a ServiceBus Topic.
 ---

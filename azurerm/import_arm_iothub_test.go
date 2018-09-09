@@ -11,7 +11,30 @@ func TestAccAzureRMIotHub_importBasic(t *testing.T) {
 	resourceName := "azurerm_iothub.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMIotHub_basicStandard(ri, testLocation())
+	config := testAccAzureRMIotHub_basic(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMIotHubDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMIotHub_importStandard(t *testing.T) {
+	resourceName := "azurerm_iothub.test"
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMIotHub_standard(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

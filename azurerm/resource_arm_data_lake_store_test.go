@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -13,8 +14,6 @@ import (
 func TestAccAzureRMDataLakeStore_basic(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
 	ri := acctest.RandInt()
-	rs := acctest.RandString(4)
-	config := testAccAzureRMDataLakeStore_basic(ri, rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -22,10 +21,12 @@ func TestAccAzureRMDataLakeStore_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDataLakeStore_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeStoreExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tier", "Consumption"),
+					resource.TestCheckResourceAttr(resourceName, "encryption_state", "Enabled"),
+					resource.TestCheckResourceAttr(resourceName, "encryption_type", "ServiceManaged"),
 				),
 			},
 			{
@@ -40,8 +41,6 @@ func TestAccAzureRMDataLakeStore_basic(t *testing.T) {
 func TestAccAzureRMDataLakeStore_tier(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
 	ri := acctest.RandInt()
-	rs := acctest.RandString(4)
-	config := testAccAzureRMDataLakeStore_tier(ri, rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -49,7 +48,7 @@ func TestAccAzureRMDataLakeStore_tier(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDataLakeStore_tier(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeStoreExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tier", "Commitment_1TB"),
@@ -64,13 +63,9 @@ func TestAccAzureRMDataLakeStore_tier(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDataLakeStore_withTags(t *testing.T) {
+func TestAccAzureRMDataLakeStore_encryptionDisabled(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
 	ri := acctest.RandInt()
-	rs := acctest.RandString(4)
-	location := testLocation()
-	preConfig := testAccAzureRMDataLakeStore_withTags(ri, rs, location)
-	postConfig := testAccAzureRMDataLakeStore_withTagsUpdate(ri, rs, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -78,14 +73,86 @@ func TestAccAzureRMDataLakeStore_withTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMDataLakeStore_encryptionDisabled(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataLakeStoreExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "encryption_state", "Disabled"),
+					resource.TestCheckResourceAttr(resourceName, "encryption_type", ""),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMDataLakeStore_firewallUpdate(t *testing.T) {
+	resourceName := "azurerm_data_lake_store.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDataLakeStore_firewall(ri, location, "Enabled", "Enabled"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataLakeStoreExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "firewall_state", "Enabled"),
+					resource.TestCheckResourceAttr(resourceName, "firewall_allow_azure_ips", "Enabled"),
+				),
+			},
+			{
+				Config: testAccAzureRMDataLakeStore_firewall(ri, location, "Enabled", "Disabled"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataLakeStoreExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "firewall_state", "Enabled"),
+					resource.TestCheckResourceAttr(resourceName, "firewall_allow_azure_ips", "Disabled"),
+				),
+			},
+			{
+				Config: testAccAzureRMDataLakeStore_firewall(ri, location, "Disabled", "Enabled"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataLakeStoreExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "firewall_state", "Disabled"),
+					resource.TestCheckResourceAttr(resourceName, "firewall_allow_azure_ips", "Enabled"),
+				),
+			},
+			{
+				Config: testAccAzureRMDataLakeStore_firewall(ri, location, "Disabled", "Disabled"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataLakeStoreExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "firewall_state", "Disabled"),
+					resource.TestCheckResourceAttr(resourceName, "firewall_allow_azure_ips", "Disabled"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMDataLakeStore_withTags(t *testing.T) {
+	resourceName := "azurerm_data_lake_store.test"
+	ri := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDataLakeStore_withTags(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeStoreExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMDataLakeStore_withTagsUpdate(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeStoreExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
@@ -157,7 +224,7 @@ func testCheckAzureRMDataLakeStoreDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDataLakeStore_basic(rInt int, rs string, location string) string {
+func testAccAzureRMDataLakeStore_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -165,14 +232,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_data_lake_store" "test" {
-  name                = "unlikely23exst2acct%s"
+  name                = "acctest%s"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "%s"
+  location            = "${azurerm_resource_group.test.location}"
 }
-`, rInt, location, rs, location)
+`, rInt, location, strconv.Itoa(rInt)[0:15])
 }
 
-func testAccAzureRMDataLakeStore_tier(rInt int, rs string, location string) string {
+func testAccAzureRMDataLakeStore_tier(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -180,15 +247,15 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_data_lake_store" "test" {
-  name                = "unlikely23exst2acct%s"
+  name                = "acctest%s"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "%s"
+  location            = "${azurerm_resource_group.test.location}"
   tier                = "Commitment_1TB"
 }
-`, rInt, location, rs, location)
+`, rInt, location, strconv.Itoa(rInt)[0:15])
 }
 
-func testAccAzureRMDataLakeStore_withTags(rInt int, rs string, location string) string {
+func testAccAzureRMDataLakeStore_encryptionDisabled(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -196,33 +263,66 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_data_lake_store" "test" {
-  name                = "unlikely23exst2acct%s"
+  name                = "acctest%s"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "%s"
-  
+  location            = "${azurerm_resource_group.test.location}"
+  encryption_state    = "Disabled"
+}
+`, rInt, location, strconv.Itoa(rInt)[0:15])
+}
+
+func testAccAzureRMDataLakeStore_firewall(rInt int, location string, firewallState string, firewallAllowAzureIPs string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_lake_store" "test" {
+  name                     = "acctest%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  firewall_state           = "%s"
+  firewall_allow_azure_ips = "%s"
+}
+`, rInt, location, strconv.Itoa(rInt)[0:15], firewallState, firewallAllowAzureIPs)
+}
+
+func testAccAzureRMDataLakeStore_withTags(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_lake_store" "test" {
+  name                = "acctest%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
   tags {
     environment = "Production"
     cost_center = "MSFT"
   }
 }
-`, rInt, location, rs, location)
+`, rInt, location, strconv.Itoa(rInt)[0:15])
 }
 
-func testAccAzureRMDataLakeStore_withTagsUpdate(rInt int, rs string, location string) string {
+func testAccAzureRMDataLakeStore_withTagsUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_data_lake_store" "test" {
-  name                = "unlikely23exst2acct%s"
+  name                = "acctest%s"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "%s"
-  
+  location            = "${azurerm_resource_group.test.location}"
+
   tags {
     environment = "staging"
   }
 }
-`, rInt, location, rs, location)
+`, rInt, location, strconv.Itoa(rInt)[0:15])
 }

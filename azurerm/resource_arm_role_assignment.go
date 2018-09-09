@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
 	"github.com/hashicorp/go-uuid"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -105,7 +107,7 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 		},
 	}
 
-	_, err := roleAssignmentsClient.Create(ctx, scope, name, properties)
+	err := resource.Retry(300*time.Second, retryRoleAssignmentsClient(scope, name, properties, meta))
 	if err != nil {
 		return err
 	}
@@ -152,10 +154,12 @@ func resourceArmRoleAssignmentDelete(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).roleAssignmentsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	scope := d.Get("scope").(string)
-	name := d.Get("name").(string)
+	id, err := parseRoleAssignmentId(d.Id())
+	if err != nil {
+		return err
+	}
 
-	resp, err := client.Delete(ctx, scope, name)
+	resp, err := client.Delete(ctx, id.scope, id.name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
 			return err
@@ -175,4 +179,39 @@ func validateRoleDefinitionName(i interface{}, k string) ([]string, []error) {
 		return nil, []error{fmt.Errorf("Preview roles are not supported")}
 	}
 	return nil, nil
+}
+
+func retryRoleAssignmentsClient(scope string, name string, properties authorization.RoleAssignmentCreateParameters, meta interface{}) func() *resource.RetryError {
+
+	return func() *resource.RetryError {
+		roleAssignmentsClient := meta.(*ArmClient).roleAssignmentsClient
+		ctx := meta.(*ArmClient).StopContext
+
+		_, err := roleAssignmentsClient.Create(ctx, scope, name, properties)
+
+		if err != nil {
+			return resource.RetryableError(err)
+		}
+		return nil
+
+	}
+}
+
+type roleAssignmentId struct {
+	scope string
+	name  string
+}
+
+func parseRoleAssignmentId(input string) (*roleAssignmentId, error) {
+	segments := strings.Split(input, "/providers/Microsoft.Authorization/roleAssignments/")
+	if len(segments) != 2 {
+		return nil, fmt.Errorf("Expected Role Assignment ID to be in the format `{scope}/providers/Microsoft.Authorization/roleAssignments/{name}` but got %q", input)
+	}
+
+	// /{scope}/providers/Microsoft.Authorization/roleAssignments/{roleAssignmentName}
+	id := roleAssignmentId{
+		scope: strings.TrimPrefix(segments[0], "/"),
+		name:  segments[1],
+	}
+	return &id, nil
 }

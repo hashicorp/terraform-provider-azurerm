@@ -83,6 +83,7 @@ func TestAccAzureRMRouteTable_update(t *testing.T) {
 }
 
 func TestAccAzureRMRouteTable_singleRoute(t *testing.T) {
+	resourceName := "azurerm_route_table.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMRouteTable_singleRoute(ri, testLocation())
 
@@ -94,8 +95,13 @@ func TestAccAzureRMRouteTable_singleRoute(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRouteTableExists("azurerm_route_table.test"),
+					testCheckAzureRMRouteTableExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -218,6 +224,11 @@ func TestAccAzureRMRouteTable_multipleRoutes(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "route.1.next_hop_type", "VnetLocal"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -305,7 +316,7 @@ func testCheckAzureRMRouteTableDisappears(name string) resource.TestCheckFunc {
 			}
 		}
 
-		err = future.WaitForCompletion(ctx, client.Client)
+		err = future.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
 			return fmt.Errorf("Error waiting for deletion of Route Table %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
@@ -382,19 +393,19 @@ resource "azurerm_route_table" "test" {
 func testAccAzureRMRouteTable_singleRoute(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
+    name     = "acctestRG-%d"
     location = "%s"
 }
 
 resource "azurerm_route_table" "test" {
-    name = "acctestrt%d"
-    location = "${azurerm_resource_group.test.location}"
+    name                = "acctestrt%d"
+    location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     route {
-    	name = "route1"
+    	name           = "route1"
 		address_prefix = "10.1.0.0/16"
-		next_hop_type = "vnetlocal"
+		next_hop_type  = "vnetlocal"
     }
 }
 `, rInt, location, rInt)
@@ -403,15 +414,15 @@ resource "azurerm_route_table" "test" {
 func testAccAzureRMRouteTable_singleRouteRemoved(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
+    name     = "acctestRG-%d"
     location = "%s"
 }
 
 resource "azurerm_route_table" "test" {
-    name = "acctestrt%d"
-    location = "${azurerm_resource_group.test.location}"
+    name                = "acctestrt%d"
+    location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
-	route = []
+	route               = []
 }
 `, rInt, location, rInt)
 }
@@ -419,25 +430,25 @@ resource "azurerm_route_table" "test" {
 func testAccAzureRMRouteTable_multipleRoutes(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
+    name     = "acctestRG-%d"
     location = "%s"
 }
 
 resource "azurerm_route_table" "test" {
-    name = "acctestrt%d"
-    location = "${azurerm_resource_group.test.location}"
+    name                = "acctestrt%d"
+    location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     route {
-    	name = "route1"
+    	name           = "route1"
 		address_prefix = "10.1.0.0/16"
-		next_hop_type = "vnetlocal"
+		next_hop_type  = "vnetlocal"
     }
 
     route {
-    	name = "route2"
+    	name           = "route2"
 		address_prefix = "10.2.0.0/16"
-		next_hop_type = "vnetlocal"
+		next_hop_type  = "vnetlocal"
     }
 }
 `, rInt, location, rInt)
@@ -446,19 +457,19 @@ resource "azurerm_route_table" "test" {
 func testAccAzureRMRouteTable_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
+    name     = "acctestRG-%d"
     location = "%s"
 }
 
 resource "azurerm_route_table" "test" {
-    name = "acctestrt%d"
-    location = "${azurerm_resource_group.test.location}"
+    name                = "acctestrt%d"
+    location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     route {
-    	name = "route1"
+    	name           = "route1"
     	address_prefix = "10.1.0.0/16"
-    	next_hop_type = "vnetlocal"
+    	next_hop_type  = "vnetlocal"
     }
 
     tags {
@@ -472,19 +483,19 @@ resource "azurerm_route_table" "test" {
 func testAccAzureRMRouteTable_withTagsUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
+    name     = "acctestRG-%d"
     location = "%s"
 }
 
 resource "azurerm_route_table" "test" {
-    name = "acctestrt%d"
-    location = "${azurerm_resource_group.test.location}"
+    name                = "acctestrt%d"
+    location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     route {
-    	name = "route1"
+    	name           = "route1"
     	address_prefix = "10.1.0.0/16"
-    	next_hop_type = "vnetlocal"
+    	next_hop_type  = "vnetlocal"
     }
 
     tags {

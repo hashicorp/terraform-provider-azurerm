@@ -2,10 +2,11 @@ package azurerm
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -97,6 +98,29 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachine_disappears(t *testing.T) {
 					testCheckAzureRMVirtualMachineDisappears("azurerm_virtual_machine.test"),
 				),
 				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMVirtualMachine_basicLinuxMachineUseExistingOsDiskImage(t *testing.T) {
+	var vm, mirrorVm compute.VirtualMachine
+	ri := acctest.RandInt()
+	config := testAccAzureRMVirtualMachine_basicLinuxMachineUseExistingOsDiskImage(ri, testLocation())
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineExists("azurerm_virtual_machine.test", &vm),
+					testCheckAzureRMVirtualMachineExists("azurerm_virtual_machine.mirror", &mirrorVm),
+					testCheckAzureRMVirtualMachineVHDExistence("myosdisk1.vhd", true),
+					testCheckAzureRMVirtualMachineVHDExistence("mirrorosdisk.vhd", true),
+					resource.TestMatchResourceAttr("azurerm_virtual_machine.mirror", "storage_os_disk.0.image_uri", regexp.MustCompile("myosdisk1.vhd$")),
+				),
 			},
 		},
 	})
@@ -917,6 +941,50 @@ resource "azurerm_virtual_machine" "test" {
     }
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMVirtualMachine_basicLinuxMachineUseExistingOsDiskImage(rInt int, location string) string {
+	baseConfig := testAccAzureRMVirtualMachine_basicLinuxMachine(rInt, location)
+	return fmt.Sprintf(`%s
+resource "azurerm_network_interface" "mirror" {
+  name                = "acctmirrorni-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
+  }
+}
+
+resource "azurerm_virtual_machine" "mirror" {
+  name                          = "acctmirrorvm-%d"
+  location                      = "${azurerm_resource_group.test.location}"
+  resource_group_name           = "${azurerm_resource_group.test.name}"
+  network_interface_ids         = ["${azurerm_network_interface.mirror.id}"]
+  vm_size                       = "Standard_F2"
+  delete_os_disk_on_termination = false
+
+  os_profile {
+    computer_name  = "hnmirror%d"
+    admin_username = "testadmin"
+    admin_password = "Password1234!"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
+
+  storage_os_disk {
+    name          = "mirror"
+    image_uri     = "${azurerm_virtual_machine.test.storage_os_disk.0.vhd_uri}"
+    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/mirrorosdisk.vhd"
+    create_option = "FromImage"
+    os_type       = "Linux"
+  }
+}
+`, baseConfig, rInt, rInt, rInt)
 }
 
 func testAccAzureRMVirtualMachine_machineNameBeforeUpdate(rInt int, location string) string {
@@ -2983,7 +3051,7 @@ func testCheckAzureRMVirtualMachineDisappears(name string) resource.TestCheckFun
 			return fmt.Errorf("Bad: Delete on vmClient: %+v", err)
 		}
 
-		err = future.WaitForCompletion(ctx, client.Client)
+		err = future.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
 			return fmt.Errorf("Bad: Delete on vmClient: %+v", err)
 		}

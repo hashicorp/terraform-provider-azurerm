@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -23,15 +24,17 @@ func resourceArmDataLakeStoreFirewallRule() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateDataLakeFirewallRuleName(),
 			},
 
 			"account_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateDataLakeAccountName(),
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
@@ -55,13 +58,13 @@ func resourceArmDateLakeStoreAccountFirewallRuleCreateUpdate(d *schema.ResourceD
 	client := meta.(*ArmClient).dataLakeStoreFirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	log.Printf("[INFO] preparing arguments for Date Lake Store Firewall Rule creation.")
-
 	name := d.Get("name").(string)
 	accountName := d.Get("account_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	startIPAddress := d.Get("start_ip_address").(string)
 	endIPAddress := d.Get("end_ip_address").(string)
+
+	log.Printf("[INFO] preparing arguments for Date Lake Store Firewall Rule creation  %q (Resource Group %q)", name, resourceGroup)
 
 	dateLakeStore := account.CreateOrUpdateFirewallRuleParameters{
 		CreateOrUpdateFirewallRuleProperties: &account.CreateOrUpdateFirewallRuleProperties{
@@ -134,6 +137,7 @@ func resourceArmDateLakeStoreAccountFirewallRuleDelete(d *schema.ResourceData, m
 	resourceGroup := id.ResourceGroup
 	accountName := id.Path["accounts"]
 	name := id.Path["firewallRules"]
+
 	resp, err := client.Delete(ctx, resourceGroup, accountName, name)
 	if err != nil {
 		if response.WasNotFound(resp.Response) {

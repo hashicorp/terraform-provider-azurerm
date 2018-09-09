@@ -44,7 +44,7 @@ resource "azurerm_container_service" "test" {
     name       = "default"
     count      = 1
     dns_prefix = "acctestagent1"
-    vm_size    = "Standard_A0"
+    vm_size    = "Standard_F2"
   }
 
   diagnostics_profile {
@@ -88,7 +88,7 @@ resource "azurerm_container_service" "test" {
     name       = "default"
     count      = 1
     dns_prefix = "acctestagent1"
-    vm_size    = "Standard_A0"
+    vm_size    = "Standard_F2"
   }
 
   service_principal {
@@ -137,7 +137,7 @@ resource "azurerm_container_service" "test" {
     name       = "default"
     count      = 1
     dns_prefix = "acctestagent1"
-    vm_size    = "Standard_A0"
+    vm_size    = "Standard_F2"
   }
 
   diagnostics_profile {

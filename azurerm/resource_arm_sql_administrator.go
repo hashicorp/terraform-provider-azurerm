@@ -72,7 +72,7 @@ func resourceArmSqlActiveDirectoryAdministratorCreateUpdate(d *schema.ResourceDa
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,6 @@
 variable "resource_group" {
   description = "The name of the resource group in which to create the Service Bus"
-  default     = "tfex-servicebus-topic_subscription"
+  default     = "tfex-eventhub"
 }
 
 variable "location" {

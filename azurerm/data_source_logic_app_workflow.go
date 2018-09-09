@@ -11,9 +11,6 @@ import (
 func dataSourceArmLogicAppWorkflow() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmLogicAppWorkflowRead,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {

@@ -35,6 +35,15 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentials(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.1.password", "acrpassword"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"image_registry_credential.0.password",
+					"image_registry_credential.1.password",
+				},
+			},
 		},
 	})
 }
@@ -97,6 +106,15 @@ func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Linux"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"image_registry_credential.0.password",
+					"image_registry_credential.1.password",
+				},
+			},
 		},
 	})
 }
@@ -148,6 +166,10 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 					testCheckAzureRMContainerGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.command", "/bin/bash -c ls"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.commands.#", "3"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.commands.0", "/bin/bash"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.commands.1", "-c"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.commands.2", "ls"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.foo", "bar"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.foo1", "bar1"),
@@ -158,6 +180,14 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Linux"),
 					resource.TestCheckResourceAttr(resourceName, "restart_policy", "OnFailure"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"container.0.volume.0.storage_account_key",
+				},
 			},
 		},
 	})
@@ -182,6 +212,11 @@ func TestAccAzureRMContainerGroup_windowsBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Windows"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -203,12 +238,21 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 					testCheckAzureRMContainerGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.command", "cmd.exe echo hi"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.commands.#", "3"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.commands.0", "cmd.exe"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.commands.1", "echo"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.commands.2", "hi"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.foo", "bar"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.foo1", "bar1"),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Windows"),
 					resource.TestCheckResourceAttr(resourceName, "restart_policy", "Never"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -425,7 +469,7 @@ resource "azurerm_container_group" "test" {
 		"foo"  = "bar"
 		"foo1" = "bar1"
 	}
-	command = "cmd.exe echo hi"
+	commands = ["cmd.exe", "echo", "hi"]
   }
 
   tags {
@@ -492,7 +536,7 @@ resource "azurerm_container_group" "test" {
 			"foo1" = "bar1"
 		}
 
-		command = "/bin/bash -c ls"
+		commands = ["/bin/bash", "-c", "ls"]
 	}
 
 	tags {

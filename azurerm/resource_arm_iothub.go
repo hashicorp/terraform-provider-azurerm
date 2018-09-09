@@ -7,12 +7,14 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2017-07-01/devices"
+	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
+	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2018-04-01/devices"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"strings"
 )
 
 func resourceArmIotHub() *schema.Resource {
@@ -47,6 +49,9 @@ func resourceArmIotHub() *schema.Resource {
 							Required:         true,
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc: validation.StringInSlice([]string{
+								string(devices.B1),
+								string(devices.B2),
+								string(devices.B3),
 								string(devices.F1),
 								string(devices.S1),
 								string(devices.S2),
@@ -59,6 +64,7 @@ func resourceArmIotHub() *schema.Resource {
 							Required:         true,
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc: validation.StringInSlice([]string{
+								string(devices.Basic),
 								string(devices.Free),
 								string(devices.Standard),
 							}, true),
@@ -79,6 +85,24 @@ func resourceArmIotHub() *schema.Resource {
 			},
 
 			"hostname": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"event_hub_events_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"event_hub_operations_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"event_hub_events_path": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"event_hub_operations_path": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -105,6 +129,115 @@ func resourceArmIotHub() *schema.Resource {
 						"permissions": {
 							Type:     schema.TypeString,
 							Computed: true,
+						},
+					},
+				},
+			},
+
+			"endpoint": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"AzureIotHub.StorageContainer",
+								"AzureIotHub.ServiceBusQueue",
+								"AzureIotHub.ServiceBusTopic",
+								"AzureIotHub.EventHub",
+							}, false),
+						},
+						"connection_string": {
+							Type:     schema.TypeString,
+							Required: true,
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								// As Azure API masks the connection string key suppress diff for this property
+								if old != "" && strings.HasSuffix(old, "****") {
+									return true
+								}
+
+								return false
+							},
+						},
+						"name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validateIoTHubEndpointName,
+						},
+						"batch_frequency_in_seconds": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      300,
+							ValidateFunc: validation.IntBetween(60, 720),
+						},
+						"max_chunk_size_in_bytes": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      314572800,
+							ValidateFunc: validation.IntBetween(10485760, 524288000),
+						},
+						"container_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"encoding": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(eventhub.Avro),
+								string(eventhub.AvroDeflate),
+							}, true),
+						},
+						"file_name_format": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validateIoTHubFileNameFormat,
+						},
+					},
+				},
+			},
+
+			"route": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringLenBetween(0, 64),
+						},
+						"source": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"DeviceJobLifecycleEvents",
+								"DeviceLifecycleEvents",
+								"DeviceMessages",
+								"Invalid",
+								"TwinChangeEvents",
+							}, false),
+						},
+						"condition": {
+							// The condition is a string value representing device-to-cloud message routes query expression
+							// https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  "true",
+						},
+						"endpoint_names": {
+							Type: schema.TypeList,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+							Required: true,
+						},
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
 						},
 					},
 				},
@@ -142,13 +275,28 @@ func resourceArmIotHubCreateAndUpdate(d *schema.ResourceData, meta interface{}) 
 	skuInfo := expandIoTHubSku(d)
 	tags := d.Get("tags").(map[string]interface{})
 
+	endpoints, err := expandIoTHubEndpoints(d, subscriptionID)
+	if err != nil {
+		return fmt.Errorf("Error expanding `endpoint`: %+v", err)
+	}
+
+	routes := expandIoTHubRoutes(d)
+
+	routingProperties := devices.RoutingProperties{
+		Endpoints: endpoints,
+		Routes:    routes,
+	}
+
+	iotHubProperties := devices.IotHubProperties{
+		Routing: &routingProperties,
+	}
+
 	properties := devices.IotHubDescription{
-		Name:           utils.String(name),
-		Location:       utils.String(location),
-		Resourcegroup:  utils.String(resourceGroup),
-		Subscriptionid: utils.String(subscriptionID),
-		Sku:            &skuInfo,
-		Tags:           expandTags(tags),
+		Name:       utils.String(name),
+		Location:   utils.String(location),
+		Sku:        &skuInfo,
+		Tags:       expandTags(tags),
+		Properties: &iotHubProperties,
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties, "")
@@ -156,7 +304,7 @@ func resourceArmIotHubCreateAndUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error creating/updating IotHub %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for the completion of the creating/updating of IotHub %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -205,7 +353,40 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if properties := hub.Properties; properties != nil {
+
+		for k, v := range properties.EventHubEndpoints {
+			if v == nil {
+				continue
+			}
+			if k == "events" {
+				if v.Endpoint != nil {
+					d.Set("event_hub_events_endpoint", *v.Endpoint)
+				}
+				if v.Path != nil {
+					d.Set("event_hub_events_path", *v.Path)
+				}
+			} else if k == "operationsMonitoringEvents" {
+				if v.Endpoint != nil {
+					d.Set("event_hub_operations_endpoint", *v.Endpoint)
+				}
+				if v.Path != nil {
+					d.Set("event_hub_operations_path", *v.Path)
+				}
+			}
+
+		}
+
 		d.Set("hostname", properties.HostName)
+
+		endpoints := flattenIoTHubEndpoint(properties.Routing)
+		if err := d.Set("endpoint", endpoints); err != nil {
+			return fmt.Errorf("Error flattening `endpoint` in IoTHub %q: %+v", name, err)
+		}
+
+		routes := flattenIoTHubRoute(properties.Routing)
+		if err := d.Set("route", routes); err != nil {
+			return fmt.Errorf("Error flattening `route` in IoTHub %q: %+v", name, err)
+		}
 	}
 
 	d.Set("name", name)
@@ -279,10 +460,118 @@ func iothubStateStatusCodeRefreshFunc(ctx context.Context, client devices.IotHub
 	}
 }
 
+func expandIoTHubRoutes(d *schema.ResourceData) *[]devices.RouteProperties {
+	routeList := d.Get("route").([]interface{})
+
+	routeProperties := make([]devices.RouteProperties, 0)
+
+	for _, routeRaw := range routeList {
+		route := routeRaw.(map[string]interface{})
+
+		name := route["name"].(string)
+		source := devices.RoutingSource(route["source"].(string))
+		condition := route["condition"].(string)
+
+		endpointNamesRaw := route["endpoint_names"].([]interface{})
+		endpointsNames := make([]string, 0)
+		for _, n := range endpointNamesRaw {
+			endpointsNames = append(endpointsNames, n.(string))
+		}
+
+		isEnabled := route["enabled"].(bool)
+
+		routeProperties = append(routeProperties, devices.RouteProperties{
+			Name:          &name,
+			Source:        source,
+			Condition:     &condition,
+			EndpointNames: &endpointsNames,
+			IsEnabled:     &isEnabled,
+		})
+	}
+
+	return &routeProperties
+}
+
+func expandIoTHubEndpoints(d *schema.ResourceData, subscriptionId string) (*devices.RoutingEndpoints, error) {
+	routeEndpointList := d.Get("endpoint").([]interface{})
+
+	serviceBusQueueEndpointProperties := make([]devices.RoutingServiceBusQueueEndpointProperties, 0)
+	serviceBusTopicEndpointProperties := make([]devices.RoutingServiceBusTopicEndpointProperties, 0)
+	eventHubProperties := make([]devices.RoutingEventHubProperties, 0)
+	storageContainerProperties := make([]devices.RoutingStorageContainerProperties, 0)
+
+	for _, endpointRaw := range routeEndpointList {
+		endpoint := endpointRaw.(map[string]interface{})
+
+		t := endpoint["type"]
+		connectionStr := endpoint["connection_string"].(string)
+		name := endpoint["name"].(string)
+		subscriptionID := subscriptionId
+		resourceGroup := d.Get("resource_group_name").(string)
+
+		switch t {
+		case "AzureIotHub.StorageContainer":
+			containerName := endpoint["container_name"].(string)
+			fileNameFormat := endpoint["file_name_format"].(string)
+			batchFrequencyInSeconds := int32(endpoint["batch_frequency_in_seconds"].(int))
+			maxChunkSizeInBytes := int32(endpoint["max_chunk_size_in_bytes"].(int))
+			encoding := endpoint["encoding"].(string)
+
+			storageContainer := devices.RoutingStorageContainerProperties{
+				ConnectionString:        &connectionStr,
+				Name:                    &name,
+				SubscriptionID:          &subscriptionID,
+				ResourceGroup:           &resourceGroup,
+				ContainerName:           &containerName,
+				FileNameFormat:          &fileNameFormat,
+				BatchFrequencyInSeconds: &batchFrequencyInSeconds,
+				MaxChunkSizeInBytes:     &maxChunkSizeInBytes,
+				Encoding:                &encoding,
+			}
+			storageContainerProperties = append(storageContainerProperties, storageContainer)
+			break
+		case "AzureIotHub.ServiceBusQueue":
+			sbQueue := devices.RoutingServiceBusQueueEndpointProperties{
+				ConnectionString: &connectionStr,
+				Name:             &name,
+				SubscriptionID:   &subscriptionID,
+				ResourceGroup:    &resourceGroup,
+			}
+			serviceBusQueueEndpointProperties = append(serviceBusQueueEndpointProperties, sbQueue)
+			break
+		case "AzureIotHub.ServiceBusTopic":
+			sbTopic := devices.RoutingServiceBusTopicEndpointProperties{
+				ConnectionString: &connectionStr,
+				Name:             &name,
+				SubscriptionID:   &subscriptionID,
+				ResourceGroup:    &resourceGroup,
+			}
+			serviceBusTopicEndpointProperties = append(serviceBusTopicEndpointProperties, sbTopic)
+			break
+		case "AzureIotHub.EventHub":
+			eventHub := devices.RoutingEventHubProperties{
+				ConnectionString: &connectionStr,
+				Name:             &name,
+				SubscriptionID:   &subscriptionID,
+				ResourceGroup:    &resourceGroup,
+			}
+			eventHubProperties = append(eventHubProperties, eventHub)
+			break
+		}
+	}
+
+	return &devices.RoutingEndpoints{
+		ServiceBusQueues:  &serviceBusQueueEndpointProperties,
+		ServiceBusTopics:  &serviceBusTopicEndpointProperties,
+		EventHubs:         &eventHubProperties,
+		StorageContainers: &storageContainerProperties,
+	}, nil
+}
+
 func expandIoTHubSku(d *schema.ResourceData) devices.IotHubSkuInfo {
 	skuList := d.Get("sku").([]interface{})
 	skuMap := skuList[0].(map[string]interface{})
-	cap := int64(skuMap["capacity"].(int))
+	capacity := int64(skuMap["capacity"].(int))
 
 	name := skuMap["name"].(string)
 	tier := skuMap["tier"].(string)
@@ -290,7 +579,7 @@ func expandIoTHubSku(d *schema.ResourceData) devices.IotHubSkuInfo {
 	return devices.IotHubSkuInfo{
 		Name:     devices.IotHubSku(name),
 		Tier:     devices.IotHubSkuTier(tier),
-		Capacity: &cap,
+		Capacity: utils.Int64(capacity),
 	}
 }
 
@@ -331,4 +620,158 @@ func flattenIoTHubSharedAccessPolicy(input *[]devices.SharedAccessSignatureAutho
 	}
 
 	return results
+}
+
+func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
+	results := make([]interface{}, 0)
+
+	if input != nil && input.Endpoints != nil {
+
+		if containers := input.Endpoints.StorageContainers; containers != nil {
+			for _, container := range *containers {
+				output := make(map[string]interface{}, 0)
+
+				if connString := container.ConnectionString; connString != nil {
+					output["connection_string"] = *connString
+				}
+				if name := container.Name; name != nil {
+					output["name"] = *name
+				}
+				if containerName := container.ContainerName; containerName != nil {
+					output["container_name"] = *containerName
+				}
+				if fileNameFmt := container.FileNameFormat; fileNameFmt != nil {
+					output["file_name_format"] = *fileNameFmt
+				}
+				if batchFreq := container.BatchFrequencyInSeconds; batchFreq != nil {
+					output["batch_frequency_in_seconds"] = *batchFreq
+				}
+				if chunkSize := container.MaxChunkSizeInBytes; chunkSize != nil {
+					output["max_chunk_size_in_bytes"] = *chunkSize
+				}
+				if encoding := container.Encoding; encoding != nil {
+					output["encoding"] = *encoding
+				}
+				output["type"] = "AzureIotHub.StorageContainer"
+
+				results = append(results, output)
+			}
+		}
+
+		if queues := input.Endpoints.ServiceBusQueues; queues != nil {
+			for _, queue := range *queues {
+				output := make(map[string]interface{}, 0)
+
+				if connString := queue.ConnectionString; connString != nil {
+					output["connection_string"] = *connString
+				}
+				if name := queue.Name; name != nil {
+					output["name"] = *name
+				}
+
+				results = append(results, output)
+			}
+		}
+
+		if topics := input.Endpoints.ServiceBusTopics; topics != nil {
+			for _, topic := range *topics {
+				output := make(map[string]interface{}, 0)
+
+				if connString := topic.ConnectionString; connString != nil {
+					output["connection_string"] = *connString
+				}
+				if name := topic.Name; name != nil {
+					output["name"] = *name
+				}
+
+				results = append(results, output)
+			}
+		}
+
+		if eventHubs := input.Endpoints.EventHubs; eventHubs != nil {
+			for _, eventHub := range *eventHubs {
+				output := make(map[string]interface{}, 0)
+
+				if connString := eventHub.ConnectionString; connString != nil {
+					output["connection_string"] = *connString
+				}
+				if name := eventHub.Name; name != nil {
+					output["name"] = *name
+				}
+
+				results = append(results, output)
+			}
+		}
+	}
+
+	return results
+}
+
+func flattenIoTHubRoute(input *devices.RoutingProperties) []interface{} {
+	results := make([]interface{}, 0)
+
+	if input != nil && input.Routes != nil {
+		for _, route := range *input.Routes {
+			output := make(map[string]interface{}, 0)
+
+			if name := route.Name; name != nil {
+				output["name"] = *name
+			}
+			if condition := route.Condition; condition != nil {
+				output["condition"] = *condition
+			}
+			if endpointNames := route.EndpointNames; endpointNames != nil {
+				output["endpoint_names"] = *endpointNames
+			}
+			if isEnabled := route.IsEnabled; isEnabled != nil {
+				output["enabled"] = *isEnabled
+			}
+			output["source"] = route.Source
+
+			results = append(results, output)
+		}
+	}
+
+	return results
+}
+
+func validateIoTHubEndpointName(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+
+	reservedNames := []string{
+		"events",
+		"operationsMonitoringEvents",
+		"fileNotifications",
+		"$default",
+	}
+
+	for _, name := range reservedNames {
+		if name == value {
+			errors = append(errors, fmt.Errorf("The reserved endpoint name %s could not be used as a name for a custom endpoint", name))
+		}
+	}
+
+	return
+}
+
+func validateIoTHubFileNameFormat(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+
+	requiredComponents := []string{
+		"{iothub}",
+		"{partition}",
+		"{YYYY}",
+		"{MM}",
+		"{DD}",
+		"{HH}",
+		"{mm}",
+	}
+
+	for _, component := range requiredComponents {
+		if !strings.Contains(value, component) {
+			errors = append(errors, fmt.Errorf("%s needs to contain %q", k, component))
+		}
+	}
+
+	return
 }

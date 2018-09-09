@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_postgresql_server"
 sidebar_current: "docs-azurerm-resource-database-postgresql-server"
 description: |-
-  Create a PostgreSQL Server.
+  Manages a PostgreSQL Server.
 ---
 
 # azurerm_postgresql_server
 
-Create a PostgreSQL Server.
+Manage a PostgreSQL Server.
 
 ## Example Usage
 

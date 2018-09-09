@@ -1,14 +1,14 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_subscription_rule"
-sidebar_current: "docs-azurerm-resource-servicebus-subscription-rule"
+sidebar_current: "docs-azurerm-resource-messaging-servicebus-subscription-rule"
 description: |-
-  Create a ServiceBus Subscription Rule.
+  Manages a ServiceBus Subscription Rule.
 ---
 
 # azurerm_servicebus_subscription_rule
 
-Create a ServiceBus Subscription Rule.
+Manage a ServiceBus Subscription Rule.
 
 ## Example Usage (SQL Filter)
 

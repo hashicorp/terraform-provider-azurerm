@@ -8,15 +8,14 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"strconv"
 )
 
 func TestAccAzureRMDataLakeStoreFirewallRule_basic(t *testing.T) {
 	resourceName := "azurerm_data_lake_store_firewall_rule.test"
+	ri := acctest.RandInt()
 	startIP := "1.1.1.1"
 	endIP := "2.2.2.2"
-
-	ri := acctest.RandInt()
-	rs := acctest.RandString(4)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -24,7 +23,7 @@ func TestAccAzureRMDataLakeStoreFirewallRule_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataLakeStoreFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataLakeStoreFirewallRule_basic(ri, rs, testLocation(), startIP, endIP),
+				Config: testAccAzureRMDataLakeStoreFirewallRule_basic(ri, testLocation(), startIP, endIP),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeStoreFirewallRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "start_ip_address", startIP),
@@ -43,7 +42,6 @@ func TestAccAzureRMDataLakeStoreFirewallRule_basic(t *testing.T) {
 func TestAccAzureRMDataLakeStoreFirewallRule_update(t *testing.T) {
 	resourceName := "azurerm_data_lake_store_firewall_rule.test"
 	ri := acctest.RandInt()
-	rs := acctest.RandString(4)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -51,7 +49,7 @@ func TestAccAzureRMDataLakeStoreFirewallRule_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataLakeStoreFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataLakeStoreFirewallRule_basic(ri, rs, testLocation(), "1.1.1.1", "2.2.2.2"),
+				Config: testAccAzureRMDataLakeStoreFirewallRule_basic(ri, testLocation(), "1.1.1.1", "2.2.2.2"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeStoreFirewallRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "start_ip_address", "1.1.1.1"),
@@ -59,7 +57,7 @@ func TestAccAzureRMDataLakeStoreFirewallRule_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMDataLakeStoreFirewallRule_basic(ri, rs, testLocation(), "2.2.2.2", "3.3.3.3"),
+				Config: testAccAzureRMDataLakeStoreFirewallRule_basic(ri, testLocation(), "2.2.2.2", "3.3.3.3"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeStoreFirewallRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "start_ip_address", "2.2.2.2"),
@@ -72,9 +70,8 @@ func TestAccAzureRMDataLakeStoreFirewallRule_update(t *testing.T) {
 
 func TestAccAzureRMDataLakeStoreFirewallRule_azureServices(t *testing.T) {
 	resourceName := "azurerm_data_lake_store_firewall_rule.test"
-	azureServicesIP := "0.0.0.0"
 	ri := acctest.RandInt()
-	rs := acctest.RandString(4)
+	azureServicesIP := "0.0.0.0"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -82,7 +79,7 @@ func TestAccAzureRMDataLakeStoreFirewallRule_azureServices(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataLakeStoreFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataLakeStoreFirewallRule_basic(ri, rs, testLocation(), azureServicesIP, azureServicesIP),
+				Config: testAccAzureRMDataLakeStoreFirewallRule_basic(ri, testLocation(), azureServicesIP, azureServicesIP),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeStoreFirewallRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "start_ip_address", azureServicesIP),
@@ -157,7 +154,7 @@ func testCheckAzureRMDataLakeStoreFirewallRuleDestroy(s *terraform.State) error 
 	return nil
 }
 
-func testAccAzureRMDataLakeStoreFirewallRule_basic(rInt int, rs, location, startIP, endIP string) string {
+func testAccAzureRMDataLakeStoreFirewallRule_basic(rInt int, location, startIP, endIP string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -165,17 +162,17 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_data_lake_store" "test" {
-  name                = "unlikely23exst2acct%s"
+  name                = "acctest%s"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "%s"
+  location            = "${azurerm_resource_group.test.location}"
 }
 
 resource "azurerm_data_lake_store_firewall_rule" "test" {
-  name                = "example"
+  name                = "acctest"
   account_name        = "${azurerm_data_lake_store.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   start_ip_address    = "%s"
   end_ip_address      = "%s"
 }
-`, rInt, location, rs, location, startIP, endIP)
+`, rInt, location, strconv.Itoa(rInt)[0:15], startIP, endIP)
 }

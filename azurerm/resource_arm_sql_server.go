@@ -98,7 +98,7 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 
 		if response.WasConflict(future.Response()) {
@@ -175,7 +175,7 @@ func resourceArmSqlServerDelete(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error deleting SQL Server %s: %+v", name, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return err
 	}

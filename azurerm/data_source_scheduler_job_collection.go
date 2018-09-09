@@ -10,9 +10,6 @@ import (
 func dataSourceArmSchedulerJobCollection() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmSchedulerJobCollectionRead,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -108,7 +105,7 @@ func dataSourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interf
 		d.Set("state", string(properties.State))
 
 		if err := d.Set("quota", flattenAzureArmSchedulerJobCollectionQuota(properties.Quota)); err != nil {
-			return fmt.Errorf("Error flattening quota for Job Collection %q (Resource Group %q): %+v", collection.Name, resourceGroup, err)
+			return fmt.Errorf("Error flattening quota for Job Collection %q (Resource Group %q): %+v", *collection.Name, resourceGroup, err)
 		}
 	}
 

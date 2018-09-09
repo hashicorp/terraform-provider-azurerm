@@ -1,14 +1,14 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_subscription"
-sidebar_current: "docs-azurerm-resource-servicebus-subscription"
+sidebar_current: "docs-azurerm-resource-messaging-servicebus-subscription"
 description: |-
-  Create a ServiceBus Subscription.
+  Manages a ServiceBus Subscription.
 ---
 
 # azurerm_servicebus_subscription
 
-Create a ServiceBus Subscription.
+Manage a ServiceBus Subscription.
 
 ## Example Usage
 

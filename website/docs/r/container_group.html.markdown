@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_container_group
 
-Create as an Azure Container Group instance.
+Manage as an Azure Container Group instance.
 
 ## Example Usage
 
@@ -55,7 +55,7 @@ resource "azurerm_container_group" "aci-helloworld" {
       "NODE_ENV" = "testing"
     }
 
-    command = "/bin/bash -c '/path to/myscript.sh'"
+    commands = ["/bin/bash", "-c", "'/path to/myscript.sh'"]
 
     volume {
       name       = "logs"
@@ -121,6 +121,10 @@ The `container` block supports:
 
 * `command` - (Optional) A command line to be run on the container. Changing this forces a new resource to be created.
 
+~> **NOTE:** The field `command` has been deprecated in favor of `commands` to better match the API.
+
+* `commands` - (Optional) A list of commands which should be run on the container. Changing this forces a new resource to be created.
+
 * `volume` - (Optional) The definition of a volume mount for this container as documented in the `volume` block below. Changing this forces a new resource to be created.
 
 The `volume` block supports:
@@ -154,3 +158,11 @@ The following attributes are exported:
 * `ip_address` - The IP address allocated to the container group.
 
 * `fqdn` - The FQDN of the container group derived from `dns_name_label`.
+
+## Import
+
+Container Group's can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_container_group.containerGroup1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ContainerInstance/containerGroups/myContainerGroup1
+```

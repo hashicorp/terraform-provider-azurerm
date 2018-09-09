@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_container"
 sidebar_current: "docs-azurerm-resource-storage-container"
 description: |-
-  Create a Azure Storage Container.
+  Manages a Azure Storage Container.
 ---
 
 # azurerm_storage_container
 
-Create an Azure Storage Container.
+Manage an Azure Storage Container.
 
 ## Example Usage
 
@@ -56,5 +56,13 @@ The following arguments are supported:
 
 The following attributes are exported in addition to the arguments listed above:
 
-* `id` - The storage container Resource ID.
+* `id` - The ID of the Storage Container.
 * `properties` - Key-value definition of additional properties associated to the storage container
+
+## Import
+
+Storage Containers can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_storage_container.container1 https://example.blob.core.windows.net/container
+```

@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_account"
 sidebar_current: "docs-azurerm-resource-storage-account"
 description: |-
-  Create a Azure Storage Account.
+  Manages a Azure Storage Account.
 ---
 
 # azurerm_storage_account
 
-Create an Azure Storage Account.
+Manage an Azure Storage Account.
 
 ## Example Usage
 
