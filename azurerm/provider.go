@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/authentication"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 )
 
 // Provider returns a terraform.ResourceProvider.
@@ -96,8 +96,10 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_key_vault_access_policy":               dataSourceArmKeyVaultAccessPolicy(),
 			"azurerm_key_vault_secret":                      dataSourceArmKeyVaultSecret(),
 			"azurerm_kubernetes_cluster":                    dataSourceArmKubernetesCluster(),
+			"azurerm_log_analytics_workspace":               dataSourceLogAnalyticsWorkspace(),
 			"azurerm_logic_app_workflow":                    dataSourceArmLogicAppWorkflow(),
 			"azurerm_managed_disk":                          dataSourceArmManagedDisk(),
+			"azurerm_management_group":                      dataSourceArmManagementGroup(),
 			"azurerm_network_interface":                     dataSourceArmNetworkInterface(),
 			"azurerm_network_security_group":                dataSourceArmNetworkSecurityGroup(),
 			"azurerm_notification_hub":                      dataSourceNotificationHub(),
@@ -198,7 +200,9 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_logic_app_workflow":                      resourceArmLogicAppWorkflow(),
 			"azurerm_managed_disk":                            resourceArmManagedDisk(),
 			"azurerm_management_lock":                         resourceArmManagementLock(),
+			"azurerm_management_group":                        resourceArmManagementGroup(),
 			"azurerm_metric_alertrule":                        resourceArmMetricAlertRule(),
+			"azurerm_monitor_action_group":                    resourceArmMonitorActionGroup(),
 			"azurerm_mysql_configuration":                     resourceArmMySQLConfiguration(),
 			"azurerm_mysql_database":                          resourceArmMySqlDatabase(),
 			"azurerm_mysql_firewall_rule":                     resourceArmMySqlFirewallRule(),
@@ -217,6 +221,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_postgresql_database":                     resourceArmPostgreSQLDatabase(),
 			"azurerm_postgresql_firewall_rule":                resourceArmPostgreSQLFirewallRule(),
 			"azurerm_postgresql_server":                       resourceArmPostgreSQLServer(),
+			"azurerm_postgresql_virtual_network_rule":         resourceArmPostgreSQLVirtualNetworkRule(),
 			"azurerm_public_ip":                               resourceArmPublicIp(),
 			"azurerm_relay_namespace":                         resourceArmRelayNamespace(),
 			"azurerm_recovery_services_vault":                 resourceArmRecoveryServicesVault(),
@@ -383,6 +388,7 @@ func determineAzureResourceProvidersToRegister(providerList []resources.Provider
 		"microsoft.insights":            {},
 		"Microsoft.Logic":               {},
 		"Microsoft.ManagedIdentity":     {},
+		"Microsoft.Management":          {},
 		"Microsoft.Network":             {},
 		"Microsoft.NotificationHubs":    {},
 		"Microsoft.OperationalInsights": {},
@@ -439,9 +445,9 @@ func registerAzureResourceProvidersWithSubscription(ctx context.Context, provide
 // armMutexKV is the instance of MutexKV for ARM resources
 var armMutexKV = mutexkv.NewMutexKV()
 
-// Deprecated - use `azschema.IgnoreCaseDiffSuppressFunc` instead
+// Deprecated: use `suppress.CaseDifference` instead
 func ignoreCaseDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
-	return azSchema.IgnoreCaseDiffSuppressFunc(k, old, new, d)
+	return suppress.CaseDifference(k, old, new, d)
 }
 
 // ignoreCaseStateFunc is a StateFunc from helper/schema that converts the
@@ -451,8 +457,7 @@ func ignoreCaseStateFunc(val interface{}) string {
 }
 
 func userDataDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
-	oldValue := userDataStateFunc(old)
-	return oldValue == new
+	return userDataStateFunc(old) == new
 }
 
 func userDataStateFunc(v interface{}) string {

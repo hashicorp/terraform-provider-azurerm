@@ -15,7 +15,7 @@ Use this data source to access the properties of an existing Azure Public IP Add
 
 ```hcl
 data "azurerm_public_ip" "test" {
-  name = "name_of_public_ip"
+  name                = "name_of_public_ip"
   resource_group_name = "name_of_resource_group"
 }
 

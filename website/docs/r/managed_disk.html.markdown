@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_managed_disk
 
-Create a managed disk.
+Manage a managed disk.
 
 ## Example Usage with Create Empty
 

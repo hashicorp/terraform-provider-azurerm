@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_app_service_plan
 
-Create an App Service Plan component.
+Manage an App Service Plan component.
 
 ## Example Usage (Dedicated)
 

@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
-	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -776,12 +775,12 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return errwrap.Wrapf("Error parsing ApplicationGateway ID {{err}}", err)
+		return fmt.Errorf("Error parsing ApplicationGateway ID: %+v", err)
 	}
 
 	applicationGateway, exists, err := retrieveApplicationGatewayById(d.Id(), meta)
 	if err != nil {
-		return errwrap.Wrapf("Error Getting ApplicationGateway By ID {{err}}", err)
+		return fmt.Errorf("Error Getting ApplicationGateway By ID: %+v", err)
 	}
 	if !exists {
 		d.SetId("")
@@ -847,7 +846,7 @@ func resourceArmApplicationGatewayDelete(d *schema.ResourceData, meta interface{
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return errwrap.Wrapf("Error Parsing Azure Resource ID {{err}}", err)
+		return fmt.Errorf("Error Parsing Azure Resource ID: %+v", err)
 	}
 	resGroup := id.ResourceGroup
 	name := id.Path["applicationGateways"]
@@ -883,7 +882,7 @@ func retrieveApplicationGatewayById(applicationGatewayID string, meta interface{
 
 	resGroup, name, err := ApplicationGatewayResGroupAndNameFromID(applicationGatewayID)
 	if err != nil {
-		return nil, false, errwrap.Wrapf("Error Getting ApplicationGateway Name and Group: {{err}}", err)
+		return nil, false, fmt.Errorf("Error Getting ApplicationGateway Name and Group:: %+v", err)
 	}
 
 	resp, err := client.Get(ctx, resGroup, name)

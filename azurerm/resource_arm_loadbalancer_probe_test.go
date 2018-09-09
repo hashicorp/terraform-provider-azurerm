@@ -17,7 +17,7 @@ func TestAccAzureRMLoadBalancerProbe_basic(t *testing.T) {
 	probeName := fmt.Sprintf("probe-%d", ri)
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	probe_id := fmt.Sprintf(
+	probeId := fmt.Sprintf(
 		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/probes/%s",
 		subscriptionID, ri, ri, probeName)
 
@@ -32,8 +32,15 @@ func TestAccAzureRMLoadBalancerProbe_basic(t *testing.T) {
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerProbeExists(probeName, &lb),
 					resource.TestCheckResourceAttr(
-						"azurerm_lb_probe.test", "id", probe_id),
+						"azurerm_lb_probe.test", "id", probeId),
 				),
+			},
+			{
+				ResourceName:      "azurerm_lb.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				// location is deprecated and was never actually used
+				ImportStateVerifyIgnore: []string{"location"},
 			},
 		},
 	})
@@ -68,7 +75,7 @@ func TestAccAzureRMLoadBalancerProbe_removal(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLoadBalancerProbe_update(t *testing.T) {
+func maProbe_update(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := acctest.RandInt()
 	probeName := fmt.Sprintf("probe-%d", ri)

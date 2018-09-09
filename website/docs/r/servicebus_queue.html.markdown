@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_servicebus_queue
 
-Create and manage a ServiceBus Queue.
+Manage and manage a ServiceBus Queue.
 
 ## Example Usage
 

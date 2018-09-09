@@ -432,7 +432,9 @@ func resourceArmAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error setting `notification` of Autoscale Setting %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
+	// Return a new tag map filtered by the specified tag names.
+	tagMap := filterTags(resp.Tags, "$type")
+	flattenAndSetTags(d, tagMap)
 
 	return nil
 }
@@ -714,7 +716,7 @@ func flattenAzureRmAutoScaleSettingCapacity(input *insights.ScaleCapacity) ([]in
 	if minStr := input.Minimum; minStr != nil {
 		min, err := strconv.Atoi(*minStr)
 		if err != nil {
-			return nil, fmt.Errorf("Error converting Minimum Scale Capacity %q to an int: %+v", minStr, err)
+			return nil, fmt.Errorf("Error converting Minimum Scale Capacity %q to an int: %+v", *minStr, err)
 		}
 		result["minimum"] = min
 	}
@@ -722,7 +724,7 @@ func flattenAzureRmAutoScaleSettingCapacity(input *insights.ScaleCapacity) ([]in
 	if maxStr := input.Maximum; maxStr != nil {
 		max, err := strconv.Atoi(*maxStr)
 		if err != nil {
-			return nil, fmt.Errorf("Error converting Maximum Scale Capacity %q to an int: %+v", maxStr, err)
+			return nil, fmt.Errorf("Error converting Maximum Scale Capacity %q to an int: %+v", *maxStr, err)
 		}
 		result["maximum"] = max
 	}
@@ -730,7 +732,7 @@ func flattenAzureRmAutoScaleSettingCapacity(input *insights.ScaleCapacity) ([]in
 	if defaultCapacityStr := input.Default; defaultCapacityStr != nil {
 		defaultCapacity, err := strconv.Atoi(*defaultCapacityStr)
 		if err != nil {
-			return nil, fmt.Errorf("Error converting Default Scale Capacity %q to an int: %+v", defaultCapacityStr, err)
+			return nil, fmt.Errorf("Error converting Default Scale Capacity %q to an int: %+v", *defaultCapacityStr, err)
 		}
 		result["default"] = defaultCapacity
 	}

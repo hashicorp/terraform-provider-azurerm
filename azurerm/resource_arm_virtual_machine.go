@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/hashicorp/terraform/helper/hashcode"
@@ -1000,13 +1000,21 @@ func flattenAzureRmVirtualMachineIdentity(identity *compute.VirtualMachineIdenti
 		result["principal_id"] = *identity.PrincipalID
 	}
 
-	identity_ids := make([]string, 0)
-	if identity.IdentityIds != nil {
-		for _, id := range *identity.IdentityIds {
-			identity_ids = append(identity_ids, id)
+	identityIds := make([]string, 0)
+	if identity.UserAssignedIdentities != nil {
+		/*
+			"userAssignedIdentities": {
+			  "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tomdevidentity/providers/Microsoft.ManagedIdentity/userAssignedIdentities/tom123": {
+				"principalId": "00000000-0000-0000-0000-000000000000",
+				"clientId": "00000000-0000-0000-0000-000000000000"
+			  }
+			}
+		*/
+		for key, _ := range identity.UserAssignedIdentities {
+			identityIds = append(identityIds, key)
 		}
 	}
-	result["identity_ids"] = identity_ids
+	result["identity_ids"] = identityIds
 
 	return []interface{}{result}
 }
@@ -1181,6 +1189,9 @@ func flattenAzureRmVirtualMachineOsDisk(disk *compute.OSDisk, diskInfo *compute.
 	if disk.Vhd != nil {
 		result["vhd_uri"] = *disk.Vhd.URI
 	}
+	if disk.Image != nil && disk.Image.URI != nil {
+		result["image_uri"] = *disk.Image.URI
+	}
 	if disk.ManagedDisk != nil {
 		result["managed_disk_type"] = string(disk.ManagedDisk.StorageAccountType)
 		if disk.ManagedDisk.ID != nil {
@@ -1236,9 +1247,9 @@ func expandAzureRmVirtualMachineIdentity(d *schema.ResourceData) *compute.Virtua
 	identity := identities[0].(map[string]interface{})
 	identityType := compute.ResourceIdentityType(identity["type"].(string))
 
-	identityIds := []string{}
+	identityIds := make(map[string]*compute.VirtualMachineIdentityUserAssignedIdentitiesValue, 0)
 	for _, id := range identity["identity_ids"].([]interface{}) {
-		identityIds = append(identityIds, id.(string))
+		identityIds[id.(string)] = &compute.VirtualMachineIdentityUserAssignedIdentitiesValue{}
 	}
 
 	vmIdentity := compute.VirtualMachineIdentity{
@@ -1246,7 +1257,7 @@ func expandAzureRmVirtualMachineIdentity(d *schema.ResourceData) *compute.Virtua
 	}
 
 	if vmIdentity.Type == compute.ResourceIdentityTypeUserAssigned {
-		vmIdentity.IdentityIds = &identityIds
+		vmIdentity.UserAssignedIdentities = identityIds
 	}
 
 	return &vmIdentity
