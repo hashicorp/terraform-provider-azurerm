@@ -8,6 +8,7 @@ IMPROVEMENTS:
 * `azurerm_automation_runbook` - support for specifying the content field [GH-1696]
 * `azurerm_app_service` - adding the `virtual_network_name` property [GH-1896]
 * `azurerm_app_service_slot` - adding the `virtual_network_name` property [GH-1896]
+* `azurerm_sql_database` - adding the `threat_detection_policy` property [GH-1628]
 * `azurerm_virtual_network` - adding validation to `name` preventing empty values [GH-1898]
 
 BUG FIXES:
