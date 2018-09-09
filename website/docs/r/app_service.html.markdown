@@ -157,6 +157,7 @@ The following arguments are supported:
 * `default_documents` - (Optional) The ordering of default documents to load, if an address isn't specified.
 * `dotnet_framework_version` - (Optional) The version of the .net framework's CLR used in this App Service. Possible values are `v2.0` (which will use the latest version of the .net framework for the .net CLR v2 - currently `.net 3.5`) and `v4.0` (which corresponds to the latest version of the .net CLR v4 - which at the time of writing is `.net 4.7.1`). [For more information on which .net CLR version to use based on the .net framework you're targeting - please see this table](https://en.wikipedia.org/wiki/.NET_Framework_version_history#Overview). Defaults to `v4.0`.
 * `http2_enabled` - (Optional) Is HTTP2 Enabled on this App Service? Defaults to `false`.
+* `ftps_state` - (Optional) State of FTP / FTPS service for this AppService. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`.
 * `ip_restriction` - (Optional) One or more `ip_restriction` blocks as defined below.
 * `java_version` - (Optional) The version of Java to use. If specified `java_container` and `java_container_version` must also be specified. Possible values are `1.7` and `1.8`.
 * `java_container` - (Optional) The Java Container to use. If specified `java_version` and `java_container_version` must also be specified. Possible values are `JETTY` and `TOMCAT`.
@@ -166,6 +167,7 @@ The following arguments are supported:
 
 ~> **NOTE:** MySQL In App is not intended for production environments and will not scale beyond a single instance. Instead you may wish [to use Azure Database for MySQL](/docs/providers/azurerm/r/mysql_database.html).
 
+* `linux_fx_version` - (Optional) Linux App Framework and version for the AppService, e.g. `DOCKER|(golang:latest)`.
 * `managed_pipeline_mode` - (Optional) The Managed Pipeline Mode. Possible values are `Integrated` and `Classic`. Defaults to `Integrated`.
 * `min_tls_version` - (Optional) The minimum supported TLS version for the app service. Possible values are `1.0`, `1.1`, and `1.2`. Defaults to `1.2` for new app services.
 * `php_version` - (Optional) The version of PHP to use in this App Service. Possible values are `5.5`, `5.6`, `7.0` and `7.1`.
@@ -173,17 +175,16 @@ The following arguments are supported:
 * `remote_debugging_enabled` - (Optional) Is Remote Debugging Enabled? Defaults to `false`.
 * `remote_debugging_version` - (Optional) Which version of Visual Studio should the Remote Debugger be compatible with? Possible values are `VS2012`, `VS2013`, `VS2015` and `VS2017`.
 * `scm_type` - (Optional) The type of Source Control enabled for this App Service. Possible values include `None` and `LocalGit`. Defaults to `None`.
+
+~> **NOTE:** Additional Source Control types will be added in the future, once support for them has been added in the Azure SDK for Go.
+
 * `use_32_bit_worker_process` - (Optional) Should the App Service run in 32 bit mode, rather than 64 bit mode?
 
 ~> **NOTE:** when using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
 
-* `ftps_state` - (Optional) State of FTP / FTPS service for this AppService. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`.
-
-* `linux_fx_version` - (Optional) Linux App Framework and version for the AppService, e.g. `DOCKER|(golang:latest)`.
+* `virtual_network_name` - (Optional) The name of the Virtual Network which this App Service should be attached to.
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
-
-~> **NOTE:** Additional Source Control types will be added in the future, once support for them has been added in the Azure SDK for Go.
 
 ---
 
