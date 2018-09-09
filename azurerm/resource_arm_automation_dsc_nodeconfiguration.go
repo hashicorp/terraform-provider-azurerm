@@ -72,12 +72,12 @@ func resourceArmAutomationDscNodeConfigurationCreateUpdate(d *schema.ResourceDat
 	parameters := automation.DscNodeConfigurationCreateOrUpdateParameters{
 		Source: &automation.ContentSource{
 			Type:  automation.EmbeddedContent,
-			Value: &content,
+			Value: utils.String(content),
 		},
 		Configuration: &automation.DscConfigurationAssociationProperty{
-			Name: &configurationName,
+			Name: utils.String(configurationName),
 		},
-		Name: &name,
+		Name: utils.String(name),
 	}
 
 	_, err := client.CreateOrUpdate(ctx, resGroup, accName, name, parameters)

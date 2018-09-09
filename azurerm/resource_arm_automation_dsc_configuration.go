@@ -87,14 +87,13 @@ func resourceArmAutomationDscConfigurationCreateUpdate(d *schema.ResourceData, m
 	parameters := automation.DscConfigurationCreateOrUpdateParameters{
 		DscConfigurationCreateOrUpdateProperties: &automation.DscConfigurationCreateOrUpdateProperties{
 			LogVerbose:  utils.Bool(logVerbose),
-			Description: &description,
+			Description: utils.String(description),
 			Source: &automation.ContentSource{
 				Type:  automation.EmbeddedContent,
-				Value: &contentEmbedded,
+				Value: utils.String(contentEmbedded),
 			},
 		},
-		Location: &location,
-		Name:     &name,
+		Location: utils.String(location),
 	}
 
 	_, err := client.CreateOrUpdate(ctx, resGroup, accName, name, parameters)
@@ -152,9 +151,9 @@ func resourceArmAutomationDscConfigurationRead(d *schema.ResourceData, meta inte
 		d.Set("state", resp.State)
 	}
 
-	contentresp, contenterr := client.GetContent(ctx, resGroup, accName, name)
-	if contenterr != nil {
-		return fmt.Errorf("Error making Read request on AzureRM Automation Dsc Configuration content %q: %+v", name, contenterr)
+	contentresp, err := client.GetContent(ctx, resGroup, accName, name)
+	if err != nil {
+		return fmt.Errorf("Error making Read request on AzureRM Automation Dsc Configuration content %q: %+v", name, err)
 	}
 
 	buf := new(bytes.Buffer)
