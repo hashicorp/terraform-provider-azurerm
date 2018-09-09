@@ -647,13 +647,13 @@ func expandArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, location st
 	}
 
 	if tdl := td.([]interface{}); len(tdl) > 0 {
-		threadDetection := tdl[0].(map[string]interface{})
+		threatDetection := tdl[0].(map[string]interface{})
 
-		properties.State = sql.SecurityAlertPolicyState(threadDetection["state"].(string))
-		properties.EmailAccountAdmins = sql.SecurityAlertPolicyEmailAccountAdmins(threadDetection["email_account_admins"].(string))
-		properties.UseServerDefault = sql.SecurityAlertPolicyUseServerDefault(threadDetection["use_server_default"].(string))
+		properties.State = sql.SecurityAlertPolicyState(threatDetection["state"].(string))
+		properties.EmailAccountAdmins = sql.SecurityAlertPolicyEmailAccountAdmins(threatDetection["email_account_admins"].(string))
+		properties.UseServerDefault = sql.SecurityAlertPolicyUseServerDefault(threatDetection["use_server_default"].(string))
 
-		if v, ok := threadDetection["disabled_alerts"]; ok {
+		if v, ok := threatDetection["disabled_alerts"]; ok {
 			alerts := v.(*schema.Set).List()
 			expandedAlerts := make([]string, len(alerts))
 			for i, a := range alerts {
@@ -661,7 +661,7 @@ func expandArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, location st
 			}
 			properties.DisabledAlerts = utils.String(strings.Join(expandedAlerts, ";"))
 		}
-		if v, ok := threadDetection["email_addresses"]; ok {
+		if v, ok := threatDetection["email_addresses"]; ok {
 			emails := v.(*schema.Set).List()
 			expandedEmails := make([]string, len(emails))
 			for i, e := range emails {
@@ -669,13 +669,13 @@ func expandArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, location st
 			}
 			properties.EmailAddresses = utils.String(strings.Join(expandedEmails, ";"))
 		}
-		if v, ok := threadDetection["retention_days"]; ok {
+		if v, ok := threatDetection["retention_days"]; ok {
 			properties.RetentionDays = utils.Int32(int32(v.(int)))
 		}
-		if v, ok := threadDetection["storage_account_access_key"]; ok {
+		if v, ok := threatDetection["storage_account_access_key"]; ok {
 			properties.StorageAccountAccessKey = utils.String(v.(string))
 		}
-		if v, ok := threadDetection["storage_endpoint"]; ok {
+		if v, ok := threatDetection["storage_endpoint"]; ok {
 			properties.StorageEndpoint = utils.String(v.(string))
 		}
 
