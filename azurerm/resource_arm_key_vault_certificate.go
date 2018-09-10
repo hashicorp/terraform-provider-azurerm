@@ -2,8 +2,11 @@ package azurerm
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
@@ -236,6 +239,11 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 				Computed: true,
 			},
 
+			"thumbprint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -349,6 +357,16 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 	if contents := cert.Cer; contents != nil {
 		d.Set("certificate_data", string(*contents))
 	}
+
+	x509Thumbprint, err := base64.RawURLEncoding.DecodeString(string(*cert.X509Thumbprint))
+	if err != nil {
+		return err
+	}
+
+	x509ThumbprintHex := hex.EncodeToString(x509Thumbprint)
+
+	d.Set("thumbprint", strings.ToUpper(x509ThumbprintHex))
+
 	flattenAndSetTags(d, cert.Tags)
 
 	return nil
