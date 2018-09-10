@@ -153,12 +153,12 @@ func resourceArmPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	publicIp := network.PublicIPAddress{
-		Name:     &name,
-		Location: &location,
-		Sku:      &sku,
+		Name:                            &name,
+		Location:                        &location,
+		Sku:                             &sku,
 		PublicIPAddressPropertiesFormat: &properties,
-		Tags:  expandTags(tags),
-		Zones: zones,
+		Tags:                            expandTags(tags),
+		Zones:                           zones,
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, publicIp)
