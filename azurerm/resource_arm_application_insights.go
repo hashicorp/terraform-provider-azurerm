@@ -82,11 +82,11 @@ func resourceArmApplicationInsightsCreateOrUpdate(d *schema.ResourceData, meta i
 	}
 
 	insightProperties := insights.ApplicationInsightsComponent{
-		Name:     &name,
-		Location: &location,
-		Kind:     &applicationType,
+		Name:                                   &name,
+		Location:                               &location,
+		Kind:                                   &applicationType,
 		ApplicationInsightsComponentProperties: &applicationInsightsComponentProperties,
-		Tags: expandTags(tags),
+		Tags:                                   expandTags(tags),
 	}
 
 	resp, err := client.CreateOrUpdate(ctx, resGroup, name, insightProperties)

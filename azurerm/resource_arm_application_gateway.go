@@ -743,9 +743,9 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	}
 
 	gateway := network.ApplicationGateway{
-		Name:     utils.String(name),
-		Location: utils.String(location),
-		Tags:     expandTags(tags),
+		Name:                               utils.String(name),
+		Location:                           utils.String(location),
+		Tags:                               expandTags(tags),
 		ApplicationGatewayPropertiesFormat: &properties,
 	}
 
