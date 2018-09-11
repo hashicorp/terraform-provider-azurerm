@@ -358,14 +358,13 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 		d.Set("certificate_data", string(*contents))
 	}
 
-	x509Thumbprint, err := base64.RawURLEncoding.DecodeString(string(*cert.X509Thumbprint))
-	if err != nil {
-		return err
+	if v := cert.X509Thumbprint; v != nil {
+		x509Thumbprint, err := base64.RawURLEncoding.DecodeString(string(*v))
+		if err != nil {
+			return err
+		}
+		d.Set("thumbprint", strings.ToUpper(hex.EncodeToString(x509Thumbprint)))
 	}
-
-	x509ThumbprintHex := hex.EncodeToString(x509Thumbprint)
-
-	d.Set("thumbprint", strings.ToUpper(x509ThumbprintHex))
 
 	flattenAndSetTags(d, cert.Tags)
 
