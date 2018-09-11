@@ -136,6 +136,26 @@ func TestAccAzureRMServiceBusNamespace_NonStandardCasing(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMServiceBusNamespace_premium(t *testing.T) {
+	resourceName := "azurerm_servicebus_namespace.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMServiceBusNamespace_premium(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusNamespaceExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMServiceBusNamespaceDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).serviceBusNamespacesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -218,6 +238,22 @@ resource "azurerm_servicebus_namespace" "test" {
     location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     sku = "Basic"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMServiceBusNamespace_premium(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+resource "azurerm_servicebus_namespace" "test" {
+    name = "acctestservicebusnamespace-%d"
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    sku = "Premium"
+    capacity = 1
 }
 `, rInt, location, rInt)
 }

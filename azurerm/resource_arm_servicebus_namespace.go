@@ -3,13 +3,14 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"regexp"
 )
 
 // Default Authorization Rule/Policy created by Azure, used to populate the
@@ -212,9 +213,18 @@ func resourceArmServiceBusNamespaceDelete(d *schema.ResourceData, meta interface
 	resourceGroup := id.ResourceGroup
 	name := id.Path["namespaces"]
 
-	_, err = client.Delete(ctx, resourceGroup, name)
+	deleteFuture, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
 		return err
+	}
+
+	err = deleteFuture.WaitForCompletionRef(ctx, client.Client)
+	if err != nil {
+		if response.WasNotFound(deleteFuture.Response()) {
+			return nil
+		}
+
+		return fmt.Errorf("Error deleting Service Bus %q: %+v", name, err)
 	}
 
 	return nil
