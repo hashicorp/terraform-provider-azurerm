@@ -141,6 +141,7 @@ type ArmClient struct {
 	mysqlDatabasesClient                     mysql.DatabasesClient
 	mysqlFirewallRulesClient                 mysql.FirewallRulesClient
 	mysqlServersClient                       mysql.ServersClient
+	mysqlVirtualNetworkRulesClient           mysql.VirtualNetworkRulesClient
 	postgresqlConfigurationsClient           postgresql.ConfigurationsClient
 	postgresqlDatabasesClient                postgresql.DatabasesClient
 	postgresqlFirewallRulesClient            postgresql.FirewallRulesClient
