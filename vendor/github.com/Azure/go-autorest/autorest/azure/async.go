@@ -167,9 +167,16 @@ func (f Future) WaitForCompletion(ctx context.Context, client autorest.Client) e
 // running operation has completed, the provided context is cancelled, or the client's
 // polling duration has been exceeded.  It will retry failed polling attempts based on
 // the retry value defined in the client up to the maximum retry attempts.
-func (f *Future) WaitForCompletionRef(ctx context.Context, client autorest.Client) error {
-	ctx, cancel := context.WithTimeout(ctx, client.PollingDuration)
+func (f *Future) WaitForCompletionRef(inputCtx context.Context, client autorest.Client) error {
+	var ctx context.Context
+	var cancel context.CancelFunc
+ 	if d := client.PollingDuration; d != 0 {
+ 		ctx, cancel = context.WithTimeout(inputCtx, d)
+ 	} else {
+ 		ctx = inputCtx
+ 	}
 	defer cancel()
+
 	done, err := f.Done(client)
 	for attempts := 0; !done; done, err = f.Done(client) {
 		if attempts >= client.RetryAttempts {
