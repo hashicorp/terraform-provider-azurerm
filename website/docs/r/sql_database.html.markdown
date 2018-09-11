@@ -73,6 +73,8 @@ The following arguments are supported:
 
 * `elastic_pool_name` - (Optional) The name of the elastic database pool.
 
+* `threat_detection_policy` - (Optional) Threat detection policy configuration. The `threat_detection_policy` block supports fields documented below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 `import` supports the following:
@@ -84,6 +86,19 @@ The following arguments are supported:
 * `administrator_login_password` - (Required) Specifies the password of the SQL administrator.
 * `authentication_type` - (Required) Specifies the type of authentication used to access the server. Valid values are `SQL` or `ADPassword`.
 * `operation_mode` - (Optional) Specifies the type of import operation being performed. The only allowable value is `Import`.
+
+---
+
+`threat_detection_policy` supports the following:
+
+* `state` - (Required) The State of the Policy. Possible values are `Enabled`, `Disabled` or `New`.
+* `disabled_alerts` - (Optional) Specifies a list of alerts which should be disabled. Possible values include `Access_Anomaly`, `Sql_Injection` and `Sql_Injection_Vulnerability`.
+* `email_account_admins` - (Optional) Should the account administrators be emailed when this alert is triggered?
+* `email_addresses` - (Optional) A list of email addresses which alerts should be sent to.
+* `retention_days` - (Optional) Specifies the number of days to keep in the Threat Detection audit logs.
+* `storage_account_access_key` - (Optional) Specifies the identifier key of the Threat Detection audit storage account. Required if `state` is `Enabled`.
+* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). This blob storage will hold all Threat Detection audit logs. Required if `state` is `Enabled`.
+* `use_server_default` - (Optional) Should the default server policy be used? Defaults to `Disabled`.
 
 ## Attributes Reference
 

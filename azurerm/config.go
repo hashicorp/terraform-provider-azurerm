@@ -78,10 +78,11 @@ type ArmClient struct {
 
 	cosmosDBClient documentdb.DatabaseAccountsClient
 
-	automationAccountClient    automation.AccountClient
-	automationRunbookClient    automation.RunbookClient
-	automationCredentialClient automation.CredentialClient
-	automationScheduleClient   automation.ScheduleClient
+	automationAccountClient      automation.AccountClient
+	automationRunbookClient      automation.RunbookClient
+	automationCredentialClient   automation.CredentialClient
+	automationScheduleClient     automation.ScheduleClient
+	automationRunbookDraftClient automation.RunbookDraftClient
 
 	dnsClient   dns.RecordSetsClient
 	zonesClient dns.ZonesClient
@@ -136,22 +137,22 @@ type ArmClient struct {
 	iothubResourceClient devices.IotHubResourceClient
 
 	// Databases
-	mysqlConfigurationsClient            mysql.ConfigurationsClient
-	mysqlDatabasesClient                 mysql.DatabasesClient
-	mysqlFirewallRulesClient             mysql.FirewallRulesClient
-	mysqlServersClient                   mysql.ServersClient
-	mysqlVirtualNetworkRulesClient       mysql.VirtualNetworkRulesClient
-	postgresqlConfigurationsClient       postgresql.ConfigurationsClient
-	postgresqlDatabasesClient            postgresql.DatabasesClient
-	postgresqlFirewallRulesClient        postgresql.FirewallRulesClient
-	postgresqlServersClient              postgresql.ServersClient
-	postgresqlVirtualNetworkRulesClient  postgresql.VirtualNetworkRulesClient
-	sqlDatabasesClient                   sql.DatabasesClient
-	sqlElasticPoolsClient                sql.ElasticPoolsClient
-	sqlFirewallRulesClient               sql.FirewallRulesClient
-	sqlServersClient                     sql.ServersClient
-	sqlServerAzureADAdministratorsClient sql.ServerAzureADAdministratorsClient
-	sqlVirtualNetworkRulesClient         sql.VirtualNetworkRulesClient
+	mysqlConfigurationsClient                mysql.ConfigurationsClient
+	mysqlDatabasesClient                     mysql.DatabasesClient
+	mysqlFirewallRulesClient                 mysql.FirewallRulesClient
+	mysqlServersClient                       mysql.ServersClient
+	postgresqlConfigurationsClient           postgresql.ConfigurationsClient
+	postgresqlDatabasesClient                postgresql.DatabasesClient
+	postgresqlFirewallRulesClient            postgresql.FirewallRulesClient
+	postgresqlServersClient                  postgresql.ServersClient
+	postgresqlVirtualNetworkRulesClient      postgresql.VirtualNetworkRulesClient
+	sqlDatabasesClient                       sql.DatabasesClient
+	sqlDatabaseThreatDetectionPoliciesClient sql.DatabaseThreatDetectionPoliciesClient
+	sqlElasticPoolsClient                    sql.ElasticPoolsClient
+	sqlFirewallRulesClient                   sql.FirewallRulesClient
+	sqlServersClient                         sql.ServersClient
+	sqlServerAzureADAdministratorsClient     sql.ServerAzureADAdministratorsClient
+	sqlVirtualNetworkRulesClient             sql.VirtualNetworkRulesClient
 
 	// Data Lake Store
 	dataLakeStoreAccountClient       storeAccount.AccountsClient
@@ -473,6 +474,10 @@ func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, a
 	scheduleClient := automation.NewScheduleClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&scheduleClient.Client, auth)
 	c.automationScheduleClient = scheduleClient
+
+	runbookDraftClient := automation.NewRunbookDraftClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&runbookDraftClient.Client, auth)
+	c.automationRunbookDraftClient = runbookDraftClient
 }
 
 func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscriptionId, tenantId string, auth, graphAuth autorest.Authorizer, sender autorest.Sender) {
@@ -626,6 +631,13 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	sqlDBClient := sql.NewDatabasesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&sqlDBClient.Client, auth)
 	c.sqlDatabasesClient = sqlDBClient
+
+	sqlDTDPClient := sql.NewDatabaseThreatDetectionPoliciesClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&sqlDTDPClient.Client)
+	sqlDTDPClient.Authorizer = auth
+	sqlDTDPClient.Sender = sender
+	sqlDTDPClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.sqlDatabaseThreatDetectionPoliciesClient = sqlDTDPClient
 
 	sqlFWClient := sql.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&sqlFWClient.Client, auth)
