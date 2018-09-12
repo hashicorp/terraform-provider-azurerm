@@ -27,7 +27,7 @@ func TestAccAzureRMAutomationDscConfiguration_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "description", "test"),
 					resource.TestCheckResourceAttrSet(resourceName, "log_verbose"),
 					resource.TestCheckResourceAttrSet(resourceName, "state"),
-					resource.TestCheckResourceAttr(resourceName, "content_embedded", "configuration test {}"),
+					resource.TestCheckResourceAttr(resourceName, "content_embedded", "configuration acctest {}"),
 				),
 			},
 			{
@@ -124,11 +124,11 @@ resource "azurerm_automation_account" "test" {
 }
 
 resource "azurerm_automation_dsc_configuration" "test" {
-  name                    = "test"
+  name                    = "acctest"
   resource_group_name     = "${azurerm_resource_group.test.name}"
   automation_account_name = "${azurerm_automation_account.test.name}"
   location                = "${azurerm_resource_group.test.location}"
-  content_embedded        = "configuration test {}"
+  content_embedded        = "configuration acctest {}"
   description             = "test"
 }
 `, rInt, location, rInt)

@@ -23,7 +23,7 @@ func TestAccAzureRMAutomationDscNodeConfiguration_basic(t *testing.T) {
 				Config: testAccAzureRMAutomationDscNodeConfiguration_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationDscNodeConfigurationExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "configuration_name", "test"),
+					resource.TestCheckResourceAttr(resourceName, "configuration_name", "acctest"),
 				),
 			},
 			{
@@ -122,15 +122,15 @@ resource "azurerm_automation_account" "test" {
 }
 
 resource "azurerm_automation_dsc_configuration" "test" {
-  name                    = "test"
+  name                    = "acctest"
   resource_group_name     = "${azurerm_resource_group.test.name}"
   automation_account_name = "${azurerm_automation_account.test.name}"
   location                = "${azurerm_resource_group.test.location}"
-  content_embedded        = "configuration test {}"
+  content_embedded        = "configuration acctest {}"
 }
 
 resource "azurerm_automation_dsc_nodeconfiguration" "test" {
-  name                    = "test.localhost"
+  name                    = "acctest.localhost"
   resource_group_name     = "${azurerm_resource_group.test.name}"
   automation_account_name = "${azurerm_automation_account.test.name}"
   depends_on              = ["azurerm_automation_dsc_configuration.test"]
@@ -154,7 +154,7 @@ instance of OMI_ConfigurationDocument
   Author="bogusAuthor";
   GenerationDate="06/15/2018 14:06:24";
   GenerationHost="bogusComputer";
-  Name="test";
+  Name="acctest";
 };
 mofcontent
 }
