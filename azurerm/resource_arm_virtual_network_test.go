@@ -92,6 +92,8 @@ func TestAccAzureRMVirtualNetwork_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "subnet.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "subnet.0.id"),
 				),
 			},
 		},
@@ -136,10 +138,10 @@ func TestAccAzureRMVirtualNetwork_withTags(t *testing.T) {
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkExists(resourceName),
-					resource.TestCheckResourceAttr(
-						resourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(
-						resourceName, "tags.environment", "Production"),
+					resource.TestCheckResourceAttr(resourceName, "subnet.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "subnet.0.id"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
 					resource.TestCheckResourceAttr(resourceName, "tags.cost_center", "MSFT"),
 				),
 			},
@@ -147,10 +149,10 @@ func TestAccAzureRMVirtualNetwork_withTags(t *testing.T) {
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkExists(resourceName),
-					resource.TestCheckResourceAttr(
-						resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(
-						resourceName, "tags.environment", "staging"),
+					resource.TestCheckResourceAttr(resourceName, "subnet.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "subnet.0.id"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "staging"),
 				),
 			},
 		},
