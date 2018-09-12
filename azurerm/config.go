@@ -60,6 +60,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
+	uuid "github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/authentication"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -264,9 +265,30 @@ type ArmClient struct {
 	policyDefinitionsClient policy.DefinitionsClient
 }
 
+var (
+	msClientRequestIDOnce sync.Once
+	msClientRequestID     string
+)
+
+// clientRequestID generates a UUID to pass through `x-ms-client-request-id` header.
+func clientRequestID() string {
+	msClientRequestIDOnce.Do(func() {
+		var err error
+		msClientRequestID, err = uuid.GenerateUUID()
+
+		if err != nil {
+			log.Printf("[WARN] Fail to generate uuid for msClientRequestID: %+v", err)
+		}
+	})
+
+	log.Printf("[DEBUG] AzureRM Client Request Id: %s", msClientRequestID)
+	return msClientRequestID
+}
+
 func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Authorizer) {
 	setUserAgent(client)
 	client.Authorizer = auth
+	client.RequestInspector = azure.WithClientID(clientRequestID())
 	client.Sender = autorest.CreateSender(withRequestLogging())
 	client.SkipResourceProviderRegistration = c.skipProviderRegistration
 	client.PollingDuration = 60 * time.Minute
