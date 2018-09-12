@@ -109,9 +109,11 @@ The following attributes are exported:
 
 * `address_space` - The address space that is used the virtual network.
 
-* `subnet` - Set of multiple subnets defined in this virtual network. Each `subnet` block supports the fields documented below.
+* `subnet`- One or more `subnet` blocks as defined below.
 
-The `subnet` block supports:
+---
+
+The `subnet` block exports:
 
 * `id` - The ID of this subnet.
 
