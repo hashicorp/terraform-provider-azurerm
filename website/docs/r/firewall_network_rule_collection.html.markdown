@@ -1,23 +1,24 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_firewall_network_rule_collection"
-sidebar_current: "docs-azurerm-resource-firewall-networkrulecollection"
+sidebar_current: "docs-azurerm-resource-firewall-network-rule-collection"
 description: |-
-  Manages an Azure Firewall network rule collection.
+  Manages a Network Rule Collection within an Azure Firewall.
+
 ---
 
-# azurerm_firewall
+# azurerm_firewall_network_rule_collection
 
-Manages an Azure Firewall network rule collection.
+Manages a Network Rule Collection within an Azure Firewall.
 
-~> **NOTE** This resource is currently in public preview.
+-> **NOTE** Azure Firewall is currently in Public Preview.
 
 ## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "afwrg"
-  location = "northeurope"
+  name     = "example-resources"
+  location = "North Europe"
 }
 
 resource "azurerm_virtual_network" "test" {
@@ -89,18 +90,38 @@ resource "azurerm_firewall_network_rule_collection" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the rule collection.
-* `azure_firewall_name` - (Required) Specifies the name of the Azure Firewall in which to create the collection.
-* `resource_group_name` - (Required) Specifies the name of the resource group containing the Azure Firewall.
-* `priority` - (Required) Specifies the priority of the rule collection.
-* `action` - (Required) Specifies the action the rule will apply to matching traffic. Accepted values are `Allow` and `Deny`.
-* `rule` - (Required) A rule block as described below. At least one rule must be configured.
+* `name` - (Required) Specifies the name of the Network Rule Collection which must be unique within the Firewall. Changing this forces a new resource to be created.
 
-`rule` supports the following:
+* `azure_firewall_name` - (Required) Specifies the name of the Firewall in which to the Network Rule Collection should be created. Changing this forces a new resource to be created.
+
+* `resource_group_name` - (Required) Specifies the name of the Resource Group in which the Firewall exists. Changing this forces a new resource to be created.
+
+* `priority` - (Required) Specifies the priority of the rule collection.
+
+* `action` - (Required) Specifies the action the rule will apply to matching traffic. Possible values are `Allow` and `Deny`.
+
+* `rule` - (Required) One or more `rule` blocks as defined below.
+
+---
+
+A `rule` block supports the following:
 
 * `name` - (Required) Specifies the name of the rule.
+
 * `description` - (Optional) Specifies a description for the rule.
+
 * `source_addresses` - (Required) A list of source IP addresses and/or IP ranges.
+
 * `destination_addresses` - (Required) A list of destination IP addresses and/or IP ranges.
+
 * `destination_ports` - (Required) A list of destination ports.
-* `protocols` - (Required) A list of protocols. Accepted values are `Any`, `ICMP`, `TCP` or `UDP`.
+
+* `protocols` - (Required) A list of protocols. Possible values are `Any`, `ICMP`, `TCP` and `UDP`.
+
+## Import
+
+Azure Firewall Network Rule Collection's can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_firewall_network_rule_collection.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/azureFirewalls/myfirewall/networkRuleCollections/mycollection
+```

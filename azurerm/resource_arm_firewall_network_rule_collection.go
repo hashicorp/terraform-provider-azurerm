@@ -2,10 +2,12 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -15,6 +17,9 @@ func resourceArmFirewallNetworkRuleCollection() *schema.Resource {
 		Read:   resourceArmFirewallNetworkRuleCollectionRead,
 		Update: resourceArmFirewallNetworkRuleCollectionCreateUpdate,
 		Delete: resourceArmFirewallNetworkRuleCollectionDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -42,8 +47,7 @@ func resourceArmFirewallNetworkRuleCollection() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.AzureFirewallRCActionTypeAllow),
 					string(network.AzureFirewallRCActionTypeDeny),
-				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				}, false),
 			},
 
 			"rule": {
@@ -88,10 +92,9 @@ func resourceArmFirewallNetworkRuleCollection() *schema.Resource {
 									string(network.ICMP),
 									string(network.TCP),
 									string(network.UDP),
-								}, true),
+								}, false),
 							},
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-							Set:              schema.HashString,
+							Set: schema.HashString,
 						},
 					},
 				},
@@ -104,55 +107,106 @@ func resourceArmFirewallNetworkRuleCollectionCreateUpdate(d *schema.ResourceData
 	client := meta.(*ArmClient).azureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 	firewallName := d.Get("azure_firewall_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 
 	azureRMLockByName(firewallName, azureFirewallResourceName)
 	defer azureRMUnlockByName(firewallName, azureFirewallResourceName)
 
 	firewall, err := client.Get(ctx, resourceGroup, firewallName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Azure Firewall %q (Resource Group %q): %+v", firewallName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Firewall %q (Resource Group %q): %+v", firewallName, resourceGroup, err)
 	}
 
-	ipConfigs := fixArmFirewallIPConfiguration(&firewall)
-	firewall.AzureFirewallPropertiesFormat.IPConfigurations = &ipConfigs
+	if firewall.AzureFirewallPropertiesFormat == nil {
+		return fmt.Errorf("Error expanding Firewall %q (Resource Group %q): `properties` was nil.", firewallName, resourceGroup)
+	}
+	props := *firewall.AzureFirewallPropertiesFormat
 
-	newFwRuleCol := expandArmFirewallNetworkRuleCollection(d)
-	ruleCollections := append(*firewall.AzureFirewallPropertiesFormat.NetworkRuleCollections, newFwRuleCol)
-	existingCollection, index, exists := findArmFirewallNetworkRuleCollectionByName(&firewall, name)
-	if exists {
-		if name == *existingCollection.Name {
-			ruleCollections = append(ruleCollections[:index], ruleCollections[index+1:]...)
+	if props.NetworkRuleCollections == nil {
+		return fmt.Errorf("Error expanding Firewall %q (Resource Group %q): `properties.NetworkRuleCollections` was nil.", firewallName, resourceGroup)
+	}
+	rules := *props.NetworkRuleCollections
+
+	ipConfigurations, err := azure.FixFirewallIPConfiguration(props.IPConfigurations)
+	if err != nil {
+		return fmt.Errorf("Error fixing IP Configurations for Firewall %q (Resource Group %q): %+v", firewallName, resourceGroup, err)
+	}
+	firewall.AzureFirewallPropertiesFormat.IPConfigurations = ipConfigurations
+
+	networkRules := expandArmFirewallNetworkRules(d.Get("rule").(*schema.Set))
+	priority := d.Get("priority").(int)
+	rule := network.AzureFirewallNetworkRuleCollection{
+		Name: utils.String(name),
+		AzureFirewallNetworkRuleCollectionPropertiesFormat: &network.AzureFirewallNetworkRuleCollectionPropertiesFormat{
+			Action: &network.AzureFirewallRCAction{
+				Type: network.AzureFirewallRCActionType(d.Get("action").(string)),
+			},
+			Priority: utils.Int32(int32(priority)),
+			Rules:    &networkRules,
+		},
+	}
+
+	if !d.IsNewResource() {
+		index := -1
+		if rules != nil {
+			for i, v := range rules {
+				if v.Name == nil {
+					continue
+				}
+
+				if *v.Name == name {
+					index = i
+					break
+				}
+			}
 		}
+
+		if index == -1 {
+			return fmt.Errorf("Error locating Network Rule Collection %q (Firewall %q / Resource Group %q)", name, firewallName, resourceGroup)
+		}
+
+		rules[index] = rule
+	} else {
+		rules = append(rules, rule)
 	}
-	firewall.AzureFirewallPropertiesFormat.NetworkRuleCollections = &ruleCollections
+
+	firewall.AzureFirewallPropertiesFormat.NetworkRuleCollections = &rules
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, firewallName, firewall)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating network rule collection %q in Azure Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
+		return fmt.Errorf("Error creating/updating Network Rule Collection %q in Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
 	}
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error waiting for creation/update of network rule collection %q in Azure Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
+		return fmt.Errorf("Error waiting for creation/update of Network Rule Collection %q of Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, firewallName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Azure Firewall %q (Resource Group %q): %+v", firewallName, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Azure Firewall %q (Resource Group %q) ID", firewallName, resourceGroup)
+		return fmt.Errorf("Error retrieving Firewall %q (Resource Group %q): %+v", firewallName, resourceGroup, err)
 	}
 
 	var collectionID string
-	for _, collection := range *read.AzureFirewallPropertiesFormat.NetworkRuleCollections {
-		if *collection.Name == name {
-			collectionID = *collection.ID
+	if props := read.AzureFirewallPropertiesFormat; props != nil {
+		if collections := props.NetworkRuleCollections; collections != nil {
+			for _, collection := range *collections {
+				if collection.Name == nil {
+					continue
+				}
+
+				if *collection.Name == name {
+					collectionID = *collection.ID
+					break
+				}
+			}
 		}
+	}
+
+	if collectionID == "" {
+		return fmt.Errorf("Cannot find ID for Network Rule Collection %q (Azure Firewall %q / Resource Group %q)", name, firewallName, resourceGroup)
 	}
 	d.SetId(collectionID)
 
@@ -163,30 +217,67 @@ func resourceArmFirewallNetworkRuleCollectionRead(d *schema.ResourceData, meta i
 	client := meta.(*ArmClient).azureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
-	fwName := d.Get("azure_firewall_name").(string)
-
-	firewall, err := client.Get(ctx, resourceGroup, fwName)
+	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		if utils.ResponseWasNotFound(firewall.Response) {
+		return err
+	}
+
+	resourceGroup := id.ResourceGroup
+	firewallName := id.Path["azureFirewalls"]
+	name := id.Path["networkRuleCollections"]
+
+	read, err := client.Get(ctx, resourceGroup, firewallName)
+	if err != nil {
+		if utils.ResponseWasNotFound(read.Response) {
+			log.Printf("[DEBUG] Azure Firewall %q (Resource Group %q) was not found - removing from state!", name, resourceGroup)
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("Error retrieving Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	collection, _, exists := findArmFirewallNetworkRuleCollectionByName(&firewall, name)
-	if !exists {
+	if read.AzureFirewallPropertiesFormat == nil {
+		return fmt.Errorf("Error retrieving Network Rule Collection %q (Firewall %q / Resource Group %q): `props` was nil", name, firewallName, resourceGroup)
+	}
+	props := *read.AzureFirewallPropertiesFormat
+
+	if props.NetworkRuleCollections == nil {
+		return fmt.Errorf("Error retrieving Network Rule Collection %q (Firewall %q / Resource Group %q): `props.NetworkRuleCollections` was nil", name, firewallName, resourceGroup)
+	}
+
+	rules := *props.NetworkRuleCollections
+	var rule *network.AzureFirewallNetworkRuleCollection
+	for _, r := range rules {
+		if r.Name == nil {
+			continue
+		}
+
+		if *r.Name == name {
+			rule = &r
+			break
+		}
+	}
+
+	if rule == nil {
+		log.Printf("[DEBUG] Network Rule Collection %q was not found on Firewall %q (Resource Group %q) - removing from state!", name, firewallName, resourceGroup)
 		d.SetId("")
 		return nil
 	}
 
-	d.Set("name", collection.Name)
-	d.Set("action", string(collection.AzureFirewallNetworkRuleCollectionPropertiesFormat.Action.Type))
-	d.Set("priority", collection.AzureFirewallNetworkRuleCollectionPropertiesFormat.Priority)
-	if rules := collection.AzureFirewallNetworkRuleCollectionPropertiesFormat.Rules; rules != nil {
-		flattenedRules := flattenArmFirewallNetworkRules(rules)
+	d.Set("name", rule.Name)
+	d.Set("azure_firewall_name", firewallName)
+	d.Set("resource_group_name", resourceGroup)
+
+	if props := rule.AzureFirewallNetworkRuleCollectionPropertiesFormat; props != nil {
+		if action := props.Action; action != nil {
+			d.Set("action", string(action.Type))
+		}
+
+		if priority := props.Priority; priority != nil {
+			d.Set("priority", int(*priority))
+		}
+
+		flattenedRules := flattenFirewallNetworkRuleCollectionRules(props.Rules)
 		if err := d.Set("rule", flattenedRules); err != nil {
 			return fmt.Errorf("Error setting `rule`: %+v", err)
 		}
@@ -203,80 +294,65 @@ func resourceArmFirewallNetworkRuleCollectionDelete(d *schema.ResourceData, meta
 	if err != nil {
 		return err
 	}
-	name := d.Get("name").(string)
+
 	resourceGroup := id.ResourceGroup
 	firewallName := id.Path["azureFirewalls"]
+	name := id.Path["networkRuleCollections"]
 
 	azureRMLockByName(firewallName, azureFirewallResourceName)
 	defer azureRMUnlockByName(firewallName, azureFirewallResourceName)
 
 	firewall, err := client.Get(ctx, resourceGroup, firewallName)
 	if err != nil {
+		if utils.ResponseWasNotFound(firewall.Response) {
+			// assume deleted
+			return nil
+		}
+
 		return fmt.Errorf("Error making Read request on Azure Firewall %q (Resource Group %q): %+v", firewallName, resourceGroup, err)
 	}
-	_, _, exists := findArmFirewallNetworkRuleCollectionByName(&firewall, name)
-	if !exists {
-		return nil
-	}
-	updatedCollections := removeArmFirewallNetworkRuleCollectionByName(&firewall, name)
-	firewall.AzureFirewallPropertiesFormat.NetworkRuleCollections = updatedCollections
 
-	ipConfigs := fixArmFirewallIPConfiguration(&firewall)
-	firewall.AzureFirewallPropertiesFormat.IPConfigurations = &ipConfigs
+	props := firewall.AzureFirewallPropertiesFormat
+	if props == nil {
+		return fmt.Errorf("Error retrieving Network Rule Collection %q (Firewall %q / Resource Group %q): `props` was nil", name, firewallName, resourceGroup)
+	}
+	if props.NetworkRuleCollections == nil {
+		return fmt.Errorf("Error retrieving Network Rule Collection %q (Firewall %q / Resource Group %q): `props.NetworkRuleCollections` was nil", name, firewallName, resourceGroup)
+	}
+
+	networkRules := make([]network.AzureFirewallNetworkRuleCollection, 0)
+	for _, rule := range *props.NetworkRuleCollections {
+		if rule.Name == nil {
+			continue
+		}
+
+		if *rule.Name != name {
+			networkRules = append(networkRules, rule)
+		}
+	}
+	firewall.AzureFirewallPropertiesFormat.NetworkRuleCollections = &networkRules
+
+	ipConfigs, err := azure.FixFirewallIPConfiguration(props.IPConfigurations)
+	if err != nil {
+		return fmt.Errorf("Error fixing IP Configuration for Firewall %q (Resource Group %q): %+v", firewallName, resourceGroup, err)
+	}
+	firewall.AzureFirewallPropertiesFormat.IPConfigurations = ipConfigs
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, firewallName, firewall)
 	if err != nil {
-		return fmt.Errorf("Error deleting network rule collection %q from Azure Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
+		return fmt.Errorf("Error deleting Network Rule Collection %q from Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
 	}
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error waiting for deletion of network rule collection %q from Azure Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
+		return fmt.Errorf("Error waiting for deletion of Network Rule Collection %q from Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
 	}
 
 	return nil
 }
 
-func expandArmFirewallNetworkRuleCollection(d *schema.ResourceData) network.AzureFirewallNetworkRuleCollection {
-	name := d.Get("name").(string)
-	action := network.AzureFirewallRCActionType(d.Get("action").(string))
-	rules := expandArmFirewallNetworkRules(d)
-	properties := network.AzureFirewallNetworkRuleCollectionPropertiesFormat{
-		Action: &network.AzureFirewallRCAction{
-			Type: action,
-		},
-		Priority: utils.Int32(int32(d.Get("priority").(int))),
-		Rules:    &rules,
-	}
-	col := network.AzureFirewallNetworkRuleCollection{
-		Name: &name,
-		AzureFirewallNetworkRuleCollectionPropertiesFormat: &properties,
-	}
-	return col
-}
-
-func findArmFirewallNetworkRuleCollectionByName(firewall *network.AzureFirewall, name string) (*network.AzureFirewallNetworkRuleCollection, int, bool) {
-	for i, collection := range *firewall.AzureFirewallPropertiesFormat.NetworkRuleCollections {
-		if collection.Name != nil && *collection.Name == name {
-			return &collection, i, true
-		}
-	}
-	return nil, -1, false
-}
-
-func removeArmFirewallNetworkRuleCollectionByName(firewall *network.AzureFirewall, name string) *[]network.AzureFirewallNetworkRuleCollection {
-	collections := *firewall.AzureFirewallPropertiesFormat.NetworkRuleCollections
-	for i, collection := range collections {
-		if collection.Name != nil && *collection.Name == name {
-			collections = append(collections[:i], collections[i+1:]...)
-			continue
-		}
-	}
-	return &collections
-}
-
-func expandArmFirewallNetworkRules(d *schema.ResourceData) []network.AzureFirewallNetworkRule {
-	nwRules := d.Get("rule").(*schema.Set).List()
+func expandArmFirewallNetworkRules(input *schema.Set) []network.AzureFirewallNetworkRule {
+	nwRules := input.List()
 	rules := make([]network.AzureFirewallNetworkRule, 0)
 
 	for _, nwRule := range nwRules {
@@ -284,18 +360,32 @@ func expandArmFirewallNetworkRules(d *schema.ResourceData) []network.AzureFirewa
 
 		name := rule["name"].(string)
 		description := rule["description"].(string)
-		sourceAddresses := rule["source_addresses"].(*schema.Set)
-		destinationAddresses := rule["destination_addresses"].(*schema.Set)
-		destinationPorts := rule["destination_ports"].(*schema.Set)
-		protocols := rule["protocols"].(*schema.Set)
-		ruleToAdd := network.AzureFirewallNetworkRule{
-			Name:                 &name,
-			Description:          utils.String(description),
-			SourceAddresses:      expandArmFirewallSet(sourceAddresses),
-			DestinationAddresses: expandArmFirewallSet(destinationAddresses),
-			DestinationPorts:     expandArmFirewallSet(destinationPorts),
+
+		sourceAddresses := make([]string, 0)
+		for _, v := range rule["source_addresses"].(*schema.Set).List() {
+			sourceAddresses = append(sourceAddresses, v.(string))
 		}
+
+		destinationAddresses := make([]string, 0)
+		for _, v := range rule["destination_addresses"].(*schema.Set).List() {
+			destinationAddresses = append(destinationAddresses, v.(string))
+		}
+
+		destinationPorts := make([]string, 0)
+		for _, v := range rule["destination_ports"].(*schema.Set).List() {
+			destinationPorts = append(destinationPorts, v.(string))
+		}
+
+		ruleToAdd := network.AzureFirewallNetworkRule{
+			Name:                 utils.String(name),
+			Description:          utils.String(description),
+			SourceAddresses:      &sourceAddresses,
+			DestinationAddresses: &destinationAddresses,
+			DestinationPorts:     &destinationPorts,
+		}
+
 		nrProtocols := make([]network.AzureFirewallNetworkRuleProtocol, 0)
+		protocols := rule["protocols"].(*schema.Set)
 		for _, v := range protocols.List() {
 			s := network.AzureFirewallNetworkRuleProtocol(v.(string))
 			nrProtocols = append(nrProtocols, s)
@@ -307,27 +397,28 @@ func expandArmFirewallNetworkRules(d *schema.ResourceData) []network.AzureFirewa
 	return rules
 }
 
-func flattenArmFirewallNetworkRules(rules *[]network.AzureFirewallNetworkRule) []map[string]interface{} {
-	result := make([]map[string]interface{}, 0)
+func flattenFirewallNetworkRuleCollectionRules(rules *[]network.AzureFirewallNetworkRule) []map[string]interface{} {
+	outputs := make([]map[string]interface{}, 0)
 	if rules == nil {
-		return result
+		return outputs
 	}
+
 	for _, rule := range *rules {
-		fwRule := make(map[string]interface{})
+		output := make(map[string]interface{})
 		if rule.Name != nil {
-			fwRule["name"] = *rule.Name
+			output["name"] = *rule.Name
 		}
 		if rule.Description != nil {
-			fwRule["description"] = *rule.Description
+			output["description"] = *rule.Description
 		}
 		if rule.SourceAddresses != nil {
-			fwRule["source_addresses"] = sliceToSet(*rule.SourceAddresses)
+			output["source_addresses"] = sliceToSet(*rule.SourceAddresses)
 		}
 		if rule.DestinationAddresses != nil {
-			fwRule["destination_addresses"] = sliceToSet(*rule.DestinationAddresses)
+			output["destination_addresses"] = sliceToSet(*rule.DestinationAddresses)
 		}
 		if rule.DestinationPorts != nil {
-			fwRule["destination_ports"] = sliceToSet(*rule.DestinationPorts)
+			output["destination_ports"] = sliceToSet(*rule.DestinationPorts)
 		}
 		protocols := make([]string, 0)
 		if rule.Protocols != nil {
@@ -335,8 +426,8 @@ func flattenArmFirewallNetworkRules(rules *[]network.AzureFirewallNetworkRule) [
 				protocols = append(protocols, string(protocol))
 			}
 		}
-		fwRule["protocols"] = sliceToSet(protocols)
-		result = append(result, fwRule)
+		output["protocols"] = sliceToSet(protocols)
+		outputs = append(outputs, output)
 	}
-	return result
+	return outputs
 }

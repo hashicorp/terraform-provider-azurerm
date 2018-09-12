@@ -5,18 +5,16 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
-
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 func TestAccAzureRMFirewallNetworkRuleCollection_basic(t *testing.T) {
-	var firewall network.AzureFirewall
-	fwResourceName := "azurerm_firewall.test"
 	resourceName := "azurerm_firewall_network_rule_collection.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMFirewallNetworkRuleCollection_basic(ri, testLocation())
+	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -24,11 +22,49 @@ func TestAccAzureRMFirewallNetworkRuleCollection_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMFirewallNetworkRuleCollection_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallExists(fwResourceName, &firewall),
-					testCheckAzureRMFirewallNetworkRuleCollectionExists("acctestnrc", &firewall),
+					testCheckAzureRMFirewallNetworkRuleCollectionExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
+					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
+					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
+					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMFirewallNetworkRuleCollection_updatedName(t *testing.T) {
+	resourceName := "azurerm_firewall_network_rule_collection.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMFirewallNetworkRuleCollection_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFirewallNetworkRuleCollectionExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
+					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
+					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
+					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
+				),
+			},
+			{
+				Config: testAccAzureRMFirewallNetworkRuleCollection_updatedName(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFirewallNetworkRuleCollectionExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "name", "updatedname"),
 					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
 					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
@@ -38,14 +74,11 @@ func TestAccAzureRMFirewallNetworkRuleCollection_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFirewallNetworkRuleCollection_addition(t *testing.T) {
-	var firewall network.AzureFirewall
-	fwResourceName := "azurerm_firewall.test"
-	resourceName := "azurerm_firewall_network_rule_collection.test"
-	resourceNameAdd := "azurerm_firewall_network_rule_collection.test_add"
+func TestAccAzureRMFirewallNetworkRuleCollection_multipleRuleCollections(t *testing.T) {
+	firstRule := "azurerm_firewall_network_rule_collection.test"
+	secondRule := "azurerm_firewall_network_rule_collection.test_add"
 	ri := acctest.RandInt()
-	config := testAccAzureRMFirewallNetworkRuleCollection_basic(ri, testLocation())
-	configAdd := testAccAzureRMFirewallNetworkRuleCollection_addition(ri, testLocation())
+	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -53,75 +86,39 @@ func TestAccAzureRMFirewallNetworkRuleCollection_addition(t *testing.T) {
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMFirewallNetworkRuleCollection_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallExists(fwResourceName, &firewall),
-					testCheckAzureRMFirewallNetworkRuleCollectionExists("acctestnrc", &firewall),
-					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
-					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
-					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
-					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
+					testCheckAzureRMFirewallNetworkRuleCollectionExists(firstRule),
+					resource.TestCheckResourceAttr(firstRule, "name", "acctestnrc"),
+					resource.TestCheckResourceAttr(firstRule, "priority", "100"),
+					resource.TestCheckResourceAttr(firstRule, "action", "Allow"),
+					resource.TestCheckResourceAttr(firstRule, "rule.#", "1"),
 				),
 			},
 			{
-				Config: configAdd,
+				Config: testAccAzureRMFirewallNetworkRuleCollection_multiple(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallExists(fwResourceName, &firewall),
-					testCheckAzureRMFirewallNetworkRuleCollectionExists("acctestnrc", &firewall),
-					testCheckAzureRMFirewallNetworkRuleCollectionExists("acctestnrc_add", &firewall),
-					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
-					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
-					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
-					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					resource.TestCheckResourceAttr(resourceNameAdd, "name", "acctestnrc_add"),
-					resource.TestCheckResourceAttr(resourceNameAdd, "priority", "200"),
-					resource.TestCheckResourceAttr(resourceNameAdd, "action", "Deny"),
-					resource.TestCheckResourceAttr(resourceNameAdd, "rule.#", "1"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMFirewallNetworkRuleCollection_removal(t *testing.T) {
-	var firewall network.AzureFirewall
-	fwResourceName := "azurerm_firewall.test"
-	resourceName := "azurerm_firewall_network_rule_collection.test"
-	resourceNameAdd := "azurerm_firewall_network_rule_collection.test_add"
-	ri := acctest.RandInt()
-	config := testAccAzureRMFirewallNetworkRuleCollection_addition(ri, testLocation())
-	configRemove := testAccAzureRMFirewallNetworkRuleCollection_basic(ri, testLocation())
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMFirewallDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallExists(fwResourceName, &firewall),
-					testCheckAzureRMFirewallNetworkRuleCollectionExists("acctestnrc", &firewall),
-					testCheckAzureRMFirewallNetworkRuleCollectionExists("acctestnrc_add", &firewall),
-					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
-					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
-					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
-					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					resource.TestCheckResourceAttr(resourceNameAdd, "name", "acctestnrc_add"),
-					resource.TestCheckResourceAttr(resourceNameAdd, "priority", "200"),
-					resource.TestCheckResourceAttr(resourceNameAdd, "action", "Deny"),
-					resource.TestCheckResourceAttr(resourceNameAdd, "rule.#", "1"),
+					testCheckAzureRMFirewallNetworkRuleCollectionExists(firstRule),
+					resource.TestCheckResourceAttr(firstRule, "name", "acctestnrc"),
+					resource.TestCheckResourceAttr(firstRule, "priority", "100"),
+					resource.TestCheckResourceAttr(firstRule, "action", "Allow"),
+					resource.TestCheckResourceAttr(firstRule, "rule.#", "1"),
+					testCheckAzureRMFirewallNetworkRuleCollectionExists(secondRule),
+					resource.TestCheckResourceAttr(secondRule, "name", "acctestnrc_add"),
+					resource.TestCheckResourceAttr(secondRule, "priority", "200"),
+					resource.TestCheckResourceAttr(secondRule, "action", "Deny"),
+					resource.TestCheckResourceAttr(secondRule, "rule.#", "1"),
 				),
 			},
 			{
-				Config: configRemove,
+				Config: testAccAzureRMFirewallNetworkRuleCollection_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallExists(fwResourceName, &firewall),
-					testCheckAzureRMFirewallNetworkRuleCollectionExists("acctestnrc", &firewall),
-					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
-					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
-					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
-					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
+					testCheckAzureRMFirewallNetworkRuleCollectionExists(firstRule),
+					resource.TestCheckResourceAttr(firstRule, "name", "acctestnrc"),
+					resource.TestCheckResourceAttr(firstRule, "priority", "100"),
+					resource.TestCheckResourceAttr(firstRule, "action", "Allow"),
+					resource.TestCheckResourceAttr(firstRule, "rule.#", "1"),
+					testCheckAzureRMFirewallNetworkRuleCollectionDoesNotExist("azurerm_firewall.test", "acctestnrc_add"),
 				),
 			},
 		},
@@ -129,13 +126,10 @@ func TestAccAzureRMFirewallNetworkRuleCollection_removal(t *testing.T) {
 }
 
 func TestAccAzureRMFirewallNetworkRuleCollection_update(t *testing.T) {
-	var firewall network.AzureFirewall
-	fwResourceName := "azurerm_firewall.test"
-	resourceName := "azurerm_firewall_network_rule_collection.test"
-	resourceNameAdd := "azurerm_firewall_network_rule_collection.test_add"
+	firstResourceName := "azurerm_firewall_network_rule_collection.test"
+	secondResourceName := "azurerm_firewall_network_rule_collection.test_add"
 	ri := acctest.RandInt()
-	config := testAccAzureRMFirewallNetworkRuleCollection_addition(ri, testLocation())
-	configUpdate := testAccAzureRMFirewallNetworkRuleCollection_update(ri, testLocation())
+	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -143,78 +137,33 @@ func TestAccAzureRMFirewallNetworkRuleCollection_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMFirewallNetworkRuleCollection_multiple(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallExists(fwResourceName, &firewall),
-					testCheckAzureRMFirewallNetworkRuleCollectionExists("acctestnrc", &firewall),
-					testCheckAzureRMFirewallNetworkRuleCollectionExists("acctestnrc_add", &firewall),
-					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
-					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
-					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
-					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					resource.TestCheckResourceAttr(resourceNameAdd, "name", "acctestnrc_add"),
-					resource.TestCheckResourceAttr(resourceNameAdd, "priority", "200"),
-					resource.TestCheckResourceAttr(resourceNameAdd, "action", "Deny"),
-					resource.TestCheckResourceAttr(resourceNameAdd, "rule.#", "1"),
+					testCheckAzureRMFirewallNetworkRuleCollectionExists(firstResourceName),
+					resource.TestCheckResourceAttr(firstResourceName, "name", "acctestnrc"),
+					resource.TestCheckResourceAttr(firstResourceName, "priority", "100"),
+					resource.TestCheckResourceAttr(firstResourceName, "action", "Allow"),
+					resource.TestCheckResourceAttr(firstResourceName, "rule.#", "1"),
+					testCheckAzureRMFirewallNetworkRuleCollectionExists(secondResourceName),
+					resource.TestCheckResourceAttr(secondResourceName, "name", "acctestnrc_add"),
+					resource.TestCheckResourceAttr(secondResourceName, "priority", "200"),
+					resource.TestCheckResourceAttr(secondResourceName, "action", "Deny"),
+					resource.TestCheckResourceAttr(secondResourceName, "rule.#", "1"),
 				),
 			},
 			{
-				Config: configUpdate,
+				Config: testAccAzureRMFirewallNetworkRuleCollection_multipleUpdate(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallExists(fwResourceName, &firewall),
-					testCheckAzureRMFirewallNetworkRuleCollectionExists("acctestnrc", &firewall),
-					testCheckAzureRMFirewallNetworkRuleCollectionExists("acctestnrc_add", &firewall),
-					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
-					resource.TestCheckResourceAttr(resourceName, "priority", "300"),
-					resource.TestCheckResourceAttr(resourceName, "action", "Deny"),
-					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					resource.TestCheckResourceAttr(resourceNameAdd, "name", "acctestnrc_add"),
-					resource.TestCheckResourceAttr(resourceNameAdd, "priority", "400"),
-					resource.TestCheckResourceAttr(resourceNameAdd, "action", "Allow"),
-					resource.TestCheckResourceAttr(resourceNameAdd, "rule.#", "1"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMFirewallNetworkRuleCollection_reapply(t *testing.T) {
-	var firewall network.AzureFirewall
-	fwResourceName := "azurerm_firewall.test"
-	resourceName := "azurerm_firewall_network_rule_collection.test"
-	ri := acctest.RandInt()
-	config := testAccAzureRMFirewallNetworkRuleCollection_basic(ri, testLocation())
-	deleteState := func(s *terraform.State) error {
-		return s.Remove(resourceName)
-	}
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMFirewallDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallExists(fwResourceName, &firewall),
-					testCheckAzureRMFirewallNetworkRuleCollectionExists("acctestnrc", &firewall),
-					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
-					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
-					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
-					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					deleteState,
-				),
-				ExpectNonEmptyPlan: true,
-			},
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallExists(fwResourceName, &firewall),
-					testCheckAzureRMFirewallNetworkRuleCollectionExists("acctestnrc", &firewall),
-					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
-					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
-					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
-					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
+					testCheckAzureRMFirewallNetworkRuleCollectionExists(firstResourceName),
+					resource.TestCheckResourceAttr(firstResourceName, "name", "acctestnrc"),
+					resource.TestCheckResourceAttr(firstResourceName, "priority", "300"),
+					resource.TestCheckResourceAttr(firstResourceName, "action", "Deny"),
+					resource.TestCheckResourceAttr(firstResourceName, "rule.#", "1"),
+					testCheckAzureRMFirewallNetworkRuleCollectionExists(secondResourceName),
+					resource.TestCheckResourceAttr(secondResourceName, "name", "acctestnrc_add"),
+					resource.TestCheckResourceAttr(secondResourceName, "priority", "400"),
+					resource.TestCheckResourceAttr(secondResourceName, "action", "Allow"),
+					resource.TestCheckResourceAttr(secondResourceName, "rule.#", "1"),
 				),
 			},
 		},
@@ -222,11 +171,9 @@ func TestAccAzureRMFirewallNetworkRuleCollection_reapply(t *testing.T) {
 }
 
 func TestAccAzureRMFirewallNetworkRuleCollection_disappears(t *testing.T) {
-	var firewall network.AzureFirewall
-	fwResourceName := "azurerm_firewall.test"
 	resourceName := "azurerm_firewall_network_rule_collection.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMFirewallNetworkRuleCollection_basic(ri, testLocation())
+	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -234,15 +181,14 @@ func TestAccAzureRMFirewallNetworkRuleCollection_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMFirewallNetworkRuleCollection_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallExists(fwResourceName, &firewall),
-					testCheckAzureRMFirewallNetworkRuleCollectionExists("acctestnrc", &firewall),
+					testCheckAzureRMFirewallNetworkRuleCollectionExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
 					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
 					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-					testCheckAzureRMFirewallNetworkRuleCollectionDisappears("acctestnrc", &firewall),
+					testCheckAzureRMFirewallNetworkRuleCollectionDisappears(resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -250,13 +196,10 @@ func TestAccAzureRMFirewallNetworkRuleCollection_disappears(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFirewallNetworkRuleCollection_addrule(t *testing.T) {
-	var firewall network.AzureFirewall
-	fwResourceName := "azurerm_firewall.test"
+func TestAccAzureRMFirewallNetworkRuleCollection_multipleRules(t *testing.T) {
 	resourceName := "azurerm_firewall_network_rule_collection.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMFirewallNetworkRuleCollection_basic(ri, testLocation())
-	configAddRule := testAccAzureRMFirewallNetworkRuleCollection_addRule(ri, testLocation())
+	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -264,10 +207,9 @@ func TestAccAzureRMFirewallNetworkRuleCollection_addrule(t *testing.T) {
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMFirewallNetworkRuleCollection_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallExists(fwResourceName, &firewall),
-					testCheckAzureRMFirewallNetworkRuleCollectionExists("acctestnrc", &firewall),
+					testCheckAzureRMFirewallNetworkRuleCollectionExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
 					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
 					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
@@ -275,62 +217,146 @@ func TestAccAzureRMFirewallNetworkRuleCollection_addrule(t *testing.T) {
 				),
 			},
 			{
-				Config: configAddRule,
+				Config: testAccAzureRMFirewallNetworkRuleCollection_multipleRules(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallExists(fwResourceName, &firewall),
-					testCheckAzureRMFirewallNetworkRuleCollectionExists("acctestnrc", &firewall),
+					testCheckAzureRMFirewallNetworkRuleCollectionExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
 					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
 					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "2"),
+				),
+			},
+			{
+				Config: testAccAzureRMFirewallNetworkRuleCollection_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFirewallNetworkRuleCollectionExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
+					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
+					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
+					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMFirewallNetworkRuleCollection_removerule(t *testing.T) {
-	var firewall network.AzureFirewall
-	fwResourceName := "azurerm_firewall.test"
-	resourceName := "azurerm_firewall_network_rule_collection.test"
-	ri := acctest.RandInt()
-	config := testAccAzureRMFirewallNetworkRuleCollection_basic(ri, testLocation())
-	configAddRule := testAccAzureRMFirewallNetworkRuleCollection_addRule(ri, testLocation())
+func testCheckAzureRMFirewallNetworkRuleCollectionExists(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMFirewallDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configAddRule,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallExists(fwResourceName, &firewall),
-					testCheckAzureRMFirewallNetworkRuleCollectionExists("acctestnrc", &firewall),
-					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
-					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
-					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
-					resource.TestCheckResourceAttr(resourceName, "rule.#", "2"),
-				),
-			},
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallExists(fwResourceName, &firewall),
-					testCheckAzureRMFirewallNetworkRuleCollectionExists("acctestnrc", &firewall),
-					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
-					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
-					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
-					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
-				),
-			},
-		},
-	})
+		name := rs.Primary.Attributes["name"]
+		firewallName := rs.Primary.Attributes["azure_firewall_name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+
+		client := testAccProvider.Meta().(*ArmClient).azureFirewallsClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		read, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			return err
+		}
+
+		found := false
+		for _, collection := range *read.AzureFirewallPropertiesFormat.NetworkRuleCollections {
+			if *collection.Name == name {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			return fmt.Errorf("Expected Network Rule Collection %q (Firewall %q / Resource Group %q) to exist but it didn't", name, firewallName, resourceGroup)
+		}
+
+		return nil
+	}
+}
+
+func testCheckAzureRMFirewallNetworkRuleCollectionDoesNotExist(resourceName string, collectionName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		name := rs.Primary.Attributes["name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+
+		client := testAccProvider.Meta().(*ArmClient).azureFirewallsClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		read, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			return err
+		}
+
+		for _, collection := range *read.AzureFirewallPropertiesFormat.NetworkRuleCollections {
+			if *collection.Name == collectionName {
+				return fmt.Errorf("Network Rule Collection %q exists: %+v", name, collection)
+			}
+		}
+
+		return nil
+	}
+}
+
+func testCheckAzureRMFirewallNetworkRuleCollectionDisappears(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		name := rs.Primary.Attributes["name"]
+		firewallName := rs.Primary.Attributes["azure_firewall_name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+
+		client := testAccProvider.Meta().(*ArmClient).azureFirewallsClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		read, err := client.Get(ctx, resourceGroup, firewallName)
+		if err != nil {
+			return err
+		}
+
+		rules := make([]network.AzureFirewallNetworkRuleCollection, 0)
+		for _, collection := range *read.AzureFirewallPropertiesFormat.NetworkRuleCollections {
+			if *collection.Name != name {
+				rules = append(rules, collection)
+			}
+		}
+
+		read.AzureFirewallPropertiesFormat.NetworkRuleCollections = &rules
+		ipConfigs, err := azure.FixFirewallIPConfiguration(read.AzureFirewallPropertiesFormat.IPConfigurations)
+		if err != nil {
+			return fmt.Errorf("Error fixing IP Configuration for Firewall: err")
+		}
+
+		read.AzureFirewallPropertiesFormat.IPConfigurations = ipConfigs
+
+		future, err := client.CreateOrUpdate(ctx, resourceGroup, firewallName, read)
+		if err != nil {
+			return fmt.Errorf("Error removing Network Rule Collection from Firewall: %+v", err)
+		}
+
+		err = future.WaitForCompletionRef(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("Error waiting for the removal of Network Rule Collection from Firewall: %+v", err)
+		}
+
+		_, err = client.Get(ctx, resourceGroup, name)
+		return err
+	}
 }
 
 func testAccAzureRMFirewallNetworkRuleCollection_basic(rInt int, location string) string {
+	template := testAccAzureRMFirewall_basic(rInt, location)
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_firewall_network_rule_collection" "test" {
   name                = "acctestnrc"
   azure_firewall_name = "${azurerm_firewall.test.name}"
@@ -358,12 +384,49 @@ resource "azurerm_firewall_network_rule_collection" "test" {
     ]
   }
 }
-`, testAccAzureRMFirewall_basic(rInt, location))
+`, template)
 }
 
-func testAccAzureRMFirewallNetworkRuleCollection_addition(rInt int, location string) string {
+func testAccAzureRMFirewallNetworkRuleCollection_updatedName(rInt int, location string) string {
+	template := testAccAzureRMFirewall_basic(rInt, location)
 	return fmt.Sprintf(`
 %s
+
+resource "azurerm_firewall_network_rule_collection" "test" {
+  name                = "acctestnrc"
+  azure_firewall_name = "${azurerm_firewall.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  priority            = 100
+  action              = "Allow"
+
+  rule {
+    name = "updatedname"
+
+    source_addresses = [
+      "10.0.0.0/16",
+    ]
+
+    destination_ports = [
+      "53",
+    ]
+
+    destination_addresses = [
+      "8.8.8.8",
+    ]
+
+    protocols = [
+      "Any",
+    ]
+  }
+}
+`, template)
+}
+
+func testAccAzureRMFirewallNetworkRuleCollection_multiple(rInt int, location string) string {
+	template := testAccAzureRMFirewall_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
 resource "azurerm_firewall_network_rule_collection" "test" {
   name                = "acctestnrc"
   azure_firewall_name = "${azurerm_firewall.test.name}"
@@ -391,6 +454,7 @@ resource "azurerm_firewall_network_rule_collection" "test" {
     ]
   }
 }
+
 resource "azurerm_firewall_network_rule_collection" "test_add" {
   name                = "acctestnrc_add"
   azure_firewall_name = "${azurerm_firewall.test.name}"
@@ -418,12 +482,14 @@ resource "azurerm_firewall_network_rule_collection" "test_add" {
     ]
   }
 }
-`, testAccAzureRMFirewall_basic(rInt, location))
+`, template)
 }
 
-func testAccAzureRMFirewallNetworkRuleCollection_update(rInt int, location string) string {
+func testAccAzureRMFirewallNetworkRuleCollection_multipleUpdate(rInt int, location string) string {
+	template := testAccAzureRMFirewall_basic(rInt, location)
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_firewall_network_rule_collection" "test" {
   name                = "acctestnrc"
   azure_firewall_name = "${azurerm_firewall.test.name}"
@@ -451,6 +517,7 @@ resource "azurerm_firewall_network_rule_collection" "test" {
     ]
   }
 }
+
 resource "azurerm_firewall_network_rule_collection" "test_add" {
   name                = "acctestnrc_add"
   azure_firewall_name = "${azurerm_firewall.test.name}"
@@ -478,12 +545,14 @@ resource "azurerm_firewall_network_rule_collection" "test_add" {
     ]
   }
 }
-`, testAccAzureRMFirewall_basic(rInt, location))
+`, template)
 }
 
-func testAccAzureRMFirewallNetworkRuleCollection_addRule(rInt int, location string) string {
+func testAccAzureRMFirewallNetworkRuleCollection_multipleRules(rInt int, location string) string {
+	template := testAccAzureRMFirewall_basic(rInt, location)
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_firewall_network_rule_collection" "test" {
   name                = "acctestnrc"
   azure_firewall_name = "${azurerm_firewall.test.name}"
@@ -531,63 +600,5 @@ resource "azurerm_firewall_network_rule_collection" "test" {
     ]
   }
 }
-`, testAccAzureRMFirewall_basic(rInt, location))
-}
-
-func testCheckAzureRMFirewallNetworkRuleCollectionExists(name string, firewall *network.AzureFirewall) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		_, _, exists := findArmFirewallNetworkRuleCollectionByName(firewall, name)
-		if !exists {
-			return fmt.Errorf("A Network Rule Collection with name %q cannot be found", name)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMFirewallNetworkRuleCollectionNotExists(name string, firewall *network.AzureFirewall) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		_, _, exists := findArmFirewallNetworkRuleCollectionByName(firewall, name)
-		if exists {
-			return fmt.Errorf("A Network Rule Collection with name %q has been found", name)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMFirewallNetworkRuleCollectionDisappears(name string, firewall *network.AzureFirewall) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).azureFirewallsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-
-		_, _, exists := findArmFirewallNetworkRuleCollectionByName(firewall, name)
-		if !exists {
-			return fmt.Errorf("A Network Rule Collection with name %q cannot be found", name)
-		}
-
-		updatedCollection := removeArmFirewallNetworkRuleCollectionByName(firewall, name)
-		firewall.AzureFirewallPropertiesFormat.NetworkRuleCollections = updatedCollection
-
-		id, err := parseAzureResourceID(*firewall.ID)
-		if err != nil {
-			return err
-		}
-
-		ipConfigs := fixArmFirewallIPConfiguration(firewall)
-		firewall.AzureFirewallPropertiesFormat.IPConfigurations = &ipConfigs
-
-		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, *firewall.Name, *firewall)
-		if err != nil {
-			return fmt.Errorf("Error Creating/Updating Azure Firewall: %+v", err)
-		}
-
-		err = future.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
-			return fmt.Errorf("Error waiting for completion for Azure Firewall: %+v", err)
-		}
-
-		_, err = client.Get(ctx, id.ResourceGroup, *firewall.Name)
-		return err
-	}
+`, template)
 }

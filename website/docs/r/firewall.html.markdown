@@ -4,20 +4,21 @@ page_title: "Azure Resource Manager: azurerm_firewall"
 sidebar_current: "docs-azurerm-resource-firewall-x"
 description: |-
   Manages an Azure Firewall.
+
 ---
 
 # azurerm_firewall
 
 Manages an Azure Firewall.
 
-~> **NOTE** This resource is currently in public preview.
+-> **NOTE** Azure Firewall is currently in Public Preview.
 
 ## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "afwrg"
-  location = "northeurope"
+  name     = "example-resources"
+  location = "North Europe"
 }
 
 resource "azurerm_virtual_network" "test" {
@@ -59,28 +60,42 @@ resource "azurerm_firewall" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the firewall.
-* `resource_group_name` - (Required) The name of the resource group in which to create the resource.
-* `location` - (Required) Specifies the supported Azure location where the resource exists.
-* `ip_configuration` - (Required) An ip configuration block as documented below.
+* `name` - (Required) Specifies the name of the Firewall. Changing this forces a new resource to be created.
+
+* `resource_group_name` - (Required) The name of the resource group in which to create the resource. Changing this forces a new resource to be created.
+
+* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
+
+* `ip_configuration` - (Required) A `ip_configuration` block as documented below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-`ip_configuration` supports the following:
+---
 
-* `name` - (Required) Specifies the name of the ip configuration.
-* `subnet_id` - (Required) Reference to the subnet associated with the ip configuration.
+A `ip_configuration` block supports the following:
 
-~> **NOTE** The firewall subnet must be called `AzureFirewallSubnet` and the subnet mask must be at least `/25`
+* `name` - (Required) Specifies the name of the IP Configuration.
 
-* `internal_public_ip_address_id` - (Required) Reference to the public IP address associated with the firewall.
+* `subnet_id` - (Required) Reference to the subnet associated with the IP Configuration.
 
-~> **NOTE** The public IP must have a `Static` allocation and `Standard` sku
+-> **NOTE** The Subnet used for the Firewall must have the name `AzureFirewallSubnet` and the subnet mask must be at least `/25`.
+
+* `internal_public_ip_address_id` - (Required) The Resource ID of the Public IP Address associated with the firewall.
+
+-> **NOTE** The Public IP must have a `Static` allocation and `Standard` sku.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The Azure Firewall ID.
+* `id` - The Resource ID of the Azure Firewall.
+
+* `ip_configuration` - A `ip_configuration` block as defined below.
+
+---
+
+A `ip_configuration` block exports the following:
+
 * `private_ip_address` - The private IP address of the Azure Firewall.
 
 ## Import
