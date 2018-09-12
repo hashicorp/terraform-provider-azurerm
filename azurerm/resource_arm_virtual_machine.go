@@ -213,8 +213,9 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Computed:      true,
 							ConflictsWith: []string{"storage_os_disk.0.vhd_uri"},
 							ValidateFunc: validation.StringInSlice([]string{
-								string(compute.PremiumLRS),
-								string(compute.StandardLRS),
+								string(compute.StorageAccountTypesPremiumLRS),
+								string(compute.StorageAccountTypesStandardLRS),
+								string(compute.StorageAccountTypesStandardSSDLRS),
 							}, true),
 						},
 
@@ -285,8 +286,9 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Optional: true,
 							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(compute.PremiumLRS),
-								string(compute.StandardLRS),
+								string(compute.StorageAccountTypesPremiumLRS),
+								string(compute.StorageAccountTypesStandardLRS),
+								string(compute.StorageAccountTypesStandardSSDLRS),
 							}, true),
 						},
 
