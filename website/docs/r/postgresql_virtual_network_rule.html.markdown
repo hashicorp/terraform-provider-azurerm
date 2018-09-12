@@ -10,6 +10,8 @@ description: |-
 
 Manages a PostgreSQL Virtual Network Rule.
 
+-> **NOTE:** PostgreSQL Virtual Network Rules [can only be used with SKU Tiers of `GeneralPurpose` or `MemoryOptimized`](https://docs.microsoft.com/en-us/azure/postgresql/concepts-data-access-and-security-vnet)
+
 ## Example Usage
 
 ```hcl
@@ -39,16 +41,16 @@ resource "azurerm_postgresql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name = "B_Gen4_2"
+    name     = "GP_Gen5_2"
     capacity = 2
-    tier = "Basic"
-    family = "Gen4"
+    tier     = "GeneralPurpose"
+    family   = "Gen5"
   }
 
   storage_profile {
-    storage_mb = 5120
+    storage_mb            = 5120
     backup_retention_days = 7
-    geo_redundant_backup = "Disabled"
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login = "psqladminun"
