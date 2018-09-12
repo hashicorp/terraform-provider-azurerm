@@ -17,6 +17,7 @@ IMPROVEMENTS:
 * `azurerm_virtual_network` - adding validation to `name` preventing empty values [GH-1898]
 * `azurerm_virtual_machine` - support for the `managed_disk_type` of `StandardSSD_LRS` [GH-1901]
 * `azurerm_virtual_machine_scale_set` - support for the `managed_disk_type` of `StandardSSD_LRS` [GH-1901]
+* `azurerm_virtual_network_gateway` - additional validation [GH-1899]
 
 BUG FIXES:
 
