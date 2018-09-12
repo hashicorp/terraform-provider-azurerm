@@ -1,5 +1,9 @@
 ## 1.15.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_mysql_virtual_network_rule` [GH-1879]
+
 IMPROVEMENTS:
 
 * dependencies: upgrading to v20.1.0 of `github.com/Azure/azure-sdk-for-go` [GH-1861]
