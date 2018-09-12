@@ -213,14 +213,13 @@ func resourceArmServiceBusNamespaceDelete(d *schema.ResourceData, meta interface
 	resourceGroup := id.ResourceGroup
 	name := id.Path["namespaces"]
 
-	deleteFuture, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
 		return err
 	}
 
-	err = deleteFuture.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
-		if response.WasNotFound(deleteFuture.Response()) {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		if response.WasNotFound(future.Response()) {
 			return nil
 		}
 

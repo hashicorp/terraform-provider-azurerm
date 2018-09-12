@@ -245,15 +245,16 @@ resource "azurerm_servicebus_namespace" "test" {
 func testAccAzureRMServiceBusNamespace_premium(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
+    name     = "acctestRG-%d"
     location = "%s"
 }
+
 resource "azurerm_servicebus_namespace" "test" {
-    name = "acctestservicebusnamespace-%d"
-    location = "${azurerm_resource_group.test.location}"
+    name                = "acctestservicebusnamespace-%d"
+    location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    sku = "Premium"
-    capacity = 1
+    sku                 = "Premium"
+    capacity            = 1
 }
 `, rInt, location, rInt)
 }
