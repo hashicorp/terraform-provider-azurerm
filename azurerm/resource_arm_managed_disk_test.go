@@ -135,17 +135,6 @@ func TestAccAzureRMManagedDisk_update(t *testing.T) {
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagedDiskExists(resourceName, &d, true),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "3"),
-					resource.TestCheckResourceAttr(resourceName, "tags.environment", "acctest"),
-					resource.TestCheckResourceAttr(resourceName, "tags.cost-center", "ops"),
-					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "1"),
-					resource.TestCheckResourceAttr(resourceName, "storage_account_type", string(compute.StorageAccountTypesStandardSSDLRS)),
-				),
-			},
-			{
-				Config: preConfig,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists(resourceName, &d, true),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "acctest"),
 					resource.TestCheckResourceAttr(resourceName, "tags.cost-center", "ops"),
