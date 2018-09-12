@@ -31,9 +31,9 @@ resource "azurerm_network_security_group" "test" {
 
 resource "azurerm_virtual_network" "test" {
   name                = "virtualNetwork1"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space       = ["10.0.0.0/16"]
-  location            = "West US"
   dns_servers         = ["10.0.0.4", "10.0.0.5"]
 
   subnet {
@@ -55,6 +55,10 @@ resource "azurerm_virtual_network" "test" {
   tags {
     environment = "Production"
   }
+}
+
+output "id_of_subnet2" {
+  value = "${azurerm_virtual_network.test.subnet.2796830261.id}"
 }
 ```
 
@@ -104,6 +108,12 @@ The following attributes are exported:
 * `location` - The location/region where the virtual network is created
 
 * `address_space` - The address space that is used the virtual network.
+
+* `subnet` - Set of multiple subnets defined in this virtual network. Each `subnet` block supports the fields documented below.
+
+The `subnet` block supports:
+
+* `id` - The ID of this subnet.
 
 
 ## Import
