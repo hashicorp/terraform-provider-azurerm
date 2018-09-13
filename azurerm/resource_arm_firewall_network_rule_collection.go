@@ -23,15 +23,17 @@ func resourceArmFirewallNetworkRuleCollection() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateAzureFirewallName,
 			},
 
 			"azure_firewall_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateAzureFirewallName,
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
@@ -57,8 +59,9 @@ func resourceArmFirewallNetworkRuleCollection() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 						"description": {
 							Type:     schema.TypeString,
