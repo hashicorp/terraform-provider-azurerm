@@ -494,11 +494,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 
 func (c *ArmClient) registerApiManagementServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
 	ams := apimanagement.NewServiceClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&ams.Client)
-	ams.Authorizer = auth
-	ams.Sender = sender
-	ams.SkipResourceProviderRegistration = c.skipProviderRegistration
-	ams.PollingDuration = 60 * time.Minute
+	c.configureClient(&ams.Client, auth)
 	c.apiManagementServiceClient = ams
 }
 
