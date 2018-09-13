@@ -40,21 +40,24 @@ func resourceArmServiceBusQueue() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"auto_delete_on_idle": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateIso8601Duration(),
 			},
 
 			"default_message_ttl": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateIso8601Duration(),
 			},
 
 			"duplicate_detection_history_time_window": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateIso8601Duration(),
 			},
 
 			"enable_express": {
