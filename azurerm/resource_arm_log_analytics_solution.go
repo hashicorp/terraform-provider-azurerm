@@ -6,8 +6,10 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,9 +26,24 @@ func resourceArmLogAnalyticsSolution() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"solution_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
+			},
+
+			"workspace_name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
+			},
+
+			"workspace_resource_id": {
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"location": locationSchema(),
@@ -61,19 +78,6 @@ func resourceArmLogAnalyticsSolution() *schema.Resource {
 					},
 				},
 			},
-
-			"workspace_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-
-			"workspace_resource_id": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-			},
 		},
 	}
 }
@@ -81,7 +85,7 @@ func resourceArmLogAnalyticsSolution() *schema.Resource {
 func resourceArmLogAnalyticsSolutionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).solutionsClient
 	ctx := meta.(*ArmClient).StopContext
-	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics solution creation.")
+	log.Printf("[INFO] preparing arguments for Log Analytics Solution creation.")
 
 	// The resource requires both .name and .plan.name are set in the format
 	// "SolutionName(WorkspaceName)". Feedback will be submitted to the OMS team as IMO this isn't ideal.
@@ -94,23 +98,22 @@ func resourceArmLogAnalyticsSolutionCreateUpdate(d *schema.ResourceData, meta in
 	workspaceID := d.Get("workspace_resource_id").(string)
 
 	parameters := operationsmanagement.Solution{
-		Name:     &name,
-		Location: &location,
+		Name:     utils.String(name),
+		Location: utils.String(location),
 		Plan:     &solutionPlan,
 		Properties: &operationsmanagement.SolutionProperties{
-			WorkspaceResourceID: &workspaceID,
+			WorkspaceResourceID: utils.String(workspaceID),
 		},
 	}
 
-	res, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
-	//Currently this is required to work around successful creation resulting in an error
-	// being returned
-	if err != nil && res.Response().StatusCode != 201 {
-		if resp := res.Response(); resp != nil {
-			if resp.StatusCode != 201 {
-				return err
-			}
-		}
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
+	if err != nil {
+		return fmt.Errorf("Error creating/updating Log Analytics Solution %q (Workspace %q / Resource Group %q): %+v", name, workspaceID, resGroup, err)
+	}
+
+	err = future.WaitForCompletionRef(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Error waiting for the create/update of Log Analytics Solution %q (Workspace %q / Resource Group %q): %+v", name, workspaceID, resGroup, err)
 	}
 
 	solution, err := client.Get(ctx, resGroup, name)
@@ -158,25 +161,27 @@ func resourceArmLogAnalyticsSolutionRead(d *schema.ResourceData, meta interface{
 
 	// Reversing the mapping used to get .solution_name
 	// expecting resp.Name to be in format "SolutionName(WorkspaceName)".
-	if resp.Name != nil && strings.Contains(*resp.Name, "(") {
-		if parts := strings.Split(*resp.Name, "("); len(parts) == 2 {
-			d.Set("solution_name", parts[0])
-			workspaceName := strings.TrimPrefix(parts[1], "(")
-			workspaceName = strings.TrimSuffix(workspaceName, ")")
-			d.Set("workspace_name", workspaceName)
-		} else {
-			return fmt.Errorf("Error making Read request on AzureRM Log Analytics solutions '%v': isn't in expected format 'Solution(WorkspaceName)'", resp.Name)
+	if v := resp.Name; v != nil {
+		val := *v
+		segments := strings.Split(*v, "(")
+		if len(segments) != 2 {
+			return fmt.Errorf("Expected %q to match 'Solution(WorkspaceName)'", val)
 		}
-	} else {
-		return fmt.Errorf("Error making Read request on AzureRM Log Analytics solutions '%v': isn't in expected format 'Solution(WorkspaceName)'", resp.Name)
+
+		solutionName := segments[0]
+		workspaceName := strings.TrimSuffix(segments[1], ")")
+		d.Set("solution_name", solutionName)
+		d.Set("workspace_name", workspaceName)
 	}
 
 	if props := resp.Properties; props != nil {
 		d.Set("workspace_resource_id", props.WorkspaceResourceID)
 	}
-	if plan := resp.Plan; plan != nil {
-		d.Set("plan", flattenAzureRmLogAnalyticsSolutionPlan(*resp.Plan))
+
+	if err := d.Set("plan", flattenAzureRmLogAnalyticsSolutionPlan(resp.Plan)); err != nil {
+		return fmt.Errorf("Error setting `plan`: %+v", err)
 	}
+
 	return nil
 }
 
@@ -197,11 +202,9 @@ func resourceArmLogAnalyticsSolutionDelete(d *schema.ResourceData, meta interfac
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
+		if !response.WasNotFound(future.Response()) {
+			return fmt.Errorf("Error waiting for deletion of Log Analytics Solution %q (Resource Group %q): %+v", name, resGroup, err)
 		}
-
-		return fmt.Errorf("Error waiting for deletion of Log Analytics Solution %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	return nil
@@ -226,14 +229,29 @@ func expandAzureRmLogAnalyticsSolutionPlan(d *schema.ResourceData) operationsman
 	return expandedPlan
 }
 
-func flattenAzureRmLogAnalyticsSolutionPlan(plan operationsmanagement.SolutionPlan) []interface{} {
-	plans := make([]interface{}, 0)
+func flattenAzureRmLogAnalyticsSolutionPlan(input *operationsmanagement.SolutionPlan) []interface{} {
+	output := make([]interface{}, 0)
+	if input == nil {
+		return output
+	}
+
 	values := make(map[string]interface{})
 
-	values["name"] = *plan.Name
-	values["product"] = *plan.Product
-	values["promotion_code"] = *plan.PromotionCode
-	values["publisher"] = *plan.Publisher
+	if input.Name != nil {
+		values["name"] = *input.Name
+	}
 
-	return append(plans, values)
+	if input.Product != nil {
+		values["product"] = *input.Product
+	}
+
+	if input.PromotionCode != nil {
+		values["promotion_code"] = *input.PromotionCode
+	}
+
+	if input.Publisher != nil {
+		values["publisher"] = *input.Publisher
+	}
+
+	return append(output, values)
 }
