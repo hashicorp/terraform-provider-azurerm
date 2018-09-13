@@ -230,6 +230,30 @@ func TestAccAzureRMServiceBusQueue_lockDuration(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMServiceBusQueue_isoTimeSpanAttributes(t *testing.T) {
+	resourceName := "azurerm_servicebus_queue.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMServiceBusQueue_isoTimeSpanAttributes(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusQueueExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "auto_delete_on_idle", "00:10:00"),
+					resource.TestCheckResourceAttr(resourceName, "default_message_ttl", "00:30:00"),
+					resource.TestCheckResourceAttr(resourceName, "requires_duplicate_detection", "true"),
+					resource.TestCheckResourceAttr(resourceName, "duplicate_detection_history_time_window", "00:15:00"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMServiceBusQueueDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).serviceBusQueuesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -498,6 +522,32 @@ resource "azurerm_servicebus_queue" "test" {
     resource_group_name = "${azurerm_resource_group.test.name}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     lock_duration = "PT2M"
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMServiceBusQueue_isoTimeSpanAttributes(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name     = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+    name                = "acctestservicebusnamespace-%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    location            = "${azurerm_resource_group.test.location}"
+    sku                 = "standard"
+}
+
+resource "azurerm_servicebus_queue" "test" {
+    name                         = "acctestservicebusqueue-%d"
+    resource_group_name          = "${azurerm_resource_group.test.name}"
+    namespace_name               = "${azurerm_servicebus_namespace.test.name}"
+    auto_delete_on_idle          = "00:10:00"
+    default_message_ttl          = "00:30:00"
+    requires_duplicate_detection = true
+    duplicate_detection_history_time_window = "00:15:00"
 }
 `, rInt, location, rInt, rInt)
 }

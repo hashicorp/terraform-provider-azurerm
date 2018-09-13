@@ -201,6 +201,30 @@ func TestAccAzureRMServiceBusTopic_enableDuplicateDetection(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMServiceBusTopic_isoTimeSpanAttributes(t *testing.T) {
+	resourceName := "azurerm_servicebus_topic.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMServiceBusTopic_isoTimeSpanAttributes(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusTopicExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "auto_delete_on_idle", "00:10:00"),
+					resource.TestCheckResourceAttr(resourceName, "default_message_ttl", "00:30:00"),
+					resource.TestCheckResourceAttr(resourceName, "requires_duplicate_detection", "true"),
+					resource.TestCheckResourceAttr(resourceName, "duplicate_detection_history_time_window", "00:15:00"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMServiceBusTopicDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).serviceBusTopicsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -422,6 +446,32 @@ resource "azurerm_servicebus_topic" "test" {
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     requires_duplicate_detection = true
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMServiceBusTopic_isoTimeSpanAttributes(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name     = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+    name                = "acctestservicebusnamespace-%d"
+    location            = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    sku                 = "standard"
+}
+
+resource "azurerm_servicebus_topic" "test" {
+    name                         = "acctestservicebustopic-%d"
+    namespace_name               = "${azurerm_servicebus_namespace.test.name}"
+    resource_group_name          = "${azurerm_resource_group.test.name}"
+    auto_delete_on_idle          = "00:10:00"
+    default_message_ttl          = "00:30:00"
+    requires_duplicate_detection = true
+    duplicate_detection_history_time_window = "00:15:00"
 }
 `, rInt, location, rInt, rInt)
 }
