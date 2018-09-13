@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_firewall"
-sidebar_current: "docs-azurerm-resource-firewall-x"
+sidebar_current: "docs-azurerm-resource-network-firewall-x"
 description: |-
   Manages an Azure Firewall.
 
