@@ -25,6 +25,7 @@ BUG FIXES:
 
 * Data Source: `azurerm_azuread_service_principal` - passing a filter containing the name to Azure rather than querying locally [GH-1862]
 * Data Source: `azurerm_azuread_service_principal` - passing a filter containing the name to Azure rather than querying locally [GH-1862]
+* `azurerm_logic_app_trigger_http_request` - `relative_path` property now allows `/`s and `{}`s [GH-1918]
 * `azurerm_role_assignment` - parsing the Resource ID during deletion [GH-1887]
 * `azurerm_role_definition` - parsing the Resource ID during deletion [GH-1887]
 * `azurerm_servicebus_namespace` - polling for the deletion of the namespace [GH-1908]
