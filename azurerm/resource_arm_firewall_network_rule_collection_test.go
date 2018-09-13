@@ -254,7 +254,7 @@ func testCheckAzureRMFirewallNetworkRuleCollectionExists(resourceName string) re
 
 		client := testAccProvider.Meta().(*ArmClient).azureFirewallsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		read, err := client.Get(ctx, resourceGroup, name)
+		read, err := client.Get(ctx, resourceGroup, firewallName)
 		if err != nil {
 			return err
 		}
@@ -283,19 +283,19 @@ func testCheckAzureRMFirewallNetworkRuleCollectionDoesNotExist(resourceName stri
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		name := rs.Primary.Attributes["name"]
+		firewallName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		client := testAccProvider.Meta().(*ArmClient).azureFirewallsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		read, err := client.Get(ctx, resourceGroup, name)
+		read, err := client.Get(ctx, resourceGroup, firewallName)
 		if err != nil {
 			return err
 		}
 
 		for _, collection := range *read.AzureFirewallPropertiesFormat.NetworkRuleCollections {
 			if *collection.Name == collectionName {
-				return fmt.Errorf("Network Rule Collection %q exists: %+v", name, collection)
+				return fmt.Errorf("Network Rule Collection %q exists in Firewall %q: %+v", collectionName, firewallName, collection)
 			}
 		}
 
@@ -347,7 +347,7 @@ func testCheckAzureRMFirewallNetworkRuleCollectionDisappears(resourceName string
 			return fmt.Errorf("Error waiting for the removal of Network Rule Collection from Firewall: %+v", err)
 		}
 
-		_, err = client.Get(ctx, resourceGroup, name)
+		_, err = client.Get(ctx, resourceGroup, firewallName)
 		return err
 	}
 }
