@@ -58,16 +58,18 @@ func TestAccAzureRMFirewallNetworkRuleCollection_updatedName(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
 					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "rule.3765122797.name", "rule1"),
 				),
 			},
 			{
 				Config: testAccAzureRMFirewallNetworkRuleCollection_updatedName(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallNetworkRuleCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", "updatedname"),
+					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
 					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
 					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "rule.1700340761.name", "rule2"),
 				),
 			},
 		},
@@ -365,7 +367,7 @@ resource "azurerm_firewall_network_rule_collection" "test" {
   action              = "Allow"
 
   rule {
-    name = "acctestrule"
+    name = "rule1"
 
     source_addresses = [
       "10.0.0.0/16",
@@ -400,7 +402,7 @@ resource "azurerm_firewall_network_rule_collection" "test" {
   action              = "Allow"
 
   rule {
-    name = "updatedname"
+    name = "rule2"
 
     source_addresses = [
       "10.0.0.0/16",
