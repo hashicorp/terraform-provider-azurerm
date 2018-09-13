@@ -9,7 +9,7 @@ import (
 // The API requires InternalPublicIPAddress to be set when for a CreateOrUpdate
 // operation, but Get operations return the property as PublicIPAddress
 // so we need to go through and copy the value to the correct property.
-func FixFirewallIPConfiguration(input *[]network.AzureFirewallIPConfiguration) (*[]network.AzureFirewallIPConfiguration, error) {
+func FirewallFixIPConfiguration(input *[]network.AzureFirewallIPConfiguration) (*[]network.AzureFirewallIPConfiguration, error) {
 	if input == nil {
 		return nil, fmt.Errorf("`input` was nil")
 	}

@@ -330,7 +330,7 @@ func testCheckAzureRMFirewallNetworkRuleCollectionDisappears(resourceName string
 		}
 
 		read.AzureFirewallPropertiesFormat.NetworkRuleCollections = &rules
-		ipConfigs, err := azure.FixFirewallIPConfiguration(read.AzureFirewallPropertiesFormat.IPConfigurations)
+		ipConfigs, err := azure.FirewallFixIPConfiguration(read.AzureFirewallPropertiesFormat.IPConfigurations)
 		if err != nil {
 			return fmt.Errorf("Error fixing IP Configuration for Firewall: err")
 		}

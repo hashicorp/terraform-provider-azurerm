@@ -132,7 +132,7 @@ func resourceArmFirewallNetworkRuleCollectionCreateUpdate(d *schema.ResourceData
 	}
 	rules := *props.NetworkRuleCollections
 
-	ipConfigurations, err := azure.FixFirewallIPConfiguration(props.IPConfigurations)
+	ipConfigurations, err := azure.FirewallFixIPConfiguration(props.IPConfigurations)
 	if err != nil {
 		return fmt.Errorf("Error fixing IP Configurations for Firewall %q (Resource Group %q): %+v", firewallName, resourceGroup, err)
 	}
@@ -335,7 +335,7 @@ func resourceArmFirewallNetworkRuleCollectionDelete(d *schema.ResourceData, meta
 	}
 	firewall.AzureFirewallPropertiesFormat.NetworkRuleCollections = &networkRules
 
-	ipConfigs, err := azure.FixFirewallIPConfiguration(props.IPConfigurations)
+	ipConfigs, err := azure.FirewallFixIPConfiguration(props.IPConfigurations)
 	if err != nil {
 		return fmt.Errorf("Error fixing IP Configuration for Firewall %q (Resource Group %q): %+v", firewallName, resourceGroup, err)
 	}
