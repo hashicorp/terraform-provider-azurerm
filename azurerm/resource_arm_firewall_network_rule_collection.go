@@ -139,7 +139,7 @@ func resourceArmFirewallNetworkRuleCollectionCreateUpdate(d *schema.ResourceData
 	}
 	firewall.AzureFirewallPropertiesFormat.IPConfigurations = ipConfigurations
 
-	networkRules := expandArmFirewallNetworkRules(d.Get("newRuleCollection").(*schema.Set))
+	networkRules := expandArmFirewallNetworkRules(d.Get("rule").(*schema.Set))
 	priority := d.Get("priority").(int)
 	newRuleCollection := network.AzureFirewallNetworkRuleCollection{
 		Name: utils.String(name),
