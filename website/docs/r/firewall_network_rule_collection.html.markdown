@@ -96,7 +96,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group in which the Firewall exists. Changing this forces a new resource to be created.
 
-* `priority` - (Required) Specifies the priority of the rule collection.
+* `priority` - (Required) Specifies the priority of the rule collection. Possible values are between `100` - `65000`.
 
 * `action` - (Required) Specifies the action the rule will apply to matching traffic. Possible values are `Allow` and `Deny`.
 

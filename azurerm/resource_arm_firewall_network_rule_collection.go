@@ -39,8 +39,9 @@ func resourceArmFirewallNetworkRuleCollection() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"priority": {
-				Type:     schema.TypeInt,
-				Required: true,
+				Type:         schema.TypeInt,
+				Required:     true,
+				ValidateFunc: validation.IntBetween(100, 65000),
 			},
 
 			"action": {
@@ -130,7 +131,7 @@ func resourceArmFirewallNetworkRuleCollectionCreateUpdate(d *schema.ResourceData
 	if props.NetworkRuleCollections == nil {
 		return fmt.Errorf("Error expanding Firewall %q (Resource Group %q): `properties.NetworkRuleCollections` was nil.", firewallName, resourceGroup)
 	}
-	rules := *props.NetworkRuleCollections
+	ruleCollections := *props.NetworkRuleCollections
 
 	ipConfigurations, err := azure.FirewallFixIPConfiguration(props.IPConfigurations)
 	if err != nil {
@@ -138,9 +139,9 @@ func resourceArmFirewallNetworkRuleCollectionCreateUpdate(d *schema.ResourceData
 	}
 	firewall.AzureFirewallPropertiesFormat.IPConfigurations = ipConfigurations
 
-	networkRules := expandArmFirewallNetworkRules(d.Get("rule").(*schema.Set))
+	networkRules := expandArmFirewallNetworkRules(d.Get("newRuleCollection").(*schema.Set))
 	priority := d.Get("priority").(int)
-	rule := network.AzureFirewallNetworkRuleCollection{
+	newRuleCollection := network.AzureFirewallNetworkRuleCollection{
 		Name: utils.String(name),
 		AzureFirewallNetworkRuleCollectionPropertiesFormat: &network.AzureFirewallNetworkRuleCollectionPropertiesFormat{
 			Action: &network.AzureFirewallRCAction{
@@ -153,8 +154,8 @@ func resourceArmFirewallNetworkRuleCollectionCreateUpdate(d *schema.ResourceData
 
 	if !d.IsNewResource() {
 		index := -1
-		if rules != nil {
-			for i, v := range rules {
+		if ruleCollections != nil {
+			for i, v := range ruleCollections {
 				if v.Name == nil {
 					continue
 				}
@@ -170,12 +171,12 @@ func resourceArmFirewallNetworkRuleCollectionCreateUpdate(d *schema.ResourceData
 			return fmt.Errorf("Error locating Network Rule Collection %q (Firewall %q / Resource Group %q)", name, firewallName, resourceGroup)
 		}
 
-		rules[index] = rule
+		ruleCollections[index] = newRuleCollection
 	} else {
-		rules = append(rules, rule)
+		ruleCollections = append(ruleCollections, newRuleCollection)
 	}
 
-	firewall.AzureFirewallPropertiesFormat.NetworkRuleCollections = &rules
+	firewall.AzureFirewallPropertiesFormat.NetworkRuleCollections = &ruleCollections
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, firewallName, firewall)
 	if err != nil {
@@ -248,9 +249,8 @@ func resourceArmFirewallNetworkRuleCollectionRead(d *schema.ResourceData, meta i
 		return fmt.Errorf("Error retrieving Network Rule Collection %q (Firewall %q / Resource Group %q): `props.NetworkRuleCollections` was nil", name, firewallName, resourceGroup)
 	}
 
-	rules := *props.NetworkRuleCollections
 	var rule *network.AzureFirewallNetworkRuleCollection
-	for _, r := range rules {
+	for _, r := range *props.NetworkRuleCollections {
 		if r.Name == nil {
 			continue
 		}
@@ -333,13 +333,13 @@ func resourceArmFirewallNetworkRuleCollectionDelete(d *schema.ResourceData, meta
 			networkRules = append(networkRules, rule)
 		}
 	}
-	firewall.AzureFirewallPropertiesFormat.NetworkRuleCollections = &networkRules
+	props.NetworkRuleCollections = &networkRules
 
 	ipConfigs, err := azure.FirewallFixIPConfiguration(props.IPConfigurations)
 	if err != nil {
 		return fmt.Errorf("Error fixing IP Configuration for Firewall %q (Resource Group %q): %+v", firewallName, resourceGroup, err)
 	}
-	firewall.AzureFirewallPropertiesFormat.IPConfigurations = ipConfigs
+	props.IPConfigurations = ipConfigs
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, firewallName, firewall)
 	if err != nil {
