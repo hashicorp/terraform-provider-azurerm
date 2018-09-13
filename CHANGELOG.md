@@ -2,6 +2,8 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_firewall` [GH-1627]
+* **New Resource:** `azurerm_firewall_network_rule_collection` [GH-1627]
 * **New Resource:** `azurerm_mysql_virtual_network_rule` [GH-1879]
 
 IMPROVEMENTS:
