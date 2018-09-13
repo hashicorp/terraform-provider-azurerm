@@ -13,6 +13,8 @@ IMPROVEMENTS:
 * `azurerm_app_service` - adding the `virtual_network_name` property [GH-1896]
 * `azurerm_app_service_slot` - adding the `virtual_network_name` property [GH-1896]
 * `azurerm_key_vault_certificate` - adding the `thumbprint` property [GH-1904]
+* `azurerm_servicebus_queue` - adding validation for ISO8601 Durations [GH-1921]
+* `azurerm_servicebus_topic` - adding validation for ISO8601 Durations [GH-1921]
 * `azurerm_sql_database` - adding the `threat_detection_policy` property [GH-1628]
 * `azurerm_virtual_network` - adding validation to `name` preventing empty values [GH-1898]
 * `azurerm_virtual_machine` - support for the `managed_disk_type` of `StandardSSD_LRS` [GH-1901]
