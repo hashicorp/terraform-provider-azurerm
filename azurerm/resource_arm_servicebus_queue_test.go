@@ -244,10 +244,10 @@ func TestAccAzureRMServiceBusQueue_isoTimeSpanAttributes(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusQueueExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "auto_delete_on_idle", "00:10:00"),
-					resource.TestCheckResourceAttr(resourceName, "default_message_ttl", "00:30:00"),
+					resource.TestCheckResourceAttr(resourceName, "auto_delete_on_idle", "PT10M"),
+					resource.TestCheckResourceAttr(resourceName, "default_message_ttl", "PT30M"),
 					resource.TestCheckResourceAttr(resourceName, "requires_duplicate_detection", "true"),
-					resource.TestCheckResourceAttr(resourceName, "duplicate_detection_history_time_window", "00:15:00"),
+					resource.TestCheckResourceAttr(resourceName, "duplicate_detection_history_time_window", "PT15M"),
 				),
 			},
 		},
@@ -544,10 +544,10 @@ resource "azurerm_servicebus_queue" "test" {
     name                         = "acctestservicebusqueue-%d"
     resource_group_name          = "${azurerm_resource_group.test.name}"
     namespace_name               = "${azurerm_servicebus_namespace.test.name}"
-    auto_delete_on_idle          = "00:10:00"
-    default_message_ttl          = "00:30:00"
+    auto_delete_on_idle          = "PT10M"
+    default_message_ttl          = "PT30M"
     requires_duplicate_detection = true
-    duplicate_detection_history_time_window = "00:15:00"
+    duplicate_detection_history_time_window = "PT15M"
 }
 `, rInt, location, rInt, rInt)
 }
