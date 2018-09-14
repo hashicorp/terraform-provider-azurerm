@@ -1,36 +1,36 @@
-## 1.15.0 (Unreleased)
+## 1.15.0 (September 14, 2018)
 
 FEATURES:
 
-* **New Resource:** `azurerm_firewall` [GH-1627]
-* **New Resource:** `azurerm_firewall_network_rule_collection` [GH-1627]
-* **New Resource:** `azurerm_mysql_virtual_network_rule` [GH-1879]
+* **New Resource:** `azurerm_firewall` ([#1627](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1627))
+* **New Resource:** `azurerm_firewall_network_rule_collection` ([#1627](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1627))
+* **New Resource:** `azurerm_mysql_virtual_network_rule` ([#1879](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1879))
 
 IMPROVEMENTS:
 
-* dependencies: upgrading to v20.1.0 of `github.com/Azure/azure-sdk-for-go` [GH-1861]
-* dependencies: upgrading to v10.15.4 of `github.com/Azure/go-autorest` [GH-1861] [GH-1909]
-* sdk: upgrading to version `2018-06-01` of the Compute API's [GH-1861]
-* `azurerm_automation_runbook` - support for specifying the content field [GH-1696]
-* `azurerm_app_service` - adding the `virtual_network_name` property [GH-1896]
-* `azurerm_app_service_slot` - adding the `virtual_network_name` property [GH-1896]
-* `azurerm_key_vault_certificate` - adding the `thumbprint` property [GH-1904]
-* `azurerm_servicebus_queue` - adding validation for ISO8601 Durations [GH-1921]
-* `azurerm_servicebus_topic` - adding validation for ISO8601 Durations [GH-1921]
-* `azurerm_sql_database` - adding the `threat_detection_policy` property [GH-1628]
-* `azurerm_virtual_network` - adding validation to `name` preventing empty values [GH-1898]
-* `azurerm_virtual_machine` - support for the `managed_disk_type` of `StandardSSD_LRS` [GH-1901]
-* `azurerm_virtual_machine_scale_set` - support for the `managed_disk_type` of `StandardSSD_LRS` [GH-1901]
-* `azurerm_virtual_network_gateway` - additional validation [GH-1899]
+* dependencies: upgrading to v20.1.0 of `github.com/Azure/azure-sdk-for-go` ([#1861](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1861))
+* dependencies: upgrading to v10.15.4 of `github.com/Azure/go-autorest` ([#1861](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1861)] [[#1909](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1909))
+* sdk: upgrading to version `2018-06-01` of the Compute API's ([#1861](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1861))
+* `azurerm_automation_runbook` - support for specifying the content field ([#1696](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1696))
+* `azurerm_app_service` - adding the `virtual_network_name` property ([#1896](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1896))
+* `azurerm_app_service_slot` - adding the `virtual_network_name` property ([#1896](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1896))
+* `azurerm_key_vault_certificate` - adding the `thumbprint` property ([#1904](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1904))
+* `azurerm_servicebus_queue` - adding validation for ISO8601 Durations ([#1921](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1921))
+* `azurerm_servicebus_topic` - adding validation for ISO8601 Durations ([#1921](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1921))
+* `azurerm_sql_database` - adding the `threat_detection_policy` property ([#1628](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1628))
+* `azurerm_virtual_network` - adding validation to `name` preventing empty values ([#1898](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1898))
+* `azurerm_virtual_machine` - support for the `managed_disk_type` of `StandardSSD_LRS` ([#1901](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1901))
+* `azurerm_virtual_machine_scale_set` - support for the `managed_disk_type` of `StandardSSD_LRS` ([#1901](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1901))
+* `azurerm_virtual_network_gateway` - additional validation ([#1899](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1899))
 
 BUG FIXES:
 
-* Data Source: `azurerm_azuread_service_principal` - passing a filter containing the name to Azure rather than querying locally [GH-1862]
-* Data Source: `azurerm_azuread_service_principal` - passing a filter containing the name to Azure rather than querying locally [GH-1862]
-* `azurerm_logic_app_trigger_http_request` - `relative_path` property now allows `/`s and `{}`s [GH-1918]
-* `azurerm_role_assignment` - parsing the Resource ID during deletion [GH-1887]
-* `azurerm_role_definition` - parsing the Resource ID during deletion [GH-1887]
-* `azurerm_servicebus_namespace` - polling for the deletion of the namespace [GH-1908]
+* Data Source: `azurerm_azuread_service_principal` - passing a filter containing the name to Azure rather than querying locally ([#1862](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1862))
+* Data Source: `azurerm_azuread_service_principal` - passing a filter containing the name to Azure rather than querying locally ([#1862](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1862))
+* `azurerm_logic_app_trigger_http_request` - `relative_path` property now allows `/`s and `{}`s ([#1918](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1918))
+* `azurerm_role_assignment` - parsing the Resource ID during deletion ([#1887](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1887))
+* `azurerm_role_definition` - parsing the Resource ID during deletion ([#1887](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1887))
+* `azurerm_servicebus_namespace` - polling for the deletion of the namespace ([#1908](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1908))
 
 ## 1.14.0 (September 06, 2018)
 
