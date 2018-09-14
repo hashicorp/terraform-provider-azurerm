@@ -34,6 +34,20 @@ resource "azurerm_container_group" "aci-example" {
   dns_name_label      = "mycontainergroup-${random_integer.random_int.result}"
   os_type             = "linux"
 
+  volume {
+    name       = "emptydir"
+    mount_path = "/aci/emptydir"
+    empty_dir {}
+  }
+
+  volume {
+    name       = "gitrepo"
+    mount_path = "/aci/gitrepo"
+    git_repo {
+      url = "https://github.com/Azure-Samples/aci-tutorial-sidecar"
+    }
+  }
+
   container {
     name     = "webserver"
     image    = "seanmckenna/aci-hellofiles"
@@ -42,14 +56,33 @@ resource "azurerm_container_group" "aci-example" {
     port     = "80"
     protocol = "tcp"
 
-    volume {
-      name       = "logs"
-      mount_path = "/aci/logs"
+    volume_mount {
+      name       = "emptydir"
+      mount_path = "/aci/empty"
       read_only  = false
-      share_name = "${azurerm_storage_share.aci-share.name}"
+    }
 
-      storage_account_name = "${azurerm_storage_account.aci-sa.name}"
-      storage_account_key  = "${azurerm_storage_account.aci-sa.primary_access_key}"
+    volume_mount {
+      name       = "gitrepo"
+      mount_path = "/aci/gitrepo"
+      read_only  = false
+    }
+  }
+
+  container {
+    name     = "sidecar"
+    image    = "seanmckenna/aci-hellofiles"
+
+    volume_mount {
+      name       = "emptydir"
+      mount_path = "/another_mount_point/empty"
+      read_only  = false
+    }
+
+    volume_mount {
+      name       = "gitrepo"
+      mount_path = "/another_mount_point/gitrepo"
+      read_only  = false
     }
   }
 

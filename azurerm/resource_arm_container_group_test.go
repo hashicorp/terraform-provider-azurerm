@@ -11,6 +11,24 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+func TestAccAzureRMContainerGroup_volumes(t *testing.T) {
+	resourceName := "azurerm_container_group.test"
+	ri := acctest.RandInt()
+
+	config := testAccAzureRMContainerGroup_volumes(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		IsUnitTest: true,
+		Providers:  testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.UnitTest
+			},
+		},
+	})
+}
+
 func TestAccAzureRMContainerGroup_imageRegistryCredentials(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := acctest.RandInt()
@@ -287,6 +305,41 @@ resource "azurerm_container_group" "test" {
 `, ri, location, ri)
 }
 
+func testAccAzureRMContainerGroup_volumes(ri int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  ip_address_type     = "public"
+  os_type             = "linux"
+
+  container {
+    name   = "hw"
+    image  = "microsoft/aci-helloworld:latest"
+    cpu    = "0.5"
+    memory = "0.5"
+	  port   = "80"
+  }
+  container {
+    name   = "sidecar"
+    image  = "microsoft/aci-tutorial-sidecar"
+    cpu    = "0.5"
+    memory = "0.5"
+  }
+
+  tags {
+    environment = "Testing"
+  }
+}
+`, ri, location, ri)
+}
+
 func testAccAzureRMContainerGroup_imageRegistryCredentials(ri int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -525,8 +578,8 @@ resource "azurerm_container_group" "test" {
 			name       = "logs"
 			mount_path = "/aci/logs"
 			read_only  = false
+			
 			share_name = "${azurerm_storage_share.test.name}"
-
 			storage_account_name = "${azurerm_storage_account.test.name}"
 			storage_account_key = "${azurerm_storage_account.test.primary_access_key}"
 		}
