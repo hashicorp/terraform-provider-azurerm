@@ -1,4 +1,9 @@
 ## 1.16.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurestack_public_ip` - now correctly reading and importing the `idle_timeout_in_minutes` property [GH-1925]
+
 ## 1.15.0 (September 14, 2018)
 
 FEATURES:
