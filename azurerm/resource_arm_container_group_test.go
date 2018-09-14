@@ -277,7 +277,7 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-	port   = "80"
+    ports  = ["80"]
   }
 
   tags {
@@ -306,7 +306,7 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-	  port   = "80"
+    ports  = ["80"]
   }
   
   image_registry_credential {
@@ -354,7 +354,7 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-	  port   = "80"
+    ports  = ["80"]
   }
   
   image_registry_credential {
@@ -396,7 +396,7 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-	port   = "80"
+    ports  = ["80"]
   }
 
   container {
@@ -432,7 +432,7 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/windowsservercore:latest"
     cpu    = "2.0"
     memory = "3.5"
-    port   = "80"
+    ports  = ["80"]
   }
 
   tags {
@@ -463,7 +463,7 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/windowsservercore:latest"
     cpu    = "2.0"
     memory = "3.5"
-    port   = "80"
+    ports  = ["80"]
 
 	environment_variables {
 		"foo"  = "bar"
@@ -518,7 +518,7 @@ resource "azurerm_container_group" "test" {
 		cpu    = "1"
 		memory = "1.5"
 
-		port     = "80"
+		ports    = ["80"]
 		protocol = "TCP"
 
 		volume {

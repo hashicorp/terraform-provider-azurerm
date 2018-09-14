@@ -149,7 +149,18 @@ func resourceArmContainerGroup() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ForceNew:     true,
+							Deprecated:   "Use `ports` instead.",
 							ValidateFunc: validation.IntBetween(1, 65535),
+						},
+
+						"ports": {
+							Type:     schema.TypeList,
+							Optional: true,
+							ForceNew: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeInt,
+								ValidateFunc: validation.IntBetween(1, 65535),
+							},
 						},
 
 						"protocol": {
@@ -562,6 +573,18 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 			}
 
 			containerGroupPorts = append(containerGroupPorts, containerGroupPort)
+		}
+
+		if v, ok := data["ports"]; ok {
+			p := v.([]interface{})
+			var ports []containerinstance.ContainerPort
+			for _, v := range p {
+				port := int32(v.(int))
+				ports = append(ports, containerinstance.ContainerPort{
+					Port: &port,
+				})
+			}
+			container.Ports = &ports
 		}
 
 		if v, ok := data["environment_variables"]; ok {
