@@ -33,67 +33,58 @@ resource "azurerm_api_management" "test" {
 ## Example Usage (Complete)
 
 ```hcl
-resource "azurerm_resource_group" "west" {
-  name     = "api-rg-premium-west"
-  location = "West Europe"
-}
-
-resource "azurerm_resource_group" "north" {
-  name     = "api-rg-premium-north"
-  location = "North Europe"
-}
-
 resource "azurerm_api_management" "test" {
-  name                          = "api-mngmnt"
-  publisher_name                = "My Company"
-  publisher_email               = "company1@terraform.io"
-  notification_sender_email     = "api@terraform.io"
+  name                      = "api-mngmnt"
+  publisher_name            = "My Company"
+  publisher_email           = "company1@terraform.io"
+  notification_sender_email = "api@terraform.io"
 
   additional_location {
-	location = "${azurerm_resource_group.north.location}"
-	sku {
-		name = "Premium"
-	}
+    location = "${azurerm_resource_group.north.location}"
+
+    sku {
+      name = "Premium"
+    }
   }
 
   certificate {
-	certificate            = "${base64encode(file("testdata/api_management_api_test.pfx"))}"
-	certificate_password   = "terraform"
-	store_name             = "CertificateAuthority"
+    certificate          = "${base64encode(file("testdata/api_management_api_test.pfx"))}"
+    certificate_password = "terraform"
+    store_name           = "CertificateAuthority"
   }
 
   certificate {
-	certificate            = "${base64encode(file("testdata/api_management_api_test.pfx"))}"
-	certificate_password   = "terraform"
-	store_name             = "Root"
+    certificate          = "${base64encode(file("testdata/api_management_api_test.pfx"))}"
+    certificate_password = "terraform"
+    store_name           = "Root"
   }
 
   custom_properties {
-	Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168 = "true"
+    Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168 = "true"
   }
 
   hostname_configuration {
-	type                         = "Proxy"
-	host_name                    = "api.terraform.io"
-	certificate                  = "${base64encode(file("testdata/api_management_api_test.pfx"))}"
-	certificate_password         = "terraform"
-	default_ssl_binding          = true
-	negotiate_client_certificate = false
+    type                         = "Proxy"
+    host_name                    = "api.terraform.io"
+    certificate                  = "${base64encode(file("testdata/api_management_api_test.pfx"))}"
+    certificate_password         = "terraform"
+    default_ssl_binding          = true
+    negotiate_client_certificate = false
   }
 
   hostname_configuration {
-	type                         = "Proxy"
-	host_name                    = "api2.terraform.io"
-	certificate                  = "${base64encode(file("testdata/api_management_api2_test.pfx"))}"
-	certificate_password         = "terraform"
-	negotiate_client_certificate = true
+    type                         = "Proxy"
+    host_name                    = "api2.terraform.io"
+    certificate                  = "${base64encode(file("testdata/api_management_api2_test.pfx"))}"
+    certificate_password         = "terraform"
+    negotiate_client_certificate = true
   }
 
   hostname_configuration {
-	type                         = "Portal"
-	host_name                    = "portal.terraform.io"
-	certificate                  = "${base64encode(file("testdata/api_management_portal_test.pfx"))}"
-	certificate_password         = "terraform"
+    type                 = "Portal"
+    host_name            = "portal.terraform.io"
+    certificate          = "${base64encode(file("testdata/api_management_portal_test.pfx"))}"
+    certificate_password = "terraform"
   }
 
   sku {
@@ -101,11 +92,12 @@ resource "azurerm_api_management" "test" {
   }
 
   tags {
-	test = "true"
+    test = "true"
   }
 
   location            = "${azurerm_resource_group.west.location}"
   resource_group_name = "${azurerm_resource_group.west.name}"
+}
 ```
 
 ## Argument Reference
@@ -140,9 +132,9 @@ The following arguments are supported:
 
 `sku` block supports the following:
 
-* `name` - (Required) Specifies the plan's pricing tier.
+* `name` - (Required) Specifies the plan's pricing tier. Possible values include: `SkuTypeDeveloper`, `SkuTypeStandard`, `SkuTypePremium`, `SkuTypeBasic`.
 
-* `capacity` - (Optional) Specifies the number of units associated with this API Management service.
+* `capacity` - (Optional) Specifies the number of units associated with this API Management service. Default is 1.
 
 `additional_location` block supports the following:
 

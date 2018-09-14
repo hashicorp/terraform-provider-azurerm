@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -42,7 +43,7 @@ func TestAzureRMApiManagementName_validation(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := validateApiManagementName(tc.Value, "azurerm_api_management")
+		_, errors := azure.ValidateApiManagementName(tc.Value, "azurerm_api_management")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the Api Management Name to trigger a validation error for '%s'", tc.Value)
@@ -51,6 +52,7 @@ func TestAzureRMApiManagementName_validation(t *testing.T) {
 }
 
 func TestAccAzureRMApiManagement_basic(t *testing.T) {
+	resourceName := "azurerm_api_management.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMApiManagement_basic(ri, testLocation())
 
@@ -65,11 +67,17 @@ func TestAccAzureRMApiManagement_basic(t *testing.T) {
 					testCheckAzureRMApiManagementExists("azurerm_api_management.test"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
 func TestAccAzureRMApiManagement_complete(t *testing.T) {
+	resourceName := "azurerm_api_management.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMApiManagement_complete(ri, testLocation(), testAltLocation())
 
@@ -83,6 +91,11 @@ func TestAccAzureRMApiManagement_complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementExists("azurerm_api_management.test"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

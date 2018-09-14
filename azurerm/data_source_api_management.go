@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2017-03-01/apimanagement"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -15,8 +16,9 @@ func dataSourceApiManagementService() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: azure.ValidateApiManagementName,
 			},
 
 			"resource_group_name": resourceGroupNameForDataSourceSchema(),
@@ -288,12 +290,10 @@ func flattenDataSourceApiManagementHostnameConfigurations(d *schema.ResourceData
 	host_configs := make([]interface{}, 0)
 
 	if configs != nil {
-		for i, config := range *configs {
+		for _, config := range *configs {
 			host_config := make(map[string]interface{}, 2)
 
-			if config.Type != "" {
-				host_config["type"] = string(config.Type)
-			}
+			host_config["type"] = string(config.Type)
 
 			if config.HostName != nil {
 				host_config["host_name"] = *config.HostName
@@ -311,20 +311,6 @@ func flattenDataSourceApiManagementHostnameConfigurations(d *schema.ResourceData
 				host_config["certificate_info"] = flattenDataSourceApiManagementCertificate(config.Certificate)
 			}
 
-			// certificate password isn't returned, so let's look it up
-			passKey := fmt.Sprintf("hostname_configuration.%d.certificate_password", i)
-			if v, ok := d.GetOk(passKey); ok {
-				password := v.(string)
-				host_config["certificate_password"] = password
-			}
-
-			// encoded certificate isn't returned, so let's look it up
-			certKey := fmt.Sprintf("hostname_configuration.%d.certificate", i)
-			if v, ok := d.GetOk(certKey); ok {
-				cert := v.(string)
-				host_config["certificate"] = cert
-			}
-
 			host_configs = append(host_configs, host_config)
 		}
 	}
@@ -334,7 +320,6 @@ func flattenDataSourceApiManagementHostnameConfigurations(d *schema.ResourceData
 
 func flattenDataSourceApiManagementCertificate(cert *apimanagement.CertificateInformation) []interface{} {
 	certificate := make(map[string]interface{}, 2)
-	certInfos := make([]interface{}, 0)
 
 	if cert != nil {
 		if cert.Expiry != nil {
@@ -348,11 +333,9 @@ func flattenDataSourceApiManagementCertificate(cert *apimanagement.CertificateIn
 		if cert.Subject != nil {
 			certificate["subject"] = *cert.Subject
 		}
-
-		certInfos = append(certInfos, certificate)
 	}
 
-	return certInfos
+	return []interface{}{certificate}
 }
 
 func flattenDataSourceApiManagementAdditionalLocations(props *[]apimanagement.AdditionalLocation) []interface{} {
@@ -385,27 +368,13 @@ func flattenDataSourceApiManagementCertificates(d *schema.ResourceData, props *[
 	certificates := make([]interface{}, 0)
 
 	if props != nil {
-		for i, prop := range *props {
+		for _, prop := range *props {
 			certificate := make(map[string]interface{}, 2)
 
 			certificate["store_name"] = string(prop.StoreName)
 
 			if cert := flattenDataSourceApiManagementCertificate(prop.Certificate); cert != nil {
 				certificate["certificate_info"] = cert
-			}
-
-			// certificate password isn't returned, so let's look it up
-			passwKey := fmt.Sprintf("certificate.%d.certificate_password", i)
-			if v, ok := d.GetOk(passwKey); ok {
-				password := v.(string)
-				certificate["certificate_password"] = password
-			}
-
-			// encoded certificate isn't returned, so let's look it up
-			certKey := fmt.Sprintf("certificate.%d.encoded_certificate", i)
-			if v, ok := d.GetOk(certKey); ok {
-				cert := v.(string)
-				certificate["encoded_certificate"] = cert
 			}
 
 			certificates = append(certificates, certificate)
@@ -416,20 +385,15 @@ func flattenDataSourceApiManagementCertificates(d *schema.ResourceData, props *[
 }
 
 func flattenDataSourceApiManagementServiceSku(profile *apimanagement.ServiceSkuProperties) []interface{} {
-	skus := make([]interface{}, 0, 1)
 	sku := make(map[string]interface{}, 2)
 
 	if profile != nil {
-		if profile.Name != "" {
-			sku["name"] = string(profile.Name)
-		}
+		sku["name"] = string(profile.Name)
 
 		if profile.Capacity != nil {
 			sku["capacity"] = *profile.Capacity
 		}
 	}
 
-	skus = append(skus, sku)
-
-	return skus
+	return []interface{}{sku}
 }

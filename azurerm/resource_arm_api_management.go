@@ -3,13 +3,13 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2017-03-01/apimanagement"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -28,7 +28,7 @@ func resourceArmApiManagementService() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateApiManagementName,
+				ValidateFunc: azure.ValidateApiManagementName,
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
@@ -38,13 +38,13 @@ func resourceArmApiManagementService() *schema.Resource {
 			"publisher_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateApiManagementPublisherName,
+				ValidateFunc: azure.ValidateApiManagementPublisherName,
 			},
 
 			"publisher_email": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateApiManagementPublisherEmail,
+				ValidateFunc: azure.ValidateApiManagementPublisherEmail,
 			},
 
 			"sku": {
@@ -66,9 +66,10 @@ func resourceArmApiManagementService() *schema.Resource {
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 						"capacity": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Default:  1,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      1,
+							ValidateFunc: validation.IntAtLeast(0),
 						},
 					},
 				},
@@ -137,6 +138,7 @@ func resourceArmApiManagementService() *schema.Resource {
 			"security": {
 				Type:     schema.TypeList,
 				Optional: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"disable_backend_ssl30": {
@@ -196,19 +198,22 @@ func resourceArmApiManagementService() *schema.Resource {
 						},
 
 						"host_name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 
 						"certificate": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 
 						"certificate_password": {
-							Type:      schema.TypeString,
-							Required:  true,
-							Sensitive: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 
 						"default_ssl_binding": {
@@ -267,10 +272,8 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
-	var sku *apimanagement.ServiceSkuProperties
-	if skuConfig := d.Get("sku").([]interface{}); skuConfig != nil {
-		sku = expandAzureRmApiManagementSku(skuConfig)
-	}
+	skuRaw := d.Get("sku").([]interface{})
+	sku := expandAzureRmApiManagementSku(skuRaw)
 
 	publisher_name := d.Get("publisher_name").(string)
 	publisher_email := d.Get("publisher_email").(string)
@@ -282,24 +285,22 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 	certificates := expandAzureRmApiManagementCertificates(d)
 	hostname_configurations := expandAzureRmApiManagementHostnameConfigurations(d)
 
-	properties := apimanagement.ServiceProperties{
-		PublisherName:          utils.String(publisher_name),
-		PublisherEmail:         utils.String(publisher_email),
-		CustomProperties:       custom_properties,
-		AdditionalLocations:    additional_locations,
-		Certificates:           certificates,
-		HostnameConfigurations: hostname_configurations,
+	apiManagement := apimanagement.ServiceResource{
+		Location: &location,
+		ServiceProperties: &apimanagement.ServiceProperties{
+			PublisherName:          utils.String(publisher_name),
+			PublisherEmail:         utils.String(publisher_email),
+			CustomProperties:       custom_properties,
+			AdditionalLocations:    additional_locations,
+			Certificates:           certificates,
+			HostnameConfigurations: hostname_configurations,
+		},
+		Tags: expandTags(tags),
+		Sku:  sku,
 	}
 
 	if notification_sender_email != "" {
-		properties.NotificationSenderEmail = &notification_sender_email
-	}
-
-	apiManagement := apimanagement.ServiceResource{
-		Location:          &location,
-		ServiceProperties: &properties,
-		Tags:              expandTags(tags),
-		Sku:               sku,
+		apiManagement.ServiceProperties.NotificationSenderEmail = &notification_sender_email
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, apiManagement)
@@ -307,8 +308,7 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error creating API Management Service %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err := future.WaitForCompletion(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for creation of API Management Service %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
@@ -392,7 +392,7 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 
 	if sku := resp.Sku; sku != nil {
 		if err := d.Set("sku", flattenApiManagementServiceSku(sku)); err != nil {
-			return fmt.Errorf("Error flattening `sku`: %+v", err)
+			return fmt.Errorf("Error setting `sku`: %+v", err)
 		}
 	}
 
@@ -404,63 +404,43 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 func flattenApiManagementCustomProperties(input map[string]*string) ([]interface{}, error) {
 	output := make(map[string]interface{}, 0)
 
-	if v := input["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30"]; v != nil {
-		val, err := strconv.ParseBool(*v)
-		if err != nil {
-			return nil, fmt.Errorf("Error parsing `disable_backend_ssl30` %q: %+v", *v, err)
-		}
-		output["disable_backend_ssl30"] = val
+	if err := setCustomPropertyFrom(input, "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30", output, "disable_backend_ssl30"); err != nil {
+		return nil, err
 	}
 
-	if v := input["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10"]; v != nil {
-		val, err := strconv.ParseBool(*v)
-		if err != nil {
-			return nil, fmt.Errorf("Error parsing `disable_backend_tls10` %q: %+v", *v, err)
-		}
-		output["disable_backend_tls10"] = val
+	if err := setCustomPropertyFrom(input, "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10", output, "disable_backend_tls10"); err != nil {
+		return nil, err
 	}
 
-	if v := input["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11"]; v != nil {
-		val, err := strconv.ParseBool(*v)
-		if err != nil {
-			return nil, fmt.Errorf("Error parsing `disable_backend_tls11` %q: %+v", *v, err)
-		}
-		output["disable_backend_tls11"] = val
+	if err := setCustomPropertyFrom(input, "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11", output, "disable_backend_tls11"); err != nil {
+		return nil, err
 	}
 
-	if v := input["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168"]; v != nil {
-		val, err := strconv.ParseBool(*v)
-		if err != nil {
-			return nil, fmt.Errorf("Error parsing `disable_triple_des_chipers` %q: %+v", *v, err)
-		}
-		output["disable_triple_des_chipers"] = val
+	if err := setCustomPropertyFrom(input, "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30", output, "disable_frontend_ssl30"); err != nil {
+		return nil, err
 	}
 
-	if v := input["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30"]; v != nil {
-		val, err := strconv.ParseBool(*v)
-		if err != nil {
-			return nil, fmt.Errorf("Error parsing `disable_frontend_ssl30` %q: %+v", *v, err)
-		}
-		output["disable_frontend_ssl30"] = val
+	if err := setCustomPropertyFrom(input, "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10", output, "disable_frontend_tls10"); err != nil {
+		return nil, err
 	}
 
-	if v := input["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10"]; v != nil {
-		val, err := strconv.ParseBool(*v)
-		if err != nil {
-			return nil, fmt.Errorf("Error parsing `disable_frontend_tls10` %q: %+v", *v, err)
-		}
-		output["disable_frontend_tls10"] = val
-	}
-
-	if v := input["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11"]; v != nil {
-		val, err := strconv.ParseBool(*v)
-		if err != nil {
-			return nil, fmt.Errorf("Error parsing `disable_frontend_tls11` %q: %+v", *v, err)
-		}
-		output["disable_frontend_tls11"] = val
+	if err := setCustomPropertyFrom(input, "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11", output, "disable_frontend_tls11"); err != nil {
+		return nil, err
 	}
 
 	return []interface{}{output}, nil
+}
+
+func setCustomPropertyFrom(input map[string]*string, path string, output map[string]interface{}, key string) error {
+	if v := input[path]; v != nil {
+		val, err := strconv.ParseBool(*v)
+		if err != nil {
+			return fmt.Errorf("Error parsing `%s` %q: %+v", key, *v, err)
+		}
+		output[key] = val
+	}
+
+	return nil
 }
 
 func resourceArmApiManagementDelete(d *schema.ResourceData, meta interface{}) error {
@@ -611,8 +591,7 @@ func expandAzureRmApiManagementAdditionalLocations(d *schema.ResourceData, sku *
 func expandAzureRmApiManagementSku(configs []interface{}) *apimanagement.ServiceSkuProperties {
 	config := configs[0].(map[string]interface{})
 
-	nameConfig := config["name"].(string)
-	name := apimanagement.SkuType(nameConfig)
+	name := apimanagement.SkuType(config["name"].(string))
 	capacity := int32(config["capacity"].(int))
 
 	sku := &apimanagement.ServiceSkuProperties{
@@ -635,15 +614,13 @@ func flattenApiManagementCertificates(d *schema.ResourceData, props *[]apimanage
 			// certificate password isn't returned, so let's look it up
 			passwKey := fmt.Sprintf("certificate.%d.certificate_password", i)
 			if v, ok := d.GetOk(passwKey); ok {
-				password := v.(string)
-				certificate["certificate_password"] = password
+				certificate["certificate_password"] = v.(string)
 			}
 
 			// encoded certificate isn't returned, so let's look it up
 			certKey := fmt.Sprintf("certificate.%d.encoded_certificate", i)
 			if v, ok := d.GetOk(certKey); ok {
-				cert := v.(string)
-				certificate["encoded_certificate"] = cert
+				certificate["encoded_certificate"] = v.(string)
 			}
 
 			certificates = append(certificates, certificate)
@@ -682,13 +659,13 @@ func flattenApiManagementAdditionalLocations(props *[]apimanagement.AdditionalLo
 func flattenApiManagementHostnameConfigurations(d *schema.ResourceData, configs *[]apimanagement.HostnameConfiguration) []interface{} {
 	host_configs := make([]interface{}, 0)
 
+	// stateOld := d.Get("hostname_configuration").([]interface{})
+
 	if configs != nil {
 		for i, config := range *configs {
 			host_config := make(map[string]interface{}, 0)
 
-			if config.Type != "" {
-				host_config["type"] = string(config.Type)
-			}
+			host_config["type"] = string(config.Type)
 
 			if config.HostName != nil {
 				host_config["host_name"] = *config.HostName
@@ -705,15 +682,13 @@ func flattenApiManagementHostnameConfigurations(d *schema.ResourceData, configs 
 			// certificate password isn't returned, so let's look it up
 			passKey := fmt.Sprintf("hostname_configuration.%d.certificate_password", i)
 			if v, ok := d.GetOk(passKey); ok {
-				password := v.(string)
-				host_config["certificate_password"] = password
+				host_config["certificate_password"] = v.(string)
 			}
 
 			// encoded certificate isn't returned, so let's look it up
 			certKey := fmt.Sprintf("hostname_configuration.%d.certificate", i)
 			if v, ok := d.GetOk(certKey); ok {
-				cert := v.(string)
-				host_config["certificate"] = cert
+				host_config["certificate"] = v.(string)
 			}
 
 			host_configs = append(host_configs, host_config)
@@ -724,7 +699,6 @@ func flattenApiManagementHostnameConfigurations(d *schema.ResourceData, configs 
 }
 
 func flattenApiManagementServiceSku(profile *apimanagement.ServiceSkuProperties) []interface{} {
-	skus := make([]interface{}, 0)
 	sku := make(map[string]interface{}, 0)
 
 	if profile != nil {
@@ -735,39 +709,7 @@ func flattenApiManagementServiceSku(profile *apimanagement.ServiceSkuProperties)
 		if profile.Capacity != nil {
 			sku["capacity"] = *profile.Capacity
 		}
-
-		skus = append(skus, sku)
 	}
 
-	return skus
-}
-
-func validateApiManagementName(v interface{}, k string) (ws []string, es []error) {
-	value := v.(string)
-
-	if matched := regexp.MustCompile(`^[0-9a-zA-Z-]{1,50}$`).Match([]byte(value)); !matched {
-		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters and dashes up to 50 characters in length", k))
-	}
-
-	return
-}
-
-func validateApiManagementPublisherName(v interface{}, k string) (ws []string, es []error) {
-	value := v.(string)
-
-	if matched := regexp.MustCompile(`^[\S*]{1,100}$`).Match([]byte(value)); !matched {
-		es = append(es, fmt.Errorf("%q may only be up to 100 characters in length", k))
-	}
-
-	return
-}
-
-func validateApiManagementPublisherEmail(v interface{}, k string) (ws []string, es []error) {
-	value := v.(string)
-
-	if matched := regexp.MustCompile(`^[\S*]{1,100}$`).Match([]byte(value)); !matched {
-		es = append(es, fmt.Errorf("%q may only be up to 100 characters in length", k))
-	}
-
-	return
+	return []interface{}{sku}
 }
