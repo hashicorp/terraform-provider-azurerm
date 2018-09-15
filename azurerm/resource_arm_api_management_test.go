@@ -76,6 +76,31 @@ func TestAccAzureRMApiManagement_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMApiManagement_customProps(t *testing.T) {
+	resourceName := "azurerm_api_management.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMApiManagement_customProps(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists("azurerm_api_management.test"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMApiManagement_complete(t *testing.T) {
 	resourceName := "azurerm_api_management.test"
 	ri := acctest.RandInt()
@@ -172,6 +197,33 @@ resource "azurerm_api_management" "test" {
     name = "Developer"
   }
   location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMApiManagement_customProps(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "amtestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name            = "acctestAM-%d"
+  publisher_name  = "pub1"
+  publisher_email = "pub1@email.com"
+
+  sku {
+    name = "Developer"
+  }
+
+  security {
+    disable_frontend_tls10     = true
+    disable_triple_des_chipers = true
+  }
+
+	location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt)

@@ -139,12 +139,13 @@ func resourceArmApiManagementService() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"disable_backend_ssl30": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Default:  false,
+							Computed: false,
 						},
 						"disable_backend_tls10": {
 							Type:     schema.TypeBool,
@@ -281,7 +282,6 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 
 	custom_properties := expandApiManagementCustomProperties(d)
 
-	additional_locations := expandAzureRmApiManagementAdditionalLocations(d, sku)
 	certificates := expandAzureRmApiManagementCertificates(d)
 	hostname_configurations := expandAzureRmApiManagementHostnameConfigurations(d)
 
@@ -291,12 +291,15 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 			PublisherName:          utils.String(publisher_name),
 			PublisherEmail:         utils.String(publisher_email),
 			CustomProperties:       custom_properties,
-			AdditionalLocations:    additional_locations,
 			Certificates:           certificates,
 			HostnameConfigurations: hostname_configurations,
 		},
 		Tags: expandTags(tags),
 		Sku:  sku,
+	}
+
+	if _, ok := d.GetOk("additional_location"); ok {
+		apiManagement.ServiceProperties.AdditionalLocations = expandAzureRmApiManagementAdditionalLocations(d, sku)
 	}
 
 	if notification_sender_email != "" {
@@ -402,7 +405,10 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 }
 
 func flattenApiManagementCustomProperties(input map[string]*string) ([]interface{}, error) {
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
+
+	log.Printf("Flattening ApiManagementCustomProperties")
+	log.Printf("%v", input)
 
 	if err := setCustomPropertyFrom(input, "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30", output, "disable_backend_ssl30"); err != nil {
 		return nil, err
@@ -424,21 +430,32 @@ func flattenApiManagementCustomProperties(input map[string]*string) ([]interface
 		return nil, err
 	}
 
-	if err := setCustomPropertyFrom(input, "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11", output, "disable_frontend_tls11"); err != nil {
+	if err := setCustomPropertyFrom(input, "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168", output, "disable_frontend_tls11"); err != nil {
 		return nil, err
 	}
 
+	if err := setCustomPropertyFrom(input, "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11", output, "disable_triple_des_chipers"); err != nil {
+		return nil, err
+	}
+
+	log.Printf("%v", output)
 	return []interface{}{output}, nil
 }
 
 func setCustomPropertyFrom(input map[string]*string, path string, output map[string]interface{}, key string) error {
-	if v := input[path]; v != nil {
-		val, err := strconv.ParseBool(*v)
+	var val = false
+	var err error
+
+	v := input[path]
+
+	if v != nil {
+		val, err = strconv.ParseBool(*v)
 		if err != nil {
 			return fmt.Errorf("Error parsing `%s` %q: %+v", key, *v, err)
 		}
-		output[key] = val
 	}
+
+	output[key] = val
 
 	return nil
 }
