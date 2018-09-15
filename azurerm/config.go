@@ -138,7 +138,8 @@ type ArmClient struct {
 	iothubResourceClient devices.IotHubResourceClient
 
 	// DevTestLabs
-	devTestLabsClient dtl.LabsClient
+	devTestLabsClient            dtl.LabsClient
+	devTestVirtualNetworksClient dtl.VirtualNetworksClient
 
 	// Databases
 	mysqlConfigurationsClient                mysql.ConfigurationsClient
@@ -432,7 +433,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDeviceClients(endpoint, c.SubscriptionID, auth, sender)
-	client.registerDevTestLabsClients(endpoint, c.SubscriptionID, auth)
+	client.registerDevTestClients(endpoint, c.SubscriptionID, auth)
 	client.registerDNSClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventGridClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventHubClients(endpoint, c.SubscriptionID, auth, sender)
@@ -695,10 +696,14 @@ func (c *ArmClient) registerDeviceClients(endpoint, subscriptionId string, auth 
 	c.iothubResourceClient = iotClient
 }
 
-func (c *ArmClient) registerDevTestLabsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+func (c *ArmClient) registerDevTestClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	labsClient := dtl.NewLabsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&labsClient.Client, auth)
 	c.devTestLabsClient = labsClient
+
+	devTestVirtualNetworksClient := dtl.NewVirtualNetworksClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&devTestVirtualNetworksClient.Client, auth)
+	c.devTestVirtualNetworksClient = devTestVirtualNetworksClient
 }
 
 func (c *ArmClient) registerDNSClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
