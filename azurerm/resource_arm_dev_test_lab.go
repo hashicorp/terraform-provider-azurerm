@@ -154,7 +154,7 @@ func resourceArmDevTestLabRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("storage_type", string(props.LabStorageType))
 
 		// Computed fields
-		d.Set("artifacts_storage_account_id", props.ArtifactsStorageAccount)
+		d.Set("artifaxcts_storage_account_id", props.ArtifactsStorageAccount)
 		d.Set("default_storage_account_id", props.DefaultStorageAccount)
 		d.Set("default_premium_storage_account_id", props.DefaultPremiumStorageAccount)
 		d.Set("key_vault_id", props.VaultName)

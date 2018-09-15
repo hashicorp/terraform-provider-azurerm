@@ -89,6 +89,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_cosmosdb_account":                      dataSourceArmCosmosDBAccount(),
 			"azurerm_container_registry":                    dataSourceArmContainerRegistry(),
 			"azurerm_data_lake_store":                       dataSourceArmDataLakeStoreAccount(),
+			"azurerm_dev_test_lab":                          dataSourceArmDevTestLab(),
 			"azurerm_dns_zone":                              dataSourceArmDnsZone(),
 			"azurerm_eventhub_namespace":                    dataSourceEventHubNamespace(),
 			"azurerm_image":                                 dataSourceArmImage(),
