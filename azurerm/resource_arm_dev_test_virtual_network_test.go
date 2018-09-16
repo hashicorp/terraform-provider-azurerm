@@ -10,6 +10,34 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
+func TestValidateDevTestVirtualNetworkName(t *testing.T) {
+	validNames := []string{
+		"valid-name",
+		"valid02-name",
+		"validName1",
+		"-validname1",
+		"valid_name",
+		"double-hyphen--valid",
+	}
+	for _, v := range validNames {
+		_, errors := validateDevTestVirtualNetworkName()(v, "example")
+		if len(errors) != 0 {
+			t.Fatalf("%q should be a valid Dev Test Virtual Network Name: %q", v, errors)
+		}
+	}
+
+	invalidNames := []string{
+		"invalid!",
+		"!@£",
+	}
+	for _, v := range invalidNames {
+		_, errors := validateDevTestVirtualNetworkName()(v, "name")
+		if len(errors) == 0 {
+			t.Fatalf("%q should be an invalid Dev Test Virtual Network Name", v)
+		}
+	}
+}
+
 func TestAccAzureRMDevTestVirtualNetwork_basic(t *testing.T) {
 	resourceName := "azurerm_dev_test_virtual_network.test"
 	rInt := acctest.RandInt()

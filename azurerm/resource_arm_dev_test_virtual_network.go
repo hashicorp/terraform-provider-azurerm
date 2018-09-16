@@ -3,9 +3,11 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,17 +23,17 @@ func resourceArmDevTestVirtualNetwork() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				// TODO: name validation
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateDevTestVirtualNetworkName(),
 			},
 
 			"lab_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				// TODO: name validation
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateDevTestLabName(),
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
@@ -173,4 +175,10 @@ func resourceArmDevTestVirtualNetworkDelete(d *schema.ResourceData, meta interfa
 	}
 
 	return err
+}
+
+func validateDevTestVirtualNetworkName() schema.SchemaValidateFunc {
+	return validation.StringMatch(
+		regexp.MustCompile("^[A-Za-z0-9_-]+$"),
+		"Virtual Network Name can only include alphanumeric characters, underscores, hyphens.")
 }
