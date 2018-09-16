@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_subnet"
-sidebar_current: "docs-azurerm-resource-network-subnet"
+sidebar_current: "docs-azurerm-resource-network-subnet-x"
 description: |-
   Manages a subnet. Subnets represent network segments within the IP space defined by the virtual network.
 
@@ -52,7 +52,9 @@ The following arguments are supported:
 
 * `network_security_group_id` - (Optional) The ID of the Network Security Group to associate with the subnet.
 
-* `route_table_id` - (Optional) The ID of the Route Table to associate with the subnet.
+* `route_table_id` - (Optional / **Deprecated**) The ID of the Route Table to associate with the subnet.
+
+-> **NOTE:** Subnet <-> Route Table associations can be configured either using this field (which is now Deprecated) - or by using the `azurerm_subnet_route_table_association` resource - however not both. As this field is now Deprecated, we recommend using the `azurerm_subnet_route_table_association` to configure this association going forward.
 
 * `service_endpoints` - (Optional) The list of Service endpoints to associate with the subnet. Possible values include: `Microsoft.Storage`, `Microsoft.Sql`.
 
