@@ -256,7 +256,13 @@ func flattenLogicAppWorkflowParameters(input map[string]*logic.WorkflowParameter
 
 	for k, v := range input {
 		if v != nil {
-			output[k] = v.Value.(string)
+			// we only support string parameters at this time
+			val, ok := v.Value.(string)
+			if !ok {
+				log.Printf("[DEBUG] Skipping parameter %q since it's not a string", k)
+			}
+
+			output[k] = val
 		}
 	}
 

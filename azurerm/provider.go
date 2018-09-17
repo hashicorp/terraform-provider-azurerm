@@ -99,6 +99,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_log_analytics_workspace":               dataSourceLogAnalyticsWorkspace(),
 			"azurerm_logic_app_workflow":                    dataSourceArmLogicAppWorkflow(),
 			"azurerm_managed_disk":                          dataSourceArmManagedDisk(),
+			"azurerm_management_group":                      dataSourceArmManagementGroup(),
 			"azurerm_network_interface":                     dataSourceArmNetworkInterface(),
 			"azurerm_network_security_group":                dataSourceArmNetworkSecurityGroup(),
 			"azurerm_notification_hub":                      dataSourceNotificationHub(),
@@ -140,6 +141,8 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_automation_schedule":                     resourceArmAutomationSchedule(),
 			"azurerm_autoscale_setting":                       resourceArmAutoScaleSetting(),
 			"azurerm_availability_set":                        resourceArmAvailabilitySet(),
+			"azurerm_firewall":                                resourceArmFirewall(),
+			"azurerm_firewall_network_rule_collection":        resourceArmFirewallNetworkRuleCollection(),
 			"azurerm_cdn_endpoint":                            resourceArmCdnEndpoint(),
 			"azurerm_cdn_profile":                             resourceArmCdnProfile(),
 			"azurerm_container_registry":                      resourceArmContainerRegistry(),
@@ -197,12 +200,14 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_logic_app_workflow":                      resourceArmLogicAppWorkflow(),
 			"azurerm_managed_disk":                            resourceArmManagedDisk(),
 			"azurerm_management_lock":                         resourceArmManagementLock(),
+			"azurerm_management_group":                        resourceArmManagementGroup(),
 			"azurerm_metric_alertrule":                        resourceArmMetricAlertRule(),
 			"azurerm_monitor_action_group":                    resourceArmMonitorActionGroup(),
 			"azurerm_mysql_configuration":                     resourceArmMySQLConfiguration(),
 			"azurerm_mysql_database":                          resourceArmMySqlDatabase(),
 			"azurerm_mysql_firewall_rule":                     resourceArmMySqlFirewallRule(),
 			"azurerm_mysql_server":                            resourceArmMySqlServer(),
+			"azurerm_mysql_virtual_network_rule":              resourceArmMySqlVirtualNetworkRule(),
 			"azurerm_network_interface":                       resourceArmNetworkInterface(),
 			"azurerm_network_security_group":                  resourceArmNetworkSecurityGroup(),
 			"azurerm_network_security_rule":                   resourceArmNetworkSecurityRule(),
@@ -217,6 +222,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_postgresql_database":                     resourceArmPostgreSQLDatabase(),
 			"azurerm_postgresql_firewall_rule":                resourceArmPostgreSQLFirewallRule(),
 			"azurerm_postgresql_server":                       resourceArmPostgreSQLServer(),
+			"azurerm_postgresql_virtual_network_rule":         resourceArmPostgreSQLVirtualNetworkRule(),
 			"azurerm_public_ip":                               resourceArmPublicIp(),
 			"azurerm_relay_namespace":                         resourceArmRelayNamespace(),
 			"azurerm_recovery_services_vault":                 resourceArmRecoveryServicesVault(),
@@ -383,6 +389,7 @@ func determineAzureResourceProvidersToRegister(providerList []resources.Provider
 		"microsoft.insights":            {},
 		"Microsoft.Logic":               {},
 		"Microsoft.ManagedIdentity":     {},
+		"Microsoft.Management":          {},
 		"Microsoft.Network":             {},
 		"Microsoft.NotificationHubs":    {},
 		"Microsoft.OperationalInsights": {},
@@ -451,8 +458,7 @@ func ignoreCaseStateFunc(val interface{}) string {
 }
 
 func userDataDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
-	oldValue := userDataStateFunc(old)
-	return oldValue == new
+	return userDataStateFunc(old) == new
 }
 
 func userDataStateFunc(v interface{}) string {

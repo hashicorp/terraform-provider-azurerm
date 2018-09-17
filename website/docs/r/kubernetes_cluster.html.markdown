@@ -27,14 +27,6 @@ resource "azurerm_kubernetes_cluster" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   dns_prefix          = "acctestagent1"
 
-  linux_profile {
-    admin_username = "acctestuser1"
-
-    ssh_key {
-      key_data = "ssh-rsa ..."
-    }
-  }
-
   agent_pool_profile {
     name            = "default"
     count           = 1
@@ -180,7 +172,7 @@ The following arguments are supported:
 
 * `dns_prefix` - (Required) DNS prefix specified when creating the managed cluster.
 
-* `linux_profile` - (Required) A Linux Profile block as documented below.
+* `linux_profile` - (Optional) A Linux Profile block as documented below.
 
 * `agent_pool_profile` - (Required) One or more Agent Pool Profile's block as documented below.
 
@@ -193,6 +185,7 @@ The following arguments are supported:
 * `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS managed cluster. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade).
 
 * `network_profile` - (Optional) A Network Profile block as documented below.
+-> **NOTE:** If `network_profile` is not defined, `kubenet` profile will be used by default.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -265,7 +258,7 @@ A `network_profile` block supports the following:
 
 * `docker_bridge_cidr` - (Optional) IP address (in CIDR notation) used as the Docker bridge IP address on nodes. This is required when `network_plugin` is set to `kubenet`. Changing this forces a new resource to be created.
 
-* `pod_cidr` - (Optional) The CIDR to use for pod IP addresses. Changing this forces a new resource to be created.
+* `pod_cidr` - (Optional) The CIDR to use for pod IP addresses. This field can only be set when `network_plugin` is set to `kubenet`. Changing this forces a new resource to be created.
 
 Here's an example of configuring the `kubenet` Networking Profile:
 

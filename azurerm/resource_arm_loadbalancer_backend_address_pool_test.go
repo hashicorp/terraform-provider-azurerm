@@ -35,6 +35,13 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_basic(t *testing.T) {
 						"azurerm_lb_backend_address_pool.test", "id", backendAddressPoolId),
 				),
 			},
+			{
+				ResourceName:      "azurerm_lb.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				// location is deprecated and was never actually used
+				ImportStateVerifyIgnore: []string{"location"},
+			},
 		},
 	})
 }

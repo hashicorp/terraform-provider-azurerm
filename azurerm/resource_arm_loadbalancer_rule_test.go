@@ -91,6 +91,13 @@ func TestAccAzureRMLoadBalancerRule_basic(t *testing.T) {
 						"azurerm_lb_rule.test", "id", lbRule_id),
 				),
 			},
+			{
+				ResourceName:      "azurerm_lb.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				// location is deprecated and was never actually used
+				ImportStateVerifyIgnore: []string{"location"},
+			},
 		},
 	})
 }

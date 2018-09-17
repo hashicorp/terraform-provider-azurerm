@@ -196,6 +196,11 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 						string(web.OneFullStopTwo),
 					}, false),
 				},
+
+				"virtual_network_name": {
+					Type:     schema.TypeString,
+					Optional: true,
+				},
 			},
 		},
 	}
@@ -321,6 +326,10 @@ func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 		siteConfig.MinTLSVersion = web.SupportedTLSVersions(v.(string))
 	}
 
+	if v, ok := config["virtual_network_name"]; ok {
+		siteConfig.VnetName = utils.String(v.(string))
+	}
+
 	return siteConfig
 }
 
@@ -337,14 +346,13 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 		result["always_on"] = *input.AlwaysOn
 	}
 
+	documents := make([]string, 0)
 	if input.DefaultDocuments != nil {
-		documents := make([]string, 0)
 		for _, document := range *input.DefaultDocuments {
 			documents = append(documents, document)
 		}
-
-		result["default_documents"] = documents
 	}
+	result["default_documents"] = documents
 
 	if input.NetFrameworkVersion != nil {
 		result["dotnet_framework_version"] = *input.NetFrameworkVersion
@@ -421,6 +429,10 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.LinuxFxVersion != nil {
 		result["linux_fx_version"] = *input.LinuxFxVersion
+	}
+
+	if input.VnetName != nil {
+		result["virtual_network_name"] = *input.VnetName
 	}
 
 	result["scm_type"] = string(input.ScmType)

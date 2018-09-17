@@ -52,6 +52,27 @@ func TestAccAzureRMApplicationInsights_basicJava(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMApplicationInsights_basicMobileCenter(t *testing.T) {
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "MobileCenter")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationInsightsExists("azurerm_application_insights.test"),
+					resource.TestCheckResourceAttr("azurerm_application_insights.test", "application_type", "MobileCenter"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMApplicationInsights_basicOther(t *testing.T) {
 
 	ri := acctest.RandInt()
