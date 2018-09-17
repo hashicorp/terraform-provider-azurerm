@@ -1,12 +1,14 @@
 package azurerm
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"strconv"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2017-03-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/preview/apimanagement/mgmt/2018-06-01-preview/apimanagement"
+	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -109,11 +111,13 @@ func resourceArmApiManagementService() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 10,
+				// Set:      hashSslCert,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"encoded_certificate": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
 						},
 
 						"certificate_password": {
@@ -131,6 +135,11 @@ func resourceArmApiManagementService() *schema.Resource {
 							}, true),
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
+
+						"thumbprint": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -139,43 +148,35 @@ func resourceArmApiManagementService() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
-				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"disable_backend_ssl30": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Computed: false,
 						},
 						"disable_backend_tls10": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Default:  false,
 						},
 						"disable_backend_tls11": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Default:  false,
 						},
 						"disable_triple_des_chipers": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Default:  false,
 						},
 						"disable_frontend_ssl30": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Default:  false,
 						},
 						"disable_frontend_tls10": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Default:  false,
 						},
 						"disable_frontend_tls11": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Default:  false,
 						},
 					},
 				},
@@ -207,6 +208,7 @@ func resourceArmApiManagementService() *schema.Resource {
 						"certificate": {
 							Type:         schema.TypeString,
 							Required:     true,
+							Sensitive:    true,
 							ValidateFunc: validation.NoZeroValues,
 						},
 
@@ -215,6 +217,11 @@ func resourceArmApiManagementService() *schema.Resource {
 							Required:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.NoZeroValues,
+						},
+
+						"certificate_thumbprint": {
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 
 						"default_ssl_binding": {
@@ -260,6 +267,18 @@ func resourceArmApiManagementService() *schema.Resource {
 			},
 		},
 	}
+}
+
+func hashSslCert(v interface{}) int {
+	var buf bytes.Buffer
+	m := v.(map[string]interface{})
+
+	buf.WriteString(fmt.Sprintf("%s-", m["thumbprint"].(string)))
+	// buf.WriteString(fmt.Sprintf("%s-", m["encoded_certificate"].(string)))
+	buf.WriteString(fmt.Sprintf("%s-", m["store_name"].(string)))
+	// buf.WriteString(fmt.Sprintf("%s-", m["encoded_certificate"].(string)))
+
+	return hashcode.String(buf.String())
 }
 
 func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -369,15 +388,17 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		d.Set("portal_url", props.PortalURL)
 		d.Set("management_api_url", props.ManagementAPIURL)
 		d.Set("scm_url", props.ScmURL)
-		d.Set("static_ips", props.StaticIps)
+		d.Set("static_ips", props.PublicIPAddresses)
 
 		customProps, err := flattenApiManagementCustomProperties(props.CustomProperties)
 		if err != nil {
 			return err
 		}
 
-		if err := d.Set("security", customProps); err != nil {
-			return fmt.Errorf("Error setting `security`: %+v", err)
+		if customProps != nil {
+			if err := d.Set("security", customProps); err != nil {
+				return fmt.Errorf("Error setting `security`: %+v", err)
+			}
 		}
 
 		if err := d.Set("hostname_configuration", flattenApiManagementHostnameConfigurations(d, props.HostnameConfigurations)); err != nil {
@@ -400,62 +421,6 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 	}
 
 	flattenAndSetTags(d, resp.Tags)
-
-	return nil
-}
-
-func flattenApiManagementCustomProperties(input map[string]*string) ([]interface{}, error) {
-	output := make(map[string]interface{})
-
-	log.Printf("Flattening ApiManagementCustomProperties")
-	log.Printf("%v", input)
-
-	if err := setCustomPropertyFrom(input, "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30", output, "disable_backend_ssl30"); err != nil {
-		return nil, err
-	}
-
-	if err := setCustomPropertyFrom(input, "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10", output, "disable_backend_tls10"); err != nil {
-		return nil, err
-	}
-
-	if err := setCustomPropertyFrom(input, "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11", output, "disable_backend_tls11"); err != nil {
-		return nil, err
-	}
-
-	if err := setCustomPropertyFrom(input, "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30", output, "disable_frontend_ssl30"); err != nil {
-		return nil, err
-	}
-
-	if err := setCustomPropertyFrom(input, "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10", output, "disable_frontend_tls10"); err != nil {
-		return nil, err
-	}
-
-	if err := setCustomPropertyFrom(input, "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168", output, "disable_frontend_tls11"); err != nil {
-		return nil, err
-	}
-
-	if err := setCustomPropertyFrom(input, "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11", output, "disable_triple_des_chipers"); err != nil {
-		return nil, err
-	}
-
-	log.Printf("%v", output)
-	return []interface{}{output}, nil
-}
-
-func setCustomPropertyFrom(input map[string]*string, path string, output map[string]interface{}, key string) error {
-	var val = false
-	var err error
-
-	v := input[path]
-
-	if v != nil {
-		val, err = strconv.ParseBool(*v)
-		if err != nil {
-			return fmt.Errorf("Error parsing `%s` %q: %+v", key, *v, err)
-		}
-	}
-
-	output[key] = val
 
 	return nil
 }
@@ -492,36 +457,50 @@ func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*str
 	if v, ok := d.GetOk("security.0.disable_backend_ssl30"); ok {
 		val := strings.Title(strconv.FormatBool(v.(bool)))
 		customProps["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30"] = utils.String(val)
+	} else {
+		customProps["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30"] = utils.String("False")
 	}
 
 	if v, ok := d.GetOk("security.0.disable_backend_tls10"); ok {
 		val := strings.Title(strconv.FormatBool(v.(bool)))
 		customProps["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10"] = utils.String(val)
+	} else {
+		customProps["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10"] = utils.String("False")
 	}
 
 	if v, ok := d.GetOk("security.0.disable_backend_tls11"); ok {
 		val := strings.Title(strconv.FormatBool(v.(bool)))
 		customProps["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11"] = utils.String(val)
+	} else {
+		customProps["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11"] = utils.String("False")
 	}
 
 	if v, ok := d.GetOk("security.0.disable_triple_des_chipers"); ok {
 		val := strings.Title(strconv.FormatBool(v.(bool)))
 		customProps["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168"] = utils.String(val)
+	} else {
+		customProps["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168"] = utils.String("False")
 	}
 
 	if v, ok := d.GetOk("security.0.disable_frontend_ssl30"); ok {
 		val := strings.Title(strconv.FormatBool(v.(bool)))
 		customProps["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30"] = utils.String(val)
+	} else {
+		customProps["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30"] = utils.String("False")
 	}
 
 	if v, ok := d.GetOk("security.0.disable_frontend_tls10"); ok {
 		val := strings.Title(strconv.FormatBool(v.(bool)))
 		customProps["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10"] = utils.String(val)
+	} else {
+		customProps["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10"] = utils.String("False")
 	}
 
 	if v, ok := d.GetOk("security.0.disable_frontend_tls11"); ok {
 		val := strings.Title(strconv.FormatBool(v.(bool)))
 		customProps["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11"] = utils.String(val)
+	} else {
+		customProps["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11"] = utils.String("False")
 	}
 
 	return customProps
@@ -619,6 +598,44 @@ func expandAzureRmApiManagementSku(configs []interface{}) *apimanagement.Service
 	return sku
 }
 
+func flattenApiManagementCustomProperties(input map[string]*string) ([]interface{}, error) {
+	output := make(map[string]interface{}, 0)
+
+	if err := azure.SetCustomPropertyFrom(input, "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30", output, "disable_backend_ssl30"); err != nil {
+		return nil, err
+	}
+
+	if err := azure.SetCustomPropertyFrom(input, "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10", output, "disable_backend_tls10"); err != nil {
+		return nil, err
+	}
+
+	if err := azure.SetCustomPropertyFrom(input, "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11", output, "disable_backend_tls11"); err != nil {
+		return nil, err
+	}
+
+	if err := azure.SetCustomPropertyFrom(input, "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30", output, "disable_frontend_ssl30"); err != nil {
+		return nil, err
+	}
+
+	if err := azure.SetCustomPropertyFrom(input, "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10", output, "disable_frontend_tls10"); err != nil {
+		return nil, err
+	}
+
+	if err := azure.SetCustomPropertyFrom(input, "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11", output, "disable_frontend_tls11"); err != nil {
+		return nil, err
+	}
+
+	if err := azure.SetCustomPropertyFrom(input, "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168", output, "disable_triple_des_chipers"); err != nil {
+		return nil, err
+	}
+
+	if len(output) > 0 {
+		return []interface{}{output}, nil
+	}
+
+	return nil, nil
+}
+
 func flattenApiManagementCertificates(d *schema.ResourceData, props *[]apimanagement.CertificateConfiguration) []interface{} {
 	certificates := make([]interface{}, 0)
 
@@ -627,6 +644,7 @@ func flattenApiManagementCertificates(d *schema.ResourceData, props *[]apimanage
 			certificate := make(map[string]interface{}, 0)
 
 			certificate["store_name"] = string(prop.StoreName)
+			certificate["thumbprint"] = *prop.Certificate.Thumbprint
 
 			// certificate password isn't returned, so let's look it up
 			passwKey := fmt.Sprintf("certificate.%d.certificate_password", i)
@@ -658,8 +676,8 @@ func flattenApiManagementAdditionalLocations(props *[]apimanagement.AdditionalLo
 				additional_location["location"] = *prop.Location
 			}
 
-			if prop.StaticIps != nil {
-				additional_location["static_ips"] = *prop.StaticIps
+			if prop.PublicIPAddresses != nil {
+				additional_location["static_ips"] = *prop.PublicIPAddresses
 			}
 
 			if prop.GatewayRegionalURL != nil {
@@ -694,6 +712,10 @@ func flattenApiManagementHostnameConfigurations(d *schema.ResourceData, configs 
 
 			if config.NegotiateClientCertificate != nil {
 				host_config["negotiate_client_certificate"] = bool(*config.NegotiateClientCertificate)
+			}
+
+			if config.Certificate != nil {
+				host_config["certificate_thumbprint"] = *config.Certificate.Thumbprint
 			}
 
 			// certificate password isn't returned, so let's look it up

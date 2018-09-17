@@ -121,6 +121,18 @@ func TestAccAzureRMApiManagement_complete(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"certificate.0.certificate_password",            // not returned, sensitive
+					"certificate.0.encoded_certificate",             // not returned, sensitive
+					"certificate.1.certificate_password",            // not returned, sensitive
+					"certificate.1.encoded_certificate",             // not returned, sensitive
+					"hostname_configuration.0.certificate",          // not returned, sensitive
+					"hostname_configuration.0.certificate_password", // not returned, sensitive
+					"hostname_configuration.1.certificate",          // not returned, sensitive
+					"hostname_configuration.1.certificate_password", // not returned, sensitive
+					"hostname_configuration.2.certificate",          // not returned, sensitive
+					"hostname_configuration.2.certificate_password", // not returned, sensitive
+				},
 			},
 		},
 	})

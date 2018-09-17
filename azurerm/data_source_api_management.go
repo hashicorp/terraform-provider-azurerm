@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2017-03-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/preview/apimanagement/mgmt/2018-06-01-preview/apimanagement"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -229,15 +229,17 @@ func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("portal_url", props.PortalURL)
 		d.Set("management_api_url", props.ManagementAPIURL)
 		d.Set("scm_url", props.ScmURL)
-		d.Set("static_ips", props.StaticIps)
+		d.Set("static_ips", props.PublicIPAddresses)
 
 		customProps, err := flattenApiManagementCustomProperties(props.CustomProperties)
 		if err != nil {
 			return err
 		}
 
-		if err := d.Set("security", customProps); err != nil {
-			return fmt.Errorf("Error setting `security`: %+v", err)
+		if customProps != nil {
+			if err := d.Set("security", customProps); err != nil {
+				return fmt.Errorf("Error setting `security`: %+v", err)
+			}
 		}
 
 		if err := d.Set("hostname_configuration", flattenApiManagementHostnameConfigurations(d, props.HostnameConfigurations)); err != nil {
@@ -350,8 +352,8 @@ func flattenDataSourceApiManagementAdditionalLocations(props *[]apimanagement.Ad
 				additional_location["location"] = *prop.Location
 			}
 
-			if prop.StaticIps != nil {
-				additional_location["static_ips"] = *prop.StaticIps
+			if prop.PublicIPAddresses != nil {
+				additional_location["static_ips"] = *prop.PublicIPAddresses
 			}
 
 			if prop.GatewayRegionalURL != nil {
