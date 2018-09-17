@@ -3,14 +3,6 @@
 	"ignore": "test",
 	"package": [
 		{
-			"checksumSHA1": "MX5F5vTZ/zykt0UcvCEgNSCe9rw=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2017-03-01/apimanagement",
-			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
-			"revisionTime": "2018-07-03T19:15:42Z",
-			"version": "=v18.0.0",
-			"versionExact": "v18.0.0"
-		},
-		{
 			"checksumSHA1": "xeK+ux8fKSSJJVW04/TE9yQFfGs=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights",
 			"revision": "6d20bdbae88c06c36d72eb512295417693bfdf4e",
