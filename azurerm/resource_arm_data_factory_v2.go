@@ -148,12 +148,6 @@ func resourceArmDataFactoryV2CreateOrUpdate(d *schema.ResourceData, meta interfa
 		Tags:     expandTags(tags),
 	}
 
-	if hasRepo, repo := expandArmDataFactoryV2RepoConfiguration(d); hasRepo {
-		dataFactory.FactoryProperties = &datafactory.FactoryProperties{
-			RepoConfiguration: repo,
-		}
-	}
-
 	if v, ok := d.GetOk("identity.0.type"); ok {
 		identityType := v.(string)
 		dataFactory.Identity = &datafactory.FactoryIdentity{
@@ -173,6 +167,17 @@ func resourceArmDataFactoryV2CreateOrUpdate(d *schema.ResourceData, meta interfa
 
 	if resp.ID == nil {
 		return fmt.Errorf("Cannot read Data Factory %s (resource group %s) ID", name, resourceGroup)
+	}
+
+	if hasRepo, repo := expandArmDataFactoryV2RepoConfiguration(d); hasRepo {
+		repoUpdate := datafactory.FactoryRepoUpdate{
+			FactoryResourceID: resp.ID,
+			RepoConfiguration: repo,
+		}
+		_, err = client.ConfigureFactoryRepo(ctx, location, repoUpdate)
+		if err != nil {
+			return err
+		}
 	}
 
 	d.SetId(*resp.ID)
