@@ -35,16 +35,25 @@ resource "azurerm_container_group" "aci-example" {
   os_type             = "linux"
 
   volume {
-    name       = "emptydir"
-    mount_path = "/aci/emptydir"
-    empty_dir {}
+    name      = "emptydir"
+    empty_dir = {}
   }
 
   volume {
-    name       = "gitrepo"
-    mount_path = "/aci/gitrepo"
+    name = "azureshare"
+
+    azure_share {
+      share_name           = "${azurerm_storage_share.aci-share.name}"
+      storage_account_name = "${azurerm_storage_account.aci-sa.name}"
+      storage_account_key  = "${azurerm_storage_account.aci-sa.primary_access_key}"
+    }
+  }
+
+  volume {
+    name = "gitrepo"
+
     git_repo {
-      url = "https://github.com/Azure-Samples/aci-tutorial-sidecar"
+      repository = "https://github.com/Azure-Samples/aci-tutorial-sidecar"
     }
   }
 
@@ -57,32 +66,38 @@ resource "azurerm_container_group" "aci-example" {
     protocol = "tcp"
 
     volume_mount {
-      name       = "emptydir"
-      mount_path = "/aci/empty"
-      read_only  = false
+      volume_name = "emptydir"
+      mount_path  = "/aci/empty"
     }
 
     volume_mount {
-      name       = "gitrepo"
-      mount_path = "/aci/gitrepo"
-      read_only  = false
+      volume_name = "gitrepo"
+      mount_path  = "/aci/gitrepo"
     }
   }
 
   container {
-    name     = "sidecar"
-    image    = "seanmckenna/aci-hellofiles"
+    name   = "sidecar"
+    image  = "seanmckenna/aci-hellofiles"
+    cpu    = "1"
+    memory = "1.5"
 
     volume_mount {
-      name       = "emptydir"
-      mount_path = "/another_mount_point/empty"
-      read_only  = false
+      volume_name = "emptydir"
+      mount_path  = "/empty"
+      read_only   = false
     }
 
     volume_mount {
-      name       = "gitrepo"
-      mount_path = "/another_mount_point/gitrepo"
-      read_only  = false
+      volume_name = "gitrepo"
+      mount_path  = "/gitrepo"
+      read_only   = false
+    }
+
+    volume_mount {
+      volume_name = "azureshare"
+      mount_path  = "/azureshare"
+      read_only   = false
     }
   }
 

@@ -116,15 +116,15 @@ func resourceArmContainerGroup() *schema.Resource {
 			},
 
 			"volume": {
-				Type:         schema.TypeList,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validateArmContainerGroupVolume,
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
 				Elem: &schema.Resource{
+
 					Schema: map[string]*schema.Schema{
 						"empty_dir": {
 							Type:     schema.TypeList,
-							Required: false,
+							Optional: true,
 							ForceNew: true,
 							MaxItems: 1,
 							Elem:     &schema.Resource{},
@@ -132,7 +132,7 @@ func resourceArmContainerGroup() *schema.Resource {
 
 						"secret": {
 							Type:     schema.TypeList,
-							Required: false,
+							Optional: true,
 							ForceNew: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
@@ -154,14 +154,19 @@ func resourceArmContainerGroup() *schema.Resource {
 
 						"git_repo": {
 							Type:     schema.TypeList,
-							Required: false,
+							Optional: true,
 							ForceNew: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"url": {
+									"repository": {
 										Type:     schema.TypeString,
 										Required: true,
+										ForceNew: true,
+									},
+									"directory": {
+										Type:     schema.TypeString,
+										Optional: true,
 										ForceNew: true,
 									},
 								},
@@ -170,7 +175,7 @@ func resourceArmContainerGroup() *schema.Resource {
 
 						"azure_share": {
 							Type:     schema.TypeList,
-							Required: false,
+							Optional: true,
 							ForceNew: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
@@ -276,10 +281,9 @@ func resourceArmContainerGroup() *schema.Resource {
 						},
 
 						"volume_mount": {
-							Type:         schema.TypeList,
-							Optional:     true,
-							ForceNew:     true,
-							ValidateFunc: validateArmContainerGroupVolume,
+							Type:     schema.TypeList,
+							Optional: true,
+							ForceNew: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"volume_name": {
@@ -310,43 +314,6 @@ func resourceArmContainerGroup() *schema.Resource {
 	}
 }
 
-func validateArmContainerGroupVolume(v interface{}, k string) (ws []string, errors []error) {
-	volumesRaw := v.([]interface{})
-	for _, volumeRaw := range volumesRaw {
-		volumeConfig := volumeRaw.(map[string]interface{})
-
-		volumeTypeCount := 0
-		_, azureShareExists := volumeConfig["azure_share"]
-		if azureShareExists {
-			volumeTypeCount++
-		}
-
-		_, gitRepoExists := volumeConfig["git_repo"]
-		if gitRepoExists {
-			volumeTypeCount++
-		}
-
-		_, secretExists := volumeConfig["secret"]
-		if secretExists {
-			volumeTypeCount++
-		}
-
-		_, emptyDirExists := volumeConfig["empty_dir"]
-		if emptyDirExists {
-			volumeTypeCount++
-		}
-
-		if volumeTypeCount != 1 {
-			errors = append(errors,
-				fmt.Errorf(
-					"Only one volume type may be defined, you have more than that - azure_share: %t, git_repo: %t, secret: %t, empty_dir: %t",
-					azureShareExists, gitRepoExists, secretExists, emptyDirExists))
-		}
-	}
-
-	return
-}
-
 func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
 	containerGroupsClient := meta.(*ArmClient).containerGroupsClient
@@ -360,7 +327,11 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	restartPolicy := d.Get("restart_policy").(string)
 
 	containers, containerGroupPorts := expandContainerGroupContainers(d)
-	containerGroupVolumes := expandContainerVolumes(d)
+	containerGroupVolumes, err := expandContainerVolumes(d)
+	if err != nil {
+		return err
+	}
+
 	containerGroup := containerinstance.ContainerGroup{
 		Name:     &name,
 		Location: &location,
@@ -382,7 +353,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 		containerGroup.ContainerGroupProperties.IPAddress.DNSNameLabel = &dnsNameLabel
 	}
 
-	_, err := containerGroupsClient.CreateOrUpdate(ctx, resGroup, name, containerGroup)
+	_, err = containerGroupsClient.CreateOrUpdate(ctx, resGroup, name, containerGroup)
 	if err != nil {
 		return err
 	}
@@ -449,6 +420,10 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 
 		d.Set("restart_policy", string(props.RestartPolicy))
 		d.Set("os_type", string(props.OsType))
+
+		if err := d.Set("volume", flattenContainerVolumes(props.Volumes)); err != nil {
+			return fmt.Errorf("Error setting `volume`: %+v", err)
+		}
 	}
 	flattenAndSetTags(d, resp.Tags)
 
@@ -525,23 +500,8 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 		}
 		containerConfig["commands"] = commands
 
-		if containerGroupVolumes != nil && container.VolumeMounts != nil {
-			// Also pass in the container volume config from schema
-			var containerVolumesConfig *[]interface{}
-			containersConfigRaw := d.Get("container").([]interface{})
-			for _, containerConfigRaw := range containersConfigRaw {
-				data := containerConfigRaw.(map[string]interface{})
-				nameRaw := data["name"].(string)
-				if nameRaw == *container.Name {
-					// found container config for current container
-					// extract volume mounts from config
-					if v, ok := data["volume"]; ok {
-						containerVolumesRaw := v.([]interface{})
-						containerVolumesConfig = &containerVolumesRaw
-					}
-				}
-			}
-			containerConfig["volume"] = flattenContainerVolumes(container.VolumeMounts, containerGroupVolumes, containerVolumesConfig)
+		if container.VolumeMounts != nil {
+			containerConfig["volume_mount"] = flattenContainerVolumeMounts(container.VolumeMounts)
 		}
 
 		containerConfigs = append(containerConfigs, containerConfig)
@@ -565,7 +525,7 @@ func flattenContainerEnvironmentVariables(input *[]containerinstance.Environment
 	return output
 }
 
-func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, containerGroupVolumes *[]containerinstance.Volume, containerVolumesConfig *[]interface{}) []interface{} {
+func flattenContainerVolumeMounts(volumeMounts *[]containerinstance.VolumeMount) []interface{} {
 	volumeConfigs := make([]interface{}, 0)
 
 	if volumeMounts == nil {
@@ -575,7 +535,7 @@ func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, cont
 	for _, vm := range *volumeMounts {
 		volumeConfig := make(map[string]interface{})
 		if vm.Name != nil {
-			volumeConfig["name"] = *vm.Name
+			volumeConfig["volume_name"] = *vm.Name
 		}
 		if vm.MountPath != nil {
 			volumeConfig["mount_path"] = *vm.MountPath
@@ -583,41 +543,43 @@ func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, cont
 		if vm.ReadOnly != nil {
 			volumeConfig["read_only"] = *vm.ReadOnly
 		}
+		volumeConfigs = append(volumeConfigs, volumeConfig)
+	}
 
-		// find corresponding volume in container group volumes
-		// and use the data
-		if containerGroupVolumes != nil {
-			for _, cgv := range *containerGroupVolumes {
-				if cgv.Name == nil || vm.Name == nil {
-					continue
-				}
+	return volumeConfigs
+}
 
-				if *cgv.Name == *vm.Name {
-					if file := cgv.AzureFile; file != nil {
-						if file.ShareName != nil {
-							volumeConfig["share_name"] = *file.ShareName
-						}
-						if file.StorageAccountName != nil {
-							volumeConfig["storage_account_name"] = *file.StorageAccountName
-						}
-						// skip storage_account_key, is always nil
-					}
-				}
+func flattenContainerVolumes(containerGroupVolumes *[]containerinstance.Volume) []interface{} {
+	volumeConfigs := make([]interface{}, 0)
+
+	if containerGroupVolumes == nil {
+		return volumeConfigs
+	}
+
+	for _, volume := range *containerGroupVolumes {
+
+		volumeConfig := make(map[string]interface{})
+		if volume.AzureFile != nil {
+			azureShare := make(map[string]interface{})
+			azureShare["share_name"] = *volume.AzureFile.ShareName
+			azureShare["storage_account_name"] = *volume.AzureFile.StorageAccountName
+			// azureShare["storage_account_key"] = volume.AzureFile.StorageAccountKey
+			volumeConfig["azure_share"] = []interface{}{
+				azureShare,
 			}
 		}
 
-		// find corresponding volume in config
-		// and use the data
-		if containerVolumesConfig != nil {
-			for _, cvr := range *containerVolumesConfig {
-				cv := cvr.(map[string]interface{})
-				rawName := cv["name"].(string)
-				if vm.Name != nil && *vm.Name == rawName {
-					storageAccountKey := cv["storage_account_key"].(string)
-					volumeConfig["storage_account_key"] = storageAccountKey
-				}
-			}
-		}
+		// if volume.EmptyDir != nil {
+		// 	volumeConfig["empty_dir"] = map[string]string{}
+		// }
+
+		// if volume.GitRepo != nil {
+
+		// }
+
+		// if volume.Secret != nil {
+
+		// }
 
 		volumeConfigs = append(volumeConfigs, volumeConfig)
 	}
@@ -773,27 +735,76 @@ func flattenContainerImageRegistryCredentials(d *schema.ResourceData, input *[]c
 	return output
 }
 
-func expandContainerVolumes(d *schema.ResourceData) *[]containerinstance.Volume {
+func validateArmContainerGroupVolumeVolumeExists(volume map[string]interface{}, name string) (map[string]interface{}, bool) {
+	if volumeList := volume[name]; len(volumeList.([]interface{})) > 0 {
+		if volumeItem := volumeList.([]interface{})[0]; volumeItem != nil {
+			return volumeItem.(map[string]interface{}), true
+		}
+	}
+	return nil, false
+}
+
+func validateArmContainerGroupVolume(v interface{}) (errors []error) {
+	volumesRaw := v.([]interface{})
+	for _, volumeRaw := range volumesRaw {
+		volumeConfig := volumeRaw.(map[string]interface{})
+
+		volumeTypeCount := 0
+		var azureShareExists, gitRepoExists, secretExists, emptyDirExists bool
+
+		if _, exists := validateArmContainerGroupVolumeVolumeExists(volumeConfig, "azure_share"); exists {
+			volumeTypeCount++
+			azureShareExists = true
+		} else if _, exists := validateArmContainerGroupVolumeVolumeExists(volumeConfig, "git_repo"); exists {
+			volumeTypeCount++
+			gitRepoExists = true
+		} else if _, exists := validateArmContainerGroupVolumeVolumeExists(volumeConfig, "secret"); exists {
+			volumeTypeCount++
+			secretExists = true
+		} else {
+			//default to using empty_dir
+			volumeTypeCount++
+			emptyDirExists = true
+
+		}
+
+		if volumeTypeCount != 1 {
+			errors = append(errors,
+				fmt.Errorf(
+					"validation failed for volume: '%v'. Only one volume type may be defined. It has azure_share: %t, git_repo: %t, secret: %t, empty_dir: %t",
+					volumeConfig["name"], azureShareExists, gitRepoExists, secretExists, emptyDirExists))
+		}
+	}
+
+	return
+}
+
+func expandContainerVolumes(d *schema.ResourceData) (*[]containerinstance.Volume, error) {
 	volumesRaw := d.Get("volume").([]interface{})
 
 	if len(volumesRaw) == 0 {
-		return nil
+		return nil, nil
+	}
+
+	errors := validateArmContainerGroupVolume(volumesRaw)
+	if len(errors) > 0 {
+		return nil, fmt.Errorf("invalid volume configuration: %+v", errors)
 	}
 
 	containerGroupVolumes := make([]containerinstance.Volume, 0)
 
 	for _, volumeRaw := range volumesRaw {
 		volumeConfig := volumeRaw.(map[string]interface{})
-		name := volumeConfig["name"].(string)
 
-		if azureShareRaw, exists := volumeConfig["azure_share"]; exists {
-			azureShare := azureShareRaw.([]interface{})[0].(map[string]interface{})
+		name := utils.String(volumeConfig["name"].(string))
+
+		if azureShare, exists := validateArmContainerGroupVolumeVolumeExists(volumeConfig, "azure_share"); exists {
 			shareName := azureShare["share_name"].(string)
 			storageAccountName := azureShare["storage_account_name"].(string)
 			storageAccountKey := azureShare["storage_account_key"].(string)
 
 			cv := containerinstance.Volume{
-				Name: utils.String(name),
+				Name: name,
 				AzureFile: &containerinstance.AzureFileVolume{
 					ShareName:          utils.String(shareName),
 					StorageAccountName: utils.String(storageAccountName),
@@ -804,9 +815,32 @@ func expandContainerVolumes(d *schema.ResourceData) *[]containerinstance.Volume 
 			containerGroupVolumes = append(containerGroupVolumes, cv)
 			continue
 		}
+
+		if gitRepo, exists := validateArmContainerGroupVolumeVolumeExists(volumeConfig, "git_repo"); exists {
+			repository := gitRepo["repository"].(string)
+			directory := gitRepo["directory"].(string)
+
+			cv := containerinstance.Volume{
+				Name: name,
+				GitRepo: &containerinstance.GitRepoVolume{
+					Repository: utils.String(repository),
+					Directory:  utils.String(directory),
+				},
+			}
+
+			containerGroupVolumes = append(containerGroupVolumes, cv)
+			continue
+		}
+
+		//default to empty_dir
+		containerGroupVolumes = append(containerGroupVolumes, containerinstance.Volume{
+			Name: name,
+			// Note: object needs to be initialized for call to succeed but doesn't need to contain anything.
+			EmptyDir: map[string]string{},
+		})
 	}
 
-	return &containerGroupVolumes
+	return &containerGroupVolumes, nil
 }
 
 func expandContainerVolumeMounts(input interface{}) *[]containerinstance.VolumeMount {
@@ -820,7 +854,7 @@ func expandContainerVolumeMounts(input interface{}) *[]containerinstance.VolumeM
 
 	for _, mountRaw := range volumeMountsRaw {
 		volumeMountConfig := mountRaw.(map[string]interface{})
-		name := volumeMountConfig["name"].(string)
+		name := volumeMountConfig["volume_name"].(string)
 		mountPath := volumeMountConfig["mount_path"].(string)
 		readOnly := volumeMountConfig["read_only"].(bool)
 
