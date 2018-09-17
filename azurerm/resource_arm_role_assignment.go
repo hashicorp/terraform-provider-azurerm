@@ -3,10 +3,12 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"net/url"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -182,6 +184,12 @@ func validateRoleDefinitionName(i interface{}, k string) ([]string, []error) {
 }
 
 func retryRoleAssignmentsClient(scope string, name string, properties authorization.RoleAssignmentCreateParameters, meta interface{}) func() *resource.RetryError {
+	urlErrorIsRetryable := func(err *url.Error) bool {
+		if err.Temporary() || err.Timeout() {
+			return true
+		}
+		return false
+	}
 
 	return func() *resource.RetryError {
 		roleAssignmentsClient := meta.(*ArmClient).roleAssignmentsClient
@@ -190,7 +198,18 @@ func retryRoleAssignmentsClient(scope string, name string, properties authorizat
 		_, err := roleAssignmentsClient.Create(ctx, scope, name, properties)
 
 		if err != nil {
-			return resource.RetryableError(err)
+			// Error is retryable only if it is a temporary error or timeout
+			switch e := err.(type) {
+			case autorest.DetailedError:
+				if ue, ok := e.Original.(*url.Error); ok && urlErrorIsRetryable(ue) {
+					return resource.RetryableError(err)
+				}
+			case *url.Error:
+				if urlErrorIsRetryable(e) {
+					return resource.RetryableError(err)
+				}
+			}
+			return resource.NonRetryableError(err)
 		}
 		return nil
 
