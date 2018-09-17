@@ -42,9 +42,10 @@ func resourceArmSubnet() *schema.Resource {
 			},
 
 			"network_security_group_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				// TODO: split out resource for this association too
+				Type:       schema.TypeString,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: "Use the `azurerm_subnet_network_security_group_association` resource instead.",
 			},
 
 			"route_table_id": {

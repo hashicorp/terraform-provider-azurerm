@@ -50,7 +50,9 @@ The following arguments are supported:
 
 * `address_prefix` - (Required) The address prefix to use for the subnet.
 
-* `network_security_group_id` - (Optional) The ID of the Network Security Group to associate with the subnet.
+* `network_security_group_id` - (Optional / **Deprecated**) The ID of the Network Security Group to associate with the subnet.
+
+-> **NOTE:** Subnet <-> Network Security Group associations can be configured either using this field (which is now Deprecated) - or by using the `azurerm_subnet_network_security_group_association` resource - however not both. As this field is now Deprecated, we recommend using the `azurerm_subnet_network_security_group_association` to configure this association going forward.
 
 * `route_table_id` - (Optional / **Deprecated**) The ID of the Route Table to associate with the subnet.
 
