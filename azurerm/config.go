@@ -141,6 +141,7 @@ type ArmClient struct {
 	mysqlDatabasesClient                     mysql.DatabasesClient
 	mysqlFirewallRulesClient                 mysql.FirewallRulesClient
 	mysqlServersClient                       mysql.ServersClient
+	mysqlVirtualNetworkRulesClient           mysql.VirtualNetworkRulesClient
 	postgresqlConfigurationsClient           postgresql.ConfigurationsClient
 	postgresqlDatabasesClient                postgresql.DatabasesClient
 	postgresqlFirewallRulesClient            postgresql.FirewallRulesClient
@@ -184,6 +185,7 @@ type ArmClient struct {
 	// Networking
 	applicationGatewayClient        network.ApplicationGatewaysClient
 	applicationSecurityGroupsClient network.ApplicationSecurityGroupsClient
+	azureFirewallsClient            network.AzureFirewallsClient
 	expressRouteAuthsClient         network.ExpressRouteCircuitAuthorizationsClient
 	expressRouteCircuitClient       network.ExpressRouteCircuitsClient
 	expressRoutePeeringsClient      network.ExpressRouteCircuitPeeringsClient
@@ -602,6 +604,10 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	c.configureClient(&mysqlServersClient.Client, auth)
 	c.mysqlServersClient = mysqlServersClient
 
+	mysqlVirtualNetworkRulesClient := mysql.NewVirtualNetworkRulesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&mysqlVirtualNetworkRulesClient.Client, auth)
+	c.mysqlVirtualNetworkRulesClient = mysqlVirtualNetworkRulesClient
+
 	// PostgreSQL
 	postgresqlConfigClient := postgresql.NewConfigurationsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&postgresqlConfigClient.Client, auth)
@@ -752,6 +758,10 @@ func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, a
 	appSecurityGroupsClient := network.NewApplicationSecurityGroupsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&appSecurityGroupsClient.Client, auth)
 	c.applicationSecurityGroupsClient = appSecurityGroupsClient
+
+	azureFirewallsClient := network.NewAzureFirewallsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&azureFirewallsClient.Client, auth)
+	c.azureFirewallsClient = azureFirewallsClient
 
 	expressRouteAuthsClient := network.NewExpressRouteCircuitAuthorizationsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&expressRouteAuthsClient.Client, auth)

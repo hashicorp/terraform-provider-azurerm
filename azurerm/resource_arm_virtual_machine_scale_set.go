@@ -479,8 +479,9 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 							Computed:      true,
 							ConflictsWith: []string{"storage_profile_os_disk.vhd_containers"},
 							ValidateFunc: validation.StringInSlice([]string{
-								string(compute.PremiumLRS),
-								string(compute.StandardLRS),
+								string(compute.StorageAccountTypesPremiumLRS),
+								string(compute.StorageAccountTypesStandardLRS),
+								string(compute.StorageAccountTypesStandardSSDLRS),
 							}, true),
 						},
 
@@ -537,8 +538,9 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 							Optional: true,
 							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(compute.PremiumLRS),
-								string(compute.StandardLRS),
+								string(compute.StorageAccountTypesPremiumLRS),
+								string(compute.StorageAccountTypesStandardLRS),
+								string(compute.StorageAccountTypesStandardSSDLRS),
 							}, true),
 						},
 					},

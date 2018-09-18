@@ -91,7 +91,7 @@ func TestAccDataSourceAzureRMBuiltInRoleDefinition_virtualMachineContributor(t *
 					resource.TestCheckResourceAttrSet(dataSourceName, "description"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "type"),
 					resource.TestCheckResourceAttr(dataSourceName, "permissions.#", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.actions.#", "37"),
+					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.actions.#", "38"),
 					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.actions.0", "Microsoft.Authorization/*/read"),
 					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.actions.15", "Microsoft.Network/networkSecurityGroups/join/action"),
 					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.not_actions.#", "0"),

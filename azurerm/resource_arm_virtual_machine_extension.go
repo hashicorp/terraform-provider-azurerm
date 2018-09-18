@@ -188,9 +188,6 @@ func resourceArmVirtualMachineExtensionsRead(d *schema.ResourceData, meta interf
 		}
 	}
 
-	if resp.VirtualMachineExtensionProperties.Settings != nil {
-	}
-
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil

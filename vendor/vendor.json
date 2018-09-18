@@ -373,74 +373,74 @@
 		{
 			"checksumSHA1": "1Y2+bSzYrdPHQqRjR1OrBMHAvxY=",
 			"path": "github.com/Azure/go-autorest/autorest",
-			"revision": "a35eae345f69bbfbe3b8fa0b1d3fe98f8430b21a",
-			"revisionTime": "2018-08-30T19:44:05Z",
-			"version": "v10.15.3",
-			"versionExact": "v10.15.3"
+			"revision": "a88c19ef2016e095f0b6c3b451074b4663f53bed",
+			"revisionTime": "2018-09-11T16:08:53Z",
+			"version": "v10.15.4",
+			"versionExact": "v10.15.4"
 		},
 		{
 			"checksumSHA1": "GxL0HHpZDj2milPhR3SPV6MWLPc=",
 			"path": "github.com/Azure/go-autorest/autorest/adal",
-			"revision": "a35eae345f69bbfbe3b8fa0b1d3fe98f8430b21a",
-			"revisionTime": "2018-08-30T19:44:05Z",
-			"version": "v10.15.3",
-			"versionExact": "v10.15.3"
+			"revision": "a88c19ef2016e095f0b6c3b451074b4663f53bed",
+			"revisionTime": "2018-09-11T16:08:53Z",
+			"version": "v10.15.4",
+			"versionExact": "v10.15.4"
 		},
 		{
-			"checksumSHA1": "GtY6Y3+F3862tfRZJ3r1FC+/tRE=",
+			"checksumSHA1": "iabndyKiv9sLDixJh4izKt7Nniw=",
 			"path": "github.com/Azure/go-autorest/autorest/azure",
-			"revision": "a35eae345f69bbfbe3b8fa0b1d3fe98f8430b21a",
-			"revisionTime": "2018-08-30T19:44:05Z",
-			"version": "v10.15.3",
-			"versionExact": "v10.15.3"
+			"revision": "a88c19ef2016e095f0b6c3b451074b4663f53bed",
+			"revisionTime": "2018-09-11T16:08:53Z",
+			"version": "v10.15.4",
+			"versionExact": "v10.15.4"
 		},
 		{
 			"checksumSHA1": "Fkezj7ch01wYNvXzQZdhmeSf/mk=",
 			"path": "github.com/Azure/go-autorest/autorest/azure/cli",
-			"revision": "a35eae345f69bbfbe3b8fa0b1d3fe98f8430b21a",
-			"revisionTime": "2018-08-30T19:44:05Z",
-			"version": "v10.15.3",
-			"versionExact": "v10.15.3"
+			"revision": "a88c19ef2016e095f0b6c3b451074b4663f53bed",
+			"revisionTime": "2018-09-11T16:08:53Z",
+			"version": "v10.15.4",
+			"versionExact": "v10.15.4"
 		},
 		{
 			"checksumSHA1": "9nXCi9qQsYjxCeajJKWttxgEt0I=",
 			"path": "github.com/Azure/go-autorest/autorest/date",
-			"revision": "a35eae345f69bbfbe3b8fa0b1d3fe98f8430b21a",
-			"revisionTime": "2018-08-30T19:44:05Z",
-			"version": "v10.15.3",
-			"versionExact": "v10.15.3"
+			"revision": "a88c19ef2016e095f0b6c3b451074b4663f53bed",
+			"revisionTime": "2018-09-11T16:08:53Z",
+			"version": "v10.15.4",
+			"versionExact": "v10.15.4"
 		},
 		{
 			"checksumSHA1": "SbBb2GcJNm5GjuPKGL2777QywR4=",
 			"path": "github.com/Azure/go-autorest/autorest/to",
-			"revision": "a35eae345f69bbfbe3b8fa0b1d3fe98f8430b21a",
-			"revisionTime": "2018-08-30T19:44:05Z",
-			"version": "v10.15.3",
-			"versionExact": "v10.15.3"
+			"revision": "a88c19ef2016e095f0b6c3b451074b4663f53bed",
+			"revisionTime": "2018-09-11T16:08:53Z",
+			"version": "v10.15.4",
+			"versionExact": "v10.15.4"
 		},
 		{
 			"checksumSHA1": "HjdLfAF3oA2In8F3FKh/Y+BPyXk=",
 			"path": "github.com/Azure/go-autorest/autorest/validation",
-			"revision": "a35eae345f69bbfbe3b8fa0b1d3fe98f8430b21a",
-			"revisionTime": "2018-08-30T19:44:05Z",
-			"version": "v10.15.3",
-			"versionExact": "v10.15.3"
+			"revision": "a88c19ef2016e095f0b6c3b451074b4663f53bed",
+			"revisionTime": "2018-09-11T16:08:53Z",
+			"version": "v10.15.4",
+			"versionExact": "v10.15.4"
 		},
 		{
 			"checksumSHA1": "b2lrPJRxf+MEfmMafN40wepi5WM=",
 			"path": "github.com/Azure/go-autorest/logger",
-			"revision": "a35eae345f69bbfbe3b8fa0b1d3fe98f8430b21a",
-			"revisionTime": "2018-08-30T19:44:05Z",
-			"version": "v10.15.3",
-			"versionExact": "v10.15.3"
+			"revision": "a88c19ef2016e095f0b6c3b451074b4663f53bed",
+			"revisionTime": "2018-09-11T16:08:53Z",
+			"version": "v10.15.4",
+			"versionExact": "v10.15.4"
 		},
 		{
-			"checksumSHA1": "scpSozMdk4sqSpkbQqupLKUfLiM=",
+			"checksumSHA1": "JVAdK/V4SFCsCdpRBd4hTq/Z3h4=",
 			"path": "github.com/Azure/go-autorest/version",
-			"revision": "a35eae345f69bbfbe3b8fa0b1d3fe98f8430b21a",
-			"revisionTime": "2018-08-30T19:44:05Z",
-			"version": "v10.15.3",
-			"versionExact": "v10.15.3"
+			"revision": "a88c19ef2016e095f0b6c3b451074b4663f53bed",
+			"revisionTime": "2018-09-11T16:08:53Z",
+			"version": "v10.15.4",
+			"versionExact": "v10.15.4"
 		},
 		{
 			"checksumSHA1": "jQh1fnoKPKMURvKkpdRjN695nAQ=",

@@ -41,6 +41,7 @@ func resourceArmManagedDisk() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.StorageAccountTypesStandardLRS),
 					string(compute.StorageAccountTypesPremiumLRS),
+					string(compute.StorageAccountTypesStandardSSDLRS),
 				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
@@ -124,11 +125,12 @@ func resourceArmManagedDiskCreate(d *schema.ResourceData, meta interface{}) erro
 	zones := expandZones(d.Get("zones").([]interface{}))
 
 	var skuName compute.StorageAccountTypes
-	// TODO: support for the StandardSSD
 	if strings.EqualFold(storageAccountType, string(compute.StorageAccountTypesPremiumLRS)) {
 		skuName = compute.StorageAccountTypesPremiumLRS
-	} else {
+	} else if strings.EqualFold(storageAccountType, string(compute.StorageAccountTypesStandardLRS)) {
 		skuName = compute.StorageAccountTypesStandardLRS
+	} else if strings.EqualFold(storageAccountType, string(compute.StorageAccountTypesStandardSSDLRS)) {
+		skuName = compute.StorageAccountTypesStandardSSDLRS
 	}
 
 	createDisk := compute.Disk{

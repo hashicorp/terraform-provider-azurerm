@@ -3,6 +3,8 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
+	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -60,6 +62,11 @@ func TestAccAzureRMPublicIpStatic_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "public_ip_address_allocation", "static"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -84,11 +91,17 @@ func TestAccAzureRMPublicIpStatic_basic_withDNSLabel(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "domain_name_label", dnl),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
 func TestAccAzureRMPublicIpStatic_standard(t *testing.T) {
+	resourceName := "azurerm_public_ip.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMPublicIPStatic_standard(ri, testLocation())
 
@@ -100,8 +113,13 @@ func TestAccAzureRMPublicIpStatic_standard(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPublicIpExists("azurerm_public_ip.test"),
+					testCheckAzureRMPublicIpExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -145,6 +163,11 @@ func TestAccAzureRMPublicIpStatic_idleTimeout(t *testing.T) {
 					testCheckAzureRMPublicIpExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "idle_timeout_in_minutes", "30"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -208,11 +231,17 @@ func TestAccAzureRMPublicIpStatic_update(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "domain_name_label", fmt.Sprintf("acctest-%d", ri)),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
 func TestAccAzureRMPublicIpDynamic_basic(t *testing.T) {
+	resourceName := "azurerm_public_ip.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMPublicIPDynamic_basic(ri, testLocation())
 
@@ -224,8 +253,37 @@ func TestAccAzureRMPublicIpDynamic_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPublicIpExists("azurerm_public_ip.test"),
+					testCheckAzureRMPublicIpExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMPublicIpStatic_importIdError(t *testing.T) {
+	resourceName := "azurerm_public_ip.test"
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMPublicIPStatic_basic(ri, testLocation())
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateId:     fmt.Sprintf("/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/publicIPAdresses/acctestpublicip-%d", os.Getenv("ARM_SUBSCRIPTION_ID"), ri, ri),
+				ExpectError:       regexp.MustCompile("Error parsing supplied resource id."),
 			},
 		},
 	})

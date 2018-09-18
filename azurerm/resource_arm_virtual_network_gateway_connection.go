@@ -7,6 +7,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -16,15 +18,17 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 		Read:   resourceArmVirtualNetworkGatewayConnectionRead,
 		Update: resourceArmVirtualNetworkGatewayConnectionCreateUpdate,
 		Delete: resourceArmVirtualNetworkGatewayConnectionDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
@@ -40,36 +44,41 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 					string(network.IPsec),
 					string(network.Vnet2Vnet),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"virtual_network_gateway_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"authorization_key": {
-				Type:      schema.TypeString,
-				Optional:  true,
-				Sensitive: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"express_route_circuit_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceIDOrEmpty,
 			},
 
 			"peer_virtual_network_gateway_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceIDOrEmpty,
 			},
 
 			"local_network_gateway_id": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceIDOrEmpty,
 			},
 
 			"enable_bgp": {
@@ -85,9 +94,10 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 			},
 
 			"routing_weight": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(1, 1000),
 			},
 
 			"shared_key": {
@@ -105,7 +115,7 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 						"dh_group": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.DHGroup1),
 								string(network.DHGroup14),
@@ -117,10 +127,11 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 								string(network.None),
 							}, true),
 						},
+
 						"ike_encryption": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.AES128),
 								string(network.AES192),
@@ -129,10 +140,11 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 								string(network.DES3),
 							}, true),
 						},
+
 						"ike_integrity": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.IkeIntegrityGCMAES128),
 								string(network.IkeIntegrityGCMAES256),
@@ -142,10 +154,11 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 								string(network.IkeIntegritySHA384),
 							}, true),
 						},
+
 						"ipsec_encryption": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.IpsecEncryptionAES128),
 								string(network.IpsecEncryptionAES192),
@@ -158,10 +171,11 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 								string(network.IpsecEncryptionNone),
 							}, true),
 						},
+
 						"ipsec_integrity": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.IpsecIntegrityGCMAES128),
 								string(network.IpsecIntegrityGCMAES192),
@@ -171,10 +185,11 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 								string(network.IpsecIntegritySHA256),
 							}, true),
 						},
+
 						"pfs_group": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.PfsGroupECP256),
 								string(network.PfsGroupECP384),
@@ -185,12 +200,14 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 								string(network.PfsGroupPFS24),
 							}, true),
 						},
+
 						"sa_datasize": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: validation.IntAtLeast(1024),
 						},
+
 						"sa_lifetime": {
 							Type:         schema.TypeInt,
 							Optional:     true,
@@ -234,8 +251,7 @@ func resourceArmVirtualNetworkGatewayConnectionCreateUpdate(d *schema.ResourceDa
 		return fmt.Errorf("Error Creating/Updating AzureRM Virtual Network Gateway Connection %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for completion of Virtual Network Gateway Connection %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
@@ -345,8 +361,7 @@ func resourceArmVirtualNetworkGatewayConnectionDelete(d *schema.ResourceData, me
 		return fmt.Errorf("Error Deleting Virtual Network Gateway Connection %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for deletion of Virtual Network Gateway Connection %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
@@ -357,11 +372,14 @@ func getArmVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*n
 	connectionType := network.VirtualNetworkGatewayConnectionType(d.Get("type").(string))
 
 	props := &network.VirtualNetworkGatewayConnectionPropertiesFormat{
-		ConnectionType: connectionType,
+		ConnectionType:                 connectionType,
+		EnableBgp:                      utils.Bool(d.Get("enable_bgp").(bool)),
+		UsePolicyBasedTrafficSelectors: utils.Bool(d.Get("use_policy_based_traffic_selectors").(bool)),
 	}
 
 	if v, ok := d.GetOk("virtual_network_gateway_id"); ok {
 		virtualNetworkGatewayId := v.(string)
+
 		_, name, err := resourceGroupAndVirtualNetworkGatewayFromId(virtualNetworkGatewayId)
 		if err != nil {
 			return nil, fmt.Errorf("Error Getting VirtualNetworkGateway Name and Group:: %+v", err)
@@ -420,10 +438,6 @@ func getArmVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*n
 		}
 	}
 
-	props.EnableBgp = utils.Bool(d.Get("enable_bgp").(bool))
-
-	props.UsePolicyBasedTrafficSelectors = utils.Bool(d.Get("use_policy_based_traffic_selectors").(bool))
-
 	if v, ok := d.GetOk("routing_weight"); ok {
 		routingWeight := int32(v.(int))
 		props.RoutingWeight = &routingWeight
@@ -434,8 +448,7 @@ func getArmVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*n
 	}
 
 	if v, ok := d.GetOk("ipsec_policy"); ok {
-		ipsecPolicies := v.([]interface{})
-		props.IpsecPolicies = expandArmVirtualNetworkGatewayConnectionIpsecPolicies(ipsecPolicies)
+		props.IpsecPolicies = expandArmVirtualNetworkGatewayConnectionIpsecPolicies(v.([]interface{}))
 	}
 
 	if props.ConnectionType == network.ExpressRoute {
