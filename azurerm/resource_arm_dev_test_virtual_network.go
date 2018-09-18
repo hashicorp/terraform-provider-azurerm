@@ -36,9 +36,8 @@ func resourceArmDevTestVirtualNetwork() *schema.Resource {
 				ValidateFunc: validateDevTestLabName(),
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
-
-			"location": locationSchema(),
+			// TODO: file a bug about this being returned in lower-case
+			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
 
 			"description": {
 				Type:     schema.TypeString,
@@ -64,13 +63,11 @@ func resourceArmDevTestVirtualNetworkCreateUpdate(d *schema.ResourceData, meta i
 	name := d.Get("name").(string)
 	labName := d.Get("lab_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
 	description := d.Get("description").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
 	parameters := dtl.VirtualNetwork{
-		Location: utils.String(location),
-		Tags:     expandTags(tags),
+		Tags: expandTags(tags),
 		VirtualNetworkProperties: &dtl.VirtualNetworkProperties{
 			Description: utils.String(description),
 		},
@@ -124,10 +121,8 @@ func resourceArmDevTestVirtualNetworkRead(d *schema.ResourceData, meta interface
 	}
 
 	d.Set("name", read.Name)
+	d.Set("lab_name", labName)
 	d.Set("resource_group_name", resourceGroup)
-	if location := read.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
-	}
 
 	if props := read.VirtualNetworkProperties; props != nil {
 		d.Set("description", props.Description)

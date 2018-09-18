@@ -31,7 +31,8 @@ func resourceArmDevTestLab() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			// TODO: file a bug about this being returned in lower-case
+			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
 
 			"storage_type": {
 				Type:     schema.TypeString,
