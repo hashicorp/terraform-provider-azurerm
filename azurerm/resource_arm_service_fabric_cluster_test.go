@@ -470,7 +470,7 @@ resource "azurerm_service_fabric_cluster" "test" {
 func testAccAzureRMServiceFabricCluster_manualClusterCodeVersion(rInt int, location, clusterCodeVersion string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%[1]d"
+  name 		 = "acctestRG-%[1]d"
   location = "%[2]s"
 }
 
