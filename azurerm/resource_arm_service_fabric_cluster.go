@@ -54,8 +54,8 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 			},
 
 			"cluster_code_version": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
 
