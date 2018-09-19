@@ -19,14 +19,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_service_fabric_cluster" "test" {
-  name                = "example-servicefabric"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  reliability_level   = "Bronze"
-  upgrade_mode        = "Manual"
-  upgrade_mode        = "6.3.176.9494"
-  vm_image            = "Windows"
-  management_endpoint = "https://example:80"
+  name                 = "example-servicefabric"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = "${azurerm_resource_group.test.location}"
+  reliability_level    = "Bronze"
+  upgrade_mode         = "Manual"
+  cluster_code_version = "6.3.176.9494"
+  vm_image             = "Windows"
+  management_endpoint  = "https://example:80"
 
   node_type {
     name                 = "first"
