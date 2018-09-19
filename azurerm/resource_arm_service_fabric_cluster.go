@@ -55,7 +55,7 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 
 			"cluster_code_version": {
 				Type:     schema.TypeString,
-				Required: false,
+				Optional: true,
 			},
 
 			"management_endpoint": {
