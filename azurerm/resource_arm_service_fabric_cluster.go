@@ -433,7 +433,7 @@ func resourceArmServiceFabricClusterRead(d *schema.ResourceData, meta interface{
 		d.Set("management_endpoint", props.ManagementEndpoint)
 		d.Set("reliability_level", string(props.ReliabilityLevel))
 		d.Set("upgrade_mode", string(props.UpgradeMode))
-		d.Set("cluster_code_version ", props.ClusterCodeVersion)
+		d.Set("cluster_code_version", props.ClusterCodeVersion)
 		d.Set("vm_image", props.VMImage)
 
 		addOnFeatures := flattenServiceFabricClusterAddOnFeatures(props.AddOnFeatures)
