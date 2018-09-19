@@ -53,6 +53,11 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 				}, false),
 			},
 
+			"cluster_code_version": {
+				Type:     schema.TypeString,
+				Required: false,
+			},
+
 			"management_endpoint": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -275,6 +280,7 @@ func resourceArmServiceFabricClusterCreate(d *schema.ResourceData, meta interfac
 	reliabilityLevel := d.Get("reliability_level").(string)
 	managementEndpoint := d.Get("management_endpoint").(string)
 	upgradeMode := d.Get("upgrade_mode").(string)
+	clusterCodeVersion := d.Get("cluster_code_version").(string)
 	vmImage := d.Get("vm_image").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -309,6 +315,7 @@ func resourceArmServiceFabricClusterCreate(d *schema.ResourceData, meta interfac
 			NodeTypes:                       nodeTypes,
 			ReliabilityLevel:                servicefabric.ReliabilityLevel(reliabilityLevel),
 			UpgradeMode:                     servicefabric.UpgradeMode(upgradeMode),
+			ClusterCodeVersion:              utils.String(clusterCodeVersion),
 			VMImage:                         utils.String(vmImage),
 		},
 	}
@@ -346,6 +353,7 @@ func resourceArmServiceFabricClusterUpdate(d *schema.ResourceData, meta interfac
 	name := d.Get("name").(string)
 	reliabilityLevel := d.Get("reliability_level").(string)
 	upgradeMode := d.Get("upgrade_mode").(string)
+	clusterCodeVersion := d.Get("cluster_code_version").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
 	addOnFeaturesRaw := d.Get("add_on_features").(*schema.Set).List()
@@ -372,6 +380,7 @@ func resourceArmServiceFabricClusterUpdate(d *schema.ResourceData, meta interfac
 			NodeTypes:                    nodeTypes,
 			ReliabilityLevel:             servicefabric.ReliabilityLevel1(reliabilityLevel),
 			UpgradeMode:                  servicefabric.UpgradeMode1(upgradeMode),
+			ClusterCodeVersion:           utils.String(clusterCodeVersion),
 		},
 		Tags: expandTags(tags),
 	}
@@ -423,6 +432,7 @@ func resourceArmServiceFabricClusterRead(d *schema.ResourceData, meta interface{
 		d.Set("management_endpoint", props.ManagementEndpoint)
 		d.Set("reliability_level", string(props.ReliabilityLevel))
 		d.Set("upgrade_mode", string(props.UpgradeMode))
+		d.Set("cluster_code_version ", props.ClusterCodeVersion)
 		d.Set("vm_image", props.VMImage)
 
 		addOnFeatures := flattenServiceFabricClusterAddOnFeatures(props.AddOnFeatures)

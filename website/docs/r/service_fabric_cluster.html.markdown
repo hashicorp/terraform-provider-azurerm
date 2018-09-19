@@ -23,7 +23,8 @@ resource "azurerm_service_fabric_cluster" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   reliability_level   = "Bronze"
-  upgrade_mode        = "Automatic"
+  upgrade_mode        = "Manual"
+  upgrade_mode        = "6.3.176.9494"
   vm_image            = "Windows"
   management_endpoint = "https://example:80"
 
@@ -59,6 +60,8 @@ The following arguments are supported:
 * `vm_image` - (Required) Specifies the Image expected for the Service Fabric Cluster, such as `Windows`. Changing this forces a new resource to be created.
 
 ---
+
+* `cluster_code_version` - (Optional) Required if Upgrade Mode set to `Manual`, Specifies the Version of the Cluster Code of the cluster.
 
 * `add_on_features` - (Optional) A List of one or more features which should be enabled, such as `DnsService`.
 
