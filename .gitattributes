@@ -1,2 +1,0 @@
-# make sure all .go files stay LF, this will help developers on Windows
-*.go text eol=lf
