@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `certificate` - (Optional) A `certificate` block as defined below.
 
-* `client_certificate_thumbprint` - (Optional) A `client_certificate_thumbprint` block as defined below.
+* `client_certificate_thumbprint` - (Optional) One or two `client_certificate_thumbprint` blocks as defined below.
 
 -> **NOTE:** If Client Certificates are enabled then at a Certificate must be configured on the cluster.
 
