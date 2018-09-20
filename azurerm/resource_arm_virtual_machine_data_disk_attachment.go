@@ -151,6 +151,9 @@ func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceD
 
 	virtualMachine.StorageProfile.DataDisks = &disks
 
+	// fixes #1600
+	virtualMachine.Resources = nil
+
 	// if there's too many disks we get a 409 back with:
 	//   `The maximum number of data disks allowed to be attached to a VM of this size is 1.`
 	// which we're intentionally not wrapping, since the errors good.
@@ -260,6 +263,9 @@ func resourceArmVirtualMachineDataDiskAttachmentDelete(d *schema.ResourceData, m
 	}
 
 	virtualMachine.StorageProfile.DataDisks = &dataDisks
+
+	// fixes #1600
+	virtualMachine.Resources = nil
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, virtualMachineName, virtualMachine)
 	if err != nil {
