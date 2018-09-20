@@ -51,6 +51,71 @@ resource "azurerm_cosmosdb_account" "db" {
 }
 ```
 
+## Example Usage with virtual_network_rules
+
+```hcl
+resource "azurerm_resource_group" "rg" {
+    name     = "cosmosDBVNetRules"
+    location = "westeurope"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "virtualNetwork1"
+  resource_group_name = "${azurerm_resource_group.rg.name}"
+  location            = "${azurerm_resource_group.rg.location}"
+  address_space       = ["10.0.0.0/16"]
+  dns_servers         = ["10.0.0.4", "10.0.0.5"]
+}
+
+resource "azurerm_subnet" "test1" {
+  name                 = "testsubnet1"
+  resource_group_name  = "${azurerm_resource_group.rg.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.1.0/24"
+  service_endpoints    = ["Microsoft.AzureCosmosDB"]
+}
+
+resource "azurerm_subnet" "test2" {
+  name                 = "testsubnet2"
+  resource_group_name  = "${azurerm_resource_group.rg.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+  service_endpoints    = ["Microsoft.AzureCosmosDB"]
+}
+
+resource "azurerm_cosmosdb_account" "db" {
+    depends_on                        = ["azurerm_virtual_network.test"]
+    name                              = "cosmos-db-test-vnet-rules"
+    location                          = "${azurerm_resource_group.rg.location}"
+    resource_group_name               = "${azurerm_resource_group.rg.name}"
+    offer_type                        = "Standard"
+    kind                              = "GlobalDocumentDB"
+    is_virtual_network_filter_enabled = true
+
+    virtual_network_rules {
+        id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/cosmosDBVNetRules/providers/Microsoft.Network/virtualNetworks/virtualNetwork1/subnets/testsubnet1"
+    }
+
+    virtual_network_rules {
+        id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/cosmosDBVNetRules/providers/Microsoft.Network/virtualNetworks/virtualNetwork1/subnets/testsubnet2"
+    }
+
+    enable_automatic_failover = true
+
+    consistency_policy {
+        consistency_level       = "BoundedStaleness"
+        max_interval_in_seconds = 10
+        max_staleness_prefix    = 200
+    }
+
+    geo_location {
+        location          = "${azurerm_resource_group.rg.location}"
+        failover_priority = 0
+    }
+
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
