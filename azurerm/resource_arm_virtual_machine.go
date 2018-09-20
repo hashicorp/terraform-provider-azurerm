@@ -631,8 +631,8 @@ func resourceArmVirtualMachineCreate(d *schema.ResourceData, meta interface{}) e
 		Name:                     &name,
 		Location:                 &location,
 		VirtualMachineProperties: &properties,
-		Tags:  expandedTags,
-		Zones: zones,
+		Tags:                     expandedTags,
+		Zones:                    zones,
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
