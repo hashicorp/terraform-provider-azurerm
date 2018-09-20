@@ -21,6 +21,7 @@ import (
 	analyticsAccount "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
 	storeAccount "github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
+	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
 	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2018-01-01/eventgrid"
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
@@ -135,6 +136,10 @@ type ArmClient struct {
 
 	// Devices
 	iothubResourceClient devices.IotHubResourceClient
+
+	// DevTestLabs
+	devTestLabsClient            dtl.LabsClient
+	devTestVirtualNetworksClient dtl.VirtualNetworksClient
 
 	// Databases
 	mysqlConfigurationsClient                mysql.ConfigurationsClient
@@ -428,6 +433,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDeviceClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerDevTestClients(endpoint, c.SubscriptionID, auth)
 	client.registerDNSClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventGridClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventHubClients(endpoint, c.SubscriptionID, auth, sender)
@@ -688,6 +694,16 @@ func (c *ArmClient) registerDeviceClients(endpoint, subscriptionId string, auth 
 	iotClient := devices.NewIotHubResourceClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&iotClient.Client, auth)
 	c.iothubResourceClient = iotClient
+}
+
+func (c *ArmClient) registerDevTestClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	labsClient := dtl.NewLabsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&labsClient.Client, auth)
+	c.devTestLabsClient = labsClient
+
+	devTestVirtualNetworksClient := dtl.NewVirtualNetworksClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&devTestVirtualNetworksClient.Client, auth)
+	c.devTestVirtualNetworksClient = devTestVirtualNetworksClient
 }
 
 func (c *ArmClient) registerDNSClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
