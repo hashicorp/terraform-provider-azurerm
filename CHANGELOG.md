@@ -6,6 +6,7 @@ BUG FIXES:
 * `azurerm_public_ip` - correctly reading and importing the `idle_timeout_in_minutes` property [GH-1925]
 * `azurerm_service_fabric_cluster` - allow two `client_certificate_thumbprint` blocks [GH-1938]
 * `azurerm_virtual_machine` - handling the Managed Disk ID being nil [GH-1947]
+* `azurerm_virtual_machine_data_disk_attachment` - supporting data disk attachments when a VM Extension is installed [GH-1950]
 
 ## 1.15.0 (September 14, 2018)
 
