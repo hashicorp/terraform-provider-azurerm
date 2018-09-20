@@ -36,7 +36,8 @@ func resourceArmDevTestVirtualNetwork() *schema.Resource {
 				ValidateFunc: validateDevTestLabName(),
 			},
 
-			// TODO: file a bug about this being returned in lower-case
+			// There's a bug in the Azure API where this is returned in lower-case
+			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/3964
 			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
 
 			"description": {
