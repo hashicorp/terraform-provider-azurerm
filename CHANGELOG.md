@@ -1,5 +1,11 @@
 ## 1.16.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_dev_test_lab` [GH-1944]
+* **New Resource:** `azurerm_dev_test_lab` [GH-1944]
+* **New Resource:** `azurerm_dev_test_virtual_network` [GH-1944]
+
 BUG FIXES:
 
 * `azurerm_lb_rule` - allow `0` for `frontend_port` and `backend_port` again [GH-1951]
