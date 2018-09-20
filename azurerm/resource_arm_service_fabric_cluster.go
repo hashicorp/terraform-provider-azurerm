@@ -316,9 +316,12 @@ func resourceArmServiceFabricClusterCreate(d *schema.ResourceData, meta interfac
 			NodeTypes:                       nodeTypes,
 			ReliabilityLevel:                servicefabric.ReliabilityLevel(reliabilityLevel),
 			UpgradeMode:                     servicefabric.UpgradeMode(upgradeMode),
-			ClusterCodeVersion:              utils.String(clusterCodeVersion),
 			VMImage:                         utils.String(vmImage),
 		},
+	}
+
+	if clusterCodeVersion != "" {
+		cluster.ClusterProperties.ClusterCodeVersion = utils.String(clusterCodeVersion)
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, cluster)
@@ -381,9 +384,12 @@ func resourceArmServiceFabricClusterUpdate(d *schema.ResourceData, meta interfac
 			NodeTypes:                    nodeTypes,
 			ReliabilityLevel:             servicefabric.ReliabilityLevel1(reliabilityLevel),
 			UpgradeMode:                  servicefabric.UpgradeMode1(upgradeMode),
-			ClusterCodeVersion:           utils.String(clusterCodeVersion),
 		},
 		Tags: expandTags(tags),
+	}
+
+	if clusterCodeVersion != "" {
+		parameters.ClusterPropertiesUpdateParameters.ClusterCodeVersion = utils.String(clusterCodeVersion)
 	}
 
 	future, err := client.Update(ctx, resourceGroup, name, parameters)
