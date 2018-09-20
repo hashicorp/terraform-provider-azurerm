@@ -357,8 +357,6 @@ func resourceArmCosmosDBAccountCreate(d *schema.ResourceData, meta interface{}) 
 func resourceArmCosmosDBAccountUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).cosmosDBClient
 	ctx := meta.(*ArmClient).StopContext
-	log.Printf("[INFO] preparing arguments for AzureRM Cosmos DB Account update.")
-	log.Printf("[INFO] AzureRM Cosmos DB Account : %s", d)
 
 	//move to function
 	name := d.Get("name").(string)
@@ -830,16 +828,12 @@ func expandAzureRmCosmosDBAccountVirtualNetworkRules(d *schema.ResourceData) *[]
 
 	virtualNetworkRules := d.Get("virtual_network_rules").(*schema.Set).List()
 
-	log.Printf("[INFO] Input VNet Rules: %+v", virtualNetworkRules)
-
 	s := make([]documentdb.VirtualNetworkRule, len(virtualNetworkRules))
 
 	for i, r := range virtualNetworkRules {
 		m := r.(map[string]interface{})
 		s[i] = documentdb.VirtualNetworkRule{ID: utils.String(m["id"].(string))}
 	}
-
-	log.Printf("[INFO] Expanded VNet Rules: %+v", s)
 
 	return &s
 }
