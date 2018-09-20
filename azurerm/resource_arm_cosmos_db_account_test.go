@@ -425,6 +425,28 @@ func TestAccAzureRMCosmosDBAccount_geoReplicated_rename(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCosmosDBAccount_virtualNetworkFilter(t *testing.T) {
+	ri := acctest.RandInt()
+	resourceName := "azurerm_cosmosdb_account.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDBAccount_virtualNetworkFilter(ri, testLocation()),
+				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 //basic --> complete (
 func TestAccAzureRMCosmosDBAccount_complete(t *testing.T) {
 	ri := acctest.RandInt()
@@ -606,6 +628,48 @@ func testAccAzureRMCosmosDBAccount_complete(rInt int, location string, altLocati
             failover_priority = 1
         }
     `, rInt, altLocation))
+}
+
+func testAccAzureRMCosmosDBAccount_virtualNetworkFilter(rInt int, location string) string {
+	vnetConfig := fmt.Sprintf(`
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-%[1]d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  dns_servers         = ["10.0.0.4", "10.0.0.5"]
+}
+
+resource "azurerm_subnet" "subnet1" {
+  name                 = "acctest-%[1]d-1"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.1.0/24"
+  service_endpoints    = ["Microsoft.AzureCosmosDB"]
+}
+
+resource "azurerm_subnet" "subnet2" {
+  name                 = "acctest-%[1]d-2"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+  service_endpoints    = ["Microsoft.AzureCosmosDB"]
+}
+`, rInt)
+
+	basic := testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", `
+        is_virtual_network_filter_enabled = true
+
+        virtual_network_rule {
+          id = "${azurerm_subnet.subnet1.id}"
+        }
+
+        virtual_network_rule {
+          id = "${azurerm_subnet.subnet2.id}"
+        }
+	`)
+
+	return vnetConfig + basic
 }
 
 func checkAccAzureRMCosmosDBAccount_basic(resourceName string, location string, consistency string, locationCount int) resource.TestCheckFunc {
