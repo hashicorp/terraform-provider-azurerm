@@ -25,9 +25,14 @@ func TestAccAzureRMActiveDirectoryApplication_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctest%s", id)),
-					resource.TestCheckResourceAttr(resourceName, "homepage", fmt.Sprintf("http://acctest%s", id)),
+					resource.TestCheckResourceAttr(resourceName, "homepage", fmt.Sprintf("https://acctest%s", id)),
 					resource.TestCheckResourceAttrSet(resourceName, "application_id"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -50,6 +55,11 @@ func TestAccAzureRMActiveDirectoryApplication_availableToOtherTenants(t *testing
 					resource.TestCheckResourceAttr(resourceName, "available_to_other_tenants", "true"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -69,11 +79,16 @@ func TestAccAzureRMActiveDirectoryApplication_complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctest%s", id)),
-					resource.TestCheckResourceAttr(resourceName, "homepage", fmt.Sprintf("http://homepage-%s", id)),
+					resource.TestCheckResourceAttr(resourceName, "homepage", fmt.Sprintf("https://homepage-%s", id)),
 					resource.TestCheckResourceAttr(resourceName, "identifier_uris.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "reply_urls.#", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "application_id"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -97,7 +112,7 @@ func TestAccAzureRMActiveDirectoryApplication_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctest%s", id)),
-					resource.TestCheckResourceAttr(resourceName, "homepage", fmt.Sprintf("http://acctest%s", id)),
+					resource.TestCheckResourceAttr(resourceName, "homepage", fmt.Sprintf("https://acctest%s", id)),
 					resource.TestCheckResourceAttr(resourceName, "identifier_uris.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "reply_urls.#", "0"),
 				),
@@ -107,7 +122,7 @@ func TestAccAzureRMActiveDirectoryApplication_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctest%s", updatedId)),
-					resource.TestCheckResourceAttr(resourceName, "homepage", fmt.Sprintf("http://homepage-%s", updatedId)),
+					resource.TestCheckResourceAttr(resourceName, "homepage", fmt.Sprintf("https://homepage-%s", updatedId)),
 					resource.TestCheckResourceAttr(resourceName, "identifier_uris.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "reply_urls.#", "1"),
 				),
@@ -184,9 +199,9 @@ func testAccAzureRMActiveDirectoryApplication_complete(id string) string {
 	return fmt.Sprintf(`
 resource "azurerm_azuread_application" "test" {
   name                       = "acctest%s"
-  homepage                   = "http://homepage-%s"
-  identifier_uris            = ["http://%s.hashicorptest.com"]
-  reply_urls                 = ["http://replyurl-%s"]
+  homepage                   = "https://homepage-%s"
+  identifier_uris            = ["https://%s.hashicorptest.com"]
+  reply_urls                 = ["https://replyurl-%s"]
   oauth2_allow_implicit_flow = true
 }
 `, id, id, id, id)
