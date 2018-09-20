@@ -936,9 +936,8 @@ func flattenAzureRmCosmosDBAccountVirtualNetworkRules(rules *[]documentdb.Virtua
 	for _, r := range *rules {
 		if v := r.ID; v != nil {
 			e := map[string]interface{}{
-				"id": *v.ID,
+				"id": *v,
 			}
-			log.Printf("[INFO] Flatten VNet Rules: %+v", e)
 			s.Add(e)
 		}
 	}
