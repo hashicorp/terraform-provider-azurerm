@@ -189,7 +189,7 @@ func testAccAzureRMActiveDirectoryApplication_availableToOtherTenants(id string)
 	return fmt.Sprintf(`
 resource "azurerm_azuread_application" "test" {
   name                       = "acctest%s"
-  identifier_uris            = ["http://%s.hashicorptest.com"]
+  identifier_uris            = ["https://%s.hashicorptest.com"]
   available_to_other_tenants = true
 }
 `, id, id)
