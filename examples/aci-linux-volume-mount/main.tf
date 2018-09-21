@@ -40,6 +40,24 @@ resource "azurerm_container_group" "aci-example" {
   }
 
   volume {
+    name      = "secret"
+    
+    secret = {
+      name = "examplesecret0"
+      data = "YmFzZTY0IGRhdGEK" // Base64 data saying "base64 data"
+    }
+    secret = {
+      name = "examplesecret1"
+      data = "YmFzZTY0IGRhdGEK" // Base64 data saying "base64 data"
+    }
+    secret = {
+      name = "examplesecret2"
+      data = "YmFzZTY0IGRhdGEK" // Base64 data saying "base64 data"
+    }
+  }
+
+
+  volume {
     name = "azureshare"
 
     azure_share {
@@ -73,6 +91,11 @@ resource "azurerm_container_group" "aci-example" {
     volume_mount {
       volume_name = "gitrepo"
       mount_path  = "/aci/gitrepo"
+    }
+
+    volume_mount {
+      volume_name = "secret"
+      mount_path  = "/aci/secret"
     }
   }
 

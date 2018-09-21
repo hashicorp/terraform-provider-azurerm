@@ -23,7 +23,11 @@ func TestAccAzureRMContainerGroup_volumes(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: config,
-				Check: resource.UnitTest
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "os_type", "Linux"),
+				),
 			},
 		},
 	})
@@ -312,32 +316,127 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_container_group" "test" {
+resource "azurerm_storage_account" "test" {
+	name                     = "accsa%d"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_share" "test" {
+	name = "acctestss-%d"
+
+	resource_group_name  = "${azurerm_resource_group.test.name}"
+	storage_account_name = "${azurerm_storage_account.test.name}"
+
+	quota = 50
+}
+
+resource "azurerm_container_group" "aci-example" {
   name                = "acctestcontainergroup-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   ip_address_type     = "public"
   os_type             = "linux"
 
-  container {
-    name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
-    cpu    = "0.5"
-    memory = "0.5"
-	  port   = "80"
+  volume {
+    name      = "emptydir"
+    empty_dir = {}
   }
+
+  volume {
+    name      = "secret"
+    
+    secret = {
+      name = "examplesecret0"
+      data = "YmFzZTY0IGRhdGEK" // Base64 data saying "base64 data"
+    }
+    secret = {
+      name = "examplesecret1"
+      data = "YmFzZTY0IGRhdGEK" // Base64 data saying "base64 data"
+    }
+    secret = {
+      name = "examplesecret2"
+      data = "YmFzZTY0IGRhdGEK" // Base64 data saying "base64 data"
+    }
+  }
+
+
+  volume {
+    name = "azureshare"
+
+    azure_share {
+      share_name           = "${azurerm_storage_share.test.name}"
+      storage_account_name = "${azurerm_storage_account.test.name}"
+      storage_account_key  = "${azurerm_storage_account.test.primary_access_key}"
+    }
+  }
+
+  volume {
+    name = "gitrepo"
+
+    git_repo {
+      repository = "https://github.com/Azure-Samples/aci-tutorial-sidecar"
+    }
+  }
+
+  container {
+    name     = "webserver"
+    image    = "seanmckenna/aci-hellofiles"
+    cpu      = "1"
+    memory   = "1.5"
+    port     = "80"
+    protocol = "tcp"
+
+    volume_mount {
+      volume_name = "emptydir"
+      mount_path  = "/aci/empty"
+    }
+
+    volume_mount {
+      volume_name = "gitrepo"
+      mount_path  = "/aci/gitrepo"
+    }
+
+    volume_mount {
+      volume_name = "secret"
+      mount_path  = "/aci/secret"
+    }
+  }
+
   container {
     name   = "sidecar"
-    image  = "microsoft/aci-tutorial-sidecar"
-    cpu    = "0.5"
-    memory = "0.5"
+    image  = "seanmckenna/aci-hellofiles"
+    cpu    = "1"
+    memory = "1.5"
+
+    volume_mount {
+      volume_name = "emptydir"
+      mount_path  = "/empty"
+      read_only   = false
+    }
+
+    volume_mount {
+      volume_name = "gitrepo"
+      mount_path  = "/gitrepo"
+      read_only   = false
+    }
+
+    volume_mount {
+      volume_name = "azureshare"
+      mount_path  = "/azureshare"
+      read_only   = false
+    }
   }
 
   tags {
-    environment = "Testing"
+    environment = "testing"
   }
 }
-`, ri, location, ri)
+
+
+`, ri, location, ri, ri, ri)
 }
 
 func testAccAzureRMContainerGroup_imageRegistryCredentials(ri int, location string) string {

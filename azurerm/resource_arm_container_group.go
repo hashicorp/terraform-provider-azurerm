@@ -134,7 +134,6 @@ func resourceArmContainerGroup() *schema.Resource {
 							Type:     schema.TypeList,
 							Optional: true,
 							ForceNew: true,
-							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
@@ -549,16 +548,20 @@ func flattenContainerVolumeMounts(volumeMounts *[]containerinstance.VolumeMount)
 	return volumeConfigs
 }
 
-func flattenContainerVolumes(containerGroupVolumes *[]containerinstance.Volume) []interface{} {
+func flattenContainerVolumes(d *schema.ResourceData, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
 	volumeConfigs := make([]interface{}, 0)
-
+	
 	if containerGroupVolumes == nil {
 		return volumeConfigs
 	}
 
-	for _, volume := range *containerGroupVolumes {
+	oldVolumeConfigs := d.Get("volume").([]interface)
+	
+	for i, volume := range *containerGroupVolumes {
 
 		volumeConfig := make(map[string]interface{})
+		volumeConfig["name"] = *volume.Name
+
 		if volume.AzureFile != nil {
 			azureShare := make(map[string]interface{})
 			azureShare["share_name"] = *volume.AzureFile.ShareName
@@ -569,17 +572,18 @@ func flattenContainerVolumes(containerGroupVolumes *[]containerinstance.Volume) 
 			}
 		}
 
-		// if volume.EmptyDir != nil {
-		// 	volumeConfig["empty_dir"] = map[string]string{}
-		// }
+		if volume.EmptyDir != nil {
+			volumeConfig["empty_dir"] = [1]interface{}{}
+		}
 
-		// if volume.GitRepo != nil {
-
-		// }
-
-		// if volume.Secret != nil {
-
-		// }
+		if volume.GitRepo != nil {
+			volumeConfig["git_repo"] = [1]interface{}{
+				map[string]string{
+					"repository": *volume.GitRepo.Repository,
+					"directory":  *volume.GitRepo.Directory,
+				},
+			}
+		}
 
 		volumeConfigs = append(volumeConfigs, volumeConfig)
 	}
@@ -827,6 +831,35 @@ func expandContainerVolumes(d *schema.ResourceData) (*[]containerinstance.Volume
 					Directory:  utils.String(directory),
 				},
 			}
+
+			containerGroupVolumes = append(containerGroupVolumes, cv)
+			continue
+		}
+
+		if _, exists := validateArmContainerGroupVolumeVolumeExists(volumeConfig, "secret"); exists {
+			secretsConverted := map[string]*string{}
+			secrets := volumeConfig["secret"].([]interface{})
+
+			for _, v := range secrets {
+
+				secret := v.(map[string]interface{})
+				secretName, ok := secret["name"].(string)
+				if !ok {
+					return nil, fmt.Errorf("Invalid type: %v is not string")
+				}
+				secretData, ok := secret["data"].(string)
+				if !ok {
+					return nil, fmt.Errorf("Invalid type: %v is not string")
+				}
+				secretsConverted[secretName] = &secretData
+			}
+
+			cv := containerinstance.Volume{
+				Name:   name,
+				Secret: secretsConverted,
+			}
+
+			fmt.Printf("voluemes: %+v", secretsConverted)
 
 			containerGroupVolumes = append(containerGroupVolumes, cv)
 			continue
