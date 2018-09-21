@@ -135,7 +135,6 @@ func resourceArmApiManagementService() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 10,
-				// Set:      hashSslCert,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"encoded_certificate": {
@@ -789,9 +788,9 @@ func flattenApiManagementHostnameConfigurations(d *schema.ResourceData, configs 
 				host_config["host_name"] = *config.HostName
 			}
 
-			log.Printf("Default SSL Binding: %v", *config.DefaultSslBinding)
-
-			if config.DefaultSslBinding != nil {
+			// only set SSL binding for proxy types
+			hostnameTypeProxy := strings.ToLower(string(apimanagement.Proxy))
+			if configType == hostnameTypeProxy && config.DefaultSslBinding != nil {
 				host_config["default_ssl_binding"] = *config.DefaultSslBinding
 			}
 
