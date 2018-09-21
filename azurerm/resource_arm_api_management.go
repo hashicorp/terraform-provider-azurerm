@@ -75,6 +75,33 @@ func resourceArmApiManagementService() *schema.Resource {
 				},
 			},
 
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc: validation.StringInSlice([]string{
+								"SystemAssigned",
+							}, true),
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"notification_sender_email": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -333,6 +360,10 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 		Sku:  sku,
 	}
 
+	if _, ok := d.GetOk("identity"); ok {
+		apiManagement.Identity = expandAzureRmApiManagementIdentity(d)
+	}
+
 	if _, ok := d.GetOk("additional_location"); ok {
 		apiManagement.ServiceProperties.AdditionalLocations = expandAzureRmApiManagementAdditionalLocations(d, sku)
 	}
@@ -394,6 +425,11 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
+	identity := flattenAzureRmApiManagementMachineIdentity(resp.Identity)
+	if err := d.Set("identity", identity); err != nil {
+		return err
+	}
+
 	if props := resp.ServiceProperties; props != nil {
 		d.Set("publisher_email", props.PublisherEmail)
 		d.Set("publisher_name", props.PublisherName)
@@ -423,8 +459,7 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 			return fmt.Errorf("Error setting `certificate`: %+v", err)
 		}
 
-		hostnameConfigs := flattenApiManagementHostnameConfigurations(d, props.HostnameConfigurations)
-		if hostnameConfigs != nil {
+		if hostnameConfigs := flattenApiManagementHostnameConfigurations(d, props.HostnameConfigurations); hostnameConfigs != nil {
 			if err := d.Set("hostname_configurations", hostnameConfigs); err != nil {
 				return fmt.Errorf("Error setting `hostname_configurations`: %+v", err)
 			}
@@ -470,6 +505,15 @@ func resourceArmApiManagementDelete(d *schema.ResourceData, meta interface{}) er
 	}
 
 	return nil
+}
+
+func expandAzureRmApiManagementIdentity(d *schema.ResourceData) *apimanagement.ServiceIdentity {
+	identities := d.Get("identity").([]interface{})
+	identity := identities[0].(map[string]interface{})
+	identityType := identity["type"].(string)
+	return &apimanagement.ServiceIdentity{
+		Type: &identityType,
+	}
 }
 
 func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*string {
@@ -629,6 +673,24 @@ func expandAzureRmApiManagementSku(configs []interface{}) *apimanagement.Service
 	}
 
 	return sku
+}
+
+func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceIdentity) []interface{} {
+	if identity == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	result["type"] = *identity.Type
+
+	if identity.PrincipalID != nil {
+		result["principal_id"] = *identity.PrincipalID
+	}
+	if identity.TenantID != nil {
+		result["tenant_id"] = *identity.TenantID
+	}
+
+	return []interface{}{result}
 }
 
 func flattenApiManagementCustomProperties(input map[string]*string) ([]interface{}, error) {
