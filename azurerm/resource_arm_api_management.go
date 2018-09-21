@@ -78,7 +78,6 @@ func resourceArmApiManagementService() *schema.Resource {
 			"identity": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -258,9 +257,16 @@ func apiManagementResourceHostnameSchema() *schema.Schema {
 					ValidateFunc: validation.NoZeroValues,
 				},
 
+				"key_vault_id": {
+					Type:          schema.TypeString,
+					Optional:      true,
+					ValidateFunc:  validation.NoZeroValues,
+					ConflictsWith: []string{"certificate"},
+				},
+
 				"certificate": {
 					Type:         schema.TypeString,
-					Required:     true,
+					Optional:     true,
 					Sensitive:    true,
 					ValidateFunc: validation.NoZeroValues,
 				},
@@ -294,9 +300,16 @@ func apiManagementResourceHostnameProxySchema() *schema.Schema {
 					ValidateFunc: validation.NoZeroValues,
 				},
 
+				"key_vault_id": {
+					Type:          schema.TypeString,
+					Optional:      true,
+					ValidateFunc:  validation.NoZeroValues,
+					ConflictsWith: []string{"certificate"},
+				},
+
 				"certificate": {
 					Type:         schema.TypeString,
-					Required:     true,
+					Optional:     true,
 					Sensitive:    true,
 					ValidateFunc: validation.NoZeroValues,
 				},
@@ -597,6 +610,7 @@ func expandAzureRmApiManagementHostnameConfigurations(d *schema.ResourceData) *[
 					hostname.HostName = utils.String(config["host_name"].(string))
 					hostname.EncodedCertificate = utils.String(config["certificate"].(string))
 					hostname.CertificatePassword = utils.String(config["certificate_password"].(string))
+					hostname.KeyVaultID = utils.String(config["key_vault_id"].(string))
 
 					if v, ok := config["default_ssl_binding"]; ok {
 						hostname.DefaultSslBinding = utils.Bool(v.(bool))
@@ -684,10 +698,10 @@ func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceI
 	result["type"] = *identity.Type
 
 	if identity.PrincipalID != nil {
-		result["principal_id"] = *identity.PrincipalID
+		result["principal_id"] = identity.PrincipalID.String()
 	}
 	if identity.TenantID != nil {
-		result["tenant_id"] = *identity.TenantID
+		result["tenant_id"] = identity.TenantID.String()
 	}
 
 	return []interface{}{result}
@@ -783,6 +797,10 @@ func flattenApiManagementHostnameConfigurations(d *schema.ResourceData, configs 
 
 			if config.NegotiateClientCertificate != nil {
 				host_config["negotiate_client_certificate"] = *config.NegotiateClientCertificate
+			}
+
+			if config.KeyVaultID != nil {
+				host_config["key_vault_id"] = *config.KeyVaultID
 			}
 
 			// Iterate through old state to find sensitive props not returned by API.
