@@ -1,14 +1,12 @@
 package azurerm
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"strconv"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/apimanagement/mgmt/2018-06-01-preview/apimanagement"
-	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -135,11 +133,6 @@ func resourceArmApiManagementService() *schema.Resource {
 							}, true),
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
-
-						"thumbprint": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
 					},
 				},
 			},
@@ -182,59 +175,16 @@ func resourceArmApiManagementService() *schema.Resource {
 				},
 			},
 
-			"hostname_configuration": {
+			"hostname_configurations": {
 				Type:     schema.TypeList,
 				Optional: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(apimanagement.Management),
-								string(apimanagement.Portal),
-								string(apimanagement.Proxy),
-								string(apimanagement.Scm),
-							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-						},
-
-						"host_name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
-						},
-
-						"certificate": {
-							Type:         schema.TypeString,
-							Required:     true,
-							Sensitive:    true,
-							ValidateFunc: validation.NoZeroValues,
-						},
-
-						"certificate_password": {
-							Type:         schema.TypeString,
-							Required:     true,
-							Sensitive:    true,
-							ValidateFunc: validation.NoZeroValues,
-						},
-
-						"certificate_thumbprint": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"default_ssl_binding": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-
-						"negotiate_client_certificate": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
+						"management": apiManagementResourceHostnameSchema(),
+						"portal":     apiManagementResourceHostnameSchema(),
+						"proxy":      apiManagementResourceHostnameProxySchema(),
+						"scm":        apiManagementResourceHostnameSchema(),
 					},
 				},
 			},
@@ -269,16 +219,82 @@ func resourceArmApiManagementService() *schema.Resource {
 	}
 }
 
-func hashSslCert(v interface{}) int {
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
+func apiManagementResourceHostnameSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"host_name": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validation.NoZeroValues,
+				},
 
-	buf.WriteString(fmt.Sprintf("%s-", m["thumbprint"].(string)))
-	// buf.WriteString(fmt.Sprintf("%s-", m["encoded_certificate"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["store_name"].(string)))
-	// buf.WriteString(fmt.Sprintf("%s-", m["encoded_certificate"].(string)))
+				"certificate": {
+					Type:         schema.TypeString,
+					Required:     true,
+					Sensitive:    true,
+					ValidateFunc: validation.NoZeroValues,
+				},
 
-	return hashcode.String(buf.String())
+				"certificate_password": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					Sensitive:    true,
+					ValidateFunc: validation.NoZeroValues,
+				},
+
+				"negotiate_client_certificate": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+			},
+		},
+	}
+}
+
+func apiManagementResourceHostnameProxySchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"host_name": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validation.NoZeroValues,
+				},
+
+				"certificate": {
+					Type:         schema.TypeString,
+					Required:     true,
+					Sensitive:    true,
+					ValidateFunc: validation.NoZeroValues,
+				},
+
+				"certificate_password": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					Sensitive:    true,
+					ValidateFunc: validation.NoZeroValues,
+				},
+
+				"default_ssl_binding": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Computed: true, //Azure has certain logic to set this, which we cannot predict
+				},
+
+				"negotiate_client_certificate": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+			},
+		},
+	}
 }
 
 func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -401,16 +417,21 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 			}
 		}
 
-		if err := d.Set("hostname_configuration", flattenApiManagementHostnameConfigurations(d, props.HostnameConfigurations)); err != nil {
-			return fmt.Errorf("Error setting `hostname_configuration`: %+v", err)
+		// Azure is not returning identifiable certs (no id), so there is no way to link
+		// what is configured in terraform to Azure. Because of this, we just return the old state.
+		if err := d.Set("certificate", d.Get("certificate").([]interface{})); err != nil {
+			return fmt.Errorf("Error setting `certificate`: %+v", err)
+		}
+
+		hostnameConfigs := flattenApiManagementHostnameConfigurations(d, props.HostnameConfigurations)
+		if hostnameConfigs != nil {
+			if err := d.Set("hostname_configurations", hostnameConfigs); err != nil {
+				return fmt.Errorf("Error setting `hostname_configurations`: %+v", err)
+			}
 		}
 
 		if err := d.Set("additional_location", flattenApiManagementAdditionalLocations(props.AdditionalLocations)); err != nil {
 			return fmt.Errorf("Error setting `additional_location`: %+v", err)
-		}
-
-		if err := d.Set("certificate", flattenApiManagementCertificates(d, props.Certificates)); err != nil {
-			return fmt.Errorf("Error setting `certificate`: %+v", err)
 		}
 	}
 
@@ -507,37 +528,49 @@ func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*str
 }
 
 func expandAzureRmApiManagementHostnameConfigurations(d *schema.ResourceData) *[]apimanagement.HostnameConfiguration {
-	hostnameConfigs := d.Get("hostname_configuration").([]interface{})
+	if _, ok := d.GetOk("hostname_configurations"); ok {
+		log.Printf("Config for hostname_configuration found")
 
-	if hostnameConfigs == nil {
-		return nil
-	}
+		hostnames := make([]apimanagement.HostnameConfiguration, 0)
 
-	hostnames := make([]apimanagement.HostnameConfiguration, 0)
+		for _, hostNameType := range apimanagement.PossibleHostnameTypeValues() {
+			sHostNameType := strings.ToLower(string(hostNameType))
+			key := fmt.Sprintf("hostname_configurations.0.%s", sHostNameType)
 
-	for _, v := range hostnameConfigs {
-		config := v.(map[string]interface{})
+			log.Printf("looking up key: %v", key)
 
-		host_type := apimanagement.HostnameType(config["type"].(string))
-		host_name := config["host_name"].(string)
-		certificate := config["certificate"].(string)
-		certificate_password := config["certificate_password"].(string)
-		default_ssl_binding := config["default_ssl_binding"].(bool)
-		negotiate_client_certificate := config["negotiate_client_certificate"].(bool)
+			if v, ok := d.GetOk(key); ok {
+				log.Printf("Config for %s found", key)
+				configs := v.([]interface{})
 
-		hostname := apimanagement.HostnameConfiguration{
-			Type:                       host_type,
-			HostName:                   &host_name,
-			EncodedCertificate:         &certificate,
-			CertificatePassword:        &certificate_password,
-			DefaultSslBinding:          &default_ssl_binding,
-			NegotiateClientCertificate: &negotiate_client_certificate,
+				for _, v := range configs {
+					config := v.(map[string]interface{})
+
+					hostname := apimanagement.HostnameConfiguration{
+						Type: hostNameType,
+					}
+
+					hostname.HostName = utils.String(config["host_name"].(string))
+					hostname.EncodedCertificate = utils.String(config["certificate"].(string))
+					hostname.CertificatePassword = utils.String(config["certificate_password"].(string))
+
+					if v, ok := config["default_ssl_binding"]; ok {
+						hostname.DefaultSslBinding = utils.Bool(v.(bool))
+					}
+
+					if v, ok := config["negotiate_client_certificate"]; ok {
+						hostname.NegotiateClientCertificate = utils.Bool(v.(bool))
+					}
+
+					log.Printf("Here's the config: %v", &hostname)
+
+					hostnames = append(hostnames, hostname)
+				}
+			}
 		}
-
-		hostnames = append(hostnames, hostname)
+		return &hostnames
 	}
-
-	return &hostnames
+	return nil
 }
 
 func expandAzureRmApiManagementCertificates(d *schema.ResourceData) *[]apimanagement.CertificateConfiguration {
@@ -636,35 +669,6 @@ func flattenApiManagementCustomProperties(input map[string]*string) ([]interface
 	return nil, nil
 }
 
-func flattenApiManagementCertificates(d *schema.ResourceData, props *[]apimanagement.CertificateConfiguration) []interface{} {
-	certificates := make([]interface{}, 0)
-
-	if props != nil {
-		for i, prop := range *props {
-			certificate := make(map[string]interface{}, 0)
-
-			certificate["store_name"] = string(prop.StoreName)
-			certificate["thumbprint"] = *prop.Certificate.Thumbprint
-
-			// certificate password isn't returned, so let's look it up
-			passwKey := fmt.Sprintf("certificate.%d.certificate_password", i)
-			if v, ok := d.GetOk(passwKey); ok {
-				certificate["certificate_password"] = v.(string)
-			}
-
-			// encoded certificate isn't returned, so let's look it up
-			certKey := fmt.Sprintf("certificate.%d.encoded_certificate", i)
-			if v, ok := d.GetOk(certKey); ok {
-				certificate["encoded_certificate"] = v.(string)
-			}
-
-			certificates = append(certificates, certificate)
-		}
-	}
-
-	return certificates
-}
-
 func flattenApiManagementAdditionalLocations(props *[]apimanagement.AdditionalLocation) []interface{} {
 	additional_locations := make([]interface{}, 0)
 
@@ -692,49 +696,54 @@ func flattenApiManagementAdditionalLocations(props *[]apimanagement.AdditionalLo
 }
 
 func flattenApiManagementHostnameConfigurations(d *schema.ResourceData, configs *[]apimanagement.HostnameConfiguration) []interface{} {
-	host_configs := make([]interface{}, 0)
+	if configs != nil && len(*configs) > 0 {
+		hostTypes := make(map[string]interface{}) // protal, proxy etc.
 
-	// stateOld := d.Get("hostname_configuration").([]interface{})
+		for _, hostNameType := range apimanagement.PossibleHostnameTypeValues() {
+			v := strings.ToLower(string(hostNameType))
+			hostTypes[v] = make([]interface{}, 0)
+		}
 
-	if configs != nil {
-		for i, config := range *configs {
+		for _, config := range *configs {
 			host_config := make(map[string]interface{}, 0)
 
-			host_config["type"] = string(config.Type)
+			configType := strings.ToLower(string(config.Type))
 
 			if config.HostName != nil {
 				host_config["host_name"] = *config.HostName
 			}
+
+			log.Printf("Default SSL Binding: %v", *config.DefaultSslBinding)
 
 			if config.DefaultSslBinding != nil {
 				host_config["default_ssl_binding"] = *config.DefaultSslBinding
 			}
 
 			if config.NegotiateClientCertificate != nil {
-				host_config["negotiate_client_certificate"] = bool(*config.NegotiateClientCertificate)
+				host_config["negotiate_client_certificate"] = *config.NegotiateClientCertificate
 			}
 
-			if config.Certificate != nil {
-				host_config["certificate_thumbprint"] = *config.Certificate.Thumbprint
+			// Iterate through old state to find sensitive props not returned by API.
+			// This must be done in order to avoid state diffs.
+			key := fmt.Sprintf("hostname_configurations.0.%s", configType)
+			if oldState, ok := d.GetOk(key); ok {
+				for _, v := range oldState.([]interface{}) {
+					oldConfig := v.(map[string]interface{})
+
+					if oldConfig["host_name"] == *config.HostName {
+						host_config["certificate_password"] = oldConfig["certificate_password"]
+						host_config["certificate"] = oldConfig["certificate"]
+					}
+				}
 			}
 
-			// certificate password isn't returned, so let's look it up
-			passKey := fmt.Sprintf("hostname_configuration.%d.certificate_password", i)
-			if v, ok := d.GetOk(passKey); ok {
-				host_config["certificate_password"] = v.(string)
-			}
-
-			// encoded certificate isn't returned, so let's look it up
-			certKey := fmt.Sprintf("hostname_configuration.%d.certificate", i)
-			if v, ok := d.GetOk(certKey); ok {
-				host_config["certificate"] = v.(string)
-			}
-
-			host_configs = append(host_configs, host_config)
+			hostTypes[configType] = append(hostTypes[configType].([]interface{}), host_config)
 		}
+
+		return []interface{}{hostTypes}
 	}
 
-	return host_configs
+	return nil
 }
 
 func flattenApiManagementServiceSku(profile *apimanagement.ServiceSkuProperties) []interface{} {

@@ -122,16 +122,13 @@ func TestAccAzureRMApiManagement_complete(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
-					"certificate.0.certificate_password",            // not returned, sensitive
-					"certificate.0.encoded_certificate",             // not returned, sensitive
-					"certificate.1.certificate_password",            // not returned, sensitive
-					"certificate.1.encoded_certificate",             // not returned, sensitive
-					"hostname_configuration.0.certificate",          // not returned, sensitive
-					"hostname_configuration.0.certificate_password", // not returned, sensitive
-					"hostname_configuration.1.certificate",          // not returned, sensitive
-					"hostname_configuration.1.certificate_password", // not returned, sensitive
-					"hostname_configuration.2.certificate",          // not returned, sensitive
-					"hostname_configuration.2.certificate_password", // not returned, sensitive
+					"certificate",                                             // not returned from API, sensitive
+					"hostname_configurations.0.portal.0.certificate",          // not returned from API, sensitive
+					"hostname_configurations.0.portal.0.certificate_password", // not returned from API, sensitive
+					"hostname_configurations.0.proxy.0.certificate",           // not returned from API, sensitive
+					"hostname_configurations.0.proxy.0.certificate_password",  // not returned from API, sensitive
+					"hostname_configurations.0.proxy.1.certificate",           // not returned from API, sensitive
+					"hostname_configurations.0.proxy.1.certificate_password",  // not returned from API, sensitive
 				},
 			},
 		},
@@ -275,32 +272,31 @@ resource "azurerm_api_management" "test" {
     store_name           = "Root"
   }
 
-	security {
-		disable_backend_tls11 = true
-	}
-
-  hostname_configuration {
-    type                         = "Proxy"
-    host_name                    = "api.terraform.io"
-    certificate                  = "${base64encode(file("testdata/api_management_api_test.pfx"))}"
-    certificate_password         = "terraform"
-    default_ssl_binding          = true
-    negotiate_client_certificate = false
+  security {
+    disable_backend_tls11 = true
   }
 
-  hostname_configuration {
-    type                         = "Proxy"
-    host_name                    = "api2.terraform.io"
-    certificate                  = "${base64encode(file("testdata/api_management_api2_test.pfx"))}"
-    certificate_password         = "terraform"
-    negotiate_client_certificate = true
-  }
+  hostname_configurations {
+    proxy {
+      host_name                    = "api.terraform.io"
+      certificate                  = "${base64encode(file("testdata/api_management_api_test.pfx"))}"
+      certificate_password         = "terraform"
+      default_ssl_binding          = true
+      negotiate_client_certificate = false
+    }
 
-  hostname_configuration {
-    type                 = "Portal"
-    host_name            = "portal.terraform.io"
-    certificate          = "${base64encode(file("testdata/api_management_portal_test.pfx"))}"
-    certificate_password = "terraform"
+    proxy {
+      host_name                    = "api2.terraform.io"
+      certificate                  = "${base64encode(file("testdata/api_management_api2_test.pfx"))}"
+      certificate_password         = "terraform"
+      negotiate_client_certificate = true
+    }
+
+    portal {
+      host_name            = "portal.terraform.io"
+      certificate          = "${base64encode(file("testdata/api_management_portal_test.pfx"))}"
+      certificate_password = "terraform"
+    }
   }
 
   sku {

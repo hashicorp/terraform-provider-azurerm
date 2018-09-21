@@ -250,9 +250,9 @@ func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error
 			return fmt.Errorf("Error setting `additional_location`: %+v", err)
 		}
 
-		if err := d.Set("certificate", flattenApiManagementCertificates(d, props.Certificates)); err != nil {
-			return fmt.Errorf("Error setting `certificate`: %+v", err)
-		}
+		// if err := d.Set("certificate", flattenApiManagementCertificates(d, props.Certificates)); err != nil {
+		// 	return fmt.Errorf("Error setting `certificate`: %+v", err)
+		// }
 	}
 
 	if sku := resp.Sku; sku != nil {
