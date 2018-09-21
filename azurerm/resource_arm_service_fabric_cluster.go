@@ -438,9 +438,14 @@ func resourceArmServiceFabricClusterRead(d *schema.ResourceData, meta interface{
 		d.Set("cluster_endpoint", props.ClusterEndpoint)
 		d.Set("management_endpoint", props.ManagementEndpoint)
 		d.Set("reliability_level", string(props.ReliabilityLevel))
-		d.Set("upgrade_mode", string(props.UpgradeMode))
-		d.Set("cluster_code_version", props.ClusterCodeVersion)
 		d.Set("vm_image", props.VMImage)
+
+		upgradeMode := string(props.UpgradeMode)
+		d.Set("upgrade_mode", upgradeMode)
+
+		if upgradeMode == "Manual" {
+			d.Set("cluster_code_version", props.ClusterCodeVersion)
+		}
 
 		addOnFeatures := flattenServiceFabricClusterAddOnFeatures(props.AddOnFeatures)
 		if err := d.Set("add_on_features", schema.NewSet(schema.HashString, addOnFeatures)); err != nil {
