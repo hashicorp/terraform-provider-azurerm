@@ -1,9 +1,12 @@
 package azurerm
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 )
 
 func resourceArmMonitorActivityLogAlert() *schema.Resource {
@@ -123,7 +126,7 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 }
 
 func resourceArmMonitorActivityLogAlertCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
-	return nil
+	return resourceArmMonitorActivityLogAlertRead(d, meta)
 }
 
 func resourceArmMonitorActivityLogAlertRead(d *schema.ResourceData, meta interface{}) error {
@@ -131,5 +134,21 @@ func resourceArmMonitorActivityLogAlertRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmMonitorActivityLogAlertDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).monitorActivityLogAlertsClient
+	ctx := meta.(*ArmClient).StopContext
+
+	id, err := parseAzureResourceID(d.Id())
+	if err != nil {
+		return err
+	}
+	resGroup := id.ResourceGroup
+	name := id.Path["activityLogAlerts"]
+
+	if resp, err := client.Delete(ctx, resGroup, name); err != nil {
+		if !response.WasNotFound(resp.Response) {
+			return fmt.Errorf("Error deleting activity log alert %q (resource group %q): %+v", name, resGroup, err)
+		}
+	}
+
 	return nil
 }
