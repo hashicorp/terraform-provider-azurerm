@@ -420,7 +420,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("restart_policy", string(props.RestartPolicy))
 		d.Set("os_type", string(props.OsType))
 
-		if err := d.Set("volume", flattenContainerVolumes(props.Volumes)); err != nil {
+		if err := d.Set("volume", flattenContainerVolumes(d, props.Volumes)); err != nil {
 			return fmt.Errorf("Error setting `volume`: %+v", err)
 		}
 	}
@@ -550,30 +550,22 @@ func flattenContainerVolumeMounts(volumeMounts *[]containerinstance.VolumeMount)
 
 func flattenContainerVolumes(d *schema.ResourceData, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
 	volumeConfigs := make([]interface{}, 0)
-	
+
 	if containerGroupVolumes == nil {
 		return volumeConfigs
 	}
 
-	oldVolumeConfigs := d.Get("volume").([]interface)
-	
+	oldVolumeConfigs := d.Get("volume").([]interface{})
+
 	for i, volume := range *containerGroupVolumes {
 
 		volumeConfig := make(map[string]interface{})
 		volumeConfig["name"] = *volume.Name
 
-		if volume.AzureFile != nil {
-			azureShare := make(map[string]interface{})
-			azureShare["share_name"] = *volume.AzureFile.ShareName
-			azureShare["storage_account_name"] = *volume.AzureFile.StorageAccountName
-			// azureShare["storage_account_key"] = volume.AzureFile.StorageAccountKey
-			volumeConfig["azure_share"] = []interface{}{
-				azureShare,
-			}
-		}
-
 		if volume.EmptyDir != nil {
 			volumeConfig["empty_dir"] = [1]interface{}{}
+			volumeConfigs = append(volumeConfigs, volumeConfig)
+			continue
 		}
 
 		if volume.GitRepo != nil {
@@ -582,6 +574,37 @@ func flattenContainerVolumes(d *schema.ResourceData, containerGroupVolumes *[]co
 					"repository": *volume.GitRepo.Repository,
 					"directory":  *volume.GitRepo.Directory,
 				},
+			}
+			volumeConfigs = append(volumeConfigs, volumeConfig)
+			continue
+		}
+
+		var oldVolumeConfig map[string]interface{}
+
+		// Secrets aren't returned so check the old config for them.
+		if oldVolumeConfigCheck, exists := oldVolumeConfigs[i].(map[string]interface{}); exists {
+			if oldVolumeConfigName, exists := oldVolumeConfigCheck["name"]; exists && oldVolumeConfigName == *volume.Name {
+				oldVolumeConfig = oldVolumeConfigCheck
+			}
+		}
+
+		if volume.AzureFile != nil {
+			azureShare := make(map[string]interface{})
+			azureShare["share_name"] = *volume.AzureFile.ShareName
+			azureShare["storage_account_name"] = *volume.AzureFile.StorageAccountName
+			if oldVolumeConfig != nil {
+				azureShare["storage_account_key"] = oldVolumeConfig["azure_share"].(map[string]interface{})["storage_account_key"]
+			}
+			volumeConfig["azure_share"] = []interface{}{
+				azureShare,
+			}
+			volumeConfigs = append(volumeConfigs, volumeConfig)
+			continue
+		}
+
+		if oldVolumeConfig != nil {
+			if _, exists := validateArmContainerGroupVolumeVolumeExists(oldVolumeConfig, "secret"); exists {
+				volumeConfig["secret"] = oldVolumeConfig["secret"]
 			}
 		}
 
@@ -843,14 +866,8 @@ func expandContainerVolumes(d *schema.ResourceData) (*[]containerinstance.Volume
 			for _, v := range secrets {
 
 				secret := v.(map[string]interface{})
-				secretName, ok := secret["name"].(string)
-				if !ok {
-					return nil, fmt.Errorf("Invalid type: %v is not string")
-				}
-				secretData, ok := secret["data"].(string)
-				if !ok {
-					return nil, fmt.Errorf("Invalid type: %v is not string")
-				}
+				secretName := secret["name"].(string)
+				secretData := secret["data"].(string)
 				secretsConverted[secretName] = &secretData
 			}
 

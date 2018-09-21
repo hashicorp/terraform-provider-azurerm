@@ -18,8 +18,7 @@ func TestAccAzureRMContainerGroup_volumes(t *testing.T) {
 	config := testAccAzureRMContainerGroup_volumes(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
-		IsUnitTest: true,
-		Providers:  testAccProviders,
+		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
