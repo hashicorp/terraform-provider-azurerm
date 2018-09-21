@@ -1,5 +1,9 @@
 ## 1.16.0 (Unreleased)
 
+UPGRADE NOTES:
+
+* `azurerm_azuread_application` - the properties `homepage`, `identifier_uris` and `reply_urls` are now required to be `https` as required by Azure [GH-1960]
+
 FEATURES:
 
 * **New Data Source:** `azurerm_dev_test_lab` [GH-1944]
