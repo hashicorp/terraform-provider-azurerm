@@ -225,13 +225,7 @@ func dataSourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("Error setting `capabilities`: %+v", err)
 		}
 
-		virtualNetworkRules := make([]map[string]interface{}, len(*props.VirtualNetworkRules))
-		for i, r := range *props.VirtualNetworkRules {
-			virtualNetworkRules[i] = map[string]interface{}{
-				"id": *r.ID,
-			}
-		}
-		if err := d.Set("virtual_network_rule", virtualNetworkRules); err != nil {
+		if err := d.Set("virtual_network_rule", flattenAzureRmCosmosDBAccountVirtualNetworkRulesAsList(props.VirtualNetworkRules)); err != nil {
 			return fmt.Errorf("Error setting `virtual_network_rule`: %+v", err)
 		}
 
@@ -284,4 +278,18 @@ func flattenAzureRmCosmosDBAccountCapabilitiesAsList(capabilities *[]documentdb.
 	}
 
 	return &slice
+}
+
+func flattenAzureRmCosmosDBAccountVirtualNetworkRulesAsList(rules *[]documentdb.VirtualNetworkRule) []map[string]interface{} {
+	if rules == nil {
+		return []map[string]interface{}{}
+	}
+
+	virtualNetworkRules := make([]map[string]interface{}, len(*rules))
+	for i, r := range *rules {
+		virtualNetworkRules[i] = map[string]interface{}{
+			"id": *r.ID,
+		}
+	}
+	return virtualNetworkRules
 }

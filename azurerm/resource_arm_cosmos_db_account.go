@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -218,8 +219,9 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 					},
 				},
@@ -924,11 +926,13 @@ func flattenAzureRmCosmosDBAccountVirtualNetworkRules(rules *[]documentdb.Virtua
 		F: resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash,
 	}
 
-	for _, r := range *rules {
-		rule := map[string]interface{}{
-			"id": *r.ID,
+	if rules != nil {
+		for _, r := range *rules {
+			rule := map[string]interface{}{
+				"id": *r.ID,
+			}
+			results.Add(rule)
 		}
-		results.Add(rule)
 	}
 
 	return &results
