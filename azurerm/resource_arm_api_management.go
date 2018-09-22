@@ -23,6 +23,8 @@ func resourceArmApiManagementService() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		CustomizeDiff: azure.ResourceArmApiManagementCustomizeDiff,
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
@@ -206,10 +208,34 @@ func resourceArmApiManagementService() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"management": apiManagementResourceHostnameSchema(),
-						"portal":     apiManagementResourceHostnameSchema(),
-						"proxy":      apiManagementResourceHostnameProxySchema(),
-						"scm":        apiManagementResourceHostnameSchema(),
+						"management": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: apiManagementResourceHostnameSchema(),
+							},
+						},
+						"portal": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: apiManagementResourceHostnameSchema(),
+							},
+						},
+						"proxy": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: apiManagementResourceHostnameProxySchema(),
+							},
+						},
+						"scm": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: apiManagementResourceHostnameSchema(),
+							},
+						},
 					},
 				},
 			},
@@ -244,96 +270,52 @@ func resourceArmApiManagementService() *schema.Resource {
 	}
 }
 
-func apiManagementResourceHostnameSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
-		Optional: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"host_name": {
-					Type:         schema.TypeString,
-					Required:     true,
-					ValidateFunc: validation.NoZeroValues,
-				},
+func apiManagementResourceHostnameSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"host_name": {
+			Type:         schema.TypeString,
+			Required:     true,
+			ValidateFunc: validation.NoZeroValues,
+		},
 
-				"key_vault_id": {
-					Type:          schema.TypeString,
-					Optional:      true,
-					ValidateFunc:  validation.NoZeroValues,
-					ConflictsWith: []string{"certificate"},
-				},
+		"key_vault_id": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.NoZeroValues,
+		},
 
-				"certificate": {
-					Type:         schema.TypeString,
-					Optional:     true,
-					Sensitive:    true,
-					ValidateFunc: validation.NoZeroValues,
-				},
+		"certificate": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			Sensitive:    true,
+			ValidateFunc: validation.NoZeroValues,
+		},
 
-				"certificate_password": {
-					Type:         schema.TypeString,
-					Optional:     true,
-					Sensitive:    true,
-					ValidateFunc: validation.NoZeroValues,
-				},
+		"certificate_password": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			Sensitive:    true,
+			ValidateFunc: validation.NoZeroValues,
+		},
 
-				"negotiate_client_certificate": {
-					Type:     schema.TypeBool,
-					Optional: true,
-					Default:  false,
-				},
-			},
+		"negotiate_client_certificate": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 	}
 }
 
-func apiManagementResourceHostnameProxySchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
+func apiManagementResourceHostnameProxySchema() map[string]*schema.Schema {
+	hostnameSchema := apiManagementResourceHostnameSchema()
+
+	hostnameSchema["default_ssl_binding"] = &schema.Schema{
+		Type:     schema.TypeBool,
 		Optional: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"host_name": {
-					Type:         schema.TypeString,
-					Required:     true,
-					ValidateFunc: validation.NoZeroValues,
-				},
-
-				"key_vault_id": {
-					Type:          schema.TypeString,
-					Optional:      true,
-					ValidateFunc:  validation.NoZeroValues,
-					ConflictsWith: []string{"certificate"},
-				},
-
-				"certificate": {
-					Type:         schema.TypeString,
-					Optional:     true,
-					Sensitive:    true,
-					ValidateFunc: validation.NoZeroValues,
-				},
-
-				"certificate_password": {
-					Type:         schema.TypeString,
-					Optional:     true,
-					Sensitive:    true,
-					ValidateFunc: validation.NoZeroValues,
-				},
-
-				"default_ssl_binding": {
-					Type:     schema.TypeBool,
-					Optional: true,
-					Computed: true, //Azure has certain logic to set this, which we cannot predict
-				},
-
-				"negotiate_client_certificate": {
-					Type:     schema.TypeBool,
-					Optional: true,
-					Default:  false,
-				},
-			},
-		},
+		Computed: true, //Azure has certain logic to set this, which we cannot predict
 	}
+
+	return hostnameSchema
 }
 
 func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -529,55 +511,49 @@ func expandAzureRmApiManagementIdentity(d *schema.ResourceData) *apimanagement.S
 }
 
 func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*string {
-	customProps := make(map[string]*string, 0)
+	customProps := map[string]*string{
+		"Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30": utils.String("false"),
+		"Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10": utils.String("false"),
+		"Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11": utils.String("false"),
+		"Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168":    utils.String("false"),
+		"Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30":         utils.String("false"),
+		"Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10":         utils.String("false"),
+		"Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11":         utils.String("false"),
+	}
 
 	if v, ok := d.GetOk("security.0.disable_backend_ssl30"); ok {
 		val := strings.Title(strconv.FormatBool(v.(bool)))
 		customProps["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30"] = utils.String(val)
-	} else {
-		customProps["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30"] = utils.String("False")
 	}
 
 	if v, ok := d.GetOk("security.0.disable_backend_tls10"); ok {
 		val := strings.Title(strconv.FormatBool(v.(bool)))
 		customProps["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10"] = utils.String(val)
-	} else {
-		customProps["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10"] = utils.String("False")
 	}
 
 	if v, ok := d.GetOk("security.0.disable_backend_tls11"); ok {
 		val := strings.Title(strconv.FormatBool(v.(bool)))
 		customProps["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11"] = utils.String(val)
-	} else {
-		customProps["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11"] = utils.String("False")
 	}
 
 	if v, ok := d.GetOk("security.0.disable_triple_des_chipers"); ok {
 		val := strings.Title(strconv.FormatBool(v.(bool)))
 		customProps["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168"] = utils.String(val)
-	} else {
-		customProps["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168"] = utils.String("False")
 	}
 
 	if v, ok := d.GetOk("security.0.disable_frontend_ssl30"); ok {
 		val := strings.Title(strconv.FormatBool(v.(bool)))
 		customProps["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30"] = utils.String(val)
-	} else {
-		customProps["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30"] = utils.String("False")
 	}
 
 	if v, ok := d.GetOk("security.0.disable_frontend_tls10"); ok {
 		val := strings.Title(strconv.FormatBool(v.(bool)))
 		customProps["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10"] = utils.String(val)
-	} else {
-		customProps["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10"] = utils.String("False")
 	}
 
 	if v, ok := d.GetOk("security.0.disable_frontend_tls11"); ok {
 		val := strings.Title(strconv.FormatBool(v.(bool)))
 		customProps["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11"] = utils.String(val)
-	} else {
-		customProps["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11"] = utils.String("False")
 	}
 
 	return customProps

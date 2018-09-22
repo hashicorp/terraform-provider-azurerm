@@ -59,32 +59,31 @@ resource "azurerm_api_management" "test" {
     store_name           = "Root"
   }
 
-  custom_properties {
-    Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168 = "true"
+  security {
+    disable_backend_tls11 = true
   }
 
-  hostname_configuration {
-    type                         = "Proxy"
-    host_name                    = "api.terraform.io"
-    certificate                  = "${base64encode(file("testdata/api_management_api_test.pfx"))}"
-    certificate_password         = "terraform"
-    default_ssl_binding          = true
-    negotiate_client_certificate = false
-  }
+  hostname_configurations {
+    proxy {
+      host_name                    = "api.terraform.io"
+      certificate                  = "${base64encode(file("testdata/api_management_api_test.pfx"))}"
+      certificate_password         = "terraform"
+      default_ssl_binding          = true
+      negotiate_client_certificate = false
+    }
 
-  hostname_configuration {
-    type                         = "Proxy"
-    host_name                    = "api2.terraform.io"
-    certificate                  = "${base64encode(file("testdata/api_management_api2_test.pfx"))}"
-    certificate_password         = "terraform"
-    negotiate_client_certificate = true
-  }
+    proxy {
+      host_name                    = "api2.terraform.io"
+      certificate                  = "${base64encode(file("testdata/api_management_api2_test.pfx"))}"
+      certificate_password         = "terraform"
+      negotiate_client_certificate = true
+    }
 
-  hostname_configuration {
-    type                 = "Portal"
-    host_name            = "portal.terraform.io"
-    certificate          = "${base64encode(file("testdata/api_management_portal_test.pfx"))}"
-    certificate_password = "terraform"
+    portal {
+      host_name            = "portal.terraform.io"
+      certificate          = "${base64encode(file("testdata/api_management_portal_test.pfx"))}"
+      certificate_password = "terraform"
+    }
   }
 
   sku {
@@ -118,17 +117,23 @@ The following arguments are supported:
 
 * `notification_sender_email` - (Optional) Email address from which the notification will be sent.
 
+* `identity` - (Optional) Managed service identity. The `identity` block is documented below.
+
 * `additional_location` - (Optional) Additional datacenter locations of the API Management service. The `additional_location` block is documented below.
 
 * `certificate` - (Optional) List of Certificates that is installed in the API Management service. Max supported certificates that can be installed is 10. The `certificate` block is documented below.
 
 * `security` - Optionally disable certain security features. The `security` block is documented below.
 
-* `hostname_configuration` - (Optional) Custom hostname configuration of the API Management service. The `hostname_configuration` block is documented below.
+* `hostname_configurations` - (Optional) Custom hostname configuration of the API Management service. The `hostname_configurations` block is documented below.
 
 * `tags` - (Optional) A mapping of tags assigned to the resource.
 
 ---
+
+`identity` block supports the following:
+
+* `type` - (Required) The identity type. Currently the only supported type is `SystemAssigned`.
 
 `sku` block supports the following:
 
@@ -140,7 +145,7 @@ The following arguments are supported:
 
 * `location` - (Required) The location name of the additional region among Azure Data center regions.
 
-* `sku` - (Required) SKU properties of the API Management service. The `hostname_configuration` block is documented above.
+* `sku` - (Required) SKU properties of the API Management service. The `sku` block is documented above.
 
 `certificate` block supports the following:
 
@@ -166,23 +171,37 @@ The following arguments are supported:
 
 * `disable_frontend_tls11` - Disables TLS 1.1 on the frontend side of the gateway
 
-`hostname_configuration` block supports the following:
+`hostname_configurations` block supports the following:
 
-* `type` - (Required) Hostname type. Possible values include: `Proxy`, `Portal`, `Management` or `Scm`
+* `management` - The `management` block is documented below.
+
+* `portal` - The `portal` block is documented below.
+
+* `proxy` - The `proxy` block is documented below.
+
+* `scm` - The `scm` block is documented below.
+
+`management`, `portal` and `scm` blocks supports the following:
 
 * `host_name` - (Required) Hostname to configure on the Api Management service.
 
-* `certificate` - (Required) Base64 Encoded certificate.
+* `key_vault_id` - (Optional) Url to the KeyVault Secret containing the SSL Certificate. If absolute Url containing version is provided, auto-update of ssl certificate will not work. This requires the `identity` attribute to be set. The secret should be of type `application/x-pkcs12`.
 
-* `certificate_password` - (Required) Certificate Password.
+* `certificate` - (Optional) Base64 Encoded certificate.
 
-* `default_ssl_binding` - (Optional) If set to true the certificate associated with this Hostname is setup as the Default SSL Certificate. If a client does not send the SNI header, then this will be the certificate that will be challenged. The property is useful if a service has multiple custom hostname enabled and it needs to decide on the default ssl certificate. The setting only applied to Proxy Hostname Type.
+* `certificate_password` - (Optional) Certificate Password.
 
 * `negotiate_client_certificate` - (Optional) If set to true will always negotiate client certificate on the hostname. Default Value is false.
 
+~> **NOTE:** Either `key_vault_id` or `certificate` (together with optionally `certificate_password`) must be set, not both.
+
+proxy block supports everything that `management`, `portal` and `scm` does, plus the following:
+
+* `default_ssl_binding` - (Optional) If set to true the certificate associated with this Hostname is setup as the Default SSL Certificate. If a client does not send the SNI header, then this will be the certificate that will be challenged. The property is useful if a service has multiple custom hostname enabled and it needs to decide on the default ssl certificate. The setting only applies to the Proxy Hostname Type.
+
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the App Service Plan component.
 
@@ -196,9 +215,17 @@ The following attributes are exported:
 
 * `scm_url` - SCM endpoint URL of the API Management service.
 
+* `identity` - Managed service identity. The `identity` block is documented below.
+
 * `additional_location` - Additional datacenter locations of the API Management service. The `additional_location` block is documented below.
 
 ---
+
+`identity` block exports the following:
+
+* `principal_id` - The principal id of the identity.
+
+* `tenant_id` - The client tenant id of the identity.
 
 `additional_location` block exports the following:
 
