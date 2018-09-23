@@ -38,6 +38,38 @@ func TestAccDataSourceAzureRMKubernetesCluster_basic(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAzureRMKubernetesCluster_aadProfile(t *testing.T) {
+	dataSourceName := "data.azurerm_kubernetes_cluster.test"
+	ri := acctest.RandInt()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	serverAppId := os.Getenv("ARM_SERVER_APP_ID")
+	serverAppSecret := os.Getenv("ARM_SERVER_APP_SECRET")
+	clientAppId := os.Getenv("ARM_CLIENT_APP_ID")
+	tenantId := os.Getenv("ARM_TENANT_ID")
+	location := testLocation()
+	config := testAccDataSourceAzureRMKubernetesCluster_rbacAAD(ri, clientId, clientSecret, location, serverAppId, serverAppSecret, clientAppId, tenantId)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(dataSourceName),
+					resource.TestCheckResourceAttr(dataSourceName, "aad_profile.#", "1"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "aad_profile.0.server_app_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "aad_profile.0.server_app_secret"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "aad_profile.0.client_app_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "aad_profile.0.tenant_id"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDataSourceAzureRMKubernetesCluster_internalNetwork(t *testing.T) {
 	dataSourceName := "data.azurerm_kubernetes_cluster.test"
 	ri := acctest.RandInt()
@@ -240,6 +272,18 @@ func testAccDataSourceAzureRMKubernetesCluster_basic(rInt int, clientId string, 
 data "azurerm_kubernetes_cluster" "test" {
   name                = "${azurerm_kubernetes_cluster.test.name}"
   resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+}
+`, resource)
+}
+
+func testAccDataSourceAzureRMKubernetesCluster_rbacAAD(rInt int, clientId string, clientSecret string, location string, serverAppId string, serverAppSecret string, clientAppId string, tenantId string) string {
+	resource := testAccAzureRMKubernetesCluster_rbacAAD(rInt, clientId, clientSecret, location, serverAppId, serverAppSecret, clientAppId, tenantId)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+	name                = "${azurerm_kubernetes_cluster.test.name}"
+	resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
 }
 `, resource)
 }

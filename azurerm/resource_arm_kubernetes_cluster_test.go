@@ -118,7 +118,7 @@ func TestAccAzureRMKubernetesCluster_aadProfile(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "aad_profile.serverAppId"),
+					resource.TestCheckResourceAttr(resourceName, "aad_profile.#", "1"),
 				),
 			},
 		},
@@ -484,7 +484,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   dns_prefix          = "acctestaks%d"
-  kubernetes_version  = "1.7.7"
+  kubernetes_version  = "1.10.7"
 	enable_rbac         = true
 
   linux_profile {

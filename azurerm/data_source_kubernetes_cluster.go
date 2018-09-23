@@ -186,12 +186,6 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							Computed: true,
 						},
 
-						"server_app_secret": {
-							Type:      schema.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-
 						"client_app_id": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -483,10 +477,6 @@ func flattenKubernetesClusterDataSourceAadProfile(profile *containerservice.Mana
 
 	if serverAppId := profile.ServerAppID; serverAppId != nil {
 		values["server_app_id"] = *serverAppId
-	}
-
-	if serverAppSecret := profile.ServerAppSecret; serverAppSecret != nil {
-		values["server_app_secret"] = *serverAppSecret
 	}
 
 	if clientAppId := profile.ClientAppID; clientAppId != nil {

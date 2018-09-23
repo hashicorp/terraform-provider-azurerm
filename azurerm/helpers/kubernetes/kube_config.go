@@ -27,21 +27,21 @@ type user struct {
 	ClientKeyData        string `yaml:"client-key-data"`
 }
 
-type userItemRBAC struct {
-	Name string   `yaml:"name"`
-	User userRBAC `yaml:"user"`
+type userItemAAD struct {
+	Name string  `yaml:"name"`
+	User userAAD `yaml:"user"`
 }
 
-type userRBAC struct {
+type userAAD struct {
 	AuthProvider authProvider `yaml:"auth-provider"`
 }
 
 type authProvider struct {
-	Name   string            `yaml:"name"`
-	Config configRBACAzureAD `yaml:"config"`
+	Name   string        `yaml:"name"`
+	Config configAzureAD `yaml:"config"`
 }
 
-type configRBACAzureAD struct {
+type configAzureAD struct {
 	APIServerID string `yaml:"apiserver-id,omitempty"`
 	ClientID    string `yaml:"client-id,omitempty"`
 	TenantID    string `yaml:"tenant-id,omitempty"`
@@ -68,10 +68,10 @@ type KubeConfig struct {
 	Preferences    map[string]interface{} `yaml:"preferences,omitempty"`
 }
 
-type KubeConfigRBAC struct {
+type KubeConfigAAD struct {
 	APIVersion     string                 `yaml:"apiVersion"`
 	Clusters       []clusterItem          `yaml:"clusters"`
-	Users          []userItemRBAC         `yaml:"users"`
+	Users          []userItemAAD          `yaml:"users"`
 	Contexts       []contextItem          `yaml:"contexts,omitempty"`
 	CurrentContext string                 `yaml:"current-context,omitempty"`
 	Kind           string                 `yaml:"kind,omitempty"`
@@ -103,12 +103,12 @@ func ParseKubeConfig(config string) (*KubeConfig, error) {
 	return &kubeConfig, nil
 }
 
-func ParseKubeConfigRBAC(config string) (*KubeConfigRBAC, error) {
+func ParseKubeConfigAAD(config string) (*KubeConfigAAD, error) {
 	if config == "" {
 		return nil, fmt.Errorf("Cannot parse empty config")
 	}
 
-	var kubeConfig KubeConfigRBAC
+	var kubeConfig KubeConfigAAD
 	err := yaml.Unmarshal([]byte(config), &kubeConfig)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to unmarshal YAML config with error %+v", err)

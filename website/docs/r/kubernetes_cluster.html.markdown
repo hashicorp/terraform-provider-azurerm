@@ -340,8 +340,6 @@ The following attributes are exported:
 
 * `kube_config` - A `kube_config` block as defined below.
 
-* `aad_profile` - If AzureAD integration with RBAC is in use a `aad_profile` block as defined below.
-
 ---
 
 A `http_application_routing` block exports the following:
@@ -380,16 +378,6 @@ provider "kubernetes" {
 
 
 ---
-
-A `aap_profile` block exports the following:
-
-* `server_app_id` - AzureAD Server Application ID.
-
-* `server_app_secret` - AzureAD Server Application Secret.
-
-* `client_id` - AzureAD Client Application ID.
-
-* `tenant_id` - AzureAD Tenant ID.
 
 
 ## Import
