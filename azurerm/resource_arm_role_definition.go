@@ -64,6 +64,20 @@ func resourceArmRoleDefinition() *schema.Resource {
 								Type: schema.TypeString,
 							},
 						},
+						"data_actions": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"not_data_actions": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
 					},
 				},
 			},
@@ -194,12 +208,26 @@ func expandRoleDefinitionPermissions(d *schema.ResourceData) []authorization.Per
 		}
 		permission.Actions = &actionsOutput
 
+		dataActionsOutput := make([]string, 0)
+		dataActions := input["data_actions"].([]interface{})
+		for _, a := range dataActions {
+			dataActionsOutput = append(dataActionsOutput, a.(string))
+		}
+		permission.DataActions = &dataActionsOutput
+
 		notActionsOutput := make([]string, 0)
 		notActions := input["not_actions"].([]interface{})
 		for _, a := range notActions {
 			notActionsOutput = append(notActionsOutput, a.(string))
 		}
 		permission.NotActions = &notActionsOutput
+
+		notDataActionsOutput := make([]string, 0)
+		notDataActions := input["not_data_actions"].([]interface{})
+		for _, a := range notDataActions {
+			notDataActionsOutput = append(notDataActionsOutput, a.(string))
+		}
+		permission.NotDataActions = &notDataActionsOutput
 
 		output = append(output, permission)
 	}
@@ -232,6 +260,14 @@ func flattenRoleDefinitionPermissions(input *[]authorization.Permission) []inter
 		}
 		output["actions"] = actions
 
+		dataActions := make([]string, 0)
+		if permission.DataActions != nil {
+			for _, dataAction := range *permission.DataActions {
+				dataActions = append(dataActions, dataAction)
+			}
+		}
+		output["data_actions"] = dataActions
+
 		notActions := make([]string, 0)
 		if permission.NotActions != nil {
 			for _, action := range *permission.NotActions {
@@ -239,6 +275,14 @@ func flattenRoleDefinitionPermissions(input *[]authorization.Permission) []inter
 			}
 		}
 		output["not_actions"] = notActions
+
+		notDataActions := make([]string, 0)
+		if permission.NotDataActions != nil {
+			for _, dataAction := range *permission.NotDataActions {
+				notDataActions = append(notDataActions, dataAction)
+			}
+		}
+		output["not_data_actions"] = notDataActions
 
 		permissions = append(permissions, output)
 	}
