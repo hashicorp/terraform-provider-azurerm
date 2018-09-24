@@ -156,14 +156,16 @@ func resourceArmHDInsightApplicationCreate(d *schema.ResourceData, meta interfac
 	installScriptActions := expandHDInsightApplicationScriptActions(d.Get("install_script_action").([]interface{}))
 	uninstallScriptActions := expandHDInsightApplicationScriptActions(d.Get("uninstall_script_action").([]interface{}))
 
-	properties := hdinsight.ApplicationProperties{
-		ApplicationType:        utils.String("CustomApplication"),
-		MarketplaceIdentifier:  utils.String(marketplaceIdentifier),
-		ComputeProfile:         computeProfile,
-		InstallScriptActions:   installScriptActions,
-		UninstallScriptActions: uninstallScriptActions,
+	application := hdinsight.Application{
+		Properties: &hdinsight.ApplicationProperties{
+			ApplicationType:        utils.String("CustomApplication"),
+			MarketplaceIdentifier:  utils.String(marketplaceIdentifier),
+			ComputeProfile:         computeProfile,
+			InstallScriptActions:   installScriptActions,
+			UninstallScriptActions: uninstallScriptActions,
+		},
 	}
-	future, err := client.Create(ctx, resourceGroup, clusterName, name, properties)
+	future, err := client.Create(ctx, resourceGroup, clusterName, name, application)
 	if err != nil {
 		if response.WasOK(future.Response()) {
 			err = resourceArmHDInsightApplicationReadError(client, ctx, resourceGroup, clusterName, name)
