@@ -51,6 +51,10 @@ The following attributes are exported:
 
 * `capabilities` - Capabilities enabled on this Cosmos DB account.
 
+* `is_virtual_network_filter_enabled` - If virtual network filtering is enabled for this Cosmos DB account.
+
+* `virtual_network_rule` - Subnets that are allowed to access this CosmosDB account.
+
 `consistency_policy` The current consistency Settings for this CosmosDB account with the following properties:
 
 * `consistency_level` - The Consistency Level used by this CosmosDB Account. 
@@ -63,6 +67,10 @@ The following attributes are exported:
 * `id` - The ID of the location.
 * `location` - The name of the Azure region hosting replicated data.
 * `priority` - The locations fail over priority.
+
+`virtual_network_rule` The virtual network subnets allowed to access this Cosmos DB account with the following properties:
+
+* `id` - The ID of the virtual network subnet.
 
 * `endpoint` - The endpoint used to connect to the CosmosDB account.
 

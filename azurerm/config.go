@@ -21,6 +21,7 @@ import (
 	analyticsAccount "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
 	storeAccount "github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
+	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
 	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2018-01-01/eventgrid"
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
@@ -59,6 +60,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
+	uuid "github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/authentication"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -135,6 +137,10 @@ type ArmClient struct {
 
 	// Devices
 	iothubResourceClient devices.IotHubResourceClient
+
+	// DevTestLabs
+	devTestLabsClient            dtl.LabsClient
+	devTestVirtualNetworksClient dtl.VirtualNetworksClient
 
 	// Databases
 	mysqlConfigurationsClient                mysql.ConfigurationsClient
@@ -259,9 +265,30 @@ type ArmClient struct {
 	policyDefinitionsClient policy.DefinitionsClient
 }
 
+var (
+	msClientRequestIDOnce sync.Once
+	msClientRequestID     string
+)
+
+// clientRequestID generates a UUID to pass through `x-ms-client-request-id` header.
+func clientRequestID() string {
+	msClientRequestIDOnce.Do(func() {
+		var err error
+		msClientRequestID, err = uuid.GenerateUUID()
+
+		if err != nil {
+			log.Printf("[WARN] Fail to generate uuid for msClientRequestID: %+v", err)
+		}
+	})
+
+	log.Printf("[DEBUG] AzureRM Client Request Id: %s", msClientRequestID)
+	return msClientRequestID
+}
+
 func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Authorizer) {
 	setUserAgent(client)
 	client.Authorizer = auth
+	client.RequestInspector = azure.WithClientID(clientRequestID())
 	client.Sender = autorest.CreateSender(withRequestLogging())
 	client.SkipResourceProviderRegistration = c.skipProviderRegistration
 	client.PollingDuration = 60 * time.Minute
@@ -309,6 +336,8 @@ func setUserAgent(client *autorest.Client) {
 	if azureAgent := os.Getenv("AZURE_HTTP_USER_AGENT"); azureAgent != "" {
 		client.UserAgent = fmt.Sprintf("%s;%s", client.UserAgent, azureAgent)
 	}
+
+	log.Printf("[DEBUG] AzureRM Client User Agent: %s\n", client.UserAgent)
 }
 
 func getAuthorizationToken(c *authentication.Config, oauthConfig *adal.OAuthConfig, endpoint string) (*autorest.BearerAuthorizer, error) {
@@ -428,6 +457,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDeviceClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerDevTestClients(endpoint, c.SubscriptionID, auth)
 	client.registerDNSClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventGridClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventHubClients(endpoint, c.SubscriptionID, auth, sender)
@@ -688,6 +718,16 @@ func (c *ArmClient) registerDeviceClients(endpoint, subscriptionId string, auth 
 	iotClient := devices.NewIotHubResourceClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&iotClient.Client, auth)
 	c.iothubResourceClient = iotClient
+}
+
+func (c *ArmClient) registerDevTestClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	labsClient := dtl.NewLabsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&labsClient.Client, auth)
+	c.devTestLabsClient = labsClient
+
+	devTestVirtualNetworksClient := dtl.NewVirtualNetworksClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&devTestVirtualNetworksClient.Client, auth)
+	c.devTestVirtualNetworksClient = devTestVirtualNetworksClient
 }
 
 func (c *ArmClient) registerDNSClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {

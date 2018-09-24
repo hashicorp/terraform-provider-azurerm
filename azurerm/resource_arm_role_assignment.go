@@ -182,7 +182,6 @@ func validateRoleDefinitionName(i interface{}, k string) ([]string, []error) {
 }
 
 func retryRoleAssignmentsClient(scope string, name string, properties authorization.RoleAssignmentCreateParameters, meta interface{}) func() *resource.RetryError {
-
 	return func() *resource.RetryError {
 		roleAssignmentsClient := meta.(*ArmClient).roleAssignmentsClient
 		ctx := meta.(*ArmClient).StopContext
@@ -190,7 +189,11 @@ func retryRoleAssignmentsClient(scope string, name string, properties authorizat
 		_, err := roleAssignmentsClient.Create(ctx, scope, name, properties)
 
 		if err != nil {
-			return resource.RetryableError(err)
+			if utils.ResponseErrorIsRetryable(err) {
+				return resource.RetryableError(err)
+			} else {
+				return resource.NonRetryableError(err)
+			}
 		}
 		return nil
 

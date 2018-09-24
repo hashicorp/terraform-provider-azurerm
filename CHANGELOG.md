@@ -1,8 +1,28 @@
 ## 1.16.0 (Unreleased)
 
+UPGRADE NOTES:
+
+* `azurerm_azuread_application` - the properties `homepage`, `identifier_uris` and `reply_urls` are now required to be `https` as required by Azure [GH-1960]
+
+FEATURES:
+
+* **New Data Source:** `azurerm_dev_test_lab` [GH-1944]
+* **New Resource:** `azurerm_dev_test_lab` [GH-1944]
+* **New Resource:** `azurerm_dev_test_virtual_network` [GH-1944]
+
+IMPROVEMENTS:
+* `azurerm_cosmosdb_account` - adding the `is_virtual_network_filter_enabled` and `virtual_network_rule` propeties [GH-1961]
+
 BUG FIXES:
 
+* `azurerm_app_service_plan` - exposing additional information on failure [GH-1926]
+* `azurerm_lb_rule` - allow `0` for `frontend_port` and `backend_port` again [GH-1951]
 * `azurerm_public_ip` - correctly reading and importing the `idle_timeout_in_minutes` property [GH-1925]
+* `azurerm_role_assignment` - only retry on errors when they are retryable [GH-1934]
+* `azurerm_service_fabric_cluster` - allow two `client_certificate_thumbprint` blocks [GH-1938]
+* `azurerm_service_fabric_cluster` - support for specifying the `cluster_code_version` field [GH-1945]
+* `azurerm_virtual_machine` - handling the Managed Disk ID being nil [GH-1947]
+* `azurerm_virtual_machine_data_disk_attachment` - supporting data disk attachments when a VM Extension is installed [GH-1950]
 
 ## 1.15.0 (September 14, 2018)
 

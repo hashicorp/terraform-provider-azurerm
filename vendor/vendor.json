@@ -91,6 +91,14 @@
 			"versionExact": "v20.1.0"
 		},
 		{
+			"checksumSHA1": "eScauiDOG7qx2IieGVacFNMaviE=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl",
+			"revision": "2935c0241c74bd8549b843978dd6fc1be6f48b4a",
+			"revisionTime": "2018-08-31T14:25:13Z",
+			"version": "v20.1.0",
+			"versionExact": "v20.1.0"
+		},
+		{
 			"checksumSHA1": "mdwBbEgubHb6UnwDspop+43Sx8k=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2018-01-01/eventgrid",
 			"revision": "2935c0241c74bd8549b843978dd6fc1be6f48b4a",
