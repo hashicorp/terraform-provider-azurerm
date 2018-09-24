@@ -79,6 +79,33 @@ func TestAccAzureRMServiceFabricCluster_manualClusterCodeVersion(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMServiceFabricCluster_manualLatest(t *testing.T) {
+	resourceName := "azurerm_service_fabric_cluster.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceFabricCluster_manualClusterCodeVersion(ri, location, ""),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceFabricClusterExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "upgrade_mode", "Manual"),
+					resource.TestCheckResourceAttrSet(resourceName, "cluster_code_version"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMServiceFabricCluster_addOnFeatures(t *testing.T) {
 	resourceName := "azurerm_service_fabric_cluster.test"
 	ri := acctest.RandInt()
