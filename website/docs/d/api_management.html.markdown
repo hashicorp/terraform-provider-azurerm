@@ -55,11 +55,7 @@ output "api_management_id" {
 
 * `additional_location` - Additional datacenter locations of the API Management service. The `additional_location` block is documented below.
 
-* `certificate` - List of Certificates that is installed in the API Management service. Max supported certificates that can be installed is 10. The `certificate` block is documented below.
-
-* `security` - Optionally disable certain security features. The `security` block is documented below.
-
-* `hostname_configuration` - Custom hostname configuration of the API Management service. The `hostname_configuration` block is documented below.
+* `hostname_configurations` - Custom hostname configuration of the API Management service. The `hostname_configurations` block is documented below.
 
 * `tags` - A mapping of tags assigned to the resource.
 
@@ -74,54 +70,24 @@ A `sku` block supports the following:
 
 A `additional_location` block supports the following:
 
-* `location` - (Required) The location name of the additional region among Azure Data center regions.
-
-* `sku` - (Required) SKU properties of the API Management service. The `hostname_configuration` block is documented above.
+* `location` - The location name of the additional region among Azure Data center regions.
 
 * `gateway_regional_url` - Gateway URL of the API Management service in the Region.
 
 * `static_ips` - Static IP addresses of the location's virtual machines.
 
-A `security` block supports the following:
+`hostname_configurations` block supports the following:
 
-* `disable_backend_ssl30` - Disables SSL 3.0 on the backend side of the gateway
+* `management` - The `management` block is documented below.
 
-* `disable_backend_tls10` - Disables TLS 1.0 on the backend side of the gateway
+* `portal` - The `portal` block is documented below.
 
-* `disable_backend_tls11` - Disables TLS 1.1 on the backend side of the gateway
+* `proxy` - The `proxy` block is documented below.
 
-* `disable_triple_des_chipers` - Disables the cipher TLS_RSA_WITH_3DES_EDE_CBC_SHA for all TLS versions (1.0, 1.1 and 1.2)
+* `scm` - The `scm` block is documented below.
 
-* `disable_frontend_ssl30` - Disables SSL 3.0 on the frontend side of the gateway
-
-* `disable_frontend_tls10` - Disables TLS 1.0 on the frontend side of the gateway
-
-* `disable_frontend_tls11` - Disables TLS 1.1 on the frontend side of the gateway
-
-A `certificate` block supports the following:
-
-* `store_name` - The local certificate store location. Only Root and CertificateAuthority are valid locations. Possible values include: `CertificateAuthority`, `Root`.
-
-* `certificate_info` - A `certificate_info` block as documented below.
-
-A `certificate_info` block supports the following:
-
-* `expiry` - Expiration date of the certificate.
-
-* `thumbprint` - Thumbprint of the certificate.
-
-* `subject` - Subject of the certificate.
-
-A `hostname_configuration` block supports the following:
-
-* `type` - Hostname type. Possible values include: `Proxy`, `Portal`, `Management` or `Scm`
+`management`, `portal` and `scm` blocks supports the following:
 
 * `host_name` - Hostname to configure on the Api Management service.
 
-* `certificate` - Base64 Encoded certificate.
-
-* `certificate_password` - Certificate Password.
-
-* `default_ssl_binding` - If set to true the certificate associated with this Hostname is setup as the Default SSL Certificate. If a client does not send the SNI header, then this will be the certificate that will be challenged. The property is useful if a service has multiple custom hostname enabled and it needs to decide on the default ssl certificate. The setting only applied to Proxy Hostname Type.
-
-* `negotiate_client_certificate` - If set to true will always negotiate client certificate on the hostname. Default Value is false.
+* `key_vault_id` - Url to the KeyVault Secret containing the SSL Certificate. If absolute Url containing version is provided, auto-update of ssl certificate will not work. This requires the `identity` attribute to be set. The secret should be of type `application/x-pkcs12`.
