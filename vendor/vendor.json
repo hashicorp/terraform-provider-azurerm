@@ -203,20 +203,20 @@
 			"versionExact": "v20.1.0"
 		},
 		{
-			"checksumSHA1": "0bIrscHh3UzIkTpWPVlXJcCnqqM=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights",
+			"checksumSHA1": "8bR9SnnwgG3Kbtp6MG9QMA8Q0ZI=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight",
 			"revision": "2935c0241c74bd8549b843978dd6fc1be6f48b4a",
 			"revisionTime": "2018-08-31T14:25:13Z",
 			"version": "v20.1.0",
 			"versionExact": "v20.1.0"
 		},
 		{
-			"checksumSHA1": "FSQXQm9xjZ3m9XsYoLfUlNfpuNA=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight",
-			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
-			"revisionTime": "2018-07-03T19:15:42Z",
-			"version": "=v18.0.0",
-			"versionExact": "v18.0.0"
+			"checksumSHA1": "0bIrscHh3UzIkTpWPVlXJcCnqqM=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights",
+			"revision": "2935c0241c74bd8549b843978dd6fc1be6f48b4a",
+			"revisionTime": "2018-08-31T14:25:13Z",
+			"version": "v20.1.0",
+			"versionExact": "v20.1.0"
 		},
 		{
 			"checksumSHA1": "QT7LrDyti+qDCjhxerYb8PwLfew=",

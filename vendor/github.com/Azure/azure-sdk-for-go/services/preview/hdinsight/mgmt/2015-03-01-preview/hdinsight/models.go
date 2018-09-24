@@ -1499,8 +1499,10 @@ type StorageAccount struct {
 	Name *string `json:"name,omitempty"`
 	// IsDefault - Whether or not the storage account is the default storage account.
 	IsDefault *bool `json:"isDefault,omitempty"`
-	// Container - The container in the storage account.
+	// Container - The container in the storage account, only to be specified for WASB storage accounts.
 	Container *string `json:"container,omitempty"`
+	// FileSystem - The filesystem, only to be specified for Azure Data Lake Storage Gen 2.
+	FileSystem *string `json:"fileSystem,omitempty"`
 	// Key - The storage account access key.
 	Key *string `json:"key,omitempty"`
 }
