@@ -56,6 +56,7 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 			"cluster_code_version": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
 
@@ -435,17 +436,12 @@ func resourceArmServiceFabricClusterRead(d *schema.ResourceData, meta interface{
 	}
 
 	if props := resp.ClusterProperties; props != nil {
+		d.Set("cluster_code_version", props.ClusterCodeVersion)
 		d.Set("cluster_endpoint", props.ClusterEndpoint)
 		d.Set("management_endpoint", props.ManagementEndpoint)
 		d.Set("reliability_level", string(props.ReliabilityLevel))
 		d.Set("vm_image", props.VMImage)
-
-		upgradeMode := string(props.UpgradeMode)
-		d.Set("upgrade_mode", upgradeMode)
-
-		if upgradeMode == "Manual" {
-			d.Set("cluster_code_version", props.ClusterCodeVersion)
-		}
+		d.Set("upgrade_mode", string(props.UpgradeMode))
 
 		addOnFeatures := flattenServiceFabricClusterAddOnFeatures(props.AddOnFeatures)
 		if err := d.Set("add_on_features", schema.NewSet(schema.HashString, addOnFeatures)); err != nil {
