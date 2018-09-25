@@ -593,7 +593,7 @@ func flattenContainerVolumes(d *schema.ResourceData, containerGroupVolumes *[]co
 			azureShare["share_name"] = *volume.AzureFile.ShareName
 			azureShare["storage_account_name"] = *volume.AzureFile.StorageAccountName
 			if oldVolumeConfig != nil {
-				azureShare["storage_account_key"] = oldVolumeConfig["azure_share"].(map[string]interface{})["storage_account_key"]
+				azureShare["storage_account_key"] = oldVolumeConfig["azure_share"].([]interface{})[0].(map[string]interface{})["storage_account_key"]
 			}
 			volumeConfig["azure_share"] = []interface{}{
 				azureShare,
@@ -875,9 +875,6 @@ func expandContainerVolumes(d *schema.ResourceData) (*[]containerinstance.Volume
 				Name:   name,
 				Secret: secretsConverted,
 			}
-
-			fmt.Printf("voluemes: %+v", secretsConverted)
-
 			containerGroupVolumes = append(containerGroupVolumes, cv)
 			continue
 		}

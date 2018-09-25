@@ -24,8 +24,31 @@ func TestAccAzureRMContainerGroup_volumes(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.volume_mount.0.volume_name", "emptydir"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.volume_mount.0.mount_path", "/aci/empty"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.volume_mount.1.volume_name", "gitrepo"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.volume_mount.1.mount_path", "/aci/gitrepo"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.volume_mount.1.read_only", "false"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.volume_mount.2.volume_name", "secret"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.volume_mount.2.mount_path", "/aci/secret"),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Linux"),
+					resource.TestCheckResourceAttr(resourceName, "volume.#", "4"),
+					resource.TestCheckResourceAttr(resourceName, "volume.0.name", "emptydir"),
+					resource.TestCheckResourceAttr(resourceName, "volume.1.name", "secret"),
+					resource.TestCheckResourceAttr(resourceName, "volume.1.secret.#", "3"),
+					resource.TestCheckResourceAttr(resourceName, "volume.1.secret.0.name", "examplesecret0"),
+					resource.TestCheckResourceAttr(resourceName, "volume.1.secret.0.data", "YmFzZTY0IGRhdGEK"),
+					resource.TestCheckResourceAttr(resourceName, "volume.1.secret.1.name", "examplesecret1"),
+					resource.TestCheckResourceAttr(resourceName, "volume.1.secret.1.data", "YmFzZTY0IGRhdGEK"),
+					resource.TestCheckResourceAttr(resourceName, "volume.1.secret.2.name", "examplesecret2"),
+					resource.TestCheckResourceAttr(resourceName, "volume.1.secret.2.data", "YmFzZTY0IGRhdGEK"),
+					resource.TestCheckResourceAttr(resourceName, "volume.2.name", "azureshare"),
+					resource.TestCheckResourceAttr(resourceName, "volume.2.azure_share.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "volume.2.azure_share.0.share_name", fmt.Sprintf("acctestss-%d", ri)),
+					resource.TestCheckResourceAttr(resourceName, "volume.3.name", "gitrepo"),
+					resource.TestCheckResourceAttr(resourceName, "volume.3.git_repo.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "volume.3.git_repo.0.repository", "https://github.com/Azure-Samples/aci-tutorial-sidecar"),
 				),
 			},
 		},
@@ -332,7 +355,7 @@ resource "azurerm_storage_share" "test" {
 	quota = 50
 }
 
-resource "azurerm_container_group" "aci-example" {
+resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -382,7 +405,7 @@ resource "azurerm_container_group" "aci-example" {
 
   container {
     name     = "webserver"
-    image    = "seanmckenna/aci-hellofiles"
+    image    = "busybox"
     cpu      = "1"
     memory   = "1.5"
     port     = "80"
@@ -406,7 +429,7 @@ resource "azurerm_container_group" "aci-example" {
 
   container {
     name   = "sidecar"
-    image  = "seanmckenna/aci-hellofiles"
+    image  = "busybox"
     cpu    = "1"
     memory = "1.5"
 
