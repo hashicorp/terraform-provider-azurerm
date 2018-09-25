@@ -92,6 +92,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_dev_test_lab":                          dataSourceArmDevTestLab(),
 			"azurerm_dns_zone":                              dataSourceArmDnsZone(),
 			"azurerm_eventhub_namespace":                    dataSourceEventHubNamespace(),
+			"azurerm_function_app_key_management":           dataSourceArmFunctionAppKeyManagement(),
 			"azurerm_image":                                 dataSourceArmImage(),
 			"azurerm_key_vault":                             dataSourceArmKeyVault(),
 			"azurerm_key_vault_access_policy":               dataSourceArmKeyVaultAccessPolicy(),
