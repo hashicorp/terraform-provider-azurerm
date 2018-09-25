@@ -11,11 +11,13 @@ FEATURES:
 * **New Resource:** `azurerm_dev_test_virtual_network` [GH-1944]
 
 IMPROVEMENTS:
+
 * `azurerm_cosmosdb_account` - adding the `is_virtual_network_filter_enabled` and `virtual_network_rule` propeties [GH-1961]
 
 BUG FIXES:
 
 * `azurerm_app_service_plan` - exposing additional information on failure [GH-1926]
+* `azurerm_app_service_custom_hostname_binding` - handling multiple bindings being created in parallel [GH-1970]
 * `azurerm_lb_rule` - allow `0` for `frontend_port` and `backend_port` again [GH-1951]
 * `azurerm_public_ip` - correctly reading and importing the `idle_timeout_in_minutes` property [GH-1925]
 * `azurerm_role_assignment` - only retry on errors when they are retryable [GH-1934]
