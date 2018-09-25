@@ -14,16 +14,21 @@ Manage as an Azure Container Group instance.
 
 ```hcl
 resource "azurerm_resource_group" "aci-rg" {
-  name     = "aci-test"
-  location = "west us"
+  name     = "${var.resource_group_name}"
+  location = "${var.resource_group_location}"
+}
+
+#storage account name needs to be globally unique so lets generate a random id
+resource "random_integer" "random_int" {
+  min = 100
+  max = 999
 }
 
 resource "azurerm_storage_account" "aci-sa" {
-  name                = "acistorageacct"
-  resource_group_name = "${azurerm_resource_group.aci-rg.name}"
-  location            = "${azurerm_resource_group.aci-rg.location}"
-  account_tier        = "Standard"
-  
+  name                     = "acistorageacct${random_integer.random_int.result}"
+  resource_group_name      = "${azurerm_resource_group.aci-rg.name}"
+  location                 = "${azurerm_resource_group.aci-rg.location}"
+  account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
@@ -36,43 +41,102 @@ resource "azurerm_storage_share" "aci-share" {
   quota = 50
 }
 
-resource "azurerm_container_group" "aci-helloworld" {
-  name                = "aci-hw"
+resource "azurerm_container_group" "aci-example" {
+  name                = "mycontainergroup-${random_integer.random_int.result}"
   location            = "${azurerm_resource_group.aci-rg.location}"
   resource_group_name = "${azurerm_resource_group.aci-rg.name}"
   ip_address_type     = "public"
-  dns_name_label      = "aci-label"
+  dns_name_label      = "mycontainergroup-${random_integer.random_int.result}"
   os_type             = "linux"
 
-  container {
-    name   = "hw"
-    image  = "seanmckenna/aci-hellofiles"
-    cpu    ="0.5"
-    memory =  "1.5"
-    port   = "80"
+  volume {
+    name      = "emptydir"
+    empty_dir = {}
+  }
 
-    environment_variables {
-      "NODE_ENV" = "testing"
+  volume {
+    name      = "secret"
+    
+    secret = {
+      name = "examplesecret0"
+      data = "YmFzZTY0IGRhdGEK" // Base64 data saying "base64 data"
+    }
+    secret = {
+      name = "examplesecret1"
+      data = "YmFzZTY0IGRhdGEK" // Base64 data saying "base64 data"
+    }
+    secret = {
+      name = "examplesecret2"
+      data = "YmFzZTY0IGRhdGEK" // Base64 data saying "base64 data"
+    }
+  }
+
+
+  volume {
+    name = "azureshare"
+
+    azure_share {
+      share_name           = "${azurerm_storage_share.aci-share.name}"
+      storage_account_name = "${azurerm_storage_account.aci-sa.name}"
+      storage_account_key  = "${azurerm_storage_account.aci-sa.primary_access_key}"
+    }
+  }
+
+  volume {
+    name = "gitrepo"
+
+    git_repo {
+      repository = "https://github.com/Azure-Samples/aci-tutorial-sidecar"
+    }
+  }
+
+  container {
+    name     = "webserver"
+    image    = "seanmckenna/aci-hellofiles"
+    cpu      = "1"
+    memory   = "1.5"
+    port     = "80"
+    protocol = "tcp"
+
+    volume_mount {
+      volume_name = "emptydir"
+      mount_path  = "/aci/empty"
     }
 
-    commands = ["/bin/bash", "-c", "'/path to/myscript.sh'"]
+    volume_mount {
+      volume_name = "gitrepo"
+      mount_path  = "/aci/gitrepo"
+    }
 
-    volume {
-      name       = "logs"
-      mount_path = "/aci/logs"
-      read_only  = false
-      share_name = "${azurerm_storage_share.aci-share.name}"
-      
-      storage_account_name  = "${azurerm_storage_account.aci-sa.name}"
-      storage_account_key   = "${azurerm_storage_account.aci-sa.primary_access_key}"
+    volume_mount {
+      volume_name = "secret"
+      mount_path  = "/aci/secret"
     }
   }
 
   container {
     name   = "sidecar"
-    image  = "microsoft/aci-tutorial-sidecar"
-    cpu    = "0.5"
+    image  = "seanmckenna/aci-hellofiles"
+    cpu    = "1"
     memory = "1.5"
+
+    volume_mount {
+      volume_name = "emptydir"
+      mount_path  = "/empty"
+      read_only   = false
+    }
+
+    volume_mount {
+      volume_name = "gitrepo"
+      mount_path  = "/gitrepo"
+      read_only   = false
+    }
+
+    volume_mount {
+      volume_name = "azureshare"
+      mount_path  = "/azureshare"
+      read_only   = false
+    }
   }
 
   tags {
@@ -105,6 +169,46 @@ The following arguments are supported:
 
 ~> **Note:** if `os_type` is set to `Windows` currently only a single `container` block is supported.
 
+* `volume` - (Optional) The definition of volumes for use by containers via `volume_mounts` as documented in the `volume` block below.
+
+The `volume` block supports:
+
+* `name` - (Required) Sepcifies the name of the Volume. Changing this foces a new resource to be created. 
+
+* `azure_share` - (Optional) The definition of a Azure Share based volume as documented in the `azure_share` block below. 
+
+* `git_repo` - (Optional) The definition of a Git Repository based volume as documented in the `git_repo` block below. 
+
+* `empty_dir` - (Optional) The definition of a Empty Dir based volume. 
+
+* `secret` - (Optional) The definition of a Secret based volume as documented in the `secret` block blow.
+
+~> **Note:** the `volume` block should contain one of either `azure_share`, `git_repo`, `empty_dir` or `secret`, if more than one is defined the resource will return an error.
+
+
+The `secret` block supports:
+
+* `name` - (Required) The name of the secret. This will be the filename the secret appears on disk as in the `mount_path`.
+
+* `data` - (Required) The data containered in the secret in base64 encoding. 
+
+
+The `git_repo` block supports:
+
+* `repository` - (Required) The URL of the public git repository to mount. 
+
+* `directory` - (Optional) The subdirectory to use in the git repository. 
+
+
+The `azure_share` block supports:
+
+* `share_name` - (Required) The Azure storage share that is to be mounted as a volume. This must be created on the storage account specified as above. Changing this forces a new resource to be created.
+
+* `storage_account_name` - (Required) The Azure storage account from which the volume is to be mounted. Changing this forces a new resource to be created.
+
+* `storage_account_key` - (Required) The access key for the Azure Storage account specified as above. Changing this forces a new resource to be created.
+
+
 The `container` block supports:
 
 * `name` - (Required) Specifies the name of the Container. Changing this forces a new resource to be created.
@@ -125,21 +229,15 @@ The `container` block supports:
 
 * `commands` - (Optional) A list of commands which should be run on the container. Changing this forces a new resource to be created.
 
-* `volume` - (Optional) The definition of a volume mount for this container as documented in the `volume` block below. Changing this forces a new resource to be created.
+* `volume_mount` - (Optional) The definition of a volume mount for this container as documented in the `volume_mount` block below. Changing this forces a new resource to be created.
 
-The `volume` block supports:
+The `volume_mount` block supports:
 
-* `name` - (Required) The name of the volume mount. Changing this forces a new resource to be created.
+* `volume_name` - (Required) The name of the `volume` to mount into this container. Changing this forces a new resource to be created.
 
 * `mount_path` - (Required) The path on which this volume is to be mounted. Changing this forces a new resource to be created.
 
 * `read_only` - (Optional) Specify if the volume is to be mounted as read only or not. The default value is `false`. Changing this forces a new resource to be created.
-
-* `storage_account_name` - (Required) The Azure storage account from which the volume is to be mounted. Changing this forces a new resource to be created.
-
-* `storage_account_key` - (Required) The access key for the Azure Storage account specified as above. Changing this forces a new resource to be created.
-
-* `share_name` - (Required) The Azure storage share that is to be mounted as a volume. This must be created on the storage account specified as above. Changing this forces a new resource to be created.
 
 The `image_registry_credential` block supports:
 
