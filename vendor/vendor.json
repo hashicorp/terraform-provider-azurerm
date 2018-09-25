@@ -251,6 +251,14 @@
 			"versionExact": "v20.1.0"
 		},
 		{
+			"checksumSHA1": "XiQW2U5GBOhOfPTwFlFeM2thDCs=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/backup",
+			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
+			"revisionTime": "2018-07-03T19:15:42Z",
+			"version": "=v18.0.0",
+			"versionExact": "v18.0.0"
+		},
+		{
 			"checksumSHA1": "UWSnIzZywuEpEevbPfbPNLk1dFk=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices",
 			"revision": "2935c0241c74bd8549b843978dd6fc1be6f48b4a",

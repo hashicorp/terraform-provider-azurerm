@@ -228,6 +228,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_public_ip":                               resourceArmPublicIp(),
 			"azurerm_relay_namespace":                         resourceArmRelayNamespace(),
 			"azurerm_recovery_services_vault":                 resourceArmRecoveryServicesVault(),
+			"azurerm_recovery_services_protection_policy_vm":  resourceArmRecoveryServicesProtectionPolicyVm(),
 			"azurerm_redis_cache":                             resourceArmRedisCache(),
 			"azurerm_redis_firewall_rule":                     resourceArmRedisFirewallRule(),
 			"azurerm_resource_group":                          resourceArmResourceGroup(),
