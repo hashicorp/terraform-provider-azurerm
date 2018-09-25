@@ -13,8 +13,9 @@ func TestAccAzureRMAppServiceCustomHostnameBinding(t *testing.T) {
 	// the app service name being shared (so the tests don't conflict with each other)
 	testCases := map[string]map[string]func(t *testing.T){
 		"basic": {
-			"basic":  testAccAzureRMAppServiceCustomHostnameBinding_basic,
-			"import": testAccAzureRMAppServiceCustomHostnameBinding_import,
+			"basic":    testAccAzureRMAppServiceCustomHostnameBinding_basic,
+			"multiple": testAccAzureRMAppServiceCustomHostnameBinding_multiple,
+			"import":   testAccAzureRMAppServiceCustomHostnameBinding_import,
 		},
 	}
 
