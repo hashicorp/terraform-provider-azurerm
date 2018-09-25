@@ -217,10 +217,10 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.foo", "bar"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.foo1", "bar1"),
-					resource.TestCheckResourceAttr(resourceName, "container.0.volume.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "container.0.volume.0.mount_path", "/aci/logs"),
-					resource.TestCheckResourceAttr(resourceName, "container.0.volume.0.name", "logs"),
-					resource.TestCheckResourceAttr(resourceName, "container.0.volume.0.read_only", "false"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.volume_mount.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.volume_mount.0.mount_path", "/aci/logs"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.volume_mount.0.name", "logs"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.volume_mount.0.read_only", "false"),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Linux"),
 					resource.TestCheckResourceAttr(resourceName, "restart_policy", "OnFailure"),
 				),
@@ -695,14 +695,10 @@ resource "azurerm_container_group" "test" {
 		port     = "80"
 		protocol = "TCP"
 
-		volume {
+		volume_mount {
 			name       = "logs"
 			mount_path = "/aci/logs"
 			read_only  = false
-			
-			share_name = "${azurerm_storage_share.test.name}"
-			storage_account_name = "${azurerm_storage_account.test.name}"
-			storage_account_key = "${azurerm_storage_account.test.primary_access_key}"
 		}
 
 		environment_variables {
