@@ -119,6 +119,12 @@ func resourceArmRecoveryServicesProtectionPolicyVm() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"count": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 9999),
+						},
+
 						"weekdays": {
 							Type:     schema.TypeSet,
 							Required: true,
@@ -128,12 +134,6 @@ func resourceArmRecoveryServicesProtectionPolicyVm() *schema.Resource {
 								DiffSuppressFunc: suppress.CaseDifference,
 								ValidateFunc:     validate.DayOfTheWeek(true),
 							},
-						},
-
-						"count": {
-							Type:         schema.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntBetween(1, 9999),
 						},
 					},
 				},
@@ -145,6 +145,12 @@ func resourceArmRecoveryServicesProtectionPolicyVm() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"count": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 9999),
+						},
+
 						"weeks": {
 							Type:     schema.TypeSet,
 							Required: true,
@@ -172,12 +178,6 @@ func resourceArmRecoveryServicesProtectionPolicyVm() *schema.Resource {
 								ValidateFunc:     validate.DayOfTheWeek(true),
 							},
 						},
-
-						"count": {
-							Type:         schema.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntBetween(1, 9999),
-						},
 					},
 				},
 			},
@@ -188,6 +188,12 @@ func resourceArmRecoveryServicesProtectionPolicyVm() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"count": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 9999),
+						},
+
 						"months": {
 							Type:     schema.TypeSet,
 							Required: true,
@@ -225,12 +231,6 @@ func resourceArmRecoveryServicesProtectionPolicyVm() *schema.Resource {
 								DiffSuppressFunc: suppress.CaseDifference,
 								ValidateFunc:     validate.DayOfTheWeek(true),
 							},
-						},
-
-						"count": {
-							Type:         schema.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntBetween(1, 9999),
 						},
 					},
 				},
