@@ -41,10 +41,6 @@ resource "azurerm_api_management" "test" {
 
   additional_location {
     location = "${azurerm_resource_group.north.location}"
-
-    sku {
-      name = "Premium"
-    }
   }
 
   certificate {
