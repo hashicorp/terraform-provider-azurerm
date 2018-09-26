@@ -39,7 +39,7 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 				MinItems: 1,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: azure.ValidateResourceID,
+					ValidateFunc: validation.NoZeroValues,
 				},
 			},
 
@@ -50,21 +50,31 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"caller": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
 						"category": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
+						},
+						"operation_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
+						},
+						"caller": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
 						"level": {
 							Type:     schema.TypeString,
 							Optional: true,
-						},
-						"operation_name": {
-							Type:     schema.TypeString,
-							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Verbose",
+								"Informational",
+								"Warning",
+								"Error",
+								"Critical",
+							}, true),
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 						"resource_id": {
 							Type:         schema.TypeString,
@@ -237,7 +247,7 @@ func expandMonitorActivityLogAlertCriteria(v map[string]interface{}) *insights.A
 	conditions := make([]insights.ActivityLogAlertLeafCondition, 0)
 
 	appendCondition := func(schemaName, fieldName string) {
-		if val, ok := v[schemaName]; ok {
+		if val, ok := v[schemaName]; ok && val != "" {
 			conditions = append(conditions, insights.ActivityLogAlertLeafCondition{
 				Field:  utils.String(fieldName),
 				Equals: utils.String(val.(string)),
