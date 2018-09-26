@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_recovery_services_protection_policy
 
-Manages an Recovery Protected Protection Policy.
+Manages an Recovery Protected    Protection Policy.
 
 ## Example Usage
 
@@ -26,13 +26,37 @@ resource "azurerm_recovery_services_vault" "example" {
   sku                 = "Standard"
 }
 
-resource "azurerm_recovery_services_protected_vm" "example" {
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.example.name}"
-  source_vm_name      = "${azurerm_virtual_machine.example.name}"
-  source_vm_id        = "${azurerm_virtual_machine.example.id}"
-  backup_policy_name  = "aBackupPolicy"
+resource "azurerm_recovery_services_protection_policy_vm" "test" {
+  name                = "acctest-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
+  
+  backup = {
+    frequency = "Daily"
+    time      = "23:00"
+  } 
+
+  retention_daily = {
+    count = 10
+  }
+  
+  retention_weekly = {
+    count    = 42
+    weekdays = ["Sunday", "Wednesday", "Friday", "Saturday"]
+  }
+
+  retention_monthly = {
+    count    = 7
+    weekdays = ["Sunday", "Wednesday"]
+    weeks    = ["First", "Last"]
+  }
+
+  retention_yearly = {
+    count    = 77
+    weekdays = ["Sunday"]
+    weeks    = ["Last"]
+    months   = ["January"]
+  }
 }
 
 ```
@@ -41,32 +65,82 @@ resource "azurerm_recovery_services_protected_vm" "example" {
 
 The following arguments are supported:
 
-* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Recovery Services Vault Policy. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Recovery Services Protected VM. Changing this forces a new resource to be created.
 
 * `recovery_vault_name` - (Required) Specifies the name of the Recovery Services Vault to use. Changing this forces a new resource to be created.
 
-* `source_vm_name` - (Required) Specifies the name of the VM to backup. Changing this forces a new resource to be created.
+* `backup` - (Required) Configures the Policy backup frequecent, times & days as documented in the `backup` block below. 
 
-* `source_vm_id` - (Required) Specifies the ID of the VM to backup. Changing this forces a new resource to be created.
+* `retention_daily` - (Optional) Configures the policy daily retention as documented in the `retention_daily` block below. Required when backup frequency is `Daily`.
 
-* `backup_policy_name` - (Optional) Specifies the name of the backup policy to use. Defaults to `DefaultPolicy` Changing this forces a new resource to be created.
+* `retention_weekly` - (Optional) Configures the policy weekly retention as documented in the `retention_weekly` block below. Required when backup frequency is `Weekly`.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `retention_monthly` - (Optional) Configures the policy monthly retention as documented in the `retention_monthly` block below.
+
+* `retention_yearly` - (Optional) Configures the policy yearly retention as documented in the `retention_yearly` block below.
+
+---
+
+The `backup` block supports:
+
+* `frequency` - (Required) Sets the backup frequency. Must be either `Daily` or`Weekly`. 
+
+* `times` - (Required) The time of day to preform the backup in 24hour format.
+
+* `weekdays` - (Optional) The days of the week to perform backups on. Must be one of `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` or `Saturday`.
+
+---
+
+The `retention_daily` block supports:
+
+* `count` - (Required) The number of daily backups to keep. Must be between `1` and `9999` 
+
+---
+
+The `retention_weekly` block supports:
+
+* `count` - (Required) The number of weekly backups to keep. Must be between `1` and `9999` 
+
+* `weekdays` - (Required) The weekday backups to retain. Must be one of `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` or `Saturday`.
+
+---
+
+The `retention_monthly` block supports:
+
+* `count` - (Required) The number of monthly backups to keep. Must be between `1` and `9999` 
+
+* `weekdays` - (Required) The weekday backups to retain . Must be one of `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` or `Saturday`.
+
+* `weeks` - (Required) The weeks of the month to retain backups of. Must be one of `First`, `Second`, `Third`, `Fourth`, `Last`.
+
+---
+
+The `retention_yearly` block supports:
+
+* `count` - (Required) The number of yearly backups to keep. Must be between `1` and `9999` 
+
+* `weekdays` - (Required) The weekday backups to retain . Must be one of `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` or `Saturday`.
+
+* `weeks` - (Required) The weeks of the month to retain backups of. Must be one of `First`, `Second`, `Third`, `Fourth`, `Last`.
+
+* `weeks` - (Required) The months of the year to retain backups of. Must be one of `January`, `Febuary`, `March`, `April`, `May`, `June`, `July`, `Augest`, `September`, `October`, `November` and `December`.
+
+---
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The ID of the Recovery Services Vault.
+* `id` - The ID of the Recovery Services Vault Policy.
 
 ## Import
 
 Recovery Services Vaults can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_recovery_services_protected_item.item1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.RecoveryServices/vaults/example-recovery-vault/backupFabrics/Azure/protectionContainers/iaasvmcontainer;iaasvmcontainerv2;group1;vm1/protectedItems/vm;iaasvmcontainerv2;group1;vm1
+terraform import azurerm_recovery_services_protection_policy_vm.policy1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.RecoveryServices/vaults/example-recovery-vault/backupPolicies/policy1
 ```
 
  
