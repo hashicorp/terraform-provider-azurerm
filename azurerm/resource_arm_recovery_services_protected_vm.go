@@ -49,19 +49,11 @@ func resourceArmRecoveryServicesProtectedVm() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			//remove and grab from ID
-			"source_vm_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
-			},
-
-			"backup_policy_name": {
+			"backup_policy_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      "DefaultPolicy", //every vault comes with a 'DefaultPolicy' by default
-				ValidateFunc: validation.NoZeroValues,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"tags": tagsSchema(),
@@ -78,8 +70,17 @@ func resourceArmRecoveryServicesProtectedVmCreateUpdate(d *schema.ResourceData, 
 
 	vaultName := d.Get("recovery_vault_name").(string)
 	vmId := d.Get("source_vm_id").(string)
-	vmName := d.Get("source_vm_name").(string)
-	policyName := d.Get("backup_policy_name").(string)
+	policyId := d.Get("backup_policy_id").(string)
+
+	//get VM name from id
+	parsedVmId, err := azure.ParseAzureResourceID(vmId)
+	if err != nil {
+		return fmt.Errorf("[ERROR] Unable to parse source_vm_id '%s': %+v", vmId, err)
+	}
+	vmName, hasName := parsedVmId.Path["virtualMachines"]
+	if !hasName {
+		return fmt.Errorf("[ERROR] parsed source_vm_id '%s' doesn't contain 'virtualMachines'", vmId)
+	}
 
 	protectedItemName := fmt.Sprintf("VM;iaasvmcontainerv2;%s;%s", resourceGroup, vmName)
 	containerName := fmt.Sprintf("iaasvmcontainer;iaasvmcontainerv2;%s;%s", resourceGroup, vmName)
@@ -87,12 +88,12 @@ func resourceArmRecoveryServicesProtectedVmCreateUpdate(d *schema.ResourceData, 
 	log.Printf("[DEBUG] Creating/updating Recovery Service Protected VM %s (resource group %q)", protectedItemName, resourceGroup)
 
 	// TODO: support for the Backup Policy Resource - available in the `backup` SDK
-	backupPolicyId := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.RecoveryServices/vaults/%s/backupPolicies/%s", client.SubscriptionID, resourceGroup, vaultName, policyName)
+	//backupPolicyId := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.RecoveryServices/vaults/%s/backupPolicies/%s", client.SubscriptionID, resourceGroup, vaultName, policyName)
 
 	item := backup.ProtectedItemResource{
 		Tags: expandTags(tags),
 		Properties: &backup.AzureIaaSComputeVMProtectedItem{
-			PolicyID:          &backupPolicyId,
+			PolicyID:          &policyId,
 			ProtectedItemType: backup.ProtectedItemType(backup.ProtectedItemTypeMicrosoftClassicComputevirtualMachines),
 			WorkloadType:      backup.VM,
 			SourceResourceID:  utils.String(vmId),
@@ -147,11 +148,9 @@ func resourceArmRecoveryServicesProtectedVmRead(d *schema.ResourceData, meta int
 	if properties := resp.Properties; properties != nil {
 		if vm, ok := properties.AsAzureIaaSComputeVMProtectedItem(); ok {
 			d.Set("source_vm_id", vm.SourceResourceID)
-			d.Set("source_vm_name", vm.FriendlyName)
 
 			if v := vm.PolicyID; v != nil {
-				parts := strings.Split(*v, "/")
-				d.Set("backup_policy_name", parts[len(parts)-1])
+				d.Set("backup_policy_id", strings.Replace(*v, "Subscriptions", "subscriptions", 1))
 			}
 		}
 	}

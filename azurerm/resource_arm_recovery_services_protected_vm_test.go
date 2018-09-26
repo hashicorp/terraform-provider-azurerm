@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -65,7 +66,7 @@ func testCheckAzureRMRecoveryServicesProtectedVmDestroy(s *terraform.State) erro
 			return err
 		}
 
-		return fmt.Errorf("Recovery Services Vault still exists:\n%#v", resp)
+		return fmt.Errorf("Recovery Services Protected VM still exists:\n%#v", resp)
 	}
 
 	return nil
@@ -81,11 +82,21 @@ func testCheckAzureRMRecoveryServicesProtectedVmExists(resourceName string) reso
 
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Recovery Services Vault: %q", name)
+			return fmt.Errorf("Bad: no resource group found in state for Recovery Services Protected VM: %q", resourceName)
 		}
 
 		vaultName := rs.Primary.Attributes["recovery_vault_name"]
-		vmName := rs.Primary.Attributes["source_vm_name"]
+		vmId := rs.Primary.Attributes["source_vm_id"]
+
+		//get VM name from id
+		parsedVmId, err := azure.ParseAzureResourceID(vmId)
+		if err != nil {
+			return fmt.Errorf("[ERROR] Unable to parse source_vm_id '%s': %+v", vmId, err)
+		}
+		vmName, hasName := parsedVmId.Path["virtualMachines"]
+		if !hasName {
+			return fmt.Errorf("[ERROR] parsed source_vm_id '%s' doesn't contain 'virtualMachines'", vmId)
+		}
 
 		protectedItemName := fmt.Sprintf("VM;iaasvmcontainerv2;%s;%s", resourceGroup, vmName)
 		containerName := fmt.Sprintf("iaasvmcontainer;iaasvmcontainerv2;%s;%s", resourceGroup, vmName)
@@ -96,7 +107,7 @@ func testCheckAzureRMRecoveryServicesProtectedVmExists(resourceName string) reso
 		resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Recovery Services Vault %q (resource group: %q) was not found: %+v", name, resourceGroup, err)
+				return fmt.Errorf("Recovery Services Protected VM %q (resource group: %q) was not found: %+v", protectedItemName, resourceGroup, err)
 			}
 
 			return fmt.Errorf("Bad: Get on recoveryServicesVaultsClient: %+v", err)
@@ -190,7 +201,7 @@ resource "azurerm_virtual_machine" "test" {
     name              = "acctest-datadisk"
     managed_disk_id   = "${azurerm_managed_disk.test.id}"
     managed_disk_type = "Standard_LRS"
-    disk_size_gb      = "1023"
+    disk_size_gb      = "${azurerm_managed_disk.test.disk_size_gb}"
     create_option     = "Attach"
     lun               = 0
   }
@@ -218,6 +229,20 @@ resource "azurerm_recovery_services_vault" "test" {
     sku                 = "Standard"
 }
 
+resource "azurerm_recovery_services_protection_policy_vm" "test" {
+  name                = "acctest-%[1]d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
+  
+  backup = {
+    frequency = "Daily"
+    time      = "23:00"
+  } 
+
+  retention_daily = {
+    count = 10
+  }
+}
 
 `, rInt, location, strconv.Itoa(rInt)[0:5])
 }
@@ -229,8 +254,8 @@ func testAccAzureRMRecoveryServicesProtectedVm_basic(rInt int, location string) 
 resource "azurerm_recovery_services_protected_vm" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
-  source_vm_name      = "${azurerm_virtual_machine.test.name}"
   source_vm_id        = "${azurerm_virtual_machine.test.id}"
+  backup_policy_id    = "${azurerm_recovery_services_protection_policy_vm.test.id}"
 }
 
 `, testAccAzureRMRecoveryServicesProtectedVm_base(rInt, location))
