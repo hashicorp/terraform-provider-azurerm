@@ -1,14 +1,14 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_recovery_services_protection_policy"
-sidebar_current: "docs-azurerm-resource-recovery-services-protection-policy"
+page_title: "Azure Resource Manager: azurerm_recovery_services_protected_vm"
+sidebar_current: "docs-azurerm-resource-recovery-services-protected-vm"
 description: |-
-  Manages an Recovery Services Protection Policy.
+  Manages an Recovery Services Protected VM.
 ---
 
-# azurerm_recovery_services_protection_policy
+# azurerm_recovery_services_protected_vm
 
-Manages an Recovery Protected Protection Policy.
+Manages an Recovery Protected VM.
 
 ## Example Usage
 
