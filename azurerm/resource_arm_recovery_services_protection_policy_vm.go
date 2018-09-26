@@ -361,24 +361,32 @@ func resourceArmRecoveryServicesProtectionPolicyVmRead(d *schema.ResourceData, m
 				if err := d.Set("retention_daily", flattenArmRecoveryServicesProtectionPolicyRetentionDaily(s)); err != nil {
 					return fmt.Errorf("Error setting `retention_daily`: %+v", err)
 				}
+			} else {
+				d.Set("retention_daily", nil)
 			}
 
 			if s := retention.WeeklySchedule; s != nil {
 				if err := d.Set("retention_weekly", flattenArmRecoveryServicesProtectionPolicyRetentionWeekly(s)); err != nil {
 					return fmt.Errorf("Error setting `retention_weekly`: %+v", err)
 				}
+			} else {
+				d.Set("retention_weekly", nil)
 			}
 
 			if s := retention.MonthlySchedule; s != nil {
 				if err := d.Set("retention_monthly", flattenArmRecoveryServicesProtectionPolicyRetentionMonthly(s)); err != nil {
 					return fmt.Errorf("Error setting `retention_monthly`: %+v", err)
 				}
+			} else {
+				d.Set("retention_monthly", nil)
 			}
 
 			if s := retention.YearlySchedule; s != nil {
 				if err := d.Set("retention_yearly", flattenArmRecoveryServicesProtectionPolicyRetentionYearly(s)); err != nil {
 					return fmt.Errorf("Error setting `retention_yearly`: %+v", err)
 				}
+			} else {
+				d.Set("retention_yearly", nil)
 			}
 
 		}
