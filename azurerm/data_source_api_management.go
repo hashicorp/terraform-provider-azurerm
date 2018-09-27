@@ -108,7 +108,6 @@ func dataSourceApiManagementService() *schema.Resource {
 			"hostname_configurations": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"management": {
@@ -148,49 +147,6 @@ func dataSourceApiManagementService() *schema.Resource {
 	}
 }
 
-func apiManagementDataSourceHostnameSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		"host_name": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-
-		"key_vault_id": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-
-		"certificate": {
-			Type:      schema.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"certificate_password": {
-			Type:      schema.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"negotiate_client_certificate": {
-			Type:     schema.TypeBool,
-			Computed: true,
-		},
-	}
-}
-
-func apiManagementDataSourceHostnameProxySchema() map[string]*schema.Schema {
-	hostnameSchema := apiManagementResourceHostnameSchema()
-
-	hostnameSchema["default_ssl_binding"] = &schema.Schema{
-		Type:     schema.TypeBool,
-		Optional: true,
-		Computed: true, //Azure has certain logic to set this, which we cannot predict
-	}
-
-	return hostnameSchema
-}
-
 func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).apiManagementServiceClient
 
@@ -201,11 +157,11 @@ func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error
 	resp, err := client.Get(ctx, resourceGroup, name)
 
 	if err != nil {
-		return fmt.Errorf("Error making Read request on API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
+		if utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("API Management Service %q (Resource Group %q) was not found", name, resourceGroup)
+		}
 
-	if utils.ResponseWasNotFound(resp.Response) {
-		return fmt.Errorf("Error: API Management Service %q (Resource Group %q) was not found", name, resourceGroup)
+		return fmt.Errorf("Error retrieving API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -229,7 +185,7 @@ func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("scm_url", props.ScmURL)
 		d.Set("static_ips", props.PublicIPAddresses)
 
-		if err := d.Set("hostname_configurations", flattenDataSourceApiManagementHostnameConfigurations(d, props.HostnameConfigurations)); err != nil {
+		if err := d.Set("hostname_configurations", flattenDataSourceApiManagementHostnameConfigurations(props.HostnameConfigurations)); err != nil {
 			return fmt.Errorf("Error setting `hostname_configurations`: %+v", err)
 		}
 
@@ -238,10 +194,8 @@ func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	if sku := resp.Sku; sku != nil {
-		if err := d.Set("sku", flattenDataSourceApiManagementServiceSku(sku)); err != nil {
-			return fmt.Errorf("Error flattening `sku`: %+v", err)
-		}
+	if err := d.Set("sku", flattenDataSourceApiManagementServiceSku(resp.Sku)); err != nil {
+		return fmt.Errorf("Error flattening `sku`: %+v", err)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -249,83 +203,134 @@ func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error
 	return nil
 }
 
-func flattenDataSourceApiManagementHostnameConfigurations(d *schema.ResourceData, configs *[]apimanagement.HostnameConfiguration) []interface{} {
-	if configs != nil && len(*configs) > 0 {
-		hostTypes := make(map[string]interface{}) // protal, proxy etc.
-
-		for _, hostNameType := range apimanagement.PossibleHostnameTypeValues() {
-			v := strings.ToLower(string(hostNameType))
-			hostTypes[v] = make([]interface{}, 0)
-		}
-
-		for _, config := range *configs {
-			host_config := make(map[string]interface{}, 0)
-
-			configType := strings.ToLower(string(config.Type))
-
-			if config.HostName != nil {
-				host_config["host_name"] = *config.HostName
-			}
-
-			// only set SSL binding for proxy types
-			hostnameTypeProxy := strings.ToLower(string(apimanagement.Proxy))
-			if configType == hostnameTypeProxy && config.DefaultSslBinding != nil {
-				host_config["default_ssl_binding"] = *config.DefaultSslBinding
-			}
-
-			if config.NegotiateClientCertificate != nil {
-				host_config["negotiate_client_certificate"] = *config.NegotiateClientCertificate
-			}
-
-			if config.KeyVaultID != nil {
-				host_config["key_vault_id"] = *config.KeyVaultID
-			}
-
-			hostTypes[configType] = append(hostTypes[configType].([]interface{}), host_config)
-		}
-
-		return []interface{}{hostTypes}
+func flattenDataSourceApiManagementHostnameConfigurations(input *[]apimanagement.HostnameConfiguration) []interface{} {
+	if input == nil {
+		return []interface{}{}
 	}
 
-	return nil
+	// management, portal, proxy, scm
+	managementResults := make([]interface{}, 0)
+	proxyResults := make([]interface{}, 0)
+	portalResults := make([]interface{}, 0)
+	scmResults := make([]interface{}, 0)
+
+	for _, config := range *input {
+		output := make(map[string]interface{}, 0)
+
+		if config.HostName != nil {
+			output["host_name"] = *config.HostName
+		}
+
+		if config.NegotiateClientCertificate != nil {
+			output["negotiate_client_certificate"] = *config.NegotiateClientCertificate
+		}
+
+		if config.KeyVaultID != nil {
+			output["key_vault_id"] = *config.KeyVaultID
+		}
+
+		switch strings.ToLower(string(config.Type)) {
+		case strings.ToLower(string(apimanagement.Proxy)):
+			// only set SSL binding for proxy types
+			if config.DefaultSslBinding != nil {
+				output["default_ssl_binding"] = *config.DefaultSslBinding
+			}
+			proxyResults = append(proxyResults, output)
+			break
+
+		case strings.ToLower(string(apimanagement.Management)):
+			managementResults = append(managementResults, output)
+			break
+
+		case strings.ToLower(string(apimanagement.Portal)):
+			portalResults = append(portalResults, output)
+			break
+
+		case strings.ToLower(string(apimanagement.Scm)):
+			scmResults = append(scmResults, output)
+			break
+		}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"management": managementResults,
+			"portal":     proxyResults,
+			"proxy":      portalResults,
+			"scm":        scmResults,
+		},
+	}
 }
 
-func flattenDataSourceApiManagementAdditionalLocations(props *[]apimanagement.AdditionalLocation) []interface{} {
-	additional_locations := make([]interface{}, 0)
-
-	if props != nil {
-		for _, prop := range *props {
-			additional_location := make(map[string]interface{}, 2)
-
-			if prop.Location != nil {
-				additional_location["location"] = *prop.Location
-			}
-
-			if prop.PublicIPAddresses != nil {
-				additional_location["static_ips"] = *prop.PublicIPAddresses
-			}
-
-			if prop.GatewayRegionalURL != nil {
-				additional_location["gateway_regional_url"] = *prop.GatewayRegionalURL
-			}
-
-			additional_locations = append(additional_locations, additional_location)
-		}
+func flattenDataSourceApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLocation) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
 	}
 
-	return additional_locations
+	for _, prop := range *input {
+		output := make(map[string]interface{}, 0)
+
+		if prop.Location != nil {
+			output["location"] = azureRMNormalizeLocation(*prop.Location)
+		}
+
+		if prop.PublicIPAddresses != nil {
+			output["static_ips"] = *prop.PublicIPAddresses
+		}
+
+		if prop.GatewayRegionalURL != nil {
+			output["gateway_regional_url"] = *prop.GatewayRegionalURL
+		}
+
+		results = append(results, output)
+	}
+
+	return results
 }
 
 func flattenDataSourceApiManagementServiceSku(profile *apimanagement.ServiceSkuProperties) []interface{} {
-	sku := make(map[string]interface{}, 2)
+	if profile == nil {
+		return []interface{}{}
+	}
 
-	if profile != nil {
-		sku["name"] = string(profile.Name)
+	sku := make(map[string]interface{}, 0)
 
-		if profile.Capacity != nil {
-			sku["capacity"] = *profile.Capacity
-		}
+	sku["name"] = string(profile.Name)
+
+	if profile.Capacity != nil {
+		sku["capacity"] = *profile.Capacity
 	}
 
 	return []interface{}{sku}
+}
+
+func apiManagementDataSourceHostnameSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"host_name": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+
+		"key_vault_id": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+
+		"negotiate_client_certificate": {
+			Type:     schema.TypeBool,
+			Computed: true,
+		},
+	}
+}
+
+func apiManagementDataSourceHostnameProxySchema() map[string]*schema.Schema {
+	hostnameSchema := apiManagementDataSourceHostnameSchema()
+
+	hostnameSchema["default_ssl_binding"] = &schema.Schema{
+		Type:     schema.TypeBool,
+		Computed: true,
+	}
+
+	return hostnameSchema
 }
