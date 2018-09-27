@@ -124,16 +124,19 @@ type ArmClient struct {
 	cdnProfilesClient      cdn.ProfilesClient
 
 	// Compute
-	availSetClient         compute.AvailabilitySetsClient
-	diskClient             compute.DisksClient
-	imageClient            compute.ImagesClient
-	snapshotsClient        compute.SnapshotsClient
-	usageOpsClient         compute.UsageClient
-	vmExtensionImageClient compute.VirtualMachineExtensionImagesClient
-	vmExtensionClient      compute.VirtualMachineExtensionsClient
-	vmScaleSetClient       compute.VirtualMachineScaleSetsClient
-	vmImageClient          compute.VirtualMachineImagesClient
-	vmClient               compute.VirtualMachinesClient
+	availSetClient             compute.AvailabilitySetsClient
+	diskClient                 compute.DisksClient
+	imageClient                compute.ImagesClient
+	galleriesClient            compute.GalleriesClient
+	galleryImagesClient        compute.GalleryImagesClient
+	galleryImageVersionsClient compute.GalleryImageVersionsClient
+	snapshotsClient            compute.SnapshotsClient
+	usageOpsClient             compute.UsageClient
+	vmExtensionImageClient     compute.VirtualMachineExtensionImagesClient
+	vmExtensionClient          compute.VirtualMachineExtensionsClient
+	vmScaleSetClient           compute.VirtualMachineScaleSetsClient
+	vmImageClient              compute.VirtualMachineImagesClient
+	vmClient                   compute.VirtualMachinesClient
 
 	// Devices
 	iothubResourceClient devices.IotHubResourceClient
@@ -590,6 +593,18 @@ func (c *ArmClient) registerComputeClients(endpoint, subscriptionId string, auth
 	virtualMachinesClient := compute.NewVirtualMachinesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&virtualMachinesClient.Client, auth)
 	c.vmClient = virtualMachinesClient
+
+	galleriesClient := compute.NewGalleriesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&galleriesClient.Client, auth)
+	c.galleriesClient = galleriesClient
+
+	galleryImagesClient := compute.NewGalleryImagesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&galleryImagesClient.Client, auth)
+	c.galleryImagesClient = galleryImagesClient
+
+	galleryImageVersionsClient := compute.NewGalleryImageVersionsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&galleryImageVersionsClient.Client, auth)
+	c.galleryImageVersionsClient = galleryImageVersionsClient
 }
 
 func (c *ArmClient) registerContainerInstanceClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
