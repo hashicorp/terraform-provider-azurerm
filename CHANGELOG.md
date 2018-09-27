@@ -21,6 +21,7 @@ BUG FIXES:
 * `azurerm_lb_rule` - allow `0` for `frontend_port` and `backend_port` again [GH-1951]
 * `azurerm_public_ip` - correctly reading and importing the `idle_timeout_in_minutes` property [GH-1925]
 * `azurerm_role_assignment` - only retry on errors when they are retryable [GH-1934]
+* `azurerm_role_definition` - support for the `data_actions` and `not_data_action` blocks [GH-1971]
 * `azurerm_service_fabric_cluster` - allow two `client_certificate_thumbprint` blocks [GH-1938]
 * `azurerm_service_fabric_cluster` - support for specifying the `cluster_code_version` field [GH-1945]
 * `azurerm_virtual_machine` - handling the Managed Disk ID being nil [GH-1947]
