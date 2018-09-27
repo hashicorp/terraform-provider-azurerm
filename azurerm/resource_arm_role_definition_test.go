@@ -191,8 +191,10 @@ resource "azurerm_role_definition" "test" {
   description        = "Acceptance Test Role Definition"
 
   permissions {
-    actions     = ["*"]
-    not_actions = ["Microsoft.Authorization/*/read"]
+    actions          = ["*"]
+    data_actions     = ["Microsoft.Storage/storageAccounts/blobServices/containers/blobs/read"]
+    not_actions      = ["Microsoft.Authorization/*/read"]
+    not_data_actions = []
   }
 
   assignable_scopes = [
