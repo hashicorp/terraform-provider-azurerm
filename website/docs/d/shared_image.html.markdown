@@ -11,6 +11,8 @@ description: |-
 
 Gets information about the specified Shared Image within the Shared Image Gallery.
 
+-> **NOTE** Shared Image Galleries are currently in Public Preview. You can find more information, including [how to register for the Public Preview here](https://azure.microsoft.com/en-gb/blog/announcing-the-public-preview-of-shared-image-gallery/).
+
 ## Example Usage
 
 ```hcl
