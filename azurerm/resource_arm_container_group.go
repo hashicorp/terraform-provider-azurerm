@@ -580,11 +580,12 @@ func flattenContainerVolumes(d *schema.ResourceData, containerGroupVolumes *[]co
 		}
 
 		var oldVolumeConfig map[string]interface{}
-
 		// Secrets aren't returned so check the old config for them.
-		if oldVolumeConfigCheck, exists := oldVolumeConfigs[i].(map[string]interface{}); exists {
-			if oldVolumeConfigName, exists := oldVolumeConfigCheck["name"]; exists && oldVolumeConfigName == *volume.Name {
-				oldVolumeConfig = oldVolumeConfigCheck
+		if len(oldVolumeConfigs) > i {
+			if oldVolumeConfigCheck, exists := oldVolumeConfigs[i].(map[string]interface{}); exists {
+				if oldVolumeConfigName, exists := oldVolumeConfigCheck["name"]; exists && oldVolumeConfigName == *volume.Name {
+					oldVolumeConfig = oldVolumeConfigCheck
+				}
 			}
 		}
 

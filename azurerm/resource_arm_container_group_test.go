@@ -219,7 +219,7 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.foo1", "bar1"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.volume_mount.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.volume_mount.0.mount_path", "/aci/logs"),
-					resource.TestCheckResourceAttr(resourceName, "container.0.volume_mount.0.name", "logs"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.volume_mount.0.volume_name", "logs"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.volume_mount.0.read_only", "false"),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Linux"),
 					resource.TestCheckResourceAttr(resourceName, "restart_policy", "OnFailure"),
@@ -230,7 +230,7 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
-					"container.0.volume.0.storage_account_key",
+					"volume.0.azure_share.0.storage_account_key",
 				},
 			},
 		},
@@ -686,6 +686,17 @@ resource "azurerm_container_group" "test" {
 	os_type             = "linux"
 	restart_policy      = "OnFailure"
 
+	volume {
+    name = "logs"
+
+    azure_share {
+      share_name           = "${azurerm_storage_share.test.name}"
+      storage_account_name = "${azurerm_storage_account.test.name}"
+      storage_account_key  = "${azurerm_storage_account.test.primary_access_key}"
+    }
+  }
+
+
 	container {
 		name   = "hf"
 		image  = "seanmckenna/aci-hellofiles"
@@ -696,7 +707,7 @@ resource "azurerm_container_group" "test" {
 		protocol = "TCP"
 
 		volume_mount {
-			name       = "logs"
+			volume_name       = "logs"
 			mount_path = "/aci/logs"
 			read_only  = false
 		}
