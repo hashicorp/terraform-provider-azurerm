@@ -50,9 +50,17 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"category": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Administrative",
+								"Autoscale",
+								"Policy",
+								"Recommendation",
+								"Security",
+								"Service Health",
+							}, true),
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 						"operation_name": {
 							Type:         schema.TypeString,
