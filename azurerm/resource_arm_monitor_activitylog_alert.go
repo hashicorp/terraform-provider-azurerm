@@ -46,7 +46,6 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 			"criteria": {
 				Type:     schema.TypeList,
 				Required: true,
-				MinItems: 1,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -246,21 +245,23 @@ func expandMonitorActivityLogAlertScopes(v []interface{}) *[]string {
 func expandMonitorActivityLogAlertCriteria(v map[string]interface{}) *insights.ActivityLogAlertAllOfCondition {
 	conditions := make([]insights.ActivityLogAlertLeafCondition, 0)
 
-	appendCondition := func(schemaName, fieldName string) {
-		if val, ok := v[schemaName]; ok && val != "" {
+	for schemaName, val := range v {
+		if val != "" {
+			fieldName := schemaName
+			switch schemaName {
+			case "operation_name":
+				fieldName = "operationName"
+			case "resource_id":
+				fieldName = "resourceId"
+			case "sub_status":
+				fieldName = "subStatus"
+			}
 			conditions = append(conditions, insights.ActivityLogAlertLeafCondition{
 				Field:  utils.String(fieldName),
 				Equals: utils.String(val.(string)),
 			})
 		}
 	}
-	appendCondition("caller", "caller")
-	appendCondition("category", "category")
-	appendCondition("level", "level")
-	appendCondition("operation_name", "operationName")
-	appendCondition("resource_id", "resourceId")
-	appendCondition("status", "status")
-	appendCondition("sub_status", "subStatus")
 
 	return &insights.ActivityLogAlertAllOfCondition{
 		AllOf: &conditions,
