@@ -288,7 +288,7 @@ func clientRequestID() string {
 func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Authorizer) {
 	setUserAgent(client)
 	client.Authorizer = auth
-	client.RequestInspector = azure.WithClientID(clientRequestID())
+	//client.RequestInspector = azure.WithClientID(clientRequestID())
 	client.Sender = autorest.CreateSender(withRequestLogging())
 	client.SkipResourceProviderRegistration = c.skipProviderRegistration
 	client.PollingDuration = 60 * time.Minute
