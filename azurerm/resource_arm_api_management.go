@@ -23,8 +23,6 @@ func resourceArmApiManagementService() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		CustomizeDiff: azure.ResourceArmApiManagementCustomizeDiff,
-
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
@@ -212,28 +210,28 @@ func resourceArmApiManagementService() *schema.Resource {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
-								Schema: apiManagementResourceHostnameSchema(),
+								Schema: apiManagementResourceHostnameSchema("management"),
 							},
 						},
 						"portal": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
-								Schema: apiManagementResourceHostnameSchema(),
+								Schema: apiManagementResourceHostnameSchema("portal"),
 							},
 						},
 						"proxy": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
-								Schema: apiManagementResourceHostnameProxySchema(),
+								Schema: apiManagementResourceHostnameProxySchema("proxy"),
 							},
 						},
 						"scm": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
-								Schema: apiManagementResourceHostnameSchema(),
+								Schema: apiManagementResourceHostnameSchema("scm"),
 							},
 						},
 					},
@@ -268,54 +266,6 @@ func resourceArmApiManagementService() *schema.Resource {
 			},
 		},
 	}
-}
-
-func apiManagementResourceHostnameSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		"host_name": {
-			Type:         schema.TypeString,
-			Required:     true,
-			ValidateFunc: validation.NoZeroValues,
-		},
-
-		"key_vault_id": {
-			Type:         schema.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.NoZeroValues,
-		},
-
-		"certificate": {
-			Type:         schema.TypeString,
-			Optional:     true,
-			Sensitive:    true,
-			ValidateFunc: validation.NoZeroValues,
-		},
-
-		"certificate_password": {
-			Type:         schema.TypeString,
-			Optional:     true,
-			Sensitive:    true,
-			ValidateFunc: validation.NoZeroValues,
-		},
-
-		"negotiate_client_certificate": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-	}
-}
-
-func apiManagementResourceHostnameProxySchema() map[string]*schema.Schema {
-	hostnameSchema := apiManagementResourceHostnameSchema()
-
-	hostnameSchema["default_ssl_binding"] = &schema.Schema{
-		Type:     schema.TypeBool,
-		Optional: true,
-		Computed: true, //Azure has certain logic to set this, which we cannot predict
-	}
-
-	return hostnameSchema
 }
 
 func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -815,4 +765,62 @@ func flattenApiManagementServiceSku(profile *apimanagement.ServiceSkuProperties)
 	}
 
 	return []interface{}{sku}
+}
+
+func apiManagementResourceHostnameSchema(schemaName string) map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"host_name": {
+			Type:         schema.TypeString,
+			Required:     true,
+			ValidateFunc: validation.NoZeroValues,
+		},
+
+		"key_vault_id": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			ValidateFunc: azure.ValidateResourceID,
+			ConflictsWith: []string{
+				fmt.Sprintf("%s.0.certificate", schemaName),
+				fmt.Sprintf("%s.0.certificate_password", schemaName),
+			},
+		},
+
+		"certificate": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			Sensitive:    true,
+			ValidateFunc: validation.NoZeroValues,
+			ConflictsWith: []string{
+				fmt.Sprintf("%s.0.key_vault_id", schemaName),
+			},
+		},
+
+		"certificate_password": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			Sensitive:    true,
+			ValidateFunc: validation.NoZeroValues,
+			ConflictsWith: []string{
+				fmt.Sprintf("%s.0.key_vault_id", schemaName),
+			},
+		},
+
+		"negotiate_client_certificate": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+	}
+}
+
+func apiManagementResourceHostnameProxySchema(schemaName string) map[string]*schema.Schema {
+	hostnameSchema := apiManagementResourceHostnameSchema(schemaName)
+
+	hostnameSchema["default_ssl_binding"] = &schema.Schema{
+		Type:     schema.TypeBool,
+		Optional: true,
+		Computed: true, // Azure has certain logic to set this, which we cannot predict
+	}
+
+	return hostnameSchema
 }
