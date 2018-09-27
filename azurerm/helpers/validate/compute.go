@@ -21,6 +21,11 @@ func SharedImageGalleryName(v interface{}, k string) (ws []string, es []error) {
 	return
 }
 
+func SharedImageName(v interface{}, k string) (ws []string, es []error) {
+	// same as Shared Image Gallery name, for now.
+	return SharedImageGalleryName(v, k)
+}
+
 func SharedImageVersionName(v interface{}, k string) (ws []string, es []error) {
 	value := v.(string)
 
