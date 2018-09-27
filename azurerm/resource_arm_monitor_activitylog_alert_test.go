@@ -77,11 +77,11 @@ func TestAccAzureRMMonitorActivityLogAlert_singleResource(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMonitorActivityLogAlert_full(t *testing.T) {
+func TestAccAzureRMMonitorActivityLogAlert_complete(t *testing.T) {
 	resourceName := "azurerm_monitor_activitylog_alert.test"
 	ri := acctest.RandInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMMonitorActivityLogAlert_full(ri, rs, testLocation())
+	config := testAccAzureRMMonitorActivityLogAlert_complete(ri, rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -114,6 +114,83 @@ func TestAccAzureRMMonitorActivityLogAlert_full(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMMonitorActivityLogAlert_basicAndCompleteUpdate(t *testing.T) {
+	resourceName := "azurerm_monitor_activitylog_alert.test"
+	ri := acctest.RandInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+	basicConfig := testAccAzureRMMonitorActivityLogAlert_basic(ri, location)
+	completeConfig := testAccAzureRMMonitorActivityLogAlert_complete(ri, rs, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: basicConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorActivityLogAlertExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "description", ""),
+					resource.TestCheckResourceAttr(resourceName, "scopes.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "criteria.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "criteria.0.operation_name", "Microsoft.Storage/storageAccounts/write"),
+					resource.TestCheckResourceAttr(resourceName, "criteria.0.category", "Recommendation"),
+					resource.TestCheckResourceAttr(resourceName, "criteria.0.resource_id", ""),
+					resource.TestCheckResourceAttr(resourceName, "criteria.0.caller", ""),
+					resource.TestCheckResourceAttr(resourceName, "criteria.0.level", ""),
+					resource.TestCheckResourceAttr(resourceName, "criteria.0.status", ""),
+					resource.TestCheckResourceAttr(resourceName, "action.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "action.0.action_group_id"),
+					resource.TestCheckResourceAttr(resourceName, "action.0.webhook_properties.%", "0"),
+				),
+			},
+			{
+				Config: completeConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorActivityLogAlertExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "description", "This is just a test resource."),
+					resource.TestCheckResourceAttr(resourceName, "scopes.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "criteria.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "criteria.0.operation_name", "Microsoft.Storage/storageAccounts/write"),
+					resource.TestCheckResourceAttr(resourceName, "criteria.0.category", "Recommendation"),
+					resource.TestCheckResourceAttrSet(resourceName, "criteria.0.resource_id"),
+					resource.TestCheckResourceAttr(resourceName, "criteria.0.caller", "user@example.com"),
+					resource.TestCheckResourceAttr(resourceName, "criteria.0.level", "Error"),
+					resource.TestCheckResourceAttr(resourceName, "criteria.0.status", "Failed"),
+					resource.TestCheckResourceAttr(resourceName, "action.#", "2"),
+					resource.TestCheckResourceAttrSet(resourceName, "action.0.action_group_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "action.1.action_group_id"),
+					resource.TestCheckResourceAttr(resourceName, "action.1.webhook_properties.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "action.1.webhook_properties.from", "terraform test"),
+					resource.TestCheckResourceAttr(resourceName, "action.1.webhook_properties.to", "microsoft azure"),
+				),
+			},
+			{
+				Config: basicConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorActivityLogAlertExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "description", ""),
+					resource.TestCheckResourceAttr(resourceName, "scopes.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "criteria.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "criteria.0.operation_name", "Microsoft.Storage/storageAccounts/write"),
+					resource.TestCheckResourceAttr(resourceName, "criteria.0.category", "Recommendation"),
+					resource.TestCheckResourceAttr(resourceName, "criteria.0.resource_id", ""),
+					resource.TestCheckResourceAttr(resourceName, "criteria.0.caller", ""),
+					resource.TestCheckResourceAttr(resourceName, "criteria.0.level", ""),
+					resource.TestCheckResourceAttr(resourceName, "criteria.0.status", ""),
+					resource.TestCheckResourceAttr(resourceName, "action.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "action.0.action_group_id"),
+					resource.TestCheckResourceAttr(resourceName, "action.0.webhook_properties.%", "0"),
+				),
 			},
 		},
 	})
@@ -188,7 +265,7 @@ resource "azurerm_monitor_activitylog_alert" "test" {
 `, rInt, location, rInt, rString, rInt)
 }
 
-func testAccAzureRMMonitorActivityLogAlert_full(rInt int, rString, location string) string {
+func testAccAzureRMMonitorActivityLogAlert_complete(rInt int, rString, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
