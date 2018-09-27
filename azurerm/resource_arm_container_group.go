@@ -604,7 +604,7 @@ func flattenContainerVolumes(d *schema.ResourceData, containerGroupVolumes *[]co
 		}
 
 		if oldVolumeConfig != nil {
-			if _, exists := validateArmContainerGroupVolumeVolumeExists(oldVolumeConfig, "secret"); exists {
+			if _, exists := validateArmContainerGroupVolumeExists(oldVolumeConfig, "secret"); exists {
 				volumeConfig["secret"] = oldVolumeConfig["secret"]
 			}
 		}
@@ -763,7 +763,7 @@ func flattenContainerImageRegistryCredentials(d *schema.ResourceData, input *[]c
 	return output
 }
 
-func validateArmContainerGroupVolumeVolumeExists(volume map[string]interface{}, name string) (map[string]interface{}, bool) {
+func validateArmContainerGroupVolumeExists(volume map[string]interface{}, name string) (map[string]interface{}, bool) {
 	if volumeList := volume[name]; len(volumeList.([]interface{})) > 0 {
 		if volumeItem := volumeList.([]interface{})[0]; volumeItem != nil {
 			return volumeItem.(map[string]interface{}), true
@@ -780,13 +780,13 @@ func validateArmContainerGroupVolume(v interface{}) (errors []error) {
 		volumeTypeCount := 0
 		var azureShareExists, gitRepoExists, secretExists, emptyDirExists bool
 
-		if _, exists := validateArmContainerGroupVolumeVolumeExists(volumeConfig, "azure_share"); exists {
+		if _, exists := validateArmContainerGroupVolumeExists(volumeConfig, "azure_share"); exists {
 			volumeTypeCount++
 			azureShareExists = true
-		} else if _, exists := validateArmContainerGroupVolumeVolumeExists(volumeConfig, "git_repo"); exists {
+		} else if _, exists := validateArmContainerGroupVolumeExists(volumeConfig, "git_repo"); exists {
 			volumeTypeCount++
 			gitRepoExists = true
-		} else if _, exists := validateArmContainerGroupVolumeVolumeExists(volumeConfig, "secret"); exists {
+		} else if _, exists := validateArmContainerGroupVolumeExists(volumeConfig, "secret"); exists {
 			volumeTypeCount++
 			secretExists = true
 		} else {
@@ -826,7 +826,7 @@ func expandContainerVolumes(d *schema.ResourceData) (*[]containerinstance.Volume
 
 		name := utils.String(volumeConfig["name"].(string))
 
-		if azureShare, exists := validateArmContainerGroupVolumeVolumeExists(volumeConfig, "azure_share"); exists {
+		if azureShare, exists := validateArmContainerGroupVolumeExists(volumeConfig, "azure_share"); exists {
 			shareName := azureShare["share_name"].(string)
 			storageAccountName := azureShare["storage_account_name"].(string)
 			storageAccountKey := azureShare["storage_account_key"].(string)
@@ -844,7 +844,7 @@ func expandContainerVolumes(d *schema.ResourceData) (*[]containerinstance.Volume
 			continue
 		}
 
-		if gitRepo, exists := validateArmContainerGroupVolumeVolumeExists(volumeConfig, "git_repo"); exists {
+		if gitRepo, exists := validateArmContainerGroupVolumeExists(volumeConfig, "git_repo"); exists {
 			repository := gitRepo["repository"].(string)
 			directory := gitRepo["directory"].(string)
 
@@ -860,7 +860,7 @@ func expandContainerVolumes(d *schema.ResourceData) (*[]containerinstance.Volume
 			continue
 		}
 
-		if _, exists := validateArmContainerGroupVolumeVolumeExists(volumeConfig, "secret"); exists {
+		if _, exists := validateArmContainerGroupVolumeExists(volumeConfig, "secret"); exists {
 			secretsConverted := map[string]*string{}
 			secrets := volumeConfig["secret"].([]interface{})
 
