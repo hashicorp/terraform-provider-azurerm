@@ -56,10 +56,6 @@ resource "azurerm_virtual_network" "test" {
     environment = "Production"
   }
 }
-
-output "id_of_subnet2" {
-  value = "${azurerm_virtual_network.test.subnet.2796830261.id}"
-}
 ```
 
 ## Argument Reference
@@ -85,6 +81,8 @@ The following arguments are supported:
     subnets. Each `subnet` block supports fields documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
 
 The `subnet` block supports:
 
