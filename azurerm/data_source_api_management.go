@@ -94,7 +94,7 @@ func dataSourceApiManagementService() *schema.Resource {
 							Computed: true,
 						},
 
-						"static_ips": {
+						"public_ip_addresses": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Schema{
@@ -183,7 +183,7 @@ func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("portal_url", props.PortalURL)
 		d.Set("management_api_url", props.ManagementAPIURL)
 		d.Set("scm_url", props.ScmURL)
-		d.Set("static_ips", props.PublicIPAddresses)
+		d.Set("public_ip_addresses", props.PublicIPAddresses)
 
 		if err := d.Set("hostname_configuration", flattenDataSourceApiManagementHostnameConfigurations(props.HostnameConfigurations)); err != nil {
 			return fmt.Errorf("Error setting `hostname_configuration`: %+v", err)

@@ -67,7 +67,7 @@ A `additional_location` block exports the following:
 
 * `gateway_regional_url` - Gateway URL of the API Management service in the Region.
 
-* `static_ips` - Static IP addresses of the location's virtual machines.
+* `public_ip_addresses` - Public Static Load Balanced IP addresses of the API Management service in the additional location. Available only for Basic, Standard and Premium SKU.
 
 ---
 

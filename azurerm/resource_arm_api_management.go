@@ -125,7 +125,7 @@ func resourceArmApiManagementService() *schema.Resource {
 							Computed: true,
 						},
 
-						"static_ips": {
+						"public_ip_addresses": {
 							Type: schema.TypeList,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
@@ -394,7 +394,7 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		d.Set("portal_url", props.PortalURL)
 		d.Set("management_api_url", props.ManagementAPIURL)
 		d.Set("scm_url", props.ScmURL)
-		d.Set("static_ips", props.PublicIPAddresses)
+		d.Set("public_ip_addresses", props.PublicIPAddresses)
 
 		if err := d.Set("security", flattenApiManagementCustomProperties(props.CustomProperties)); err != nil {
 			return fmt.Errorf("Error setting `security`: %+v", err)
@@ -643,7 +643,7 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 		}
 
 		if prop.PublicIPAddresses != nil {
-			output["static_ips"] = *prop.PublicIPAddresses
+			output["public_ip_addresses"] = *prop.PublicIPAddresses
 		}
 
 		if prop.GatewayRegionalURL != nil {
