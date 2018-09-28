@@ -38,7 +38,7 @@ func TestAccAzureRMApiManagement_basic(t *testing.T) {
 func TestAccAzureRMApiManagement_customProps(t *testing.T) {
 	resourceName := "azurerm_api_management.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMApiManagement_customProps(ri, testLocation())
+	config := testAccAzureRMApiManagement_customProps(ri, testAltLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
