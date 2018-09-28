@@ -118,7 +118,6 @@ A `security` block supports the following:
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168` field
 
-
 ---
 
 `sku` block supports the following:
@@ -126,9 +125,6 @@ A `security` block supports the following:
 * `name` - (Required) Specifies the Pricing Tier for the API Management Service. Possible values include: `Developer`, `Basic`, `Standard` and `Premium`.
 
 * `capacity` - (Required) Specifies the Pricing Capacity for the API Management Service.
-
----
-
 
 ---
 
