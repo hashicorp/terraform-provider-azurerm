@@ -1,0 +1,70 @@
+---
+layout: "azurerm"
+page_title: "Azure Resource Manager: azurerm_dev_test_lab"
+sidebar_current: "docs-azurerm-resource-dev-test-lab"
+description: |-
+  Manages a Dev Test Lab.
+---
+
+# azurerm_dev_test_lab
+
+Manages a Dev Test Lab.
+
+## Example Usage
+
+```hcl
+resource "azurerm_resource_group" "test" {
+  name     = "example-resources"
+  location = "West US"
+}
+
+resource "azurerm_dev_test_lab" "test" {
+  name                = "example-devtestlab"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  tags {
+    "Sydney" = "Australia"
+  }
+}
+```
+
+## Argument Reference
+
+The following arguments are supported:
+
+* `name` - (Required) Specifies the name of the Dev Test Lab. Changing this forces a new resource to be created.
+
+* `resource_group_name` - (Required) The name of the resource group under which the Dev Test Lab resource has to be created. Changing this forces a new resource to be created.
+
+* `location` - (Required) Specifies the supported Azure location where the Dev Test Lab should exist. Changing this forces a new resource to be created.
+
+* `storage_type` - (Optional) The type of storage used by the Dev Test Lab. Possible values are `Standard` and `Premium`. Defaults to `Premium`. Changing this forces a new resource to be created.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
+## Attributes Reference
+
+The following attributes are exported:
+
+* `id` - The ID of the Dev Test Lab.
+
+* `artifacts_storage_account_id` - The ID of the Storage Account used for Artifact Storage.
+
+* `default_storage_account_id` - The ID of the Default Storage Account for this Dev Test Lab.
+
+* `default_premium_storage_account_id` - The ID of the Default Premium Storage Account for this Dev Test Lab.
+
+* `key_vault_id` - The ID of the Key used for this Dev Test Lab.
+
+* `premium_data_disk_storage_account_id` - The ID of the Storage Account used for Storage of Premium Data Disk.
+
+* `unique_identifier` - The unique immutable identifier of the Dev Test Lab.
+
+## Import
+
+Dev Test Labs can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_dev_test_lab.lab1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1
+```

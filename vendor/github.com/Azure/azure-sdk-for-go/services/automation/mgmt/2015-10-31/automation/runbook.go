@@ -296,7 +296,7 @@ func (client RunbookClient) GetResponder(resp *http.Response) (result Runbook, e
 // resourceGroupName - name of an Azure Resource group.
 // automationAccountName - the name of the automation account.
 // runbookName - the runbook name.
-func (client RunbookClient) GetContent(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string) (result String, err error) {
+func (client RunbookClient) GetContent(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string) (result ReadCloser, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -357,13 +357,12 @@ func (client RunbookClient) GetContentSender(req *http.Request) (*http.Response,
 
 // GetContentResponder handles the response to the GetContent request. The method always
 // closes the http.Response Body.
-func (client RunbookClient) GetContentResponder(resp *http.Response) (result String, err error) {
+func (client RunbookClient) GetContentResponder(resp *http.Response) (result ReadCloser, err error) {
+	result.Value = &resp.Body
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result.Value),
-		autorest.ByClosing())
+		azure.WithErrorUnlessStatusCode(http.StatusOK))
 	result.Response = autorest.Response{Response: resp}
 	return
 }

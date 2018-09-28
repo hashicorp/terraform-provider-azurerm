@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_servicebus_subscription
 
-Create a ServiceBus Subscription.
+Manage a ServiceBus Subscription.
 
 ## Example Usage
 

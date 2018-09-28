@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -139,7 +139,7 @@ func TestAccAzureRMManagedDisk_update(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "acctest"),
 					resource.TestCheckResourceAttr(resourceName, "tags.cost-center", "ops"),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "1"),
-					resource.TestCheckResourceAttr(resourceName, "storage_account_type", string(compute.StandardLRS)),
+					resource.TestCheckResourceAttr(resourceName, "storage_account_type", string(compute.StorageAccountTypesStandardLRS)),
 				),
 			},
 			{
@@ -149,7 +149,7 @@ func TestAccAzureRMManagedDisk_update(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "acctest"),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "2"),
-					resource.TestCheckResourceAttr(resourceName, "storage_account_type", string(compute.PremiumLRS)),
+					resource.TestCheckResourceAttr(resourceName, "storage_account_type", string(compute.StorageAccountTypesPremiumLRS)),
 				),
 			},
 		},

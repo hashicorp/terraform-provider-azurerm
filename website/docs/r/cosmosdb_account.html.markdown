@@ -77,6 +77,10 @@ The following arguments are supported:
 
 * `capabilities` - (Optional) Enable capabilities for this Cosmos DB account. Possible values are `EnableTable` and `EnableGremlin`.
 
+* `is_virtual_network_filter_enabled` - (Optional) Enables virtual network filtering for this Cosmos DB account.
+
+* `virtual_network_rule` - (Optional) Specifies a `virtual_network_rules` resource, used to define which subnets are allowed to access this CosmosDB account.
+
 `consistency_policy` Configures the database consistency and supports the following:
 
 * `consistency_level` - (Required) The Consistency Level to use for this CosmosDB Account - can be either `BoundedStaleness`, `Eventual`, `Session`, `Strong` or `ConsistentPrefix`.
@@ -92,6 +96,10 @@ The following arguments are supported:
 * `failover_priority` - (Required) The failover priority of the region. A failover priority of `0` indicates a write region. The maximum value for a failover priority = (total number of regions - 1). Failover priority values must be unique for each of the regions in which the database account exists. Changing this causes the location to be re-provisioned and cannot be changed for the location with failover priority `0`.
 
 **NOTE:** The `prefix` and `failover_priority` fields of a location cannot be changed for the location with a failover priority of `0`.
+
+`virtual_network_rule` Configures the virtual network subnets allowed to access this Cosmos DB account and supports the following:
+
+* `id` - (Required) The ID of the virtual network subnet.
 
 ## Attributes Reference
 

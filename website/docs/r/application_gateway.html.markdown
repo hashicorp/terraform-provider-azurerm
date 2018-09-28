@@ -125,13 +125,13 @@ resource "azurerm_application_gateway" "network" {
     name               = "${azurerm_virtual_network.vnet.name}-rqrt"
     rule_type          = "PathBasedRouting"
     http_listener_name = "${azurerm_virtual_network.vnet.name}-httplstn-pbr.contoso.com"
-    url_path_map       = "pbr.contoso.com"
+    url_path_map_name  = "pbr.contoso.com"
   }
 
   url_path_map {
     name = "pbr.contoso.com"
     default_backend_address_pool_name = "${azurerm_virtual_network.vnet.name}-beap-fallback"
-    default_backend_http_settings_name = ${azurerm_virtual_network.vnet.name}-be-htst"
+    default_backend_http_settings_name = "${azurerm_virtual_network.vnet.name}-be-htst"
 
     path_rule {
       name = "pbr.contoso.com_first"
@@ -285,8 +285,8 @@ The `http_listener` block supports:
 
 * `require_sni` - (Optional) Applicable only if protocol is https. Enables SNI for multi-hosting.
   Valid values are:
-* true
-* false (default)
+  * `true`
+  * `false` (default)
 
 The `probe` block supports:
 

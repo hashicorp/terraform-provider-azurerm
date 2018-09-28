@@ -70,6 +70,10 @@ func resourceArmVirtualNetwork() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 				Set: resourceAzureSubnetHash,
@@ -296,6 +300,10 @@ func flattenVirtualNetworkSubnets(input *[]network.Subnet) *schema.Set {
 	if subnets := input; subnets != nil {
 		for _, subnet := range *input {
 			output := map[string]interface{}{}
+
+			if id := subnet.ID; id != nil {
+				output["id"] = *id
+			}
 
 			if name := subnet.Name; name != nil {
 				output["name"] = *name

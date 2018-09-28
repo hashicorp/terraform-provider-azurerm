@@ -11,6 +11,7 @@ import (
 )
 
 func TestAccAzureRMVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
+	resourceName := "azurerm_virtual_network_gateway_connection.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMVirtualNetworkGatewayConnection_sitetosite(ri, testLocation())
 
@@ -24,6 +25,11 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkGatewayConnectionExists("azurerm_virtual_network_gateway_connection.test"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

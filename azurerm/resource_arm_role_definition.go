@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
 	"github.com/hashicorp/go-uuid"
@@ -62,6 +63,22 @@ func resourceArmRoleDefinition() *schema.Resource {
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
+						},
+						"data_actions": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+							Set: schema.HashString,
+						},
+						"not_data_actions": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+							Set: schema.HashString,
 						},
 					},
 				},
@@ -163,16 +180,16 @@ func resourceArmRoleDefinitionDelete(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).roleDefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	roleDefinitionId := d.Get("role_definition_id").(string)
-	scope := d.Get("scope").(string)
-
-	resp, err := client.Delete(ctx, scope, roleDefinitionId)
+	id, err := parseRoleDefinitionId(d.Id())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return nil
-		}
+		return err
+	}
 
-		return fmt.Errorf("Error deleting Role Definition %q: %+v", roleDefinitionId, err)
+	resp, err := client.Delete(ctx, id.scope, id.roleDefinitionId)
+	if err != nil {
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Error deleting Role Definition %q at Scope %q: %+v", id.roleDefinitionId, id.scope, err)
+		}
 	}
 
 	return nil
@@ -193,12 +210,26 @@ func expandRoleDefinitionPermissions(d *schema.ResourceData) []authorization.Per
 		}
 		permission.Actions = &actionsOutput
 
+		dataActionsOutput := make([]string, 0)
+		dataActions := input["data_actions"].(*schema.Set)
+		for _, a := range dataActions.List() {
+			dataActionsOutput = append(dataActionsOutput, a.(string))
+		}
+		permission.DataActions = &dataActionsOutput
+
 		notActionsOutput := make([]string, 0)
 		notActions := input["not_actions"].([]interface{})
 		for _, a := range notActions {
 			notActionsOutput = append(notActionsOutput, a.(string))
 		}
 		permission.NotActions = &notActionsOutput
+
+		notDataActionsOutput := make([]string, 0)
+		notDataActions := input["not_data_actions"].(*schema.Set)
+		for _, a := range notDataActions.List() {
+			notDataActionsOutput = append(notDataActionsOutput, a.(string))
+		}
+		permission.NotDataActions = &notDataActionsOutput
 
 		output = append(output, permission)
 	}
@@ -231,6 +262,14 @@ func flattenRoleDefinitionPermissions(input *[]authorization.Permission) []inter
 		}
 		output["actions"] = actions
 
+		dataActions := make([]interface{}, 0)
+		if permission.DataActions != nil {
+			for _, dataAction := range *permission.DataActions {
+				dataActions = append(dataActions, dataAction)
+			}
+		}
+		output["data_actions"] = schema.NewSet(schema.HashString, dataActions)
+
 		notActions := make([]string, 0)
 		if permission.NotActions != nil {
 			for _, action := range *permission.NotActions {
@@ -238,6 +277,14 @@ func flattenRoleDefinitionPermissions(input *[]authorization.Permission) []inter
 			}
 		}
 		output["not_actions"] = notActions
+
+		notDataActions := make([]interface{}, 0)
+		if permission.NotDataActions != nil {
+			for _, dataAction := range *permission.NotDataActions {
+				notDataActions = append(notDataActions, dataAction)
+			}
+		}
+		output["not_data_actions"] = schema.NewSet(schema.HashString, notDataActions)
 
 		permissions = append(permissions, output)
 	}
@@ -253,4 +300,23 @@ func flattenRoleDefinitionAssignableScopes(input *[]string) []interface{} {
 	}
 
 	return scopes
+}
+
+type roleDefinitionId struct {
+	scope            string
+	roleDefinitionId string
+}
+
+func parseRoleDefinitionId(input string) (*roleDefinitionId, error) {
+	segments := strings.Split(input, "/providers/Microsoft.Authorization/roleDefinitions/")
+	if len(segments) != 2 {
+		return nil, fmt.Errorf("Expected Role Definition ID to be in the format `{scope}/providers/Microsoft.Authorization/roleDefinitions/{name}` but got %q", input)
+	}
+
+	// /{scope}/providers/Microsoft.Authorization/roleDefinitions/{roleDefinitionId}
+	id := roleDefinitionId{
+		scope:            strings.TrimPrefix(segments[0], "/"),
+		roleDefinitionId: segments[1],
+	}
+	return &id, nil
 }

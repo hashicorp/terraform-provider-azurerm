@@ -18,9 +18,9 @@ Manages an Application within Azure Active Directory.
 ```hcl
 resource "azurerm_azuread_application" "test" {
   name                       = "example"
-  homepage                   = "http://homepage"
-  identifier_uris            = ["http://uri"]
-  reply_urls                 = ["http://replyurl"]
+  homepage                   = "https://homepage"
+  identifier_uris            = ["https://uri"]
+  reply_urls                 = ["https://replyurl"]
   available_to_other_tenants = false
   oauth2_allow_implicit_flow = true
 }
@@ -32,7 +32,7 @@ The following arguments are supported:
 
 * `name` - (Required) The display name for the application.
 
-* `homepage` - (optional) The URL to the application's home page. If no homepage is specified this defaults to `http://{name}`.
+* `homepage` - (optional) The URL to the application's home page. If no homepage is specified this defaults to `https://{name}`.
 
 * `identifier_uris` - (Optional) A list of user-defined URI(s) that uniquely identify a Web application within it's Azure AD tenant, or within a verified custom domain if the application is multi-tenant.
 

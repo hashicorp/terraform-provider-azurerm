@@ -76,7 +76,7 @@ The following arguments are supported:
 
 ~> **Note:** `CanNotDelete` means authorized users are able to read and modify the resources, but not delete. `ReadOnly` means authorized users can only read from a resource, but they can't modify or delete it.
 
-* `note` - (Optional) Specifies some notes about the lock. Maximum of 512 characters. Changing this forces a new resource to be created.
+* `notes` - (Optional) Specifies some notes about the lock. Maximum of 512 characters. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

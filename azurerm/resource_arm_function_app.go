@@ -52,10 +52,6 @@ func resourceArmFunctionApp() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "~1",
-				ValidateFunc: validation.StringInSlice([]string{
-					"~1",
-					"beta",
-				}, false),
 			},
 
 			"storage_connection_string": {
@@ -510,6 +506,8 @@ func resourceArmFunctionAppDelete(d *schema.ResourceData, meta interface{}) erro
 }
 
 func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier string) []web.NameValuePair {
+	// TODO: This is a workaround since there are no public Functions API
+	// You may track the API request here: https://github.com/Azure/azure-rest-api-specs/issues/3750
 	dashboardPropName := "AzureWebJobsDashboard"
 	storagePropName := "AzureWebJobsStorage"
 	functionVersionPropName := "FUNCTIONS_EXTENSION_VERSION"
@@ -518,7 +516,7 @@ func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier strin
 
 	storageConnection := d.Get("storage_connection_string").(string)
 	functionVersion := d.Get("version").(string)
-	contentShare := d.Get("name").(string) + "-content"
+	contentShare := strings.ToLower(d.Get("name").(string)) + "-content"
 
 	basicSettings := []web.NameValuePair{
 		{Name: &dashboardPropName, Value: &storageConnection},

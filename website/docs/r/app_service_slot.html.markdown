@@ -205,6 +205,8 @@ The following arguments are supported:
 
 ~> **Note:** Deployment Slots are not supported in the `Free`, `Shared`, or `Basic` App Service Plans.
 
+* `virtual_network_name` - (Optional) The name of the Virtual Network which this App Service Slot should be attached to.
+
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
 
 ---

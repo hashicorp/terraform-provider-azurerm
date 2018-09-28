@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_storage_blob
 
-Create an Azure Storage Blob.
+Manage an Azure Storage Blob.
 
 ## Example Usage
 
@@ -79,5 +79,13 @@ The following arguments are supported:
 
 The following attributes are exported in addition to the arguments listed above:
 
-* `id` - The storage blob Resource ID.
+* `id` - The ID of the Storage Blob.
 * `url` - The URL of the blob
+
+## Import
+
+Storage Blob's can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_storage_blob.blob1 https://example.blob.core.windows.net/container/blob.vhd
+```

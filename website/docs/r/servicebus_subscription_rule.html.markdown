@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_servicebus_subscription_rule
 
-Create a ServiceBus Subscription Rule.
+Manage a ServiceBus Subscription Rule.
 
 ## Example Usage (SQL Filter)
 

@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_postgresql_server
 
-Create a PostgreSQL Server.
+Manage a PostgreSQL Server.
 
 ## Example Usage
 
