@@ -1016,6 +1016,8 @@ type MigrationConfigPropertiesProperties struct {
 	TargetNamespace *string `json:"targetNamespace,omitempty"`
 	// PostMigrationName - Name to access Standard Namespace after migration
 	PostMigrationName *string `json:"postMigrationName,omitempty"`
+	// MigrationState - State in which Standard to Premium Migration is, possible values : Unknown, Reverting, Completing, Initiating, Syncing, Active
+	MigrationState *string `json:"migrationState,omitempty"`
 }
 
 // MigrationConfigsCreateAndStartMigrationFuture an abstraction for monitoring and retrieving the results of a
