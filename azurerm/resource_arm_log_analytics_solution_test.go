@@ -125,7 +125,7 @@ resource "azurerm_log_analytics_solution" "test" {
 
   plan {
     publisher      = "Microsoft"
-    product        = "OMSGallery/Containers"
+    product        = "OMSGallery/ContainerInsights"
   }
 }
 `, rInt, location, rInt)
