@@ -6,7 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/apimanagement/mgmt/2018-06-01-preview/apimanagement"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -18,7 +18,7 @@ func dataSourceApiManagementService() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateApiManagementName,
+				ValidateFunc: validate.ApiManagementServiceName,
 			},
 
 			"resource_group_name": resourceGroupNameForDataSourceSchema(),
@@ -105,7 +105,7 @@ func dataSourceApiManagementService() *schema.Resource {
 				},
 			},
 
-			"hostname_configurations": {
+			"hostname_configuration": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -185,8 +185,8 @@ func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("scm_url", props.ScmURL)
 		d.Set("static_ips", props.PublicIPAddresses)
 
-		if err := d.Set("hostname_configurations", flattenDataSourceApiManagementHostnameConfigurations(props.HostnameConfigurations)); err != nil {
-			return fmt.Errorf("Error setting `hostname_configurations`: %+v", err)
+		if err := d.Set("hostname_configuration", flattenDataSourceApiManagementHostnameConfigurations(props.HostnameConfigurations)); err != nil {
+			return fmt.Errorf("Error setting `hostname_configuration`: %+v", err)
 		}
 
 		if err := d.Set("additional_location", flattenDataSourceApiManagementAdditionalLocations(props.AdditionalLocations)); err != nil {

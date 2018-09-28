@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -36,7 +37,7 @@ func resourceArmApiManagementService() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateApiManagementName,
+				ValidateFunc: validate.ApiManagementServiceName,
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
@@ -46,13 +47,13 @@ func resourceArmApiManagementService() *schema.Resource {
 			"publisher_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateApiManagementPublisherName,
+				ValidateFunc: validate.ApiManagementServicePublisherName,
 			},
 
 			"publisher_email": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateApiManagementPublisherEmail,
+				ValidateFunc: validate.ApiManagementServicePublisherEmail,
 			},
 
 			"sku": {
@@ -211,9 +212,10 @@ func resourceArmApiManagementService() *schema.Resource {
 				},
 			},
 
-			"hostname_configurations": {
+			"hostname_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -398,10 +400,9 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 			return fmt.Errorf("Error setting `security`: %+v", err)
 		}
 
-		if hostnameConfigs := flattenApiManagementHostnameConfigurations(props.HostnameConfigurations, d); hostnameConfigs != nil {
-			if err := d.Set("hostname_configurations", hostnameConfigs); err != nil {
-				return fmt.Errorf("Error setting `hostname_configurations`: %+v", err)
-			}
+		hostnameConfigs := flattenApiManagementHostnameConfigurations(props.HostnameConfigurations, d)
+		if err := d.Set("hostname_configuration", hostnameConfigs); err != nil {
+			return fmt.Errorf("Error setting `hostname_configuration`: %+v", err)
 		}
 
 		if err := d.Set("additional_location", flattenApiManagementAdditionalLocations(props.AdditionalLocations)); err != nil {
@@ -442,7 +443,7 @@ func resourceArmApiManagementServiceDelete(d *schema.ResourceData, meta interfac
 
 func expandAzureRmApiManagementHostnameConfigurations(d *schema.ResourceData) *[]apimanagement.HostnameConfiguration {
 	results := make([]apimanagement.HostnameConfiguration, 0)
-	hostnameVs := d.Get("hostname_configurations").([]interface{})
+	hostnameVs := d.Get("hostname_configuration").([]interface{})
 
 	for _, hostnameRawVal := range hostnameVs {
 		hostnameV := hostnameRawVal.(map[string]interface{})
@@ -532,7 +533,7 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 		// Iterate through old state to find sensitive props not returned by API.
 		// This must be done in order to avoid state diffs.
 		// NOTE: this information won't be available during times like Import, so this is a best-effort.
-		existingHostnames := d.Get("hostname_configurations").([]interface{})
+		existingHostnames := d.Get("hostname_configuration").([]interface{})
 		if len(existingHostnames) > 0 {
 			v := existingHostnames[0].(map[string]interface{})
 
@@ -724,15 +725,25 @@ func flattenApiManagementServiceSku(input *apimanagement.ServiceSkuProperties) [
 
 func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*string {
 	vs := d.Get("security").([]interface{})
-	v := vs[0].(map[string]interface{})
 
-	backendProtocolSsl3 := v["disable_backend_ssl30"].(bool)
-	backendProtocolTls10 := v["disable_backend_tls10"].(bool)
-	backendProtocolTls11 := v["disable_backend_tls11"].(bool)
-	frontendProtocolSsl3 := v["disable_frontend_ssl30"].(bool)
-	frontendProtocolTls10 := v["disable_frontend_tls10"].(bool)
-	frontendProtocolTls11 := v["disable_frontend_tls11"].(bool)
-	tripleDesChipers := v["disable_triple_des_chipers"].(bool)
+	backendProtocolSsl3 := false
+	backendProtocolTls10 := false
+	backendProtocolTls11 := false
+	frontendProtocolSsl3 := false
+	frontendProtocolTls10 := false
+	frontendProtocolTls11 := false
+	tripleDesChipers := false
+
+	if len(vs) > 0 {
+		v := vs[0].(map[string]interface{})
+		backendProtocolSsl3 = v["disable_backend_ssl30"].(bool)
+		backendProtocolTls10 = v["disable_backend_tls10"].(bool)
+		backendProtocolTls11 = v["disable_backend_tls11"].(bool)
+		frontendProtocolSsl3 = v["disable_frontend_ssl30"].(bool)
+		frontendProtocolTls10 = v["disable_frontend_tls10"].(bool)
+		frontendProtocolTls11 = v["disable_frontend_tls11"].(bool)
+		tripleDesChipers = v["disable_triple_des_chipers"].(bool)
+	}
 
 	return map[string]*string{
 		apimBackendProtocolSsl3:   utils.String(strconv.FormatBool(backendProtocolSsl3)),
@@ -772,8 +783,8 @@ func apiManagementResourceHostnameSchema(schemaName string) map[string]*schema.S
 			Optional:     true,
 			ValidateFunc: azure.ValidateResourceID,
 			ConflictsWith: []string{
-				fmt.Sprintf("%s.0.certificate", schemaName),
-				fmt.Sprintf("%s.0.certificate_password", schemaName),
+				fmt.Sprintf("hostname_configuration.0.%s.0.certificate", schemaName),
+				fmt.Sprintf("hostname_configuration.0.%s.0.certificate_password", schemaName),
 			},
 		},
 
@@ -783,7 +794,7 @@ func apiManagementResourceHostnameSchema(schemaName string) map[string]*schema.S
 			Sensitive:    true,
 			ValidateFunc: validation.NoZeroValues,
 			ConflictsWith: []string{
-				fmt.Sprintf("%s.0.key_vault_id", schemaName),
+				fmt.Sprintf("hostname_configuration.0.%s.0.key_vault_id", schemaName),
 			},
 		},
 
@@ -793,7 +804,7 @@ func apiManagementResourceHostnameSchema(schemaName string) map[string]*schema.S
 			Sensitive:    true,
 			ValidateFunc: validation.NoZeroValues,
 			ConflictsWith: []string{
-				fmt.Sprintf("%s.0.key_vault_id", schemaName),
+				fmt.Sprintf("hostname_configuration.0.%s.0.key_vault_id", schemaName),
 			},
 		},
 

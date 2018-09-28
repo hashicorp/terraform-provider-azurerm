@@ -1,10 +1,10 @@
-package azure
+package validate
 
 import (
 	"testing"
 )
 
-func TestAzureRMApiManagementName_validation(t *testing.T) {
+func TestAzureRMApiManagementServiceName_validation(t *testing.T) {
 	cases := []struct {
 		Value    string
 		ErrCount int
@@ -36,10 +36,10 @@ func TestAzureRMApiManagementName_validation(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := ValidateApiManagementName(tc.Value, "azurerm_api_management")
+		_, errors := ApiManagementServiceName(tc.Value, "azurerm_api_management")
 
 		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Api Management Name to trigger a validation error for '%s'", tc.Value)
+			t.Fatalf("Expected the Api Management Service Name to trigger a validation error for '%s'", tc.Value)
 		}
 	}
 }

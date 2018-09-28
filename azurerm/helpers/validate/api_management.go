@@ -1,12 +1,11 @@
-package azure
+package validate
 
 import (
 	"fmt"
 	"regexp"
 )
 
-// TODO: we should move this into `validate.`
-func ValidateApiManagementName(v interface{}, k string) (ws []string, es []error) {
+func ApiManagementServiceName(v interface{}, k string) (ws []string, es []error) {
 	value := v.(string)
 
 	if matched := regexp.MustCompile(`^[0-9a-zA-Z-]{1,50}$`).Match([]byte(value)); !matched {
@@ -16,7 +15,7 @@ func ValidateApiManagementName(v interface{}, k string) (ws []string, es []error
 	return
 }
 
-func ValidateApiManagementPublisherName(v interface{}, k string) (ws []string, es []error) {
+func ApiManagementServicePublisherName(v interface{}, k string) (ws []string, es []error) {
 	value := v.(string)
 
 	if matched := regexp.MustCompile(`^[\S*]{1,100}$`).Match([]byte(value)); !matched {
@@ -26,7 +25,7 @@ func ValidateApiManagementPublisherName(v interface{}, k string) (ws []string, e
 	return
 }
 
-func ValidateApiManagementPublisherEmail(v interface{}, k string) (ws []string, es []error) {
+func ApiManagementServicePublisherEmail(v interface{}, k string) (ws []string, es []error) {
 	value := v.(string)
 
 	if matched := regexp.MustCompile(`^[\S*]{1,100}$`).Match([]byte(value)); !matched {

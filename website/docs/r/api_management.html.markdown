@@ -3,95 +3,32 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management"
 sidebar_current: "docs-azurerm-resource-api-management-x"
 description: |-
-  Create a Api Management service.
+  Manages an API Management Service.
 ---
 
 # azurerm_api_management
 
-Create a Api Management component.
+Manages an API Management Service.
 
-## Example Usage (Developer)
+## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "api-rg-dev"
+  name     = "example-resources"
   location = "West Europe"
 }
 
 resource "azurerm_api_management" "test" {
-  name                = "api-mngmnt-dev"
-  publisher_name      = "My Company"
-  publisher_email     = "company@terraform.io"
-  sku {
-    name = "Developer"
-  }
+  name                = "example-apim"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-}
-```
-
-## Example Usage (Complete)
-
-```hcl
-resource "azurerm_api_management" "test" {
-  name                      = "api-mngmnt"
-  publisher_name            = "My Company"
-  publisher_email           = "company1@terraform.io"
-  notification_sender_email = "api@terraform.io"
-
-  additional_location {
-    location = "${azurerm_resource_group.north.location}"
-  }
-
-  certificate {
-    certificate          = "${base64encode(file("testdata/api_management_api_test.pfx"))}"
-    certificate_password = "terraform"
-    store_name           = "CertificateAuthority"
-  }
-
-  certificate {
-    certificate          = "${base64encode(file("testdata/api_management_api_test.pfx"))}"
-    certificate_password = "terraform"
-    store_name           = "Root"
-  }
-
-  security {
-    disable_backend_tls11 = true
-  }
-
-  hostname_configurations {
-    proxy {
-      host_name                    = "api.terraform.io"
-      certificate                  = "${base64encode(file("testdata/api_management_api_test.pfx"))}"
-      certificate_password         = "terraform"
-      default_ssl_binding          = true
-      negotiate_client_certificate = false
-    }
-
-    proxy {
-      host_name                    = "api2.terraform.io"
-      certificate                  = "${base64encode(file("testdata/api_management_api2_test.pfx"))}"
-      certificate_password         = "terraform"
-      negotiate_client_certificate = true
-    }
-
-    portal {
-      host_name            = "portal.terraform.io"
-      certificate          = "${base64encode(file("testdata/api_management_portal_test.pfx"))}"
-      certificate_password = "terraform"
-    }
-  }
+  publisher_name      = "My Company"
+  publisher_email     = "company@terraform.io"
 
   sku {
-    name = "Premium"
+    name     = "Developer"
+    capacity = 1
   }
-
-  tags {
-    test = "true"
-  }
-
-  location            = "${azurerm_resource_group.west.location}"
-  resource_group_name = "${azurerm_resource_group.west.name}"
 }
 ```
 
@@ -99,11 +36,11 @@ resource "azurerm_api_management" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the API Management service.
+* `name` - (Required) The name of the API Management Service. Changing this forces a new resource to be created.
 
-* `location` - (Required) The Azure location where the API Management Service exists.
+* `location` - (Required) The Azure location where the API Management Service exists. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The Name of the Resource Group where the API Management service exists.
+* `resource_group_name` - (Required) The name of the Resource Group in which the API Management Service should be exist. Changing this forces a new resource to be created.
 
 * `publisher_name` - (Required) The name of publisher/company.
 
@@ -111,127 +48,179 @@ The following arguments are supported:
 
 * `sku` - (Required) A `sku` block as documented below.
 
+---
+
+* `additional_location` - (Optional) One or more `additional_location` blocks as defined below.
+
+* `certificate` - (Optional) One or more (up to 10) `certificate` blocks as defined below.
+
+* `identity` - (Optional) An `identity` block is documented below.
+
+* `hostname_configuration` - (Optional) A `hostname_configuration` block as defined below.
+
 * `notification_sender_email` - (Optional) Email address from which the notification will be sent.
 
-* `identity` - (Optional) Managed service identity. The `identity` block is documented below.
-
-* `additional_location` - (Optional) Additional datacenter locations of the API Management service. The `additional_location` block is documented below.
-
-* `certificate` - (Optional) List of Certificates that is installed in the API Management service. Max supported certificates that can be installed is 10. The `certificate` block is documented below.
-
-* `security` - Optionally disable certain security features. The `security` block is documented below.
-
-* `hostname_configurations` - (Optional) Custom hostname configuration of the API Management service. The `hostname_configurations` block is documented below.
+* `security` - A `security` block as defined below.
 
 * `tags` - (Optional) A mapping of tags assigned to the resource.
 
 ---
 
-`identity` block supports the following:
+A `additional_location` block supports the following:
 
-* `type` - (Required) The identity type. Currently the only supported type is `SystemAssigned`.
+* `location` - (Required) The name of the Azure Region in which the API Management Service should be expanded to.
+
+---
+
+A `certificate` block supports the following:
+
+* `encoded_certificate` - (Required) The Base64 Encoded PFX Certificate.
+
+* `certificate_password` - (Required) The password for the certificate.
+
+* `store_name` - (Required) The name of the Certificate Store where this certificate should be stored. Possible values are `CertificateAuthority` and `Root`.
+
+---
+
+A `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this API Management Service. At this time the only supported value is`SystemAssigned`.
+
+---
+
+A `security` block supports the following:
+
+* `disable_backend_ssl30` - (Optional) Should SSL 3.0 be disabled on the backend of the gateway? Defaults to `false`.
+
+-> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30` field
+
+* `disable_backend_tls10` - (Optional) Should TLS 1.0 be disabled on the backend of the gateway? Defaults to `false`.
+
+-> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10` field
+
+* `disable_backend_tls11` - (Optional) Should TLS 1.1 be disabled on the backend of the gateway? Defaults to `false`.
+
+-> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11` field
+
+* `disable_frontend_ssl30` - (Optional) Should SSL 3.0 be disabled on the frontend of the gateway? Defaults to `false`.
+
+-> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30` field
+
+* `disable_frontend_tls10` - (Optional) Should TLS 1.0 be disabled on the frontend of the gateway? Defaults to `false`.
+
+-> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10` field
+
+* `disable_frontend_tls11` - (Optional) Should TLS 1.1 be disabled on the frontend of the gateway? Defaults to `false`.
+
+-> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11` field
+
+* `disable_triple_des_chipers` - (Optional) Should the `TLS_RSA_WITH_3DES_EDE_CBC_SHA` cipher be disabled for alL TLS versions (1.0, 1.1 and 1.2)? Defaults to `false`.
+
+-> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168` field
+
+
+---
 
 `sku` block supports the following:
 
-* `name` - (Required) Specifies the plan's pricing tier. Possible values include: `SkuTypeDeveloper`, `SkuTypeStandard`, `SkuTypePremium`, `SkuTypeBasic`.
+* `name` - (Required) Specifies the Pricing Tier for the API Management Service. Possible values include: `Developer`, `Basic`, `Standard` and `Premium`.
 
-* `capacity` - (Optional) Specifies the number of units associated with this API Management service. Default is 1.
+* `capacity` - (Required) Specifies the Pricing Capacity for the API Management Service.
 
-`additional_location` block supports the following:
+---
 
-* `location` - (Required) The location name of the additional region among Azure Data center regions.
 
-* `sku` - (Required) SKU properties of the API Management service. The `sku` block is documented above.
+---
 
-`certificate` block supports the following:
+A `hostname_configuration` block supports the following:
 
-* `encoded_certificate` - (Required) Base64 Encoded PFX certificate.
+* `management` - (Optional) One or more `management` blocks as documented below.
 
-* `certificate_password` - (Required) Certificate password.
+* `portal` - (Optional) One or more `portal` blocks as documented below.
 
-* `store_name` - (Required) The local certificate store location. Only Root and CertificateAuthority are valid locations. Possible values include: `CertificateAuthority`, `Root`.
+* `proxy` - (Optional) One or more `proxy` blocks as documented below.
 
-`security` block supports the following:
+* `scm` - (Optional) One or more `scm` blocks as documented below.
 
-* `disable_backend_ssl30` - Disables SSL 3.0 on the backend side of the gateway
+---
 
-* `disable_backend_tls10` - Disables TLS 1.0 on the backend side of the gateway
+A `management`, `portal` and `scm` block supports the following:
 
-* `disable_backend_tls11` - Disables TLS 1.1 on the backend side of the gateway
+* `host_name` - (Required) The Hostname to use for the Management API.
 
-* `disable_triple_des_chipers` - Disables the cipher TLS_RSA_WITH_3DES_EDE_CBC_SHA for all TLS versions (1.0, 1.1 and 1.2)
+* `key_vault_id` - (Optional) The ID of the Key Vault Secret containing the SSL Certificate, which must be should be of the type `application/x-pkcs12`.
 
-* `disable_frontend_ssl30` - Disables SSL 3.0 on the frontend side of the gateway
+-> **NOTE:** Setting this field requires the `identity` block to be specified, since this identity is used for to retrieve the Key Vault Certificate. Auto-updating the Certificate from the Key Vault requires the Secret version isn't specified.
 
-* `disable_frontend_tls10` - Disables TLS 1.0 on the frontend side of the gateway
+* `certificate` - (Optional) The Base64 Encoded Certificate.
 
-* `disable_frontend_tls11` - Disables TLS 1.1 on the frontend side of the gateway
+* `certificate_password` - (Optional) The password associated with the certificate provided above.
 
-`hostname_configurations` block supports the following:
+-> **NOTE:** Either `key_vault_id` or `certificate` and `certificate_password` must be specified.
 
-* `management` - The `management` block is documented below.
+* `negotiate_client_certificate` - (Optional) Should Client Certificate Negotiation be enabled for this Hostname? Defaults to `false`.
 
-* `portal` - The `portal` block is documented below.
+---
 
-* `proxy` - The `proxy` block is documented below.
+A `proxy` block supports the following:
 
-* `scm` - The `scm` block is documented below.
+* `default_ssl_binding` - (Optional) Is the certificate associated with this Hostname the Default SSL Certificate? This is used when an SNI header isn't specified by a client. Defaults to `false`.
 
-`management`, `portal` and `scm` blocks supports the following:
+* `host_name` - (Required) The Hostname to use for the Management API.
 
-* `host_name` - (Required) Hostname to configure on the Api Management service.
+* `key_vault_id` - (Optional) The ID of the Key Vault Secret containing the SSL Certificate, which must be should be of the type `application/x-pkcs12`.
 
-* `key_vault_id` - (Optional) Url to the KeyVault Secret containing the SSL Certificate. If absolute Url containing version is provided, auto-update of ssl certificate will not work. This requires the `identity` attribute to be set. The secret should be of type `application/x-pkcs12`.
+-> **NOTE:** Setting this field requires the `identity` block to be specified, since this identity is used for to retrieve the Key Vault Certificate. Auto-updating the Certificate from the Key Vault requires the Secret version isn't specified.
 
-* `certificate` - (Optional) Base64 Encoded certificate.
+* `certificate` - (Optional) The Base64 Encoded Certificate.
 
-* `certificate_password` - (Optional) Certificate Password.
+* `certificate_password` - (Optional) The password associated with the certificate provided above.
 
-* `negotiate_client_certificate` - (Optional) If set to true will always negotiate client certificate on the hostname. Default Value is false.
+-> **NOTE:** Either `key_vault_id` or `certificate` and `certificate_password` must be specified.
 
-~> **NOTE:** Either `key_vault_id` or `certificate` (together with optionally `certificate_password`) must be set, not both.
+* `negotiate_client_certificate` - (Optional) Should Client Certificate Negotiation be enabled for this Hostname? Defaults to `false`.
 
-proxy block supports everything that `management`, `portal` and `scm` does, plus the following:
 
-* `default_ssl_binding` - (Optional) If set to true the certificate associated with this Hostname is setup as the Default SSL Certificate. If a client does not send the SNI header, then this will be the certificate that will be challenged. The property is useful if a service has multiple custom hostname enabled and it needs to decide on the default ssl certificate. The setting only applies to the Proxy Hostname Type.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The ID of the App Service Plan component.
+* `id` - The ID of the API Management Service.
 
-* `gateway_url` - Gateway URL of the API Management service.
+* `gateway_url` - The URL of the Gateway for the API Management Service.
 
-* `gateway_regional_url` - Gateway URL of the API Management service in the Default Region.
+* `gateway_regional_url` - The Region URL for the Gateway of the API Management Service.
 
-* `portal_url` - Publisher portal endpoint Url of the API Management service.
+* `management_api_url` - The URL for the Management API associated with this API Management service.
 
-* `management_api_url` - Management API endpoint URL of the API Management service.
+* `portal_url` - The URL for the Publisher Portal associated with this API Management service.
 
-* `scm_url` - SCM endpoint URL of the API Management service.
+* `scm_url` - The URL for the SCM (Source Code Management) Endpoint associated with this API Management service.
 
-* `identity` - Managed service identity. The `identity` block is documented below.
+* `identity` - An `identity` block as defined below.
 
-* `additional_location` - Additional datacenter locations of the API Management service. The `additional_location` block is documented below.
+* `additional_location` - One or more `additional_location` blocks as documented below.
 
 ---
 
-`identity` block exports the following:
+An `identity` block exports the following:
 
-* `principal_id` - The principal id of the identity.
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
 
-* `tenant_id` - The client tenant id of the identity.
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
-`additional_location` block exports the following:
+---
 
-* `gateway_regional_url` - Gateway URL of the API Management service in the Region.
+An `additional_location` block exports the following:
 
-* `static_ips` - Static IP addresses of the location's virtual machines.
+* `gateway_regional_url` - The URL of the Regional Gateway for the API Management Service in the specified region.
+
+* `static_ips` - The Static IP Addresses associated with this region.
 
 ## Import
 
-Api Management services can be imported using the `resource id`, e.g.
+API Management Services can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_api_management.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1
