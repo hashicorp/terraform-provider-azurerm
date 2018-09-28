@@ -7,49 +7,8 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
-
-func TestAzureRMApiManagementName_validation(t *testing.T) {
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{
-			Value:    "a",
-			ErrCount: 0,
-		},
-		{
-			Value:    "abc",
-			ErrCount: 0,
-		},
-		{
-			Value:    "api1",
-			ErrCount: 0,
-		},
-		{
-			Value:    "company-api",
-			ErrCount: 0,
-		},
-		{
-			Value:    "hello_world",
-			ErrCount: 1,
-		},
-		{
-			Value:    "helloworld21!",
-			ErrCount: 1,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := azure.ValidateApiManagementName(tc.Value, "azurerm_api_management")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Api Management Name to trigger a validation error for '%s'", tc.Value)
-		}
-	}
-}
 
 func TestAccAzureRMApiManagement_basic(t *testing.T) {
 	resourceName := "azurerm_api_management.test"
@@ -64,7 +23,7 @@ func TestAccAzureRMApiManagement_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementExists("azurerm_api_management.test"),
+					testCheckAzureRMApiManagementExists(resourceName),
 				),
 			},
 			{
@@ -89,7 +48,7 @@ func TestAccAzureRMApiManagement_customProps(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementExists("azurerm_api_management.test"),
+					testCheckAzureRMApiManagementExists(resourceName),
 				),
 			},
 			{
@@ -114,7 +73,8 @@ func TestAccAzureRMApiManagement_complete(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementExists("azurerm_api_management.test"),
+					testCheckAzureRMApiManagementExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.Acceptance", "Test"),
 				),
 			},
 			{
@@ -200,13 +160,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  publisher_name      = "pub1"
-  publisher_email     = "pub1@email.com"
-  sku {
-    name = "Developer"
-  }
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku {
+    name     = "Developer"
+    capacity = 1
+  }
 }
 `, rInt, location, rInt)
 }
@@ -219,21 +181,21 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_api_management" "test" {
-  name            = "acctestAM-%d"
-  publisher_name  = "pub1"
-  publisher_email = "pub1@email.com"
+  name                = "acctestAM-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
 
   sku {
-    name = "Developer"
+    name     = "Developer"
+    capacity = 1
   }
 
   security {
     disable_frontend_tls10     = true
     disable_triple_des_chipers = true
   }
-
-	location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt)
 }
@@ -304,7 +266,7 @@ resource "azurerm_api_management" "test" {
   }
 
   tags {
-    test = "true"
+    "Acceptance" = "Test"
   }
 
   location            = "${azurerm_resource_group.test1.location}"

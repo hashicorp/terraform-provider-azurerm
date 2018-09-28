@@ -45,7 +45,8 @@ resource "azurerm_api_management" "test" {
   publisher_email = "pub1@email.com"
 
   sku {
-    name = "Developer"
+    name     = "Developer"
+    capacity = 1
   }
 
   location            = "${azurerm_resource_group.test.location}"
