@@ -146,7 +146,6 @@ resource "azurerm_shared_image" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   os_type             = "Linux"
-  os_state            = "Generalized"
 
   identifier {
     publisher = "AccTesPublisher%d"

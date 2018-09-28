@@ -51,7 +51,7 @@ func TestAccAzureRMSharedImageGallery_complete(t *testing.T) {
 				Config: testAccAzureRMSharedImageGallery_complete(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSharedImageGalleryExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "description", "hello, world"),
+					resource.TestCheckResourceAttr(resourceName, "description", "Shared images and things."),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Hello", "There"),
 					resource.TestCheckResourceAttr(resourceName, "tags.World", "Example"),
