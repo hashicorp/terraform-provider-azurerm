@@ -749,8 +749,8 @@ func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*str
 		apimBackendProtocolSsl3:   utils.String(strconv.FormatBool(backendProtocolSsl3)),
 		apimBackendProtocolTls10:  utils.String(strconv.FormatBool(backendProtocolTls10)),
 		apimBackendProtocolTls11:  utils.String(strconv.FormatBool(backendProtocolTls11)),
-		apimFrontendProtocolTls10: utils.String(strconv.FormatBool(frontendProtocolSsl3)),
-		apimFrontendProtocolSsl3:  utils.String(strconv.FormatBool(frontendProtocolTls10)),
+		apimFrontendProtocolSsl3:  utils.String(strconv.FormatBool(frontendProtocolSsl3)),
+		apimFrontendProtocolTls10: utils.String(strconv.FormatBool(frontendProtocolTls10)),
 		apimFrontendProtocolTls11: utils.String(strconv.FormatBool(frontendProtocolTls11)),
 		apimTripleDesChipers:      utils.String(strconv.FormatBool(tripleDesChipers)),
 	}

@@ -262,7 +262,8 @@ resource "azurerm_api_management" "test" {
   }
 
   sku {
-    name = "Premium"
+    name     = "Premium"
+    capacity = 1
   }
 
   tags {
