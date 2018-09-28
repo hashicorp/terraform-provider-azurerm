@@ -24,6 +24,7 @@ BUG FIXES:
 * `azurerm_role_definition` - support for the `data_actions` and `not_data_action` blocks [GH-1971]
 * `azurerm_service_fabric_cluster` - allow two `client_certificate_thumbprint` blocks [GH-1938]
 * `azurerm_service_fabric_cluster` - support for specifying the `cluster_code_version` field [GH-1945]
+* `azurerm_virtual_network` - exposing the `id` of each subnet [GH-1913]
 * `azurerm_virtual_machine` - handling the Managed Disk ID being nil [GH-1947]
 * `azurerm_virtual_machine_data_disk_attachment` - supporting data disk attachments when a VM Extension is installed [GH-1950]
 * `azurerm_virtual_machine_scale_set` - making `admin_password` in the `os_profile` block optional again [GH-1958]
