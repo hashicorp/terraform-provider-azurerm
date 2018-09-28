@@ -115,6 +115,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_scheduler_job_collection":              dataSourceArmSchedulerJobCollection(),
 			"azurerm_shared_image":                          dataSourceArmSharedImage(),
 			"azurerm_shared_image_gallery":                  dataSourceArmSharedImageGallery(),
+			"azurerm_shared_image_version":                  dataSourceArmSharedImageVersion(),
 			"azurerm_snapshot":                              dataSourceArmSnapshot(),
 			"azurerm_storage_account":                       dataSourceArmStorageAccount(),
 			"azurerm_storage_account_sas":                   dataSourceArmStorageAccountSharedAccessSignature(),
