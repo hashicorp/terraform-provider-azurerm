@@ -361,6 +361,32 @@ func TestAccAzureRMCosmosDBAccount_capabilityMongo35(t *testing.T) {
 		},
 	})
 }
+
+func TestAccAzureRMCosmosDBAccount_capabilityDocLevelTTL(t *testing.T) {
+	ri := acctest.RandInt()
+	resourceName := "azurerm_cosmosdb_account.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDBAccount_capabilityDocLevelTTL(ri, testLocation()),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
+					resource.TestCheckResourceAttr(resourceName, "kind", "MongoDB"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAbcAzureRMCosmosDBAccount_updatePropertiesAndLocation(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_cosmosdb_account.test"
@@ -639,6 +665,16 @@ func testAccAzureRMCosmosDBAccount_capabilityMongo34(rInt int, location string) 
 
         capabilities = {
           name = "MongoDBv3.4"
+        }
+    `)
+}
+
+func testAccAzureRMCosmosDBAccount_capabilityDocLevelTTL(rInt int, location string) string {
+	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", `
+        kind = "MongoDB"
+
+        capabilities = {
+          name = "mongoEnableDocLevelTTL"
         }
     `)
 }

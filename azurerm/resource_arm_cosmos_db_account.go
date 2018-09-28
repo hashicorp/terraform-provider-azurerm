@@ -197,8 +197,9 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								"EnableTable",
 								"EnableGremlin",
-								`EnableCassandra`,
-								`MongoDBv3.4`,
+								"EnableCassandra",
+								"MongoDBv3.4",
+								"mongoEnableDocLevelTTL",
 							}, true),
 						},
 					},
