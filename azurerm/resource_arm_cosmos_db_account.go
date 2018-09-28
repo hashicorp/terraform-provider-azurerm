@@ -198,6 +198,7 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 								"EnableTable",
 								"EnableGremlin",
 								`EnableCassandra`,
+								`MongoDBv3.4`,
 							}, true),
 						},
 					},
