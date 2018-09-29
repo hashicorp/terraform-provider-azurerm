@@ -59,7 +59,7 @@ resource "azurerm_iothub" "test" {
     source          = "DeviceMessages"
     condition       = "true"
     endpoint_names  = ["export"]
-    is_enabled      = true
+    enabled         = true
   }
 
   tags {
