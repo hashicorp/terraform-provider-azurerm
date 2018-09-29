@@ -58,24 +58,23 @@ type context struct {
 	Namespace string `yaml:"namespace,omitempty"`
 }
 
-type KubeConfig struct {
+type KubeConfigBase struct {
 	APIVersion     string                 `yaml:"apiVersion"`
 	Clusters       []clusterItem          `yaml:"clusters"`
-	Users          []userItem             `yaml:"users"`
 	Contexts       []contextItem          `yaml:"contexts,omitempty"`
 	CurrentContext string                 `yaml:"current-context,omitempty"`
 	Kind           string                 `yaml:"kind,omitempty"`
 	Preferences    map[string]interface{} `yaml:"preferences,omitempty"`
 }
 
+type KubeConfig struct {
+	KubeConfigBase `yaml:",inline"`
+	Users          []userItem `yaml:"users"`
+}
+
 type KubeConfigAAD struct {
-	APIVersion     string                 `yaml:"apiVersion"`
-	Clusters       []clusterItem          `yaml:"clusters"`
-	Users          []userItemAAD          `yaml:"users"`
-	Contexts       []contextItem          `yaml:"contexts,omitempty"`
-	CurrentContext string                 `yaml:"current-context,omitempty"`
-	Kind           string                 `yaml:"kind,omitempty"`
-	Preferences    map[string]interface{} `yaml:"preferences,omitempty"`
+	KubeConfigBase `yaml:",inline"`
+	Users          []userItemAAD `yaml:"users"`
 }
 
 func ParseKubeConfig(config string) (*KubeConfig, error) {

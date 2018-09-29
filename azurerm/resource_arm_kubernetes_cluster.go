@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
 	"github.com/hashicorp/terraform/helper/hashcode"
@@ -552,19 +553,11 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	serverAppId, ok := d.GetOkExists("server_app_id")
-	if ok && serverAppId != "" {
-		kubeConfigRaw, kubeConfig := flattenAzureRmKubernetesClusterAccessProfileAAD(&profile)
-		d.Set("kube_config_raw", kubeConfigRaw)
-		if err := d.Set("kube_config", kubeConfig); err != nil {
-			return fmt.Errorf("Error setting `kube_config`: %+v", err)
-		}
-	} else {
-		kubeConfigRaw, kubeConfig := flattenAzureRmKubernetesClusterAccessProfile(&profile)
-		d.Set("kube_config_raw", kubeConfigRaw)
-		if err := d.Set("kube_config", kubeConfig); err != nil {
-			return fmt.Errorf("Error setting `kube_config`: %+v", err)
-		}
+	kubeConfigRaw, kubeConfig := flattenAzureRmKubernetesClusterAccessProfile(&profile)
+
+	d.Set("kube_config_raw", kubeConfigRaw)
+	if err := d.Set("kube_config", kubeConfig); err != nil {
+		return fmt.Errorf("Error setting `kube_config`: %+v", err)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -734,32 +727,26 @@ func flattenAzureRmKubernetesClusterAccessProfile(profile *containerservice.Mana
 		if accessProfile := profile.AccessProfile; accessProfile != nil {
 			if kubeConfigRaw := accessProfile.KubeConfig; kubeConfigRaw != nil {
 				rawConfig := string(*kubeConfigRaw)
+				var flattenedKubeConfig []interface{}
 
-				kubeConfig, err := kubernetes.ParseKubeConfig(rawConfig)
-				if err != nil {
-					return utils.String(rawConfig), []interface{}{}
+				if strings.Contains(rawConfig, "apiserver-id:") {
+					kubeConfigAAD, err := kubernetes.ParseKubeConfigAAD(rawConfig)
+
+					if err != nil {
+						return utils.String(rawConfig), []interface{}{}
+					}
+
+					flattenedKubeConfig = flattenKubernetesClusterKubeConfigAAD(*kubeConfigAAD)
+				} else {
+					kubeConfig, err := kubernetes.ParseKubeConfig(rawConfig)
+
+					if err != nil {
+						return utils.String(rawConfig), []interface{}{}
+					}
+
+					flattenedKubeConfig = flattenKubernetesClusterKubeConfig(*kubeConfig)
 				}
 
-				flattenedKubeConfig := flattenKubernetesClusterKubeConfig(*kubeConfig)
-				return utils.String(rawConfig), flattenedKubeConfig
-			}
-		}
-	}
-	return nil, []interface{}{}
-}
-
-func flattenAzureRmKubernetesClusterAccessProfileAAD(profile *containerservice.ManagedClusterAccessProfile) (*string, []interface{}) {
-	if profile != nil {
-		if accessProfile := profile.AccessProfile; accessProfile != nil {
-			if kubeConfigRaw := accessProfile.KubeConfig; kubeConfigRaw != nil {
-				rawConfig := string(*kubeConfigRaw)
-
-				kubeConfigAAD, err := kubernetes.ParseKubeConfigAAD(rawConfig)
-				if err != nil {
-					return utils.String(rawConfig), []interface{}{}
-				}
-
-				flattenedKubeConfig := flattenKubernetesClusterKubeConfigAAD(*kubeConfigAAD)
 				return utils.String(rawConfig), flattenedKubeConfig
 			}
 		}

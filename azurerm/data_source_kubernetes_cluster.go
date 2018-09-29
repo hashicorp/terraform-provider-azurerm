@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -455,13 +456,26 @@ func flattenKubernetesClusterDataSourceAccessProfile(profile *containerservice.M
 
 	if kubeConfigRaw := profile.AccessProfile.KubeConfig; kubeConfigRaw != nil {
 		rawConfig := string(*kubeConfigRaw)
+		var flattenedKubeConfig []interface{}
 
-		kubeConfig, err := kubernetes.ParseKubeConfig(rawConfig)
-		if err != nil {
-			return utils.String(rawConfig), []interface{}{}
+		if strings.Contains(rawConfig, "apiserver-id:") {
+			kubeConfigAAD, err := kubernetes.ParseKubeConfigAAD(rawConfig)
+
+			if err != nil {
+				return utils.String(rawConfig), []interface{}{}
+			}
+
+			flattenedKubeConfig = flattenKubernetesClusterDataSourceKubeConfigAAD(*kubeConfigAAD)
+		} else {
+			kubeConfig, err := kubernetes.ParseKubeConfig(rawConfig)
+
+			if err != nil {
+				return utils.String(rawConfig), []interface{}{}
+			}
+
+			flattenedKubeConfig = flattenKubernetesClusterDataSourceKubeConfig(*kubeConfig)
 		}
 
-		flattenedKubeConfig := flattenKubernetesClusterDataSourceKubeConfig(*kubeConfig)
 		return utils.String(rawConfig), flattenedKubeConfig
 	}
 
@@ -502,6 +516,24 @@ func flattenKubernetesClusterDataSourceKubeConfig(config kubernetes.KubeConfig) 
 	values["password"] = user.Token
 	values["client_certificate"] = user.ClientCertificteData
 	values["client_key"] = user.ClientKeyData
+	values["cluster_ca_certificate"] = cluster.ClusterAuthorityData
+
+	return []interface{}{values}
+}
+
+func flattenKubernetesClusterDataSourceKubeConfigAAD(config kubernetes.KubeConfigAAD) []interface{} {
+	values := make(map[string]interface{})
+
+	cluster := config.Clusters[0].Cluster
+	name := config.Users[0].Name
+
+	values["host"] = cluster.Server
+	values["username"] = name
+
+	values["password"] = ""
+	values["client_certificate"] = ""
+	values["client_key"] = ""
+
 	values["cluster_ca_certificate"] = cluster.ClusterAuthorityData
 
 	return []interface{}{values}

@@ -178,7 +178,7 @@ The following arguments are supported:
 
 * `service_principal` - (Required) A Service Principal block as documented below.
 
-* `enable_rbac` - (Optional) True or False. Enables or Disables Kubernetes Role Based Access Control (RBAC). Defaults to True. Changing this forces a new resource to be created.
+* `enable_rbac` - (Optional) True or False. Enables or Disables Kubernetes Role Based Access Control (RBAC). Defaults to True, enabling Kubernetes RBAC without AzureAD integration. Changing this forces a new resource to be created.
 
 ---
 
@@ -189,7 +189,7 @@ The following arguments are supported:
 * `network_profile` - (Optional) A Network Profile block as documented below.
 -> **NOTE:** If `network_profile` is not defined, `kubenet` profile will be used by default.
 
-* `aad_profile` - (Optional) An `aad_profile` block. Used to integrate AzureAD with RBAC. `enable_rbac` must be set to true.
+* `aad_profile` - (Optional) An `aad_profile` block. Used to integrate AzureAD with Kubernetes RBAC. `enable_rbac` must be set to true. Not enabled by default.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -299,6 +299,8 @@ A `aad_profile` block supports the following:
 * `client_id` - (Required) AzureAD Client Application ID.
 
 * `tenant_id` - (Required) AzureAD Tenant ID.
+
+These values are obtained from the Azure Portal, Azure CLI, or Azure PowerShell after creating an AzureAD Application Service.
 
 
 Here's an example of configuring an AzureAD RBAC Handler:
