@@ -124,7 +124,7 @@ func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceD
 		Lun:          utils.Int32(lun),
 		ManagedDisk: &compute.ManagedDiskParameters{
 			ID:                 utils.String(managedDiskId),
-			StorageAccountType: managedDisk.Sku.Name,
+			StorageAccountType: compute.StorageAccountTypes(string(managedDisk.Sku.Name)),
 		},
 		WriteAcceleratorEnabled: utils.Bool(writeAcceleratorEnabled),
 	}
