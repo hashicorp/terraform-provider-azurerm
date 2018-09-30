@@ -42,7 +42,7 @@ func TestAccAzureRMSharedImageVersion_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSharedImageVersionExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_image_id"),
-					resource.TestCheckResourceAttr(resourceName, "regions.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "target_region.#", "1"),
 				),
 			},
 			{
@@ -50,7 +50,7 @@ func TestAccAzureRMSharedImageVersion_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSharedImageVersionExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_image_id"),
-					resource.TestCheckResourceAttr(resourceName, "regions.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "target_region.#", "2"),
 				),
 			},
 			{
@@ -166,7 +166,11 @@ resource "azurerm_shared_image_version" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   managed_image_id    = "${azurerm_image.test.id}"
-  regions             = ["${azurerm_resource_group.test.location}"]
+
+  target_region {
+    name                   = "${azurerm_resource_group.test.location}"
+    regional_replica_count = 1
+  }
 }
 `, template)
 }
@@ -183,7 +187,16 @@ resource "azurerm_shared_image_version" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   managed_image_id    = "${azurerm_image.test.id}"
-  regions             = ["${azurerm_resource_group.test.location}", "%s"]
+
+  target_region {
+    name                   = "${azurerm_resource_group.test.location}"
+    regional_replica_count = 1
+  }
+
+  target_region {
+    name                   = "%s"
+    regional_replica_count = 2
+  }
 }
 `, template, altLocation)
 }

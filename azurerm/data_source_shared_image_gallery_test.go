@@ -41,7 +41,7 @@ func TestAccDataSourceAzureRMSharedImageGallery_complete(t *testing.T) {
 			{
 				Config: testAccDataSourceSharedImageGallery_complete(rInt, location),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "description", "hello, world"),
+					resource.TestCheckResourceAttr(dataSourceName, "description", "Shared images and things."),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.Hello", "There"),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.World", "Example"),

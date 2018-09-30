@@ -53,12 +53,24 @@ func resourceArmSharedImageVersion() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"regions": {
-				Type:             schema.TypeSet,
-				Required:         true,
-				Elem:             &schema.Schema{Type: schema.TypeString},
-				StateFunc:        azureRMNormalizeLocation,
-				DiffSuppressFunc: azureRMSuppressLocationDiff,
+			"target_region": {
+				Type:     schema.TypeSet,
+				Required: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:             schema.TypeString,
+							Required:         true,
+							StateFunc:        azureRMNormalizeLocation,
+							DiffSuppressFunc: azureRMSuppressLocationDiff,
+						},
+
+						"regional_replica_count": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+					},
+				},
 			},
 
 			"exclude_from_latest": {
@@ -84,7 +96,7 @@ func resourceArmSharedImageVersionCreateUpdate(d *schema.ResourceData, meta inte
 	managedImageId := d.Get("managed_image_id").(string)
 	excludeFromLatest := d.Get("exclude_from_latest").(bool)
 
-	regions := expandSharedImageVersionRegions(d)
+	targetRegions := expandSharedImageVersionTargetRegions(d)
 	tags := d.Get("tags").(map[string]interface{})
 
 	version := compute.GalleryImageVersion{
@@ -92,7 +104,7 @@ func resourceArmSharedImageVersionCreateUpdate(d *schema.ResourceData, meta inte
 		GalleryImageVersionProperties: &compute.GalleryImageVersionProperties{
 			PublishingProfile: &compute.GalleryImageVersionPublishingProfile{
 				ExcludeFromLatest: utils.Bool(excludeFromLatest),
-				Regions:           regions,
+				TargetRegions:     targetRegions,
 				Source: &compute.GalleryArtifactSource{
 					ManagedImage: &compute.ManagedArtifact{
 						ID: utils.String(managedImageId),
@@ -112,6 +124,8 @@ func resourceArmSharedImageVersionCreateUpdate(d *schema.ResourceData, meta inte
 	if err != nil {
 		return fmt.Errorf("Error waiting for the creation of Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", imageVersion, imageName, galleryName, resourceGroup, err)
 	}
+
+	// TODO: poll?
 
 	read, err := client.Get(ctx, resourceGroup, galleryName, imageName, imageVersion, "")
 	if err != nil {
@@ -157,18 +171,13 @@ func resourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{})
 	}
 
 	if props := resp.GalleryImageVersionProperties; props != nil {
-		// `targetRegions` is returned in the API Response but isn't exposed there.
-		// TODO: replace this once this fields exposed
-		// BUG: https://github.com/Azure/azure-sdk-for-go/issues/2855
-		if status := props.ReplicationStatus; status != nil {
-			flattenedRegions := flattenSharedImageVersionRegions(status.Summary)
-			if err := d.Set("regions", flattenedRegions); err != nil {
-				return fmt.Errorf("Error flattening `regions`: %+v", err)
-			}
-		}
-
 		if profile := props.PublishingProfile; profile != nil {
 			d.Set("exclude_from_latest", profile.ExcludeFromLatest)
+
+			flattenedRegions := flattenSharedImageVersionTargetRegions(profile.TargetRegions)
+			if err := d.Set("target_region", flattenedRegions); err != nil {
+				return fmt.Errorf("Error flattening `target_region`: %+v", err)
+			}
 
 			if source := profile.Source; source != nil {
 				if image := source.ManagedImage; image != nil {
@@ -215,28 +224,44 @@ func resourceArmSharedImageVersionDelete(d *schema.ResourceData, meta interface{
 
 	return nil
 }
-
-func expandSharedImageVersionRegions(d *schema.ResourceData) *[]string {
-	vs := d.Get("regions").(*schema.Set)
-	output := make([]string, 0)
+func expandSharedImageVersionTargetRegions(d *schema.ResourceData) *[]compute.TargetRegion {
+	vs := d.Get("target_region").(*schema.Set)
+	results := make([]compute.TargetRegion, 0)
 
 	for _, v := range vs.List() {
-		output = append(output, v.(string))
+		input := v.(map[string]interface{})
+
+		name := input["name"].(string)
+		regionalReplicaCount := input["regional_replica_count"].(int)
+
+		output := compute.TargetRegion{
+			Name:                 utils.String(name),
+			RegionalReplicaCount: utils.Int32(int32(regionalReplicaCount)),
+		}
+		results = append(results, output)
 	}
 
-	return &output
+	return &results
 }
 
-func flattenSharedImageVersionRegions(input *[]compute.RegionalReplicationStatus) []interface{} {
-	output := make([]interface{}, 0)
+func flattenSharedImageVersionTargetRegions(input *[]compute.TargetRegion) []interface{} {
+	results := make([]interface{}, 0)
 
 	if input != nil {
 		for _, v := range *input {
-			if v.Region != nil {
-				output = append(output, azureRMNormalizeLocation(*v.Region))
+			output := make(map[string]interface{}, 0)
+
+			if v.Name != nil {
+				output["name"] = azureRMNormalizeLocation(*v.Name)
 			}
+
+			if v.RegionalReplicaCount != nil {
+				output["regional_replica_count"] = int(*v.RegionalReplicaCount)
+			}
+
+			results = append(results, output)
 		}
 	}
 
-	return output
+	return results
 }

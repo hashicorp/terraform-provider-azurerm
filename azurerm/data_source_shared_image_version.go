@@ -42,11 +42,22 @@ func dataSourceArmSharedImageVersion() *schema.Resource {
 				Computed: true,
 			},
 
-			"regions": {
-				Type:      schema.TypeSet,
-				Computed:  true,
-				Elem:      &schema.Schema{Type: schema.TypeString},
-				StateFunc: azureRMNormalizeLocation,
+			"target_region": {
+				Type:     schema.TypeSet,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"regional_replica_count": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"exclude_from_latest": {
@@ -90,18 +101,13 @@ func dataSourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{
 	}
 
 	if props := resp.GalleryImageVersionProperties; props != nil {
-		// `targetRegions` is returned in the API Response but isn't exposed there.
-		// TODO: replace this once this fields exposed
-		// BUG: https://github.com/Azure/azure-sdk-for-go/issues/2855
-		if status := props.ReplicationStatus; status != nil {
-			flattenedRegions := flattenSharedImageVersionDataSourceRegions(status.Summary)
-			if err := d.Set("regions", flattenedRegions); err != nil {
-				return fmt.Errorf("Error flattening `regions`: %+v", err)
-			}
-		}
-
 		if profile := props.PublishingProfile; profile != nil {
 			d.Set("exclude_from_latest", profile.ExcludeFromLatest)
+
+			flattenedRegions := flattenSharedImageVersionDataSourceTargetRegions(profile.TargetRegions)
+			if err := d.Set("target_region", flattenedRegions); err != nil {
+				return fmt.Errorf("Error flattening `target_region`: %+v", err)
+			}
 
 			if source := profile.Source; source != nil {
 				if image := source.ManagedImage; image != nil {
@@ -116,16 +122,24 @@ func dataSourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func flattenSharedImageVersionDataSourceRegions(input *[]compute.RegionalReplicationStatus) []interface{} {
-	output := make([]interface{}, 0)
+func flattenSharedImageVersionDataSourceTargetRegions(input *[]compute.TargetRegion) []interface{} {
+	results := make([]interface{}, 0)
 
 	if input != nil {
 		for _, v := range *input {
-			if v.Region != nil {
-				output = append(output, azureRMNormalizeLocation(*v.Region))
+			output := make(map[string]interface{}, 0)
+
+			if v.Name != nil {
+				output["name"] = azureRMNormalizeLocation(*v.Name)
 			}
+
+			if v.RegionalReplicaCount != nil {
+				output["regional_replica_count"] = int(*v.RegionalReplicaCount)
+			}
+
+			results = append(results, output)
 		}
 	}
 
-	return output
+	return results
 }
