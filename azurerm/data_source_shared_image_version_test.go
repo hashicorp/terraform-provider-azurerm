@@ -12,6 +12,10 @@ func TestAccDataSourceAzureRMSharedImageVersion_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_shared_image_version.test"
 	rInt := acctest.RandInt()
 	location := testLocation()
+	username := "testadmin"
+	password := "Password1234!"
+	hostname := fmt.Sprintf("tftestcustomimagesrc%d", rInt)
+	resourceGroup := fmt.Sprintf("acctestRG-%d", rInt)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -19,19 +23,27 @@ func TestAccDataSourceAzureRMSharedImageVersion_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSharedImageVersionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceSharedImageVersion_basic(rInt, location),
+				// need to create a vm and then reference it in the image creation
+				Config:  testAccAzureRMSharedImageVersion_setup(rInt, location, username, password, hostname),
+				Destroy: false,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+					testGeneralizeVMImage(resourceGroup, "testsource", username, password, hostname, "22", location),
+				),
+			},
+			{
+				Config: testAccDataSourceSharedImageVersion_basic(rInt, location, username, password, hostname),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "managed_image_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "target_region.#", "1"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceSharedImageVersion_basic(rInt int, location string) string {
-	username := "testadmin"
-	password := "Password1234!"
-	hostname := fmt.Sprintf("tftestcustomimagesrc%d", rInt)
+func testAccDataSourceSharedImageVersion_basic(rInt int, location, username, password, hostname string) string {
 	template := testAccAzureRMSharedImageVersion_imageVersion(rInt, location, username, password, hostname)
 	return fmt.Sprintf(`
 %s
