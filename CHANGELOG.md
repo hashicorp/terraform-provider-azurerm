@@ -12,6 +12,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* dependencies: upgrading to v21.0.0 of `github.com/Azure/azure-sdk-for-go` [GH-1996]
 * `azurerm_cosmosdb_account` - adding the `is_virtual_network_filter_enabled` and `virtual_network_rule` propeties [GH-1961]
 
 BUG FIXES:
