@@ -4,6 +4,7 @@ FEATURES:
 
 * **New Resource:** `azurerm_api_management` [GH-1516]
 * **New Resource:** `azurerm_cognitive_account` [GH-962]
+* **New Resource:** `azurerm_databricks_workspace` [GH-1134]
 
 ## 1.16.0 (October 01, 2018)
 
