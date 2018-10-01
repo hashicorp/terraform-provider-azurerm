@@ -13,6 +13,7 @@ import (
 	appinsights "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-10-12/cdn"
+	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-04-01/containerinstance"
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
@@ -122,6 +123,9 @@ type ArmClient struct {
 	cdnCustomDomainsClient cdn.CustomDomainsClient
 	cdnEndpointsClient     cdn.EndpointsClient
 	cdnProfilesClient      cdn.ProfilesClient
+
+	// Cognitive Services
+	cognitiveAccountsClient cognitiveservices.AccountsClient
 
 	// Compute
 	availSetClient             compute.AvailabilitySetsClient
@@ -452,6 +456,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerAutomationClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth, sender)
 	client.registerCDNClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerCognitiveServiceClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerComputeClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerContainerInstanceClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerContainerRegistryClients(endpoint, c.SubscriptionID, auth, sender)
@@ -545,6 +550,12 @@ func (c *ArmClient) registerCDNClients(endpoint, subscriptionId string, auth aut
 	profilesClient := cdn.NewProfilesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&profilesClient.Client, auth)
 	c.cdnProfilesClient = profilesClient
+}
+
+func (c *ArmClient) registerCognitiveServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	accountsClient := cognitiveservices.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&accountsClient.Client, auth)
+	c.cognitiveAccountsClient = accountsClient
 }
 
 func (c *ArmClient) registerCosmosDBClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
