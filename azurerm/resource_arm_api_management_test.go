@@ -208,7 +208,7 @@ resource "azurerm_resource_group" "test1" {
 }
 
 resource "azurerm_resource_group" "test2" {
-  name     = "acctestrg-%d"
+  name     = "acctestrg2-%d"
   location = "%s"
 }
 
