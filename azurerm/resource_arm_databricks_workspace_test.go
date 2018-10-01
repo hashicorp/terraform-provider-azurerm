@@ -10,6 +10,59 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
+func TestAzureRMDatabrickWorkspaceName(t *testing.T) {
+	cases := []struct {
+		Value       string
+		ShouldError bool
+	}{
+		{
+			Value:       "hello",
+			ShouldError: false,
+		},
+		{
+			Value:       "hello123there",
+			ShouldError: false,
+		},
+		{
+			Value:       "hello-1-2-3-there",
+			ShouldError: false,
+		},
+		{
+			Value:       "hello-1-2-3-",
+			ShouldError: false,
+		},
+		{
+			Value:       "-hello-1-2-3",
+			ShouldError: false,
+		},
+		{
+			Value:       "hello!there",
+			ShouldError: true,
+		},
+		{
+			Value:       "!hellothere",
+			ShouldError: true,
+		},
+		{
+			Value:       "hellothere!",
+			ShouldError: true,
+		},
+	}
+
+	for _, tc := range cases {
+		_, errors := validateDatabricksWorkspaceName(tc.Value, "test")
+
+		hasErrors := len(errors) > 0
+		if hasErrors && !tc.ShouldError {
+			t.Fatalf("Expected no errors but got %d for %q", len(errors), tc.Value)
+		}
+
+		if !hasErrors && tc.ShouldError {
+			t.Fatalf("Expected no errors but got %d for %q", len(errors), tc.Value)
+		}
+	}
+}
+
 func TestAccAzureRMDatabricksWorkspace_basic(t *testing.T) {
 	resourceName := "azurerm_databricks_workspace.test"
 	ri := acctest.RandInt()
