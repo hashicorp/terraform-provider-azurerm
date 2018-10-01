@@ -107,14 +107,6 @@
 			"versionExact": "v21.1.0"
 		},
 		{
-			"checksumSHA1": "cdSthV7hZqJYRvbNwWuC0VFzn14=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2016-04-01/dns",
-			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
-			"revisionTime": "2018-05-04T19:14:26Z",
-			"version": "v16.2.1",
-			"versionExact": "v16.2.1"
-		},
-		{
 			"checksumSHA1": "mdwBbEgubHb6UnwDspop+43Sx8k=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2018-01-01/eventgrid",
 			"revision": "6d20bdbae88c06c36d72eb512295417693bfdf4e",
