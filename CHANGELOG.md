@@ -23,6 +23,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* Data Source `azurerm_builtin_role_definition`: support for `data_actions` and `not_data_actions` [GH-2000]
 * `azurerm_app_service_plan` - exposing additional information on failure [GH-1926]
 * `azurerm_app_service_custom_hostname_binding` - handling multiple bindings being created in parallel [GH-1970]
 * `azurerm_lb_rule` - allow `0` for `frontend_port` and `backend_port` again [GH-1951]
