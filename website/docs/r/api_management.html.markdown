@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `notification_sender_email` - (Optional) Email address from which the notification will be sent.
 
-* `security` - A `security` block as defined below.
+* `security` - (Optional) A `security` block as defined below.
 
 * `tags` - (Optional) A mapping of tags assigned to the resource.
 
@@ -120,7 +120,7 @@ A `security` block supports the following:
 
 ---
 
-`sku` block supports the following:
+A `sku` block supports the following:
 
 * `name` - (Required) Specifies the Pricing Tier for the API Management Service. Possible values include: `Developer`, `Basic`, `Standard` and `Premium`.
 
