@@ -41,9 +41,10 @@ func NewWorkspacesClientWithBaseURI(baseURI string, subscriptionID string) Works
 }
 
 // CreateOrUpdate creates a new workspace.
-//
-// parameters is parameters supplied to the create or update a workspace. resourceGroupName is the name of the
-// resource group. The name is case insensitive. workspaceName is the name of the workspace.
+// Parameters:
+// parameters - parameters supplied to the create or update a workspace.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// workspaceName - the name of the workspace.
 func (client WorkspacesClient) CreateOrUpdate(ctx context.Context, parameters Workspace, resourceGroupName string, workspaceName string) (result WorkspacesCreateOrUpdateFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: parameters,
@@ -102,15 +103,17 @@ func (client WorkspacesClient) CreateOrUpdatePreparer(ctx context.Context, param
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkspacesClient) CreateOrUpdateSender(req *http.Request) (future WorkspacesCreateOrUpdateFuture, err error) {
-	sender := autorest.DecorateSender(client, azure.DoRetryWithRegistration(client.Client))
-	future.Future = azure.NewFuture(req)
-	future.req = req
-	_, err = future.Done(sender)
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
-	err = autorest.Respond(future.Response(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated))
+	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
 	return
 }
 
@@ -128,9 +131,9 @@ func (client WorkspacesClient) CreateOrUpdateResponder(resp *http.Response) (res
 }
 
 // Delete deletes the workspace.
-//
-// resourceGroupName is the name of the resource group. The name is case insensitive. workspaceName is the name of
-// the workspace.
+// Parameters:
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// workspaceName - the name of the workspace.
 func (client WorkspacesClient) Delete(ctx context.Context, resourceGroupName string, workspaceName string) (result WorkspacesDeleteFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -182,15 +185,17 @@ func (client WorkspacesClient) DeletePreparer(ctx context.Context, resourceGroup
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkspacesClient) DeleteSender(req *http.Request) (future WorkspacesDeleteFuture, err error) {
-	sender := autorest.DecorateSender(client, azure.DoRetryWithRegistration(client.Client))
-	future.Future = azure.NewFuture(req)
-	future.req = req
-	_, err = future.Done(sender)
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
-	err = autorest.Respond(future.Response(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent))
+	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
 	return
 }
 
@@ -207,9 +212,9 @@ func (client WorkspacesClient) DeleteResponder(resp *http.Response) (result auto
 }
 
 // Get gets the workspace.
-//
-// resourceGroupName is the name of the resource group. The name is case insensitive. workspaceName is the name of
-// the workspace.
+// Parameters:
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// workspaceName - the name of the workspace.
 func (client WorkspacesClient) Get(ctx context.Context, resourceGroupName string, workspaceName string) (result Workspace, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -285,8 +290,8 @@ func (client WorkspacesClient) GetResponder(resp *http.Response) (result Workspa
 }
 
 // ListByResourceGroup gets all the workspaces within a resource group.
-//
-// resourceGroupName is the name of the resource group. The name is case insensitive.
+// Parameters:
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 func (client WorkspacesClient) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result WorkspaceListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -476,9 +481,10 @@ func (client WorkspacesClient) ListBySubscriptionComplete(ctx context.Context) (
 }
 
 // Update updates a workspace.
-//
-// parameters is the update to the workspace. resourceGroupName is the name of the resource group. The name is case
-// insensitive. workspaceName is the name of the workspace.
+// Parameters:
+// parameters - the update to the workspace.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// workspaceName - the name of the workspace.
 func (client WorkspacesClient) Update(ctx context.Context, parameters WorkspaceUpdate, resourceGroupName string, workspaceName string) (result WorkspacesUpdateFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -532,15 +538,17 @@ func (client WorkspacesClient) UpdatePreparer(ctx context.Context, parameters Wo
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkspacesClient) UpdateSender(req *http.Request) (future WorkspacesUpdateFuture, err error) {
-	sender := autorest.DecorateSender(client, azure.DoRetryWithRegistration(client.Client))
-	future.Future = azure.NewFuture(req)
-	future.req = req
-	_, err = future.Done(sender)
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
-	err = autorest.Respond(future.Response(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted))
+	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
 	return
 }
 
