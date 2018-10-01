@@ -121,6 +121,9 @@ func dataSourceArmBuiltInRoleDefinitionRead(d *schema.ResourceData, meta interfa
 
 func flattenRoleDefinitionDataSourcePermissions(input *[]authorization.Permission) []interface{} {
 	permissions := make([]interface{}, 0)
+	if input == nil {
+		return permissions
+	}
 
 	for _, permission := range *input {
 		output := make(map[string]interface{}, 0)
@@ -165,6 +168,9 @@ func flattenRoleDefinitionDataSourcePermissions(input *[]authorization.Permissio
 
 func flattenRoleDefinitionDataSourceAssignableScopes(input *[]string) []interface{} {
 	scopes := make([]interface{}, 0)
+	if input == nil {
+		return scopes
+	}
 
 	for _, scope := range *input {
 		scopes = append(scopes, scope)

@@ -250,6 +250,9 @@ func expandRoleDefinitionAssignableScopes(d *schema.ResourceData) []string {
 
 func flattenRoleDefinitionPermissions(input *[]authorization.Permission) []interface{} {
 	permissions := make([]interface{}, 0)
+	if input == nil {
+		return permissions
+	}
 
 	for _, permission := range *input {
 		output := make(map[string]interface{}, 0)
@@ -294,6 +297,9 @@ func flattenRoleDefinitionPermissions(input *[]authorization.Permission) []inter
 
 func flattenRoleDefinitionAssignableScopes(input *[]string) []interface{} {
 	scopes := make([]interface{}, 0)
+	if input == nil {
+		return scopes
+	}
 
 	for _, scope := range *input {
 		scopes = append(scopes, scope)
