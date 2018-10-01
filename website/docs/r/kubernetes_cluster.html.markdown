@@ -241,7 +241,7 @@ The following arguments are supported:
 A `addon_profile` block supports the following:
 
 * `http_application_routing` - (Optional) A `http_application_routing` block.
-* `oms_agent` - (Optional) A `oms_agent` block.
+* `oms_agent` - (Optional) A `oms_agent` block. For more details, please visit [How to onboard Azure Monitor for containers](https://docs.microsoft.com/en-us/azure/monitoring/monitoring-container-insights-onboard).
 
 ---
 
