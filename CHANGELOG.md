@@ -1,41 +1,41 @@
-## 1.16.0 (Unreleased)
+## 1.16.0 (October 01, 2018)
 
 UPGRADE NOTES:
 
-* `azurerm_azuread_application` - the properties `homepage`, `identifier_uris` and `reply_urls` are now required to be `https` as required by Azure [GH-1960]
+* `azurerm_azuread_application` - the properties `homepage`, `identifier_uris` and `reply_urls` are now required to be `https` as required by Azure ([#1960](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1960))
 
 FEATURES:
 
-* **New Data Source:** `azurerm_dev_test_lab` [GH-1944]
-* **New Data Source:** `azurerm_shared_image` [GH-1987]
-* **New Data Source**: `azurerm_shared_image_gallery` [GH-1987]
-* **New Data Source:** `azurerm_shared_image_version` [GH-1987]
-* **New Resource:** `azurerm_dev_test_lab` [GH-1944]
-* **New Resource:** `azurerm_dev_test_virtual_network` [GH-1944]
-* **New Resource:** `azurerm_shared_image` [GH-1987]
-* **New Resource**: `azurerm_shared_image_gallery` [GH-1987]
-* **New Resource:** `azurerm_shared_image_version` [GH-1987]
+* **New Data Source:** `azurerm_dev_test_lab` ([#1944](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1944))
+* **New Data Source:** `azurerm_shared_image` ([#1987](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1987))
+* **New Data Source**: `azurerm_shared_image_gallery` ([#1987](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1987))
+* **New Data Source:** `azurerm_shared_image_version` ([#1987](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1987))
+* **New Resource:** `azurerm_dev_test_lab` ([#1944](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1944))
+* **New Resource:** `azurerm_dev_test_virtual_network` ([#1944](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1944))
+* **New Resource:** `azurerm_shared_image` ([#1987](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1987))
+* **New Resource**: `azurerm_shared_image_gallery` ([#1987](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1987))
+* **New Resource:** `azurerm_shared_image_version` ([#1987](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1987))
 
 IMPROVEMENTS:
 
-* dependencies: upgrading to v21.0.0 of `github.com/Azure/azure-sdk-for-go` [GH-1996]
-* `azurerm_cosmosdb_account` - adding the `is_virtual_network_filter_enabled` and `virtual_network_rule` propeties [GH-1961]
+* dependencies: upgrading to v21.0.0 of `github.com/Azure/azure-sdk-for-go` ([#1996](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1996))
+* `azurerm_cosmosdb_account` - adding the `is_virtual_network_filter_enabled` and `virtual_network_rule` propeties ([#1961](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1961))
 
 BUG FIXES:
 
-* Data Source `azurerm_builtin_role_definition`: support for `data_actions` and `not_data_actions` [GH-2000]
-* `azurerm_app_service_plan` - exposing additional information on failure [GH-1926]
-* `azurerm_app_service_custom_hostname_binding` - handling multiple bindings being created in parallel [GH-1970]
-* `azurerm_lb_rule` - allow `0` for `frontend_port` and `backend_port` again [GH-1951]
-* `azurerm_public_ip` - correctly reading and importing the `idle_timeout_in_minutes` property [GH-1925]
-* `azurerm_role_assignment` - only retry on errors when they are retryable [GH-1934]
-* `azurerm_role_definition` - support for the `data_actions` and `not_data_action` blocks [GH-1971]
-* `azurerm_service_fabric_cluster` - allow two `client_certificate_thumbprint` blocks [GH-1938]
-* `azurerm_service_fabric_cluster` - support for specifying the `cluster_code_version` field [GH-1945]
-* `azurerm_virtual_network` - exposing the `id` of each subnet [GH-1913]
-* `azurerm_virtual_machine` - handling the Managed Disk ID being nil [GH-1947]
-* `azurerm_virtual_machine_data_disk_attachment` - supporting data disk attachments when a VM Extension is installed [GH-1950]
-* `azurerm_virtual_machine_scale_set` - making `admin_password` in the `os_profile` block optional again [GH-1958]
+* Data Source `azurerm_builtin_role_definition`: support for `data_actions` and `not_data_actions` ([#2000](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2000))
+* `azurerm_app_service_plan` - exposing additional information on failure ([#1926](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1926))
+* `azurerm_app_service_custom_hostname_binding` - handling multiple bindings being created in parallel ([#1970](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1970))
+* `azurerm_lb_rule` - allow `0` for `frontend_port` and `backend_port` again ([#1951](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1951))
+* `azurerm_public_ip` - correctly reading and importing the `idle_timeout_in_minutes` property ([#1925](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1925))
+* `azurerm_role_assignment` - only retry on errors when they are retryable ([#1934](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1934))
+* `azurerm_role_definition` - support for the `data_actions` and `not_data_action` blocks ([#1971](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1971))
+* `azurerm_service_fabric_cluster` - allow two `client_certificate_thumbprint` blocks ([#1938](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1938))
+* `azurerm_service_fabric_cluster` - support for specifying the `cluster_code_version` field ([#1945](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1945))
+* `azurerm_virtual_network` - exposing the `id` of each subnet ([#1913](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1913))
+* `azurerm_virtual_machine` - handling the Managed Disk ID being nil ([#1947](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1947))
+* `azurerm_virtual_machine_data_disk_attachment` - supporting data disk attachments when a VM Extension is installed ([#1950](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1950))
+* `azurerm_virtual_machine_scale_set` - making `admin_password` in the `os_profile` block optional again ([#1958](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1958))
 
 ## 1.15.0 (September 14, 2018)
 
