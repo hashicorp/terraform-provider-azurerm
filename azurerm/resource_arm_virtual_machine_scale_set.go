@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 
@@ -169,6 +170,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 						},
 					},
 				},
+				DiffSuppressFunc: azureRmVirtualMachineScaleSetSuppressRollingUpgradePolicyDiff,
 			},
 
 			"overprovision": {
@@ -709,6 +711,8 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 
 			"tags": tagsSchema(),
 		},
+
+		CustomizeDiff: azureRmVirtualMachineScaleSetCustomizeDiff,
 	}
 }
 
@@ -2126,4 +2130,30 @@ func flattenAzureRmVirtualMachineScaleSetPlan(plan *compute.Plan) []interface{} 
 	result["product"] = *plan.Product
 
 	return []interface{}{result}
+}
+
+// When upgrade_policy_mode is not Rolling, we will just ignore rolling_upgrade_policy (returns true).
+func azureRmVirtualMachineScaleSetSuppressRollingUpgradePolicyDiff(k, old, new string, d *schema.ResourceData) bool {
+	if k == "rolling_upgrade_policy.#" && new == "0" {
+		return strings.ToLower(d.Get("upgrade_policy_mode").(string)) != "rolling"
+	}
+	return false
+}
+
+// Make sure rolling_upgrade_policy is default value when upgrade_policy_mode is not Rolling.
+func azureRmVirtualMachineScaleSetCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
+	mode := d.Get("upgrade_policy_mode").(string)
+	if strings.ToLower(mode) != "rolling" {
+		if policyRaw, ok := d.GetOk("rolling_upgrade_policy.0"); ok {
+			policy := policyRaw.(map[string]interface{})
+			isDefault := (policy["max_batch_instance_percent"].(int) == 20) &&
+				(policy["max_unhealthy_instance_percent"].(int) == 20) &&
+				(policy["max_unhealthy_upgraded_instance_percent"].(int) == 20) &&
+				(policy["pause_time_between_batches"] == "PT0S")
+			if !isDefault {
+				return fmt.Errorf("If `upgrade_policy_mode` is `%s`, `rolling_upgrade_policy` must be removed or set to default values", mode)
+			}
+		}
+	}
+	return nil
 }
