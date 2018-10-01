@@ -2,12 +2,13 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"log"
 )
 
 func resourceArmDatabricksWorkspace() *schema.Resource {
@@ -16,17 +17,17 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 		Read:   resourceArmDatabricksWorkspaceRead,
 		Update: resourceArmDatabricksWorkspaceCreateUpdate,
 		Delete: resourceArmDatabricksWorkspaceDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-			},
-
-			"managed_resource_group_id": {
-				Type:     schema.TypeString,
-				Computed: true,
+				// TODO: validation
+				// Only alphanumeric characters, underscores, and hyphens are allowed, and the name must be 1-30 characters long.
 			},
 
 			"location": locationSchema(),
@@ -45,6 +46,11 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 			},
 
 			"tags": tagsSchema(),
+
+			"managed_resource_group_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -52,18 +58,19 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 func resourceArmDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).databricksWorkspacesClient
 	ctx := meta.(*ArmClient).StopContext
+	subscriptionID := meta.(*ArmClient).subscriptionId
+
 	log.Printf("[INFO] preparing arguments for Azure ARM Databricks Workspace creation.")
 
-	subscriptionID := meta.(*ArmClient).subscriptionId
 	name := d.Get("name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 	skuName := d.Get("sku").(string)
 
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
 
-	managedResourceGroupID := fmt.Sprintf("/subscriptions/%s/resourceGroups/databricks-rg-%s", subscriptionID, resGroup)
+	managedResourceGroupID := fmt.Sprintf("/subscriptions/%s/resourceGroups/databricks-rg-%s", subscriptionID, resourceGroup)
 
 	workspace := databricks.Workspace{
 		Sku: &databricks.Sku{
@@ -76,23 +83,22 @@ func resourceArmDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta int
 		Tags: expandedTags,
 	}
 
-	future, err := client.CreateOrUpdate(ctx, workspace, resGroup, name)
-	// Azure Databricks API for some reason returns 202 response that is treated as an error right now
-	if err != nil && future.Response().StatusCode != 202 {
-		return fmt.Errorf("Error creating/updating Databricks Workspace %q (Resource Group %q): %+v", name, resGroup, err)
+	future, err := client.CreateOrUpdate(ctx, workspace, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error creating/updating Databricks Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error waiting for the completion of the creating/updating of Databricks Workspace %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error waiting for the completion of the creating/updating of Databricks Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
+	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Databricks Workspace %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error retrieving Databricks Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Databricks Workspace %q (resource group %q) ID", name, resGroup)
+		return fmt.Errorf("Cannot read Databricks Workspace %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -108,23 +114,24 @@ func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Path["workspaces"]
 
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 
 	if err != nil {
-		// covers if the resource has been deleted outside of TF, but is still in the state
-		d.SetId("")
-		return fmt.Errorf("Error Retrieving Databricks Workspace %q (Resource Group %q): %+v", name, resGroup, err)
-	}
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[DEBUG] Databricks Workspace %q was not found in Resource Group %q - removing from state", name, resourceGroup)
+			d.SetId("")
+			return nil
+		}
 
-	if err != nil {
 		return fmt.Errorf("Error making Read request on Azure Databricks Workspace %s: %s", name, err)
 	}
 
 	d.Set("name", name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("resource_group_name", resourceGroup)
+
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
@@ -161,11 +168,9 @@ func resourceArmDatabricksWorkspaceDelete(d *schema.ResourceData, meta interface
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
+		if !response.WasNotFound(future.Response()) {
+			return fmt.Errorf("Error waiting for deletion of Databricks Workspace %q (Resource Group %q): %+v", name, resGroup, err)
 		}
-
-		return fmt.Errorf("Error waiting for deletion of Databricks Workspace %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	return nil

@@ -3,32 +3,32 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_databricks_workspace"
 sidebar_current: "docs-azurerm-resource-databricks-workspace"
 description: |-
-  Manages a new Databricks Workspace resource
+  Manages a Databricks Workspace
 ---
 
 # azurerm_databricks_workspace
 
-Manages a new Databricks Workspace
+Manages a Databricks Workspace
 
 ## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "resourceGroup1"
+  name     = "example-resources"
   location = "West US"
 }
 
 resource "azurerm_databricks_workspace" "test" {
-  name               = "databricks-test"
+  name                = "databricks-test"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-
-  sku = "Standard"
+  sku                 = "Standard"
 
   tags {
-    pricing = "Premium"
+    Environment = "Production"
   }
 }
+
 ```
 
 ## Argument Reference
@@ -37,11 +37,11 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Databricks Workspace resource. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group under which the Databricks Workspace resource has to be created. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the Resource Group in which the Databricks Workspace should exist. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource has to be created. Changing this forces a new resource to be created.
 
-* `sku` - (Required) A `sku` for the Databricks Workspace. Possible values are `Standard` or `Premium`.
+* `sku` - (Required) The `sku` to use for the Databricks Workspace. Possible values are `Standard` or `Premium`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -49,6 +49,14 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Databricks Workspace ID.
+* `id` - The ID of the Databricks Workspace.
 
-* `managed_resource_group_id` - The Managed Resource Group ID of the created Databricks Workspace.
+* `managed_resource_group_id` - The ID of the Managed Resource Group created by the Databricks Workspace.
+
+## Import
+
+Databrick Workspaces can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_databrick_workspace.workspace1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Databricks/workspaces/workspace1
+```
