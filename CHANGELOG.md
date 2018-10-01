@@ -1,4 +1,9 @@
 ## 1.17.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource:** `azurerm_cognitive_account` [GH-962]
+
 ## 1.16.0 (October 01, 2018)
 
 UPGRADE NOTES:
