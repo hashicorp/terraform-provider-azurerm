@@ -38,4 +38,6 @@ output "contributor_role_definition_id" {
 A `permissions` block contains:
 
 * `actions` - a list of actions supported by this role
+* `data_actions` - a list of data actions supported by this role
 * `not_actions` - a list of actions which are denied by this role
+* `not_data_actions` - a list of data actions which are denied by this role
