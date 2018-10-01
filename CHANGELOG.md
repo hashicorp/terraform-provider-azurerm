@@ -7,8 +7,14 @@ UPGRADE NOTES:
 FEATURES:
 
 * **New Data Source:** `azurerm_dev_test_lab` [GH-1944]
+* **New Data Source:** `azurerm_shared_image` [GH-1987]
+* **New Data Source**: `azurerm_shared_image_gallery` [GH-1987]
+* **New Data Source:** `azurerm_shared_image_version` [GH-1987]
 * **New Resource:** `azurerm_dev_test_lab` [GH-1944]
 * **New Resource:** `azurerm_dev_test_virtual_network` [GH-1944]
+* **New Resource:** `azurerm_shared_image` [GH-1987]
+* **New Resource**: `azurerm_shared_image_gallery` [GH-1987]
+* **New Resource:** `azurerm_shared_image_version` [GH-1987]
 
 IMPROVEMENTS:
 
