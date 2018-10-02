@@ -21,6 +21,26 @@ resource "azurerm_resource_group" "test" {
   location = "East US"
 }
 
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW1"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "PerGB2018"
+}
+
+resource "azurerm_log_analytics_solution" "test" {
+  solution_name         = "ContainerInsights"
+  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
+  workspace_name        = "${azurerm_log_analytics_workspace.test.name}"
+
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/ContainerInsights"
+  }
+}
+
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks1"
   location            = "${azurerm_resource_group.test.location}"
@@ -38,6 +58,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   service_principal {
     client_id     = "00000000-0000-0000-0000-000000000000"
     client_secret = "00000000000000000000000000000000"
+  }
+  
+  addon_profile {
+    oms_agent {
+      enabled                    = true
+      log_analytics_workspace_id = "${azurerm_log_analytics_workspace.test.id}"
+    }
   }
 
   tags {
@@ -99,6 +126,19 @@ resource "azurerm_subnet" "test_subnet" {
   virtual_network_name      = "${azurerm_virtual_network.test_advanced_network.name}"
 }
 
+resource "azurerm_log_analytics_solution" "test" {
+  solution_name         = "ContainerInsights"
+  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
+  workspace_name        = "${azurerm_log_analytics_workspace.test.name}"
+
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/ContainerInsights"
+  }
+}
+
 resource "azurerm_kubernetes_cluster" "test" {
   name       = "akc-1"
   location   = "${azurerm_resource_group.test.location}"
@@ -127,6 +167,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   service_principal {
     client_id     = "00000000-0000-0000-0000-000000000000"
     client_secret = "00000000000000000000000000000000"
+  }
+ 
+  addon_profile {
+    oms_agent {
+      enabled                    = true
+      log_analytics_workspace_id = "${azurerm_log_analytics_workspace.test.id}"
+    }
   }
 
   network_profile {
@@ -194,7 +241,7 @@ The following arguments are supported:
 A `addon_profile` block supports the following:
 
 * `http_application_routing` - (Optional) A `http_application_routing` block.
-* `oms_agent` - (Optional) A `oms_agent` block.
+* `oms_agent` - (Optional) A `oms_agent` block. For more details, please visit [How to onboard Azure Monitor for containers](https://docs.microsoft.com/en-us/azure/monitoring/monitoring-container-insights-onboard).
 
 ---
 

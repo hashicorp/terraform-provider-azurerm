@@ -851,7 +851,7 @@ func expandAzureRmKubernetesClusterAddonProfiles(d *schema.ResourceData) map[str
 			config["logAnalyticsWorkspaceResourceID"] = utils.String(workspaceId.(string))
 		}
 
-		addonProfiles["omsAgent"] = &containerservice.ManagedClusterAddonProfile{
+		addonProfiles["omsagent"] = &containerservice.ManagedClusterAddonProfile{
 			Enabled: utils.Bool(enabled),
 			Config:  config,
 		}
@@ -884,7 +884,7 @@ func flattenAzureRmKubernetesClusterAddonProfiles(profile map[string]*containers
 	values["http_application_routing"] = routes
 
 	agents := make([]interface{}, 0)
-	if omsAgent := profile["omsAgent"]; omsAgent != nil {
+	if omsAgent := profile["omsagent"]; omsAgent != nil {
 		enabled := false
 		if enabledVal := omsAgent.Enabled; enabledVal != nil {
 			enabled = *enabledVal
