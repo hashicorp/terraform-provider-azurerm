@@ -1,12 +1,12 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_log_profile"
+page_title: "Azure Resource Manager: azurerm_monitor_log_profile"
 sidebar_current: "docs-azurerm-resource-monitor-log-profile"
 description: |-
   Creates a Log Profile.
 ---
 
-# azurerm_log_profile
+# azurerm_monitor_log_profile
 
 Creates a [Log Profile](https://docs.microsoft.com/en-us/azure/monitoring-and-diagnostics/monitoring-overview-activity-logs#export-the-activity-log-with-a-log-profile). A Log Profile configures how Activity Logs are exported.
 
@@ -34,7 +34,7 @@ resource "azurerm_eventhub_namespace" "test" {
   capacity            = 2
 }
 
-resource "azurerm_log_profile" "test" {
+resource "azurerm_monitor_log_profile" "test" {
   name = "default"
 
   categories = [
@@ -44,17 +44,12 @@ resource "azurerm_log_profile" "test" {
   ]
 	
   locations = [
-    "centralus",
-    "eastus",
-    "eastus2",
     "westus",
-    "northcentralus",
-    "southcentralus",
     "global",
   ]
 	
   # RootManageSharedAccessKey is created by default with listen, send, manage permissions
-  service_bus_rule_id = "${azurerm_eventhub_namespace.test.id}/authorizationrules/RootManageSharedAccessKey"
+  servicebus_rule_id = "${azurerm_eventhub_namespace.test.id}/authorizationrules/RootManageSharedAccessKey"
   storage_account_id  = "${azurerm_storage_account.test.id}"
 
   retention_policy {
@@ -75,11 +70,11 @@ The following arguments are supported:
   
 * `locations` - (Required) List of regions for which Activity Log events are stored or streamed.
 
-* `storage_account_id` - (Optional) The resource ID of the storage account in which the Activity Log is stored. At least one of `storage_account_id` or `service_bus_rule_id` must be set.
+* `storage_account_id` - (Optional) The resource ID of the storage account in which the Activity Log is stored. At least one of `storage_account_id` or `servicebus_rule_id` must be set.
 
-* `service_bus_rule_id` - (Optional) The service bus (or event hub) rule ID of the service bus (or event hub) namespace in which the Activity Log is streamed to. At least one of `storage_account_id` or `service_bus_rule_id` must be set.
+* `servicebus_rule_id` - (Optional) The service bus (or event hub) rule ID of the service bus (or event hub) namespace in which the Activity Log is streamed to. At least one of `storage_account_id` or `servicebus_rule_id` must be set.
 
-* `retention_policy` - (Required) A `retention_policy` block. A retention policy for how long Activity Logs are retained in the storage account.
+* `retention_policy` - (Required) A `retention_policy` block as documented below. A retention policy for how long Activity Logs are retained in the storage account.
 
 ---
 
@@ -100,5 +95,5 @@ The following attributes are exported:
 A Log Profile can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_log_profile.test /subscriptions/00000000-0000-0000-0000-000000000000/providers/microsoft.insights/logprofiles/test
+terraform import azurerm_monitor_log_profile.test /subscriptions/00000000-0000-0000-0000-000000000000/providers/microsoft.insights/logprofiles/test
 ```

@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -13,7 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLogProfile() *schema.Resource {
+func resourceArmMonitorLogProfile() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmLogProfileCreateOrUpdate,
 		Read:   resourceArmLogProfileRead,
@@ -35,13 +36,13 @@ func resourceArmLogProfile() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceIDOrEmpty,
 			},
-			"service_bus_rule_id": {
+			"servicebus_rule_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceIDOrEmpty,
 			},
 			"locations": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				MinItems: 1,
 				Required: true,
 				Elem: &schema.Schema{
@@ -49,15 +50,17 @@ func resourceArmLogProfile() *schema.Resource {
 					StateFunc:        azureRMNormalizeLocation,
 					DiffSuppressFunc: azureRMSuppressLocationDiff,
 				},
+				Set: schema.HashString,
 			},
 			"categories": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Required: true,
 				MinItems: 1,
 				Elem: &schema.Schema{
 					Type:             schema.TypeString,
 					DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				},
+				Set: schema.HashString,
 			},
 			"retention_policy": {
 				Type:     schema.TypeList,
@@ -87,7 +90,7 @@ func resourceArmLogProfileCreateOrUpdate(d *schema.ResourceData, meta interface{
 
 	name := d.Get("name").(string)
 	storageAccountID := d.Get("storage_account_id").(string)
-	serviceBusRuleID := d.Get("service_bus_rule_id").(string)
+	serviceBusRuleID := d.Get("servicebus_rule_id").(string)
 
 	categories := expandLogProfileCategories(d)
 	locations := expandLogProfileLocations(d)
@@ -118,12 +121,12 @@ func resourceArmLogProfileCreateOrUpdate(d *schema.ResourceData, meta interface{
 
 	// Wait for Log Profile to become available
 	if err := resource.Retry(300*time.Second, retryLogProfilesClientGet(name, meta)); err != nil {
-		return err
+		return fmt.Errorf("Error waiting for Log Profile %q to become available: %+v", name, err)
 	}
 
 	read, err := client.Get(ctx, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving Log Profile %q: %+v", name, err)
 	}
 
 	d.SetId(*read.ID)
@@ -137,12 +140,13 @@ func resourceArmLogProfileRead(d *schema.ResourceData, meta interface{}) error {
 
 	name, err := parseLogProfileNameFromID(d.Id())
 	if err != nil {
-		return err
+		return fmt.Errorf("Error parsing log profile name from ID %s: %s", d.Id(), err)
 	}
 
 	resp, err := client.Get(ctx, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[DEBUG] Log Profile %q was not found - removing from state!", name)
 			d.SetId("")
 			return nil
 		}
@@ -152,11 +156,16 @@ func resourceArmLogProfileRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", resp.Name)
 	if props := resp.LogProfileProperties; props != nil {
 		d.Set("storage_account_id", props.StorageAccountID)
-		d.Set("service_bus_rule_id", props.ServiceBusRuleID)
+		d.Set("servicebus_rule_id", props.ServiceBusRuleID)
 		d.Set("categories", props.Categories)
 
-		d.Set("locations", flattenAzureRmLogProfileLocations(props.Locations))
-		d.Set("retention_policy", flattenAzureRmLogProfileRetentionPolicy(props.RetentionPolicy))
+		if err := d.Set("locations", flattenAzureRmLogProfileLocations(props.Locations)); err != nil {
+			return fmt.Errorf("Error flattening `locations`: %+v", err)
+		}
+
+		if err := d.Set("retention_policy", flattenAzureRmLogProfileRetentionPolicy(props.RetentionPolicy)); err != nil {
+			return fmt.Errorf("Error flattening `retention_policy`: %+v", err)
+		}
 	}
 
 	return nil
@@ -166,9 +175,12 @@ func resourceArmLogProfileDelete(d *schema.ResourceData, meta interface{}) error
 	client := meta.(*ArmClient).logProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	name := d.Get("name").(string)
+	name, err := parseLogProfileNameFromID(d.Id())
+	if err != nil {
+		return err
+	}
 
-	_, err := client.Delete(ctx, name)
+	_, err = client.Delete(ctx, name)
 	if err != nil {
 		return fmt.Errorf("Error deleting Log Profile %q: %+v", name, err)
 	}
@@ -177,7 +189,7 @@ func resourceArmLogProfileDelete(d *schema.ResourceData, meta interface{}) error
 }
 
 func expandLogProfileCategories(d *schema.ResourceData) []string {
-	logProfileCategories := d.Get("categories").([]interface{})
+	logProfileCategories := d.Get("categories").(*schema.Set).List()
 	categories := []string{}
 
 	for _, category := range logProfileCategories {
@@ -188,7 +200,7 @@ func expandLogProfileCategories(d *schema.ResourceData) []string {
 }
 
 func expandLogProfileLocations(d *schema.ResourceData) []string {
-	logProfileLocations := d.Get("locations").([]interface{})
+	logProfileLocations := d.Get("locations").(*schema.Set).List()
 	locations := []string{}
 
 	for _, location := range logProfileLocations {
@@ -199,11 +211,14 @@ func expandLogProfileLocations(d *schema.ResourceData) []string {
 }
 
 func expandAzureRmLogProfileRetentionPolicy(d *schema.ResourceData) insights.RetentionPolicy {
-	enabled := d.Get("retention_policy.0.enabled")
-	days := d.Get("retention_policy.0.days")
+	vs := d.Get("retention_policy").([]interface{})
+	v := vs[0].(map[string]interface{})
+
+	enabled := v["enabled"].(bool)
+	days := v["days"].(int)
 	logProfileRetentionPolicy := insights.RetentionPolicy{
-		Enabled: utils.Bool(enabled.(bool)),
-		Days:    utils.Int32(int32(days.(int))),
+		Enabled: utils.Bool(enabled),
+		Days:    utils.Int32(int32(days)),
 	}
 
 	return logProfileRetentionPolicy
@@ -221,6 +236,10 @@ func flattenAzureRmLogProfileLocations(input *[]string) []string {
 }
 
 func flattenAzureRmLogProfileRetentionPolicy(input *insights.RetentionPolicy) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
 	result := make(map[string]interface{})
 	if input != nil {
 		if input.Enabled != nil {

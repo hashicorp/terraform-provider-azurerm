@@ -7,7 +7,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmLogProfile() *schema.Resource {
+func dataSourceArmMonitorLogProfile() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmLogProfileRead,
 		Schema: map[string]*schema.Schema{
@@ -19,7 +19,7 @@ func dataSourceArmLogProfile() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"service_bus_rule_id": {
+			"servicebus_rule_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -66,7 +66,6 @@ func dataSourceArmLogProfileRead(d *schema.ResourceData, meta interface{}) error
 	resp, err := client.Get(ctx, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
 			return fmt.Errorf("Error: Log Profile %q was not found", name)
 		}
 		return fmt.Errorf("Error reading Log Profile: %+v", err)
@@ -76,11 +75,16 @@ func dataSourceArmLogProfileRead(d *schema.ResourceData, meta interface{}) error
 
 	if props := resp.LogProfileProperties; props != nil {
 		d.Set("storage_account_id", props.StorageAccountID)
-		d.Set("service_bus_rule_id", props.ServiceBusRuleID)
+		d.Set("servicebus_rule_id", props.ServiceBusRuleID)
 		d.Set("categories", props.Categories)
 
-		d.Set("locations", flattenAzureRmLogProfileLocations(props.Locations))
-		d.Set("retention_policy", flattenAzureRmLogProfileRetentionPolicy(props.RetentionPolicy))
+		if err := d.Set("locations", flattenAzureRmLogProfileLocations(props.Locations)); err != nil {
+			return fmt.Errorf("Error flattening `locations`: %+v", err)
+		}
+
+		if err := d.Set("retention_policy", flattenAzureRmLogProfileRetentionPolicy(props.RetentionPolicy)); err != nil {
+			return fmt.Errorf("Error flattening `retention_policy`: %+v", err)
+		}
 	}
 
 	return nil

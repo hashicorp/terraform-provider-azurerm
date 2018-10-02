@@ -10,16 +10,16 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMLogProfile(t *testing.T) {
+func TestAccAzureRMMonitorLogProfile(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
 	// Azure only being happy about provisioning one per subscription at once
 	// (which our test suite can't easily workaround)
 	testCases := map[string]map[string]func(t *testing.T){
 		"basic": {
-			"basic":      testAccAzureRMLogProfile_basic,
-			"servicebus": testAccAzureRMLogProfile_servicebus,
-			"complete":   testAccAzureRMLogProfile_complete,
-			"disappears": testAccAzureRMLogProfile_disappears,
+			"basic":      testAccAzureRMMonitorLogProfile_basic,
+			"servicebus": testAccAzureRMMonitorLogProfile_servicebus,
+			"complete":   testAccAzureRMMonitorLogProfile_complete,
+			"disappears": testAccAzureRMMonitorLogProfile_disappears,
 		},
 	}
 
@@ -36,8 +36,8 @@ func TestAccAzureRMLogProfile(t *testing.T) {
 	}
 }
 
-func testAccAzureRMLogProfile_basic(t *testing.T) {
-	resourceName := "azurerm_log_profile.test"
+func testAccAzureRMMonitorLogProfile_basic(t *testing.T) {
+	resourceName := "azurerm_monitor_log_profile.test"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(10)
 
@@ -47,7 +47,7 @@ func testAccAzureRMLogProfile_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLogProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogProfile_basicConfig(ri, rs, testLocation()),
+				Config: testAccAzureRMMonitorLogProfile_basicConfig(ri, rs, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogProfileExists(resourceName),
 				),
@@ -61,8 +61,8 @@ func testAccAzureRMLogProfile_basic(t *testing.T) {
 	})
 }
 
-func testAccAzureRMLogProfile_servicebus(t *testing.T) {
-	resourceName := "azurerm_log_profile.test"
+func testAccAzureRMMonitorLogProfile_servicebus(t *testing.T) {
+	resourceName := "azurerm_monitor_log_profile.test"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(10)
 
@@ -72,7 +72,7 @@ func testAccAzureRMLogProfile_servicebus(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLogProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogProfile_servicebusConfig(ri, rs, testLocation()),
+				Config: testAccAzureRMMonitorLogProfile_servicebusConfig(ri, rs, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogProfileExists(resourceName),
 				),
@@ -81,8 +81,8 @@ func testAccAzureRMLogProfile_servicebus(t *testing.T) {
 	})
 }
 
-func testAccAzureRMLogProfile_complete(t *testing.T) {
-	resourceName := "azurerm_log_profile.test"
+func testAccAzureRMMonitorLogProfile_complete(t *testing.T) {
+	resourceName := "azurerm_monitor_log_profile.test"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(10)
 
@@ -92,7 +92,7 @@ func testAccAzureRMLogProfile_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLogProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogProfile_completeConfig(ri, rs, testLocation()),
+				Config: testAccAzureRMMonitorLogProfile_completeConfig(ri, rs, testLocation(), testAltLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogProfileExists(resourceName),
 				),
@@ -101,11 +101,11 @@ func testAccAzureRMLogProfile_complete(t *testing.T) {
 	})
 }
 
-func testAccAzureRMLogProfile_disappears(t *testing.T) {
-	resourceName := "azurerm_log_profile.test"
+func testAccAzureRMMonitorLogProfile_disappears(t *testing.T) {
+	resourceName := "azurerm_monitor_log_profile.test"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(10)
-	config := testAccAzureRMLogProfile_basicConfig(ri, rs, testLocation())
+	config := testAccAzureRMMonitorLogProfile_basicConfig(ri, rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -129,7 +129,7 @@ func testCheckAzureRMLogProfileDestroy(s *terraform.State) error {
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_log_profile" {
+		if rs.Type != "azurerm_monitor_log_profile" {
 			continue
 		}
 
@@ -192,49 +192,49 @@ func testCheckAzureRMLogProfileDisappears(name string) resource.TestCheckFunc {
 	}
 }
 
-func testAccAzureRMLogProfile_basicConfig(rInt int, rString string, location string) string {
+func testAccAzureRMMonitorLogProfile_basicConfig(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestrg-%d"
-	location = "%s"
+    name     = "acctestrg-%d"
+    location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
-	name                     = "acctestsa%s"
-	resource_group_name      = "${azurerm_resource_group.test.name}"
-	location                 = "${azurerm_resource_group.test.location}"
-	account_tier             = "Standard"
-	account_replication_type = "GRS"
+    name                     = "acctestsa%s"
+    resource_group_name      = "${azurerm_resource_group.test.name}"
+    location                 = "${azurerm_resource_group.test.location}"
+    account_tier             = "Standard"
+    account_replication_type = "GRS"
 }
-	
-resource "azurerm_log_profile" "test" {
-	name = "acctestlp-%d"
+    
+resource "azurerm_monitor_log_profile" "test" {
+    name = "acctestlp-%d"
 
-	categories = [
-		"Action",
-	]
-	
-	locations = [
-		"%s"
-	]
-	
-	storage_account_id  = "${azurerm_storage_account.test.id}"
+    categories = [
+        "Action",
+    ]
+    
+    locations = [
+        "%s"
+    ]
+    
+    storage_account_id  = "${azurerm_storage_account.test.id}"
 
-	retention_policy {
-		enabled = true
-		days = 7
-	}
+    retention_policy {
+        enabled = true
+        days = 7
+    }
 }
 `, rInt, location, rString, rInt, location)
 }
 
-func testAccAzureRMLogProfile_servicebusConfig(rInt int, rString string, location string) string {
+func testAccAzureRMMonitorLogProfile_servicebusConfig(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestrg-%d"
-	location = "%s"
+    name     = "acctestrg-%d"
+    location = "%s"
 }
-	
+    
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestsbns-%s"
   location            = "${azurerm_resource_group.test.location}"
@@ -252,32 +252,31 @@ resource "azurerm_servicebus_namespace_authorization_rule" "test" {
   manage = true
 }
 
-resource "azurerm_log_profile" "test" {
-	name = "acctestlp-%d"
+resource "azurerm_monitor_log_profile" "test" {
+    name = "acctestlp-%d"
 
-	categories = [
-		"Action"
-	]
-	
-	locations = [
-		"%s",
-	]
-	
-	service_bus_rule_id = "${azurerm_servicebus_namespace_authorization_rule.test.id}"
-	
-	retention_policy {
-		enabled = false
-		days = 0
-	}
+    categories = [
+        "Action"
+    ]
+    
+    locations = [
+        "%s",
+    ]
+    
+    servicebus_rule_id = "${azurerm_servicebus_namespace_authorization_rule.test.id}"
+    
+    retention_policy {
+        enabled = false
+    } 
 }
 `, rInt, location, rString, rString, rInt, location)
 }
 
-func testAccAzureRMLogProfile_completeConfig(rInt int, rString string, location string) string {
+func testAccAzureRMMonitorLogProfile_completeConfig(rInt int, rString string, location string, altLocation string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestrg-%d"
-	location = "%s"
+    name     = "acctestrg-%d"
+    location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
@@ -287,7 +286,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "GRS"
 }
-	
+    
 resource "azurerm_eventhub_namespace" "test" {
   name                = "acctestehns-%s"
   location            = "${azurerm_resource_group.test.location}"
@@ -296,57 +295,28 @@ resource "azurerm_eventhub_namespace" "test" {
   capacity            = 2
 }
 
-resource "azurerm_log_profile" "test" {
-	name = "acctestlp-%d"
+resource "azurerm_monitor_log_profile" "test" {
+    name = "acctestlp-%d"
 
-	categories = [
-		"Action",
-		"Delete",
-		"Write",
-	]
-	
-	locations = [
-		"east asia",
-		"southeastasia",
-		"centralus",
-		"eastus",
-		"eastus2",
-		"westus",
-		"northcentralus",
-		"southcentralus",
-		"northeurope",
-		"westeurope",
-		"japan west",
-		"japaneast",
-		"brazilsouth",
-		"australiaeast",
-		"australiasoutheast",
-		"southindia",
-		"centralindia",
-		"west india",
-		"canadacentral",
-		"canadaeast",
-		"uksouth",
-		"ukwest",
-		"westcentralus",
-		"westus2",
-		"koreacentral",
-		"koreasouth",
-		"francecentral",
-		"francesouth",
-		"australiacentral",
-		"australiacentral2",
-		"global",
-	]
-	
-	# RootManageSharedAccessKey is created by default with listen, send, manage permissions
-	service_bus_rule_id = "${azurerm_eventhub_namespace.test.id}/authorizationrules/RootManageSharedAccessKey"
-	storage_account_id  = "${azurerm_storage_account.test.id}"
+    categories = [
+        "Action",
+        "Delete",
+        "Write",
+    ]
+    
+    locations = [
+        "%s",
+        "%s",
+    ]
+    
+    # RootManageSharedAccessKey is created by default with listen, send, manage permissions
+    servicebus_rule_id = "${azurerm_eventhub_namespace.test.id}/authorizationrules/RootManageSharedAccessKey"
+    storage_account_id  = "${azurerm_storage_account.test.id}"
 
-	retention_policy {
-		enabled = true
-		days = 7
-	}
+    retention_policy {
+        enabled = true
+        days = 7
+    }
 }
-`, rInt, location, rString, rString, rInt)
+`, rInt, location, rString, rString, rInt, location, altLocation)
 }

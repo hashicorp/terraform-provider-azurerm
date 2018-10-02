@@ -1,24 +1,24 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_log_profile"
-sidebar_current: "docs-azurerm-datasource-log-profile"
+page_title: "Azure Resource Manager: azurerm_monitor_log_profile"
+sidebar_current: "docs-azurerm-datasource-monitor-log-profile"
 description: |-
   Get information about the specified Log Profile.
 ---
 
-# Data Source: azurerm_log_profile
+# Data Source: azurerm_monitor_log_profile
 
 Use this data source to access the properties of a Log Profile.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_log_profile" "test" {
+data "azurerm_monitor_log_profile" "test" {
   name = "test-logprofile"
 }
 
 output "log_profile_storage_account_id" {
-  value = "${data.azurerm_log_profile.test.storage_account_id}"
+  value = "${data.azurerm_monitor_log_profile.test.storage_account_id}"
 }
 ```
 
@@ -33,13 +33,13 @@ output "log_profile_storage_account_id" {
  
 * `storage_account_id` - The resource id of the storage account in which the Activity Log is stored.
 
-* `service_bus_rule_id` - The service bus (or event hub) rule ID of the service bus (or event hub) namespace in which the Activity Log is streamed to.
+* `servicebus_rule_id` - The service bus (or event hub) rule ID of the service bus (or event hub) namespace in which the Activity Log is streamed to.
 
 * `locations` - List of regions for which Activity Log events are stored or streamed.
 
 * `categories` - List of categories of the logs.
 
-* `retention_policy`- A retention policy for how long Activity Logs are retained in the storage account.
+* `retention_policy`- a `retention_policy` block as documented below.
 
 ---
 
