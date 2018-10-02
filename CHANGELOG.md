@@ -6,6 +6,10 @@ FEATURES:
 * **New Resource:** `azurerm_cognitive_account` [GH-962]
 * **New Resource:** `azurerm_databricks_workspace` [GH-1134]
 
+BUG FIXES:
+
+* `azurerm_kubernetes_cluster` - using the correct casing for the `addon_profile` `oms_agent` property [GH-1995]
+
 ## 1.16.0 (October 01, 2018)
 
 UPGRADE NOTES:
