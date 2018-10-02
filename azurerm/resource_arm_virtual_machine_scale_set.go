@@ -379,6 +379,13 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 										Set:      schema.HashString,
 									},
 
+									"application_security_group_ids": {
+										Type:     schema.TypeSet,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+										Set:      schema.HashString,
+									},
+
 									"load_balancer_backend_address_pool_ids": {
 										Type:     schema.TypeSet,
 										Optional: true,
@@ -738,12 +745,12 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 	}
 
 	properties := compute.VirtualMachineScaleSet{
-		Name:     &name,
-		Location: &location,
-		Tags:     expandTags(tags),
-		Sku:      sku,
+		Name:                             &name,
+		Location:                         &location,
+		Tags:                             expandTags(tags),
+		Sku:                              sku,
 		VirtualMachineScaleSetProperties: &scaleSetProps,
-		Zones: zones,
+		Zones:                            zones,
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -1142,6 +1149,14 @@ func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.Virtual
 				}
 				config["application_gateway_backend_address_pool_ids"] = schema.NewSet(schema.HashString, addressPools)
 
+				applicationSecurityGroups := make([]interface{}, 0)
+				if properties.ApplicationSecurityGroups != nil {
+					for _, asg := range *properties.ApplicationSecurityGroups {
+						applicationSecurityGroups = append(applicationSecurityGroups, *asg.ID)
+					}
+				}
+				config["application_security_group_ids"] = schema.NewSet(schema.HashString, applicationSecurityGroups)
+
 				if properties.LoadBalancerBackendAddressPools != nil {
 					addressPools := make([]interface{}, 0, len(*properties.LoadBalancerBackendAddressPools))
 					for _, pool := range *properties.LoadBalancerBackendAddressPools {
@@ -1501,6 +1516,18 @@ func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *
 					})
 				}
 				ipConfiguration.ApplicationGatewayBackendAddressPools = &resources
+			}
+
+			if v := ipconfig["application_security_group_ids"]; v != nil {
+				asgs := v.(*schema.Set).List()
+				resources := make([]compute.SubResource, 0, len(asgs))
+				for _, p := range asgs {
+					id := p.(string)
+					resources = append(resources, compute.SubResource{
+						ID: &id,
+					})
+				}
+				ipConfiguration.ApplicationSecurityGroups = &resources
 			}
 
 			if v := ipconfig["load_balancer_backend_address_pool_ids"]; v != nil {
