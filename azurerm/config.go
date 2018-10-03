@@ -41,6 +41,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/management"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
+	sql2017 "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
 	"github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
@@ -156,6 +157,7 @@ type ArmClient struct {
 	sqlDatabasesClient                       sql.DatabasesClient
 	sqlDatabaseThreatDetectionPoliciesClient sql.DatabaseThreatDetectionPoliciesClient
 	sqlElasticPoolsClient                    sql.ElasticPoolsClient
+	sql2017ElasticPoolsClient                sql2017.ElasticPoolsClient
 	sqlFirewallRulesClient                   sql.FirewallRulesClient
 	sqlServersClient                         sql.ServersClient
 	sqlServerAzureADAdministratorsClient     sql.ServerAzureADAdministratorsClient
@@ -678,6 +680,10 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	sqlEPClient := sql.NewElasticPoolsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&sqlEPClient.Client, auth)
 	c.sqlElasticPoolsClient = sqlEPClient
+
+	sql2017EPClient := sql2017.NewElasticPoolsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&sql2017EPClient.Client, auth)
+	c.sql2017ElasticPoolsClient = sql2017EPClient
 
 	sqlSrvClient := sql.NewServersClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&sqlSrvClient.Client, auth)

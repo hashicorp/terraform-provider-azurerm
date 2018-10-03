@@ -235,16 +235,24 @@
 			"versionExact": "v20.1.0"
 		},
 		{
-			"checksumSHA1": "MIMQxpOPfmVbgeDkI5u9qn4hIt4=",
+			"checksumSHA1": "dOTq3QXVgEkhOV23gEhom7VQOgk=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/management",
-			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
-			"revisionTime": "2018-07-03T19:15:42Z",
-			"version": "v18.0.0",
-			"versionExact": "v18.0.0"
+			"revision": "2935c0241c74bd8549b843978dd6fc1be6f48b4a",
+			"revisionTime": "2018-08-31T14:25:13Z",
+			"version": "v20.1.0",
+			"versionExact": "v20.1.0"
 		},
 		{
 			"checksumSHA1": "jLzkSZFf/yBGECyJHTVOHN2oI2k=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql",
+			"revision": "2935c0241c74bd8549b843978dd6fc1be6f48b4a",
+			"revisionTime": "2018-08-31T14:25:13Z",
+			"version": "v20.1.0",
+			"versionExact": "v20.1.0"
+		},
+		{
+			"checksumSHA1": "y8HaZNznGAl6orDBEW1B6gOEWCw=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql",
 			"revision": "2935c0241c74bd8549b843978dd6fc1be6f48b4a",
 			"revisionTime": "2018-08-31T14:25:13Z",
 			"version": "v20.1.0",
