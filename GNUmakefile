@@ -36,7 +36,7 @@ vet:
 	fi
 
 fmt:
-	~/Downloads/go/bin/gofmt -w $(GOFMT_FILES)
+	gofmt -w $(GOFMT_FILES)
 
 fmtcheck:
 	@sh "$(CURDIR)/scripts/gofmtcheck.sh"
