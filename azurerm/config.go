@@ -197,8 +197,9 @@ type ArmClient struct {
 	managementGroupsSubscriptionClient managementgroups.SubscriptionsClient
 
 	// Monitor
-	actionGroupsClient      insights.ActionGroupsClient
-	monitorAlertRulesClient insights.AlertRulesClient
+	actionGroupsClient        insights.ActionGroupsClient
+	monitorAlertRulesClient   insights.AlertRulesClient
+	monitorMetricAlertsClient insights.MetricAlertsClient
 
 	// MSI
 	userAssignedIdentitiesClient msi.UserAssignedIdentitiesClient
@@ -832,6 +833,10 @@ func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth
 	arc := insights.NewAlertRulesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&arc.Client, auth)
 	c.monitorAlertRulesClient = arc
+
+	mac := insights.NewMetricAlertsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&mac.Client, auth)
+	c.monitorMetricAlertsClient = mac
 
 	autoscaleSettingsClient := insights.NewAutoscaleSettingsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&autoscaleSettingsClient.Client, auth)
