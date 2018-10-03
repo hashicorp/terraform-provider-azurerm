@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_lb
 
-Create a Load Balancer Resource.
+Manage a Load Balancer Resource.
 
 ## Example Usage
 

@@ -467,6 +467,8 @@ const (
 	TimeAggregationTypeAverage TimeAggregationType = "Average"
 	// TimeAggregationTypeCount ...
 	TimeAggregationTypeCount TimeAggregationType = "Count"
+	// TimeAggregationTypeLast ...
+	TimeAggregationTypeLast TimeAggregationType = "Last"
 	// TimeAggregationTypeMaximum ...
 	TimeAggregationTypeMaximum TimeAggregationType = "Maximum"
 	// TimeAggregationTypeMinimum ...
@@ -477,7 +479,7 @@ const (
 
 // PossibleTimeAggregationTypeValues returns an array of possible values for the TimeAggregationType const type.
 func PossibleTimeAggregationTypeValues() []TimeAggregationType {
-	return []TimeAggregationType{TimeAggregationTypeAverage, TimeAggregationTypeCount, TimeAggregationTypeMaximum, TimeAggregationTypeMinimum, TimeAggregationTypeTotal}
+	return []TimeAggregationType{TimeAggregationTypeAverage, TimeAggregationTypeCount, TimeAggregationTypeLast, TimeAggregationTypeMaximum, TimeAggregationTypeMinimum, TimeAggregationTypeTotal}
 }
 
 // Unit enumerates the values for unit.
@@ -3146,6 +3148,42 @@ func (mac MetricAlertCriteria) AsBasicMetricAlertCriteria() (BasicMetricAlertCri
 	return &mac, true
 }
 
+// UnmarshalJSON is the custom unmarshaler for MetricAlertCriteria struct.
+func (mac *MetricAlertCriteria) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		default:
+			if v != nil {
+				var additionalProperties interface{}
+				err = json.Unmarshal(*v, &additionalProperties)
+				if err != nil {
+					return err
+				}
+				if mac.AdditionalProperties == nil {
+					mac.AdditionalProperties = make(map[string]interface{})
+				}
+				mac.AdditionalProperties[k] = additionalProperties
+			}
+		case "odata.type":
+			if v != nil {
+				var odataType OdataTypeBasicMetricAlertCriteria
+				err = json.Unmarshal(*v, &odataType)
+				if err != nil {
+					return err
+				}
+				mac.OdataType = odataType
+			}
+		}
+	}
+
+	return nil
+}
+
 // MetricAlertProperties an alert rule.
 type MetricAlertProperties struct {
 	// Description - the description of the metric alert that will be included in the alert email.
@@ -3486,6 +3524,51 @@ func (masrmmc MetricAlertSingleResourceMultipleMetricCriteria) AsBasicMetricAler
 	return &masrmmc, true
 }
 
+// UnmarshalJSON is the custom unmarshaler for MetricAlertSingleResourceMultipleMetricCriteria struct.
+func (masrmmc *MetricAlertSingleResourceMultipleMetricCriteria) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "allOf":
+			if v != nil {
+				var allOf []MetricCriteria
+				err = json.Unmarshal(*v, &allOf)
+				if err != nil {
+					return err
+				}
+				masrmmc.AllOf = &allOf
+			}
+		default:
+			if v != nil {
+				var additionalProperties interface{}
+				err = json.Unmarshal(*v, &additionalProperties)
+				if err != nil {
+					return err
+				}
+				if masrmmc.AdditionalProperties == nil {
+					masrmmc.AdditionalProperties = make(map[string]interface{})
+				}
+				masrmmc.AdditionalProperties[k] = additionalProperties
+			}
+		case "odata.type":
+			if v != nil {
+				var odataType OdataTypeBasicMetricAlertCriteria
+				err = json.Unmarshal(*v, &odataType)
+				if err != nil {
+					return err
+				}
+				masrmmc.OdataType = odataType
+			}
+		}
+	}
+
+	return nil
+}
+
 // MetricAlertStatus an alert status.
 type MetricAlertStatus struct {
 	// Name - The status name.
@@ -3622,7 +3705,7 @@ type MetricTrigger struct {
 	Statistic MetricStatisticType `json:"statistic,omitempty"`
 	// TimeWindow - the range of time in which instance data is collected. This value must be greater than the delay in metric collection, which can vary from resource-to-resource. Must be between 12 hours and 5 minutes.
 	TimeWindow *string `json:"timeWindow,omitempty"`
-	// TimeAggregation - time aggregation type. How the data that is collected should be combined over time. The default value is Average. Possible values include: 'TimeAggregationTypeAverage', 'TimeAggregationTypeMinimum', 'TimeAggregationTypeMaximum', 'TimeAggregationTypeTotal', 'TimeAggregationTypeCount'
+	// TimeAggregation - time aggregation type. How the data that is collected should be combined over time. The default value is Average. Possible values include: 'TimeAggregationTypeAverage', 'TimeAggregationTypeMinimum', 'TimeAggregationTypeMaximum', 'TimeAggregationTypeTotal', 'TimeAggregationTypeCount', 'TimeAggregationTypeLast'
 	TimeAggregation TimeAggregationType `json:"timeAggregation,omitempty"`
 	// Operator - the operator that is used to compare the metric data and the threshold. Possible values include: 'Equals', 'NotEquals', 'GreaterThan', 'GreaterThanOrEqual', 'LessThan', 'LessThanOrEqual'
 	Operator ComparisonOperationType `json:"operator,omitempty"`
@@ -3687,7 +3770,7 @@ type ProxyOnlyResource struct {
 // Recurrence the repeating times at which this profile begins. This element is not used if the FixedDate element
 // is used.
 type Recurrence struct {
-	// Frequency - the recurrence frequency. How often the schedule profile should take effect. This value must be Week, meaning each week will have the same set of profiles. Possible values include: 'RecurrenceFrequencyNone', 'RecurrenceFrequencySecond', 'RecurrenceFrequencyMinute', 'RecurrenceFrequencyHour', 'RecurrenceFrequencyDay', 'RecurrenceFrequencyWeek', 'RecurrenceFrequencyMonth', 'RecurrenceFrequencyYear'
+	// Frequency - the recurrence frequency. How often the schedule profile should take effect. This value must be Week, meaning each week will have the same set of profiles. For example, to set a daily schedule, set **schedule** to every day of the week. The frequency property specifies that the schedule is repeated weekly. Possible values include: 'RecurrenceFrequencyNone', 'RecurrenceFrequencySecond', 'RecurrenceFrequencyMinute', 'RecurrenceFrequencyHour', 'RecurrenceFrequencyDay', 'RecurrenceFrequencyWeek', 'RecurrenceFrequencyMonth', 'RecurrenceFrequencyYear'
 	Frequency RecurrenceFrequency `json:"frequency,omitempty"`
 	// Schedule - the scheduling constraints for when the profile begins.
 	Schedule *RecurrentSchedule `json:"schedule,omitempty"`

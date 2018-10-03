@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/structure"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,15 +22,17 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 		Read:   resourceArmVirtualMachineScaleSetRead,
 		Update: resourceArmVirtualMachineScaleSetCreate,
 		Delete: resourceArmVirtualMachineScaleSetDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"location": locationSchema(),
@@ -47,7 +51,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 						"type": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.ResourceIdentityTypeSystemAssigned),
 								string(compute.ResourceIdentityTypeUserAssigned),
@@ -84,12 +88,13 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Computed:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"capacity": {
-							Type:     schema.TypeInt,
-							Required: true,
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntAtLeast(0),
 						},
 					},
 				},
@@ -99,7 +104,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Windows_Client",
 					"Windows_Server",
@@ -109,6 +114,11 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 			"upgrade_policy_mode": {
 				Type:     schema.TypeString,
 				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.Automatic),
+					string(compute.Manual),
+					string(compute.Rolling),
+				}, true),
 			},
 
 			"overprovision": {
@@ -147,14 +157,16 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 						},
 
 						"admin_username": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 
 						"admin_password": {
-							Type:      schema.TypeString,
-							Required:  true,
-							Sensitive: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 
 						"custom_data": {
@@ -173,8 +185,9 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"source_vault_id": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 
 						"vault_certificates": {
@@ -297,8 +310,9 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 
 						"primary": {
@@ -318,8 +332,9 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 						},
 
 						"network_security_group_id": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 
 						"dns_settings": {
@@ -331,7 +346,10 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 									"dns_servers": {
 										Type:     schema.TypeList,
 										Required: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validation.NoZeroValues,
+										},
 									},
 								},
 							},
@@ -343,13 +361,15 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.NoZeroValues,
 									},
 
 									"subnet_id": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: azure.ValidateResourceID,
 									},
 
 									"application_gateway_backend_address_pool_ids": {
@@ -422,6 +442,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 							Optional: true,
 							Default:  true,
 						},
+
 						"storage_uri": {
 							Type:     schema.TypeString,
 							Required: true,
@@ -459,8 +480,9 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 							Computed:      true,
 							ConflictsWith: []string{"storage_profile_os_disk.vhd_containers"},
 							ValidateFunc: validation.StringInSlice([]string{
-								string(compute.PremiumLRS),
-								string(compute.StandardLRS),
+								string(compute.StorageAccountTypesPremiumLRS),
+								string(compute.StorageAccountTypesStandardLRS),
+								string(compute.StorageAccountTypesStandardSSDLRS),
 							}, true),
 						},
 
@@ -517,8 +539,9 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 							Optional: true,
 							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(compute.PremiumLRS),
-								string(compute.StandardLRS),
+								string(compute.StorageAccountTypesPremiumLRS),
+								string(compute.StorageAccountTypesStandardLRS),
+								string(compute.StorageAccountTypesStandardSSDLRS),
 							}, true),
 						},
 					},
@@ -745,8 +768,7 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 
@@ -921,8 +943,7 @@ func resourceArmVirtualMachineScaleSetDelete(d *schema.ResourceData, meta interf
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 
@@ -940,35 +961,43 @@ func flattenAzureRmVirtualMachineScaleSetIdentity(identity *compute.VirtualMachi
 		result["principal_id"] = *identity.PrincipalID
 	}
 
-	identity_ids := make([]string, 0)
-	if identity.IdentityIds != nil {
-		for _, id := range *identity.IdentityIds {
-			identity_ids = append(identity_ids, id)
+	identityIds := make([]string, 0)
+	if identity.UserAssignedIdentities != nil {
+		for key, _ := range identity.UserAssignedIdentities {
+			identityIds = append(identityIds, key)
 		}
 	}
-	result["identity_ids"] = identity_ids
+	result["identity_ids"] = identityIds
 
 	return []interface{}{result}
 }
 
 func flattenAzureRmVirtualMachineScaleSetOsProfileLinuxConfig(config *compute.LinuxConfiguration) []interface{} {
 	result := make(map[string]interface{})
-	result["disable_password_authentication"] = *config.DisablePasswordAuthentication
 
-	if config.SSH != nil && len(*config.SSH.PublicKeys) > 0 {
-		ssh_keys := make([]map[string]interface{}, 0, len(*config.SSH.PublicKeys))
-		for _, i := range *config.SSH.PublicKeys {
-			key := make(map[string]interface{})
-			key["path"] = *i.Path
+	if v := config.DisablePasswordAuthentication; v != nil {
+		result["disable_password_authentication"] = *v
+	}
 
-			if i.KeyData != nil {
-				key["key_data"] = *i.KeyData
+	if ssh := config.SSH; ssh != nil {
+		if keys := ssh.PublicKeys; keys != nil {
+			ssh_keys := make([]map[string]interface{}, 0, len(*keys))
+			for _, i := range *keys {
+				key := make(map[string]interface{})
+
+				if i.Path != nil {
+					key["path"] = *i.Path
+				}
+
+				if i.KeyData != nil {
+					key["key_data"] = *i.KeyData
+				}
+
+				ssh_keys = append(ssh_keys, key)
 			}
 
-			ssh_keys = append(ssh_keys, key)
+			result["ssh_keys"] = ssh_keys
 		}
-
-		result["ssh_keys"] = ssh_keys
 	}
 
 	return []interface{}{result}
@@ -1633,9 +1662,9 @@ func expandAzureRmVirtualMachineScaleSetIdentity(d *schema.ResourceData) *comput
 	identity := identities[0].(map[string]interface{})
 	identityType := compute.ResourceIdentityType(identity["type"].(string))
 
-	identityIds := []string{}
+	identityIds := make(map[string]*compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue, 0)
 	for _, id := range identity["identity_ids"].([]interface{}) {
-		identityIds = append(identityIds, id.(string))
+		identityIds[id.(string)] = &compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue{}
 	}
 
 	vmssIdentity := compute.VirtualMachineScaleSetIdentity{
@@ -1643,7 +1672,7 @@ func expandAzureRmVirtualMachineScaleSetIdentity(d *schema.ResourceData) *comput
 	}
 
 	if vmssIdentity.Type == compute.ResourceIdentityTypeUserAssigned {
-		vmssIdentity.IdentityIds = &identityIds
+		vmssIdentity.UserAssignedIdentities = identityIds
 	}
 
 	return &vmssIdentity

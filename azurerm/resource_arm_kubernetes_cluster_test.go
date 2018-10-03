@@ -98,6 +98,36 @@ func TestAccAzureRMKubernetesCluster_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKubernetesCluster_linuxProfile(t *testing.T) {
+	resourceName := "azurerm_kubernetes_cluster.test"
+	ri := acctest.RandInt()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	config := testAccAzureRMKubernetesCluster_linuxProfile(ri, clientId, clientSecret, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.client_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.client_certificate"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.cluster_ca_certificate"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.host"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.username"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.password"),
+					resource.TestCheckResourceAttrSet(resourceName, "agent_pool_profile.0.max_pods"),
+					resource.TestCheckResourceAttrSet(resourceName, "linux_profile.0.admin_username"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMKubernetesCluster_addAgent(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
 	ri := acctest.RandInt()
@@ -150,7 +180,7 @@ func TestAccAzureRMKubernetesCluster_upgradeConfig(t *testing.T) {
 				Config: upgradeConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "kubernetes_version", "1.8.1"),
+					resource.TestCheckResourceAttr(resourceName, "kubernetes_version", "1.11.2"),
 				),
 			},
 		},
@@ -336,7 +366,34 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   dns_prefix          = "acctestaks%d"
-  kubernetes_version  = "1.7.7"
+  kubernetes_version  = "1.10.7"
+
+  agent_pool_profile {
+    name    = "default"
+    count   = "1"
+    vm_size = "Standard_DS2_v2"
+  }
+
+  service_principal {
+    client_id     = "%s"
+    client_secret = "%s"
+  }
+}
+`, rInt, location, rInt, rInt, clientId, clientSecret)
+}
+
+func testAccAzureRMKubernetesCluster_linuxProfile(rInt int, clientId string, clientSecret string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  dns_prefix          = "acctestaks%d"
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -372,15 +429,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   dns_prefix          = "acctestaks%d"
-  kubernetes_version  = "1.7.7"
-
-  linux_profile {
-    admin_username = "acctestuser%d"
-
-    ssh_key {
-      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-    }
-  }
+  kubernetes_version  = "1.10.7"
 
   agent_pool_profile {
     name    = "default"
@@ -393,7 +442,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     client_secret = "%s"
   }
 }
-`, rInt, location, rInt, rInt, rInt, clientId, clientSecret)
+`, rInt, location, rInt, rInt, clientId, clientSecret)
 }
 
 func testAccAzureRMKubernetesCluster_internalNetwork(rInt int, clientId string, clientSecret string, location string) string {
@@ -426,7 +475,6 @@ resource "azurerm_kubernetes_cluster" "test" {
   location               = "${azurerm_resource_group.test.location}"
   resource_group_name    = "${azurerm_resource_group.test.name}"
   dns_prefix             = "acctestaks%d"
-  kubernetes_version     = "1.7.7"
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -466,12 +514,25 @@ resource "azurerm_log_analytics_workspace" "test" {
   sku                 = "PerGB2018"
 }
 
+resource "azurerm_log_analytics_solution" "test" {
+  solution_name         = "ContainerInsights"
+  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
+  workspace_name        = "${azurerm_log_analytics_workspace.test.name}"
+
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/ContainerInsights"
+  }
+}
+
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   dns_prefix          = "acctestaks%d"
-  kubernetes_version  = "1.7.7"
+
   linux_profile {
     admin_username = "acctestuser%d"
     ssh_key {
@@ -489,7 +550,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     client_id     = "%s"
     client_secret = "%s"
   }
-	
+
   addon_profile {
     oms_agent {
       enabled                    = true
@@ -512,7 +573,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   dns_prefix          = "acctestaks%d"
-  kubernetes_version  = "1.7.7"
+
   linux_profile {
     admin_username = "acctestuser%d"
     ssh_key {
@@ -552,7 +613,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location               = "${azurerm_resource_group.test.location}"
   resource_group_name    = "${azurerm_resource_group.test.name}"
   dns_prefix             = "acctestaks%d"
-  kubernetes_version     = "1.8.1"
+  kubernetes_version     = "1.11.2"
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -606,7 +667,6 @@ resource "azurerm_kubernetes_cluster" "test" {
   location               = "${azurerm_resource_group.test.location}"
   resource_group_name    = "${azurerm_resource_group.test.name}"
   dns_prefix             = "acctestaks%d"
-  kubernetes_version     = "1.7.7"
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -665,7 +725,6 @@ resource "azurerm_kubernetes_cluster" "test" {
   location               = "${azurerm_resource_group.test.location}"
   resource_group_name    = "${azurerm_resource_group.test.name}"
   dns_prefix             = "acctestaks%d"
-  kubernetes_version     = "1.7.7"
 
   linux_profile {
     admin_username = "acctestuser%d"

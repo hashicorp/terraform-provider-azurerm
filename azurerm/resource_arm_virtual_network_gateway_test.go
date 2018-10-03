@@ -27,6 +27,11 @@ func TestAccAzureRMVirtualNetworkGateway_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "sku", "Basic"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -47,6 +52,11 @@ func TestAccAzureRMVirtualNetworkGateway_lowerCaseSubnetName(t *testing.T) {
 					testCheckAzureRMVirtualNetworkGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku", "Basic"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

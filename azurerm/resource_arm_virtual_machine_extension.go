@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/structure"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -186,9 +186,6 @@ func resourceArmVirtualMachineExtensionsRead(d *schema.ResourceData, meta interf
 			}
 			d.Set("settings", settingsJson)
 		}
-	}
-
-	if resp.VirtualMachineExtensionProperties.Settings != nil {
 	}
 
 	flattenAndSetTags(d, resp.Tags)

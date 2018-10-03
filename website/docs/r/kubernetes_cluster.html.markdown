@@ -21,19 +21,31 @@ resource "azurerm_resource_group" "test" {
   location = "East US"
 }
 
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW1"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "PerGB2018"
+}
+
+resource "azurerm_log_analytics_solution" "test" {
+  solution_name         = "ContainerInsights"
+  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
+  workspace_name        = "${azurerm_log_analytics_workspace.test.name}"
+
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/ContainerInsights"
+  }
+}
+
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks1"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   dns_prefix          = "acctestagent1"
-
-  linux_profile {
-    admin_username = "acctestuser1"
-
-    ssh_key {
-      key_data = "ssh-rsa ..."
-    }
-  }
 
   agent_pool_profile {
     name            = "default"
@@ -46,6 +58,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   service_principal {
     client_id     = "00000000-0000-0000-0000-000000000000"
     client_secret = "00000000000000000000000000000000"
+  }
+  
+  addon_profile {
+    oms_agent {
+      enabled                    = true
+      log_analytics_workspace_id = "${azurerm_log_analytics_workspace.test.id}"
+    }
   }
 
   tags {
@@ -107,6 +126,19 @@ resource "azurerm_subnet" "test_subnet" {
   virtual_network_name      = "${azurerm_virtual_network.test_advanced_network.name}"
 }
 
+resource "azurerm_log_analytics_solution" "test" {
+  solution_name         = "ContainerInsights"
+  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
+  workspace_name        = "${azurerm_log_analytics_workspace.test.name}"
+
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/ContainerInsights"
+  }
+}
+
 resource "azurerm_kubernetes_cluster" "test" {
   name       = "akc-1"
   location   = "${azurerm_resource_group.test.location}"
@@ -135,6 +167,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   service_principal {
     client_id     = "00000000-0000-0000-0000-000000000000"
     client_secret = "00000000000000000000000000000000"
+  }
+ 
+  addon_profile {
+    oms_agent {
+      enabled                    = true
+      log_analytics_workspace_id = "${azurerm_log_analytics_workspace.test.id}"
+    }
   }
 
   network_profile {
@@ -180,7 +219,7 @@ The following arguments are supported:
 
 * `dns_prefix` - (Required) DNS prefix specified when creating the managed cluster.
 
-* `linux_profile` - (Required) A Linux Profile block as documented below.
+* `linux_profile` - (Optional) A Linux Profile block as documented below.
 
 * `agent_pool_profile` - (Required) One or more Agent Pool Profile's block as documented below.
 
@@ -193,6 +232,7 @@ The following arguments are supported:
 * `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS managed cluster. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade).
 
 * `network_profile` - (Optional) A Network Profile block as documented below.
+-> **NOTE:** If `network_profile` is not defined, `kubenet` profile will be used by default.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -201,7 +241,7 @@ The following arguments are supported:
 A `addon_profile` block supports the following:
 
 * `http_application_routing` - (Optional) A `http_application_routing` block.
-* `oms_agent` - (Optional) A `oms_agent` block.
+* `oms_agent` - (Optional) A `oms_agent` block. For more details, please visit [How to onboard Azure Monitor for containers](https://docs.microsoft.com/en-us/azure/monitoring/monitoring-container-insights-onboard).
 
 ---
 
@@ -265,7 +305,7 @@ A `network_profile` block supports the following:
 
 * `docker_bridge_cidr` - (Optional) IP address (in CIDR notation) used as the Docker bridge IP address on nodes. This is required when `network_plugin` is set to `kubenet`. Changing this forces a new resource to be created.
 
-* `pod_cidr` - (Optional) The CIDR to use for pod IP addresses. Changing this forces a new resource to be created.
+* `pod_cidr` - (Optional) The CIDR to use for pod IP addresses. This field can only be set when `network_plugin` is set to `kubenet`. Changing this forces a new resource to be created.
 
 Here's an example of configuring the `kubenet` Networking Profile:
 

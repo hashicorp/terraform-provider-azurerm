@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -41,6 +41,7 @@ func resourceArmManagedDisk() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.StandardLRS),
 					string(compute.PremiumLRS),
+					string(compute.StandardSSDLRS),
 				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
@@ -123,11 +124,13 @@ func resourceArmManagedDiskCreate(d *schema.ResourceData, meta interface{}) erro
 	expandedTags := expandTags(tags)
 	zones := expandZones(d.Get("zones").([]interface{}))
 
-	var skuName compute.StorageAccountTypes
-	if strings.ToLower(storageAccountType) == strings.ToLower(string(compute.PremiumLRS)) {
+	var skuName compute.DiskStorageAccountTypes
+	if strings.EqualFold(storageAccountType, string(compute.PremiumLRS)) {
 		skuName = compute.PremiumLRS
-	} else {
+	} else if strings.EqualFold(storageAccountType, string(compute.StandardLRS)) {
 		skuName = compute.StandardLRS
+	} else if strings.EqualFold(storageAccountType, string(compute.StandardSSDLRS)) {
+		skuName = compute.StandardSSDLRS
 	}
 
 	createDisk := compute.Disk{

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -12,8 +13,9 @@ func dataSourceArmPublicIP() *schema.Resource {
 		Read: dataSourceArmPublicIPRead,
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"resource_group_name": resourceGroupNameForDataSourceSchema(),
@@ -60,23 +62,24 @@ func dataSourceArmPublicIPRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.SetId(*resp.ID)
 
-	if resp.PublicIPAddressPropertiesFormat.DNSSettings != nil {
+	if props := resp.PublicIPAddressPropertiesFormat; props != nil {
+		if dnsSettings := props.DNSSettings; dnsSettings != nil {
+			if v := dnsSettings.Fqdn; v != nil && *v != "" {
+				d.Set("fqdn", v)
+			}
 
-		if resp.PublicIPAddressPropertiesFormat.DNSSettings.Fqdn != nil && *resp.PublicIPAddressPropertiesFormat.DNSSettings.Fqdn != "" {
-			d.Set("fqdn", resp.PublicIPAddressPropertiesFormat.DNSSettings.Fqdn)
+			if v := dnsSettings.DomainNameLabel; v != nil && *v != "" {
+				d.Set("domain_name_label", v)
+			}
 		}
 
-		if resp.PublicIPAddressPropertiesFormat.DNSSettings.DomainNameLabel != nil && *resp.PublicIPAddressPropertiesFormat.DNSSettings.DomainNameLabel != "" {
-			d.Set("domain_name_label", resp.PublicIPAddressPropertiesFormat.DNSSettings.DomainNameLabel)
+		if v := props.IPAddress; v != nil && *v != "" {
+			d.Set("ip_address", v)
 		}
-	}
 
-	if resp.PublicIPAddressPropertiesFormat.IPAddress != nil && *resp.PublicIPAddressPropertiesFormat.IPAddress != "" {
-		d.Set("ip_address", resp.PublicIPAddressPropertiesFormat.IPAddress)
-	}
-
-	if resp.PublicIPAddressPropertiesFormat.IdleTimeoutInMinutes != nil {
-		d.Set("idle_timeout_in_minutes", *resp.PublicIPAddressPropertiesFormat.IdleTimeoutInMinutes)
+		if v := props.IdleTimeoutInMinutes; v != nil {
+			d.Set("idle_timeout_in_minutes", *resp.PublicIPAddressPropertiesFormat.IdleTimeoutInMinutes)
+		}
 	}
 
 	flattenAndSetTags(d, resp.Tags)

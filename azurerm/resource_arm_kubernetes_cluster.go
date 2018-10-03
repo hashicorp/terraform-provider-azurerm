@@ -39,12 +39,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 					return nil
 				}
 
-				podCidr := profile["pod_cidr"].(string)
-
-				if networkPlugin == "azure" && podCidr != "" {
-					return fmt.Errorf("The `pod_cidr` field in the `network_profile` block can not be specified when `network_plugin` is set to `azure`. Please remove `pod_cidr` or set `network_plugin` to `kubenet`.")
-				}
-
 				dockerBridgeCidr := profile["docker_bridge_cidr"].(string)
 				dnsServiceIP := profile["dns_service_ip"].(string)
 				serviceCidr := profile["service_cidr"].(string)
@@ -141,7 +135,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 
 			"linux_profile": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -189,9 +183,11 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							ValidateFunc: validation.IntBetween(1, 50),
 						},
 
+						// TODO: remove this field in the next major version
 						"dns_prefix": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:       schema.TypeString,
+							Computed:   true,
+							Deprecated: "This field has been removed by Azure",
 						},
 
 						"fqdn": {
@@ -409,7 +405,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 			AgentPoolProfiles:       &agentProfiles,
 			DNSPrefix:               &dnsPrefix,
 			KubernetesVersion:       &kubernetesVersion,
-			LinuxProfile:            &linuxProfile,
+			LinuxProfile:            linuxProfile,
 			ServicePrincipalProfile: servicePrincipalProfile,
 			NetworkProfile:          networkProfile,
 		},
@@ -538,33 +534,40 @@ func resourceArmKubernetesClusterDelete(d *schema.ResourceData, meta interface{}
 	return future.WaitForCompletionRef(ctx, kubernetesClustersClient.Client)
 }
 
-func flattenAzureRmKubernetesClusterLinuxProfile(input *containerservice.LinuxProfile) []interface{} {
+func flattenAzureRmKubernetesClusterLinuxProfile(profile *containerservice.LinuxProfile) []interface{} {
+	if profile == nil {
+		return []interface{}{}
+	}
+
 	values := make(map[string]interface{})
 	sshKeys := make([]interface{}, 0)
 
-	if profile := input; profile != nil {
-		if username := profile.AdminUsername; username != nil {
-			values["admin_username"] = *username
-		}
+	if username := profile.AdminUsername; username != nil {
+		values["admin_username"] = *username
+	}
 
-		if ssh := profile.SSH; ssh != nil {
-			if keys := ssh.PublicKeys; keys != nil {
-				for _, sshKey := range *keys {
-					outputs := make(map[string]interface{}, 0)
-					if keyData := sshKey.KeyData; keyData != nil {
-						outputs["key_data"] = *keyData
-					}
-					sshKeys = append(sshKeys, outputs)
+	if ssh := profile.SSH; ssh != nil {
+		if keys := ssh.PublicKeys; keys != nil {
+			for _, sshKey := range *keys {
+				outputs := make(map[string]interface{}, 0)
+				if keyData := sshKey.KeyData; keyData != nil {
+					outputs["key_data"] = *keyData
 				}
+				sshKeys = append(sshKeys, outputs)
 			}
 		}
 	}
+
 	values["ssh_key"] = sshKeys
 
 	return []interface{}{values}
 }
 
 func flattenAzureRmKubernetesClusterAgentPoolProfiles(profiles *[]containerservice.ManagedClusterAgentPoolProfile, fqdn *string) []interface{} {
+	if profiles == nil {
+		return []interface{}{}
+	}
+
 	agentPoolProfiles := make([]interface{}, 0)
 
 	for _, profile := range *profiles {
@@ -572,10 +575,6 @@ func flattenAzureRmKubernetesClusterAgentPoolProfiles(profiles *[]containerservi
 
 		if profile.Count != nil {
 			agentPoolProfile["count"] = int(*profile.Count)
-		}
-
-		if profile.DNSPrefix != nil {
-			agentPoolProfile["dns_prefix"] = *profile.DNSPrefix
 		}
 
 		if fqdn != nil {
@@ -613,7 +612,7 @@ func flattenAzureRmKubernetesClusterAgentPoolProfiles(profiles *[]containerservi
 	return agentPoolProfiles
 }
 
-func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerservice.ServicePrincipalProfile) *schema.Set {
+func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerservice.ManagedClusterServicePrincipalProfile) *schema.Set {
 	if profile == nil {
 		return nil
 	}
@@ -656,6 +655,10 @@ func flattenAzureRmKubernetesClusterAccessProfile(profile *containerservice.Mana
 }
 
 func flattenAzureRmKubernetesClusterNetworkProfile(profile *containerservice.NetworkProfile) []interface{} {
+	if profile == nil {
+		return []interface{}{}
+	}
+
 	values := make(map[string]interface{})
 
 	values["network_plugin"] = profile.NetworkPlugin
@@ -696,8 +699,13 @@ func flattenKubernetesClusterKubeConfig(config kubernetes.KubeConfig) []interfac
 	return []interface{}{values}
 }
 
-func expandAzureRmKubernetesClusterLinuxProfile(d *schema.ResourceData) containerservice.LinuxProfile {
+func expandAzureRmKubernetesClusterLinuxProfile(d *schema.ResourceData) *containerservice.LinuxProfile {
 	profiles := d.Get("linux_profile").([]interface{})
+
+	if len(profiles) == 0 {
+		return nil
+	}
+
 	config := profiles[0].(map[string]interface{})
 
 	adminUsername := config["admin_username"].(string)
@@ -720,10 +728,10 @@ func expandAzureRmKubernetesClusterLinuxProfile(d *schema.ResourceData) containe
 		},
 	}
 
-	return profile
+	return &profile
 }
 
-func expandAzureRmKubernetesClusterServicePrincipal(d *schema.ResourceData) *containerservice.ServicePrincipalProfile {
+func expandAzureRmKubernetesClusterServicePrincipal(d *schema.ResourceData) *containerservice.ManagedClusterServicePrincipalProfile {
 	value, exists := d.GetOk("service_principal")
 	if !exists {
 		return nil
@@ -736,7 +744,7 @@ func expandAzureRmKubernetesClusterServicePrincipal(d *schema.ResourceData) *con
 	clientId := config["client_id"].(string)
 	clientSecret := config["client_secret"].(string)
 
-	principal := containerservice.ServicePrincipalProfile{
+	principal := containerservice.ManagedClusterServicePrincipalProfile{
 		ClientID: &clientId,
 		Secret:   &clientSecret,
 	}
@@ -751,7 +759,6 @@ func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []conta
 
 	name := config["name"].(string)
 	count := int32(config["count"].(int))
-	dnsPrefix := config["dns_prefix"].(string)
 	vmSize := config["vm_size"].(string)
 	osDiskSizeGB := int32(config["os_disk_size_gb"].(int))
 	osType := config["os_type"].(string)
@@ -760,7 +767,6 @@ func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []conta
 		Name:           utils.String(name),
 		Count:          utils.Int32(count),
 		VMSize:         containerservice.VMSizeTypes(vmSize),
-		DNSPrefix:      utils.String(dnsPrefix),
 		OsDiskSizeGB:   utils.Int32(osDiskSizeGB),
 		StorageProfile: containerservice.ManagedDisks,
 		OsType:         containerservice.OSType(osType),
@@ -845,7 +851,7 @@ func expandAzureRmKubernetesClusterAddonProfiles(d *schema.ResourceData) map[str
 			config["logAnalyticsWorkspaceResourceID"] = utils.String(workspaceId.(string))
 		}
 
-		addonProfiles["omsAgent"] = &containerservice.ManagedClusterAddonProfile{
+		addonProfiles["omsagent"] = &containerservice.ManagedClusterAddonProfile{
 			Enabled: utils.Bool(enabled),
 			Config:  config,
 		}
@@ -878,7 +884,7 @@ func flattenAzureRmKubernetesClusterAddonProfiles(profile map[string]*containers
 	values["http_application_routing"] = routes
 
 	agents := make([]interface{}, 0)
-	if omsAgent := profile["omsAgent"]; omsAgent != nil {
+	if omsAgent := profile["omsagent"]; omsAgent != nil {
 		enabled := false
 		if enabledVal := omsAgent.Enabled; enabledVal != nil {
 			enabled = *enabledVal
