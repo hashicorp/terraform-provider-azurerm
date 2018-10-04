@@ -204,13 +204,21 @@ func resourceArmSql2017ElasticPoolCreate(d *schema.ResourceData, meta interface{
 	serverName := d.Get("server_name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
+	kind := d.Get("kind").(string)
 	sku := expandAzureRmSql2017ElasticPoolSku(d)
 	properties := expandAzureRmSql2017ElasticPoolProperties(d)
+	resourceType := d.Get("type").(string)
+	tags := d.Get("tags").(map[string]interface{})
 
 	elasticPool := sql.ElasticPool{
-		Name:                  &elasticPoolName,
+		Sku:  sku,
+		Kind: &kind,
+		ElasticPoolProperties: properties,
 		Location:              &location,
-		ElasticPoolProperties: expandAzureRmSql2017ElasticPoolProperties(d),
+		Tags:                  expandTags(tags),
+		ID:                    &elasticPoolName,
+		Name:                  &elasticPoolName,
+		Type:                  &resourceType,
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, elasticPoolName, elasticPool)
@@ -291,30 +299,40 @@ func resourceArmSql2017ElasticPoolDelete(d *schema.ResourceData, meta interface{
 }
 
 func expandAzureRmSql2017ElasticPoolProperties(d *schema.ResourceData) *sql.ElasticPoolProperties {
-	edition := sql.ElasticPoolEdition(d.Get("edition").(string))
-	dtu := int32(d.Get("dtu").(int))
+
+	state := sql.ElasticPoolState(d.Get("State").(string))
+	maxSizeBytes := d.Get("MaxSizeBytes").(int64)
+	perDatabaseSettings := expandAzureRmSql2017ElasticPoolPerDatabaseSettings(d)
+	zoneRedundant := d.Get("resource_group_name").(bool)
+	licenseType := sql.ElasticPoolLicenseType(d.Get("LicenseType").(string))
+
+	//edition := sql.ElasticPoolEdition(d.Get("edition").(string))
+	//dtu := int32(d.Get("dtu").(int))
 
 	props := &sql.ElasticPoolProperties{
-		Edition: edition,
-		Dtu:     &dtu,
-	}
-
-	if databaseDtuMin, ok := d.GetOk("db_dtu_min"); ok {
-		databaseDtuMin := int32(databaseDtuMin.(int))
-		props.DatabaseDtuMin = &databaseDtuMin
-	}
-
-	if databaseDtuMax, ok := d.GetOk("db_dtu_max"); ok {
-		databaseDtuMax := int32(databaseDtuMax.(int))
-		props.DatabaseDtuMax = &databaseDtuMax
-	}
-
-	if poolSize, ok := d.GetOk("pool_size"); ok {
-		poolSize := int32(poolSize.(int))
-		props.StorageMB = &poolSize
+		State:               state,
+		MaxSizeBytes:        utils.Int64(int64(maxSizeBytes)),
+		PerDatabaseSettings: perDatabaseSettings,
+		ZoneRedundant:       utils.Bool(zoneRedundant),
+		LicenseType:         licenseType,
 	}
 
 	return props
+}
+
+func expandAzureRmSql2017ElasticPoolPerDatabaseSettings(d *schema.ResourceData) *sql.ElasticPoolPerDatabaseSettings {
+	perDatabasSettings := d.Get("PerDatabaseSettings").([]interface{})
+	perDatabaseSetting := perDatabasSettings[0].(map[string]interface{})
+
+	minCapacity := perDatabaseSetting["MinCapacity"].(float64)
+	maxCapacity := perDatabaseSetting["MaxCapacity"].(float64)
+
+	elasticPoolPerDatabaseSettings := &sql.ElasticPoolPerDatabaseSettings{
+		MinCapacity: utils.Float(minCapacity),
+		MaxCapacity: utils.Float(maxCapacity),
+	}
+
+	return elasticPoolPerDatabaseSettings
 }
 
 func parseArmSql2017ElasticPoolId(sqlElasticPoolId string) (string, string, string, error) {
@@ -338,7 +356,7 @@ func expandAzureRmSql2017ElasticPoolSku(d *schema.ResourceData) *sql.Sku {
 
 	return &sql.Sku{
 		Name:     utils.String(name),
-		size:     utils.String(size),
+		Size:     utils.String(size),
 		Tier:     utils.String(tier),
 		Family:   utils.String(family),
 		Capacity: utils.Int32(int32(capacity)),
