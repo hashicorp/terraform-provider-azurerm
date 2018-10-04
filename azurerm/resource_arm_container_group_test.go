@@ -15,7 +15,7 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentials(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := acctest.RandInt()
 
-	config := testAccAzureRMContainerGroup_imageRegistryCredentials(ri, testLocation(), "public")
+	config := testAccAzureRMContainerGroup_imageRegistryCredentials(ri, testLocation(), "Public")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -33,7 +33,7 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentials(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.1.server", "mine.acr.io"),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.1.username", "acrusername"),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.1.password", "acrpassword"),
-					resource.TestCheckResourceAttr(resourceName, "ip_address_type", "public"),
+					resource.TestCheckResourceAttr(resourceName, "ip_address_type", "Public"),
 				),
 			},
 			{
@@ -53,7 +53,7 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentialsWithPrivateIPAdress(t 
 	resourceName := "azurerm_container_group.test"
 	ri := acctest.RandInt()
 
-	config := testAccAzureRMContainerGroup_imageRegistryCredentials(ri, testLocation(), "private")
+	config := testAccAzureRMContainerGroup_imageRegistryCredentials(ri, testLocation(), "Private")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -71,7 +71,7 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentialsWithPrivateIPAdress(t 
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.1.server", "mine.acr.io"),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.1.username", "acrusername"),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.1.password", "acrpassword"),
-					resource.TestCheckResourceAttr(resourceName, "ip_address_type", "private"),
+					resource.TestCheckResourceAttr(resourceName, "ip_address_type", "Private"),
 				),
 			},
 			{
@@ -91,7 +91,7 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := acctest.RandInt()
 
-	config := testAccAzureRMContainerGroup_imageRegistryCredentials(ri, testLocation(), "public")
+	config := testAccAzureRMContainerGroup_imageRegistryCredentials(ri, testLocation(), "Public")
 	updated := testAccAzureRMContainerGroup_imageRegistryCredentialsUpdated(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
@@ -110,7 +110,7 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.1.server", "mine.acr.io"),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.1.username", "acrusername"),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.1.password", "acrpassword"),
-					resource.TestCheckResourceAttr(resourceName, "ip_address_type", "public"),
+					resource.TestCheckResourceAttr(resourceName, "ip_address_type", "Public"),
 				),
 			},
 			{
@@ -130,7 +130,7 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMContainerGroup_linuxBasic(ri, testLocation(), "public")
+	config := testAccAzureRMContainerGroup_linuxBasic(ri, testLocation(), "Public")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -143,7 +143,7 @@ func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
 					testCheckAzureRMContainerGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Linux"),
-					resource.TestCheckResourceAttr(resourceName, "ip_address_type", "public"),
+					resource.TestCheckResourceAttr(resourceName, "ip_address_type", "Public"),
 				),
 			},
 			{
@@ -162,7 +162,7 @@ func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
 func TestAccAzureRMContainerGroup_linuxBasicWithPrivateIPAddress(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMContainerGroup_linuxBasic(ri, testLocation(), "private")
+	config := testAccAzureRMContainerGroup_linuxBasic(ri, testLocation(), "Private")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -175,7 +175,7 @@ func TestAccAzureRMContainerGroup_linuxBasicWithPrivateIPAddress(t *testing.T) {
 					testCheckAzureRMContainerGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Linux"),
-					resource.TestCheckResourceAttr(resourceName, "ip_address_type", "private"),
+					resource.TestCheckResourceAttr(resourceName, "ip_address_type", "Private"),
 				),
 			},
 			{
@@ -195,7 +195,7 @@ func TestAccAzureRMContainerGroup_linuxBasicUpdate(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := acctest.RandInt()
 
-	config := testAccAzureRMContainerGroup_linuxBasic(ri, testLocation(), "public")
+	config := testAccAzureRMContainerGroup_linuxBasic(ri, testLocation(), "Public")
 	updatedConfig := testAccAzureRMContainerGroup_linuxBasicUpdated(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
@@ -268,7 +268,7 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 func TestAccAzureRMContainerGroup_windowsBasic(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMContainerGroup_windowsBasic(ri, testLocation(), "public")
+	config := testAccAzureRMContainerGroup_windowsBasic(ri, testLocation(), "Public")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -281,7 +281,7 @@ func TestAccAzureRMContainerGroup_windowsBasic(t *testing.T) {
 					testCheckAzureRMContainerGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Windows"),
-					resource.TestCheckResourceAttr(resourceName, "ip_address_type", "public"),
+					resource.TestCheckResourceAttr(resourceName, "ip_address_type", "Public"),
 				),
 			},
 			{
@@ -296,7 +296,7 @@ func TestAccAzureRMContainerGroup_windowsBasic(t *testing.T) {
 func TestAccAzureRMContainerGroup_windowsBasicWithPrivateIPAddress(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMContainerGroup_windowsBasic(ri, testLocation(), "private")
+	config := testAccAzureRMContainerGroup_windowsBasic(ri, testLocation(), "Private")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -309,7 +309,7 @@ func TestAccAzureRMContainerGroup_windowsBasicWithPrivateIPAddress(t *testing.T)
 					testCheckAzureRMContainerGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Windows"),
-					resource.TestCheckResourceAttr(resourceName, "ip_address_type", "private"),
+					resource.TestCheckResourceAttr(resourceName, "ip_address_type", "Private"),
 				),
 			},
 			{
