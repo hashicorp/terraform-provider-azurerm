@@ -48,6 +48,8 @@ func PossibleAccessPolicyUpdateKindValues() []AccessPolicyUpdateKind {
 type CertificatePermissions string
 
 const (
+	// Backup ...
+	Backup CertificatePermissions = "backup"
 	// Create ...
 	Create CertificatePermissions = "create"
 	// Delete ...
@@ -72,6 +74,8 @@ const (
 	Purge CertificatePermissions = "purge"
 	// Recover ...
 	Recover CertificatePermissions = "recover"
+	// Restore ...
+	Restore CertificatePermissions = "restore"
 	// Setissuers ...
 	Setissuers CertificatePermissions = "setissuers"
 	// Update ...
@@ -80,7 +84,7 @@ const (
 
 // PossibleCertificatePermissionsValues returns an array of possible values for the CertificatePermissions const type.
 func PossibleCertificatePermissionsValues() []CertificatePermissions {
-	return []CertificatePermissions{Create, Delete, Deleteissuers, Get, Getissuers, Import, List, Listissuers, Managecontacts, Manageissuers, Purge, Recover, Setissuers, Update}
+	return []CertificatePermissions{Backup, Create, Delete, Deleteissuers, Get, Getissuers, Import, List, Listissuers, Managecontacts, Manageissuers, Purge, Recover, Restore, Setissuers, Update}
 }
 
 // CreateMode enumerates the values for create mode.
@@ -139,6 +143,36 @@ const (
 // PossibleKeyPermissionsValues returns an array of possible values for the KeyPermissions const type.
 func PossibleKeyPermissionsValues() []KeyPermissions {
 	return []KeyPermissions{KeyPermissionsBackup, KeyPermissionsCreate, KeyPermissionsDecrypt, KeyPermissionsDelete, KeyPermissionsEncrypt, KeyPermissionsGet, KeyPermissionsImport, KeyPermissionsList, KeyPermissionsPurge, KeyPermissionsRecover, KeyPermissionsRestore, KeyPermissionsSign, KeyPermissionsUnwrapKey, KeyPermissionsUpdate, KeyPermissionsVerify, KeyPermissionsWrapKey}
+}
+
+// NetworkRuleAction enumerates the values for network rule action.
+type NetworkRuleAction string
+
+const (
+	// Allow ...
+	Allow NetworkRuleAction = "Allow"
+	// Deny ...
+	Deny NetworkRuleAction = "Deny"
+)
+
+// PossibleNetworkRuleActionValues returns an array of possible values for the NetworkRuleAction const type.
+func PossibleNetworkRuleActionValues() []NetworkRuleAction {
+	return []NetworkRuleAction{Allow, Deny}
+}
+
+// NetworkRuleBypassOptions enumerates the values for network rule bypass options.
+type NetworkRuleBypassOptions string
+
+const (
+	// AzureServices ...
+	AzureServices NetworkRuleBypassOptions = "AzureServices"
+	// None ...
+	None NetworkRuleBypassOptions = "None"
+)
+
+// PossibleNetworkRuleBypassOptionsValues returns an array of possible values for the NetworkRuleBypassOptions const type.
+func PossibleNetworkRuleBypassOptionsValues() []NetworkRuleBypassOptions {
+	return []NetworkRuleBypassOptions{AzureServices, None}
 }
 
 // Reason enumerates the values for reason.
@@ -411,6 +445,12 @@ func (dvp DeletedVaultProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// IPRule a rule governing the accesibility of a vault from a specific ip address or ip range.
+type IPRule struct {
+	// Value - An IPv4 address range in CIDR notation, such as '124.56.78.91' (simple IP address) or '124.56.78.0/24' (all addresses that start with 124.56.78).
+	Value *string `json:"value,omitempty"`
+}
+
 // LogSpecification log specification of operation.
 type LogSpecification struct {
 	// Name - Name of log specification.
@@ -419,6 +459,18 @@ type LogSpecification struct {
 	DisplayName *string `json:"displayName,omitempty"`
 	// BlobDuration - Blob duration of specification.
 	BlobDuration *string `json:"blobDuration,omitempty"`
+}
+
+// NetworkRuleSet a set of rules governing the network accessibility of a vault.
+type NetworkRuleSet struct {
+	// Bypass - Tells what traffic can bypass network rules. This can be 'AzureServices' or 'None'.  If not specified the default is 'AzureServices'. Possible values include: 'AzureServices', 'None'
+	Bypass NetworkRuleBypassOptions `json:"bypass,omitempty"`
+	// DefaultAction - The default action when no rule from ipRules and from virtualNetworkRules match. This is only used after the bypass property has been evaluated. Possible values include: 'Allow', 'Deny'
+	DefaultAction NetworkRuleAction `json:"defaultAction,omitempty"`
+	// IPRules - The list of IP address rules.
+	IPRules *[]IPRule `json:"ipRules,omitempty"`
+	// VirtualNetworkRules - The list of virtual network rules.
+	VirtualNetworkRules *[]VirtualNetworkRule `json:"virtualNetworkRules,omitempty"`
 }
 
 // Operation key Vault REST API operation definition.
@@ -1017,12 +1069,14 @@ type VaultPatchProperties struct {
 	EnabledForDiskEncryption *bool `json:"enabledForDiskEncryption,omitempty"`
 	// EnabledForTemplateDeployment - Property to specify whether Azure Resource Manager is permitted to retrieve secrets from the key vault.
 	EnabledForTemplateDeployment *bool `json:"enabledForTemplateDeployment,omitempty"`
-	// EnableSoftDelete - Property specifying whether recoverable deletion ('soft' delete) is enabled for this key vault. The property may not be set to false.
+	// EnableSoftDelete - Property to specify whether the 'soft delete' functionality is enabled for this key vault. It does not accept false value.
 	EnableSoftDelete *bool `json:"enableSoftDelete,omitempty"`
 	// CreateMode - The vault's create mode to indicate whether the vault need to be recovered or not. Possible values include: 'CreateModeRecover', 'CreateModeDefault'
 	CreateMode CreateMode `json:"createMode,omitempty"`
-	// EnablePurgeProtection - Property specifying whether protection against purge is enabled for this vault; it is only effective if soft delete is also enabled. Once activated, the property may no longer be reset to false.
+	// EnablePurgeProtection - Property specifying whether protection against purge is enabled for this vault. Setting this property to true activates protection against purge for this vault and its content - only the Key Vault service may initiate a hard, irrecoverable deletion. The setting is effective only if soft delete is also enabled. Enabling this functionality is irreversible - that is, the property does not accept false as its value.
 	EnablePurgeProtection *bool `json:"enablePurgeProtection,omitempty"`
+	// NetworkAcls - A collection of rules governing the accessibility of the vault from specific network locations.
+	NetworkAcls *NetworkRuleSet `json:"networkAcls,omitempty"`
 }
 
 // VaultProperties properties of the vault
@@ -1041,12 +1095,42 @@ type VaultProperties struct {
 	EnabledForDiskEncryption *bool `json:"enabledForDiskEncryption,omitempty"`
 	// EnabledForTemplateDeployment - Property to specify whether Azure Resource Manager is permitted to retrieve secrets from the key vault.
 	EnabledForTemplateDeployment *bool `json:"enabledForTemplateDeployment,omitempty"`
-	// EnableSoftDelete - Property specifying whether recoverable deletion is enabled for this key vault. Setting this property to true activates the soft delete feature, whereby vaults or vault entities can be recovered after deletion. Enabling this functionality is irreversible - that is, the property does not accept false as its value.
+	// EnableSoftDelete - Property to specify whether the 'soft delete' functionality is enabled for this key vault. It does not accept false value.
 	EnableSoftDelete *bool `json:"enableSoftDelete,omitempty"`
 	// CreateMode - The vault's create mode to indicate whether the vault need to be recovered or not. Possible values include: 'CreateModeRecover', 'CreateModeDefault'
 	CreateMode CreateMode `json:"createMode,omitempty"`
 	// EnablePurgeProtection - Property specifying whether protection against purge is enabled for this vault. Setting this property to true activates protection against purge for this vault and its content - only the Key Vault service may initiate a hard, irrecoverable deletion. The setting is effective only if soft delete is also enabled. Enabling this functionality is irreversible - that is, the property does not accept false as its value.
 	EnablePurgeProtection *bool `json:"enablePurgeProtection,omitempty"`
+	// NetworkAcls - A collection of rules governing the accessibility of the vault from specific network locations.
+	NetworkAcls *NetworkRuleSet `json:"networkAcls,omitempty"`
+}
+
+// VaultsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+type VaultsCreateOrUpdateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *VaultsCreateOrUpdateFuture) Result(client VaultsClient) (vVar Vault, err error) {
+	var done bool
+	done, err = future.Done(client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "keyvault.VaultsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("keyvault.VaultsCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if vVar.Response.Response, err = future.GetResult(sender); err == nil && vVar.Response.Response.StatusCode != http.StatusNoContent {
+		vVar, err = client.CreateOrUpdateResponder(vVar.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "keyvault.VaultsCreateOrUpdateFuture", "Result", vVar.Response.Response, "Failure responding to request")
+		}
+	}
+	return
 }
 
 // VaultsPurgeDeletedFuture an abstraction for monitoring and retrieving the results of a long-running operation.
@@ -1069,4 +1153,10 @@ func (future *VaultsPurgeDeletedFuture) Result(client VaultsClient) (ar autorest
 	}
 	ar.Response = future.Response()
 	return
+}
+
+// VirtualNetworkRule a rule governing the accesibility of a vault from a specific virtual network.
+type VirtualNetworkRule struct {
+	// ID - Full resource id of a vnet subnet, such as '/subscriptions/subid/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/test-vnet/subnets/subnet1'.
+	ID *string `json:"id,omitempty"`
 }
