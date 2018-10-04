@@ -340,18 +340,15 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Type:     schema.TypeList,
 							MaxItems: 1,
 							Optional: true,
-							ForceNew: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
 										Type:     schema.TypeBool,
 										Required: true,
-										ForceNew: true,
 									},
 									"log_analytics_workspace_id": {
 										Type:     schema.TypeString,
 										Required: true,
-										ForceNew: true,
 									},
 								},
 							},
