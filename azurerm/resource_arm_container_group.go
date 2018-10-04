@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-04-01/containerinstance"
+	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-09-01/containerinstance"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -38,7 +38,8 @@ func resourceArmContainerGroup() *schema.Resource {
 				ForceNew:         true,
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				ValidateFunc: validation.StringInSlice([]string{
-					"Public",
+					string(containerinstance.Public),
+					string(containerinstance.Private),
 				}, true),
 			},
 
@@ -244,8 +245,8 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
-	OSType := d.Get("os_type").(string)
-	IPAddressType := d.Get("ip_address_type").(string)
+	osType := d.Get("os_type").(string)
+	ipAddressType := d.Get("ip_address_type").(string)
 	tags := d.Get("tags").(map[string]interface{})
 	restartPolicy := d.Get("restart_policy").(string)
 
@@ -258,10 +259,10 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 			Containers:    containers,
 			RestartPolicy: containerinstance.ContainerGroupRestartPolicy(restartPolicy),
 			IPAddress: &containerinstance.IPAddress{
-				Type:  &IPAddressType,
+				Type:  containerinstance.ContainerGroupIPAddressType(ipAddressType),
 				Ports: containerGroupPorts,
 			},
-			OsType:                   containerinstance.OperatingSystemTypes(OSType),
+			OsType:                   containerinstance.OperatingSystemTypes(osType),
 			Volumes:                  containerGroupVolumes,
 			ImageRegistryCredentials: expandContainerImageRegistryCredentials(d),
 		},
