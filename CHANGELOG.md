@@ -10,6 +10,7 @@ BUG FIXES:
 
 * Data Source `azurerm_subnet` - fixing the ordering of the resource group name and network name in the error message [GH-2017]
 * `azurerm_kubernetes_cluster` - using the correct casing for the `addon_profile` `oms_agent` property [GH-1995]
+* `azurerm_kubernetes_cluster` - changing the `oms_agent` property no longer forces a new resource [GH-2021]
 
 ## 1.16.0 (October 01, 2018)
 
