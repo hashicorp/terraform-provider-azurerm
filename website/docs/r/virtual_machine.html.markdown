@@ -302,7 +302,7 @@ A `storage_data_disk` block supports the following:
 
 The following properties apply when using Managed Disks:
 
-* `managed_disk_type` - (Optional) Specifies the type of managed disk to create. Possible values are either `Standard_LRS` or `Premium_LRS`.
+* `managed_disk_type` - (Optional) Specifies the type of managed disk to create. Possible values are either `Standard_LRS`, `StandardSSD_LRS` or `Premium_LRS`.
 
 * `managed_disk_id` - (Optional) Specifies the ID of an Existing Managed Disk which should be attached to this Virtual Machine. When this field is set `create_option` must be set to `Attach`.
 
@@ -332,7 +332,7 @@ The following properties apply when using Managed Disks:
 
 * `managed_disk_id` - (Optional) Specifies the ID of an existing Managed Disk which should be attached as the OS Disk of this Virtual Machine. If this is set then the `create_option` must be set to `Attach`.
 
-* `managed_disk_type` - (Optional) Specifies the type of Managed Disk which should be created. Possible values are `Standard_LRS` or `Premium_LRS`.
+* `managed_disk_type` - (Optional) Specifies the type of Managed Disk which should be created. Possible values are `Standard_LRS`, `StandardSSD_LRS` or `Premium_LRS`.
 
 The following properties apply when using Unmanaged Disks:
 

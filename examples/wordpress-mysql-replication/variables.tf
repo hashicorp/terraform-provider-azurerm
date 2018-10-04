@@ -4,7 +4,7 @@
 # variable "subscription_id" {}
 
 variable "resource_group" {
-  description = "Resource group name into which your Spark and Cassandra deployment will go."
+  description = "Resource group name into which your WordPress and MySQL deployment will go."
 }
 
 variable "location" {

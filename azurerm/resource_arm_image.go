@@ -347,7 +347,7 @@ func flattenAzureRmImageDataDisks(diskImages *[]compute.ImageDataDisk) []interfa
 				l["size_gb"] = *disk.DiskSizeGB
 			}
 			l["lun"] = *disk.Lun
-			if disk.ManagedDisk != nil {
+			if disk.ManagedDisk != nil && disk.ManagedDisk.ID != nil {
 				l["managed_disk_id"] = *disk.ManagedDisk.ID
 			}
 

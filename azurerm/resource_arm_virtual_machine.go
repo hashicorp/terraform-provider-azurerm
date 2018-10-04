@@ -213,8 +213,9 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Computed:      true,
 							ConflictsWith: []string{"storage_os_disk.0.vhd_uri"},
 							ValidateFunc: validation.StringInSlice([]string{
-								string(compute.PremiumLRS),
-								string(compute.StandardLRS),
+								string(compute.StorageAccountTypesPremiumLRS),
+								string(compute.StorageAccountTypesStandardLRS),
+								string(compute.StorageAccountTypesStandardSSDLRS),
 							}, true),
 						},
 
@@ -285,8 +286,9 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Optional: true,
 							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(compute.PremiumLRS),
-								string(compute.StandardLRS),
+								string(compute.StorageAccountTypesPremiumLRS),
+								string(compute.StorageAccountTypesStandardLRS),
+								string(compute.StorageAccountTypesStandardSSDLRS),
 							}, true),
 						},
 
@@ -848,12 +850,16 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 		}
 
 		if osDisk.Vhd != nil {
-			if err = resourceArmVirtualMachineDeleteVhd(*osDisk.Vhd.URI, meta); err != nil {
-				return fmt.Errorf("Error deleting OS Disk VHD: %+v", err)
+			if osDisk.Vhd.URI != nil {
+				if err = resourceArmVirtualMachineDeleteVhd(*osDisk.Vhd.URI, meta); err != nil {
+					return fmt.Errorf("Error deleting OS Disk VHD: %+v", err)
+				}
 			}
 		} else if osDisk.ManagedDisk != nil {
-			if err = resourceArmVirtualMachineDeleteManagedDisk(*osDisk.ManagedDisk.ID, meta); err != nil {
-				return fmt.Errorf("Error deleting OS Managed Disk: %+v", err)
+			if osDisk.ManagedDisk.ID != nil {
+				if err = resourceArmVirtualMachineDeleteManagedDisk(*osDisk.ManagedDisk.ID, meta); err != nil {
+					return fmt.Errorf("Error deleting OS Managed Disk: %+v", err)
+				}
 			}
 		} else {
 			return fmt.Errorf("Unable to locate OS managed disk properties from %s", name)
@@ -1076,7 +1082,9 @@ func flattenAzureRmVirtualMachineDataDisk(disks *[]compute.DataDisk, disksInfo [
 		}
 		if disk.ManagedDisk != nil {
 			l["managed_disk_type"] = string(disk.ManagedDisk.StorageAccountType)
-			l["managed_disk_id"] = *disk.ManagedDisk.ID
+			if disk.ManagedDisk.ID != nil {
+				l["managed_disk_id"] = *disk.ManagedDisk.ID
+			}
 		}
 		l["create_option"] = disk.CreateOption
 		l["caching"] = string(disk.Caching)

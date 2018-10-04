@@ -131,7 +131,7 @@ resource "azurerm_application_gateway" "network" {
   url_path_map {
     name = "pbr.contoso.com"
     default_backend_address_pool_name = "${azurerm_virtual_network.vnet.name}-beap-fallback"
-    default_backend_http_settings_name = ${azurerm_virtual_network.vnet.name}-be-htst"
+    default_backend_http_settings_name = "${azurerm_virtual_network.vnet.name}-be-htst"
 
     path_rule {
       name = "pbr.contoso.com_first"
@@ -197,13 +197,17 @@ The `sku` block supports:
   * `Standard_Small`
   * `Standard_Medium`
   * `Standard_Large`
+  * `Standard_v2`
   * `WAF_Medium`
   * `WAF_Large`
+  * `WAF_v2`
 
 * `tier` - (Required) Supported values are:
 
   * `Standard`
+  * `Standard_v2`
   * `WAF`
+  * `WAF_v2`
 
 * `capacity` - (Required) Specifies instance count. Can be 1 to 10.
 

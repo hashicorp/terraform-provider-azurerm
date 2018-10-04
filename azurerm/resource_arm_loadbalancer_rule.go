@@ -78,13 +78,13 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 			"frontend_port": {
 				Type:         schema.TypeInt,
 				Required:     true,
-				ValidateFunc: validate.PortNumber,
+				ValidateFunc: validate.PortNumberOrZero,
 			},
 
 			"backend_port": {
 				Type:         schema.TypeInt,
 				Required:     true,
-				ValidateFunc: validate.PortNumber,
+				ValidateFunc: validate.PortNumberOrZero,
 			},
 
 			"probe_id": {

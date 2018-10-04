@@ -139,7 +139,7 @@ func TestAccAzureRMManagedDisk_update(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "acctest"),
 					resource.TestCheckResourceAttr(resourceName, "tags.cost-center", "ops"),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "1"),
-					resource.TestCheckResourceAttr(resourceName, "storage_account_type", string(compute.StandardLRS)),
+					resource.TestCheckResourceAttr(resourceName, "storage_account_type", string(compute.StorageAccountTypesStandardLRS)),
 				),
 			},
 			{
@@ -149,7 +149,7 @@ func TestAccAzureRMManagedDisk_update(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "acctest"),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "2"),
-					resource.TestCheckResourceAttr(resourceName, "storage_account_type", string(compute.PremiumLRS)),
+					resource.TestCheckResourceAttr(resourceName, "storage_account_type", string(compute.StorageAccountTypesPremiumLRS)),
 				),
 			},
 		},

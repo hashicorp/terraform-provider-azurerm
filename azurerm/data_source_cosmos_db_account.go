@@ -105,6 +105,24 @@ func dataSourceArmCosmosDBAccount() *schema.Resource {
 				},
 			},
 
+			"is_virtual_network_filter_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
+			"virtual_network_rule": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -183,6 +201,7 @@ func dataSourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("offer_type", string(props.DatabaseAccountOfferType))
 		d.Set("ip_range_filter", props.IPRangeFilter)
 		d.Set("endpoint", props.DocumentEndpoint)
+		d.Set("is_virtual_network_filter_enabled", resp.IsVirtualNetworkFilterEnabled)
 		d.Set("enable_automatic_failover", resp.EnableAutomaticFailover)
 
 		if err := d.Set("consistency_policy", flattenAzureRmCosmosDBAccountConsistencyPolicy(resp.ConsistencyPolicy)); err != nil {
@@ -204,6 +223,10 @@ func dataSourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) 
 
 		if err := d.Set("capabilities", flattenAzureRmCosmosDBAccountCapabilitiesAsList(resp.Capabilities)); err != nil {
 			return fmt.Errorf("Error setting `capabilities`: %+v", err)
+		}
+
+		if err := d.Set("virtual_network_rule", flattenAzureRmCosmosDBAccountVirtualNetworkRulesAsList(props.VirtualNetworkRules)); err != nil {
+			return fmt.Errorf("Error setting `virtual_network_rule`: %+v", err)
 		}
 
 		readEndpoints := make([]string, 0)
@@ -255,4 +278,18 @@ func flattenAzureRmCosmosDBAccountCapabilitiesAsList(capabilities *[]documentdb.
 	}
 
 	return &slice
+}
+
+func flattenAzureRmCosmosDBAccountVirtualNetworkRulesAsList(rules *[]documentdb.VirtualNetworkRule) []map[string]interface{} {
+	if rules == nil {
+		return []map[string]interface{}{}
+	}
+
+	virtualNetworkRules := make([]map[string]interface{}, len(*rules))
+	for i, r := range *rules {
+		virtualNetworkRules[i] = map[string]interface{}{
+			"id": *r.ID,
+		}
+	}
+	return virtualNetworkRules
 }
