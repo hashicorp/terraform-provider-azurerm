@@ -26,6 +26,21 @@ import (
 	"net/http"
 )
 
+// ContainerGroupIPAddressType enumerates the values for container group ip address type.
+type ContainerGroupIPAddressType string
+
+const (
+	// Private ...
+	Private ContainerGroupIPAddressType = "Private"
+	// Public ...
+	Public ContainerGroupIPAddressType = "Public"
+)
+
+// PossibleContainerGroupIPAddressTypeValues returns an array of possible values for the ContainerGroupIPAddressType const type.
+func PossibleContainerGroupIPAddressTypeValues() []ContainerGroupIPAddressType {
+	return []ContainerGroupIPAddressType{Private, Public}
+}
+
 // ContainerGroupNetworkProtocol enumerates the values for container group network protocol.
 type ContainerGroupNetworkProtocol string
 
@@ -73,6 +88,21 @@ func PossibleContainerNetworkProtocolValues() []ContainerNetworkProtocol {
 	return []ContainerNetworkProtocol{ContainerNetworkProtocolTCP, ContainerNetworkProtocolUDP}
 }
 
+// LogAnalyticsLogType enumerates the values for log analytics log type.
+type LogAnalyticsLogType string
+
+const (
+	// ContainerInsights ...
+	ContainerInsights LogAnalyticsLogType = "ContainerInsights"
+	// ContainerInstanceLogs ...
+	ContainerInstanceLogs LogAnalyticsLogType = "ContainerInstanceLogs"
+)
+
+// PossibleLogAnalyticsLogTypeValues returns an array of possible values for the LogAnalyticsLogType const type.
+func PossibleLogAnalyticsLogTypeValues() []LogAnalyticsLogType {
+	return []LogAnalyticsLogType{ContainerInsights, ContainerInstanceLogs}
+}
+
 // OperatingSystemTypes enumerates the values for operating system types.
 type OperatingSystemTypes string
 
@@ -101,6 +131,21 @@ const (
 // PossibleOperationsOriginValues returns an array of possible values for the OperationsOrigin const type.
 func PossibleOperationsOriginValues() []OperationsOrigin {
 	return []OperationsOrigin{System, User}
+}
+
+// Scheme enumerates the values for scheme.
+type Scheme string
+
+const (
+	// HTTP ...
+	HTTP Scheme = "http"
+	// HTTPS ...
+	HTTPS Scheme = "https"
+)
+
+// PossibleSchemeValues returns an array of possible values for the Scheme const type.
+func PossibleSchemeValues() []Scheme {
+	return []Scheme{HTTP, HTTPS}
 }
 
 // AzureFileVolume the properties of the Azure File volume. Azure File shares are mounted as volumes.
@@ -168,7 +213,13 @@ func (c *Container) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// ContainerExecRequest the start container exec request.
+// ContainerExec the container execution command, for liveness or readiness probe
+type ContainerExec struct {
+	// Command - The commands to execute within the container.
+	Command *[]string `json:"command,omitempty"`
+}
+
+// ContainerExecRequest the container exec request.
 type ContainerExecRequest struct {
 	// Command - The command to be executed.
 	Command *string `json:"command,omitempty"`
@@ -178,10 +229,10 @@ type ContainerExecRequest struct {
 
 // ContainerExecRequestTerminalSize the size of the terminal.
 type ContainerExecRequestTerminalSize struct {
-	// Row - The row size of the terminal
-	Row *int32 `json:"row,omitempty"`
-	// Column - The column size of the terminal
-	Column *int32 `json:"column,omitempty"`
+	// Rows - The row size of the terminal
+	Rows *int32 `json:"rows,omitempty"`
+	// Cols - The column size of the terminal
+	Cols *int32 `json:"cols,omitempty"`
 }
 
 // ContainerExecResponse the information for the container exec command.
@@ -302,6 +353,12 @@ func (cg *ContainerGroup) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// ContainerGroupDiagnostics container group diagnostic information.
+type ContainerGroupDiagnostics struct {
+	// LogAnalytics - Container group log analytics information.
+	LogAnalytics *LogAnalytics `json:"logAnalytics,omitempty"`
+}
+
 // ContainerGroupListResult the container group list response that contains the container group properties.
 type ContainerGroupListResult struct {
 	autorest.Response `json:"-"`
@@ -404,6 +461,12 @@ func (page ContainerGroupListResultPage) Values() []ContainerGroup {
 	return *page.cglr.Value
 }
 
+// ContainerGroupNetworkProfile container group network profile information.
+type ContainerGroupNetworkProfile struct {
+	// ID - The identifier for a network profile.
+	ID *string `json:"id,omitempty"`
+}
+
 // ContainerGroupProperties ...
 type ContainerGroupProperties struct {
 	// ProvisioningState - The provisioning state of the container group. This only appears in the response.
@@ -426,6 +489,10 @@ type ContainerGroupProperties struct {
 	Volumes *[]Volume `json:"volumes,omitempty"`
 	// InstanceView - The instance view of the container group. Only valid in response.
 	InstanceView *ContainerGroupPropertiesInstanceView `json:"instanceView,omitempty"`
+	// Diagnostics - The diagnostic information for a container group.
+	Diagnostics *ContainerGroupDiagnostics `json:"diagnostics,omitempty"`
+	// NetworkProfile - The network profile information for a container group.
+	NetworkProfile *ContainerGroupNetworkProfile `json:"networkProfile,omitempty"`
 }
 
 // ContainerGroupPropertiesInstanceView the instance view of the container group. Only valid in response.
@@ -465,12 +532,63 @@ func (future *ContainerGroupsCreateOrUpdateFuture) Result(client ContainerGroups
 	return
 }
 
+// ContainerGroupsRestartFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type ContainerGroupsRestartFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ContainerGroupsRestartFuture) Result(client ContainerGroupsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.Done(client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsRestartFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("containerinstance.ContainerGroupsRestartFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// ContainerHTTPGet the container Http Get settings, for liveness or readiness probe
+type ContainerHTTPGet struct {
+	// Path - The path to probe.
+	Path *string `json:"path,omitempty"`
+	// Port - The port number to probe.
+	Port *int32 `json:"port,omitempty"`
+	// Scheme - The scheme. Possible values include: 'HTTP', 'HTTPS'
+	Scheme Scheme `json:"scheme,omitempty"`
+}
+
 // ContainerPort the port exposed on the container instance.
 type ContainerPort struct {
 	// Protocol - The protocol associated with the port. Possible values include: 'ContainerNetworkProtocolTCP', 'ContainerNetworkProtocolUDP'
 	Protocol ContainerNetworkProtocol `json:"protocol,omitempty"`
 	// Port - The port number exposed within the container group.
 	Port *int32 `json:"port,omitempty"`
+}
+
+// ContainerProbe the container probe, for liveness or readiness
+type ContainerProbe struct {
+	// Exec - The execution command to probe
+	Exec *ContainerExec `json:"exec,omitempty"`
+	// HTTPGet - The Http Get settings to probe
+	HTTPGet *ContainerHTTPGet `json:"httpGet,omitempty"`
+	// InitialDelaySeconds - The initial delay seconds.
+	InitialDelaySeconds *int32 `json:"initialDelaySeconds,omitempty"`
+	// PeriodSeconds - The period seconds.
+	PeriodSeconds *int32 `json:"periodSeconds,omitempty"`
+	// FailureThreshold - The failure threshold.
+	FailureThreshold *int32 `json:"failureThreshold,omitempty"`
+	// SuccessThreshold - The success threshold.
+	SuccessThreshold *int32 `json:"successThreshold,omitempty"`
+	// TimeoutSeconds - The timeout seconds.
+	TimeoutSeconds *int32 `json:"timeoutSeconds,omitempty"`
 }
 
 // ContainerProperties the container instance properties.
@@ -489,6 +607,10 @@ type ContainerProperties struct {
 	Resources *ResourceRequirements `json:"resources,omitempty"`
 	// VolumeMounts - The volume mounts available to the container instance.
 	VolumeMounts *[]VolumeMount `json:"volumeMounts,omitempty"`
+	// LivenessProbe - The liveness probe.
+	LivenessProbe *ContainerProbe `json:"livenessProbe,omitempty"`
+	// ReadinessProbe - The readiness probe.
+	ReadinessProbe *ContainerProbe `json:"readinessProbe,omitempty"`
 }
 
 // ContainerPropertiesInstanceView the instance view of the container instance. Only valid in response.
@@ -523,6 +645,8 @@ type EnvironmentVariable struct {
 	Name *string `json:"name,omitempty"`
 	// Value - The value of the environment variable.
 	Value *string `json:"value,omitempty"`
+	// SecureValue - The value of the secure environment variable.
+	SecureValue *string `json:"secureValue,omitempty"`
 }
 
 // Event a container group or container instance event.
@@ -565,14 +689,44 @@ type ImageRegistryCredential struct {
 type IPAddress struct {
 	// Ports - The list of ports exposed on the container group.
 	Ports *[]Port `json:"ports,omitempty"`
-	// Type - Specifies if the IP is exposed to the public internet.
-	Type *string `json:"type,omitempty"`
+	// Type - Specifies if the IP is exposed to the public internet. Possible values include: 'Public', 'Private'
+	Type ContainerGroupIPAddressType `json:"type,omitempty"`
 	// IP - The IP exposed to the public internet.
 	IP *string `json:"ip,omitempty"`
 	// DNSNameLabel - The Dns name label for the IP.
 	DNSNameLabel *string `json:"dnsNameLabel,omitempty"`
 	// Fqdn - The FQDN for the IP.
 	Fqdn *string `json:"fqdn,omitempty"`
+}
+
+// LogAnalytics container group log analytics information.
+type LogAnalytics struct {
+	// WorkspaceID - The workspace id for log analytics
+	WorkspaceID *string `json:"workspaceId,omitempty"`
+	// WorkspaceKey - The workspace key for log analytics
+	WorkspaceKey *string `json:"workspaceKey,omitempty"`
+	// LogType - The log type to be used. Possible values include: 'ContainerInsights', 'ContainerInstanceLogs'
+	LogType LogAnalyticsLogType `json:"logType,omitempty"`
+	// Metadata - Metadata for log analytics.
+	Metadata map[string]*string `json:"metadata"`
+}
+
+// MarshalJSON is the custom marshaler for LogAnalytics.
+func (la LogAnalytics) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if la.WorkspaceID != nil {
+		objectMap["workspaceId"] = la.WorkspaceID
+	}
+	if la.WorkspaceKey != nil {
+		objectMap["workspaceKey"] = la.WorkspaceKey
+	}
+	if la.LogType != "" {
+		objectMap["logType"] = la.LogType
+	}
+	if la.Metadata != nil {
+		objectMap["metadata"] = la.Metadata
+	}
+	return json.Marshal(objectMap)
 }
 
 // Logs the logs.

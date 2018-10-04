@@ -91,7 +91,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `ip_address_type` - (Optional) Specifies the ip address type of the container. `Public` is the only acceptable value at this time. Changing this forces a new resource to be created.
+* `ip_address_type` - (Optional) Specifies the ip address type of the container. Allowed values are `Public` and `Private`. Changing this forces a new resource to be created.
 
 * `dns_name_label` - (Optional) The DNS label/name for the container groups IP.
 

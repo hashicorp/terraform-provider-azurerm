@@ -15,7 +15,7 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentials(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := acctest.RandInt()
 
-	config := testAccAzureRMContainerGroup_imageRegistryCredentials(ri, testLocation())
+	config := testAccAzureRMContainerGroup_imageRegistryCredentials(ri, testLocation(), "public")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -33,6 +33,45 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentials(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.1.server", "mine.acr.io"),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.1.username", "acrusername"),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.1.password", "acrpassword"),
+					resource.TestCheckResourceAttr(resourceName, "ip_address_type", "public"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"image_registry_credential.0.password",
+					"image_registry_credential.1.password",
+				},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMContainerGroup_imageRegistryCredentialsWithPrivateIPAdress(t *testing.T) {
+	resourceName := "azurerm_container_group.test"
+	ri := acctest.RandInt()
+
+	config := testAccAzureRMContainerGroup_imageRegistryCredentials(ri, testLocation(), "private")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.0.server", "hub.docker.com"),
+					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.0.username", "yourusername"),
+					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.0.password", "yourpassword"),
+					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.1.server", "mine.acr.io"),
+					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.1.username", "acrusername"),
+					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.1.password", "acrpassword"),
+					resource.TestCheckResourceAttr(resourceName, "ip_address_type", "private"),
 				),
 			},
 			{
@@ -52,7 +91,7 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := acctest.RandInt()
 
-	config := testAccAzureRMContainerGroup_imageRegistryCredentials(ri, testLocation())
+	config := testAccAzureRMContainerGroup_imageRegistryCredentials(ri, testLocation(), "public")
 	updated := testAccAzureRMContainerGroup_imageRegistryCredentialsUpdated(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
@@ -71,6 +110,7 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.1.server", "mine.acr.io"),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.1.username", "acrusername"),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.1.password", "acrpassword"),
+					resource.TestCheckResourceAttr(resourceName, "ip_address_type", "public"),
 				),
 			},
 			{
@@ -90,8 +130,7 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := acctest.RandInt()
-
-	config := testAccAzureRMContainerGroup_linuxBasic(ri, testLocation())
+	config := testAccAzureRMContainerGroup_linuxBasic(ri, testLocation(), "public")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -104,6 +143,39 @@ func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
 					testCheckAzureRMContainerGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Linux"),
+					resource.TestCheckResourceAttr(resourceName, "ip_address_type", "public"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"image_registry_credential.0.password",
+					"image_registry_credential.1.password",
+				},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMContainerGroup_linuxBasicWithPrivateIPAddress(t *testing.T) {
+	resourceName := "azurerm_container_group.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMContainerGroup_linuxBasic(ri, testLocation(), "private")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "os_type", "Linux"),
+					resource.TestCheckResourceAttr(resourceName, "ip_address_type", "private"),
 				),
 			},
 			{
@@ -123,7 +195,7 @@ func TestAccAzureRMContainerGroup_linuxBasicUpdate(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := acctest.RandInt()
 
-	config := testAccAzureRMContainerGroup_linuxBasic(ri, testLocation())
+	config := testAccAzureRMContainerGroup_linuxBasic(ri, testLocation(), "public")
 	updatedConfig := testAccAzureRMContainerGroup_linuxBasicUpdated(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
@@ -196,8 +268,7 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 func TestAccAzureRMContainerGroup_windowsBasic(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := acctest.RandInt()
-
-	config := testAccAzureRMContainerGroup_windowsBasic(ri, testLocation())
+	config := testAccAzureRMContainerGroup_windowsBasic(ri, testLocation(), "public")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -210,6 +281,35 @@ func TestAccAzureRMContainerGroup_windowsBasic(t *testing.T) {
 					testCheckAzureRMContainerGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Windows"),
+					resource.TestCheckResourceAttr(resourceName, "ip_address_type", "public"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMContainerGroup_windowsBasicWithPrivateIPAddress(t *testing.T) {
+	resourceName := "azurerm_container_group.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMContainerGroup_windowsBasic(ri, testLocation(), "private")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "os_type", "Windows"),
+					resource.TestCheckResourceAttr(resourceName, "ip_address_type", "private"),
 				),
 			},
 			{
@@ -258,7 +358,7 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 	})
 }
 
-func testAccAzureRMContainerGroup_linuxBasic(ri int, location string) string {
+func testAccAzureRMContainerGroup_linuxBasic(ri int, location string, ipAddressType string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -269,7 +369,7 @@ resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  ip_address_type     = "public"
+  ip_address_type     = "%s"
   os_type             = "linux"
 
   container {
@@ -277,17 +377,17 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-	port   = "80"
+    port   = "80"
   }
 
   tags {
     environment = "Testing"
   }
 }
-`, ri, location, ri)
+`, ri, location, ri, ipAddressType)
 }
 
-func testAccAzureRMContainerGroup_imageRegistryCredentials(ri int, location string) string {
+func testAccAzureRMContainerGroup_imageRegistryCredentials(ri int, location string, ipAddressType string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -298,7 +398,7 @@ resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  ip_address_type     = "public"
+  ip_address_type     = "%s"
   os_type             = "linux"
 
   container {
@@ -306,7 +406,7 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-	  port   = "80"
+    port   = "80"
   }
   
   image_registry_credential {
@@ -332,7 +432,7 @@ resource "azurerm_container_group" "test" {
     environment = "Testing"
   }
 }
-`, ri, location, ri)
+`, ri, location, ri, ipAddressType)
 }
 
 func testAccAzureRMContainerGroup_imageRegistryCredentialsUpdated(ri int, location string) string {
@@ -354,7 +454,7 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-	  port   = "80"
+    port   = "80"
   }
   
   image_registry_credential {
@@ -396,7 +496,7 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-	port   = "80"
+    port   = "80"
   }
 
   container {
@@ -413,7 +513,7 @@ resource "azurerm_container_group" "test" {
 `, ri, location, ri)
 }
 
-func testAccAzureRMContainerGroup_windowsBasic(ri int, location string) string {
+func testAccAzureRMContainerGroup_windowsBasic(ri int, location string, ipAddressType string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -424,7 +524,7 @@ resource "azurerm_container_group" "test" {
   name                = "acctestcontainergroup-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  ip_address_type     = "public"
+  ip_address_type     = "%s"
   os_type             = "windows"
 
   container {
@@ -439,7 +539,7 @@ resource "azurerm_container_group" "test" {
     environment = "Testing"
   }
 }
-`, ri, location, ri)
+`, ri, location, ri, ipAddressType)
 }
 
 func testAccAzureRMContainerGroup_windowsComplete(ri int, location string) string {
@@ -465,11 +565,11 @@ resource "azurerm_container_group" "test" {
     memory = "3.5"
     port   = "80"
 
-	environment_variables {
-		"foo"  = "bar"
-		"foo1" = "bar1"
-	}
-	commands = ["cmd.exe", "echo", "hi"]
+    environment_variables {
+        "foo"  = "bar"
+        "foo1" = "bar1"
+    }
+    commands = ["cmd.exe", "echo", "hi"]
   }
 
   tags {
@@ -482,66 +582,66 @@ resource "azurerm_container_group" "test" {
 func testAccAzureRMContainerGroup_linuxComplete(ri int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
+    name     = "acctestRG-%d"
+    location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
-	name                     = "accsa%d"
-	resource_group_name      = "${azurerm_resource_group.test.name}"
-	location                 = "${azurerm_resource_group.test.location}"
-	account_tier             = "Standard"
-	account_replication_type = "LRS"
+    name                     = "accsa%d"
+    resource_group_name      = "${azurerm_resource_group.test.name}"
+    location                 = "${azurerm_resource_group.test.location}"
+    account_tier             = "Standard"
+    account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_share" "test" {
-	name = "acctestss-%d"
+    name = "acctestss-%d"
 
-	resource_group_name  = "${azurerm_resource_group.test.name}"
-	storage_account_name = "${azurerm_storage_account.test.name}"
+    resource_group_name  = "${azurerm_resource_group.test.name}"
+    storage_account_name = "${azurerm_storage_account.test.name}"
 
-	quota = 50
+    quota = 50
 }
 
 resource "azurerm_container_group" "test" {
-	name                = "acctestcontainergroup-%d"
-	location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	ip_address_type     = "public"
-	dns_name_label      = "acctestcontainergroup-%d"
-	os_type             = "linux"
-	restart_policy      = "OnFailure"
+    name                = "acctestcontainergroup-%d"
+    location            = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    ip_address_type     = "public"
+    dns_name_label      = "acctestcontainergroup-%d"
+    os_type             = "linux"
+    restart_policy      = "OnFailure"
 
-	container {
-		name   = "hf"
-		image  = "seanmckenna/aci-hellofiles"
-		cpu    = "1"
-		memory = "1.5"
+    container {
+        name   = "hf"
+        image  = "seanmckenna/aci-hellofiles"
+        cpu    = "1"
+        memory = "1.5"
 
-		port     = "80"
-		protocol = "TCP"
+        port     = "80"
+        protocol = "TCP"
 
-		volume {
-			name       = "logs"
-			mount_path = "/aci/logs"
-			read_only  = false
-			share_name = "${azurerm_storage_share.test.name}"
+        volume {
+            name       = "logs"
+            mount_path = "/aci/logs"
+            read_only  = false
+            share_name = "${azurerm_storage_share.test.name}"
 
-			storage_account_name = "${azurerm_storage_account.test.name}"
-			storage_account_key = "${azurerm_storage_account.test.primary_access_key}"
-		}
+            storage_account_name = "${azurerm_storage_account.test.name}"
+            storage_account_key = "${azurerm_storage_account.test.primary_access_key}"
+        }
 
-		environment_variables {
-			"foo" = "bar"
-			"foo1" = "bar1"
-		}
+        environment_variables {
+            "foo" = "bar"
+            "foo1" = "bar1"
+        }
 
-		commands = ["/bin/bash", "-c", "ls"]
-	}
+        commands = ["/bin/bash", "-c", "ls"]
+    }
 
-	tags {
-		environment = "Testing"
-	}
+    tags {
+        environment = "Testing"
+    }
 }
 `, ri, location, ri, ri, ri, ri)
 }
