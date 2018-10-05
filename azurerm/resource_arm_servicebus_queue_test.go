@@ -597,7 +597,7 @@ resource "azurerm_servicebus_queue" "test" {
     name = "acctestservicebusqueue-%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
-    maxDeliveryCount = 20
+    max_delivery_count = 20
 }
 `, rInt, location, rInt, rInt)
 }
