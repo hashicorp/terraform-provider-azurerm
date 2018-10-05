@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -64,9 +65,10 @@ import (
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
 	uuid "github.com/hashicorp/go-uuid"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform/httpclient"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/authentication"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/terraform-providers/terraform-provider-azurerm/version"
 )
 
 // ArmClient contains the handles to all the specific Azure Resource Manager
@@ -338,18 +340,16 @@ func withRequestLogging() autorest.SendDecorator {
 }
 
 func setUserAgent(client *autorest.Client) {
-	tfVersion := fmt.Sprintf("HashiCorp-Terraform-v%s", terraform.VersionString())
+	// TODO: This is the SDK version not the CLI version, once we are on 0.12, should revisit
+	tfUserAgent := httpclient.UserAgentString()
 
-	// if the user agent already has a value append the Terraform user agent string
-	if curUserAgent := client.UserAgent; curUserAgent != "" {
-		client.UserAgent = fmt.Sprintf("%s;%s", curUserAgent, tfVersion)
-	} else {
-		client.UserAgent = tfVersion
-	}
+	pv := version.ProviderVersion
+	providerUserAgent := fmt.Sprintf("%s terraform-provider-azurerm/%s", tfUserAgent, pv)
+	client.UserAgent = strings.TrimSpace(fmt.Sprintf("%s %s", client.UserAgent, providerUserAgent))
 
 	// append the CloudShell version to the user agent if it exists
 	if azureAgent := os.Getenv("AZURE_HTTP_USER_AGENT"); azureAgent != "" {
-		client.UserAgent = fmt.Sprintf("%s;%s", client.UserAgent, azureAgent)
+		client.UserAgent = fmt.Sprintf("%s %s", client.UserAgent, azureAgent)
 	}
 
 	log.Printf("[DEBUG] AzureRM Client User Agent: %s\n", client.UserAgent)
