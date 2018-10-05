@@ -296,6 +296,8 @@ type ArmClient struct {
 	ifaceClient                     network.InterfacesClient
 	loadBalancerClient              network.LoadBalancersClient
 	localNetConnClient              network.LocalNetworkGatewaysClient
+	netProfileClient                network.ProfilesClient
+	netUsageClient                  network.UsagesClient
 	packetCapturesClient            network.PacketCapturesClient
 	publicIPClient                  network.PublicIPAddressesClient
 	publicIPPrefixClient            network.PublicIPPrefixesClient
@@ -1147,6 +1149,10 @@ func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, a
 	gatewayConnectionsClient := network.NewVirtualNetworkGatewayConnectionsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&gatewayConnectionsClient.Client, auth)
 	c.vnetGatewayConnectionsClient = gatewayConnectionsClient
+
+	netProfileClient := network.NewProfilesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&netProfileClient.Client, auth)
+	c.netProfileClient = netProfileClient
 
 	networksClient := network.NewVirtualNetworksClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&networksClient.Client, auth)

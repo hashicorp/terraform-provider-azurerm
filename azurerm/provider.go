@@ -346,6 +346,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_network_interface_nat_rule_association":                                 resourceArmNetworkInterfaceNatRuleAssociation(),
 			"azurerm_network_interface":                                                      resourceArmNetworkInterface(),
 			"azurerm_network_packet_capture":                                                 resourceArmNetworkPacketCapture(),
+			"azurerm_network_profile":                                                        resourceArmNetworkProfile(),
 			"azurerm_network_security_group":                                                 resourceArmNetworkSecurityGroup(),
 			"azurerm_network_security_rule":                                                  resourceArmNetworkSecurityRule(),
 			"azurerm_network_watcher":                                                        resourceArmNetworkWatcher(),
