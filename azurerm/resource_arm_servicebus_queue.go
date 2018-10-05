@@ -117,6 +117,12 @@ func resourceArmServiceBusQueue() *schema.Resource {
 				Optional:   true,
 				Deprecated: "This field has been removed by Azure.",
 			},
+
+			"max_delivery_count": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Default:  10,
+			},
 		},
 	}
 }
@@ -133,6 +139,7 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 	enableExpress := d.Get("enable_express").(bool)
 	enablePartitioning := d.Get("enable_partitioning").(bool)
 	maxSize := int32(d.Get("max_size_in_megabytes").(int))
+	maxDeliveryCount := int32(d.Get("max_delivery_count").(int))
 	requiresDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
 	requiresSession := d.Get("requires_session").(bool)
 	deadLetteringOnMessageExpiration := d.Get("dead_lettering_on_message_expiration").(bool)
@@ -143,6 +150,7 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 			EnableExpress:                    &enableExpress,
 			EnablePartitioning:               &enablePartitioning,
 			MaxSizeInMegabytes:               &maxSize,
+			MaxDeliveryCount:                 &maxDeliveryCount,
 			RequiresDuplicateDetection:       &requiresDuplicateDetection,
 			RequiresSession:                  &requiresSession,
 			DeadLetteringOnMessageExpiration: &deadLetteringOnMessageExpiration,

@@ -254,6 +254,33 @@ func TestAccAzureRMServiceBusQueue_isoTimeSpanAttributes(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMServiceBusQueue_maxDeliveryCount(t *testing.T) {
+	resourceName := "azurerm_servicebus_queue.test"
+	location := testLocation()
+	ri := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceBusQueue_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusQueueExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "max_delivery_count", "10"),
+				),
+			},
+			{
+				Config: testAccAzureRMServiceBusQueue_maxDeliveryCount(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "max_delivery_count", "20"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMServiceBusQueueDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).serviceBusQueuesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -548,6 +575,29 @@ resource "azurerm_servicebus_queue" "test" {
     default_message_ttl          = "PT30M"
     requires_duplicate_detection = true
     duplicate_detection_history_time_window = "PT15M"
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMServiceBusQueue_maxDeliveryCount(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+    name = "acctestservicebusnamespace-%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    location = "${azurerm_resource_group.test.location}"
+    sku = "standard"
+}
+
+resource "azurerm_servicebus_queue" "test" {
+    name = "acctestservicebusqueue-%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    namespace_name = "${azurerm_servicebus_namespace.test.name}"
+    maxDeliveryCount = 20
 }
 `, rInt, location, rInt, rInt)
 }
