@@ -31,6 +31,7 @@ func TestAccDataSourceAzureRMPublicIP_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "idle_timeout_in_minutes", "30"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "fqdn"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "ip_address"),
+					resource.TestCheckResourceAttr(dataSourceName, "ip_version", "IPv4"),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.environment", "test"),
 				),
