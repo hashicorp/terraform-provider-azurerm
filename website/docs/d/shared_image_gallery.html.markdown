@@ -3,13 +3,13 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_shared_image_gallery"
 sidebar_current: "docs-azurerm-datasource-shared-image-gallery"
 description: |-
-  Gets information about the specified Shared Image Gallery.
+  Gets information about an existing Shared Image Gallery.
 
 ---
 
 # Data Source: azurerm_shared_image_gallery
 
-Gets information about the specified Shared Image Gallery.
+Use this data source to access information about an existing Shared Image Gallery.
 
 -> **NOTE** Shared Image Galleries are currently in Public Preview. You can find more information, including [how to register for the Public Preview here](https://azure.microsoft.com/en-gb/blog/announcing-the-public-preview-of-shared-image-gallery/).
 

@@ -3,13 +3,13 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_lake_store"
 sidebar_current: "docs-azurerm-datasource-data-lake-store"
 description: |-
-  Get information about a Data Lake Store
+  Gets information about an existing Data Lake Store
 
 ---
 
 # Data Source: azurerm_data_lake_store
 
-Use this data source to obtain information about a Data Lake Store.
+Use this data source to access information about an existing Data Lake Store.
 
 ## Example Usage
 
