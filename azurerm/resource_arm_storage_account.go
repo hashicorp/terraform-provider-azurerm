@@ -742,6 +742,7 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	// the networking api's only allow a single change to be made to a network layout at once, so let's lock to handle that
 	virtualNetworkNames := make([]string, 0)
 	if props := read.AccountProperties; props != nil {
 		if rules := props.NetworkRuleSet; rules != nil {
