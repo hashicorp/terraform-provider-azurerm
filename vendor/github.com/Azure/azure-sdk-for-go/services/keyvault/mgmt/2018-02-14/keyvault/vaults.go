@@ -79,7 +79,7 @@ func (client VaultsClient) CheckNameAvailabilityPreparer(ctx context.Context, va
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "2018-02-14"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -119,7 +119,7 @@ func (client VaultsClient) CheckNameAvailabilityResponder(resp *http.Response) (
 // resourceGroupName - the name of the Resource Group to which the server belongs.
 // vaultName - name of the vault
 // parameters - parameters to create or update the vault
-func (client VaultsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, vaultName string, parameters VaultCreateOrUpdateParameters) (result Vault, err error) {
+func (client VaultsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, vaultName string, parameters VaultCreateOrUpdateParameters) (result VaultsCreateOrUpdateFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: vaultName,
 			Constraints: []validation.Constraint{{Target: "vaultName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9-]{3,24}$`, Chain: nil}}},
@@ -139,16 +139,10 @@ func (client VaultsClient) CreateOrUpdate(ctx context.Context, resourceGroupName
 		return
 	}
 
-	resp, err := client.CreateOrUpdateSender(req)
+	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "keyvault.VaultsClient", "CreateOrUpdate", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "keyvault.VaultsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
-	}
-
-	result, err = client.CreateOrUpdateResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "keyvault.VaultsClient", "CreateOrUpdate", resp, "Failure responding to request")
 	}
 
 	return
@@ -162,7 +156,7 @@ func (client VaultsClient) CreateOrUpdatePreparer(ctx context.Context, resourceG
 		"vaultName":         autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "2018-02-14"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -179,9 +173,19 @@ func (client VaultsClient) CreateOrUpdatePreparer(ctx context.Context, resourceG
 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
-func (client VaultsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
+func (client VaultsClient) CreateOrUpdateSender(req *http.Request) (future VaultsCreateOrUpdateFuture, err error) {
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, req,
 		azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -231,7 +235,7 @@ func (client VaultsClient) DeletePreparer(ctx context.Context, resourceGroupName
 		"vaultName":         autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "2018-02-14"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -297,7 +301,7 @@ func (client VaultsClient) GetPreparer(ctx context.Context, resourceGroupName st
 		"vaultName":         autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "2018-02-14"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -364,7 +368,7 @@ func (client VaultsClient) GetDeletedPreparer(ctx context.Context, vaultName str
 		"vaultName":      autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "2018-02-14"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -528,7 +532,7 @@ func (client VaultsClient) ListByResourceGroupPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "2018-02-14"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -623,7 +627,7 @@ func (client VaultsClient) ListBySubscriptionPreparer(ctx context.Context, top *
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "2018-02-14"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -716,7 +720,7 @@ func (client VaultsClient) ListDeletedPreparer(ctx context.Context) (*http.Reque
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "2018-02-14"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -804,7 +808,7 @@ func (client VaultsClient) PurgeDeletedPreparer(ctx context.Context, vaultName s
 		"vaultName":      autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "2018-02-14"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -887,7 +891,7 @@ func (client VaultsClient) UpdatePreparer(ctx context.Context, resourceGroupName
 		"vaultName":         autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "2018-02-14"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -968,7 +972,7 @@ func (client VaultsClient) UpdateAccessPolicyPreparer(ctx context.Context, resou
 		"vaultName":         autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2016-10-01"
+	const APIVersion = "2018-02-14"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
