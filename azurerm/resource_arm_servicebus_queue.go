@@ -241,6 +241,7 @@ func resourceArmServiceBusQueueRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
 		d.Set("requires_session", props.RequiresSession)
 		d.Set("dead_lettering_on_message_expiration", props.DeadLetteringOnMessageExpiration)
+		d.Set("max_delivery_count", props.MaxDeliveryCount)
 
 		if maxSizeMB := props.MaxSizeInMegabytes; maxSizeMB != nil {
 			maxSize := int(*maxSizeMB)
