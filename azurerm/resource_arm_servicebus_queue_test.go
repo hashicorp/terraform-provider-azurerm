@@ -59,6 +59,11 @@ func TestAccAzureRMServiceBusQueue_update(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "max_size_in_megabytes", "2048"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
