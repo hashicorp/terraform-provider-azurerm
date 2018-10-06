@@ -104,6 +104,15 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 										Required:     true,
 										ValidateFunc: validation.NoZeroValues,
 									},
+									"operator": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"Include",
+											"Exclude",
+										}, true),
+										DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+									},
 									"values": {
 										Type:     schema.TypeList,
 										Required: true,
@@ -111,10 +120,6 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
 										},
-									},
-									"operator": {
-										Type:     schema.TypeString,
-										Optional: true,
 									},
 								},
 							},
