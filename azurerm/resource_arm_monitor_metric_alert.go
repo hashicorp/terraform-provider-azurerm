@@ -35,10 +35,14 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameSchema(),
 
+			// TODO: Multiple resource IDs (Remove MaxItems) support is missing in SDK
+			// Issue to track: https://github.com/Azure/azure-sdk-for-go/issues/2920
+			// But to prevent potential state migration in the future, let's stick to use Set now
 			"scopes": {
 				Type:     schema.TypeSet,
 				Required: true,
 				MinItems: 1,
+				MaxItems: 1,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
@@ -141,6 +145,12 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 				Set: resourceArmMonitorMetricAlertActionHash,
 			},
 
+			"auto_mitigate": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -201,13 +211,14 @@ func resourceArmMonitorMetricAlertCreateOrUpdate(d *schema.ResourceData, meta in
 	resGroup := d.Get("resource_group_name").(string)
 
 	enabled := d.Get("enabled").(bool)
+	autoMitigate := d.Get("auto_mitigate").(bool)
 	description := d.Get("description").(string)
 	scopesRaw := d.Get("scopes").(*schema.Set).List()
 	severity := d.Get("severity").(int)
 	frequency := d.Get("frequency").(string)
 	windowSize := d.Get("window_size").(string)
 	criteriaRaw := d.Get("criteria").([]interface{})
-	actionRaw := d.Get("action").([]interface{})
+	actionRaw := d.Get("action").(*schema.Set).List()
 
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
@@ -216,6 +227,7 @@ func resourceArmMonitorMetricAlertCreateOrUpdate(d *schema.ResourceData, meta in
 		Location: utils.String(azureRMNormalizeLocation("Global")),
 		MetricAlertProperties: &insights.MetricAlertProperties{
 			Enabled:             utils.Bool(enabled),
+			AutoMitigate:        utils.Bool(autoMitigate),
 			Description:         utils.String(description),
 			Severity:            utils.Int32(int32(severity)),
 			EvaluationFrequency: utils.String(frequency),
@@ -268,6 +280,7 @@ func resourceArmMonitorMetricAlertRead(d *schema.ResourceData, meta interface{})
 	d.Set("resource_group_name", resGroup)
 	if alert := resp.MetricAlertProperties; alert != nil {
 		d.Set("enabled", alert.Enabled)
+		d.Set("auto_mitigate", alert.AutoMitigate)
 		d.Set("description", alert.Description)
 		d.Set("severity", alert.Severity)
 		d.Set("frequency", alert.EvaluationFrequency)
