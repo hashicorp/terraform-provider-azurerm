@@ -1249,6 +1249,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
       primary = true
       ip_configuration {
         name = "TestIPConfiguration"
+        primary = true
         subnet_id = "${azurerm_subnet.test.id}"
       }
   }
@@ -1424,6 +1425,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 			accelerated_networking = true
       ip_configuration {
         name = "TestIPConfiguration"
+        primary = true
         subnet_id = "${azurerm_subnet.test.id}"
       }
   }
@@ -1509,6 +1511,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 	  ip_forwarding = true
       ip_configuration {
         name = "TestIPConfiguration"
+        primary = true
         subnet_id = "${azurerm_subnet.test.id}"
       }
   }
@@ -1596,6 +1599,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 	  }
       ip_configuration {
         name = "TestIPConfiguration"
+        primary = true
         subnet_id = "${azurerm_subnet.test.id}"
       }
   }
@@ -1684,6 +1688,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
       primary = true
       ip_configuration {
         name = "TestIPConfiguration"
+        primary = true
         subnet_id = "${azurerm_subnet.test.id}"
       }
   }
@@ -1874,6 +1879,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
       primary = true
       ip_configuration {
         name = "TestIPConfiguration"
+        primary = true
         subnet_id = "${azurerm_subnet.test.id}"
       }
   }
@@ -2070,6 +2076,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     primary = true
     ip_configuration {
       name                                   = "TestIPConfiguration"
+      primary                                = true
       subnet_id                              = "${azurerm_subnet.test.id}"
       load_balancer_backend_address_pool_ids = ["${azurerm_lb_backend_address_pool.test.id}"]
     }
@@ -2183,6 +2190,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     primary = true
     ip_configuration {
       name                                   = "TestIPConfiguration"
+      primary                                = true
       subnet_id                              = "${azurerm_subnet.test.id}"
       load_balancer_backend_address_pool_ids = ["${azurerm_lb_backend_address_pool.test.id}"]
     }
@@ -2301,6 +2309,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     primary = true
     ip_configuration {
       name                                   = "TestIPConfiguration"
+      primary                                = true
       subnet_id                              = "${azurerm_subnet.test.id}"
       load_balancer_backend_address_pool_ids = ["${azurerm_lb_backend_address_pool.test.id}"]
     }
@@ -2368,6 +2377,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     primary = true
     ip_configuration {
       name = "TestIPConfiguration"
+      primary = true
       subnet_id = "${azurerm_subnet.test.id}"
     }
   }
@@ -2434,6 +2444,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
         primary = true
         ip_configuration {
             name = "TestIPConfiguration"
+            primary = true
             subnet_id = "${azurerm_subnet.test.id}"
         }
     }
@@ -2517,6 +2528,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     primary = true
     ip_configuration {
       name = "TestIPConfiguration"
+      primary = true
       subnet_id = "${azurerm_subnet.test.id}"
     }
   }
@@ -2582,6 +2594,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     primary = true
     ip_configuration {
       name = "TestIPConfiguration"
+      primary = true
       subnet_id = "${azurerm_subnet.test.id}"
     }
   }
@@ -2662,6 +2675,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
     ip_configuration {
       name                                         = "TestIPConfiguration"
+      primary                                      = true
       subnet_id                                    = "${azurerm_subnet.test.id}"
       application_gateway_backend_address_pool_ids = ["${azurerm_application_gateway.test.backend_address_pool.0.id}"]
     }
@@ -2887,6 +2901,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
     ip_configuration {
       name                                   = "TestIPConfiguration"
+      primary                                = true
       subnet_id                              = "${azurerm_subnet.test.id}"
       load_balancer_backend_address_pool_ids = ["${azurerm_lb_backend_address_pool.test.id}"]
       load_balancer_inbound_nat_rules_ids    = ["${azurerm_lb_nat_pool.test.id}"]
@@ -2972,6 +2987,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
     ip_configuration {
       name      = "TestIPConfiguration"
+      primary   = true
       subnet_id = "${azurerm_subnet.test.id}"
     }
   }
@@ -3056,6 +3072,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
     ip_configuration {
       name      = "TestIPConfiguration"
+      primary   = true
       subnet_id = "${azurerm_subnet.test.id}"
     }
   }
@@ -3151,6 +3168,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
     ip_configuration {
       name      = "TestIPConfiguration"
+      primary   = true
       subnet_id = "${azurerm_subnet.test.id}"
     }
   }
@@ -3254,6 +3272,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
     ip_configuration {
       name      = "TestIPConfiguration"
+      primary   = true
       subnet_id = "${azurerm_subnet.test.id}"
     }
   }
@@ -3345,6 +3364,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
     ip_configuration {
       name      = "TestIPConfiguration"
+      primary   = true
       subnet_id = "${azurerm_subnet.test.id}"
     }
   }
@@ -3456,6 +3476,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
     ip_configuration {
       name      = "TestIPConfiguration"
+      primary   = true
       subnet_id = "${azurerm_subnet.test.id}"
     }
   }
@@ -3560,6 +3581,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
     ip_configuration {
       name      = "TestIPConfiguration"
+      primary   = true
       subnet_id = "${azurerm_subnet.test.id}"
     }
   }
@@ -3656,6 +3678,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
     ip_configuration {
       name      = "TestIPConfiguration"
+      primary   = true
       subnet_id = "${azurerm_subnet.test.id}"
     }
   }
@@ -3742,6 +3765,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
     ip_configuration {
       name                                   = "TestIPConfiguration"
+      primary                                = true
       subnet_id                              = "${azurerm_subnet.test.id}"
       load_balancer_backend_address_pool_ids = ["${azurerm_lb_backend_address_pool.test.id}"]
     }
@@ -3837,6 +3861,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
     ip_configuration {
       name      = "TestIPConfiguration"
+      primary   = true
       subnet_id = "${azurerm_subnet.test.id}"
     }
   }
@@ -3902,6 +3927,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
       primary = true
       ip_configuration {
         name = "TestIPConfiguration"
+      primary = true
         subnet_id = "${azurerm_subnet.test.id}"
       }
   }
@@ -4073,6 +4099,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
       primary = true
       ip_configuration {
         name = "TestIPConfiguration"
+        primary = true
         subnet_id = "${azurerm_subnet.test.id}"
       }
   }
@@ -4149,6 +4176,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
       primary = true
       ip_configuration {
         name = "primary"
+        primary = true
         subnet_id = "${azurerm_subnet.test.id}"
       }
   }
@@ -4158,6 +4186,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
       primary = false
       ip_configuration {
         name = "secondary"
+        primary = true
         subnet_id = "${azurerm_subnet.test.id}"
       }
   }
