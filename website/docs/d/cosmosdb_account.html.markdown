@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cosmosdb_account"
 sidebar_current: "docs-azurerm-datasource-azurerm-cosmosdb-account"
 description: |-
-  Get information about the specified CosmosDB (formally DocumentDB) Account.
+  Gets information about the specified CosmosDB (formally DocumentDB) Account.
 ---
 
 # Data Source: azurerm_cosmosdb_account
 
-Use this data source to access the properties of an Azure CosmosDB (formally DocumentDB) Account.
+Use this data source to access information about an existing CosmosDB (formally DocumentDB) Account.
 
 ## Example Usage
 
@@ -27,9 +27,9 @@ output "cosmosdb_account_endpoint" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the CosmosDB Account. 
+* `name` - (Required) Specifies the name of the CosmosDB Account.
 
-* `resource_group_name` - (Required) Specifies the name of the resource group in which the CosmosDB Account resides. 
+* `resource_group_name` - (Required) Specifies the name of the resource group in which the CosmosDB Account resides.
 
 ## Attributes Reference
 
@@ -37,7 +37,7 @@ The following attributes are exported:
 
 * `id` - The ID of the CosmosDB Account.
 
-* `location` - The Azure location where the resource exists. 
+* `location` - The Azure location where the resource exists.
 
 * `tags` - A mapping of tags assigned to the resource.
 
@@ -57,8 +57,8 @@ The following attributes are exported:
 
 `consistency_policy` The current consistency Settings for this CosmosDB account with the following properties:
 
-* `consistency_level` - The Consistency Level used by this CosmosDB Account. 
-* `max_interval_in_seconds` - The amount of staleness (in seconds) tolerated when the consistency level is Bounded Staleness. 
+* `consistency_level` - The Consistency Level used by this CosmosDB Account.
+* `max_interval_in_seconds` - The amount of staleness (in seconds) tolerated when the consistency level is Bounded Staleness.
 * `max_staleness_prefix` - The number of stale requests tolerated when the consistency level is Bounded Staleness.  
 
 

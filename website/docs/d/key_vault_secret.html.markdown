@@ -3,13 +3,13 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_key_vault_secret"
 sidebar_current: "docs-azurerm-data-source-key-vault-secret"
 description: |-
-  Returns information about the specified Key Vault Secret.
+  Gets information about an existing Key Vault Secret.
 
 ---
 
 # Data Source: azurerm_key_vault_secret
 
-Returns information about the specified Key Vault Secret.
+Use this data source to access information about an existing Key Vault Secret.
 
 ~> **Note:** All arguments including the secret value will be stored in the raw state as plain-text.
 [Read more about sensitive data in state](/docs/state/sensitive-data.html).

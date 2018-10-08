@@ -3,13 +3,13 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_image"
 sidebar_current: "docs-azurerm-datasource-image"
 description: |-
-  Get information about an Image
+  Gets information about an existing Image
 
 ---
 
 # Data Source: azurerm_image
 
-Use this data source to access information about an Image.
+Use this data source to access information about an existing Image.
 
 ## Example Usage
 
