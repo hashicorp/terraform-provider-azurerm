@@ -179,10 +179,10 @@
 			"versionExact": "v21.1.0"
 		},
 		{
-			"checksumSHA1": "IuVbe3ojCOe3uu8O/svJO1H5bD0=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network",
+			"checksumSHA1": "YbNPUuNQP52LSmpqs1wSSUkW4i4=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network",
 			"revision": "6d20bdbae88c06c36d72eb512295417693bfdf4e",
-			"revisionTime": "2018-09-28T00:20:07Z",
+			"revisionTime": "2018-09-27T22:44:43Z",
 			"version": "v21.1.0",
 			"versionExact": "v21.1.0"
 		},

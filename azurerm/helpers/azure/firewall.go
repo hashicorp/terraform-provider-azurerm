@@ -3,10 +3,10 @@ package azure
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 )
 
-// The API requires InternalPublicIPAddress to be set when for a CreateOrUpdate
+// The API requires PublicIPAddress to be set when for a CreateOrUpdate
 // operation, but Get operations return the property as PublicIPAddress
 // so we need to go through and copy the value to the correct property.
 func FirewallFixIPConfiguration(input *[]network.AzureFirewallIPConfiguration) (*[]network.AzureFirewallIPConfiguration, error) {
@@ -30,7 +30,7 @@ func FirewallFixIPConfiguration(input *[]network.AzureFirewallIPConfiguration) (
 				Subnet: &network.SubResource{
 					ID: config.Subnet.ID,
 				},
-				InternalPublicIPAddress: &network.SubResource{
+				PublicIPAddress: &network.SubResource{
 					ID: config.PublicIPAddress.ID,
 				},
 			},
