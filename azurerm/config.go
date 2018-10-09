@@ -43,6 +43,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/management"
+	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/2017-08-01-preview/security"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
@@ -251,6 +252,9 @@ type ArmClient struct {
 
 	// Search
 	searchServicesClient search.ServicesClient
+
+	// Security Centre
+	securityCenterPricingClient security.PricingsClient
 
 	// ServiceBus
 	serviceBusQueuesClient            servicebus.QueuesClient
@@ -492,6 +496,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerRelayClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerResourcesClients(endpoint, c.SubscriptionID, auth)
 	client.registerSearchClients(endpoint, c.SubscriptionID, auth)
+	client.registerSecurityCenterClients(endpoint, c.SubscriptionID, "Global", auth)
 	client.registerServiceBusClients(endpoint, c.SubscriptionID, auth)
 	client.registerServiceFabricClients(endpoint, c.SubscriptionID, auth)
 	client.registerSchedulerClients(endpoint, c.SubscriptionID, auth)
@@ -1014,6 +1019,12 @@ func (c *ArmClient) registerSearchClients(endpoint, subscriptionId string, auth 
 	searchClient := search.NewServicesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&searchClient.Client, auth)
 	c.searchServicesClient = searchClient
+}
+
+func (c *ArmClient) registerSecurityCenterClients(endpoint, subscriptionId, ascLocation string, auth autorest.Authorizer) {
+	securityCenterPricingClient := security.NewPricingsClientWithBaseURI(endpoint, subscriptionId, ascLocation)
+	c.configureClient(&securityCenterPricingClient.Client, auth)
+	c.securityCenterPricingClient = securityCenterPricingClient
 }
 
 func (c *ArmClient) registerServiceBusClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
