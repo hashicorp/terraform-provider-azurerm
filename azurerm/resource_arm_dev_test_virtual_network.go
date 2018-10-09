@@ -46,6 +46,36 @@ func resourceArmDevTestVirtualNetwork() *schema.Resource {
 				Optional: true,
 			},
 
+			"subnet": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				// whilst the API accepts multiple, in practice only one is usable
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"use_in_virtual_machine_creation": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      string(dtl.Allow),
+							ValidateFunc: validateDevTestVirtualNetworkUsagePermissionType(),
+						},
+
+						"use_public_ip_address": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      string(dtl.Allow),
+							ValidateFunc: validateDevTestVirtualNetworkUsagePermissionType(),
+						},
+					},
+				},
+			},
+
 			"tags": tagsSchema(),
 
 			"unique_identifier": {
@@ -68,10 +98,15 @@ func resourceArmDevTestVirtualNetworkCreateUpdate(d *schema.ResourceData, meta i
 	description := d.Get("description").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
+	subscriptionId := meta.(*ArmClient).subscriptionId
+	subnetsRaw := d.Get("subnet").([]interface{})
+	subnets := expandDevTestVirtualNetworkSubnets(subnetsRaw, subscriptionId, resourceGroup, labName, name)
+
 	parameters := dtl.VirtualNetwork{
 		Tags: expandTags(tags),
 		VirtualNetworkProperties: &dtl.VirtualNetworkProperties{
-			Description: utils.String(description),
+			Description:     utils.String(description),
+			SubnetOverrides: subnets,
 		},
 	}
 
@@ -111,7 +146,8 @@ func resourceArmDevTestVirtualNetworkRead(d *schema.ResourceData, meta interface
 	labName := id.Path["labs"]
 	name := id.Path["virtualnetworks"]
 
-	read, err := client.Get(ctx, resourceGroup, labName, name, "")
+	// TODO: is the expand still needed?
+	read, err := client.Get(ctx, resourceGroup, labName, name, "subnetOverrides")
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
 			log.Printf("[DEBUG] DevTest Virtual Network %q was not found in Lab %q / Resource Group %q - removing from state!", name, labName, resourceGroup)
@@ -128,6 +164,11 @@ func resourceArmDevTestVirtualNetworkRead(d *schema.ResourceData, meta interface
 
 	if props := read.VirtualNetworkProperties; props != nil {
 		d.Set("description", props.Description)
+
+		flattenedSubnets := flattenDevTestVirtualNetworkSubnets(props.SubnetOverrides)
+		if err := d.Set("subnet", flattenedSubnets); err != nil {
+			return fmt.Errorf("Error setting `subnet`: %+v", err)
+		}
 
 		// Computed fields
 		d.Set("unique_identifier", props.UniqueIdentifier)
@@ -178,4 +219,60 @@ func validateDevTestVirtualNetworkName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^[A-Za-z0-9_-]+$"),
 		"Virtual Network Name can only include alphanumeric characters, underscores, hyphens.")
+}
+
+func expandDevTestVirtualNetworkSubnets(input []interface{}, subscriptionId, resourceGroupName, labName, virtualNetworkName string) *[]dtl.SubnetOverride {
+	results := make([]dtl.SubnetOverride, 0)
+	if len(input) == 0 {
+		return &results
+	}
+
+	for _, val := range input {
+		v := val.(map[string]interface{})
+		// default found from the Portal
+		name := fmt.Sprintf("%sSubnet", virtualNetworkName)
+		idFmt := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DevTestLab/labs/%s/virtualnetworks/%s/subnets/%s"
+		subnetId := fmt.Sprintf(idFmt, subscriptionId, resourceGroupName, labName, virtualNetworkName, name)
+		usePublicIPAddress := v["use_public_ip_address"].(string)
+		useInVirtualMachineCreation := v["use_in_virtual_machine_creation"].(string)
+
+		subnet := dtl.SubnetOverride{
+			ResourceID:                   utils.String(subnetId),
+			LabSubnetName:                utils.String(name),
+			UsePublicIPAddressPermission: dtl.UsagePermissionType(usePublicIPAddress),
+			UseInVMCreationPermission:    dtl.UsagePermissionType(useInVirtualMachineCreation),
+		}
+
+		results = append(results, subnet)
+	}
+
+	return &results
+}
+
+func flattenDevTestVirtualNetworkSubnets(input *[]dtl.SubnetOverride) []interface{} {
+	outputs := make([]interface{}, 0)
+	if input == nil {
+		return outputs
+	}
+
+	for _, v := range *input {
+		output := make(map[string]interface{}, 0)
+		if v.LabSubnetName != nil {
+			output["name"] = *v.LabSubnetName
+		}
+		output["use_public_ip_address"] = string(v.UsePublicIPAddressPermission)
+		output["use_in_virtual_machine_creation"] = string(v.UseInVMCreationPermission)
+
+		outputs = append(outputs, output)
+	}
+
+	return outputs
+}
+
+func validateDevTestVirtualNetworkUsagePermissionType() schema.SchemaValidateFunc {
+	return validation.StringInSlice([]string{
+		string(dtl.Allow),
+		string(dtl.Default),
+		string(dtl.Deny),
+	}, false)
 }
