@@ -35,6 +35,15 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.1.0/24"
+  delegations          = [
+    {
+      name = "acctestdelegations"
+      service_delegation = {
+        service_name = "Microsoft.ContainerInstance/containerGroups"
+        actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+      }
+    }
+  ]
 }
 ```
 
@@ -55,6 +64,20 @@ The following arguments are supported:
 * `route_table_id` - (Optional) The ID of the Route Table to associate with the subnet.
 
 * `service_endpoints` - (Optional) The list of Service endpoints to associate with the subnet. Possible values include: `Microsoft.Storage`, `Microsoft.Sql`.
+
+* `delegations` - (Optional) The list of `delegation` blocks to associate with subnet.
+
+---
+A `delegation` block supports the following:
+* `name` (Required) The name of delegation.
+* `service_delegation` (Required) A service delegation block.
+
+---
+A `service_delegation` block supports the following:
+* `service_name` The name of service. Possible values include: `Microsoft.ContainerInstance/containerGroups`.
+* `actions` The list of actions. Possible values include: `Microsoft.Network/virtualNetworks/subnets/action`.
+
+Please follow the [list-available-delegations](https://docs.microsoft.com/en-us/cli/azure/network/vnet/subnet?view=azure-cli-latest#az-network-vnet-subnet-list-available-delegations) to get delegation information.
 
 ## Attributes Reference
 

@@ -233,11 +233,6 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 		if err := d.Set("service_endpoints", serviceEndpoints); err != nil {
 			return err
 		}
-
-		delegations := flattenSubnetDelegations(props.Delegations)
-		if err := d.Set("delegations", delegations); err != nil {
-			return err
-		}
 	}
 
 	return nil
@@ -365,36 +360,4 @@ func expandSubnetDelegations(d *schema.ResourceData) ([]network.Delegation, erro
 	}
 
 	return retDelegations, nil
-}
-
-func flattenSubnetDelegations(delegations *[]network.Delegation) []interface{} {
-	retDelegations := make([]interface{}, 0)
-	if delegations == nil {
-		return retDelegations
-	}
-
-	for _, deleData := range *delegations {
-		retDelegation := make(map[string]interface{})
-
-		if deleData.Name == nil || deleData.ServiceDelegationPropertiesFormat == nil {
-			continue
-		}
-
-		srvDeleProps := *deleData.ServiceDelegationPropertiesFormat
-		if srvDeleProps.ServiceName == nil {
-			continue
-		}
-
-		srvDelegation := make(map[string]interface{})
-		srvDelegation["service_name"] = *srvDeleProps.ServiceName
-		if srvDeleProps.Actions != nil {
-			srvDelegation["actions"] = *srvDeleProps.Actions
-		}
-
-		retDelegation["name"] = *deleData.Name
-		retDelegation["service_delegation"] = []interface{}{srvDelegation}
-		retDelegations = append(retDelegations, retDelegation)
-	}
-
-	return retDelegations
 }
