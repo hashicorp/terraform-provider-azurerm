@@ -66,7 +66,7 @@ func resourceArmSubnet() *schema.Resource {
 			},
 
 			"delegations": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -85,12 +85,11 @@ func resourceArmSubnet() *schema.Resource {
 										Required: true,
 									},
 									"actions": {
-										Type:     schema.TypeSet,
+										Type:     schema.TypeList,
 										Optional: true,
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
 										},
-										Set: schema.HashString,
 									},
 								},
 							},
@@ -380,12 +379,11 @@ func flattenSubnetDelegations(delegations *[]network.Delegation) []interface{} {
 		if deleData.Name == nil || deleData.ServiceDelegationPropertiesFormat == nil {
 			continue
 		}
+
 		srvDeleProps := *deleData.ServiceDelegationPropertiesFormat
 		if srvDeleProps.ServiceName == nil {
 			continue
 		}
-
-		retDelegation["name"] = *deleData.Name
 
 		srvDelegation := make(map[string]interface{})
 		srvDelegation["service_name"] = *srvDeleProps.ServiceName
@@ -393,7 +391,8 @@ func flattenSubnetDelegations(delegations *[]network.Delegation) []interface{} {
 			srvDelegation["actions"] = *srvDeleProps.Actions
 		}
 
-		retDelegation["service_delegation"] = srvDelegation
+		retDelegation["name"] = *deleData.Name
+		retDelegation["service_delegation"] = []interface{}{srvDelegation}
 		retDelegations = append(retDelegations, retDelegation)
 	}
 
