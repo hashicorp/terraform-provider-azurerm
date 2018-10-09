@@ -23,7 +23,7 @@ resource "azurerm_storage_account" "aci-sa" {
   resource_group_name = "${azurerm_resource_group.aci-rg.name}"
   location            = "${azurerm_resource_group.aci-rg.location}"
   account_tier        = "Standard"
-  
+
   account_replication_type = "LRS"
 }
 
@@ -55,6 +55,10 @@ resource "azurerm_container_group" "aci-helloworld" {
       "NODE_ENV" = "testing"
     }
 
+    secure_environment_variables {
+      "ACCESS_KEY" = "secure_testing"
+    }
+
     commands = ["/bin/bash", "-c", "'/path to/myscript.sh'"]
 
     volume {
@@ -62,7 +66,7 @@ resource "azurerm_container_group" "aci-helloworld" {
       mount_path = "/aci/logs"
       read_only  = false
       share_name = "${azurerm_storage_share.aci-share.name}"
-      
+
       storage_account_name  = "${azurerm_storage_account.aci-sa.name}"
       storage_account_key   = "${azurerm_storage_account.aci-sa.primary_access_key}"
     }
@@ -119,6 +123,8 @@ The `container` block supports:
 
 * `environment_variables` - (Optional) A list of environment variables to be set on the container. Specified as a map of name/value pairs. Changing this forces a new resource to be created.
 
+* `secure_environment_variables` - (Optional) A list of secure environment variables to be set on the container. Specified as a map of name/value pairs. Changing this forces a new resource to be created.
+
 * `command` - (Optional) A command line to be run on the container. Changing this forces a new resource to be created.
 
 ~> **NOTE:** The field `command` has been deprecated in favor of `commands` to better match the API.
@@ -147,7 +153,7 @@ The `image_registry_credential` block supports:
 
 * `password` - (Required) The password with which to connect to the registry.
 
-* `server` - (Required) The address to use to connect to the registry without protocol ("https"/"http"). For example: "myacr.acr.io" 
+* `server` - (Required) The address to use to connect to the registry without protocol ("https"/"http"). For example: "myacr.acr.io"
 
 ## Attributes Reference
 

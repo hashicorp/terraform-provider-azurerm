@@ -575,6 +575,7 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 		var envVars *[]containerinstance.EnvironmentVariable
 		var secEnvVars *[]containerinstance.EnvironmentVariable
 
+		// Expand environet variables, returns
 		if v, ok := data["environment_variables"]; ok {
 			envVars = expandContainerEnvironmentVariables(v, false)
 		}
