@@ -575,19 +575,20 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 		var envVars *[]containerinstance.EnvironmentVariable
 		var secEnvVars *[]containerinstance.EnvironmentVariable
 
-		// Expand environet variables, returns
+		// Expand environment_variables into slice
 		if v, ok := data["environment_variables"]; ok {
 			envVars = expandContainerEnvironmentVariables(v, false)
 		}
 
+		// Expand secure_environment_variables into slice
 		if v, ok := data["secure_environment_variables"]; ok {
 			secEnvVars = expandContainerEnvironmentVariables(v, true)
 		}
 
-		for _, v := range *secEnvVars {
-			*envVars = append(*envVars, v)
-		}
+		// Combine environment variabel slices
+		*envVars = append(*envVars, *secEnvVars...)
 
+		// Set both secure and non secure environment variables
 		container.EnvironmentVariables = envVars
 
 		if v, ok := data["commands"]; ok {
