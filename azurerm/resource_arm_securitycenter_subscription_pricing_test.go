@@ -29,10 +29,10 @@ func TestAccAzureRMSecurityCenterSubscriptionPricing_update(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Standard"),
+				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Free"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSecurityCenterSubscriptionPricingExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tier", "Standard"),
+					resource.TestCheckResourceAttr(resourceName, "tier", "Free"),
 				),
 			},
 			{
@@ -46,6 +46,8 @@ func TestAccAzureRMSecurityCenterSubscriptionPricing_update(t *testing.T) {
 
 func testCheckAzureRMSecurityCenterSubscriptionPricingExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := testAccProvider.Meta().(*ArmClient).securityCenterPricingClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -53,9 +55,6 @@ func testCheckAzureRMSecurityCenterSubscriptionPricingExists(name string) resour
 		}
 
 		pricingName := rs.Primary.Attributes["pricings"]
-
-		client := testAccProvider.Meta().(*ArmClient).securityCenterPricingClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.GetSubscriptionPricing(ctx, pricingName)
 		if err != nil {

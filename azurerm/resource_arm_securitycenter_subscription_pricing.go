@@ -51,7 +51,7 @@ func resourceArmSecurityCenterSubscriptionPricingCreateUpdate(d *schema.Resource
 
 	_, err := client.UpdateSubscriptionPricing(ctx, "default", pricing)
 	if err != nil {
-		return fmt.Errorf("Error updating Security Center Subscription pricing: %+v", err)
+		return fmt.Errorf("Error creating/updating Security Center Subscription pricing: %+v", err)
 	}
 
 	resp, err := client.GetSubscriptionPricing(ctx, "default")
@@ -90,5 +90,5 @@ func resourceArmSecurityCenterSubscriptionPricingRead(d *schema.ResourceData, me
 }
 
 func resourceArmSecurityCenterSubscriptionPricingDelete(_ *schema.ResourceData, _ interface{}) error {
-	return nil
+	return nil //cannot be deleted
 }
