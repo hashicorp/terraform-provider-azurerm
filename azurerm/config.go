@@ -197,8 +197,8 @@ type ArmClient struct {
 	managementGroupsSubscriptionClient managementgroups.SubscriptionsClient
 
 	// Monitor
-	actionGroupsClient      insights.ActionGroupsClient
-	monitorAlertRulesClient insights.AlertRulesClient
+	monitorActionGroupsClient insights.ActionGroupsClient
+	monitorAlertRulesClient   insights.AlertRulesClient
 
 	// MSI
 	userAssignedIdentitiesClient msi.UserAssignedIdentitiesClient
@@ -825,9 +825,9 @@ func (c *ArmClient) registerLogicClients(endpoint, subscriptionId string, auth a
 }
 
 func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
-	actionGroupsClient := insights.NewActionGroupsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&actionGroupsClient.Client, auth)
-	c.actionGroupsClient = actionGroupsClient
+	agc := insights.NewActionGroupsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&agc.Client, auth)
+	c.monitorActionGroupsClient = agc
 
 	arc := insights.NewAlertRulesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&arc.Client, auth)
