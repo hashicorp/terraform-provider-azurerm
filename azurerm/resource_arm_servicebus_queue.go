@@ -119,9 +119,10 @@ func resourceArmServiceBusQueue() *schema.Resource {
 			},
 
 			"max_delivery_count": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  10,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      10,
+				ValidateFunc: validation.IntAtLeast(1),
 			},
 		},
 	}
