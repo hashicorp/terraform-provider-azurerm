@@ -587,22 +587,22 @@ resource "azurerm_servicebus_queue" "test" {
 func testAccAzureRMServiceBusQueue_maxDeliveryCount(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
+    name     = "acctestRG-%d"
     location = "%s"
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-    name = "acctestservicebusnamespace-%d"
+    name                = "acctestservicebusnamespace-%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    sku = "standard"
+    location            = "${azurerm_resource_group.test.location}"
+    sku                 = "standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {
-    name = "acctestservicebusqueue-%d"
+    name                = "acctestservicebusqueue-%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    namespace_name = "${azurerm_servicebus_namespace.test.name}"
-    max_delivery_count = 20
+    namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+    max_delivery_count  = 20
 }
 `, rInt, location, rInt, rInt)
 }
