@@ -197,13 +197,17 @@ The `sku` block supports:
   * `Standard_Small`
   * `Standard_Medium`
   * `Standard_Large`
+  * `Standard_v2`
   * `WAF_Medium`
   * `WAF_Large`
+  * `WAF_v2`
 
 * `tier` - (Required) Supported values are:
 
   * `Standard`
+  * `Standard_v2`
   * `WAF`
+  * `WAF_v2`
 
 * `capacity` - (Required) Specifies instance count. Can be 1 to 10.
 

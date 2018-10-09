@@ -29,7 +29,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2018-04-01/devices"
 	keyVault "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic"
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
@@ -197,8 +197,8 @@ type ArmClient struct {
 	managementGroupsSubscriptionClient managementgroups.SubscriptionsClient
 
 	// Monitor
-	actionGroupsClient      insights.ActionGroupsClient
-	monitorAlertRulesClient insights.AlertRulesClient
+	monitorActionGroupsClient insights.ActionGroupsClient
+	monitorAlertRulesClient   insights.AlertRulesClient
 
 	// MSI
 	userAssignedIdentitiesClient msi.UserAssignedIdentitiesClient
@@ -825,9 +825,9 @@ func (c *ArmClient) registerLogicClients(endpoint, subscriptionId string, auth a
 }
 
 func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
-	actionGroupsClient := insights.NewActionGroupsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&actionGroupsClient.Client, auth)
-	c.actionGroupsClient = actionGroupsClient
+	agc := insights.NewActionGroupsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&agc.Client, auth)
+	c.monitorActionGroupsClient = agc
 
 	arc := insights.NewAlertRulesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&arc.Client, auth)
