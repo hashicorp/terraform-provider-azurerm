@@ -146,8 +146,7 @@ func resourceArmDevTestVirtualNetworkRead(d *schema.ResourceData, meta interface
 	labName := id.Path["labs"]
 	name := id.Path["virtualnetworks"]
 
-	// TODO: is the expand still needed?
-	read, err := client.Get(ctx, resourceGroup, labName, name, "subnetOverrides")
+	read, err := client.Get(ctx, resourceGroup, labName, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
 			log.Printf("[DEBUG] DevTest Virtual Network %q was not found in Lab %q / Resource Group %q - removing from state!", name, labName, resourceGroup)
