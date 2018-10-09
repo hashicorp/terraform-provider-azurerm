@@ -106,6 +106,28 @@ func resourceArmStorageAccount() *schema.Resource {
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
+			"key_vault_properties": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"key_name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"key_version": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"key_vault_uri": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
+
 			"custom_domain": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -341,6 +363,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	storageAccountEncryptionSource := d.Get("account_encryption_source").(string)
 
 	networkRules := expandStorageAccountNetworkRules(d)
+	keyVaultProperties := expandAzureRmStorageAccountKeyVaultProperties(d)
 
 	parameters := storage.AccountCreateParameters{
 		Location: &location,
@@ -358,7 +381,8 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 					File: &storage.EncryptionService{
 						Enabled: utils.Bool(enableFileEncryption),
 					}},
-				KeySource: storage.KeySource(storageAccountEncryptionSource),
+				KeySource:          storage.KeySource(storageAccountEncryptionSource),
+				KeyVaultProperties: keyVaultProperties,
 			},
 			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
 			NetworkRuleSet:         networkRules,
@@ -585,6 +609,27 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		d.SetPartial("network_rules")
 	}
 
+	if d.HasChange("account_encryption_source") {
+		accountEncryptionSource := d.Get("account_encryption_source").(string)
+		keyVaultProperties := expandAzureRmStorageAccountKeyVaultProperties(d)
+		opts := storage.AccountUpdateParameters{
+			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+				Encryption: &storage.Encryption{
+					KeySource:          storage.KeySource(accountEncryptionSource),
+					KeyVaultProperties: keyVaultProperties,
+				},
+			},
+		}
+
+		_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
+		if err != nil {
+			return fmt.Errorf("Error updating Azure Storage Account account_encryption_source and key_vault_properties %q: %+v", storageAccountName, err)
+		}
+
+		d.SetPartial("account_encryption_source")
+		d.SetPartial("key_vault_properties")
+	}
+
 	d.Partial(false)
 	return resourceArmStorageAccountRead(d, meta)
 }
@@ -649,6 +694,12 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 				}
 			}
 			d.Set("account_encryption_source", string(encryption.KeySource))
+
+			if keyVaultProperties := encryption.KeyVaultProperties; keyVaultProperties != nil {
+				if err := d.Set("key_vault_properties", flattenAzureRmStorageAccountKeyVaultProperties(keyVaultProperties)); err != nil {
+					return fmt.Errorf("Error flattening `key_vault_properties`: %+v", err)
+				}
+			}
 		}
 
 		// Computed
@@ -924,6 +975,43 @@ func flattenAzureRmStorageAccountIdentity(identity *storage.Identity) []interfac
 	}
 	if identity.TenantID != nil {
 		result["tenant_id"] = *identity.TenantID
+	}
+
+	return []interface{}{result}
+}
+
+func expandAzureRmStorageAccountKeyVaultProperties(d *schema.ResourceData) *storage.KeyVaultProperties {
+	vs := d.Get("key_vault_properties").([]interface{})
+	if vs == nil || len(vs) == 0 {
+		return &storage.KeyVaultProperties{}
+	}
+
+	v := vs[0].(map[string]interface{})
+	keyName := v["key_name"].(string)
+	keyVersion := v["key_version"].(string)
+	keyVaultURI := v["key_vault_uri"].(string)
+
+	return &storage.KeyVaultProperties{
+		KeyName:     utils.String(keyName),
+		KeyVersion:  utils.String(keyVersion),
+		KeyVaultURI: utils.String(keyVaultURI),
+	}
+}
+
+func flattenAzureRmStorageAccountKeyVaultProperties(keyVaultProperties *storage.KeyVaultProperties) []interface{} {
+	if keyVaultProperties == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	if keyVaultProperties.KeyName != nil {
+		result["key_name"] = *keyVaultProperties.KeyName
+	}
+	if keyVaultProperties.KeyVersion != nil {
+		result["key_version"] = *keyVaultProperties.KeyVersion
+	}
+	if keyVaultProperties.KeyVaultURI != nil {
+		result["key_vault_uri"] = *keyVaultProperties.KeyVaultURI
 	}
 
 	return []interface{}{result}

@@ -106,6 +106,8 @@ The following arguments are supported:
 
 * `account_encryption_source` - (Optional) The Encryption Source for this Storage Account. Possible values are `Microsoft.Keyvault` and `Microsoft.Storage`. Defaults to `Microsoft.Storage`.
 
+* `key_vault_properties` - (Optional) A `key_vault_properties` block as documented below.
+
 * `custom_domain` - (Optional) A `custom_domain` block as documented below.
 
 * `network_rules` - (Optional) A `network_rules` block as documented below.
@@ -113,6 +115,14 @@ The following arguments are supported:
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `identity` - (Optional) A Managed Service Identity block as defined below.
+
+---
+
+* `key_vault_properties` supports the following:
+
+* `key_name` - (Required) The name of Key Vault key.
+* `key_version` - (Required) The version of Key Vault key.
+* `key_vault_uri` - (Required) The Uri of Key Vault.
 
 ---
 

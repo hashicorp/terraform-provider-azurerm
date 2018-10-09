@@ -475,6 +475,41 @@ func TestAccAzureRMStorageAccount_networkRulesDeleted(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageAccount_keyVault(t *testing.T) {
+	resourceName := "azurerm_storage_account.testsa"
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	location := testLocation()
+	preConfig := testAccAzureRMStorageAccount_identity(ri, rs, location)
+	postConfig := testAccAzureRMStorageAccount_keyvault(ri, rs, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "account_encryption_source", "Microsoft.Storage"),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "account_encryption_source", "Microsoft.KeyVault"),
+					resource.TestCheckResourceAttr(resourceName, "key_vault_properties.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "key_vault_properties.0.key_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "key_vault_properties.0.key_version"),
+					resource.TestCheckResourceAttrSet(resourceName, "key_vault_properties.0.key_vault_uri"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMStorageAccountExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -884,9 +919,9 @@ resource "azurerm_storage_account" "testsa" {
     account_tier = "Standard"
     account_replication_type = "LRS"
 
-		identity {
-			type = "SystemAssigned"
-		}
+        identity {
+            type = "SystemAssigned"
+        }
 
     tags {
         environment = "production"
@@ -908,11 +943,11 @@ resource "azurerm_virtual_network" "test" {
     resource_group_name = "${azurerm_resource_group.testrg.name}"
 }
 resource "azurerm_subnet" "test" {
-	name                 = "acctestsubnet%d"
-	resource_group_name  = "${azurerm_resource_group.testrg.name}"
-	virtual_network_name = "${azurerm_virtual_network.test.name}"
-	address_prefix       = "10.0.2.0/24"
-	service_endpoints    = ["Microsoft.Storage"]
+    name                 = "acctestsubnet%d"
+    resource_group_name  = "${azurerm_resource_group.testrg.name}"
+    virtual_network_name = "${azurerm_virtual_network.test.name}"
+    address_prefix       = "10.0.2.0/24"
+    service_endpoints    = ["Microsoft.Storage"]
   }
 resource "azurerm_storage_account" "testsa" {
     name = "unlikely23exst2acct%s"
@@ -920,7 +955,7 @@ resource "azurerm_storage_account" "testsa" {
     location = "${azurerm_resource_group.testrg.location}"
     account_tier = "Standard"
     account_replication_type = "LRS"
-	
+    
     network_rules {
         ip_rules = ["127.0.0.1"]
         virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
@@ -945,11 +980,11 @@ resource "azurerm_virtual_network" "test" {
     resource_group_name = "${azurerm_resource_group.testrg.name}"
 }
 resource "azurerm_subnet" "test" {
-	name                 = "acctestsubnet%d"
-	resource_group_name  = "${azurerm_resource_group.testrg.name}"
-	virtual_network_name = "${azurerm_virtual_network.test.name}"
-	address_prefix       = "10.0.2.0/24"
-	service_endpoints    = ["Microsoft.Storage"]
+    name                 = "acctestsubnet%d"
+    resource_group_name  = "${azurerm_resource_group.testrg.name}"
+    virtual_network_name = "${azurerm_virtual_network.test.name}"
+    address_prefix       = "10.0.2.0/24"
+    service_endpoints    = ["Microsoft.Storage"]
   }
 resource "azurerm_storage_account" "testsa" {
     name = "unlikely23exst2acct%s"
@@ -957,7 +992,7 @@ resource "azurerm_storage_account" "testsa" {
     location = "${azurerm_resource_group.testrg.location}"
     account_tier = "Standard"
     account_replication_type = "LRS"
-	
+    
     network_rules {
         ip_rules = ["127.0.0.1", "127.0.0.2"]
         bypass = ["Logging", "Metrics"]
@@ -967,4 +1002,99 @@ resource "azurerm_storage_account" "testsa" {
     }
 }
 `, rInt, location, rInt, rInt, rString)
+}
+
+func testAccAzureRMStorageAccount_keyvault(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+    name 	 = "testAccAzureRMSA-%d"
+    location = "%s"
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+    name                = "testAccKv-%s"
+    location            = "${azurerm_resource_group.testrg.location}"
+    resource_group_name = "${azurerm_resource_group.testrg.name}"
+  
+    sku {
+      name = "standard"
+    }
+  
+    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+}
+
+resource "azurerm_key_vault_access_policy" "sp" {
+    vault_name 			= "${azurerm_key_vault.test.name}"
+    resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+
+    key_permissions = [
+      "get",
+      "create",
+      "list",
+      "delete",
+    ]
+
+    secret_permissions = []
+}
+
+resource "azurerm_key_vault_access_policy" "storage" {
+    vault_name = "${azurerm_key_vault.test.name}"
+    resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+    tenant_id = "${azurerm_storage_account.testsa.identity.0.tenant_id}"
+    object_id = "${azurerm_storage_account.testsa.identity.0.principal_id}"
+
+    key_permissions = [
+      "get",
+      "wrapKey",
+      "unwrapKey",
+    ]
+
+    secret_permissions = []
+  }
+
+resource "azurerm_key_vault_key" "test" {
+    depends_on = ["azurerm_key_vault_access_policy.sp"]
+
+    name      = "testAccKey-%d"
+    vault_uri = "${azurerm_key_vault.test.vault_uri}"
+    key_type  = "RSA"
+    key_size  = 2048
+  
+    key_opts = [
+      "decrypt",
+      "encrypt",
+      "sign",
+      "unwrapKey",
+      "verify",
+      "wrapKey",
+    ]
+}
+
+resource "azurerm_storage_account" "testsa" {
+    name 				= "unlikely23exst2acct%s"
+    resource_group_name = "${azurerm_resource_group.testrg.name}"
+    location 			= "${azurerm_resource_group.testrg.location}"
+    
+    account_tier 			 = "Standard"
+    account_replication_type = "LRS"
+
+    account_encryption_source = "Microsoft.KeyVault"
+    
+    key_vault_properties {
+        key_name 	  = "${azurerm_key_vault_key.test.name}"
+        key_version   = "${azurerm_key_vault_key.test.version}"
+        key_vault_uri = "${azurerm_key_vault.test.vault_uri}"
+    }
+
+    tags {
+        environment = "production"
+    }
+}
+`, rInt, location, rString, rInt, rString)
 }
