@@ -859,7 +859,10 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `request_routing_rule`: %+v", err)
 		}
 
-		d.Set("sku", flattenApplicationGatewaySku(props.Sku))
+		if err := d.Set("sku", flattenApplicationGatewaySku(props.Sku)); err != nil {
+			return fmt.Errorf("Error setting `sku`: %+v", err)
+		}
+
 		d.Set("ssl_certificate", schema.NewSet(hashApplicationGatewaySslCertificates, flattenApplicationGatewaySslCertificates(props.SslCertificates)))
 
 		v4, err4 := flattenApplicationGatewayURLPathMaps(props.URLPathMaps)
@@ -1699,4 +1702,31 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 	}
 
 	return results
+}
+
+func expandApplicationGatewaySku(d *schema.ResourceData) *network.ApplicationGatewaySku {
+	vs := d.Get("sku").([]interface{})
+	v := vs[0].(map[string]interface{})
+
+	name := v["name"].(string)
+	tier := v["tier"].(string)
+	capacity := int32(v["capacity"].(int))
+
+	return &network.ApplicationGatewaySku{
+		Name:     network.ApplicationGatewaySkuName(name),
+		Tier:     network.ApplicationGatewayTier(tier),
+		Capacity: utils.Int32(capacity),
+	}
+}
+
+func flattenApplicationGatewaySku(input *network.ApplicationGatewaySku) []interface{} {
+	result := make(map[string]interface{})
+
+	result["name"] = string(input.Name)
+	result["tier"] = string(input.Tier)
+	if input.Capacity != nil {
+		result["capacity"] = int(*input.Capacity)
+	}
+
+	return []interface{}{result}
 }

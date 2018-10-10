@@ -8,23 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
-
-func expandApplicationGatewaySku(d *schema.ResourceData) *network.ApplicationGatewaySku {
-	skuSet := d.Get("sku").([]interface{})
-	sku := skuSet[0].(map[string]interface{})
-
-	name := sku["name"].(string)
-	tier := sku["tier"].(string)
-	capacity := int32(sku["capacity"].(int))
-
-	return &network.ApplicationGatewaySku{
-		Name:     network.ApplicationGatewaySkuName(name),
-		Tier:     network.ApplicationGatewayTier(tier),
-		Capacity: utils.Int32(capacity),
-	}
-}
 
 func expandApplicationGatewayWafConfig(d *schema.ResourceData) *network.ApplicationGatewayWebApplicationFirewallConfiguration {
 	wafSet := d.Get("waf_configuration").(*schema.Set).List()
@@ -136,16 +120,6 @@ func expandApplicationGatewaySslCertificates(d *schema.ResourceData) *[]network.
 	}
 
 	return &sslCerts
-}
-
-func flattenApplicationGatewaySku(sku *network.ApplicationGatewaySku) []interface{} {
-	result := make(map[string]interface{})
-
-	result["name"] = string(sku.Name)
-	result["tier"] = string(sku.Tier)
-	result["capacity"] = int(*sku.Capacity)
-
-	return []interface{}{result}
 }
 
 func flattenApplicationGatewayWafConfig(waf *network.ApplicationGatewayWebApplicationFirewallConfiguration) []interface{} {
