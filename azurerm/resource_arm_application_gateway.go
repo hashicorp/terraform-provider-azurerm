@@ -666,6 +666,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 			},
 
 			"ssl_certificate": {
+				// TODO: should this become a Set?
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
@@ -863,7 +864,9 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `sku`: %+v", err)
 		}
 
-		d.Set("ssl_certificate", schema.NewSet(hashApplicationGatewaySslCertificates, flattenApplicationGatewaySslCertificates(props.SslCertificates)))
+		if err := d.Set("ssl_certificate", flattenApplicationGatewaySslCertificates(props.SslCertificates)); err != nil {
+			return fmt.Errorf("Error setting `ssl_certificate`: %+v", err)
+		}
 
 		v4, err4 := flattenApplicationGatewayURLPathMaps(props.URLPathMaps)
 		if err4 != nil {
@@ -1729,4 +1732,61 @@ func flattenApplicationGatewaySku(input *network.ApplicationGatewaySku) []interf
 	}
 
 	return []interface{}{result}
+}
+
+func expandApplicationGatewaySslCertificates(d *schema.ResourceData) *[]network.ApplicationGatewaySslCertificate {
+	vs := d.Get("ssl_certificate").([]interface{})
+	results := make([]network.ApplicationGatewaySslCertificate, 0)
+
+	for _, raw := range vs {
+		v := raw.(map[string]interface{})
+
+		name := v["name"].(string)
+		data := v["data"].(string)
+		password := v["password"].(string)
+
+		// data must be base64 encoded
+		data = base64Encode(data)
+
+		output := network.ApplicationGatewaySslCertificate{
+			Name: utils.String(name),
+			ApplicationGatewaySslCertificatePropertiesFormat: &network.ApplicationGatewaySslCertificatePropertiesFormat{
+				Data:     utils.String(data),
+				Password: utils.String(password),
+			},
+		}
+
+		results = append(results, output)
+	}
+
+	return &results
+}
+
+func flattenApplicationGatewaySslCertificates(input *[]network.ApplicationGatewaySslCertificate) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, v := range *input {
+		output := map[string]interface{}{}
+
+		if v.ID != nil {
+			output["id"] = *v.ID
+		}
+
+		if v.Name != nil {
+			output["name"] = *v.Name
+		}
+
+		if props := v.ApplicationGatewaySslCertificatePropertiesFormat; props != nil {
+			if data := props.PublicCertData; data != nil {
+				output["public_cert_data"] = *data
+			}
+		}
+
+		results = append(results, output)
+	}
+
+	return results
 }

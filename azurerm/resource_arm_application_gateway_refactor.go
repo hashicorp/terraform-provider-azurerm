@@ -94,34 +94,6 @@ func expandApplicationGatewayURLPathMaps(d *schema.ResourceData, gatewayID strin
 	return &pathMaps
 }
 
-func expandApplicationGatewaySslCertificates(d *schema.ResourceData) *[]network.ApplicationGatewaySslCertificate {
-	configs := d.Get("ssl_certificate").([]interface{})
-	sslCerts := make([]network.ApplicationGatewaySslCertificate, 0)
-
-	for _, configRaw := range configs {
-		raw := configRaw.(map[string]interface{})
-
-		name := raw["name"].(string)
-		data := raw["data"].(string)
-		password := raw["password"].(string)
-
-		// data must be base64 encoded
-		data = base64Encode(data)
-
-		cert := network.ApplicationGatewaySslCertificate{
-			Name: &name,
-			ApplicationGatewaySslCertificatePropertiesFormat: &network.ApplicationGatewaySslCertificatePropertiesFormat{
-				Data:     &data,
-				Password: &password,
-			},
-		}
-
-		sslCerts = append(sslCerts, cert)
-	}
-
-	return &sslCerts
-}
-
 func flattenApplicationGatewayWafConfig(waf *network.ApplicationGatewayWebApplicationFirewallConfiguration) []interface{} {
 	result := make(map[string]interface{})
 
@@ -199,35 +171,6 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 	return result, nil
 }
 
-func flattenApplicationGatewaySslCertificates(input *[]network.ApplicationGatewaySslCertificate) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results
-	}
-
-	for _, v := range *input {
-		output := map[string]interface{}{}
-
-		if v.ID != nil {
-			output["id"] = *v.ID
-		}
-
-		if v.Name != nil {
-			output["name"] = *v.Name
-		}
-
-		if props := v.ApplicationGatewaySslCertificatePropertiesFormat; props != nil {
-			if data := props.PublicCertData; data != nil {
-				output["public_cert_data"] = *data
-			}
-		}
-
-		results = append(results, output)
-	}
-
-	return results
-}
-
 // TODO: can this be removed?
 func hashApplicationGatewayWafConfig(v interface{}) int {
 	var buf bytes.Buffer
@@ -236,15 +179,6 @@ func hashApplicationGatewayWafConfig(v interface{}) int {
 	buf.WriteString(fmt.Sprintf("%s-", m["firewall_mode"].(string)))
 	buf.WriteString(fmt.Sprintf("%s-", *m["rule_set_type"].(*string)))
 	buf.WriteString(fmt.Sprintf("%s-", *m["rule_set_version"].(*string)))
-
-	return hashcode.String(buf.String())
-}
-
-func hashApplicationGatewaySslCertificates(v interface{}) int {
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["public_cert_data"].(string)))
 
 	return hashcode.String(buf.String())
 }
