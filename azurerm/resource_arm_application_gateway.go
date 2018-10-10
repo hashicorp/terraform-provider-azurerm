@@ -37,196 +37,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"sku": {
-				Type:     schema.TypeList,
-				Required: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:             schema.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.StandardSmall),
-								string(network.StandardMedium),
-								string(network.StandardLarge),
-								string(network.StandardV2),
-								string(network.WAFLarge),
-								string(network.WAFMedium),
-								string(network.WAFV2),
-							}, true),
-						},
-
-						"tier": {
-							Type:             schema.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.ApplicationGatewayTierStandard),
-								string(network.ApplicationGatewayTierStandardV2),
-								string(network.ApplicationGatewayTierWAF),
-								string(network.ApplicationGatewayTierWAFV2),
-							}, true),
-						},
-
-						"capacity": {
-							Type:         schema.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntBetween(1, 10),
-						},
-					},
-				},
-			},
-
-			// TODO: @tombuildsstuff deprecate this in favour of a full `ssl_protocol` block in the future
-			"disabled_ssl_protocols": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type:             schema.TypeString,
-					DiffSuppressFunc: suppress.CaseDifference,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(network.TLSv10),
-						string(network.TLSv11),
-						string(network.TLSv12),
-					}, true),
-				},
-			},
-
-			"waf_configuration": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"enabled": {
-							Type:     schema.TypeBool,
-							Required: true,
-						},
-
-						"firewall_mode": {
-							Type:             schema.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.Detection),
-								string(network.Prevention),
-							}, true),
-						},
-
-						"rule_set_type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  "OWASP",
-						},
-
-						"rule_set_version": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"2.2.9",
-								"3.0",
-							}, false),
-						},
-					},
-				},
-			},
-
-			"gateway_ip_configuration": {
-				Type:     schema.TypeList,
-				Required: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-
-						"subnet_id": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-					},
-				},
-			},
-
-			"frontend_port": {
-				Type:     schema.TypeList,
-				Required: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-
-						"port": {
-							Type:     schema.TypeInt,
-							Required: true,
-						},
-					},
-				},
-			},
-
-			"frontend_ip_configuration": {
-				Type:     schema.TypeList,
-				Required: true,
-				MinItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-
-						"subnet_id": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-						},
-
-						"private_ip_address": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-						},
-
-						"public_ip_address_id": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-						},
-
-						"private_ip_address_allocation": {
-							Type:             schema.TypeString,
-							Optional:         true,
-							Computed:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.Dynamic),
-								string(network.Static),
-							}, true),
-						},
-					},
-				},
-			},
-
+			// Required
 			"backend_address_pool": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -242,7 +53,8 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Required: true,
 						},
 
-						"ip_address_list": {
+						// TODO: ditch the suffix `_list` in the future
+						"fqdn_list": {
 							Type:     schema.TypeList,
 							Optional: true,
 							MinItems: 1,
@@ -251,7 +63,8 @@ func resourceArmApplicationGateway() *schema.Resource {
 							},
 						},
 
-						"fqdn_list": {
+						// TODO: ditch the suffix `_list` in the future
+						"ip_address_list": {
 							Type:     schema.TypeList,
 							Optional: true,
 							MinItems: 1,
@@ -307,6 +120,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"request_timeout": {
 							Type:     schema.TypeInt,
 							Optional: true,
+							// TODO: validation 1-86400 seconds
 						},
 
 						"authentication_certificate": {
@@ -335,6 +149,100 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"probe_id": {
 							Type:     schema.TypeString,
 							Computed: true,
+						},
+					},
+				},
+			},
+
+			"frontend_ip_configuration": {
+				Type:     schema.TypeList,
+				Required: true,
+				MinItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+
+						"subnet_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+
+						"private_ip_address": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+
+						"public_ip_address_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+
+						"private_ip_address_allocation": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							Computed:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.Dynamic),
+								string(network.Static),
+							}, true),
+						},
+					},
+				},
+			},
+
+			"frontend_port": {
+				Type:     schema.TypeList,
+				Required: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+
+						"port": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+					},
+				},
+			},
+
+			"gateway_ip_configuration": {
+				Type:     schema.TypeList,
+				Required: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+
+						"subnet_id": {
+							Type:     schema.TypeString,
+							Required: true,
 						},
 					},
 				},
@@ -405,6 +313,157 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Optional: true,
 						},
 					},
+				},
+			},
+
+			"request_routing_rule": {
+				Type:     schema.TypeList,
+				Required: true,
+				MinItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+
+						"rule_type": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.Basic),
+								string(network.PathBasedRouting),
+							}, true),
+						},
+
+						"http_listener_name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+
+						"http_listener_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"backend_address_pool_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
+						"backend_address_pool_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"backend_http_settings_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
+						"backend_http_settings_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"url_path_map_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
+						"url_path_map_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"sku": {
+				Type:     schema.TypeList,
+				Required: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.StandardSmall),
+								string(network.StandardMedium),
+								string(network.StandardLarge),
+								string(network.StandardV2),
+								string(network.WAFLarge),
+								string(network.WAFMedium),
+								string(network.WAFV2),
+							}, true),
+						},
+
+						"tier": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.ApplicationGatewayTierStandard),
+								string(network.ApplicationGatewayTierStandardV2),
+								string(network.ApplicationGatewayTierWAF),
+								string(network.ApplicationGatewayTierWAFV2),
+							}, true),
+						},
+
+						"capacity": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 10),
+						},
+					},
+				},
+			},
+
+			// Optional
+			"authentication_certificate": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+
+						"data": {
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
+						},
+					},
+				},
+			},
+
+			// TODO: @tombuildsstuff deprecate this in favour of a full `ssl_protocol` block in the future
+			"disabled_ssl_protocols": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					DiffSuppressFunc: suppress.CaseDifference,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(network.TLSv10),
+						string(network.TLSv11),
+						string(network.TLSv12),
+					}, true),
 				},
 			},
 
@@ -490,10 +549,10 @@ func resourceArmApplicationGateway() *schema.Resource {
 				},
 			},
 
-			"request_routing_rule": {
+			"ssl_certificate": {
+				// TODO: should this become a Set?
 				Type:     schema.TypeList,
-				Required: true,
-				MinItems: 1,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -506,52 +565,19 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Required: true,
 						},
 
-						"rule_type": {
-							Type:             schema.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.Basic),
-								string(network.PathBasedRouting),
-							}, true),
+						"data": {
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
 						},
 
-						"http_listener_name": {
-							Type:     schema.TypeString,
-							Required: true,
+						"password": {
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
 						},
 
-						"http_listener_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"backend_address_pool_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-
-						"backend_address_pool_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"backend_http_settings_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-
-						"backend_http_settings_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"url_path_map_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-
-						"url_path_map_id": {
+						"public_cert_data": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -643,61 +669,40 @@ func resourceArmApplicationGateway() *schema.Resource {
 				},
 			},
 
-			"authentication_certificate": {
+			"waf_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"name": {
-							Type:     schema.TypeString,
+						"enabled": {
+							Type:     schema.TypeBool,
 							Required: true,
 						},
 
-						"data": {
-							Type:      schema.TypeString,
-							Required:  true,
-							Sensitive: true,
+						"firewall_mode": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.Detection),
+								string(network.Prevention),
+							}, true),
 						},
-					},
-				},
-			},
 
-			"ssl_certificate": {
-				// TODO: should this become a Set?
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
+						"rule_set_type": {
 							Type:     schema.TypeString,
-							Computed: true,
+							Optional: true,
+							Default:  "OWASP",
 						},
 
-						"name": {
+						"rule_set_version": {
 							Type:     schema.TypeString,
 							Required: true,
-						},
-
-						"data": {
-							Type:      schema.TypeString,
-							Required:  true,
-							Sensitive: true,
-						},
-
-						"password": {
-							Type:      schema.TypeString,
-							Required:  true,
-							Sensitive: true,
-						},
-
-						"public_cert_data": {
-							Type:     schema.TypeString,
-							Computed: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"2.2.9",
+								"3.0",
+							}, false),
 						},
 					},
 				},
