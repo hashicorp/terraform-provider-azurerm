@@ -814,11 +814,11 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 	if props := applicationGateway.ApplicationGatewayPropertiesFormat; props != nil {
 		flattenedCerts := flattenApplicationGatewayAuthenticationCertificates(props.AuthenticationCertificates)
 		if err := d.Set("authentication_certificate", flattenedCerts); err != nil {
-			return fmt.Errorf("Error flattening `authentication_certificate`: %+v", err)
+			return fmt.Errorf("Error setting `authentication_certificate`: %+v", err)
 		}
 
 		if err := d.Set("backend_address_pool", flattenApplicationGatewayBackendAddressPools(props.BackendAddressPools)); err != nil {
-			return fmt.Errorf("Error flattening `backend_address_pool`: %+v", err)
+			return fmt.Errorf("Error setting `backend_address_pool`: %+v", err)
 		}
 
 		v1, err1 := flattenApplicationGatewayBackendHTTPSettings(props.BackendHTTPSettingsCollection)
