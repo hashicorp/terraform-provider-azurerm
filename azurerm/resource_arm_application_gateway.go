@@ -850,7 +850,10 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 		if err := d.Set("frontend_ip_configuration", flattenApplicationGatewayFrontendIPConfigurations(props.FrontendIPConfigurations)); err != nil {
 			return fmt.Errorf("Error setting `frontend_ip_configuration`: %+v", err)
 		}
-		d.Set("probe", flattenApplicationGatewayProbes(props.Probes))
+
+		if err := d.Set("probe", flattenApplicationGatewayProbes(props.Probes)); err != nil {
+			return fmt.Errorf("Error setting `probe`: %+v", err)
+		}
 
 		v3, err3 := flattenApplicationGatewayRequestRoutingRules(props.RequestRoutingRules)
 		if err3 != nil {
@@ -1458,6 +1461,126 @@ func flattenApplicationGatewayFrontendIPConfigurations(input *[]network.Applicat
 
 			if props.PublicIPAddress != nil && props.PublicIPAddress.ID != nil {
 				output["public_ip_address_id"] = *props.PublicIPAddress.ID
+			}
+		}
+
+		results = append(results, output)
+	}
+
+	return results
+}
+
+func expandApplicationGatewayProbes(d *schema.ResourceData) *[]network.ApplicationGatewayProbe {
+	vs := d.Get("probe").([]interface{})
+	results := make([]network.ApplicationGatewayProbe, 0)
+
+	for _, raw := range vs {
+		v := raw.(map[string]interface{})
+
+		host := v["host"].(string)
+		interval := int32(v["interval"].(int))
+		minServers := int32(v["minimum_servers"].(int))
+		name := v["name"].(string)
+		probePath := v["path"].(string)
+		protocol := v["protocol"].(string)
+		timeout := int32(v["timeout"].(int))
+		unhealthyThreshold := int32(v["unhealthy_threshold"].(int))
+
+		output := network.ApplicationGatewayProbe{
+			Name: utils.String(name),
+			ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
+				Host:               utils.String(host),
+				Interval:           utils.Int32(interval),
+				MinServers:         utils.Int32(minServers),
+				Path:               utils.String(probePath),
+				Protocol:           network.ApplicationGatewayProtocol(protocol),
+				Timeout:            utils.Int32(timeout),
+				UnhealthyThreshold: utils.Int32(unhealthyThreshold),
+			},
+		}
+
+		matchConfigs := v["match"].([]interface{})
+		if len(matchConfigs) > 0 {
+			match := matchConfigs[0].(map[string]interface{})
+			matchBody := match["body"].(string)
+
+			statusCodes := make([]string, 0)
+			for _, statusCode := range match["status_code"].([]interface{}) {
+				statusCodes = append(statusCodes, statusCode.(string))
+			}
+
+			output.ApplicationGatewayProbePropertiesFormat.Match = &network.ApplicationGatewayProbeHealthResponseMatch{
+				Body:        utils.String(matchBody),
+				StatusCodes: &statusCodes,
+			}
+		}
+
+		results = append(results, output)
+	}
+
+	return &results
+}
+
+func flattenApplicationGatewayProbes(input *[]network.ApplicationGatewayProbe) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, v := range *input {
+		output := map[string]interface{}{}
+
+		if v.ID != nil {
+			output["id"] = *v.ID
+		}
+
+		if v.Name != nil {
+			output["name"] = *v.Name
+		}
+
+		if props := v.ApplicationGatewayProbePropertiesFormat; props != nil {
+			output["protocol"] = string(props.Protocol)
+
+			if host := props.Host; host != nil {
+				output["host"] = *host
+			}
+
+			if path := props.Path; path != nil {
+				output["path"] = *path
+			}
+
+			if interval := props.Interval; interval != nil {
+				output["interval"] = int(*interval)
+			}
+
+			if timeout := props.Timeout; timeout != nil {
+				output["timeout"] = int(*timeout)
+			}
+
+			if threshold := props.UnhealthyThreshold; threshold != nil {
+				output["unhealthy_threshold"] = int(*threshold)
+			}
+
+			if minServers := props.MinServers; minServers != nil {
+				output["minimum_servers"] = int(*minServers)
+			}
+
+			if match := props.Match; match != nil {
+				matchConfig := map[string]interface{}{}
+				if body := match.Body; body != nil {
+					matchConfig["body"] = *body
+				}
+
+				statusCodes := make([]interface{}, 0)
+				if match.StatusCodes != nil {
+					for _, status := range *match.StatusCodes {
+						statusCodes = append(statusCodes, status)
+					}
+				}
+				matchConfig["status_code"] = statusCodes
+
+				output["match"] = matchConfig
+
 			}
 		}
 

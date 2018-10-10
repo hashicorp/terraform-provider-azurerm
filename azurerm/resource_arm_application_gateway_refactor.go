@@ -43,57 +43,6 @@ func expandApplicationGatewayWafConfig(d *schema.ResourceData) *network.Applicat
 	}
 }
 
-func expandApplicationGatewayProbes(d *schema.ResourceData) *[]network.ApplicationGatewayProbe {
-	configs := d.Get("probe").([]interface{})
-	backendSettings := make([]network.ApplicationGatewayProbe, 0)
-
-	for _, configRaw := range configs {
-		data := configRaw.(map[string]interface{})
-
-		name := data["name"].(string)
-		protocol := data["protocol"].(string)
-		probePath := data["path"].(string)
-		host := data["host"].(string)
-		interval := int32(data["interval"].(int))
-		timeout := int32(data["timeout"].(int))
-		unhealthyThreshold := int32(data["unhealthy_threshold"].(int))
-		minServers := int32(data["minimum_servers"].(int))
-
-		setting := network.ApplicationGatewayProbe{
-			Name: &name,
-			ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
-				Protocol:           network.ApplicationGatewayProtocol(protocol),
-				Path:               &probePath,
-				Host:               &host,
-				Interval:           &interval,
-				Timeout:            &timeout,
-				UnhealthyThreshold: &unhealthyThreshold,
-				MinServers:         &minServers,
-			},
-		}
-
-		matchConfigs := data["match"].([]interface{})
-		if len(matchConfigs) > 0 {
-			match := matchConfigs[0].(map[string]interface{})
-			matchBody := match["body"].(string)
-
-			statusCodes := make([]string, 0)
-			for _, statusCode := range match["status_code"].([]interface{}) {
-				statusCodes = append(statusCodes, statusCode.(string))
-			}
-
-			setting.ApplicationGatewayProbePropertiesFormat.Match = &network.ApplicationGatewayProbeHealthResponseMatch{
-				Body:        &matchBody,
-				StatusCodes: &statusCodes,
-			}
-		}
-
-		backendSettings = append(backendSettings, setting)
-	}
-
-	return &backendSettings
-}
-
 func expandApplicationGatewayRequestRoutingRules(d *schema.ResourceData, gatewayID string) *[]network.ApplicationGatewayRequestRoutingRule {
 	configs := d.Get("request_routing_rule").([]interface{})
 	rules := make([]network.ApplicationGatewayRequestRoutingRule, 0)
@@ -257,67 +206,6 @@ func flattenApplicationGatewayWafConfig(waf *network.ApplicationGatewayWebApplic
 	result["rule_set_version"] = waf.RuleSetVersion
 
 	return []interface{}{result}
-}
-
-func flattenApplicationGatewayProbes(input *[]network.ApplicationGatewayProbe) []interface{} {
-	result := make([]interface{}, 0)
-
-	if probes := input; probes != nil {
-		for _, config := range *probes {
-			settings := map[string]interface{}{
-				"id":   *config.ID,
-				"name": *config.Name,
-			}
-
-			if props := config.ApplicationGatewayProbePropertiesFormat; props != nil {
-				settings["protocol"] = string(props.Protocol)
-
-				if host := props.Host; host != nil {
-					settings["host"] = *host
-				}
-
-				if path := props.Path; path != nil {
-					settings["path"] = *path
-				}
-
-				if interval := props.Interval; interval != nil {
-					settings["interval"] = int(*interval)
-				}
-
-				if timeout := props.Timeout; timeout != nil {
-					settings["timeout"] = int(*timeout)
-				}
-
-				if threshold := props.UnhealthyThreshold; threshold != nil {
-					settings["unhealthy_threshold"] = int(*threshold)
-				}
-
-				if minServers := props.MinServers; minServers != nil {
-					settings["minimum_servers"] = int(*minServers)
-				}
-
-				if match := props.Match; match != nil {
-					matchConfig := map[string]interface{}{}
-					if body := match.Body; body != nil {
-						matchConfig["body"] = *body
-					}
-
-					statusCodes := make([]interface{}, 0)
-					if match.StatusCodes != nil {
-						for _, status := range *match.StatusCodes {
-							statusCodes = append(statusCodes, status)
-						}
-						matchConfig["status_code"] = statusCodes
-					}
-					settings["match"] = matchConfig
-				}
-			}
-
-			result = append(result, settings)
-		}
-	}
-
-	return result
 }
 
 func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGatewayRequestRoutingRule) ([]interface{}, error) {
