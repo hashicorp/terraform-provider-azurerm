@@ -719,34 +719,46 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	tags := d.Get("tags").(map[string]interface{})
 
 	// Gateway ID is needed to link sub-resources together in expand functions
-	gatewayID := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/applicationGateways/%s",
-		armClient.subscriptionId, resGroup, name)
+	gatewayIDFmt := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/applicationGateways/%s"
+	gatewayID := fmt.Sprintf(gatewayIDFmt, armClient.subscriptionId, resGroup, name)
 
-	properties := network.ApplicationGatewayPropertiesFormat{}
-	properties.Sku = expandApplicationGatewaySku(d)
-	properties.SslPolicy = expandApplicationGatewaySslPolicy(d)
-	properties.GatewayIPConfigurations = expandApplicationGatewayIPConfigurations(d)
-	properties.FrontendPorts = expandApplicationGatewayFrontendPorts(d)
-	properties.FrontendIPConfigurations = expandApplicationGatewayFrontendIPConfigurations(d)
-	properties.BackendAddressPools = expandApplicationGatewayBackendAddressPools(d)
-	properties.BackendHTTPSettingsCollection = expandApplicationGatewayBackendHTTPSettings(d, gatewayID)
-	properties.HTTPListeners = expandApplicationGatewayHTTPListeners(d, gatewayID)
-	properties.Probes = expandApplicationGatewayProbes(d)
-	properties.RequestRoutingRules = expandApplicationGatewayRequestRoutingRules(d, gatewayID)
-	properties.URLPathMaps = expandApplicationGatewayURLPathMaps(d, gatewayID)
-	properties.AuthenticationCertificates = expandApplicationGatewayAuthenticationCertificates(d)
-	properties.SslCertificates = expandApplicationGatewaySslCertificates(d)
-
-	if _, ok := d.GetOk("waf_configuration"); ok {
-		properties.WebApplicationFirewallConfiguration = expandApplicationGatewayWafConfig(d)
-	}
+	authenticationCertificates := expandApplicationGatewayAuthenticationCertificates(d)
+	backendAddressPools := expandApplicationGatewayBackendAddressPools(d)
+	backendHTTPSettingsCollection := expandApplicationGatewayBackendHTTPSettings(d, gatewayID)
+	frontendIPConfigurations := expandApplicationGatewayFrontendIPConfigurations(d)
+	frontendPorts := expandApplicationGatewayFrontendPorts(d)
+	gatewayIPConfigurations := expandApplicationGatewayIPConfigurations(d)
+	httpListeners := expandApplicationGatewayHTTPListeners(d, gatewayID)
+	probes := expandApplicationGatewayProbes(d)
+	requestRoutingRules := expandApplicationGatewayRequestRoutingRules(d, gatewayID)
+	sku := expandApplicationGatewaySku(d)
+	sslCertificates := expandApplicationGatewaySslCertificates(d)
+	sslPolicy := expandApplicationGatewaySslPolicy(d)
+	urlPathMaps := expandApplicationGatewayURLPathMaps(d, gatewayID)
 
 	gateway := network.ApplicationGateway{
-		Name:                               utils.String(name),
-		Location:                           utils.String(location),
-		Tags:                               expandTags(tags),
-		ApplicationGatewayPropertiesFormat: &properties,
+		Name:     utils.String(name),
+		Location: utils.String(location),
+		Tags:     expandTags(tags),
+		ApplicationGatewayPropertiesFormat: &network.ApplicationGatewayPropertiesFormat{
+			AuthenticationCertificates:    authenticationCertificates,
+			BackendAddressPools:           backendAddressPools,
+			BackendHTTPSettingsCollection: backendHTTPSettingsCollection,
+			FrontendIPConfigurations:      frontendIPConfigurations,
+			FrontendPorts:                 frontendPorts,
+			GatewayIPConfigurations:       gatewayIPConfigurations,
+			HTTPListeners:                 httpListeners,
+			Probes:                        probes,
+			RequestRoutingRules:           requestRoutingRules,
+			Sku:                           sku,
+			SslCertificates:               sslCertificates,
+			SslPolicy:                     sslPolicy,
+			URLPathMaps:                   urlPathMaps,
+		},
+	}
+
+	if _, ok := d.GetOk("waf_configuration"); ok {
+		gateway.ApplicationGatewayPropertiesFormat.WebApplicationFirewallConfiguration = expandApplicationGatewayWafConfig(d)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, gateway)
@@ -786,12 +798,12 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 	applicationGateway, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(applicationGateway.Response) {
+			log.Printf("[DEBUG] Application Gateway %q was not found in Resource Group %q - removing from state", name, resGroup)
 			d.SetId("")
-			log.Printf("[INFO] ApplicationGateway %q not found. Removing from state", name)
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Azure ApplicationGateway %s: %+v", name, err)
+		return fmt.Errorf("Error making Read request on Application Gateway %s: %+v", name, err)
 	}
 
 	d.Set("name", applicationGateway.Name)
@@ -800,47 +812,49 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	// TODO: set errors / props being nil
+	// TODO: set errors
 
-	d.Set("sku", flattenApplicationGatewaySku(applicationGateway.ApplicationGatewayPropertiesFormat.Sku))
-	d.Set("disabled_ssl_protocols", flattenApplicationGatewaySslPolicy(applicationGateway.ApplicationGatewayPropertiesFormat.SslPolicy))
-	d.Set("gateway_ip_configuration", flattenApplicationGatewayIPConfigurations(applicationGateway.ApplicationGatewayPropertiesFormat.GatewayIPConfigurations))
-	d.Set("frontend_port", flattenApplicationGatewayFrontendPorts(applicationGateway.ApplicationGatewayPropertiesFormat.FrontendPorts))
-	d.Set("frontend_ip_configuration", flattenApplicationGatewayFrontendIPConfigurations(applicationGateway.ApplicationGatewayPropertiesFormat.FrontendIPConfigurations))
-	d.Set("backend_address_pool", flattenApplicationGatewayBackendAddressPools(applicationGateway.ApplicationGatewayPropertiesFormat.BackendAddressPools))
+	if props := applicationGateway.ApplicationGatewayPropertiesFormat; props != nil {
+		d.Set("sku", flattenApplicationGatewaySku(props.Sku))
+		d.Set("disabled_ssl_protocols", flattenApplicationGatewaySslPolicy(props.SslPolicy))
+		d.Set("gateway_ip_configuration", flattenApplicationGatewayIPConfigurations(props.GatewayIPConfigurations))
+		d.Set("frontend_port", flattenApplicationGatewayFrontendPorts(props.FrontendPorts))
+		d.Set("frontend_ip_configuration", flattenApplicationGatewayFrontendIPConfigurations(props.FrontendIPConfigurations))
+		d.Set("backend_address_pool", flattenApplicationGatewayBackendAddressPools(props.BackendAddressPools))
 
-	v1, err1 := flattenApplicationGatewayBackendHTTPSettings(applicationGateway.ApplicationGatewayPropertiesFormat.BackendHTTPSettingsCollection)
-	if err1 != nil {
-		return fmt.Errorf("error flattening BackendHTTPSettings: %+v", err1)
-	}
-	d.Set("backend_http_settings", v1)
+		v1, err1 := flattenApplicationGatewayBackendHTTPSettings(props.BackendHTTPSettingsCollection)
+		if err1 != nil {
+			return fmt.Errorf("error flattening BackendHTTPSettings: %+v", err1)
+		}
+		d.Set("backend_http_settings", v1)
 
-	v2, err2 := flattenApplicationGatewayHTTPListeners(applicationGateway.ApplicationGatewayPropertiesFormat.HTTPListeners)
-	if err2 != nil {
-		return fmt.Errorf("error flattening HTTPListeners: %+v", err2)
-	}
-	d.Set("http_listener", v2)
+		v2, err2 := flattenApplicationGatewayHTTPListeners(props.HTTPListeners)
+		if err2 != nil {
+			return fmt.Errorf("error flattening HTTPListeners: %+v", err2)
+		}
+		d.Set("http_listener", v2)
 
-	d.Set("probe", flattenApplicationGatewayProbes(applicationGateway.ApplicationGatewayPropertiesFormat.Probes))
+		d.Set("probe", flattenApplicationGatewayProbes(props.Probes))
 
-	v3, err3 := flattenApplicationGatewayRequestRoutingRules(applicationGateway.ApplicationGatewayPropertiesFormat.RequestRoutingRules)
-	if err3 != nil {
-		return fmt.Errorf("error flattening RequestRoutingRules: %+v", err3)
-	}
-	d.Set("request_routing_rule", v3)
+		v3, err3 := flattenApplicationGatewayRequestRoutingRules(props.RequestRoutingRules)
+		if err3 != nil {
+			return fmt.Errorf("error flattening RequestRoutingRules: %+v", err3)
+		}
+		d.Set("request_routing_rule", v3)
 
-	v4, err4 := flattenApplicationGatewayURLPathMaps(applicationGateway.ApplicationGatewayPropertiesFormat.URLPathMaps)
-	if err4 != nil {
-		return fmt.Errorf("error flattening URLPathMaps: %+v", err4)
-	}
-	d.Set("url_path_map", v4)
+		v4, err4 := flattenApplicationGatewayURLPathMaps(props.URLPathMaps)
+		if err4 != nil {
+			return fmt.Errorf("error flattening URLPathMaps: %+v", err4)
+		}
+		d.Set("url_path_map", v4)
 
-	d.Set("authentication_certificate", schema.NewSet(hashApplicationGatewayAuthenticationCertificates, flattenApplicationGatewayAuthenticationCertificates(applicationGateway.ApplicationGatewayPropertiesFormat.AuthenticationCertificates)))
-	d.Set("ssl_certificate", schema.NewSet(hashApplicationGatewaySslCertificates, flattenApplicationGatewaySslCertificates(applicationGateway.ApplicationGatewayPropertiesFormat.SslCertificates)))
+		d.Set("authentication_certificate", schema.NewSet(hashApplicationGatewayAuthenticationCertificates, flattenApplicationGatewayAuthenticationCertificates(props.AuthenticationCertificates)))
+		d.Set("ssl_certificate", schema.NewSet(hashApplicationGatewaySslCertificates, flattenApplicationGatewaySslCertificates(props.SslCertificates)))
 
-	if applicationGateway.ApplicationGatewayPropertiesFormat.WebApplicationFirewallConfiguration != nil {
-		d.Set("waf_configuration", schema.NewSet(hashApplicationGatewayWafConfig,
-			flattenApplicationGatewayWafConfig(applicationGateway.ApplicationGatewayPropertiesFormat.WebApplicationFirewallConfiguration)))
+		if props.WebApplicationFirewallConfiguration != nil {
+			d.Set("waf_configuration", schema.NewSet(hashApplicationGatewayWafConfig,
+				flattenApplicationGatewayWafConfig(props.WebApplicationFirewallConfiguration)))
+		}
 	}
 
 	flattenAndSetTags(d, applicationGateway.Tags)
@@ -1768,45 +1782,58 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 }
 
 func flattenApplicationGatewayAuthenticationCertificates(input *[]network.ApplicationGatewayAuthenticationCertificate) []interface{} {
-	result := make([]interface{}, 0)
-
-	if certs := input; certs != nil {
-		for _, config := range *certs {
-			certConfig := map[string]interface{}{
-				"id":   *config.ID,
-				"name": *config.Name,
-			}
-
-			result = append(result, certConfig)
-		}
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
 	}
 
-	return result
+	for _, v := range *input {
+		output := map[string]interface{}{}
+
+		if v.ID != nil {
+			output["id"] = *v.ID
+		}
+
+		if v.Name != nil {
+			output["name"] = *v.Name
+		}
+
+		results = append(results, output)
+	}
+
+	return results
 }
 
 func flattenApplicationGatewaySslCertificates(input *[]network.ApplicationGatewaySslCertificate) []interface{} {
-	result := make([]interface{}, 0)
-
-	if certs := input; certs != nil {
-		for _, config := range *certs {
-			certConfig := map[string]interface{}{
-				"id":   *config.ID,
-				"name": *config.Name,
-			}
-
-			if props := config.ApplicationGatewaySslCertificatePropertiesFormat; props != nil {
-				if data := props.PublicCertData; data != nil {
-					certConfig["public_cert_data"] = *data
-				}
-			}
-
-			result = append(result, certConfig)
-		}
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
 	}
 
-	return result
+	for _, v := range *input {
+		output := map[string]interface{}{}
+
+		if v.ID != nil {
+			output["id"] = *v.ID
+		}
+
+		if v.Name != nil {
+			output["name"] = *v.Name
+		}
+
+		if props := v.ApplicationGatewaySslCertificatePropertiesFormat; props != nil {
+			if data := props.PublicCertData; data != nil {
+				output["public_cert_data"] = *data
+			}
+		}
+
+		results = append(results, output)
+	}
+
+	return results
 }
 
+// TODO: can this be removed?
 func hashApplicationGatewayWafConfig(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
