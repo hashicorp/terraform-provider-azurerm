@@ -13,47 +13,53 @@ Manages an Application Gateway.
 ## Example Usage
 
 ```hcl
-<<<<<<< HEAD
-# Create a resource group
-resource "azurerm_resource_group" "rg" {
-  name     = "my-rg-application-gateway-12345"
+resource "azurerm_resource_group" "test" {
+  name     = "example-resources"
   location = "West US"
 }
 
-# Create a application gateway in the web_servers resource group
-resource "azurerm_virtual_network" "vnet" {
-  name                = "my-vnet-12345"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
+resource "azurerm_virtual_network" "test" {
+  name                = "example-network"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
   address_space       = ["10.254.0.0/16"]
-  location            = "${azurerm_resource_group.rg.location}"
 }
 
-resource "azurerm_subnet" "sub1" {
-  name                 = "my-subnet-1"
-  resource_group_name  = "${azurerm_resource_group.rg.name}"
-  virtual_network_name = "${azurerm_virtual_network.vnet.name}"
+resource "azurerm_subnet" "frontend" {
+  name                 = "frontend"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.254.0.0/24"
 }
 
-resource "azurerm_subnet" "sub2" {
-  name                 = "my-subnet-2"
-  resource_group_name  = "${azurerm_resource_group.rg.name}"
-  virtual_network_name = "${azurerm_virtual_network.vnet.name}"
+resource "azurerm_subnet" "backend" {
+  name                 = "backend"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.254.2.0/24"
 }
 
-resource "azurerm_public_ip" "pip" {
-  name                         = "my-pip-12345"
-  location                     = "${azurerm_resource_group.rg.location}"
-  resource_group_name          = "${azurerm_resource_group.rg.name}"
+resource "azurerm_public_ip" "test" {
+  name                         = "example-pip"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
   public_ip_address_allocation = "dynamic"
 }
 
-# Create an application gateway
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+}
+
 resource "azurerm_application_gateway" "network" {
-  name                = "my-application-gateway-12345"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  location            = "West US"
+  name                = "example-appgateway"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
 
   sku {
     name     = "Standard_Small"
@@ -63,25 +69,25 @@ resource "azurerm_application_gateway" "network" {
 
   gateway_ip_configuration {
     name      = "my-gateway-ip-configuration"
-    subnet_id = "${azurerm_virtual_network.vnet.id}/subnets/${azurerm_subnet.sub1.name}"
+    subnet_id = "${azurerm_subnet.frontend.id}"
   }
 
   frontend_port {
-    name = "${azurerm_virtual_network.vnet.name}-feport"
+    name = "${local.frontend_port_name}"
     port = 80
   }
 
   frontend_ip_configuration {
-    name                 = "${azurerm_virtual_network.vnet.name}-feip"
-    public_ip_address_id = "${azurerm_public_ip.pip.id}"
+    name                 = "${local.frontend_ip_configuration_name}"
+    public_ip_address_id = "${azurerm_public_ip.test.id}"
   }
 
   backend_address_pool {
-    name = "${azurerm_virtual_network.vnet.name}-beap"
+    name = "${local.backend_address_pool_name}"
   }
 
   backend_http_settings {
-    name                  = "${azurerm_virtual_network.vnet.name}-be-htst"
+    name                  = "${local.http_setting_name}"
     cookie_based_affinity = "Disabled"
     port                  = 80
     protocol              = "Http"
@@ -89,71 +95,20 @@ resource "azurerm_application_gateway" "network" {
   }
 
   http_listener {
-    name                           = "${azurerm_virtual_network.vnet.name}-httplstn"
-    frontend_ip_configuration_name = "${azurerm_virtual_network.vnet.name}-feip"
-    frontend_port_name             = "${azurerm_virtual_network.vnet.name}-feport"
+    name                           = "${local.listener_name}"
+    frontend_ip_configuration_name = "${local.frontend_ip_configuration_name}"
+    frontend_port_name             = "${local.frontend_port_name}"
     protocol                       = "Http"
   }
 
   request_routing_rule {
-    name                       = "${azurerm_virtual_network.vnet.name}-rqrt"
+    name                       = "${local.request_routing_rule_name}"
     rule_type                  = "Basic"
-    http_listener_name         = "${azurerm_virtual_network.vnet.name}-httplstn"
-    backend_address_pool_name  = "${azurerm_virtual_network.vnet.name}-beap"
-    backend_http_settings_name = "${azurerm_virtual_network.vnet.name}-be-htst"
-  }
-
-  // Path-based routing example
-  http_listener {
-    name                           = "${azurerm_virtual_network.vnet.name}-httplstn-pbr.contoso.com"
-    host_name                      = "pbr.contoso.com"
-    frontend_ip_configuration_name = "${azurerm_virtual_network.vnet.name}-feip"
-    frontend_port_name             = "${azurerm_virtual_network.vnet.name}-feport"
-    protocol                       = "Http"
-  }
-
-  backend_address_pool {
-    name = "${azurerm_virtual_network.vnet.name}-beap-fallback"
-  }
-
-  backend_address_pool {
-    name = "${azurerm_virtual_network.vnet.name}-beap-first"
-  }
-
-  backend_address_pool {
-    name = "${azurerm_virtual_network.vnet.name}-beap-second"
-  }
-
-  request_routing_rule {
-    name               = "${azurerm_virtual_network.vnet.name}-rqrt"
-    rule_type          = "PathBasedRouting"
-    http_listener_name = "${azurerm_virtual_network.vnet.name}-httplstn-pbr.contoso.com"
-    url_path_map_name  = "pbr.contoso.com"
-  }
-
-  url_path_map {
-    name                               = "pbr.contoso.com"
-    default_backend_address_pool_name  = "${azurerm_virtual_network.vnet.name}-beap-fallback"
-    default_backend_http_settings_name = "${azurerm_virtual_network.vnet.name}-be-htst"
-
-    path_rule {
-      name                       = "pbr.contoso.com_first"
-      paths                      = ["/first/*"]
-      backend_address_pool_name  = "${local.awg_clusters_name}-beap-first"
-      backend_http_settings_name = "${local.awg_clusters_name}-be-htst"
-    }
-
-    path_rule {
-      name                       = "pbr.contoso.com_second"
-      paths                      = ["/second/*"]
-      backend_address_pool_name  = "${local.awg_clusters_name}-beap-second"
-      backend_http_settings_name = "${local.awg_clusters_name}-be-htst"
-    }
+    http_listener_name         = "${local.listener_name}"
+    backend_address_pool_name  = "${local.backend_address_pool_name}"
+    backend_http_settings_name = "${local.http_setting_name}"
   }
 }
-=======
-TODO
->>>>>>> Rewriting the documentation for Application Gateway
 ```
 
 ## Argument Reference
