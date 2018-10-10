@@ -100,7 +100,7 @@ func resourceArmDevTestVirtualNetworkCreateUpdate(d *schema.ResourceData, meta i
 
 	subscriptionId := meta.(*ArmClient).subscriptionId
 	subnetsRaw := d.Get("subnet").([]interface{})
-	subnets := expandDevTestVirtualNetworkSubnets(subnetsRaw, subscriptionId, resourceGroup, labName, name)
+	subnets := expandDevTestVirtualNetworkSubnets(d, subnetsRaw, subscriptionId, resourceGroup, labName, name)
 
 	parameters := dtl.VirtualNetwork{
 		Tags: expandTags(tags),
@@ -220,18 +220,25 @@ func validateDevTestVirtualNetworkName() schema.SchemaValidateFunc {
 		"Virtual Network Name can only include alphanumeric characters, underscores, hyphens.")
 }
 
-func expandDevTestVirtualNetworkSubnets(input []interface{}, subscriptionId, resourceGroupName, labName, virtualNetworkName string) *[]dtl.SubnetOverride {
+func expandDevTestVirtualNetworkSubnets(d *schema.ResourceData, input []interface{}, subscriptionId, resourceGroupName, labName, virtualNetworkName string) *[]dtl.SubnetOverride {
 	results := make([]dtl.SubnetOverride, 0)
+	// default found from the Portal
+	name := fmt.Sprintf("%sSubnet", virtualNetworkName)
+	idFmt := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DevTestLab/labs/%s/virtualnetworks/%s/subnets/%s"
+	subnetId := fmt.Sprintf(idFmt, subscriptionId, resourceGroupName, labName, virtualNetworkName, name)
 	if len(input) == 0 {
+		result := dtl.SubnetOverride{
+			ResourceID:                   utils.String(subnetId),
+			LabSubnetName:                utils.String(name),
+			UsePublicIPAddressPermission: dtl.Allow,
+			UseInVMCreationPermission:    dtl.Allow,
+		}
+		results = append(results, result)
 		return &results
 	}
 
 	for _, val := range input {
 		v := val.(map[string]interface{})
-		// default found from the Portal
-		name := fmt.Sprintf("%sSubnet", virtualNetworkName)
-		idFmt := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DevTestLab/labs/%s/virtualnetworks/%s/subnets/%s"
-		subnetId := fmt.Sprintf(idFmt, subscriptionId, resourceGroupName, labName, virtualNetworkName, name)
 		usePublicIPAddress := v["use_public_ip_address"].(string)
 		useInVirtualMachineCreation := v["use_in_virtual_machine_creation"].(string)
 
@@ -241,7 +248,6 @@ func expandDevTestVirtualNetworkSubnets(input []interface{}, subscriptionId, res
 			UsePublicIPAddressPermission: dtl.UsagePermissionType(usePublicIPAddress),
 			UseInVMCreationPermission:    dtl.UsagePermissionType(useInVirtualMachineCreation),
 		}
-
 		results = append(results, subnet)
 	}
 
