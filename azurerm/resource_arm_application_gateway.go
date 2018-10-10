@@ -855,11 +855,9 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `probe`: %+v", err)
 		}
 
-		v3, err3 := flattenApplicationGatewayRequestRoutingRules(props.RequestRoutingRules)
-		if err3 != nil {
-			return fmt.Errorf("error flattening RequestRoutingRules: %+v", err3)
+		if err := d.Set("request_routing_rule", flattenApplicationGatewayRequestRoutingRules(props.RequestRoutingRules)); err != nil {
+			return fmt.Errorf("Error setting `request_routing_rule`: %+v", err)
 		}
-		d.Set("request_routing_rule", v3)
 
 		d.Set("sku", flattenApplicationGatewaySku(props.Sku))
 		d.Set("ssl_certificate", schema.NewSet(hashApplicationGatewaySslCertificates, flattenApplicationGatewaySslCertificates(props.SslCertificates)))
@@ -1585,6 +1583,119 @@ func flattenApplicationGatewayProbes(input *[]network.ApplicationGatewayProbe) [
 		}
 
 		results = append(results, output)
+	}
+
+	return results
+}
+
+func expandApplicationGatewayRequestRoutingRules(d *schema.ResourceData, gatewayID string) *[]network.ApplicationGatewayRequestRoutingRule {
+	vs := d.Get("request_routing_rule").([]interface{})
+	results := make([]network.ApplicationGatewayRequestRoutingRule, 0)
+
+	for _, raw := range vs {
+		v := raw.(map[string]interface{})
+
+		name := v["name"].(string)
+		ruleType := v["rule_type"].(string)
+		httpListenerName := v["http_listener_name"].(string)
+		httpListenerID := fmt.Sprintf("%s/httpListeners/%s", gatewayID, httpListenerName)
+
+		rule := network.ApplicationGatewayRequestRoutingRule{
+			Name: utils.String(name),
+			ApplicationGatewayRequestRoutingRulePropertiesFormat: &network.ApplicationGatewayRequestRoutingRulePropertiesFormat{
+				RuleType: network.ApplicationGatewayRequestRoutingRuleType(ruleType),
+				HTTPListener: &network.SubResource{
+					ID: utils.String(httpListenerID),
+				},
+			},
+		}
+
+		if backendAddressPoolName := v["backend_address_pool_name"].(string); backendAddressPoolName != "" {
+			backendAddressPoolID := fmt.Sprintf("%s/backendAddressPools/%s", gatewayID, backendAddressPoolName)
+			rule.ApplicationGatewayRequestRoutingRulePropertiesFormat.BackendAddressPool = &network.SubResource{
+				ID: utils.String(backendAddressPoolID),
+			}
+		}
+
+		if backendHTTPSettingsName := v["backend_http_settings_name"].(string); backendHTTPSettingsName != "" {
+			backendHTTPSettingsID := fmt.Sprintf("%s/backendHttpSettingsCollection/%s", gatewayID, backendHTTPSettingsName)
+			rule.ApplicationGatewayRequestRoutingRulePropertiesFormat.BackendHTTPSettings = &network.SubResource{
+				ID: utils.String(backendHTTPSettingsID),
+			}
+		}
+
+		if urlPathMapName := v["url_path_map_name"].(string); urlPathMapName != "" {
+			urlPathMapID := fmt.Sprintf("%s/urlPathMaps/%s", gatewayID, urlPathMapName)
+			rule.ApplicationGatewayRequestRoutingRulePropertiesFormat.URLPathMap = &network.SubResource{
+				ID: utils.String(urlPathMapID),
+			}
+		}
+
+		results = append(results, rule)
+	}
+
+	return &results
+}
+
+func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGatewayRequestRoutingRule) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, config := range *input {
+		if props := config.ApplicationGatewayRequestRoutingRulePropertiesFormat; props != nil {
+
+			output := map[string]interface{}{
+				"rule_type": string(props.RuleType),
+			}
+
+			if config.ID != nil {
+				output["id"] = *config.ID
+			}
+
+			if config.Name != nil {
+				output["name"] = *config.Name
+			}
+
+			if pool := props.BackendAddressPool; pool != nil {
+				if pool.ID != nil {
+					poolId := *pool.ID
+					backendAddressPoolName := strings.Split(poolId, "/")[len(strings.Split(poolId, "/"))-1]
+					output["backend_address_pool_name"] = backendAddressPoolName
+					output["backend_address_pool_id"] = poolId
+				}
+			}
+
+			if settings := props.BackendHTTPSettings; settings != nil {
+				if settings.ID != nil {
+					settingsId := *settings.ID
+					backendHTTPSettingsName := strings.Split(settingsId, "/")[len(strings.Split(settingsId, "/"))-1]
+					output["backend_http_settings_name"] = backendHTTPSettingsName
+					output["backend_http_settings_id"] = settingsId
+				}
+			}
+
+			if listener := props.HTTPListener; listener != nil {
+				if listener.ID != nil {
+					listenerId := *listener.ID
+					httpListenerName := strings.Split(listenerId, "/")[len(strings.Split(listenerId, "/"))-1]
+					output["http_listener_id"] = listenerId
+					output["http_listener_name"] = httpListenerName
+				}
+			}
+
+			if pathMap := props.URLPathMap; pathMap != nil {
+				if pathMap.ID != nil {
+					pathMapId := *pathMap.ID
+					urlPathMapName := strings.Split(pathMapId, "/")[len(strings.Split(pathMapId, "/"))-1]
+					output["url_path_map_name"] = urlPathMapName
+					output["url_path_map_id"] = pathMapId
+				}
+			}
+
+			results = append(results, output)
+		}
 	}
 
 	return results

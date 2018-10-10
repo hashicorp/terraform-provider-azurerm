@@ -43,55 +43,6 @@ func expandApplicationGatewayWafConfig(d *schema.ResourceData) *network.Applicat
 	}
 }
 
-func expandApplicationGatewayRequestRoutingRules(d *schema.ResourceData, gatewayID string) *[]network.ApplicationGatewayRequestRoutingRule {
-	configs := d.Get("request_routing_rule").([]interface{})
-	rules := make([]network.ApplicationGatewayRequestRoutingRule, 0)
-
-	for _, configRaw := range configs {
-		data := configRaw.(map[string]interface{})
-
-		name := data["name"].(string)
-		ruleType := data["rule_type"].(string)
-		httpListenerName := data["http_listener_name"].(string)
-		httpListenerID := fmt.Sprintf("%s/httpListeners/%s", gatewayID, httpListenerName)
-
-		rule := network.ApplicationGatewayRequestRoutingRule{
-			Name: &name,
-			ApplicationGatewayRequestRoutingRulePropertiesFormat: &network.ApplicationGatewayRequestRoutingRulePropertiesFormat{
-				RuleType: network.ApplicationGatewayRequestRoutingRuleType(ruleType),
-				HTTPListener: &network.SubResource{
-					ID: &httpListenerID,
-				},
-			},
-		}
-
-		if backendAddressPoolName := data["backend_address_pool_name"].(string); backendAddressPoolName != "" {
-			backendAddressPoolID := fmt.Sprintf("%s/backendAddressPools/%s", gatewayID, backendAddressPoolName)
-			rule.ApplicationGatewayRequestRoutingRulePropertiesFormat.BackendAddressPool = &network.SubResource{
-				ID: &backendAddressPoolID,
-			}
-		}
-
-		if backendHTTPSettingsName := data["backend_http_settings_name"].(string); backendHTTPSettingsName != "" {
-			backendHTTPSettingsID := fmt.Sprintf("%s/backendHttpSettingsCollection/%s", gatewayID, backendHTTPSettingsName)
-			rule.ApplicationGatewayRequestRoutingRulePropertiesFormat.BackendHTTPSettings = &network.SubResource{
-				ID: &backendHTTPSettingsID,
-			}
-		}
-
-		if urlPathMapName := data["url_path_map_name"].(string); urlPathMapName != "" {
-			urlPathMapID := fmt.Sprintf("%s/urlPathMaps/%s", gatewayID, urlPathMapName)
-			rule.ApplicationGatewayRequestRoutingRulePropertiesFormat.URLPathMap = &network.SubResource{
-				ID: &urlPathMapID,
-			}
-		}
-
-		rules = append(rules, rule)
-	}
-
-	return &rules
-}
-
 func expandApplicationGatewayURLPathMaps(d *schema.ResourceData, gatewayID string) *[]network.ApplicationGatewayURLPathMap {
 	configs := d.Get("url_path_map").([]interface{})
 	pathMaps := make([]network.ApplicationGatewayURLPathMap, 0)
@@ -206,48 +157,6 @@ func flattenApplicationGatewayWafConfig(waf *network.ApplicationGatewayWebApplic
 	result["rule_set_version"] = waf.RuleSetVersion
 
 	return []interface{}{result}
-}
-
-func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGatewayRequestRoutingRule) ([]interface{}, error) {
-	result := make([]interface{}, 0)
-
-	if rules := input; rules != nil {
-		for _, config := range *rules {
-
-			if props := config.ApplicationGatewayRequestRoutingRulePropertiesFormat; props != nil {
-				httpListenerName := strings.Split(*props.HTTPListener.ID, "/")[len(strings.Split(*props.HTTPListener.ID, "/"))-1]
-				listener := map[string]interface{}{
-					"id":                 *config.ID,
-					"name":               *config.Name,
-					"rule_type":          string(props.RuleType),
-					"http_listener_id":   *props.HTTPListener.ID,
-					"http_listener_name": httpListenerName,
-				}
-
-				if pool := props.BackendAddressPool; pool != nil {
-					backendAddressPoolName := strings.Split(*pool.ID, "/")[len(strings.Split(*pool.ID, "/"))-1]
-					listener["backend_address_pool_name"] = backendAddressPoolName
-					listener["backend_address_pool_id"] = *pool.ID
-				}
-
-				if settings := props.BackendHTTPSettings; settings != nil {
-					backendHTTPSettingsName := strings.Split(*settings.ID, "/")[len(strings.Split(*settings.ID, "/"))-1]
-					listener["backend_http_settings_name"] = backendHTTPSettingsName
-					listener["backend_http_settings_id"] = *settings.ID
-				}
-
-				if pathMap := props.URLPathMap; pathMap != nil {
-					urlPathMapName := strings.Split(*pathMap.ID, "/")[len(strings.Split(*pathMap.ID, "/"))-1]
-					listener["url_path_map_name"] = urlPathMapName
-					listener["url_path_map_id"] = *pathMap.ID
-				}
-
-				result = append(result, listener)
-			}
-		}
-	}
-
-	return result, nil
 }
 
 func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURLPathMap) ([]interface{}, error) {
