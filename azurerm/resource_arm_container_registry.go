@@ -57,15 +57,18 @@ func resourceArmContainerRegistry() *schema.Resource {
 				Default:  false,
 			},
 
-			"goreplication_enabled": {
+			"georeplication_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
 
+			// todo: should be a list of locations to enable multiple geo-replications
 			"georeplication_location": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:             schema.TypeString,
+				Optional:         true,
+				StateFunc:        azureRMNormalizeLocation,
+				DiffSuppressFunc: azureRMSuppressLocationDiff,
 			},
 
 			"storage_account_id": {
