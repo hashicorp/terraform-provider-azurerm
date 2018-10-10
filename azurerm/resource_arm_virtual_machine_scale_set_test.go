@@ -1164,6 +1164,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
       primary = true
       ip_configuration {
         name = "TestIPConfiguration"
+        primary = true
         subnet_id = "${azurerm_subnet.test.id}"
       }
   }
@@ -1965,6 +1966,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
       primary = true
       ip_configuration {
         name = "TestIPConfiguration"
+        primary = true
         subnet_id = "${azurerm_subnet.test.id}"
       }
   }
