@@ -67,6 +67,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/authentication"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/Azure/azure-sdk-for-go/services/preview/devspaces/mgmt/2018-06-01-preview/devspaces"
 )
 
 // ArmClient contains the handles to all the specific Azure Resource Manager
@@ -153,6 +154,9 @@ type ArmClient struct {
 	// DevTestLabs
 	devTestLabsClient            dtl.LabsClient
 	devTestVirtualNetworksClient dtl.VirtualNetworksClient
+
+	// DevSpaces
+	devSpacesControllersClient devspaces.ControllersClient
 
 	// Databases
 	mysqlConfigurationsClient                mysql.ConfigurationsClient
@@ -475,6 +479,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDeviceClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerDevSpacesClients(endpoint, c.SubscriptionID, auth)
 	client.registerDevTestClients(endpoint, c.SubscriptionID, auth)
 	client.registerDNSClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventGridClients(endpoint, c.SubscriptionID, auth, sender)
@@ -776,6 +781,12 @@ func (c *ArmClient) registerDevTestClients(endpoint, subscriptionId string, auth
 	devTestVirtualNetworksClient := dtl.NewVirtualNetworksClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&devTestVirtualNetworksClient.Client, auth)
 	c.devTestVirtualNetworksClient = devTestVirtualNetworksClient
+}
+
+func (c *ArmClient) registerDevSpacesClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	controllersClient := devspaces.NewControllersClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&controllersClient.Client, auth)
+	c.devSpacesControllersClient = controllersClient
 }
 
 func (c *ArmClient) registerDNSClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
