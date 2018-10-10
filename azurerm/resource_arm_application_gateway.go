@@ -812,7 +812,11 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 	// TODO: set errors
 
 	if props := applicationGateway.ApplicationGatewayPropertiesFormat; props != nil {
-		d.Set("authentication_certificate", schema.NewSet(hashApplicationGatewayAuthenticationCertificates, flattenApplicationGatewayAuthenticationCertificates(props.AuthenticationCertificates)))
+		flattenedCerts := flattenApplicationGatewayAuthenticationCertificates(props.AuthenticationCertificates)
+		if err := d.Set("authentication_certificate", flattenedCerts); err != nil {
+			return fmt.Errorf("Error flattening `authentication_certificate`: %+v", err)
+		}
+
 		d.Set("backend_address_pool", flattenApplicationGatewayBackendAddressPools(props.BackendAddressPools))
 
 		v1, err1 := flattenApplicationGatewayBackendHTTPSettings(props.BackendHTTPSettingsCollection)
@@ -881,4 +885,53 @@ func resourceArmApplicationGatewayDelete(d *schema.ResourceData, meta interface{
 	}
 
 	return nil
+}
+
+func expandApplicationGatewayAuthenticationCertificates(d *schema.ResourceData) *[]network.ApplicationGatewayAuthenticationCertificate {
+	vs := d.Get("authentication_certificate").([]interface{})
+	results := make([]network.ApplicationGatewayAuthenticationCertificate, 0)
+
+	for _, raw := range vs {
+		v := raw.(map[string]interface{})
+
+		name := v["name"].(string)
+		data := v["data"].(string)
+
+		// data must be base64 encoded
+		data = base64Encode(data)
+
+		output := network.ApplicationGatewayAuthenticationCertificate{
+			Name: utils.String(name),
+			ApplicationGatewayAuthenticationCertificatePropertiesFormat: &network.ApplicationGatewayAuthenticationCertificatePropertiesFormat{
+				Data: utils.String(data),
+			},
+		}
+
+		results = append(results, output)
+	}
+
+	return &results
+}
+
+func flattenApplicationGatewayAuthenticationCertificates(input *[]network.ApplicationGatewayAuthenticationCertificate) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, v := range *input {
+		output := map[string]interface{}{}
+
+		if v.ID != nil {
+			output["id"] = *v.ID
+		}
+
+		if v.Name != nil {
+			output["name"] = *v.Name
+		}
+
+		results = append(results, output)
+	}
+
+	return results
 }
