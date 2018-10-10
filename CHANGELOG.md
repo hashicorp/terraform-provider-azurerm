@@ -1,5 +1,9 @@
 ## 1.17.0 (Unreleased)
 
+UPGRADE NOTES:
+
+* `azurerm_virtual_machine_scale_set` - the field `primary` within the `ip_configuration` block within the `network_profile` block is now Required, to match behavioural changes in the Azure API. [GH-2035]
+
 FEATURES:
 
 * **New Resource:** `azurerm_api_management` [GH-1516]
@@ -10,6 +14,7 @@ BUG FIXES:
 
 * Data Source `azurerm_subnet` - fixing the ordering of the resource group name and network name in the error message [GH-2017]
 * `azurerm_kubernetes_cluster` - using the correct casing for the `addon_profile` `oms_agent` property [GH-1995]
+* `azurerm_virtual_machine_scale_set` - `primary` is now required within the `ip_configuration` block within `network_profile` (matching a behavioural change with the Azure API) [GH-2035]
 
 IMPROVEMENTS:
 
