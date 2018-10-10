@@ -43,28 +43,6 @@ func expandApplicationGatewayWafConfig(d *schema.ResourceData) *network.Applicat
 	}
 }
 
-func expandApplicationGatewayFrontendPorts(d *schema.ResourceData) *[]network.ApplicationGatewayFrontendPort {
-	configs := d.Get("frontend_port").([]interface{})
-	frontendPorts := make([]network.ApplicationGatewayFrontendPort, 0)
-
-	for _, configRaw := range configs {
-		data := configRaw.(map[string]interface{})
-
-		name := data["name"].(string)
-		port := int32(data["port"].(int))
-
-		portConfig := network.ApplicationGatewayFrontendPort{
-			Name: &name,
-			ApplicationGatewayFrontendPortPropertiesFormat: &network.ApplicationGatewayFrontendPortPropertiesFormat{
-				Port: &port,
-			},
-		}
-		frontendPorts = append(frontendPorts, portConfig)
-	}
-
-	return &frontendPorts
-}
-
 func expandApplicationGatewayFrontendIPConfigurations(d *schema.ResourceData) *[]network.ApplicationGatewayFrontendIPConfiguration {
 	configs := d.Get("frontend_ip_configuration").([]interface{})
 	frontEndConfigs := make([]network.ApplicationGatewayFrontendIPConfiguration, 0)
@@ -320,24 +298,6 @@ func flattenApplicationGatewayWafConfig(waf *network.ApplicationGatewayWebApplic
 	result["rule_set_version"] = waf.RuleSetVersion
 
 	return []interface{}{result}
-}
-
-func flattenApplicationGatewayFrontendPorts(portConfigs *[]network.ApplicationGatewayFrontendPort) []interface{} {
-	result := make([]interface{}, 0)
-
-	if configs := portConfigs; configs != nil {
-		for _, config := range *configs {
-			port := map[string]interface{}{
-				"id":   *config.ID,
-				"name": *config.Name,
-				"port": int(*config.ApplicationGatewayFrontendPortPropertiesFormat.Port),
-			}
-
-			result = append(result, port)
-		}
-	}
-
-	return result
 }
 
 func flattenApplicationGatewayFrontendIPConfigurations(ipConfigs *[]network.ApplicationGatewayFrontendIPConfiguration) []interface{} {

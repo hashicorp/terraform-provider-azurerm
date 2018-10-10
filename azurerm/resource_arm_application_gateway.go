@@ -842,7 +842,11 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 		if err := d.Set("gateway_ip_configuration", flattenApplicationGatewayIPConfigurations(props.GatewayIPConfigurations)); err != nil {
 			return fmt.Errorf("Error setting `gateway_ip_configuration`: %+v", err)
 		}
-		d.Set("frontend_port", flattenApplicationGatewayFrontendPorts(props.FrontendPorts))
+
+		if err := d.Set("frontend_port", flattenApplicationGatewayFrontendPorts(props.FrontendPorts)); err != nil {
+			return fmt.Errorf("Error setting `frontend_port`: %+v", err)
+		}
+
 		d.Set("frontend_ip_configuration", flattenApplicationGatewayFrontendIPConfigurations(props.FrontendIPConfigurations))
 		d.Set("probe", flattenApplicationGatewayProbes(props.Probes))
 
@@ -1322,6 +1326,57 @@ func flattenApplicationGatewayIPConfigurations(input *[]network.ApplicationGatew
 				if subnet.ID != nil {
 					output["subnet_id"] = *subnet.ID
 				}
+			}
+		}
+
+		results = append(results, output)
+	}
+
+	return results
+}
+
+func expandApplicationGatewayFrontendPorts(d *schema.ResourceData) *[]network.ApplicationGatewayFrontendPort {
+	vs := d.Get("frontend_port").([]interface{})
+	results := make([]network.ApplicationGatewayFrontendPort, 0)
+
+	for _, raw := range vs {
+		v := raw.(map[string]interface{})
+
+		name := v["name"].(string)
+		port := int32(v["port"].(int))
+
+		output := network.ApplicationGatewayFrontendPort{
+			Name: utils.String(name),
+			ApplicationGatewayFrontendPortPropertiesFormat: &network.ApplicationGatewayFrontendPortPropertiesFormat{
+				Port: utils.Int32(port),
+			},
+		}
+		results = append(results, output)
+	}
+
+	return &results
+}
+
+func flattenApplicationGatewayFrontendPorts(input *[]network.ApplicationGatewayFrontendPort) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, v := range *input {
+		output := map[string]interface{}{}
+
+		if v.ID != nil {
+			output["id"] = *v.ID
+		}
+
+		if v.Name != nil {
+			output["name"] = *v.Name
+		}
+
+		if props := v.ApplicationGatewayFrontendPortPropertiesFormat; props != nil {
+			if props.Port != nil {
+				output["port"] = int(*props.Port)
 			}
 		}
 
