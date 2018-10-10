@@ -40,7 +40,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 			},
 
 			"sku": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -794,7 +794,7 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	d.Set("sku", schema.NewSet(hashApplicationGatewaySku, flattenApplicationGatewaySku(applicationGateway.ApplicationGatewayPropertiesFormat.Sku)))
+	d.Set("sku", flattenApplicationGatewaySku(applicationGateway.ApplicationGatewayPropertiesFormat.Sku))
 	d.Set("disabled_ssl_protocols", flattenApplicationGatewaySslPolicy(applicationGateway.ApplicationGatewayPropertiesFormat.SslPolicy))
 	d.Set("gateway_ip_configuration", flattenApplicationGatewayIPConfigurations(applicationGateway.ApplicationGatewayPropertiesFormat.GatewayIPConfigurations))
 	d.Set("frontend_port", flattenApplicationGatewayFrontendPorts(applicationGateway.ApplicationGatewayPropertiesFormat.FrontendPorts))
@@ -897,7 +897,7 @@ func retrieveApplicationGatewayById(applicationGatewayID string, meta interface{
 }
 
 func expandApplicationGatewaySku(d *schema.ResourceData) *network.ApplicationGatewaySku {
-	skuSet := d.Get("sku").(*schema.Set).List()
+	skuSet := d.Get("sku").([]interface{})
 	sku := skuSet[0].(map[string]interface{})
 
 	name := sku["name"].(string)
@@ -907,7 +907,7 @@ func expandApplicationGatewaySku(d *schema.ResourceData) *network.ApplicationGat
 	return &network.ApplicationGatewaySku{
 		Name:     network.ApplicationGatewaySkuName(name),
 		Tier:     network.ApplicationGatewayTier(tier),
-		Capacity: &capacity,
+		Capacity: utils.Int32(capacity),
 	}
 }
 
@@ -1829,16 +1829,6 @@ func flattenApplicationGatewaySslCertificates(input *[]network.ApplicationGatewa
 	}
 
 	return result
-}
-
-func hashApplicationGatewaySku(v interface{}) int {
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["tier"].(string)))
-	buf.WriteString(fmt.Sprintf("%d-", m["capacity"].(int)))
-
-	return hashcode.String(buf.String())
 }
 
 func hashApplicationGatewayWafConfig(v interface{}) int {
