@@ -847,7 +847,9 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `frontend_port`: %+v", err)
 		}
 
-		d.Set("frontend_ip_configuration", flattenApplicationGatewayFrontendIPConfigurations(props.FrontendIPConfigurations))
+		if err := d.Set("frontend_ip_configuration", flattenApplicationGatewayFrontendIPConfigurations(props.FrontendIPConfigurations)); err != nil {
+			return fmt.Errorf("Error setting `frontend_ip_configuration`: %+v", err)
+		}
 		d.Set("probe", flattenApplicationGatewayProbes(props.Probes))
 
 		v3, err3 := flattenApplicationGatewayRequestRoutingRules(props.RequestRoutingRules)
@@ -1377,6 +1379,85 @@ func flattenApplicationGatewayFrontendPorts(input *[]network.ApplicationGatewayF
 		if props := v.ApplicationGatewayFrontendPortPropertiesFormat; props != nil {
 			if props.Port != nil {
 				output["port"] = int(*props.Port)
+			}
+		}
+
+		results = append(results, output)
+	}
+
+	return results
+}
+
+func expandApplicationGatewayFrontendIPConfigurations(d *schema.ResourceData) *[]network.ApplicationGatewayFrontendIPConfiguration {
+	vs := d.Get("frontend_ip_configuration").([]interface{})
+	results := make([]network.ApplicationGatewayFrontendIPConfiguration, 0)
+
+	for _, raw := range vs {
+		v := raw.(map[string]interface{})
+
+		properties := network.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{}
+
+		if val := v["subnet_id"].(string); val != "" {
+			properties.Subnet = &network.SubResource{
+				ID: utils.String(val),
+			}
+		}
+
+		if val := v["private_ip_address_allocation"].(string); val != "" {
+			properties.PrivateIPAllocationMethod = network.IPAllocationMethod(val)
+		}
+
+		if val := v["private_ip_address"].(string); val != "" {
+			properties.PrivateIPAddress = utils.String(val)
+		}
+
+		if val := v["public_ip_address_id"].(string); val != "" {
+			properties.PublicIPAddress = &network.SubResource{
+				ID: utils.String(val),
+			}
+		}
+
+		name := v["name"].(string)
+		output := network.ApplicationGatewayFrontendIPConfiguration{
+			Name: utils.String(name),
+			ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &properties,
+		}
+
+		results = append(results, output)
+	}
+
+	return &results
+}
+
+func flattenApplicationGatewayFrontendIPConfigurations(input *[]network.ApplicationGatewayFrontendIPConfiguration) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, config := range *input {
+		output := make(map[string]interface{})
+		if config.ID != nil {
+			output["id"] = *config.ID
+		}
+
+		if config.Name != nil {
+			output["name"] = *config.Name
+		}
+
+		if props := config.ApplicationGatewayFrontendIPConfigurationPropertiesFormat; props != nil {
+			output["private_ip_address_allocation"] = string(props.PrivateIPAllocationMethod)
+
+			if props.Subnet != nil && props.Subnet.ID != nil {
+				output["subnet_id"] = *props.Subnet.ID
+			}
+
+			if props.PrivateIPAddress != nil {
+				output["private_ip_address"] = *props.PrivateIPAddress
+			}
+
+			if props.PublicIPAddress != nil && props.PublicIPAddress.ID != nil {
+				output["public_ip_address_id"] = *props.PublicIPAddress.ID
 			}
 		}
 

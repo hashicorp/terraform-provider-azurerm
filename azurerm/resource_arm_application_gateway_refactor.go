@@ -43,47 +43,6 @@ func expandApplicationGatewayWafConfig(d *schema.ResourceData) *network.Applicat
 	}
 }
 
-func expandApplicationGatewayFrontendIPConfigurations(d *schema.ResourceData) *[]network.ApplicationGatewayFrontendIPConfiguration {
-	configs := d.Get("frontend_ip_configuration").([]interface{})
-	frontEndConfigs := make([]network.ApplicationGatewayFrontendIPConfiguration, 0)
-
-	for _, configRaw := range configs {
-		data := configRaw.(map[string]interface{})
-
-		properties := network.ApplicationGatewayFrontendIPConfigurationPropertiesFormat{}
-
-		if v := data["subnet_id"].(string); v != "" {
-			properties.Subnet = &network.SubResource{
-				ID: &v,
-			}
-		}
-
-		if v := data["private_ip_address_allocation"].(string); v != "" {
-			properties.PrivateIPAllocationMethod = network.IPAllocationMethod(v)
-		}
-
-		if v := data["private_ip_address"].(string); v != "" {
-			properties.PrivateIPAddress = &v
-		}
-
-		if v := data["public_ip_address_id"].(string); v != "" {
-			properties.PublicIPAddress = &network.SubResource{
-				ID: &v,
-			}
-		}
-
-		name := data["name"].(string)
-		frontEndConfig := network.ApplicationGatewayFrontendIPConfiguration{
-			Name: &name,
-			ApplicationGatewayFrontendIPConfigurationPropertiesFormat: &properties,
-		}
-
-		frontEndConfigs = append(frontEndConfigs, frontEndConfig)
-	}
-
-	return &frontEndConfigs
-}
-
 func expandApplicationGatewayProbes(d *schema.ResourceData) *[]network.ApplicationGatewayProbe {
 	configs := d.Get("probe").([]interface{})
 	backendSettings := make([]network.ApplicationGatewayProbe, 0)
@@ -298,40 +257,6 @@ func flattenApplicationGatewayWafConfig(waf *network.ApplicationGatewayWebApplic
 	result["rule_set_version"] = waf.RuleSetVersion
 
 	return []interface{}{result}
-}
-
-func flattenApplicationGatewayFrontendIPConfigurations(ipConfigs *[]network.ApplicationGatewayFrontendIPConfiguration) []interface{} {
-	result := make([]interface{}, 0)
-
-	if configs := ipConfigs; configs != nil {
-		for _, config := range *ipConfigs {
-			ipConfig := make(map[string]interface{})
-			ipConfig["id"] = *config.ID
-			ipConfig["name"] = *config.Name
-
-			if props := config.ApplicationGatewayFrontendIPConfigurationPropertiesFormat; props != nil {
-				if props.PrivateIPAllocationMethod != "" {
-					ipConfig["private_ip_address_allocation"] = props.PrivateIPAllocationMethod
-				}
-
-				if props.Subnet != nil {
-					ipConfig["subnet_id"] = *props.Subnet.ID
-				}
-
-				if props.PrivateIPAddress != nil {
-					ipConfig["private_ip_address"] = *props.PrivateIPAddress
-				}
-
-				if props.PublicIPAddress != nil {
-					ipConfig["public_ip_address_id"] = *props.PublicIPAddress.ID
-				}
-			}
-
-			result = append(result, ipConfig)
-		}
-	}
-
-	return result
 }
 
 func flattenApplicationGatewayProbes(input *[]network.ApplicationGatewayProbe) []interface{} {
