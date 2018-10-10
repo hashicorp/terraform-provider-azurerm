@@ -168,7 +168,7 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 	}
 
 	if geoReplicationEnabled {
-		georeplicationLocation := d.Get("georeplication_location").(string)
+		georeplicationLocation := azureRMNormalizeLocation(d.Get("georeplication_location").(string))
 		if strings.ToLower(georeplicationLocation) == "" {
 			return fmt.Errorf("`georeplication_location` cannot be empty when geo-replication has been enabled")
 		}
@@ -180,15 +180,14 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 
 		replicationClient := meta.(*ArmClient).containerRegistryReplicationsClient
 
-		// todo: check what should be the name for container registry replication
-		future, err := replicationClient.Create(ctx, resourceGroup, name, name, replication)
+		future, err := replicationClient.Create(ctx, resourceGroup, name, georeplicationLocation, replication)
 		if err != nil {
-			return fmt.Errorf("Error creating Container Registry Replication %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("Error creating Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, georeplicationLocation, err)
 		}
 
 		err = future.WaitForCompletionRef(ctx, replicationClient.Client)
 		if err != nil {
-			return fmt.Errorf("Error waiting for creation of Container Registry Replication %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("Error waiting for creation of Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, georeplicationLocation, err)
 		}
 	}
 
