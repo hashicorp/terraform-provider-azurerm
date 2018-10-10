@@ -933,7 +933,7 @@ func expandApplicationGatewaySslPolicy(d *schema.ResourceData) *network.Applicat
 
 func expandApplicationGatewayIPConfigurations(d *schema.ResourceData) *[]network.ApplicationGatewayIPConfiguration {
 	configs := d.Get("gateway_ip_configuration").([]interface{})
-	ipConfigurations := make([]network.ApplicationGatewayIPConfiguration, 0, len(configs))
+	ipConfigurations := make([]network.ApplicationGatewayIPConfiguration, 0)
 
 	for _, configRaw := range configs {
 		data := configRaw.(map[string]interface{})
@@ -957,7 +957,7 @@ func expandApplicationGatewayIPConfigurations(d *schema.ResourceData) *[]network
 
 func expandApplicationGatewayFrontendPorts(d *schema.ResourceData) *[]network.ApplicationGatewayFrontendPort {
 	configs := d.Get("frontend_port").([]interface{})
-	frontendPorts := make([]network.ApplicationGatewayFrontendPort, 0, len(configs))
+	frontendPorts := make([]network.ApplicationGatewayFrontendPort, 0)
 
 	for _, configRaw := range configs {
 		data := configRaw.(map[string]interface{})
@@ -979,7 +979,7 @@ func expandApplicationGatewayFrontendPorts(d *schema.ResourceData) *[]network.Ap
 
 func expandApplicationGatewayFrontendIPConfigurations(d *schema.ResourceData) *[]network.ApplicationGatewayFrontendIPConfiguration {
 	configs := d.Get("frontend_ip_configuration").([]interface{})
-	frontEndConfigs := make([]network.ApplicationGatewayFrontendIPConfiguration, 0, len(configs))
+	frontEndConfigs := make([]network.ApplicationGatewayFrontendIPConfiguration, 0)
 
 	for _, configRaw := range configs {
 		data := configRaw.(map[string]interface{})
@@ -1020,7 +1020,7 @@ func expandApplicationGatewayFrontendIPConfigurations(d *schema.ResourceData) *[
 
 func expandApplicationGatewayBackendAddressPools(d *schema.ResourceData) *[]network.ApplicationGatewayBackendAddressPool {
 	configs := d.Get("backend_address_pool").([]interface{})
-	backendPools := make([]network.ApplicationGatewayBackendAddressPool, 0, len(configs))
+	backendPools := make([]network.ApplicationGatewayBackendAddressPool, 0)
 
 	for _, configRaw := range configs {
 		data := configRaw.(map[string]interface{})
@@ -1053,7 +1053,7 @@ func expandApplicationGatewayBackendAddressPools(d *schema.ResourceData) *[]netw
 
 func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gatewayID string) *[]network.ApplicationGatewayBackendHTTPSettings {
 	configs := d.Get("backend_http_settings").([]interface{})
-	backendSettings := make([]network.ApplicationGatewayBackendHTTPSettings, 0, len(configs))
+	backendSettings := make([]network.ApplicationGatewayBackendHTTPSettings, 0)
 
 	for _, configRaw := range configs {
 		data := configRaw.(map[string]interface{})
@@ -1076,7 +1076,7 @@ func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gateway
 
 		if data["authentication_certificate"] != nil {
 			authCerts := data["authentication_certificate"].([]interface{})
-			authCertSubResources := make([]network.SubResource, 0, len(authCerts))
+			authCertSubResources := make([]network.SubResource, 0)
 
 			for _, rawAuthCert := range authCerts {
 				authCert := rawAuthCert.(map[string]interface{})
@@ -1107,7 +1107,7 @@ func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gateway
 
 func expandApplicationGatewayHTTPListeners(d *schema.ResourceData, gatewayID string) *[]network.ApplicationGatewayHTTPListener {
 	configs := d.Get("http_listener").([]interface{})
-	httpListeners := make([]network.ApplicationGatewayHTTPListener, 0, len(configs))
+	httpListeners := make([]network.ApplicationGatewayHTTPListener, 0)
 
 	for _, configRaw := range configs {
 		data := configRaw.(map[string]interface{})
@@ -1155,7 +1155,7 @@ func expandApplicationGatewayHTTPListeners(d *schema.ResourceData, gatewayID str
 
 func expandApplicationGatewayProbes(d *schema.ResourceData) *[]network.ApplicationGatewayProbe {
 	configs := d.Get("probe").([]interface{})
-	backendSettings := make([]network.ApplicationGatewayProbe, 0, len(configs))
+	backendSettings := make([]network.ApplicationGatewayProbe, 0)
 
 	for _, configRaw := range configs {
 		data := configRaw.(map[string]interface{})
@@ -1206,7 +1206,7 @@ func expandApplicationGatewayProbes(d *schema.ResourceData) *[]network.Applicati
 
 func expandApplicationGatewayRequestRoutingRules(d *schema.ResourceData, gatewayID string) *[]network.ApplicationGatewayRequestRoutingRule {
 	configs := d.Get("request_routing_rule").([]interface{})
-	rules := make([]network.ApplicationGatewayRequestRoutingRule, 0, len(configs))
+	rules := make([]network.ApplicationGatewayRequestRoutingRule, 0)
 
 	for _, configRaw := range configs {
 		data := configRaw.(map[string]interface{})
@@ -1255,7 +1255,7 @@ func expandApplicationGatewayRequestRoutingRules(d *schema.ResourceData, gateway
 
 func expandApplicationGatewayURLPathMaps(d *schema.ResourceData, gatewayID string) *[]network.ApplicationGatewayURLPathMap {
 	configs := d.Get("url_path_map").([]interface{})
-	pathMaps := make([]network.ApplicationGatewayURLPathMap, 0, len(configs))
+	pathMaps := make([]network.ApplicationGatewayURLPathMap, 0)
 
 	for _, configRaw := range configs {
 		data := configRaw.(map[string]interface{})
@@ -1322,7 +1322,7 @@ func expandApplicationGatewayURLPathMaps(d *schema.ResourceData, gatewayID strin
 
 func expandApplicationGatewayAuthenticationCertificates(d *schema.ResourceData) *[]network.ApplicationGatewayAuthenticationCertificate {
 	configs := d.Get("authentication_certificate").([]interface{})
-	authCerts := make([]network.ApplicationGatewayAuthenticationCertificate, 0, len(configs))
+	authCerts := make([]network.ApplicationGatewayAuthenticationCertificate, 0)
 
 	for _, configRaw := range configs {
 		raw := configRaw.(map[string]interface{})
@@ -1334,9 +1334,9 @@ func expandApplicationGatewayAuthenticationCertificates(d *schema.ResourceData) 
 		data = base64Encode(data)
 
 		cert := network.ApplicationGatewayAuthenticationCertificate{
-			Name: &name,
+			Name: utils.String(name),
 			ApplicationGatewayAuthenticationCertificatePropertiesFormat: &network.ApplicationGatewayAuthenticationCertificatePropertiesFormat{
-				Data: &data,
+				Data: utils.String(data),
 			},
 		}
 
@@ -1348,7 +1348,7 @@ func expandApplicationGatewayAuthenticationCertificates(d *schema.ResourceData) 
 
 func expandApplicationGatewaySslCertificates(d *schema.ResourceData) *[]network.ApplicationGatewaySslCertificate {
 	configs := d.Get("ssl_certificate").([]interface{})
-	sslCerts := make([]network.ApplicationGatewaySslCertificate, 0, len(configs))
+	sslCerts := make([]network.ApplicationGatewaySslCertificate, 0)
 
 	for _, configRaw := range configs {
 		raw := configRaw.(map[string]interface{})
@@ -1410,7 +1410,7 @@ func flattenApplicationGatewaySslPolicy(policy *network.ApplicationGatewaySslPol
 }
 
 func flattenApplicationGatewayIPConfigurations(ipConfigs *[]network.ApplicationGatewayIPConfiguration) []interface{} {
-	result := make([]interface{}, 0, len(*ipConfigs))
+	result := make([]interface{}, 0)
 
 	for _, config := range *ipConfigs {
 		ipConfig := map[string]interface{}{
