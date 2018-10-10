@@ -248,7 +248,6 @@ func expandDevTestVirtualNetworkSubnets(d *schema.ResourceData, input []interfac
 			UsePublicIPAddressPermission: dtl.UsagePermissionType(usePublicIPAddress),
 			UseInVMCreationPermission:    dtl.UsagePermissionType(useInVirtualMachineCreation),
 		}
-
 		results = append(results, subnet)
 	}
 
