@@ -130,54 +130,6 @@ func expandApplicationGatewayFrontendIPConfigurations(d *schema.ResourceData) *[
 	return &frontEndConfigs
 }
 
-func expandApplicationGatewayHTTPListeners(d *schema.ResourceData, gatewayID string) *[]network.ApplicationGatewayHTTPListener {
-	configs := d.Get("http_listener").([]interface{})
-	httpListeners := make([]network.ApplicationGatewayHTTPListener, 0)
-
-	for _, configRaw := range configs {
-		data := configRaw.(map[string]interface{})
-
-		name := data["name"].(string)
-		frontendIPConfigName := data["frontend_ip_configuration_name"].(string)
-		frontendIPConfigID := fmt.Sprintf("%s/frontendIPConfigurations/%s", gatewayID, frontendIPConfigName)
-		frontendPortName := data["frontend_port_name"].(string)
-		frontendPortID := fmt.Sprintf("%s/frontendPorts/%s", gatewayID, frontendPortName)
-		protocol := data["protocol"].(string)
-
-		listener := network.ApplicationGatewayHTTPListener{
-			Name: &name,
-			ApplicationGatewayHTTPListenerPropertiesFormat: &network.ApplicationGatewayHTTPListenerPropertiesFormat{
-				FrontendIPConfiguration: &network.SubResource{
-					ID: &frontendIPConfigID,
-				},
-				FrontendPort: &network.SubResource{
-					ID: &frontendPortID,
-				},
-				Protocol: network.ApplicationGatewayProtocol(protocol),
-			},
-		}
-
-		if host := data["host_name"].(string); host != "" {
-			listener.ApplicationGatewayHTTPListenerPropertiesFormat.HostName = &host
-		}
-
-		if sslCertName := data["ssl_certificate_name"].(string); sslCertName != "" {
-			certID := fmt.Sprintf("%s/sslCertificates/%s", gatewayID, sslCertName)
-			listener.ApplicationGatewayHTTPListenerPropertiesFormat.SslCertificate = &network.SubResource{
-				ID: &certID,
-			}
-		}
-
-		if requireSNI, ok := data["require_sni"].(bool); ok {
-			listener.ApplicationGatewayHTTPListenerPropertiesFormat.RequireServerNameIndication = &requireSNI
-		}
-
-		httpListeners = append(httpListeners, listener)
-	}
-
-	return &httpListeners
-}
-
 func expandApplicationGatewayProbes(d *schema.ResourceData) *[]network.ApplicationGatewayProbe {
 	configs := d.Get("probe").([]interface{})
 	backendSettings := make([]network.ApplicationGatewayProbe, 0)
@@ -460,54 +412,6 @@ func flattenApplicationGatewayFrontendIPConfigurations(ipConfigs *[]network.Appl
 	}
 
 	return result
-}
-
-func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayHTTPListener) ([]interface{}, error) {
-	result := make([]interface{}, 0)
-
-	if httpListeners := input; httpListeners != nil {
-		for _, config := range *httpListeners {
-			listener := map[string]interface{}{
-				"id":   *config.ID,
-				"name": *config.Name,
-			}
-
-			if props := config.ApplicationGatewayHTTPListenerPropertiesFormat; props != nil {
-				if port := props.FrontendPort; port != nil {
-					portName := strings.Split(*port.ID, "/")[len(strings.Split(*port.ID, "/"))-1]
-					listener["frontend_port_name"] = portName
-					listener["frontend_port_id"] = *port.ID
-				}
-
-				if feConfig := props.FrontendIPConfiguration; feConfig != nil {
-					frontendName := strings.Split(*feConfig.ID, "/")[len(strings.Split(*feConfig.ID, "/"))-1]
-					listener["frontend_ip_configuration_name"] = frontendName
-					listener["frontend_ip_configuration_id"] = *feConfig.ID
-				}
-
-				if hostname := props.HostName; hostname != nil {
-					listener["host_name"] = *hostname
-				}
-
-				listener["protocol"] = string(props.Protocol)
-
-				if certs := props.SslCertificate; certs != nil {
-					sslCertName := strings.Split(*certs.ID, "/")[len(strings.Split(*certs.ID, "/"))-1]
-
-					listener["ssl_certificate_name"] = sslCertName
-					listener["ssl_certificate_id"] = *certs.ID
-
-					if sni := props.RequireServerNameIndication; sni != nil {
-						listener["require_sni"] = *sni
-					}
-				}
-			}
-
-			result = append(result, listener)
-		}
-	}
-
-	return result, nil
 }
 
 func flattenApplicationGatewayProbes(input *[]network.ApplicationGatewayProbe) []interface{} {

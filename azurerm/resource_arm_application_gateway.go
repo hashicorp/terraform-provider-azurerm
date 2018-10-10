@@ -835,12 +835,11 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `disabled_ssl_protocols`: %+v", err)
 		}
 
-		v2, err2 := flattenApplicationGatewayHTTPListeners(props.HTTPListeners)
-		if err2 != nil {
-			return fmt.Errorf("error flattening HTTPListeners: %+v", err2)
+		if err := d.Set("http_listener", flattenApplicationGatewayHTTPListeners(props.HTTPListeners)); err != nil {
+			return fmt.Errorf("Error setting `http_listener`: %+v", err)
 		}
-		d.Set("http_listener", v2)
-		d.Set("gateway_ip_configuration", flattenApplicationGatewayIPConfigurations(props.GatewayIPConfigurations))
+
+		d.Set("gateway_ip_configuration", flattenApplicationGatewayIPConfigurations(props.GatewayIPConfigurations)
 		d.Set("frontend_port", flattenApplicationGatewayFrontendPorts(props.FrontendPorts))
 		d.Set("frontend_ip_configuration", flattenApplicationGatewayFrontendIPConfigurations(props.FrontendIPConfigurations))
 		d.Set("probe", flattenApplicationGatewayProbes(props.Probes))
@@ -1160,6 +1159,116 @@ func flattenApplicationGatewayDisabledSSLProtocols(input *network.ApplicationGat
 
 	for _, v := range *input.DisabledSslProtocols {
 		results = append(results, string(v))
+	}
+
+	return results
+}
+
+func expandApplicationGatewayHTTPListeners(d *schema.ResourceData, gatewayID string) *[]network.ApplicationGatewayHTTPListener {
+	vs := d.Get("http_listener").([]interface{})
+	results := make([]network.ApplicationGatewayHTTPListener, 0)
+
+	for _, raw := range vs {
+		v := raw.(map[string]interface{})
+
+		name := v["name"].(string)
+		frontendIPConfigName := v["frontend_ip_configuration_name"].(string)
+		frontendPortName := v["frontend_port_name"].(string)
+		protocol := v["protocol"].(string)
+		requireSNI := v["require_sni"].(bool)
+
+		frontendIPConfigID := fmt.Sprintf("%s/frontendIPConfigurations/%s", gatewayID, frontendIPConfigName)
+		frontendPortID := fmt.Sprintf("%s/frontendPorts/%s", gatewayID, frontendPortName)
+
+		listener := network.ApplicationGatewayHTTPListener{
+			Name: utils.String(name),
+			ApplicationGatewayHTTPListenerPropertiesFormat: &network.ApplicationGatewayHTTPListenerPropertiesFormat{
+				FrontendIPConfiguration: &network.SubResource{
+					ID: utils.String(frontendIPConfigID),
+				},
+				FrontendPort: &network.SubResource{
+					ID: utils.String(frontendPortID),
+				},
+				Protocol:                    network.ApplicationGatewayProtocol(protocol),
+				RequireServerNameIndication: utils.Bool(requireSNI),
+			},
+		}
+
+		if host := v["host_name"].(string); host != "" {
+			listener.ApplicationGatewayHTTPListenerPropertiesFormat.HostName = &host
+		}
+
+		if sslCertName := v["ssl_certificate_name"].(string); sslCertName != "" {
+			certID := fmt.Sprintf("%s/sslCertificates/%s", gatewayID, sslCertName)
+			listener.ApplicationGatewayHTTPListenerPropertiesFormat.SslCertificate = &network.SubResource{
+				ID: utils.String(certID),
+			}
+		}
+
+		results = append(results, listener)
+	}
+
+	return &results
+}
+
+func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayHTTPListener) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, v := range *input {
+		output := map[string]interface{}{}
+
+		if v.ID != nil {
+			output["id"] = *v.ID
+		}
+
+		if v.Name != nil {
+			output["name"] = *v.Name
+		}
+
+		if props := v.ApplicationGatewayHTTPListenerPropertiesFormat; props != nil {
+			if port := props.FrontendPort; port != nil {
+				if port.ID != nil {
+					portId := *port.ID
+					portName := strings.Split(portId, "/")[len(strings.Split(portId, "/"))-1]
+					output["frontend_port_name"] = portName
+					output["frontend_port_id"] = portId
+				}
+			}
+
+			if feConfig := props.FrontendIPConfiguration; feConfig != nil {
+				if feConfig.ID != nil {
+					feConfigId := *feConfig.ID
+					frontendName := strings.Split(feConfigId, "/")[len(strings.Split(feConfigId, "/"))-1]
+					output["frontend_ip_configuration_name"] = frontendName
+					output["frontend_ip_configuration_id"] = feConfigId
+				}
+			}
+
+			if hostname := props.HostName; hostname != nil {
+				output["host_name"] = *hostname
+			}
+
+			output["protocol"] = string(props.Protocol)
+
+			if cert := props.SslCertificate; cert != nil {
+				if cert.ID != nil {
+					certId := *cert.ID
+					sslCertName := strings.Split(certId, "/")[len(strings.Split(certId, "/"))-1]
+
+					output["ssl_certificate_name"] = sslCertName
+					output["ssl_certificate_id"] = certId
+				}
+			}
+
+			if sni := props.RequireServerNameIndication; sni != nil {
+				output["require_sni"] = *sni
+			}
+		}
+
+		results = append(results, output)
 	}
 
 	return results
