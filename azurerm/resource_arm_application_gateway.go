@@ -1,11 +1,13 @@
 package azurerm
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
+	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
@@ -122,10 +124,12 @@ func resourceArmApplicationGateway() *schema.Resource {
 						},
 
 						"rule_set_version": {
-							Type:             schema.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc:     validation.StringInSlice([]string{"2.2.9", "3.0"}, true),
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"2.2.9",
+								"3.0",
+							}, false),
 						},
 					},
 				},
@@ -872,9 +876,9 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `url_path_map`: %+v", err)
 		}
 
-		if props.WebApplicationFirewallConfiguration != nil {
-			d.Set("waf_configuration", schema.NewSet(hashApplicationGatewayWafConfig,
-				flattenApplicationGatewayWafConfig(props.WebApplicationFirewallConfiguration)))
+		wafConfig := flattenApplicationGatewayWafConfig(props.WebApplicationFirewallConfiguration)
+		if err := d.Set("waf_configuration", schema.NewSet(hashApplicationGatewayWafConfig, wafConfig)); err != nil {
+			return fmt.Errorf("Error setting `waf_configuration`: %+v", err)
 		}
 	}
 
@@ -1936,4 +1940,60 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 	}
 
 	return results
+}
+
+func expandApplicationGatewayWafConfig(d *schema.ResourceData) *network.ApplicationGatewayWebApplicationFirewallConfiguration {
+	vs := d.Get("waf_configuration").(*schema.Set).List()
+	v := vs[0].(map[string]interface{})
+
+	enabled := v["enabled"].(bool)
+	mode := v["firewall_mode"].(string)
+	ruleSetType := v["rule_set_type"].(string)
+	ruleSetVersion := v["rule_set_version"].(string)
+
+	return &network.ApplicationGatewayWebApplicationFirewallConfiguration{
+		Enabled:        utils.Bool(enabled),
+		FirewallMode:   network.ApplicationGatewayFirewallMode(mode),
+		RuleSetType:    utils.String(ruleSetType),
+		RuleSetVersion: utils.String(ruleSetVersion),
+	}
+}
+
+func flattenApplicationGatewayWafConfig(input *network.ApplicationGatewayWebApplicationFirewallConfiguration) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	output := make(map[string]interface{})
+
+	if input.Enabled != nil {
+		output["enabled"] = *input.Enabled
+	}
+
+	output["firewall_mode"] = string(input.FirewallMode)
+
+	if input.RuleSetType != nil {
+		output["rule_set_type"] = input.RuleSetType
+	}
+
+	if input.RuleSetVersion != nil {
+		output["rule_set_version"] = input.RuleSetVersion
+	}
+
+	results = append(results, output)
+
+	return results
+}
+
+// TODO: can this be removed?
+func hashApplicationGatewayWafConfig(v interface{}) int {
+	var buf bytes.Buffer
+	m := v.(map[string]interface{})
+	buf.WriteString(fmt.Sprintf("%t-", m["enabled"].(bool)))
+	buf.WriteString(fmt.Sprintf("%s-", m["firewall_mode"].(string)))
+	buf.WriteString(fmt.Sprintf("%s-", *m["rule_set_type"].(*string)))
+	buf.WriteString(fmt.Sprintf("%s-", *m["rule_set_version"].(*string)))
+
+	return hashcode.String(buf.String())
 }
