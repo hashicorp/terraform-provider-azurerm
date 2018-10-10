@@ -868,11 +868,9 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `ssl_certificate`: %+v", err)
 		}
 
-		v4, err4 := flattenApplicationGatewayURLPathMaps(props.URLPathMaps)
-		if err4 != nil {
-			return fmt.Errorf("error flattening URLPathMaps: %+v", err4)
+		if err := d.Set("url_path_map", flattenApplicationGatewayURLPathMaps(props.URLPathMaps)); err != nil {
+			return fmt.Errorf("Error setting `url_path_map`: %+v", err)
 		}
-		d.Set("url_path_map", v4)
 
 		if props.WebApplicationFirewallConfiguration != nil {
 			d.Set("waf_configuration", schema.NewSet(hashApplicationGatewayWafConfig,
@@ -1783,6 +1781,155 @@ func flattenApplicationGatewaySslCertificates(input *[]network.ApplicationGatewa
 			if data := props.PublicCertData; data != nil {
 				output["public_cert_data"] = *data
 			}
+		}
+
+		results = append(results, output)
+	}
+
+	return results
+}
+
+func expandApplicationGatewayURLPathMaps(d *schema.ResourceData, gatewayID string) *[]network.ApplicationGatewayURLPathMap {
+	vs := d.Get("url_path_map").([]interface{})
+	results := make([]network.ApplicationGatewayURLPathMap, 0)
+
+	for _, raw := range vs {
+		v := raw.(map[string]interface{})
+
+		name := v["name"].(string)
+		defaultBackendAddressPoolName := v["default_backend_address_pool_name"].(string)
+		defaultBackendHTTPSettingsName := v["default_backend_http_settings_name"].(string)
+
+		defaultBackendAddressPoolID := fmt.Sprintf("%s/backendAddressPools/%s", gatewayID, defaultBackendAddressPoolName)
+		defaultBackendHTTPSettingsID := fmt.Sprintf("%s/backendHttpSettingsCollection/%s", gatewayID, defaultBackendHTTPSettingsName)
+
+		pathRules := make([]network.ApplicationGatewayPathRule, 0)
+		for _, ruleConfig := range v["path_rule"].([]interface{}) {
+			ruleConfigMap := ruleConfig.(map[string]interface{})
+
+			ruleName := ruleConfigMap["name"].(string)
+
+			rulePaths := make([]string, 0)
+			for _, rulePath := range ruleConfigMap["paths"].([]interface{}) {
+				rulePaths = append(rulePaths, rulePath.(string))
+			}
+
+			rule := network.ApplicationGatewayPathRule{
+				Name: utils.String(ruleName),
+				ApplicationGatewayPathRulePropertiesFormat: &network.ApplicationGatewayPathRulePropertiesFormat{
+					Paths: &rulePaths,
+				},
+			}
+
+			if backendAddressPoolName := ruleConfigMap["backend_address_pool_name"].(string); backendAddressPoolName != "" {
+				backendAddressPoolID := fmt.Sprintf("%s/backendAddressPools/%s", gatewayID, backendAddressPoolName)
+				rule.ApplicationGatewayPathRulePropertiesFormat.BackendAddressPool = &network.SubResource{
+					ID: utils.String(backendAddressPoolID),
+				}
+			}
+
+			if backendHTTPSettingsName := ruleConfigMap["backend_http_settings_name"].(string); backendHTTPSettingsName != "" {
+				backendHTTPSettingsID := fmt.Sprintf("%s/backendHttpSettingsCollection/%s", gatewayID, backendHTTPSettingsName)
+				rule.ApplicationGatewayPathRulePropertiesFormat.BackendHTTPSettings = &network.SubResource{
+					ID: utils.String(backendHTTPSettingsID),
+				}
+			}
+
+			pathRules = append(pathRules, rule)
+		}
+
+		output := network.ApplicationGatewayURLPathMap{
+			Name: utils.String(name),
+			ApplicationGatewayURLPathMapPropertiesFormat: &network.ApplicationGatewayURLPathMapPropertiesFormat{
+				DefaultBackendAddressPool: &network.SubResource{
+					ID: utils.String(defaultBackendAddressPoolID),
+				},
+				DefaultBackendHTTPSettings: &network.SubResource{
+					ID: utils.String(defaultBackendHTTPSettingsID),
+				},
+				PathRules: &pathRules,
+			},
+		}
+
+		results = append(results, output)
+	}
+
+	return &results
+}
+
+func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURLPathMap) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, v := range *input {
+		output := map[string]interface{}{}
+
+		if v.ID != nil {
+			output["id"] = *v.ID
+		}
+
+		if v.Name != nil {
+			output["name"] = *v.Name
+		}
+
+		if props := v.ApplicationGatewayURLPathMapPropertiesFormat; props != nil {
+			if backendPool := props.DefaultBackendAddressPool; backendPool != nil && backendPool.ID != nil {
+				poolId := *backendPool.ID
+				backendAddressPoolName := strings.Split(poolId, "/")[len(strings.Split(poolId, "/"))-1]
+				output["default_backend_address_pool_name"] = backendAddressPoolName
+				output["default_backend_address_pool_id"] = poolId
+			}
+
+			if settings := props.DefaultBackendHTTPSettings; settings != nil && settings.ID != nil {
+				settingsId := *settings.ID
+				backendHTTPSettingsName := strings.Split(settingsId, "/")[len(strings.Split(settingsId, "/"))-1]
+				output["default_backend_http_settings_name"] = backendHTTPSettingsName
+				output["default_backend_http_settings_id"] = settingsId
+			}
+
+			pathRules := make([]interface{}, 0)
+			if rules := props.PathRules; rules != nil {
+				for _, rule := range *rules {
+					ruleOutput := map[string]interface{}{}
+
+					if rule.ID != nil {
+						ruleOutput["id"] = *rule.ID
+					}
+
+					if rule.Name != nil {
+						ruleOutput["name"] = *rule.Name
+					}
+
+					if ruleProps := rule.ApplicationGatewayPathRulePropertiesFormat; props != nil {
+						if pool := ruleProps.BackendAddressPool; pool != nil && pool.ID != nil {
+							poolId := *pool.ID
+							backendAddressPoolName2 := strings.Split(poolId, "/")[len(strings.Split(poolId, "/"))-1]
+							ruleOutput["backend_address_pool_name"] = backendAddressPoolName2
+							ruleOutput["backend_address_pool_id"] = poolId
+						}
+
+						if backend := ruleProps.BackendHTTPSettings; backend != nil && backend.ID != nil {
+							backendId := *backend.ID
+							backendHTTPSettingsName2 := strings.Split(backendId, "/")[len(strings.Split(backendId, "/"))-1]
+							ruleOutput["backend_http_settings_name"] = backendHTTPSettingsName2
+							ruleOutput["backend_http_settings_id"] = backendId
+						}
+
+						pathOutputs := make([]interface{}, 0)
+						if paths := ruleProps.Paths; paths != nil {
+							for _, rulePath := range *paths {
+								pathOutputs = append(pathOutputs, rulePath)
+							}
+						}
+						ruleOutput["paths"] = pathOutputs
+					}
+
+					pathRules = append(pathRules, ruleOutput)
+				}
+			}
+			output["path_rule"] = pathRules
 		}
 
 		results = append(results, output)
