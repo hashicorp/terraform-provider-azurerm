@@ -812,11 +812,7 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 	// TODO: set errors
 
 	if props := applicationGateway.ApplicationGatewayPropertiesFormat; props != nil {
-		d.Set("sku", flattenApplicationGatewaySku(props.Sku))
-		d.Set("disabled_ssl_protocols", flattenApplicationGatewaySslPolicy(props.SslPolicy))
-		d.Set("gateway_ip_configuration", flattenApplicationGatewayIPConfigurations(props.GatewayIPConfigurations))
-		d.Set("frontend_port", flattenApplicationGatewayFrontendPorts(props.FrontendPorts))
-		d.Set("frontend_ip_configuration", flattenApplicationGatewayFrontendIPConfigurations(props.FrontendIPConfigurations))
+		d.Set("authentication_certificate", schema.NewSet(hashApplicationGatewayAuthenticationCertificates, flattenApplicationGatewayAuthenticationCertificates(props.AuthenticationCertificates)))
 		d.Set("backend_address_pool", flattenApplicationGatewayBackendAddressPools(props.BackendAddressPools))
 
 		v1, err1 := flattenApplicationGatewayBackendHTTPSettings(props.BackendHTTPSettingsCollection)
@@ -825,12 +821,16 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 		}
 		d.Set("backend_http_settings", v1)
 
+		d.Set("disabled_ssl_protocols", flattenApplicationGatewaySslPolicy(props.SslPolicy))
+
 		v2, err2 := flattenApplicationGatewayHTTPListeners(props.HTTPListeners)
 		if err2 != nil {
 			return fmt.Errorf("error flattening HTTPListeners: %+v", err2)
 		}
 		d.Set("http_listener", v2)
-
+		d.Set("gateway_ip_configuration", flattenApplicationGatewayIPConfigurations(props.GatewayIPConfigurations))
+		d.Set("frontend_port", flattenApplicationGatewayFrontendPorts(props.FrontendPorts))
+		d.Set("frontend_ip_configuration", flattenApplicationGatewayFrontendIPConfigurations(props.FrontendIPConfigurations))
 		d.Set("probe", flattenApplicationGatewayProbes(props.Probes))
 
 		v3, err3 := flattenApplicationGatewayRequestRoutingRules(props.RequestRoutingRules)
@@ -839,14 +839,14 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 		}
 		d.Set("request_routing_rule", v3)
 
+		d.Set("sku", flattenApplicationGatewaySku(props.Sku))
+		d.Set("ssl_certificate", schema.NewSet(hashApplicationGatewaySslCertificates, flattenApplicationGatewaySslCertificates(props.SslCertificates)))
+
 		v4, err4 := flattenApplicationGatewayURLPathMaps(props.URLPathMaps)
 		if err4 != nil {
 			return fmt.Errorf("error flattening URLPathMaps: %+v", err4)
 		}
 		d.Set("url_path_map", v4)
-
-		d.Set("authentication_certificate", schema.NewSet(hashApplicationGatewayAuthenticationCertificates, flattenApplicationGatewayAuthenticationCertificates(props.AuthenticationCertificates)))
-		d.Set("ssl_certificate", schema.NewSet(hashApplicationGatewaySslCertificates, flattenApplicationGatewaySslCertificates(props.SslCertificates)))
 
 		if props.WebApplicationFirewallConfiguration != nil {
 			d.Set("waf_configuration", schema.NewSet(hashApplicationGatewayWafConfig,
