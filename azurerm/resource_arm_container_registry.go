@@ -57,6 +57,17 @@ func resourceArmContainerRegistry() *schema.Resource {
 				Default:  false,
 			},
 
+			"goreplication_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"georeplication_location": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
 			"storage_account_id": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -115,6 +126,7 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 	sku := d.Get("sku").(string)
 	adminUserEnabled := d.Get("admin_enabled").(bool)
 	tags := d.Get("tags").(map[string]interface{})
+	geoReplicationEnabled := d.Get("georeplication_enabled").(bool)
 
 	parameters := containerregistry.Registry{
 		Location: &location,
@@ -150,6 +162,31 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for creation of Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if geoReplicationEnabled {
+		georeplicationLocation := d.Get("georeplication_location").(string)
+		if strings.ToLower(georeplicationLocation) == "" {
+			return fmt.Errorf("`georeplication_location` cannot be empty when geo-replication has been enabled")
+		}
+
+		replication := containerregistry.Replication{
+			Location: &georeplicationLocation,
+			Name:     &name,
+		}
+
+		replicationClient := meta.(*ArmClient).containerRegistryReplicationsClient
+
+		// todo: check what should be the name for container registry replication
+		future, err := replicationClient.Create(ctx, resourceGroup, name, name, replication)
+		if err != nil {
+			return fmt.Errorf("Error creating Container Registry Replication %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		err = future.WaitForCompletionRef(ctx, replicationClient.Client)
+		if err != nil {
+			return fmt.Errorf("Error waiting for creation of Container Registry Replication %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)

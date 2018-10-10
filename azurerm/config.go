@@ -92,10 +92,11 @@ type ArmClient struct {
 	dnsClient   dns.RecordSetsClient
 	zonesClient dns.ZonesClient
 
-	containerRegistryClient  containerregistry.RegistriesClient
-	containerServicesClient  containerservice.ContainerServicesClient
-	kubernetesClustersClient containerservice.ManagedClustersClient
-	containerGroupsClient    containerinstance.ContainerGroupsClient
+	containerRegistryClient             containerregistry.RegistriesClient
+	containerRegistryReplicationsClient containerregistry.ReplicationsClient
+	containerServicesClient             containerservice.ContainerServicesClient
+	kubernetesClustersClient            containerservice.ManagedClustersClient
+	containerGroupsClient               containerinstance.ContainerGroupsClient
 
 	eventGridTopicsClient       eventgrid.TopicsClient
 	eventHubClient              eventhub.EventHubsClient
@@ -469,6 +470,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerComputeClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerContainerInstanceClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerContainerRegistryClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerContainerRegistryReplicationsClient(endpoint, c.SubscriptionID, auth, sender)
 	client.registerContainerServicesClients(endpoint, c.SubscriptionID, auth)
 	client.registerCosmosDBClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDatabricksClients(endpoint, c.SubscriptionID, auth, sender)
@@ -644,6 +646,12 @@ func (c *ArmClient) registerContainerRegistryClients(endpoint, subscriptionId st
 	crc := containerregistry.NewRegistriesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&crc.Client, auth)
 	c.containerRegistryClient = crc
+}
+
+func (c *ArmClient) registerContainerRegistryReplicationsClient(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	crrc := containerregistry.NewReplicationsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&crrc.Client, auth)
+	c.containerRegistryReplicationsClient = crrc
 }
 
 func (c *ArmClient) registerContainerServicesClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
