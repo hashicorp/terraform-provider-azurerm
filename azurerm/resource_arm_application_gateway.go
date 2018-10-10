@@ -1,13 +1,11 @@
 package azurerm
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
-	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
@@ -97,7 +95,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 			},
 
 			"waf_configuration": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -876,8 +874,7 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `url_path_map`: %+v", err)
 		}
 
-		wafConfig := flattenApplicationGatewayWafConfig(props.WebApplicationFirewallConfiguration)
-		if err := d.Set("waf_configuration", schema.NewSet(hashApplicationGatewayWafConfig, wafConfig)); err != nil {
+		if err := d.Set("waf_configuration", flattenApplicationGatewayWafConfig(props.WebApplicationFirewallConfiguration)); err != nil {
 			return fmt.Errorf("Error setting `waf_configuration`: %+v", err)
 		}
 	}
@@ -1943,7 +1940,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 }
 
 func expandApplicationGatewayWafConfig(d *schema.ResourceData) *network.ApplicationGatewayWebApplicationFirewallConfiguration {
-	vs := d.Get("waf_configuration").(*schema.Set).List()
+	vs := d.Get("waf_configuration").([]interface{})
 	v := vs[0].(map[string]interface{})
 
 	enabled := v["enabled"].(bool)
@@ -1984,16 +1981,4 @@ func flattenApplicationGatewayWafConfig(input *network.ApplicationGatewayWebAppl
 	results = append(results, output)
 
 	return results
-}
-
-// TODO: can this be removed?
-func hashApplicationGatewayWafConfig(v interface{}) int {
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%t-", m["enabled"].(bool)))
-	buf.WriteString(fmt.Sprintf("%s-", m["firewall_mode"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", *m["rule_set_type"].(*string)))
-	buf.WriteString(fmt.Sprintf("%s-", *m["rule_set_version"].(*string)))
-
-	return hashcode.String(buf.String())
 }
