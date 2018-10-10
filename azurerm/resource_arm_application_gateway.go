@@ -79,6 +79,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 				},
 			},
 
+			// TODO: @tombuildsstuff deprecate this in favour of a full `ssl_protocol` block in the future
 			"disabled_ssl_protocols": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -830,7 +831,9 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `backend_http_settings`: %+v", err)
 		}
 
-		d.Set("disabled_ssl_protocols", flattenApplicationGatewaySslPolicy(props.SslPolicy))
+		if err := d.Set("disabled_ssl_protocols", flattenApplicationGatewayDisabledSSLProtocols(props.SslPolicy)); err != nil {
+			return fmt.Errorf("Error setting `disabled_ssl_protocols`: %+v", err)
+		}
 
 		v2, err2 := flattenApplicationGatewayHTTPListeners(props.HTTPListeners)
 		if err2 != nil {
@@ -1134,4 +1137,30 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 	}
 
 	return results, nil
+}
+
+func expandApplicationGatewaySslPolicy(d *schema.ResourceData) *network.ApplicationGatewaySslPolicy {
+	vs := d.Get("disabled_ssl_protocols").([]interface{})
+	results := make([]network.ApplicationGatewaySslProtocol, 0)
+
+	for _, v := range vs {
+		results = append(results, network.ApplicationGatewaySslProtocol(v.(string)))
+	}
+
+	return &network.ApplicationGatewaySslPolicy{
+		DisabledSslProtocols: &results,
+	}
+}
+
+func flattenApplicationGatewayDisabledSSLProtocols(input *network.ApplicationGatewaySslPolicy) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil || input.DisabledSslProtocols == nil {
+		return results
+	}
+
+	for _, v := range *input.DisabledSslProtocols {
+		results = append(results, string(v))
+	}
+
+	return results
 }

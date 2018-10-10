@@ -43,19 +43,6 @@ func expandApplicationGatewayWafConfig(d *schema.ResourceData) *network.Applicat
 	}
 }
 
-func expandApplicationGatewaySslPolicy(d *schema.ResourceData) *network.ApplicationGatewaySslPolicy {
-	disabledProtoList := d.Get("disabled_ssl_protocols").([]interface{})
-	disabled := []network.ApplicationGatewaySslProtocol{}
-
-	for _, proto := range disabledProtoList {
-		disabled = append(disabled, network.ApplicationGatewaySslProtocol(proto.(string)))
-	}
-
-	return &network.ApplicationGatewaySslPolicy{
-		DisabledSslProtocols: &disabled,
-	}
-}
-
 func expandApplicationGatewayIPConfigurations(d *schema.ResourceData) *[]network.ApplicationGatewayIPConfiguration {
 	configs := d.Get("gateway_ip_configuration").([]interface{})
 	ipConfigurations := make([]network.ApplicationGatewayIPConfiguration, 0)
@@ -405,20 +392,6 @@ func flattenApplicationGatewayWafConfig(waf *network.ApplicationGatewayWebApplic
 	result["rule_set_version"] = waf.RuleSetVersion
 
 	return []interface{}{result}
-}
-
-func flattenApplicationGatewaySslPolicy(policy *network.ApplicationGatewaySslPolicy) []interface{} {
-	result := make([]interface{}, 0)
-
-	if pol := policy; policy != nil {
-		if protocols := pol.DisabledSslProtocols; protocols != nil {
-			for _, proto := range *protocols {
-				result = append(result, string(proto))
-			}
-		}
-	}
-
-	return result
 }
 
 func flattenApplicationGatewayIPConfigurations(ipConfigs *[]network.ApplicationGatewayIPConfiguration) []interface{} {
