@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -30,12 +31,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": {
-				Type:      schema.TypeString,
-				Required:  true,
-				ForceNew:  true,
-				StateFunc: azureRMNormalizeLocation,
-			},
+			"location": locationSchema(),
 
 			"resource_group_name": {
 				Type:     schema.TypeString,
@@ -52,7 +48,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.StandardSmall),
 								string(network.StandardMedium),
@@ -67,7 +63,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"tier": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.ApplicationGatewayTierStandard),
 								string(network.ApplicationGatewayTierStandardV2),
@@ -90,7 +86,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Schema{
 					Type:             schema.TypeString,
-					DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+					DiffSuppressFunc: suppress.CaseDifference,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(network.TLSv10),
 						string(network.TLSv11),
@@ -113,7 +109,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"firewall_mode": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.Detection),
 								string(network.Prevention),
@@ -129,7 +125,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"rule_set_version": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     validation.StringInSlice([]string{"2.2.9", "3.0"}, true),
 						},
 					},
@@ -220,7 +216,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Computed:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.Dynamic),
 								string(network.Static),
@@ -290,7 +286,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"protocol": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.HTTP),
 								string(network.HTTPS),
@@ -300,7 +296,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"cookie_based_affinity": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.Enabled),
 								string(network.Disabled),
@@ -381,7 +377,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"protocol": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.HTTP),
 								string(network.HTTPS),
@@ -429,7 +425,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"protocol": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.HTTP),
 								string(network.HTTPS),
@@ -512,7 +508,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"rule_type": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.Basic),
 								string(network.PathBasedRouting),
