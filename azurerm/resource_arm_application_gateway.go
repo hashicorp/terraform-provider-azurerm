@@ -839,7 +839,9 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `http_listener`: %+v", err)
 		}
 
-		d.Set("gateway_ip_configuration", flattenApplicationGatewayIPConfigurations(props.GatewayIPConfigurations)
+		if err := d.Set("gateway_ip_configuration", flattenApplicationGatewayIPConfigurations(props.GatewayIPConfigurations)); err != nil {
+			return fmt.Errorf("Error setting `gateway_ip_configuration`: %+v", err)
+		}
 		d.Set("frontend_port", flattenApplicationGatewayFrontendPorts(props.FrontendPorts))
 		d.Set("frontend_ip_configuration", flattenApplicationGatewayFrontendIPConfigurations(props.FrontendIPConfigurations))
 		d.Set("probe", flattenApplicationGatewayProbes(props.Probes))
@@ -1265,6 +1267,61 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 
 			if sni := props.RequireServerNameIndication; sni != nil {
 				output["require_sni"] = *sni
+			}
+		}
+
+		results = append(results, output)
+	}
+
+	return results
+}
+
+func expandApplicationGatewayIPConfigurations(d *schema.ResourceData) *[]network.ApplicationGatewayIPConfiguration {
+	vs := d.Get("gateway_ip_configuration").([]interface{})
+	results := make([]network.ApplicationGatewayIPConfiguration, 0)
+
+	for _, configRaw := range vs {
+		data := configRaw.(map[string]interface{})
+
+		name := data["name"].(string)
+		subnetID := data["subnet_id"].(string)
+
+		output := network.ApplicationGatewayIPConfiguration{
+			Name: utils.String(name),
+			ApplicationGatewayIPConfigurationPropertiesFormat: &network.ApplicationGatewayIPConfigurationPropertiesFormat{
+				Subnet: &network.SubResource{
+					ID: utils.String(subnetID),
+				},
+			},
+		}
+		results = append(results, output)
+	}
+
+	return &results
+}
+
+func flattenApplicationGatewayIPConfigurations(input *[]network.ApplicationGatewayIPConfiguration) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, v := range *input {
+		output := map[string]interface{}{}
+
+		if v.ID != nil {
+			output["id"] = *v.ID
+		}
+
+		if v.Name != nil {
+			output["name"] = *v.Name
+		}
+
+		if props := v.ApplicationGatewayIPConfigurationPropertiesFormat; props != nil {
+			if subnet := props.Subnet; subnet != nil {
+				if subnet.ID != nil {
+					output["subnet_id"] = *subnet.ID
+				}
 			}
 		}
 
