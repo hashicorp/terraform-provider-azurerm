@@ -143,60 +143,6 @@ func expandApplicationGatewayFrontendIPConfigurations(d *schema.ResourceData) *[
 	return &frontEndConfigs
 }
 
-func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gatewayID string) *[]network.ApplicationGatewayBackendHTTPSettings {
-	configs := d.Get("backend_http_settings").([]interface{})
-	backendSettings := make([]network.ApplicationGatewayBackendHTTPSettings, 0)
-
-	for _, configRaw := range configs {
-		data := configRaw.(map[string]interface{})
-
-		name := data["name"].(string)
-		port := int32(data["port"].(int))
-		protocol := data["protocol"].(string)
-		cookieBasedAffinity := data["cookie_based_affinity"].(string)
-		requestTimeout := int32(data["request_timeout"].(int))
-
-		setting := network.ApplicationGatewayBackendHTTPSettings{
-			Name: &name,
-			ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
-				Port:                &port,
-				Protocol:            network.ApplicationGatewayProtocol(protocol),
-				CookieBasedAffinity: network.ApplicationGatewayCookieBasedAffinity(cookieBasedAffinity),
-				RequestTimeout:      &requestTimeout,
-			},
-		}
-
-		if data["authentication_certificate"] != nil {
-			authCerts := data["authentication_certificate"].([]interface{})
-			authCertSubResources := make([]network.SubResource, 0)
-
-			for _, rawAuthCert := range authCerts {
-				authCert := rawAuthCert.(map[string]interface{})
-				authCertID := fmt.Sprintf("%s/authenticationCertificates/%s", gatewayID, authCert["name"])
-				authCertSubResource := network.SubResource{
-					ID: &authCertID,
-				}
-
-				authCertSubResources = append(authCertSubResources, authCertSubResource)
-			}
-
-			setting.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.AuthenticationCertificates = &authCertSubResources
-		}
-
-		probeName := data["probe_name"].(string)
-		if probeName != "" {
-			probeID := fmt.Sprintf("%s/probes/%s", gatewayID, probeName)
-			setting.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.Probe = &network.SubResource{
-				ID: &probeID,
-			}
-		}
-
-		backendSettings = append(backendSettings, setting)
-	}
-
-	return &backendSettings
-}
-
 func expandApplicationGatewayHTTPListeners(d *schema.ResourceData, gatewayID string) *[]network.ApplicationGatewayHTTPListener {
 	configs := d.Get("http_listener").([]interface{})
 	httpListeners := make([]network.ApplicationGatewayHTTPListener, 0)
@@ -541,61 +487,6 @@ func flattenApplicationGatewayFrontendIPConfigurations(ipConfigs *[]network.Appl
 	}
 
 	return result
-}
-
-func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGatewayBackendHTTPSettings) ([]interface{}, error) {
-	result := make([]interface{}, 0)
-
-	if backendSettings := input; backendSettings != nil {
-		for _, config := range *backendSettings {
-			settings := map[string]interface{}{
-				"id":   *config.ID,
-				"name": *config.Name,
-			}
-
-			if props := config.ApplicationGatewayBackendHTTPSettingsPropertiesFormat; props != nil {
-				if port := props.Port; port != nil {
-					settings["port"] = int(*port)
-				}
-				settings["protocol"] = string(props.Protocol)
-				settings["cookie_based_affinity"] = string(props.CookieBasedAffinity)
-				if timeout := props.RequestTimeout; timeout != nil {
-					settings["request_timeout"] = int(*timeout)
-				}
-
-				if certs := props.AuthenticationCertificates; certs != nil {
-					authCerts := make([]interface{}, 0)
-
-					for _, config := range *certs {
-						authName := strings.Split(*config.ID, "/")[len(strings.Split(*config.ID, "/"))-1]
-						authCert := map[string]interface{}{
-							"name": authName,
-							"id":   *config.ID,
-						}
-
-						authCerts = append(authCerts, authCert)
-					}
-
-					settings["authentication_certificate"] = authCerts
-				}
-
-				if probe := props.Probe; probe != nil {
-					id, err := parseAzureResourceID(*probe.ID)
-					if err != nil {
-						return result, err
-					}
-
-					settings["probe_name"] = id.Path["probes"]
-					settings["probe_id"] = *probe.ID
-				}
-			}
-
-			result = append(result, settings)
-		}
-
-	}
-
-	return result, nil
 }
 
 func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayHTTPListener) ([]interface{}, error) {

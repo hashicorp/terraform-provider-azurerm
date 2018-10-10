@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -821,11 +822,13 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `backend_address_pool`: %+v", err)
 		}
 
-		v1, err1 := flattenApplicationGatewayBackendHTTPSettings(props.BackendHTTPSettingsCollection)
-		if err1 != nil {
-			return fmt.Errorf("error flattening BackendHTTPSettings: %+v", err1)
+		backendHttpSettings, err := flattenApplicationGatewayBackendHTTPSettings(props.BackendHTTPSettingsCollection)
+		if err != nil {
+			return fmt.Errorf("Error flattening `backend_http_settings`: %+v", err)
 		}
-		d.Set("backend_http_settings", v1)
+		if err := d.Set("backend_http_settings", backendHttpSettings); err != nil {
+			return fmt.Errorf("Error setting `backend_http_settings`: %+v", err)
+		}
 
 		d.Set("disabled_ssl_protocols", flattenApplicationGatewaySslPolicy(props.SslPolicy))
 
@@ -1011,4 +1014,124 @@ func flattenApplicationGatewayBackendAddressPools(input *[]network.ApplicationGa
 	}
 
 	return results
+}
+
+func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gatewayID string) *[]network.ApplicationGatewayBackendHTTPSettings {
+	results := make([]network.ApplicationGatewayBackendHTTPSettings, 0)
+	vs := d.Get("backend_http_settings").([]interface{})
+
+	for _, raw := range vs {
+		v := raw.(map[string]interface{})
+
+		name := v["name"].(string)
+		port := int32(v["port"].(int))
+		protocol := v["protocol"].(string)
+		cookieBasedAffinity := v["cookie_based_affinity"].(string)
+		requestTimeout := int32(v["request_timeout"].(int))
+
+		setting := network.ApplicationGatewayBackendHTTPSettings{
+			Name: &name,
+			ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
+				CookieBasedAffinity: network.ApplicationGatewayCookieBasedAffinity(cookieBasedAffinity),
+				Port:                utils.Int32(port),
+				Protocol:            network.ApplicationGatewayProtocol(protocol),
+				RequestTimeout:      utils.Int32(requestTimeout),
+			},
+		}
+
+		if v["authentication_certificate"] != nil {
+			authCerts := v["authentication_certificate"].([]interface{})
+			authCertSubResources := make([]network.SubResource, 0)
+
+			for _, rawAuthCert := range authCerts {
+				authCert := rawAuthCert.(map[string]interface{})
+				authCertName := authCert["name"].(string)
+				authCertID := fmt.Sprintf("%s/authenticationCertificates/%s", gatewayID, authCertName)
+				authCertSubResource := network.SubResource{
+					ID: utils.String(authCertID),
+				}
+
+				authCertSubResources = append(authCertSubResources, authCertSubResource)
+			}
+
+			setting.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.AuthenticationCertificates = &authCertSubResources
+		}
+
+		probeName := v["probe_name"].(string)
+		if probeName != "" {
+			probeID := fmt.Sprintf("%s/probes/%s", gatewayID, probeName)
+			setting.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.Probe = &network.SubResource{
+				ID: utils.String(probeID),
+			}
+		}
+
+		results = append(results, setting)
+	}
+
+	return &results
+}
+
+func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGatewayBackendHTTPSettings) ([]interface{}, error) {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results, nil
+	}
+
+	for _, v := range *input {
+		output := map[string]interface{}{}
+
+		if v.ID != nil {
+			output["id"] = *v.ID
+		}
+
+		if v.Name != nil {
+			output["name"] = *v.Name
+		}
+
+		if props := v.ApplicationGatewayBackendHTTPSettingsPropertiesFormat; props != nil {
+			output["cookie_based_affinity"] = string(props.CookieBasedAffinity)
+			if port := props.Port; port != nil {
+				output["port"] = int(*port)
+			}
+			output["protocol"] = string(props.Protocol)
+			if timeout := props.RequestTimeout; timeout != nil {
+				output["request_timeout"] = int(*timeout)
+			}
+
+			authenticationCertificates := make([]interface{}, 0)
+			if certs := props.AuthenticationCertificates; certs != nil {
+				for _, cert := range *certs {
+					if cert.ID == nil {
+						continue
+					}
+
+					certId := *cert.ID
+					// TODO: confirm if there's a better way of doing this
+					name := strings.Split(certId, "/")[len(strings.Split(certId, "/"))-1]
+					certificate := map[string]interface{}{
+						"id":   certId,
+						"name": name,
+					}
+					authenticationCertificates = append(authenticationCertificates, certificate)
+				}
+			}
+			output["authentication_certificate"] = authenticationCertificates
+
+			if probe := props.Probe; probe != nil {
+				if probe.ID != nil {
+					id, err := parseAzureResourceID(*probe.ID)
+					if err != nil {
+						return results, err
+					}
+
+					output["probe_name"] = id.Path["probes"]
+					output["probe_id"] = *probe.ID
+				}
+			}
+		}
+
+		results = append(results, output)
+	}
+
+	return results, nil
 }
