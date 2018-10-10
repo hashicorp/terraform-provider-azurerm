@@ -143,39 +143,6 @@ func expandApplicationGatewayFrontendIPConfigurations(d *schema.ResourceData) *[
 	return &frontEndConfigs
 }
 
-func expandApplicationGatewayBackendAddressPools(d *schema.ResourceData) *[]network.ApplicationGatewayBackendAddressPool {
-	configs := d.Get("backend_address_pool").([]interface{})
-	backendPools := make([]network.ApplicationGatewayBackendAddressPool, 0)
-
-	for _, configRaw := range configs {
-		data := configRaw.(map[string]interface{})
-
-		backendAddresses := []network.ApplicationGatewayBackendAddress{}
-
-		for _, rawIP := range data["ip_address_list"].([]interface{}) {
-			ip := rawIP.(string)
-			backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{IPAddress: &ip})
-		}
-
-		for _, rawFQDN := range data["fqdn_list"].([]interface{}) {
-			fqdn := rawFQDN.(string)
-			backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{Fqdn: &fqdn})
-		}
-
-		name := data["name"].(string)
-		pool := network.ApplicationGatewayBackendAddressPool{
-			Name: &name,
-			ApplicationGatewayBackendAddressPoolPropertiesFormat: &network.ApplicationGatewayBackendAddressPoolPropertiesFormat{
-				BackendAddresses: &backendAddresses,
-			},
-		}
-
-		backendPools = append(backendPools, pool)
-	}
-
-	return &backendPools
-}
-
 func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gatewayID string) *[]network.ApplicationGatewayBackendHTTPSettings {
 	configs := d.Get("backend_http_settings").([]interface{})
 	backendSettings := make([]network.ApplicationGatewayBackendHTTPSettings, 0)
@@ -570,38 +537,6 @@ func flattenApplicationGatewayFrontendIPConfigurations(ipConfigs *[]network.Appl
 			}
 
 			result = append(result, ipConfig)
-		}
-	}
-
-	return result
-}
-
-func flattenApplicationGatewayBackendAddressPools(input *[]network.ApplicationGatewayBackendAddressPool) []interface{} {
-	result := make([]interface{}, 0)
-
-	if poolConfigs := input; poolConfigs != nil {
-		for _, config := range *poolConfigs {
-			ipAddressList := make([]interface{}, 0)
-			fqdnList := make([]interface{}, 0)
-
-			if props := config.ApplicationGatewayBackendAddressPoolPropertiesFormat; props != nil {
-				for _, address := range *props.BackendAddresses {
-					if address.IPAddress != nil {
-						ipAddressList = append(ipAddressList, *address.IPAddress)
-					} else if address.Fqdn != nil {
-						fqdnList = append(fqdnList, *address.Fqdn)
-					}
-				}
-
-				pool := map[string]interface{}{
-					"id":              *config.ID,
-					"name":            *config.Name,
-					"ip_address_list": ipAddressList,
-					"fqdn_list":       fqdnList,
-				}
-
-				result = append(result, pool)
-			}
 		}
 	}
 

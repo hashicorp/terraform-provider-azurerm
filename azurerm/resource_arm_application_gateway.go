@@ -817,7 +817,9 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error flattening `authentication_certificate`: %+v", err)
 		}
 
-		d.Set("backend_address_pool", flattenApplicationGatewayBackendAddressPools(props.BackendAddressPools))
+		if err := d.Set("backend_address_pool", flattenApplicationGatewayBackendAddressPools(props.BackendAddressPools)); err != nil {
+			return fmt.Errorf("Error flattening `backend_address_pool`: %+v", err)
+		}
 
 		v1, err1 := flattenApplicationGatewayBackendHTTPSettings(props.BackendHTTPSettingsCollection)
 		if err1 != nil {
@@ -928,6 +930,81 @@ func flattenApplicationGatewayAuthenticationCertificates(input *[]network.Applic
 
 		if v.Name != nil {
 			output["name"] = *v.Name
+		}
+
+		results = append(results, output)
+	}
+
+	return results
+}
+
+func expandApplicationGatewayBackendAddressPools(d *schema.ResourceData) *[]network.ApplicationGatewayBackendAddressPool {
+	vs := d.Get("backend_address_pool").([]interface{})
+	results := make([]network.ApplicationGatewayBackendAddressPool, 0)
+
+	for _, raw := range vs {
+		v := raw.(map[string]interface{})
+		backendAddresses := make([]network.ApplicationGatewayBackendAddress, 0)
+
+		for _, ip := range v["ip_address_list"].([]interface{}) {
+			backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
+				IPAddress: utils.String(ip.(string)),
+			})
+		}
+
+		for _, ip := range v["fqdn_list"].([]interface{}) {
+			backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
+				Fqdn: utils.String(ip.(string)),
+			})
+		}
+
+		name := v["name"].(string)
+		output := network.ApplicationGatewayBackendAddressPool{
+			Name: utils.String(name),
+			ApplicationGatewayBackendAddressPoolPropertiesFormat: &network.ApplicationGatewayBackendAddressPoolPropertiesFormat{
+				BackendAddresses: &backendAddresses,
+			},
+		}
+
+		results = append(results, output)
+	}
+
+	return &results
+}
+
+func flattenApplicationGatewayBackendAddressPools(input *[]network.ApplicationGatewayBackendAddressPool) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, config := range *input {
+		ipAddressList := make([]interface{}, 0)
+		fqdnList := make([]interface{}, 0)
+
+		if props := config.ApplicationGatewayBackendAddressPoolPropertiesFormat; props != nil {
+			if props.BackendAddresses != nil {
+				for _, address := range *props.BackendAddresses {
+					if address.IPAddress != nil {
+						ipAddressList = append(ipAddressList, *address.IPAddress)
+					} else if address.Fqdn != nil {
+						fqdnList = append(fqdnList, *address.Fqdn)
+					}
+				}
+			}
+		}
+
+		output := map[string]interface{}{
+			"ip_address_list": ipAddressList,
+			"fqdn_list":       fqdnList,
+		}
+
+		if config.ID != nil {
+			output["id"] = *config.ID
+		}
+
+		if config.Name != nil {
+			output["name"] = *config.Name
 		}
 
 		results = append(results, output)
