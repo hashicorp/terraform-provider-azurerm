@@ -1,4 +1,4 @@
-package azure
+package validate
 
 import "testing"
 
@@ -12,7 +12,7 @@ func TestValidateDevTestLabName(t *testing.T) {
 		"double-hyphen--valid",
 	}
 	for _, v := range validNames {
-		_, errors := ValidateDevTestLabName()(v, "example")
+		_, errors := DevTestLabName()(v, "example")
 		if len(errors) != 0 {
 			t.Fatalf("%q should be a valid Dev Test Lab Name: %q", v, errors)
 		}
@@ -23,7 +23,7 @@ func TestValidateDevTestLabName(t *testing.T) {
 		"!@£",
 	}
 	for _, v := range invalidNames {
-		_, errors := ValidateDevTestLabName()(v, "name")
+		_, errors := DevTestLabName()(v, "name")
 		if len(errors) == 0 {
 			t.Fatalf("%q should be an invalid Dev Test Lab Name", v)
 		}
