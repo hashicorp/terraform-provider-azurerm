@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -221,6 +222,27 @@ func TestAccAzureRMContainerRegistry_update(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
+	ri := acctest.RandInt()
+	georeplicationLocations := []string{"\"eastus\"", "\"westus\""}
+	config := testAccAzureRMContainerRegistry_geoReplication(ri, testLocation(), "Premium", strings.Join(georeplicationLocations[:], ","))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerRegistryExists("azurerm_container_registry.test"),
+					testCheckAzureRMContainerRegistryGeoreplicationExists("azurerm_container_registry.test", georeplicationLocations),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMContainerRegistryDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).containerRegistryClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -270,6 +292,38 @@ func testCheckAzureRMContainerRegistryExists(name string) resource.TestCheckFunc
 
 		if resp.StatusCode == http.StatusNotFound {
 			return fmt.Errorf("Bad: Container Registry %q (resource group: %q) does not exist", name, resourceGroup)
+		}
+
+		return nil
+	}
+}
+
+func testCheckAzureRMContainerRegistryGeoreplicationExists(name string, locations []string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return fmt.Errorf("Not found: %s", name)
+		}
+
+		name := rs.Primary.Attributes["name"]
+		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for Container Registry: %s", name)
+		}
+
+		conn := testAccProvider.Meta().(*ArmClient).containerRegistryReplicationsClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		resp, err := conn.List(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("Bad: Get on containerRegistryClient: %+v", err)
+		}
+
+		georeplicationValues := resp.Values()
+
+		if georeplicationValues == nil {
+			return fmt.Errorf("Bad: Container Registry %q (resource group: %q) has not been configured for geo-replication", name, resourceGroup)
 		}
 
 		return nil
@@ -375,4 +429,22 @@ resource "azurerm_container_registry" "test" {
   }
 }
 `, rInt, location, rStr, rInt)
+}
+
+func testAccAzureRMContainerRegistry_geoReplication(rInt int, location string, sku string, georeplicationLocations string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "testAccRg-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                   = "testacccr%d"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  location               = "${azurerm_resource_group.test.location}"
+  sku                    = "%s"
+  georeplication_enabled = true
+  georeplication_locations = [%s]
+}
+`, rInt, location, rInt, sku, georeplicationLocations)
 }
