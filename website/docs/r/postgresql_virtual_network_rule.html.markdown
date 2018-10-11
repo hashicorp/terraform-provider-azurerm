@@ -29,8 +29,8 @@ resource "azurerm_virtual_network" "test" {
 
 resource "azurerm_subnet" "internal" {
   name                 = "internal"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  virtual_network_name = "${azurerm_virtual_network.vnet.name}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.7.29.0/29"
   service_endpoints    = ["Microsoft.Sql"]
 }
@@ -85,7 +85,7 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The ID of the subnet that the PostgreSQL server will be connected to.
 
-* `ignore_missing_vnet_service_endpoint` - (Optional) Create the virtual network rule before the subnet has the virtual network service endpoint enabled. The default value is false.
+* `ignore_missing_vnet_service_endpoint` - (Optional) Create firewall rule before the virtual network has vnet service endpoint enabled.
 
 ## Attributes Reference
 
