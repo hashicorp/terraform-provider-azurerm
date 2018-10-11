@@ -365,6 +365,7 @@ func getReplicationLocationsToCreate(d *schema.ResourceData) []string {
 
 func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).containerRegistryClient
+	replicationClient := meta.(*ArmClient).containerRegistryReplicationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -418,6 +419,29 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	flattenAndSetTags(d, resp.Tags)
+
+	replications, err := replicationClient.List(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error making Read request on Azure Container Registry %s for replications.", name, err)
+	}
+
+	replicationValues := replications.Values()
+
+	// if replicationValues is nil or empty, then there is no deployed geo-replication
+	if replicationValues == nil || len(replicationValues) == 0 {
+		d.Set("georeplication_enabled", false)
+	} else {
+		// geo-replication has been configure
+		d.Set("georeplication_enabled", true)
+
+		georeplication_locations := make(map[int]interface{}, len(replicationValues))
+
+		for i, value := range replicationValues {
+			georeplication_locations[i] = value.Location
+		}
+
+		d.Set("georeplication_locations", georeplication_locations)
+	}
 
 	return nil
 }
