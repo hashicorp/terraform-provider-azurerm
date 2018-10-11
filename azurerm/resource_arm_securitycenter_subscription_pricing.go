@@ -49,8 +49,7 @@ func resourceArmSecurityCenterSubscriptionPricingCreateUpdate(d *schema.Resource
 		},
 	}
 
-	_, err := client.UpdateSubscriptionPricing(ctx, "default", pricing)
-	if err != nil {
+	if _, err := client.UpdateSubscriptionPricing(ctx, "default", pricing); err != nil {
 		return fmt.Errorf("Error creating/updating Security Center Subscription pricing: %+v", err)
 	}
 

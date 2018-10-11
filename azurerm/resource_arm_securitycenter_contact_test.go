@@ -13,8 +13,9 @@ func TestAccAzureRMSecurityCenterContact_basic(t *testing.T) {
 	resourceName := "azurerm_securitycenter_contact.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSecurityCenterContactDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSecurityCenterContact_template("email1@example.com", "+1-555-555-5555", true, true),
@@ -39,8 +40,9 @@ func TestAccAzureRMSecurityCenterContact_update(t *testing.T) {
 	resourceName := "azurerm_securitycenter_contact.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSecurityCenterContactDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSecurityCenterContact_template("email1@example.com", "+1-555-555-5555", true, true),
@@ -94,6 +96,30 @@ func testCheckAzureRMSecurityCenterContactExists(name string) resource.TestCheck
 
 		return nil
 	}
+}
+
+func testCheckAzureRMSecurityCenterContactDestroy(s *terraform.State) error {
+	client := testAccProvider.Meta().(*ArmClient).securityCenterContactsClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+	for _, res := range s.RootModule().Resources {
+		if res.Type != "azurerm_securitycenter_contact" {
+			continue
+		}
+
+		resp, err := client.Get(ctx, "default1")
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return nil
+			}
+
+			return err
+		}
+
+		return fmt.Errorf("security center worspace contact still exists")
+	}
+
+	return nil
 }
 
 func testAccAzureRMSecurityCenterContact_template(email, phone string, notifications, adminAlerts bool) string {

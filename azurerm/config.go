@@ -254,8 +254,9 @@ type ArmClient struct {
 	searchServicesClient search.ServicesClient
 
 	// Security Centre
-	securityCenterPricingClient  security.PricingsClient
-	securityCenterContactsClient security.ContactsClient
+	securityCenterPricingClient   security.PricingsClient
+	securityCenterContactsClient  security.ContactsClient
+	securityCenterWorkspaceClient security.WorkspaceSettingsClient
 
 	// ServiceBus
 	serviceBusQueuesClient            servicebus.QueuesClient
@@ -1030,6 +1031,10 @@ func (c *ArmClient) registerSecurityCenterClients(endpoint, subscriptionId, ascL
 	securityCenterContactsClient := security.NewContactsClientWithBaseURI(endpoint, subscriptionId, ascLocation)
 	c.configureClient(&securityCenterContactsClient.Client, auth)
 	c.securityCenterContactsClient = securityCenterContactsClient
+
+	securityCenterWorkspaceClient := security.NewWorkspaceSettingsClientWithBaseURI(endpoint, subscriptionId, ascLocation)
+	c.configureClient(&securityCenterWorkspaceClient.Client, auth)
+	c.securityCenterWorkspaceClient = securityCenterWorkspaceClient
 }
 
 func (c *ArmClient) registerServiceBusClients(endpoint, subscriptionId string, auth autorest.Authorizer) {

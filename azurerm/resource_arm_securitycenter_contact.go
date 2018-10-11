@@ -2,11 +2,9 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
-	"strings"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/2017-08-01-preview/security"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"log"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -81,8 +79,7 @@ func resourceArmSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta i
 	}
 
 	if d.IsNewResource() {
-		_, err := client.Create(ctx, "default1", contact)
-		if err != nil {
+		if _, err := client.Create(ctx, "default1", contact); err != nil {
 			return fmt.Errorf("Error creating Security Center Contact: %+v", err)
 		}
 
@@ -96,8 +93,7 @@ func resourceArmSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta i
 
 		d.SetId(*resp.ID)
 	} else {
-		_, err := client.Update(ctx, "default1", contact)
-		if err != nil {
+		if _, err := client.Update(ctx, "default1", contact); err != nil {
 			return fmt.Errorf("Error updating Security Center Contact: %+v", err)
 		}
 	}
@@ -109,12 +105,7 @@ func resourceArmSecurityCenterContactRead(d *schema.ResourceData, meta interface
 	client := meta.(*ArmClient).securityCenterContactsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	//id is in format of `/subscriptions/20ff7fc3-e762-44dd-bd96-b71116dcdc23/providers/Microsoft.Security/securityContacts/john`
-	//parseAzureResourceID doesn't support id without a resource group
-	bits := strings.Split(d.Id(), "/")
-	name := bits[len(bits)-1]
-
-	resp, err := client.Get(ctx, name)
+	resp, err := client.Get(ctx, "default1")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Security Center Subscription Contact was not found: %v", err)
