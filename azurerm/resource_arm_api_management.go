@@ -581,8 +581,6 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 			"scm":        scmResults,
 		},
 	}
-
-	return nil
 }
 
 func expandAzureRmApiManagementCertificates(d *schema.ResourceData) *[]apimanagement.CertificateConfiguration {
