@@ -16,7 +16,7 @@ func TestAccAzureRMPostgreSQLVirtualNetworkRule_basic(t *testing.T) {
 	resourceName := "azurerm_postgresql_virtual_network_rule.test"
 	ri := acctest.RandInt()
 
-	config := testAccAzureRMPostgreSQLFirewallRule_basic(ri, testLocation())
+	config := testAccAzureRMPostgreSQLVirtualNetworkRule_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -156,7 +156,7 @@ func testCheckAzureRMPostgreSQLVirtualNetworkRuleExists(name string) resource.Te
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: PostgreSQL Firewall Rule %q (server %q / resource group %q) was not found", ruleName, serverName, resourceGroup)
+				return fmt.Errorf("Bad: PostgreSQL Virtual Network Rule %q (server %q / resource group %q) was not found", ruleName, serverName, resourceGroup)
 			}
 
 			return err
@@ -188,7 +188,7 @@ func testCheckAzureRMPostgreSQLVirtualNetworkRuleDestroy(s *terraform.State) err
 			return err
 		}
 
-		return fmt.Errorf("Bad: PostgreSQL Firewall Rule %q (server %q / resource group %q) still exists: %+v", ruleName, serverName, resourceGroup, resp)
+		return fmt.Errorf("Bad: PostgreSQL Virtual Network Rule %q (server %q / resource group %q) still exists: %+v", ruleName, serverName, resourceGroup, resp)
 	}
 
 	return nil
