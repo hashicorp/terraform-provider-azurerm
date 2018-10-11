@@ -51,7 +51,17 @@ The following arguments are supported:
 
 * `description` - (Optional) A description for the Virtual Network.
 
+* `subnet` - (Optional) A `subnet` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+A `subnet` block supports the following:
+
+* `use_public_ip_address` - (Required) Can Virtual Machines in this Subnet use Public IP Addresses? Possible values are `Allow`, `Default` and `Deny`.
+
+* `use_in_virtual_machine_creation` - (Required) Can this subnet be used for creating Virtual Machines? Possible values are `Allow`, `Default` and `Deny`.
 
 ## Attributes Reference
 
@@ -59,7 +69,15 @@ The following attributes are exported:
 
 * `id` - The ID of the Dev Test Virtual Network.
 
+* `subnet` - A `subnet` block as defined below.
+
 * `unique_identifier` - The unique immutable identifier of the Dev Test Virtual Network.
+
+---
+
+A `subnet` block exports the following:
+
+* `name` - The name of the Subnet for this Virtual Network.
 
 ## Import
 
