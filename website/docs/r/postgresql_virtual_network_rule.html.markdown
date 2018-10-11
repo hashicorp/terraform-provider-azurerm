@@ -53,17 +53,18 @@ resource "azurerm_postgresql_server" "test" {
     geo_redundant_backup  = "Disabled"
   }
 
-  administrator_login = "psqladminun"
+  administrator_login          = "psqladminun"
   administrator_login_password = "H@Sh1CoR3!"
-  version = "9.5"
-  ssl_enforcement = "Enabled"
+  version                      = "9.5"
+  ssl_enforcement              = "Enabled"
 }
 
 resource "azurerm_postgresql_virtual_network_rule" "test" {
-  name                = "postgresql-vnet-rule"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_postgresql_server.test.name}"
-  subnet_id           = "${azurerm_subnet.internal.id}"
+  name                                 = "postgresql-vnet-rule"
+  resource_group_name                  = "${azurerm_resource_group.test.name}"
+  server_name                          = "${azurerm_postgresql_server.test.name}"
+  subnet_id                            = "${azurerm_subnet.internal.id}"
+  ignore_missing_vnet_service_endpoint = true
 }
 ```
 
@@ -84,7 +85,7 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The ID of the subnet that the PostgreSQL server will be connected to.
 
-~> **NOTE:** Due to [a bug in the Azure API](https://github.com/Azure/azure-rest-api-specs/issues/3719) this resource currently doesn't expose the `ignore_missing_vnet_service_endpoint` field and defaults this to `false`. Terraform will check during the provisioning of the Virtual Network Rule that the Subnet contains the Service Rule to verify that the Virtual Network Rule can be created.
+* `ignore_missing_vnet_service_endpoint` - (Optional) Create the virtual network rule before the subnet has the virtual network service endpoint enabled. The default value is false.
 
 ## Attributes Reference
 

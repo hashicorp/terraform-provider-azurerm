@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
@@ -44,6 +43,11 @@ func resourceArmPostgreSQLVirtualNetworkRule() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
+			"ignore_missing_vnet_service_endpoint": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"subnet_id": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -61,52 +65,21 @@ func resourceArmPostgreSQLVirtualNetworkRuleCreateUpdate(d *schema.ResourceData,
 	serverName := d.Get("server_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	subnetId := d.Get("subnet_id").(string)
-
-	// due to a bug in the API we have to ensure the Subnet's configured correctly or the API call will timeout
-	// BUG: https://github.com/Azure/azure-rest-api-specs/issues/3719
-	subnetsClient := meta.(*ArmClient).subnetClient
-	subnetParsedId, err := parseAzureResourceID(subnetId)
-
-	subnetResourceGroup := subnetParsedId.ResourceGroup
-	virtualNetwork := subnetParsedId.Path["virtualNetworks"]
-	subnetName := subnetParsedId.Path["subnets"]
-	subnet, err := subnetsClient.Get(ctx, subnetResourceGroup, virtualNetwork, subnetName, "")
-	if err != nil {
-		if utils.ResponseWasNotFound(subnet.Response) {
-			return fmt.Errorf("Subnet with ID %q was not found: %+v", subnetId, err)
-		}
-
-		return fmt.Errorf("Error obtaining Subnet %q (Virtual Network %q / Resource Group %q: %+v", subnetName, virtualNetwork, subnetResourceGroup, err)
-	}
-
-	containsEndpoint := false
-	if props := subnet.SubnetPropertiesFormat; props != nil {
-		if endpoints := props.ServiceEndpoints; endpoints != nil {
-			for _, e := range *endpoints {
-				if e.Service == nil {
-					continue
-				}
-
-				if strings.EqualFold(*e.Service, "Microsoft.Sql") {
-					containsEndpoint = true
-					break
-				}
-			}
-		}
-	}
-
-	if !containsEndpoint {
-		return fmt.Errorf("Error creating PostgreSQL Virtual Network Rule: Subnet %q (Virtual Network %q / Resource Group %q) must contain a Service Endpoint for `Microsoft.Sql`", subnetName, virtualNetwork, subnetResourceGroup)
-	}
+	ignoreMissingVnetServiceEndpoint := d.Get("ignore_missing_vnet_service_endpoint").(bool)
 
 	parameters := postgresql.VirtualNetworkRule{
 		VirtualNetworkRuleProperties: &postgresql.VirtualNetworkRuleProperties{
 			VirtualNetworkSubnetID:           utils.String(subnetId),
-			IgnoreMissingVnetServiceEndpoint: utils.Bool(false),
+			IgnoreMissingVnetServiceEndpoint: utils.Bool(ignoreMissingVnetServiceEndpoint),
 		},
 	}
 
-	_, err = client.CreateOrUpdate(ctx, resourceGroup, serverName, name, parameters)
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, parameters)
+	if err != nil {
+		return fmt.Errorf("Error submitting PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
+	}
+
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error creating PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
 	}
@@ -166,6 +139,7 @@ func resourceArmPostgreSQLVirtualNetworkRuleRead(d *schema.ResourceData, meta in
 
 	if props := resp.VirtualNetworkRuleProperties; props != nil {
 		d.Set("subnet_id", props.VirtualNetworkSubnetID)
+		d.Set("ignore_missing_vnet_service_endpoints", props.IgnoreMissingVnetServiceEndpoint)
 	}
 
 	return nil
