@@ -8,6 +8,10 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
+func URLIsHTTPS(i interface{}, k string) (_ []string, errors []error) {
+	return URLWithScheme([]string{"https"})(i, k)
+}
+
 func URLIsHTTPOrHTTPS(i interface{}, k string) (_ []string, errors []error) {
 	return URLWithScheme([]string{"http", "https"})(i, k)
 }

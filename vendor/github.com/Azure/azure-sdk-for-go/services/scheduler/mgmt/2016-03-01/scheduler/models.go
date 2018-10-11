@@ -554,12 +554,12 @@ func (hr *HTTPRequest) UnmarshalJSON(body []byte) error {
 			}
 		case "body":
 			if v != nil {
-				var body string
-				err = json.Unmarshal(*v, &body)
+				var body1 string
+				err = json.Unmarshal(*v, &body1)
 				if err != nil {
 					return err
 				}
-				hr.Body = &body
+				hr.Body = &body1
 			}
 		case "headers":
 			if v != nil {

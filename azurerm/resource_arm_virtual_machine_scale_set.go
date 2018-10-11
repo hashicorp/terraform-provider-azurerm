@@ -22,6 +22,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 		Read:   resourceArmVirtualMachineScaleSetRead,
 		Update: resourceArmVirtualMachineScaleSetCreate,
 		Delete: resourceArmVirtualMachineScaleSetDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -163,7 +164,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 
 						"admin_password": {
 							Type:         schema.TypeString,
-							Required:     true,
+							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validation.NoZeroValues,
 						},
@@ -395,7 +396,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 
 									"primary": {
 										Type:     schema.TypeBool,
-										Optional: true,
+										Required: true,
 									},
 
 									"public_ip_address_configuration": {
@@ -973,22 +974,30 @@ func flattenAzureRmVirtualMachineScaleSetIdentity(identity *compute.VirtualMachi
 
 func flattenAzureRmVirtualMachineScaleSetOsProfileLinuxConfig(config *compute.LinuxConfiguration) []interface{} {
 	result := make(map[string]interface{})
-	result["disable_password_authentication"] = *config.DisablePasswordAuthentication
 
-	if config.SSH != nil && len(*config.SSH.PublicKeys) > 0 {
-		ssh_keys := make([]map[string]interface{}, 0, len(*config.SSH.PublicKeys))
-		for _, i := range *config.SSH.PublicKeys {
-			key := make(map[string]interface{})
-			key["path"] = *i.Path
+	if v := config.DisablePasswordAuthentication; v != nil {
+		result["disable_password_authentication"] = *v
+	}
 
-			if i.KeyData != nil {
-				key["key_data"] = *i.KeyData
+	if ssh := config.SSH; ssh != nil {
+		if keys := ssh.PublicKeys; keys != nil {
+			ssh_keys := make([]map[string]interface{}, 0, len(*keys))
+			for _, i := range *keys {
+				key := make(map[string]interface{})
+
+				if i.Path != nil {
+					key["path"] = *i.Path
+				}
+
+				if i.KeyData != nil {
+					key["key_data"] = *i.KeyData
+				}
+
+				ssh_keys = append(ssh_keys, key)
 			}
 
-			ssh_keys = append(ssh_keys, key)
+			result["ssh_keys"] = ssh_keys
 		}
-
-		result["ssh_keys"] = ssh_keys
 	}
 
 	return []interface{}{result}
@@ -1471,6 +1480,7 @@ func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *
 		for _, ipConfigConfig := range ipConfigurationConfigs {
 			ipconfig := ipConfigConfig.(map[string]interface{})
 			name := ipconfig["name"].(string)
+			primary := ipconfig["primary"].(bool)
 			subnetId := ipconfig["subnet_id"].(string)
 
 			ipConfiguration := compute.VirtualMachineScaleSetIPConfiguration{
@@ -1481,6 +1491,8 @@ func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *
 					},
 				},
 			}
+
+			ipConfiguration.Primary = &primary
 
 			if v := ipconfig["application_gateway_backend_address_pool_ids"]; v != nil {
 				pools := v.(*schema.Set).List()
@@ -1516,11 +1528,6 @@ func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *
 					})
 				}
 				ipConfiguration.LoadBalancerInboundNatPools = &rulesResources
-			}
-
-			if v := ipconfig["primary"]; v != nil {
-				primary := v.(bool)
-				ipConfiguration.Primary = &primary
 			}
 
 			if v := ipconfig["public_ip_address_configuration"]; v != nil {

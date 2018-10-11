@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -730,11 +731,47 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 	name := id.Path["storageAccounts"]
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 
-	_, err = client.Delete(ctx, resGroup, name)
+	read, err := client.GetProperties(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error issuing AzureRM delete request for storage account %q: %+v", name, err)
+		if utils.ResponseWasNotFound(read.Response) {
+			return nil
+		}
+
+		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	// the networking api's only allow a single change to be made to a network layout at once, so let's lock to handle that
+	virtualNetworkNames := make([]string, 0)
+	if props := read.AccountProperties; props != nil {
+		if rules := props.NetworkRuleSet; rules != nil {
+			if vnr := rules.VirtualNetworkRules; vnr != nil {
+				for _, v := range *vnr {
+					if v.VirtualNetworkResourceID == nil {
+						continue
+					}
+
+					id, err := parseAzureResourceID(*v.VirtualNetworkResourceID)
+					if err != nil {
+						return err
+					}
+
+					networkName := id.Path["virtualNetworks"]
+					virtualNetworkNames = append(virtualNetworkNames, networkName)
+				}
+			}
+		}
+	}
+
+	azureRMLockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
+	defer azureRMUnlockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
+
+	resp, err := client.Delete(ctx, resourceGroup, name)
+	if err != nil {
+		if !response.WasNotFound(resp.Response) {
+			return fmt.Errorf("Error issuing delete request for Storage Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
 	}
 
 	return nil
