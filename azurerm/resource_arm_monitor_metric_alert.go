@@ -74,8 +74,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 								"Minimum",
 								"Maximum",
 								"Total",
-							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							}, false),
 						},
 						"operator": {
 							Type:     schema.TypeString,
@@ -87,8 +86,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 								"GreaterThanOrEqual",
 								"LessThan",
 								"LessThanOrEqual",
-							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							}, false),
 						},
 						"threshold": {
 							Type:     schema.TypeFloat,
@@ -110,8 +108,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 										ValidateFunc: validation.StringInSlice([]string{
 											"Include",
 											"Exclude",
-										}, true),
-										DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+										}, false),
 									},
 									"values": {
 										Type:     schema.TypeList,
@@ -360,18 +357,19 @@ func expandMonitorMetricAlertAction(input []interface{}) *[]insights.MetricAlert
 	actions := make([]insights.MetricAlertAction, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
-
-		props := make(map[string]*string)
-		if pVal, ok := v["webhook_properties"]; ok {
-			for pk, pv := range pVal.(map[string]interface{}) {
-				props[pk] = utils.String(pv.(string))
+		if agID := v["action_group_id"].(string); agID != "" {
+			props := make(map[string]*string)
+			if pVal, ok := v["webhook_properties"]; ok {
+				for pk, pv := range pVal.(map[string]interface{}) {
+					props[pk] = utils.String(pv.(string))
+				}
 			}
-		}
 
-		actions = append(actions, insights.MetricAlertAction{
-			ActionGroupID:     utils.String(v["action_group_id"].(string)),
-			WebhookProperties: props,
-		})
+			actions = append(actions, insights.MetricAlertAction{
+				ActionGroupID:     utils.String(agID),
+				WebhookProperties: props,
+			})
+		}
 	}
 	return &actions
 }
