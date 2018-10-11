@@ -3,13 +3,13 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_public_ip"
 sidebar_current: "docs-azurerm-datasource-public-ip-x"
 description: |-
-  Retrieves information about the specified public IP address.
+  Gets information about an existing Public IP Address.
 
 ---
 
 # Data Source: azurerm_public_ip
 
-Use this data source to access the properties of an existing Azure Public IP Address.
+Use this data source to access information about an existing Public IP Address.
 
 ## Example Usage (reference an existing)
 

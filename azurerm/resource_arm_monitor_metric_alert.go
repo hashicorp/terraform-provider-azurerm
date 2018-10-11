@@ -213,7 +213,7 @@ func resourceArmMonitorMetricAlertCreateOrUpdate(d *schema.ResourceData, meta in
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 
 	enabled := d.Get("enabled").(bool)
 	autoMitigate := d.Get("auto_mitigate").(bool)
@@ -237,23 +237,23 @@ func resourceArmMonitorMetricAlertCreateOrUpdate(d *schema.ResourceData, meta in
 			Severity:            utils.Int32(int32(severity)),
 			EvaluationFrequency: utils.String(frequency),
 			WindowSize:          utils.String(windowSize),
-			Scopes:              expandMonitorMetricAlertStringArray(scopesRaw),
+			Scopes:              utils.ExpandStringArray(scopesRaw),
 			Criteria:            expandMonitorMetricAlertCriteria(criteriaRaw),
 			Actions:             expandMonitorMetricAlertAction(actionRaw),
 		},
 		Tags: expandedTags,
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resGroup, name, parameters); err != nil {
-		return fmt.Errorf("Error creating or updating metric alert %q (resource group %q): %+v", name, resGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
+		return fmt.Errorf("Error creating or updating metric alert %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
+	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Metric alert %q (resource group %q) ID is empty", name, resGroup)
+		return fmt.Errorf("Metric alert %q (resource group %q) ID is empty", name, resourceGroup)
 	}
 	d.SetId(*read.ID)
 
@@ -268,21 +268,21 @@ func resourceArmMonitorMetricAlertRead(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Path["metricAlerts"]
 
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Metric Alert %q was not found in Resource Group %q - removing from state!", name, resGroup)
+			log.Printf("[DEBUG] Metric Alert %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error getting metric alert %q (resource group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error getting metric alert %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("resource_group_name", resourceGroup)
 	if alert := resp.MetricAlertProperties; alert != nil {
 		d.Set("enabled", alert.Enabled)
 		d.Set("auto_mitigate", alert.AutoMitigate)
@@ -290,7 +290,7 @@ func resourceArmMonitorMetricAlertRead(d *schema.ResourceData, meta interface{})
 		d.Set("severity", alert.Severity)
 		d.Set("frequency", alert.EvaluationFrequency)
 		d.Set("window_size", alert.WindowSize)
-		if err := d.Set("scopes", flattenMonitorMetricAlertStringArray(alert.Scopes)); err != nil {
+		if err := d.Set("scopes", utils.FlattenStringArray(alert.Scopes)); err != nil {
 			return fmt.Errorf("Error setting `scopes`: %+v", err)
 		}
 		if err := d.Set("criteria", flattenMonitorMetricAlertCriteria(alert.Criteria)); err != nil {
@@ -313,24 +313,16 @@ func resourceArmMonitorMetricAlertDelete(d *schema.ResourceData, meta interface{
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Path["metricAlerts"]
 
-	if resp, err := client.Delete(ctx, resGroup, name); err != nil {
+	if resp, err := client.Delete(ctx, resourceGroup, name); err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting metric alert %q (resource group %q): %+v", name, resGroup, err)
+			return fmt.Errorf("Error deleting metric alert %q (resource group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
 	return nil
-}
-
-func expandMonitorMetricAlertStringArray(input []interface{}) *[]string {
-	result := make([]string, 0)
-	for _, item := range input {
-		result = append(result, item.(string))
-	}
-	return &result
 }
 
 func expandMonitorMetricAlertCriteria(input []interface{}) *insights.MetricAlertSingleResourceMultipleMetricCriteria {
@@ -344,7 +336,7 @@ func expandMonitorMetricAlertCriteria(input []interface{}) *insights.MetricAlert
 			dimensions = append(dimensions, insights.MetricDimension{
 				Name:     utils.String(dVal["name"].(string)),
 				Operator: utils.String(dVal["operator"].(string)),
-				Values:   expandMonitorMetricAlertStringArray(dVal["values"].([]interface{})),
+				Values:   utils.ExpandStringArray(dVal["values"].([]interface{})),
 			})
 		}
 
@@ -384,16 +376,6 @@ func expandMonitorMetricAlertAction(input []interface{}) *[]insights.MetricAlert
 	return &actions
 }
 
-func flattenMonitorMetricAlertStringArray(input *[]string) []interface{} {
-	result := make([]interface{}, 0)
-	if input != nil {
-		for _, item := range *input {
-			result = append(result, item)
-		}
-	}
-	return result
-}
-
 func flattenMonitorMetricAlertCriteria(input insights.BasicMetricAlertCriteria) (result []interface{}) {
 	result = make([]interface{}, 0)
 	if input == nil {
@@ -431,7 +413,7 @@ func flattenMonitorMetricAlertCriteria(input insights.BasicMetricAlertCriteria) 
 				if dimension.Operator != nil {
 					dVal["operator"] = *dimension.Operator
 				}
-				dVal["values"] = flattenMonitorMetricAlertStringArray(dimension.Values)
+				dVal["values"] = utils.FlattenStringArray(dimension.Values)
 				dimResult = append(dimResult, dVal)
 			}
 			v["dimension"] = dimResult
@@ -442,28 +424,29 @@ func flattenMonitorMetricAlertCriteria(input insights.BasicMetricAlertCriteria) 
 	return
 }
 
-func flattenMonitorMetricAlertAction(input *[]insights.MetricAlertAction) []interface{} {
-	result := make([]interface{}, 0)
-	if input != nil {
-		for _, action := range *input {
-			v := make(map[string]interface{}, 0)
-
-			if action.ActionGroupID != nil {
-				v["action_group_id"] = *action.ActionGroupID
-			}
-
-			props := make(map[string]string)
-			for pk, pv := range action.WebhookProperties {
-				if pv != nil {
-					props[pk] = *pv
-				}
-			}
-			v["webhook_properties"] = props
-
-			result = append(result, v)
-		}
+func flattenMonitorMetricAlertAction(input *[]insights.MetricAlertAction) (result []interface{}) {
+	result = make([]interface{}, 0)
+	if input == nil {
+		return
 	}
-	return result
+	for _, action := range *input {
+		v := make(map[string]interface{}, 0)
+
+		if action.ActionGroupID != nil {
+			v["action_group_id"] = *action.ActionGroupID
+		}
+
+		props := make(map[string]string)
+		for pk, pv := range action.WebhookProperties {
+			if pv != nil {
+				props[pk] = *pv
+			}
+		}
+		v["webhook_properties"] = props
+
+		result = append(result, v)
+	}
+	return
 }
 
 func resourceArmMonitorMetricAlertActionHash(input interface{}) int {
