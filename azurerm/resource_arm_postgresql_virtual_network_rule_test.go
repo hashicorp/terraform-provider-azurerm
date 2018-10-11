@@ -132,7 +132,7 @@ func TestAccAzureRMPostgreSQLVirtualNetworkRule_IgnoreEndpointValid(t *testing.T
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLVirtualNetworkRuleExists(resourceName),
-					resource.TestMatchResourceAttr(resourceName, "ignore_missing_vnet_service_endpoint", "true"),
+					resource.TestCheckResourceAttr(resourceName, "ignore_missing_vnet_service_endpoint", "true"),
 				),
 			},
 		},
