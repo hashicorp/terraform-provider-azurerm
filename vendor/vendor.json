@@ -155,8 +155,8 @@
 			"versionExact": "v21.1.0"
 		},
 		{
-			"checksumSHA1": "RZpLYjpPpobqat3uLWXPC8H33EQ=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault",
+			"checksumSHA1": "V8yVJJDoKLdBxvAHshfWc0N6oeA=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault",
 			"revision": "6d20bdbae88c06c36d72eb512295417693bfdf4e",
 			"revisionTime": "2018-09-28T00:20:07Z",
 			"version": "v21.1.0",
@@ -467,12 +467,10 @@
 			"versionExact": "v10.15.4"
 		},
 		{
-			"checksumSHA1": "JVAdK/V4SFCsCdpRBd4hTq/Z3h4=",
+			"checksumSHA1": "scpSozMdk4sqSpkbQqupLKUfLiM=",
 			"path": "github.com/Azure/go-autorest/version",
-			"revision": "a88c19ef2016e095f0b6c3b451074b4663f53bed",
-			"revisionTime": "2018-09-11T16:08:53Z",
-			"version": "v10.15.4",
-			"versionExact": "v10.15.4"
+			"revision": "a35eae345f69bbfbe3b8fa0b1d3fe98f8430b21a",
+			"revisionTime": "2018-08-30T19:44:05Z"
 		},
 		{
 			"checksumSHA1": "jQh1fnoKPKMURvKkpdRjN695nAQ=",
@@ -1090,12 +1088,6 @@
 			"revisionTime": "2018-01-31T20:48:39Z",
 			"version": "=v0.11.3",
 			"versionExact": "v0.11.3"
-		},
-		{
-			"checksumSHA1": "kD1ayilNruf2cES1LDfNZjYRscQ=",
-			"path": "github.com/hashicorp/terraform/httpclient",
-			"revision": "c96155cc68b1da43e49893ddc19a609f0085af19",
-			"revisionTime": "2018-10-04T21:23:31Z"
 		},
 		{
 			"checksumSHA1": "yFWmdS6yEJZpRJzUqd/mULqCYGk=",
