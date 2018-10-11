@@ -70,6 +70,8 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Dev Test Machine. Changing this forces a new resource to be created.
 
+-> **NOTE:** The validation requirements for the Name change based on the `os_type` used in this Virtual Machine. For a Linux VM the name must be between 1-62 characters, and for a Windows VM the name must be between 1-15 characters. It must begin and end with a letter or number, and cannot be all numbers.
+
 * `lab_name` - (Required) Specifies the name of the Dev Test Lab in which the Virtual Machine should be created. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which the Dev Test Lab resource exists. Changing this forces a new resource to be created.

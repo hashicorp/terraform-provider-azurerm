@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -27,7 +28,7 @@ func resourceArmDevTestVirtualMachine() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				// The virtual machine name must be between 1 and 62 characters and cannot contain any spaces or special characters. The name may contain letters, numbers, or '-'. However, it must begin and end with a letter or number, and cannot be all numbers.
-				// TODO: validation
+				// The name must be between 1 and 15 characters, cannot be entirely numeric, and cannot contain most special characters
 			},
 
 			"lab_name": {
@@ -163,9 +164,10 @@ func resourceArmDevTestVirtualMachine() *schema.Resource {
 						},
 
 						"backend_port": {
-							Type:     schema.TypeInt,
-							Required: true,
-							ForceNew: true,
+							Type:         schema.TypeInt,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.PortNumber,
 						},
 
 						"frontend_port": {
@@ -182,8 +184,6 @@ func resourceArmDevTestVirtualMachine() *schema.Resource {
 			},
 
 			"tags": tagsSchema(),
-
-			// TODO: should we also expose the UUID of the current claimant?
 
 			"fqdn": {
 				Type:     schema.TypeString,
