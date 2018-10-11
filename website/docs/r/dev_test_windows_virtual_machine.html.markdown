@@ -1,14 +1,14 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_dev_test_virtual_machine"
-sidebar_current: "docs-azurerm-resource-dev-test-virtual-machine"
+page_title: "Azure Resource Manager: azurerm_dev_test_windows_virtual_machine"
+sidebar_current: "docs-azurerm-resource-dev-test-windows-virtual-machine"
 description: |-
-  Manages a Virtual Machine within a Dev Test Lab.
+  Manages a Windows Virtual Machine within a Dev Test Lab.
 ---
 
-# azurerm_dev_test_virtual_machine
+# azurerm_dev_test_windows_virtual_machine
 
-Manages a Virtual Machine within a Dev Test Lab.
+Manages a Windows Virtual Machine within a Dev Test Lab.
 
 ## Example Usage
 
@@ -28,7 +28,6 @@ resource "azurerm_dev_test_lab" "test" {
   }
 }
 
-
 resource "azurerm_dev_test_virtual_network" "test" {
   name                = "example-network"
   lab_name            = "${azurerm_dev_test_lab.test.name}"
@@ -41,18 +40,17 @@ resource "azurerm_dev_test_virtual_network" "test" {
   }
 }
 
-resource "azurerm_dev_test_virtual_machine" "test" {
+resource "azurerm_dev_test_windows_virtual_machine" "test" {
   name                   = "example-vm03"
   lab_name               = "${azurerm_dev_test_lab.test.name}"
   resource_group_name    = "${azurerm_resource_group.test.name}"
   location               = "${azurerm_resource_group.test.location}"
   size                   = "Standard_DS2"
   username               = "exampleuser99"
-  ssh_key                = "${file("~/.ssh/id_rsa.pub")}"
+  password               = "Pa$$w0rd1234!"
   lab_virtual_network_id = "${azurerm_dev_test_virtual_network.test.id}"
   lab_subnet_name        = "${azurerm_dev_test_virtual_network.test.subnet.0.name}"
   storage_type           = "Premium"
-  os_type                = "Linux"
   notes                  = "Some notes about this Virtual Machine."
 
   gallery_image_reference {
@@ -84,7 +82,7 @@ The following arguments are supported:
 
 * `lab_virtual_network_id` - (Required) The ID of the Dev Test Virtual Network where this Virtual Machine should be created. Changing this forces a new resource to be created.
 
-* `os_type` - The type of Operating System used on this Virtual Machine. Possible values are `Linux` and `Windows`. Changing this forces a new resource to be created.
+* `password` - (Required) The Password associated with the `username` used to login to this Virtual Machine. Changing this forces a new resource to be created.
 
 * `size` - (Required) The Machine Size to use for this Virtual Machine, such as `Standard_F2`. Changing this forces a new resource to be created.
 
@@ -103,10 +101,6 @@ The following arguments are supported:
 -> **NOTE:** If any `inbound_nat_rule` blocks are specified then `disallow_public_ip_address` must be set to `true`.
 
 * `notes` - (Optional) Any notes about the Virtual Machine.
-
-* `password` - (Optional) The Password associated with the `username` used to login to this Virtual Machine. Changing this forces a new resource to be created.
-
-* `ssh_key` - (Optional) The SSH Key associated with the `username` used to login to this Virtual Machine. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -150,8 +144,8 @@ A `inbound_nat_rule` block exports the following:
 
 ## Import
 
-Dev Test Virtual Machines can be imported using the `resource id`, e.g.
+Dev Test Windows Virtual Machines can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dev_test_virtual_machine.machine1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/virtualmachines/machine1
+terraform import azurerm_dev_test_windows_virtual_machine.machine1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/virtualmachines/machine1
 ```

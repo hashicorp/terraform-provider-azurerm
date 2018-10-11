@@ -10,20 +10,20 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccAzureRMDevTestVirtualMachine_basicLinux(t *testing.T) {
-	resourceName := "azurerm_dev_test_virtual_machine.test"
+func TestAccAzureRMDevTestLinuxVirtualMachine_basic(t *testing.T) {
+	resourceName := "azurerm_dev_test_linux_virtual_machine.test"
 	rInt := acctest.RandInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMDevTestVirtualMachineDestroy,
+		CheckDestroy: testCheckAzureRMDevTestLinuxVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevTestVirtualMachine_basicLinux(rInt, location),
+				Config: testAccAzureRMDevTestLinuxVirtualMachine_basic(rInt, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestVirtualMachineExists(resourceName),
+					testCheckAzureRMDevTestLinuxVirtualMachineExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "gallery_image_reference.0.publisher", "Canonical"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
@@ -43,20 +43,20 @@ func TestAccAzureRMDevTestVirtualMachine_basicLinux(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDevTestVirtualMachine_basicLinuxSSH(t *testing.T) {
-	resourceName := "azurerm_dev_test_virtual_machine.test"
+func TestAccAzureRMDevTestLinuxVirtualMachine_basicSSH(t *testing.T) {
+	resourceName := "azurerm_dev_test_linux_virtual_machine.test"
 	rInt := acctest.RandInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMDevTestVirtualMachineDestroy,
+		CheckDestroy: testCheckAzureRMDevTestLinuxVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevTestVirtualMachine_basicLinuxSSH(rInt, location),
+				Config: testAccAzureRMDevTestLinuxVirtualMachine_basicSSH(rInt, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestVirtualMachineExists(resourceName),
+					testCheckAzureRMDevTestLinuxVirtualMachineExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "gallery_image_reference.0.publisher", "Canonical"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
@@ -76,53 +76,20 @@ func TestAccAzureRMDevTestVirtualMachine_basicLinuxSSH(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDevTestVirtualMachine_basicWindows(t *testing.T) {
-	resourceName := "azurerm_dev_test_virtual_machine.test"
-	rInt := acctest.RandIntRange(11111, 99999)
-	location := testLocation()
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMDevTestVirtualMachineDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDevTestVirtualMachine_basicWindows(rInt, location),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestVirtualMachineExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "gallery_image_reference.0.publisher", "MicrosoftWindowsServer"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// not returned from the API
-					"lab_subnet_name",
-					"lab_virtual_network_id",
-					"password",
-				},
-			},
-		},
-	})
-}
-
-func TestAccAzureRMDevTestVirtualMachine_inboundNatRules(t *testing.T) {
-	resourceName := "azurerm_dev_test_virtual_machine.test"
+func TestAccAzureRMDevTestLinuxVirtualMachine_inboundNatRules(t *testing.T) {
+	resourceName := "azurerm_dev_test_linux_virtual_machine.test"
 	rInt := acctest.RandInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMDevTestVirtualMachineDestroy,
+		CheckDestroy: testCheckAzureRMDevTestLinuxVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevTestVirtualMachine_inboundNatRules(rInt, location),
+				Config: testAccAzureRMDevTestLinuxVirtualMachine_inboundNatRules(rInt, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestVirtualMachineExists(resourceName),
+					testCheckAzureRMDevTestLinuxVirtualMachineExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "disallow_public_ip_address", "true"),
 					resource.TestCheckResourceAttr(resourceName, "gallery_image_reference.0.publisher", "Canonical"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
@@ -135,7 +102,7 @@ func TestAccAzureRMDevTestVirtualMachine_inboundNatRules(t *testing.T) {
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					// not returned from the API
-					"inbound_network_rule",
+					"inbound_nat_rule",
 					"lab_subnet_name",
 					"lab_virtual_network_id",
 					"password",
@@ -145,29 +112,29 @@ func TestAccAzureRMDevTestVirtualMachine_inboundNatRules(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDevTestVirtualMachine_updateStorage(t *testing.T) {
-	resourceName := "azurerm_dev_test_virtual_machine.test"
+func TestAccAzureRMDevTestLinuxVirtualMachine_updateStorage(t *testing.T) {
+	resourceName := "azurerm_dev_test_linux_virtual_machine.test"
 	rInt := acctest.RandInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMDevTestVirtualMachineDestroy,
+		CheckDestroy: testCheckAzureRMDevTestLinuxVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevTestVirtualMachine_storage(rInt, location, "Standard"),
+				Config: testAccAzureRMDevTestLinuxVirtualMachine_storage(rInt, location, "Standard"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestVirtualMachineExists(resourceName),
+					testCheckAzureRMDevTestLinuxVirtualMachineExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "gallery_image_reference.0.publisher", "Canonical"),
 					resource.TestCheckResourceAttr(resourceName, "storage_type", "Standard"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 			{
-				Config: testAccAzureRMDevTestVirtualMachine_storage(rInt, location, "Premium"),
+				Config: testAccAzureRMDevTestLinuxVirtualMachine_storage(rInt, location, "Premium"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestVirtualMachineExists(resourceName),
+					testCheckAzureRMDevTestLinuxVirtualMachineExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "gallery_image_reference.0.publisher", "Canonical"),
 					resource.TestCheckResourceAttr(resourceName, "storage_type", "Premium"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
@@ -177,7 +144,7 @@ func TestAccAzureRMDevTestVirtualMachine_updateStorage(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDevTestVirtualMachineExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDevTestLinuxVirtualMachineExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
@@ -198,19 +165,19 @@ func testCheckAzureRMDevTestVirtualMachineExists(name string) resource.TestCheck
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: DevTest Virtual Machine %q (Lab %q / Resource Group: %q) does not exist", virtualMachineName, labName, resourceGroup)
+			return fmt.Errorf("Bad: DevTest Linux Virtual Machine %q (Lab %q / Resource Group: %q) does not exist", virtualMachineName, labName, resourceGroup)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMDevTestVirtualMachineDestroy(s *terraform.State) error {
+func testCheckAzureRMDevTestLinuxVirtualMachineDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).devTestVirtualMachinesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_dev_test_virtual_network" {
+		if rs.Type != "azurerm_dev_test_linux_virtual_machine" {
 			continue
 		}
 
@@ -228,18 +195,18 @@ func testCheckAzureRMDevTestVirtualMachineDestroy(s *terraform.State) error {
 			return err
 		}
 
-		return fmt.Errorf("DevTest Virtual Machine still exists:\n%#v", resp)
+		return fmt.Errorf("DevTest Linux Virtual Machine still exists:\n%#v", resp)
 	}
 
 	return nil
 }
 
-func testAccAzureRMDevTestVirtualMachine_basicLinux(rInt int, location string) string {
-	template := testAccAzureRMDevTestVirtualMachine_template(rInt, location)
+func testAccAzureRMDevTestLinuxVirtualMachine_basic(rInt int, location string) string {
+	template := testAccAzureRMDevTestLinuxVirtualMachine_template(rInt, location)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_dev_test_virtual_machine" "test" {
+resource "azurerm_dev_test_linux_virtual_machine" "test" {
   name                   = "acctestvm-vm%d"
   lab_name               = "${azurerm_dev_test_lab.test.name}"
   resource_group_name    = "${azurerm_resource_group.test.name}"
@@ -250,7 +217,6 @@ resource "azurerm_dev_test_virtual_machine" "test" {
   lab_virtual_network_id = "${azurerm_dev_test_virtual_network.test.id}"
   lab_subnet_name        = "${azurerm_dev_test_virtual_network.test.subnet.0.name}"
   storage_type           = "Standard"
-  os_type                = "Linux"
 
   gallery_image_reference {
     offer     = "UbuntuServer"
@@ -262,12 +228,12 @@ resource "azurerm_dev_test_virtual_machine" "test" {
 `, template, rInt)
 }
 
-func testAccAzureRMDevTestVirtualMachine_basicLinuxSSH(rInt int, location string) string {
-	template := testAccAzureRMDevTestVirtualMachine_template(rInt, location)
+func testAccAzureRMDevTestLinuxVirtualMachine_basicSSH(rInt int, location string) string {
+	template := testAccAzureRMDevTestLinuxVirtualMachine_template(rInt, location)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_dev_test_virtual_machine" "test" {
+resource "azurerm_dev_test_linux_virtual_machine" "test" {
   name                   = "acctestvm-vm%d"
   lab_name               = "${azurerm_dev_test_lab.test.name}"
   resource_group_name    = "${azurerm_resource_group.test.name}"
@@ -278,7 +244,6 @@ resource "azurerm_dev_test_virtual_machine" "test" {
   lab_virtual_network_id = "${azurerm_dev_test_virtual_network.test.id}"
   lab_subnet_name        = "${azurerm_dev_test_virtual_network.test.subnet.0.name}"
   storage_type           = "Standard"
-  os_type                = "Linux"
 
   gallery_image_reference {
     offer     = "UbuntuServer"
@@ -290,40 +255,12 @@ resource "azurerm_dev_test_virtual_machine" "test" {
 `, template, rInt)
 }
 
-func testAccAzureRMDevTestVirtualMachine_basicWindows(rInt int, location string) string {
-	template := testAccAzureRMDevTestVirtualMachine_template(rInt, location)
+func testAccAzureRMDevTestLinuxVirtualMachine_inboundNatRules(rInt int, location string) string {
+	template := testAccAzureRMDevTestLinuxVirtualMachine_template(rInt, location)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_dev_test_virtual_machine" "test" {
-  name                   = "acctestvm-vm%d"
-  lab_name               = "${azurerm_dev_test_lab.test.name}"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  location               = "${azurerm_resource_group.test.location}"
-  size                   = "Standard_F2"
-  username               = "acct5stU5er"
-  password               = "Pa$$w0rd1234!"
-  lab_virtual_network_id = "${azurerm_dev_test_virtual_network.test.id}"
-  lab_subnet_name        = "${azurerm_dev_test_virtual_network.test.subnet.0.name}"
-  storage_type           = "Standard"
-  os_type                = "Windows"
-
-  gallery_image_reference {
-    offer     = "WindowsServer"
-    publisher = "MicrosoftWindowsServer"
-    sku       = "2012-Datacenter"
-    version   = "latest"
-  }
-}
-`, template, rInt)
-}
-
-func testAccAzureRMDevTestVirtualMachine_inboundNatRules(rInt int, location string) string {
-	template := testAccAzureRMDevTestVirtualMachine_template(rInt, location)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_dev_test_virtual_machine" "test" {
+resource "azurerm_dev_test_linux_virtual_machine" "test" {
   name                       = "acctestvm-vm%d"
   lab_name                   = "${azurerm_dev_test_lab.test.name}"
   resource_group_name        = "${azurerm_resource_group.test.name}"
@@ -335,7 +272,6 @@ resource "azurerm_dev_test_virtual_machine" "test" {
   lab_virtual_network_id     = "${azurerm_dev_test_virtual_network.test.id}"
   lab_subnet_name            = "${azurerm_dev_test_virtual_network.test.subnet.0.name}"
   storage_type               = "Standard"
-  os_type                    = "Linux"
 
   gallery_image_reference {
     offer     = "UbuntuServer"
@@ -350,8 +286,8 @@ resource "azurerm_dev_test_virtual_machine" "test" {
   }
 
   inbound_nat_rule {
-    protocol     = "Udp"
-    backend_port = 888
+    protocol     = "Tcp"
+    backend_port = 3389
   }
 
   tags {
@@ -361,12 +297,12 @@ resource "azurerm_dev_test_virtual_machine" "test" {
 `, template, rInt)
 }
 
-func testAccAzureRMDevTestVirtualMachine_storage(rInt int, location, storageType string) string {
-	template := testAccAzureRMDevTestVirtualMachine_template(rInt, location)
+func testAccAzureRMDevTestLinuxVirtualMachine_storage(rInt int, location, storageType string) string {
+	template := testAccAzureRMDevTestLinuxVirtualMachine_template(rInt, location)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_dev_test_virtual_machine" "test" {
+resource "azurerm_dev_test_linux_virtual_machine" "test" {
   name                   = "acctestvm-vm%d"
   lab_name               = "${azurerm_dev_test_lab.test.name}"
   resource_group_name    = "${azurerm_resource_group.test.name}"
@@ -377,7 +313,6 @@ resource "azurerm_dev_test_virtual_machine" "test" {
   lab_virtual_network_id = "${azurerm_dev_test_virtual_network.test.id}"
   lab_subnet_name        = "${azurerm_dev_test_virtual_network.test.subnet.0.name}"
   storage_type           = "%s"
-  os_type                = "Linux"
 
   gallery_image_reference {
     offer     = "UbuntuServer"
@@ -389,7 +324,7 @@ resource "azurerm_dev_test_virtual_machine" "test" {
 `, template, rInt, storageType)
 }
 
-func testAccAzureRMDevTestVirtualMachine_template(rInt int, location string) string {
+func testAccAzureRMDevTestLinuxVirtualMachine_template(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"

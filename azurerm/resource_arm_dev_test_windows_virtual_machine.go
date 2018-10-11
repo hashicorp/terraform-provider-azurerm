@@ -12,12 +12,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDevTestVirtualMachine() *schema.Resource {
+func resourceArmDevTestWindowsVirtualMachine() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDevTestVirtualMachineCreateUpdate,
-		Read:   resourceArmDevTestVirtualMachineRead,
-		Update: resourceArmDevTestVirtualMachineCreateUpdate,
-		Delete: resourceArmDevTestVirtualMachineDelete,
+		Create: resourceArmDevTestWindowsVirtualMachineCreateUpdate,
+		Read:   resourceArmDevTestWindowsVirtualMachineRead,
+		Update: resourceArmDevTestWindowsVirtualMachineCreateUpdate,
+		Delete: resourceArmDevTestWindowsVirtualMachineDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -27,7 +27,6 @@ func resourceArmDevTestVirtualMachine() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-				// The virtual machine name must be between 1 and 62 characters and cannot contain any spaces or special characters. The name may contain letters, numbers, or '-'. However, it must begin and end with a letter or number, and cannot be all numbers.
 				// The name must be between 1 and 15 characters, cannot be entirely numeric, and cannot contain most special characters
 			},
 
@@ -44,16 +43,6 @@ func resourceArmDevTestVirtualMachine() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"os_type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Linux",
-					"Windows",
-				}, false),
-			},
-
 			"size": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -64,6 +53,13 @@ func resourceArmDevTestVirtualMachine() *schema.Resource {
 			"username": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
+			},
+
+			"password": {
+				Type:     schema.TypeString,
+				Required: true,
+				// since this isn't returned from the API
 				ForceNew: true,
 			},
 
@@ -102,21 +98,6 @@ func resourceArmDevTestVirtualMachine() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"password": {
-				Type:     schema.TypeString,
-				Optional: true,
-				// since this isn't returned from the API
-				ForceNew:  true,
-				Sensitive: true,
-			},
-
-			"ssh_key": {
-				Type:     schema.TypeString,
-				Optional: true,
-				// since this isn't returned from the API
-				ForceNew: true,
-			},
-
 			"gallery_image_reference": azure.SchemaDevTestVirtualMachineGalleryImageReference(),
 
 			"inbound_nat_rule": azure.SchemaDevTestVirtualMachineInboundNatRule(),
@@ -141,11 +122,11 @@ func resourceArmDevTestVirtualMachine() *schema.Resource {
 	}
 }
 
-func resourceArmDevTestVirtualMachineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDevTestWindowsVirtualMachineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).devTestVirtualMachinesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	log.Printf("[INFO] preparing arguments for DevTest Lab Virtual Machine creation")
+	log.Printf("[INFO] preparing arguments for DevTest Windows Virtual Machine creation")
 
 	name := d.Get("name").(string)
 	labName := d.Get("lab_name").(string)
@@ -157,21 +138,19 @@ func resourceArmDevTestVirtualMachineCreateUpdate(d *schema.ResourceData, meta i
 	labSubnetName := d.Get("lab_subnet_name").(string)
 	labVirtualNetworkId := d.Get("lab_virtual_network_id").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
-	osType := d.Get("os_type").(string)
 	notes := d.Get("notes").(string)
 	password := d.Get("password").(string)
-	sshKey := d.Get("ssh_key").(string)
 	size := d.Get("size").(string)
 	storageType := d.Get("storage_type").(string)
 	username := d.Get("username").(string)
 
 	galleryImageReferenceRaw := d.Get("gallery_image_reference").([]interface{})
-	galleryImageReference := azure.ExpandDevTestLabVirtualMachineGalleryImageReference(galleryImageReferenceRaw, osType)
+	galleryImageReference := azure.ExpandDevTestLabVirtualMachineGalleryImageReference(galleryImageReferenceRaw, "Windows")
 
 	natRulesRaw := d.Get("inbound_nat_rule").(*schema.Set)
 	natRules := azure.ExpandDevTestLabVirtualMachineNatRules(natRulesRaw)
 
-	if len(natRules) > 0 && disallowPublicIPAddress {
+	if len(natRules) > 0 && !disallowPublicIPAddress {
 		return fmt.Errorf("If `inbound_nat_rule` is specified then `disallow_public_ip_address` must be set to true.")
 	}
 
@@ -182,22 +161,20 @@ func resourceArmDevTestVirtualMachineCreateUpdate(d *schema.ResourceData, meta i
 		}
 	}
 
-	authenticateViaSsh := sshKey != ""
 	parameters := dtl.LabVirtualMachine{
 		Location: utils.String(location),
 		LabVirtualMachineProperties: &dtl.LabVirtualMachineProperties{
 			AllowClaim:                 utils.Bool(allowClaim),
-			IsAuthenticationWithSSHKey: utils.Bool(authenticateViaSsh),
+			IsAuthenticationWithSSHKey: utils.Bool(false),
 			DisallowPublicIPAddress:    utils.Bool(disallowPublicIPAddress),
 			GalleryImageReference:      galleryImageReference,
 			LabSubnetName:              utils.String(labSubnetName),
 			LabVirtualNetworkID:        utils.String(labVirtualNetworkId),
 			NetworkInterface:           &nic,
-			OsType:                     utils.String(osType),
+			OsType:                     utils.String("Windows"),
 			Notes:                      utils.String(notes),
 			Password:                   utils.String(password),
 			Size:                       utils.String(size),
-			SSHKey:                     utils.String(sshKey),
 			StorageType:                utils.String(storageType),
 			UserName:                   utils.String(username),
 		},
@@ -206,29 +183,29 @@ func resourceArmDevTestVirtualMachineCreateUpdate(d *schema.ResourceData, meta i
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, labName, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating DevTest Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+		return fmt.Errorf("Error creating/updating DevTest Windows Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
 	}
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error waiting for creation/update of DevTest Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+		return fmt.Errorf("Error waiting for creation/update of DevTest Windows Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, labName, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving DevTest Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving DevTest Windows Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read DevTest Virtual Machine %q (Lab %q / Resource Group %q) ID", name, labName, resourceGroup)
+		return fmt.Errorf("Cannot read DevTest Windows Virtual Machine %q (Lab %q / Resource Group %q) ID", name, labName, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
 
-	return resourceArmDevTestVirtualMachineRead(d, meta)
+	return resourceArmDevTestWindowsVirtualMachineRead(d, meta)
 }
 
-func resourceArmDevTestVirtualMachineRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDevTestWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).devTestVirtualMachinesClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -243,12 +220,12 @@ func resourceArmDevTestVirtualMachineRead(d *schema.ResourceData, meta interface
 	read, err := client.Get(ctx, resourceGroup, labName, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
-			log.Printf("[DEBUG] DevTest Virtual Machine %q was not found in Lab %q / Resource Group %q - removing from state!", name, labName, resourceGroup)
+			log.Printf("[DEBUG] DevTest Windows Virtual Machine %q was not found in Lab %q / Resource Group %q - removing from state!", name, labName, resourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on DevTest Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+		return fmt.Errorf("Error making Read request on DevTest Windows Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
 	}
 
 	d.Set("name", read.Name)
@@ -261,7 +238,6 @@ func resourceArmDevTestVirtualMachineRead(d *schema.ResourceData, meta interface
 	if props := read.LabVirtualMachineProperties; props != nil {
 		d.Set("allow_claim", props.AllowClaim)
 		d.Set("disallow_public_ip_address", props.DisallowPublicIPAddress)
-		d.Set("os_type", props.OsType)
 		d.Set("notes", props.Notes)
 		d.Set("size", props.Size)
 		d.Set("storage_type", props.StorageType)
@@ -282,7 +258,7 @@ func resourceArmDevTestVirtualMachineRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func resourceArmDevTestVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDevTestWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).devTestVirtualMachinesClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -298,21 +274,21 @@ func resourceArmDevTestVirtualMachineDelete(d *schema.ResourceData, meta interfa
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
 			// deleted outside of TF
-			log.Printf("[DEBUG] DevTest Virtual Machine %q was not found in Lab %q / Resource Group %q - assuming removed!", name, labName, resourceGroup)
+			log.Printf("[DEBUG] DevTest Windows Virtual Machine %q was not found in Lab %q / Resource Group %q - assuming removed!", name, labName, resourceGroup)
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving DevTest Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving DevTest Windows Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
 	}
 
 	future, err := client.Delete(ctx, resourceGroup, labName, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting DevTest Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+		return fmt.Errorf("Error deleting DevTest Windows Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
 	}
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error waiting for the deletion of DevTest Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+		return fmt.Errorf("Error waiting for the deletion of DevTest Windows Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
 	}
 
 	return err
