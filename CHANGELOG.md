@@ -19,10 +19,10 @@ BUG FIXES:
 
 IMPROVEMENTS:
 
-* `azurerm_application_gateway` - support for the `StandardV2` and `WAFV2` skus and tiers [GH-2015] 
+* `azurerm_application_gateway` - support for the `StandardV2` and `WAFV2` skus and tiers [GH-2015]
+* `azurerm_dev_test_virtual_network` - support for managing the Subnet [GH-2041]
 * `azurerm_key_vault` - support for Virtual Network Rules [GH-2027]
 * `azurerm_kubernetes_cluster` - changing the `oms_agent` property no longer forces a new resource [GH-2021]
-
 
 ## 1.16.0 (October 01, 2018)
 
