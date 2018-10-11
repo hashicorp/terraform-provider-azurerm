@@ -414,7 +414,7 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 
 	replications, err := replicationClient.List(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on Azure Container Registry %s for replications.", name, err)
+		return fmt.Errorf("Error making Read request on Azure Container Registry %s for replications: %s", name, err)
 	}
 
 	replicationValues := replications.Values()
