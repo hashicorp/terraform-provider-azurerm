@@ -16,16 +16,23 @@ func TestAccAzureRMPostgreSQLVirtualNetworkRule_basic(t *testing.T) {
 	resourceName := "azurerm_postgresql_virtual_network_rule.test"
 	ri := acctest.RandInt()
 
+	config := testAccAzureRMPostgreSQLFirewallRule_basic(ri, testLocation())
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPostgreSQLVirtualNetworkRule_basic(ri, testLocation()),
+				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLVirtualNetworkRuleExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -477,24 +484,24 @@ resource "azurerm_postgresql_virtual_network_rule" "rule1" {
   name                = "acctestpostgresqlvnetrule1%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   server_name         = "${azurerm_postgresql_server.test.name}"
-	subnet_id           = "${azurerm_subnet.vnet1_subnet1.id}"
-	ignore_missing_vnet_service_endpoint = false
+  subnet_id           = "${azurerm_subnet.vnet1_subnet1.id}"
+  ignore_missing_vnet_service_endpoint = false
 }
 
 resource "azurerm_postgresql_virtual_network_rule" "rule2" {
   name                = "acctestpostgresqlvnetrule2%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   server_name         = "${azurerm_postgresql_server.test.name}"
-	subnet_id           = "${azurerm_subnet.vnet1_subnet2.id}"
-	ignore_missing_vnet_service_endpoint = false
+  subnet_id           = "${azurerm_subnet.vnet1_subnet2.id}"
+  ignore_missing_vnet_service_endpoint = false
 }
 
 resource "azurerm_postgresql_virtual_network_rule" "rule3" {
   name                = "acctestpostgresqlvnetrule3%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   server_name         = "${azurerm_postgresql_server.test.name}"
-	subnet_id           = "${azurerm_subnet.vnet2_subnet1.id}"
-	ignore_missing_vnet_service_endpoint = false
+  subnet_id           = "${azurerm_subnet.vnet2_subnet1.id}"
+  ignore_missing_vnet_service_endpoint = false
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
 }
