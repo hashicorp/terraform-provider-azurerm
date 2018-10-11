@@ -62,3 +62,83 @@ func ExpandDevTestLabVirtualMachineNatRules(input *schema.Set) []dtl.InboundNatR
 
 	return rules
 }
+
+func ExpandDevTestLabVirtualMachineGalleryImageReference(input []interface{}, osType string) *dtl.GalleryImageReference {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	offer := v["offer"].(string)
+	publisher := v["publisher"].(string)
+	sku := v["sku"].(string)
+	version := v["version"].(string)
+
+	return &dtl.GalleryImageReference{
+		Offer:     utils.String(offer),
+		OsType:    utils.String(osType),
+		Publisher: utils.String(publisher),
+		Sku:       utils.String(sku),
+		Version:   utils.String(version),
+	}
+}
+
+func SchemaDevTestVirtualMachineGalleryImageReference() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Required: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"offer": {
+					Type:     schema.TypeString,
+					Required: true,
+					ForceNew: true,
+				},
+				"publisher": {
+					Type:     schema.TypeString,
+					Required: true,
+					ForceNew: true,
+				},
+				"sku": {
+					Type:     schema.TypeString,
+					Required: true,
+					ForceNew: true,
+				},
+				"version": {
+					Type:     schema.TypeString,
+					Required: true,
+					ForceNew: true,
+				},
+			},
+		},
+	}
+}
+
+func FlattenDevTestVirtualMachineGalleryImage(input *dtl.GalleryImageReference) []interface{} {
+	results := make([]interface{}, 0)
+
+	if input != nil {
+		output := make(map[string]interface{}, 0)
+
+		if input.Offer != nil {
+			output["offer"] = *input.Offer
+		}
+
+		if input.Publisher != nil {
+			output["publisher"] = *input.Publisher
+		}
+
+		if input.Sku != nil {
+			output["sku"] = *input.Sku
+		}
+
+		if input.Version != nil {
+			output["version"] = *input.Version
+		}
+
+		results = append(results, output)
+	}
+
+	return results
+}

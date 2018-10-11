@@ -117,35 +117,7 @@ func resourceArmDevTestVirtualMachine() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"gallery_image_reference": {
-				Type:     schema.TypeList,
-				Required: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"offer": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
-						},
-						"publisher": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
-						},
-						"sku": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
-						},
-						"version": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
-						},
-					},
-				},
-			},
+			"gallery_image_reference": azure.SchemaDevTestVirtualMachineGalleryImageReference(),
 
 			"inbound_nat_rule": azure.SchemaDevTestVirtualMachineInboundNatRule(),
 
@@ -194,7 +166,7 @@ func resourceArmDevTestVirtualMachineCreateUpdate(d *schema.ResourceData, meta i
 	username := d.Get("username").(string)
 
 	galleryImageReferenceRaw := d.Get("gallery_image_reference").([]interface{})
-	galleryImageReference := expandDevTestLabVirtualMachineGalleryImageReference(galleryImageReferenceRaw, osType)
+	galleryImageReference := azure.ExpandDevTestLabVirtualMachineGalleryImageReference(galleryImageReferenceRaw, osType)
 
 	natRulesRaw := d.Get("inbound_nat_rule").(*schema.Set)
 	natRules := azure.ExpandDevTestLabVirtualMachineNatRules(natRulesRaw)
@@ -295,7 +267,7 @@ func resourceArmDevTestVirtualMachineRead(d *schema.ResourceData, meta interface
 		d.Set("storage_type", props.StorageType)
 		d.Set("username", props.UserName)
 
-		flattenedImage := flattenDevTestVirtualMachineGalleryImage(props.GalleryImageReference)
+		flattenedImage := azure.FlattenDevTestVirtualMachineGalleryImage(props.GalleryImageReference)
 		if err := d.Set("gallery_image_reference", flattenedImage); err != nil {
 			return fmt.Errorf("Error flattening `gallery_image_reference`: %+v", err)
 		}
@@ -344,52 +316,4 @@ func resourceArmDevTestVirtualMachineDelete(d *schema.ResourceData, meta interfa
 	}
 
 	return err
-}
-
-func expandDevTestLabVirtualMachineGalleryImageReference(input []interface{}, osType string) *dtl.GalleryImageReference {
-	if len(input) == 0 {
-		return nil
-	}
-
-	v := input[0].(map[string]interface{})
-	offer := v["offer"].(string)
-	publisher := v["publisher"].(string)
-	sku := v["sku"].(string)
-	version := v["version"].(string)
-
-	return &dtl.GalleryImageReference{
-		Offer:     utils.String(offer),
-		OsType:    utils.String(osType),
-		Publisher: utils.String(publisher),
-		Sku:       utils.String(sku),
-		Version:   utils.String(version),
-	}
-}
-
-func flattenDevTestVirtualMachineGalleryImage(input *dtl.GalleryImageReference) []interface{} {
-	results := make([]interface{}, 0)
-
-	if input != nil {
-		output := make(map[string]interface{}, 0)
-
-		if input.Offer != nil {
-			output["offer"] = *input.Offer
-		}
-
-		if input.Publisher != nil {
-			output["publisher"] = *input.Publisher
-		}
-
-		if input.Sku != nil {
-			output["sku"] = *input.Sku
-		}
-
-		if input.Version != nil {
-			output["version"] = *input.Version
-		}
-
-		results = append(results, output)
-	}
-
-	return results
 }
