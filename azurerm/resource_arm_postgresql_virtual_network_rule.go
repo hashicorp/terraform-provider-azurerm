@@ -43,15 +43,15 @@ func resourceArmPostgreSQLVirtualNetworkRule() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
-			"ignore_missing_vnet_service_endpoint": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-
 			"subnet_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceID,
+			},
+
+			"ignore_missing_vnet_service_endpoint": {
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
 		},
 	}
