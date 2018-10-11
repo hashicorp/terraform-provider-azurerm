@@ -46,7 +46,9 @@
 			"checksumSHA1": "eB6b4vGKEbAND0MUWfKLTn6H7uw=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-06-01/containerinstance",
 			"revision": "6d20bdbae88c06c36d72eb512295417693bfdf4e",
-			"revisionTime": "2018-09-27T22:44:43Z"
+			"revisionTime": "2018-09-27T22:44:43Z",
+			"version": "v21.1.0",
+			"versionExact": "v21.1.0"
 		},
 		{
 			"checksumSHA1": "H1TUOYWg58oXWMDoZYNtJKo+woU=",
@@ -153,8 +155,8 @@
 			"versionExact": "v21.1.0"
 		},
 		{
-			"checksumSHA1": "V8yVJJDoKLdBxvAHshfWc0N6oeA=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault",
+			"checksumSHA1": "RZpLYjpPpobqat3uLWXPC8H33EQ=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault",
 			"revision": "6d20bdbae88c06c36d72eb512295417693bfdf4e",
 			"revisionTime": "2018-09-28T00:20:07Z",
 			"version": "v21.1.0",
@@ -465,16 +467,12 @@
 			"versionExact": "v10.15.4"
 		},
 		{
-			"checksumSHA1": "b2lrPJRxf+MEfmMafN40wepi5WM=",
-			"path": "github.com/Azure/go-autorest/logger",
-			"revision": "a35eae345f69bbfbe3b8fa0b1d3fe98f8430b21a",
-			"revisionTime": "2018-08-30T19:44:05Z"
-		},
-		{
-			"checksumSHA1": "scpSozMdk4sqSpkbQqupLKUfLiM=",
+			"checksumSHA1": "JVAdK/V4SFCsCdpRBd4hTq/Z3h4=",
 			"path": "github.com/Azure/go-autorest/version",
-			"revision": "a35eae345f69bbfbe3b8fa0b1d3fe98f8430b21a",
-			"revisionTime": "2018-08-30T19:44:05Z"
+			"revision": "a88c19ef2016e095f0b6c3b451074b4663f53bed",
+			"revisionTime": "2018-09-11T16:08:53Z",
+			"version": "v10.15.4",
+			"versionExact": "v10.15.4"
 		},
 		{
 			"checksumSHA1": "jQh1fnoKPKMURvKkpdRjN695nAQ=",
@@ -1094,6 +1092,12 @@
 			"versionExact": "v0.11.3"
 		},
 		{
+			"checksumSHA1": "kD1ayilNruf2cES1LDfNZjYRscQ=",
+			"path": "github.com/hashicorp/terraform/httpclient",
+			"revision": "c96155cc68b1da43e49893ddc19a609f0085af19",
+			"revisionTime": "2018-10-04T21:23:31Z"
+		},
+		{
 			"checksumSHA1": "yFWmdS6yEJZpRJzUqd/mULqCYGk=",
 			"path": "github.com/hashicorp/terraform/moduledeps",
 			"revision": "3802b14260603f90c7a1faf55994dcc8933e2069",
@@ -1510,12 +1514,6 @@
 			"path": "golang.org/x/text/internal/colltab",
 			"revision": "1cbadb444a806fd9430d14ad08967ed91da4fa0a",
 			"revisionTime": "2017-09-13T19:45:57Z"
-		},
-		{
-			"checksumSHA1": "hyNCcTwMQnV6/MK8uUW9E5H0J0M=",
-			"path": "golang.org/x/text/internal/tag",
-			"revision": "6e3c4e7365ddcc329f090f96e4348398f6310088",
-			"revisionTime": "2018-08-07T15:59:08Z"
 		},
 		{
 			"checksumSHA1": "YsHNCKLl/81IAeBJUjHE4uqAPLM=",

@@ -625,7 +625,7 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 func expandContainerEnvironmentVariables(input interface{}, secure bool) *[]containerinstance.EnvironmentVariable {
 
 	envVars := input.(map[string]interface{})
-	output := make([]containerinstance.EnvironmentVariable, 0)
+	output := make([]containerinstance.EnvironmentVariable, 0, len(envVars))
 
 	if secure == true {
 

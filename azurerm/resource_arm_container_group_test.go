@@ -476,10 +476,10 @@ resource "azurerm_container_group" "test" {
 		"foo1" = "bar1"
 	}
 
-	secure_environment_variables {
-		"secureFoo"  = "secureBar"
-		"secureFoo1" = "secureBar1"
-	}
+    secure_environment_variables {
+        "secureFoo"  = "secureBar"
+        "secureFoo1" = "secureBar1"
+    }
 
 	commands = ["cmd.exe", "echo", "hi"]
   }
@@ -548,10 +548,10 @@ resource "azurerm_container_group" "test" {
 			"foo1" = "bar1"
 		}
 
-		secure_environment_variables {
-			"secureFoo"  = "secureBar"
-			"secureFoo1" = "secureBar1"
-		}
+        secure_environment_variables {
+            "secureFoo"  = "secureBar"
+            "secureFoo1" = "secureBar1"
+        }
 
 		commands = ["/bin/bash", "-c", "ls"]
 	}
