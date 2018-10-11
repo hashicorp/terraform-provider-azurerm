@@ -78,7 +78,7 @@ func TestAccAzureRMDevTestVirtualMachine_basicLinuxSSH(t *testing.T) {
 
 func TestAccAzureRMDevTestVirtualMachine_basicWindows(t *testing.T) {
 	resourceName := "azurerm_dev_test_virtual_machine.test"
-	rInt := acctest.RandInt()
+	rInt := acctest.RandIntRange(11111, 99999)
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -123,6 +123,7 @@ func TestAccAzureRMDevTestVirtualMachine_inboundNatRules(t *testing.T) {
 				Config: testAccAzureRMDevTestVirtualMachine_inboundNatRules(rInt, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDevTestVirtualMachineExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "disallow_public_ip_address", "true"),
 					resource.TestCheckResourceAttr(resourceName, "gallery_image_reference.0.publisher", "Canonical"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Acceptance", "Test"),
@@ -164,7 +165,7 @@ func TestAccAzureRMDevTestVirtualMachine_updateStorage(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMDevTestVirtualMachine_storage(rInt, location, "Standard"),
+				Config: testAccAzureRMDevTestVirtualMachine_storage(rInt, location, "Premium"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDevTestVirtualMachineExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "gallery_image_reference.0.publisher", "Canonical"),
@@ -275,7 +276,7 @@ resource "azurerm_dev_test_virtual_machine" "test" {
   username               = "acct5stU5er"
   ssh_key                = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCsTcryUl51Q2VSEHqDRNmceUFo55ZtcIwxl2QITbN1RREti5ml/VTytC0yeBOvnZA4x4CFpdw/lCDPk0yrH9Ei5vVkXmOrExdTlT3qI7YaAzj1tUVlBd4S6LX1F7y6VLActvdHuDDuXZXzCDd/97420jrDfWZqJMlUK/EmCE5ParCeHIRIvmBxcEnGfFIsw8xQZl0HphxWOtJil8qsUWSdMyCiJYYQpMoMliO99X40AUc4/AlsyPyT5ddbKk08YrZ+rKDVHF7o29rh4vi5MmHkVgVQHKiKybWlHq+b71gIAUQk9wrJxD+dqt4igrmDSpIjfjwnd+l5UIn5fJSO5DYV4YT/4hwK7OKmuo7OFHD0WyY5YnkYEMtFgzemnRBdE8ulcT60DQpVgRMXFWHvhyCWy0L6sgj1QWDZlLpvsIvNfHsyhKFMG1frLnMt/nP0+YCcfg+v1JYeCKjeoJxB8DWcRBsjzItY0CGmzP8UYZiYKl/2u+2TgFS5r7NWH11bxoUzjKdaa1NLw+ieA8GlBFfCbfWe6YVB9ggUte4VtYFMZGxOjS2bAiYtfgTKFJv+XqORAwExG6+G2eDxIDyo80/OA9IG7Xv/jwQr7D6KDjDuULFcN/iTxuttoKrHeYz1hf5ZQlBdllwJHYx6fK2g8kha6r2JIQKocvsAXiiONqSfw== hello@world.com"
   lab_virtual_network_id = "${azurerm_dev_test_virtual_network.test.id}"
-  lab_subnet_name        = "${local.subnet_name}"
+  lab_subnet_name        = "${azurerm_dev_test_virtual_network.test.subnet.0.name}"
   storage_type           = "Standard"
   os_type                = "Linux"
 
