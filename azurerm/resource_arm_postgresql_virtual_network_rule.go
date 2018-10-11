@@ -138,14 +138,8 @@ func resourceArmPostgreSQLVirtualNetworkRuleRead(d *schema.ResourceData, meta in
 	d.Set("server_name", serverName)
 
 	if props := resp.VirtualNetworkRuleProperties; props != nil {
-
-		if virtualNetworkSubnetId := props.VirtualNetworkSubnetID; virtualNetworkSubnetId != nil {
-			d.Set("subnet_id", virtualNetworkSubnetId)
-		}
-
-		if ignoreMissingVnetServiceEndpoint := props.IgnoreMissingVnetServiceEndpoint; ignoreMissingVnetServiceEndpoint != nil {
-			d.Set("ignore_missing_vnet_service_endpoint", ignoreMissingVnetServiceEndpoint)
-		}
+		d.Set("subnet_id", props.VirtualNetworkSubnetID)
+		d.Set("ignore_missing_vnet_service_endpoint", props.IgnoreMissingVnetServiceEndpoint)
 	}
 
 	return nil
