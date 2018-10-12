@@ -18,7 +18,7 @@ func ApiManagementServiceName(v interface{}, k string) (ws []string, es []error)
 func ApiManagementServicePublisherName(v interface{}, k string) (ws []string, es []error) {
 	value := v.(string)
 
-	if matched := regexp.MustCompile(`^[\S ]{1,100}$`).Match([]byte(value)); !matched {
+	if matched := regexp.MustCompile(`^.{1,100}$`).Match([]byte(value)); !matched {
 		es = append(es, fmt.Errorf("%q may only be up to 100 characters in length", k))
 	}
 
