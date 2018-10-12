@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -27,7 +26,81 @@ func dataSourceApiManagementApi() *schema.Resource {
 
 			"location": locationForDataSourceSchema(),
 
-			// "tags": tagsForDataSourceSchema(),
+			"display_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"path": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"service_url": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"description": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"protocols": {
+				Type: schema.TypeList,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				Computed: true,
+			},
+
+			"subscription_key_parameter_names": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"header": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"query": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"soap_api_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"revision": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
+			"version": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"version_set_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"is_current": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
+			"is_online": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -38,32 +111,44 @@ func dataSourceApiManagementApiRead(d *schema.ResourceData, meta interface{}) er
 
 	resGroup := d.Get("resource_group_name").(string)
 	serviceName := d.Get("service_name").(string)
-	apiId := d.Get("name").(string)
+	name := d.Get("name").(string)
+
+	//Currently we don't support revisions, so we use 1 as default
+	apiId := fmt.Sprintf("%s;rev=%d", name, 1)
 
 	resp, err := client.Get(ctx, resGroup, serviceName, apiId)
 
-	log.Printf("Response:")
-	log.Printf("%+v\n", resp)
-
 	if err != nil {
-		return fmt.Errorf("Error making Read request on API Management Service %q (Resource Group %q): %+v", serviceName, resGroup, err)
-	}
+		if utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("API Management API %q (Resource Group %q) was not found", name, resGroup)
+		}
 
-	if utils.ResponseWasNotFound(resp.Response) {
-		return fmt.Errorf("Error: API Management Service %q (Resource Group %q) was not found", serviceName, resGroup)
+		return fmt.Errorf("Error retrieving API Management API %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	d.SetId(*resp.ID)
 
+	d.Set("name", apiId)
 	d.Set("service_name", serviceName)
 	d.Set("resource_group_name", resGroup)
-	d.Set("name", apiId)
 
-	// if location := resp.Location(); location != nil {
-	// 	d.Set("location", azureRMNormalizeLocation(*location))
-	// }
+	if props := resp.APIContractProperties; props != nil {
+		d.Set("display_name", props.DisplayName)
+		d.Set("service_url", props.ServiceURL)
+		d.Set("path", props.Path)
+		d.Set("description", props.Description)
+		d.Set("soap_api_type", props.APIType)
+		d.Set("revision", props.APIRevision)
+		d.Set("version", props.APIVersion)
+		d.Set("version_set_id", props.APIVersionSetID)
+		d.Set("is_current", props.IsCurrent)
+		d.Set("is_online", props.IsOnline)
+		d.Set("protocols", props.Protocols)
 
-	// flattenAndSetTags(d, resp.tag)
+		if err := d.Set("subscription_key_parameter_names", flattenApiManagementApiSubscriptionKeyParamNames(props.SubscriptionKeyParameterNames)); err != nil {
+			return fmt.Errorf("Error setting `subscription_key_parameter_names`: %+v", err)
+		}
+	}
 
 	return nil
 }
