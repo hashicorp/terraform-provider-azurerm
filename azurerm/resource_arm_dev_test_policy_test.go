@@ -166,6 +166,7 @@ resource "azurerm_dev_test_policy" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   threshold           = "999"
   evaluator_type      = "MaxValuePolicy"
+  description         = "Aloha this is the max number of VM's'"
 
   tags {
     "Acceptance" = "Test"
