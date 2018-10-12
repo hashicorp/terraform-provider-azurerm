@@ -9,6 +9,7 @@ FEATURES:
 * **New Resource:** `azurerm_api_management` [GH-1516]
 * **New Resource:** `azurerm_cognitive_account` [GH-962]
 * **New Resource:** `azurerm_databricks_workspace` [GH-1134]
+* **New Resource:** `azurerm_dev_test_policy` [GH-2070]
 * **New Resource:** `azurerm_dev_test_linux_virtual_machine` [GH-2058]
 * **New Resource:** `azurerm_dev_test_windows_virtual_machine` [GH-2058]
 
