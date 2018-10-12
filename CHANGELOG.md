@@ -23,6 +23,7 @@ IMPROVEMENTS:
 * `azurerm_dev_test_virtual_network` - support for managing the Subnet [GH-2041]
 * `azurerm_key_vault` - support for Virtual Network Rules [GH-2027]
 * `azurerm_kubernetes_cluster` - changing the `oms_agent` property no longer forces a new resource [GH-2021]
+* `azurerm_postgresql_virtual_network_rule` - support for the `ignore_missing_vnet_service_endpoint` [GH-2056]
 
 ## 1.16.0 (October 01, 2018)
 
