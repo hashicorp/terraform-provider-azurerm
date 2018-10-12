@@ -226,17 +226,44 @@ func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
 	ri := acctest.RandInt()
 	georeplicationLocations := []string{"\"eastus\"", "\"westus\""}
 	config := testAccAzureRMContainerRegistry_geoReplication(ri, testLocation(), "Premium", strings.Join(georeplicationLocations[:], ","))
+	updatedConfig := testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation(ri, testLocation(), "Premium")
+	updatedBasicSkuConfig := testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation(ri, testLocation(), "Basic")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
+			// first config creates an ACR with replicas
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerRegistryExists("azurerm_container_registry.test"),
-					testCheckAzureRMContainerRegistryGeoreplicationExists("azurerm_container_registry.test", georeplicationLocations),
+					testCheckAzureRMContainerRegistryGeoreplications("azurerm_container_registry.test", georeplicationLocations),
+				),
+			},
+			// second config udpates the ACR with no replicas
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerRegistryExists("azurerm_container_registry.test"),
+					testCheckAzureRMContainerRegistryGeoreplications("azurerm_container_registry.test", nil),
+				),
+			},
+			// third config updates an ACR with replicas
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerRegistryExists("azurerm_container_registry.test"),
+					testCheckAzureRMContainerRegistryGeoreplications("azurerm_container_registry.test", georeplicationLocations),
+				),
+			},
+			// fourth config updates the SKU to basic and no replicas (should remove the existing replicas if any)
+			{
+				Config: updatedBasicSkuConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerRegistryExists("azurerm_container_registry.test"),
+					testCheckAzureRMContainerRegistryGeoreplications("azurerm_container_registry.test", nil),
 				),
 			},
 		},
@@ -298,7 +325,7 @@ func testCheckAzureRMContainerRegistryExists(name string) resource.TestCheckFunc
 	}
 }
 
-func testCheckAzureRMContainerRegistryGeoreplicationExists(name string, locations []string) resource.TestCheckFunc {
+func testCheckAzureRMContainerRegistryGeoreplications(name string, expectedLocations []string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
@@ -321,9 +348,11 @@ func testCheckAzureRMContainerRegistryGeoreplicationExists(name string, location
 		}
 
 		georeplicationValues := resp.Values()
+		expectedLocationsCount := len(expectedLocations) + 1 // add the main location
+		actualLocationsCount := len(georeplicationValues)
 
-		if georeplicationValues == nil {
-			return fmt.Errorf("Bad: Container Registry %q (resource group: %q) has not been configured for geo-replication", name, resourceGroup)
+		if expectedLocationsCount != actualLocationsCount {
+			return fmt.Errorf("Bad: Container Registry %q (resource group: %q) expected locations count is %d, actual location count is %d", name, resourceGroup, expectedLocationsCount, actualLocationsCount)
 		}
 
 		return nil
@@ -443,8 +472,23 @@ resource "azurerm_container_registry" "test" {
   resource_group_name    = "${azurerm_resource_group.test.name}"
   location               = "${azurerm_resource_group.test.location}"
   sku                    = "%s"
-  georeplication_enabled = true
   georeplication_locations = [%s]
 }
 `, rInt, location, rInt, sku, georeplicationLocations)
+}
+
+func testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation(rInt int, location string, sku string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "testAccRg-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                   = "testacccr%d"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  location               = "${azurerm_resource_group.test.location}"
+  sku                    = "%s"
+}
+`, rInt, location, rInt, sku)
 }
