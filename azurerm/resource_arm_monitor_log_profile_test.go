@@ -23,7 +23,7 @@ func testSweepMonitorLogProfiles(region string) error {
 		return fmt.Errorf("Error building config for sweepers: %+v", err)
 	}
 
-	client := (*armClient).logProfilesClient
+	client := (*armClient).monitorLogProfilesClient
 	ctx := (*armClient).StopContext
 
 	results, err := client.List(ctx)
@@ -162,7 +162,7 @@ func testAccAzureRMMonitorLogProfile_disappears(t *testing.T) {
 }
 
 func testCheckAzureRMLogProfileDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).logProfilesClient
+	client := testAccProvider.Meta().(*ArmClient).monitorLogProfilesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -190,7 +190,7 @@ func testCheckAzureRMLogProfileExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).logProfilesClient
+		client := testAccProvider.Meta().(*ArmClient).monitorLogProfilesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		name := rs.Primary.Attributes["name"]
@@ -200,7 +200,7 @@ func testCheckAzureRMLogProfileExists(name string) resource.TestCheckFunc {
 				return fmt.Errorf("Bad: Log Profile %q does not exist", name)
 			}
 
-			return fmt.Errorf("Bad: Get on logProfilesClient: %+v", err)
+			return fmt.Errorf("Bad: Get on monitorLogProfilesClient: %+v", err)
 		}
 
 		return nil
@@ -217,7 +217,7 @@ func testCheckAzureRMLogProfileDisappears(name string) resource.TestCheckFunc {
 
 		name := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).logProfilesClient
+		client := testAccProvider.Meta().(*ArmClient).monitorLogProfilesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		_, err := client.Delete(ctx, name)
