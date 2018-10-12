@@ -8,7 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -34,7 +34,7 @@ func resourceArmDevTestVirtualNetwork() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateDevTestLabName(),
+				ValidateFunc: validate.DevTestLabName(),
 			},
 
 			// There's a bug in the Azure API where this is returned in lower-case
@@ -63,14 +63,14 @@ func resourceArmDevTestVirtualNetwork() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      string(dtl.Allow),
-							ValidateFunc: validateDevTestVirtualNetworkUsagePermissionType(),
+							ValidateFunc: validate.DevTestVirtualNetworkUsagePermissionType(),
 						},
 
 						"use_public_ip_address": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      string(dtl.Allow),
-							ValidateFunc: validateDevTestVirtualNetworkUsagePermissionType(),
+							ValidateFunc: validate.DevTestVirtualNetworkUsagePermissionType(),
 						},
 					},
 				},
@@ -100,7 +100,7 @@ func resourceArmDevTestVirtualNetworkCreateUpdate(d *schema.ResourceData, meta i
 
 	subscriptionId := meta.(*ArmClient).subscriptionId
 	subnetsRaw := d.Get("subnet").([]interface{})
-	subnets := expandDevTestVirtualNetworkSubnets(d, subnetsRaw, subscriptionId, resourceGroup, labName, name)
+	subnets := expandDevTestVirtualNetworkSubnets(subnetsRaw, subscriptionId, resourceGroup, labName, name)
 
 	parameters := dtl.VirtualNetwork{
 		Tags: expandTags(tags),
@@ -220,7 +220,7 @@ func validateDevTestVirtualNetworkName() schema.SchemaValidateFunc {
 		"Virtual Network Name can only include alphanumeric characters, underscores, hyphens.")
 }
 
-func expandDevTestVirtualNetworkSubnets(d *schema.ResourceData, input []interface{}, subscriptionId, resourceGroupName, labName, virtualNetworkName string) *[]dtl.SubnetOverride {
+func expandDevTestVirtualNetworkSubnets(input []interface{}, subscriptionId, resourceGroupName, labName, virtualNetworkName string) *[]dtl.SubnetOverride {
 	results := make([]dtl.SubnetOverride, 0)
 	// default found from the Portal
 	name := fmt.Sprintf("%sSubnet", virtualNetworkName)
@@ -272,12 +272,4 @@ func flattenDevTestVirtualNetworkSubnets(input *[]dtl.SubnetOverride) []interfac
 	}
 
 	return outputs
-}
-
-func validateDevTestVirtualNetworkUsagePermissionType() schema.SchemaValidateFunc {
-	return validation.StringInSlice([]string{
-		string(dtl.Allow),
-		string(dtl.Default),
-		string(dtl.Deny),
-	}, false)
 }
