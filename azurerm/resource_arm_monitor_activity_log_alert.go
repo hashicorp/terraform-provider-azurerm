@@ -301,18 +301,19 @@ func expandMonitorActivityLogAlertAction(input []interface{}) *insights.Activity
 	actions := make([]insights.ActivityLogAlertActionGroup, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
-
-		props := make(map[string]*string)
-		if pVal, ok := v["webhook_properties"]; ok {
-			for pk, pv := range pVal.(map[string]interface{}) {
-				props[pk] = utils.String(pv.(string))
+		if agID := v["action_group_id"].(string); agID != "" {
+			props := make(map[string]*string)
+			if pVal, ok := v["webhook_properties"]; ok {
+				for pk, pv := range pVal.(map[string]interface{}) {
+					props[pk] = utils.String(pv.(string))
+				}
 			}
-		}
 
-		actions = append(actions, insights.ActivityLogAlertActionGroup{
-			ActionGroupID:     utils.String(v["action_group_id"].(string)),
-			WebhookProperties: props,
-		})
+			actions = append(actions, insights.ActivityLogAlertActionGroup{
+				ActionGroupID:     utils.String(agID),
+				WebhookProperties: props,
+			})
+		}
 	}
 	return &insights.ActivityLogAlertActionList{
 		ActionGroups: &actions,
