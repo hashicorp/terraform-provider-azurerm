@@ -85,7 +85,7 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The ID of the subnet that the PostgreSQL server will be connected to.
 
-* `ignore_missing_vnet_service_endpoint` - (Optional) Create firewall rule before the virtual network has vnet service endpoint enabled.
+* `ignore_missing_vnet_service_endpoint` - (Optional) Should the Virtual Network Rule be created before the Subnet has the Virtual Network Service Endpoint is enabled? Defaults to `false`.
 
 ## Attributes Reference
 
