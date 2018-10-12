@@ -22,7 +22,7 @@ func resourceArmApiManagementApi() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": { // DisplayName
+			"name": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
@@ -42,6 +42,11 @@ func resourceArmApiManagementApi() *schema.Resource {
 			"path": {
 				Type:     schema.TypeString,
 				Required: true,
+			},
+
+			"display_name": {
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 
 			"service_url": {
@@ -114,37 +119,22 @@ func resourceArmApiManagementApi() *schema.Resource {
 				Computed: true, // Azure API sets protocols to https by default
 			},
 
-			"oauth": {
+			"subscription_key_parameter_names": {
 				Type:     schema.TypeList,
 				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"authorization_server_id": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"scope": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-					},
-				},
-			},
-
-			"subscription_key": {
-				Type:     schema.TypeList,
-				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"header": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 						},
 						"query": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 						},
 					},
 				},
@@ -203,13 +193,13 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 	apiId := fmt.Sprintf("%s;rev=%d", name, 1)
 
 	var properties *apimanagement.APICreateOrUpdateProperties
-	var updateProperties *apimanagement.APIContractUpdateProperties
 
-	_, isImport := d.GetOk("import")
+	_, hasImport := d.GetOk("import")
 
-	if isImport {
+	// If import is used, we need to send properties to Azure API in two operations.
+	// First we execute import and then updated the other props.
+	if hasImport {
 		properties = expandApiManagementImportProperties(d)
-		updateProperties = expandApiManagementApiUpdateProperties(d)
 	} else {
 		properties = expandApiManagementApiProperties(d)
 	}
@@ -224,12 +214,13 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 		return err
 	}
 
-	if isImport {
-		updateParams := apimanagement.APIUpdateContract{
-			APIContractUpdateProperties: updateProperties,
+	if hasImport {
+		// Update with aditional properties not possible to send to Azure API during import
+		updateParams := apimanagement.APICreateOrUpdateParameter{
+			APICreateOrUpdateProperties: expandApiManagementApiProperties(d),
 		}
 
-		_, err := client.Update(ctx, resGroup, serviceName, apiId, updateParams, "")
+		_, err := client.CreateOrUpdate(ctx, resGroup, serviceName, apiId, updateParams, "")
 
 		if err != nil {
 			return fmt.Errorf("Failed to update after import: %+v", err)
@@ -275,6 +266,8 @@ func resourceArmApiManagementApiRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("service_name", serviceName)
 
 	if props := resp.APIContractProperties; props != nil {
+		d.Set("display_name", props.DisplayName)
+		d.Set("service_url", props.ServiceURL)
 		d.Set("path", props.Path)
 		d.Set("description", props.Description)
 		d.Set("soap_api_type", props.APIType)
@@ -284,6 +277,10 @@ func resourceArmApiManagementApiRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("is_current", props.IsCurrent)
 		d.Set("is_online", props.IsOnline)
 		d.Set("protocols", props.Protocols)
+
+		if err := d.Set("subscription_key_parameter_names", flattenApiManagementApiSubscriptionKeyParamNames(props.SubscriptionKeyParameterNames)); err != nil {
+			return fmt.Errorf("Error setting `subscription_key_parameter_names`: %+v", err)
+		}
 	}
 
 	log.Printf("%+v\n", resp)
@@ -319,32 +316,42 @@ func resourceArmApiManagementApiDelete(d *schema.ResourceData, meta interface{})
 }
 
 func expandApiManagementApiProperties(d *schema.ResourceData) *apimanagement.APICreateOrUpdateProperties {
-	displayName := d.Get("name").(string)
+	displayName := d.Get("display_name").(string)
 	path := d.Get("path").(string)
 	serviceUrl := d.Get("service_url").(string)
 	description := d.Get("description").(string)
 	soapApiTypeConfig := d.Get("soap_api_type").(string)
 	soapApiType := apimanagement.APIType(soapApiTypeConfig)
 
-	// versionSetId := d.Get("api_version_set_id").(string)
-
-	// var oAuth *apimanagement.OAuth2AuthenticationSettingsContract
-	// if oauthConfig := d.Get("oauth").([]interface{}); oauthConfig != nil && len(oauthConfig) > 0 {
-	// 	oAuth = expandApiManagementApiOAuth(oauthConfig)
-	// }
-
 	return &apimanagement.APICreateOrUpdateProperties{
-		APIType: soapApiType,
-		// AuthenticationSettings: &apimanagement.AuthenticationSettingsContract{
-		// 	OAuth2: oAuth,
-		// },
-		Description: &description,
-		DisplayName: &displayName,
-		Path:        &path,
-		Protocols:   expandApiManagementApiProtocols(d),
-		ServiceURL:  &serviceUrl,
-		// SubscriptionKeyParameterNames: nil,
+		APIType:                       soapApiType,
+		Description:                   &description,
+		DisplayName:                   &displayName,
+		Path:                          &path,
+		Protocols:                     expandApiManagementApiProtocols(d),
+		ServiceURL:                    &serviceUrl,
+		SubscriptionKeyParameterNames: expandApiManagementApiSubscriptionKeyParamNames(d),
 	}
+}
+
+func expandApiManagementApiSubscriptionKeyParamNames(d *schema.ResourceData) *apimanagement.SubscriptionKeyParameterNamesContract {
+	var contract apimanagement.SubscriptionKeyParameterNamesContract
+
+	if v, ok := d.GetOk("subscription_key_parameter_names.0.header"); ok {
+		header := v.(string)
+		contract.Header = &header
+	}
+
+	if v, ok := d.GetOk("subscription_key_parameter_names.0.query"); ok {
+		query := v.(string)
+		contract.Query = &query
+	}
+
+	if contract.Header == nil && contract.Query == nil {
+		return nil
+	}
+
+	return &contract
 }
 
 func expandApiManagementApiProtocols(d *schema.ResourceData) *[]apimanagement.Protocol {
@@ -355,46 +362,12 @@ func expandApiManagementApiProtocols(d *schema.ResourceData) *[]apimanagement.Pr
 		for _, v := range protocolsConfig {
 			protos = append(protos, apimanagement.Protocol(v.(string)))
 		}
+	} else {
+		// If not specified, set default to https
+		protos = append(protos, apimanagement.ProtocolHTTPS)
 	}
 
 	return &protos
-}
-
-func expandApiManagementApiUpdateProperties(d *schema.ResourceData) *apimanagement.APIContractUpdateProperties {
-	name := d.Get("name").(string)
-	path := d.Get("path").(string)
-	serviceUrl := d.Get("service_url").(string)
-	description := d.Get("description").(string)
-	soapApiTypeConfig := d.Get("soap_api_type").(string)
-
-	var soapApiType apimanagement.APIType
-
-	switch s := strings.ToLower(soapApiTypeConfig); s {
-	case "http":
-		soapApiType = apimanagement.HTTP
-	case "soap":
-		soapApiType = apimanagement.Soap
-	}
-
-	// versionSetId := d.Get("api_version_set_id").(string)
-
-	// var oAuth *apimanagement.OAuth2AuthenticationSettingsContract
-	// if oauthConfig := d.Get("oauth").([]interface{}); oauthConfig != nil && len(oauthConfig) > 0 {
-	// 	oAuth = expandApiManagementApiOAuth(oauthConfig)
-	// }
-
-	log.Printf("ServiceURL: %s", &serviceUrl)
-
-	return &apimanagement.APIContractUpdateProperties{
-		APIType: soapApiType,
-		// AuthenticationSettings: nil,
-		Description: &description,
-		DisplayName: &name,
-		Path:        &path,
-		Protocols:   expandApiManagementApiProtocols(d),
-		ServiceURL:  &serviceUrl,
-		// SubscriptionKeyParameterNames: nil,
-	}
 }
 
 func expandApiManagementImportProperties(d *schema.ResourceData) *apimanagement.APICreateOrUpdateProperties {
@@ -413,17 +386,37 @@ func expandApiManagementImportProperties(d *schema.ResourceData) *apimanagement.
 		props.ContentValue = &content_val
 	}
 
+	if _, selectorUsed := d.GetOk("import.0.wsdl_selector"); selectorUsed {
+		props.WsdlSelector = &apimanagement.APICreateOrUpdatePropertiesWsdlSelector{}
+
+		if v, ok := d.GetOk("import.0.wsdl_selector.0.service_name"); ok {
+			serviceName := v.(string)
+			props.WsdlSelector.WsdlServiceName = &serviceName
+		}
+
+		if v, ok := d.GetOk("import.0.wsdl_selector.0.endpoint_name"); ok {
+			endpointName := v.(string)
+			props.WsdlSelector.WsdlEndpointName = &endpointName
+		}
+	}
+
 	return props
 }
 
-func expandApiManagementApiOAuth(oauth []interface{}) *apimanagement.OAuth2AuthenticationSettingsContract {
-	config := oauth[0].(map[string]interface{})
-
-	authorization_server_id := config["authorization_server_id"].(string)
-	scope := config["scope"].(string)
-
-	return &apimanagement.OAuth2AuthenticationSettingsContract{
-		AuthorizationServerID: &authorization_server_id,
-		Scope: &scope,
+func flattenApiManagementApiSubscriptionKeyParamNames(paramNames *apimanagement.SubscriptionKeyParameterNamesContract) []interface{} {
+	if paramNames == nil {
+		return make([]interface{}, 0)
 	}
+
+	result := make(map[string]interface{})
+
+	if paramNames.Header != nil {
+		result["header"] = *paramNames.Header
+	}
+
+	if paramNames.Query != nil {
+		result["query"] = *paramNames.Query
+	}
+
+	return []interface{}{result}
 }
