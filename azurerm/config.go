@@ -154,6 +154,7 @@ type ArmClient struct {
 
 	// DevTestLabs
 	devTestLabsClient            dtl.LabsClient
+	devTestPoliciesClient        dtl.PoliciesClient
 	devTestVirtualMachinesClient dtl.VirtualMachinesClient
 	devTestVirtualNetworksClient dtl.VirtualNetworksClient
 
@@ -773,6 +774,10 @@ func (c *ArmClient) registerDevTestClients(endpoint, subscriptionId string, auth
 	labsClient := dtl.NewLabsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&labsClient.Client, auth)
 	c.devTestLabsClient = labsClient
+
+	devTestPoliciesClient := dtl.NewPoliciesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&devTestPoliciesClient.Client, auth)
+	c.devTestPoliciesClient = devTestPoliciesClient
 
 	devTestVirtualMachinesClient := dtl.NewVirtualMachinesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&devTestVirtualMachinesClient.Client, auth)
