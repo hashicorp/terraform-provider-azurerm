@@ -467,10 +467,12 @@
 			"versionExact": "v10.15.4"
 		},
 		{
-			"checksumSHA1": "scpSozMdk4sqSpkbQqupLKUfLiM=",
+			"checksumSHA1": "JVAdK/V4SFCsCdpRBd4hTq/Z3h4=",
 			"path": "github.com/Azure/go-autorest/version",
-			"revision": "a35eae345f69bbfbe3b8fa0b1d3fe98f8430b21a",
-			"revisionTime": "2018-08-30T19:44:05Z"
+			"revision": "a88c19ef2016e095f0b6c3b451074b4663f53bed",
+			"revisionTime": "2018-09-11T16:08:53Z",
+			"version": "v10.15.4",
+			"versionExact": "v10.15.4"
 		},
 		{
 			"checksumSHA1": "jQh1fnoKPKMURvKkpdRjN695nAQ=",
