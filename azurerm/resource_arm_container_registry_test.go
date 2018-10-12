@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -239,7 +240,7 @@ func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerRegistryExists("azurerm_container_registry.test"),
-					testCheckAzureRMContainerRegistryGeoreplications("azurerm_container_registry.test", georeplicationLocations),
+					testCheckAzureRMContainerRegistryGeoreplications("azurerm_container_registry.test", "Premium", georeplicationLocations),
 				),
 			},
 			// second config udpates the ACR with no replicas
@@ -247,7 +248,7 @@ func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerRegistryExists("azurerm_container_registry.test"),
-					testCheckAzureRMContainerRegistryGeoreplications("azurerm_container_registry.test", nil),
+					testCheckAzureRMContainerRegistryGeoreplications("azurerm_container_registry.test", "Premium", nil),
 				),
 			},
 			// third config updates an ACR with replicas
@@ -255,7 +256,7 @@ func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerRegistryExists("azurerm_container_registry.test"),
-					testCheckAzureRMContainerRegistryGeoreplications("azurerm_container_registry.test", georeplicationLocations),
+					testCheckAzureRMContainerRegistryGeoreplications("azurerm_container_registry.test", "Premium", georeplicationLocations),
 				),
 			},
 			// fourth config updates the SKU to basic and no replicas (should remove the existing replicas if any)
@@ -263,7 +264,7 @@ func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
 				Config: updatedBasicSkuConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerRegistryExists("azurerm_container_registry.test"),
-					testCheckAzureRMContainerRegistryGeoreplications("azurerm_container_registry.test", nil),
+					testCheckAzureRMContainerRegistryGeoreplications("azurerm_container_registry.test", "Basic", nil),
 				),
 			},
 		},
@@ -325,12 +326,12 @@ func testCheckAzureRMContainerRegistryExists(name string) resource.TestCheckFunc
 	}
 }
 
-func testCheckAzureRMContainerRegistryGeoreplications(name string, expectedLocations []string) resource.TestCheckFunc {
+func testCheckAzureRMContainerRegistryGeoreplications(registryName string, sku string, expectedLocations []string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[registryName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", registryName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -348,7 +349,13 @@ func testCheckAzureRMContainerRegistryGeoreplications(name string, expectedLocat
 		}
 
 		georeplicationValues := resp.Values()
-		expectedLocationsCount := len(expectedLocations) + 1 // add the main location
+		expectedLocationsCount := len(expectedLocations) + 1
+
+		// if Sku is not premium, listing the geo-replications locations returns an empty list
+		if strings.ToLower(sku) != strings.ToLower(string(containerregistry.Premium)) {
+			expectedLocationsCount = 0
+		}
+
 		actualLocationsCount := len(georeplicationValues)
 
 		if expectedLocationsCount != actualLocationsCount {
