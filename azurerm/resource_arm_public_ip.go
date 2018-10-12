@@ -68,9 +68,7 @@ func resourceArmPublicIp() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.IPv4),
 					string(network.IPv6),
-				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-				StateFunc:        ignoreCaseStateFunc,
+				}, false),
 			},
 
 			"sku": {
