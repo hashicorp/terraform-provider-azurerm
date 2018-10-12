@@ -24,10 +24,10 @@ func resourceArmDevTestLinuxVirtualMachine() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				// The virtual machine name must be between 1 and 62 characters and cannot contain any spaces or special characters. The name may contain letters, numbers, or '-'. However, it must begin and end with a letter or number, and cannot be all numbers.
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.DevTestVirtualMachineName(62),
 			},
 
 			"lab_name": {

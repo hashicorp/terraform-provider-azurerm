@@ -24,10 +24,10 @@ func resourceArmDevTestWindowsVirtualMachine() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				// The name must be between 1 and 15 characters, cannot be entirely numeric, and cannot contain most special characters
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.DevTestVirtualMachineName(15),
 			},
 
 			"lab_name": {
