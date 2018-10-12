@@ -22,7 +22,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctest-01"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "Standard"
+  sku                 = "PerGB2018"
   retention_in_days   = 30
 }
 ```
