@@ -42,5 +42,5 @@ The following attributes are exported:
 The contact can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_securitycenter_contact.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Security/securityContacts/default1
+terraform import azurerm_security_center_contact.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Security/securityContacts/default1
 ```

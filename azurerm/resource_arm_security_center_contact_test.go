@@ -105,7 +105,7 @@ func testCheckAzureRMSecurityCenterContactDestroy(s *terraform.State) error {
 		if res.Type != "azurerm_security_center_contact" {
 			continue
 		}
-		resp, err := client.Get(ctx, resourceArmSecurityCenterContactName)
+		resp, err := client.Get(ctx, securityCenterContactName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
