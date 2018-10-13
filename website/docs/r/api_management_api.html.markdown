@@ -59,8 +59,6 @@ The following arguments are supported:
 
 ---
 
-* `display_name` - (Optional) API name
-
 * `service_url` - (Optional) Absolute URL of the backend service implementing this API.
 
 * `description` - (Optional) Description of the API. May include HTML formatting tags.

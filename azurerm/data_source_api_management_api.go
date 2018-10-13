@@ -27,11 +27,6 @@ func dataSourceApiManagementApi() *schema.Resource {
 
 			"location": locationForDataSourceSchema(),
 
-			"display_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"path": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -129,12 +124,11 @@ func dataSourceApiManagementApiRead(d *schema.ResourceData, meta interface{}) er
 
 	d.SetId(*resp.ID)
 
-	d.Set("name", apiId)
+	d.Set("name", name)
 	d.Set("service_name", serviceName)
 	d.Set("resource_group_name", resGroup)
 
 	if props := resp.APIContractProperties; props != nil {
-		d.Set("display_name", props.DisplayName)
 		d.Set("service_url", props.ServiceURL)
 		d.Set("path", props.Path)
 		d.Set("description", props.Description)
