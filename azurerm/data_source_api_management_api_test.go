@@ -22,7 +22,7 @@ func TestAccDataSourceAzureRMApiManagementApi_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "is_current", "true"),
 					resource.TestCheckResourceAttr(dataSourceName, "is_online", "false"),
-					resource.TestCheckResourceAttr(dataSourceName, "name", "api1"),
+					resource.TestCheckResourceAttr(dataSourceName, "name", fmt.Sprintf("acctestAMA-%d", rInt)),
 					resource.TestCheckResourceAttr(dataSourceName, "path", "api1"),
 					resource.TestCheckResourceAttr(dataSourceName, "protocols.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "protocols.0", "https"),
@@ -66,8 +66,8 @@ resource "azurerm_api_management_api" "test" {
 	path 						= "api1"
 
 	import {
-    content_value  = "https://api.swaggerhub.com/apis/sparebanken-vest/tf-simple/1.0.2"
-    content_format = "swagger-link-json"
+		content_value  = "${file("testdata/api_management_api_swagger.json")}"
+    content_format = "swagger-json"
   }
 
   resource_group_name = "${azurerm_resource_group.test.name}"
