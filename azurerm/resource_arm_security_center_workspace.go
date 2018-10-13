@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"log"
 	"time"
@@ -15,6 +14,8 @@ import (
 
 //only valid name is default
 // Message="Invalid workspace settings name 'kttest' , only default is allowed "
+const resourceArmSecurityCenterWorkspaceName = "default"
+
 func resourceArmSecurityCenterWorkspace() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmSecurityCenterWorkspaceCreateUpdate,
@@ -28,17 +29,15 @@ func resourceArmSecurityCenterWorkspace() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"scope": {
-				Type:             schema.TypeString,
-				Required:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     validation.NoZeroValues,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"workspace_id": {
-				Type:             schema.TypeString,
-				Required:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     azure.ValidateResourceID,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 		},
 	}
@@ -48,6 +47,8 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 	client := meta.(*ArmClient).securityCenterWorkspaceClient
 	ctx := meta.(*ArmClient).StopContext
 
+	name := resourceArmSecurityCenterWorkspaceName
+
 	contact := security.WorkspaceSetting{
 		WorkspaceSettingProperties: &security.WorkspaceSettingProperties{
 			Scope:       utils.String(d.Get("scope").(string)),
@@ -56,72 +57,46 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 	}
 
 	if d.IsNewResource() {
-		_, err := client.Create(ctx, "default", contact)
+		_, err := client.Create(ctx, name, contact)
 		if err != nil {
 			return fmt.Errorf("Error creating Security Center Workspace: %+v", err)
 		}
-
-		stateConf := &resource.StateChangeConf{
-			Pending:    []string{"Waiting"},
-			Target:     []string{"Populated"},
-			Timeout:    60 * time.Minute,
-			MinTimeout: 30 * time.Second,
-			Refresh: func() (interface{}, string, error) {
-
-				resp, err := client.Get(ctx, "default")
-				if err != nil {
-					return resp, "Error", fmt.Errorf("Error reading Security Center Workspace: %+v", err)
-				}
-
-				if properties := resp.WorkspaceSettingProperties; properties != nil {
-					if properties.WorkspaceID != nil && *properties.WorkspaceID != "" {
-						return resp, "Populated", nil
-					}
-				}
-
-				return resp, "Waiting", nil
-			},
-		}
-
-		resp, err := stateConf.WaitForState()
-		if err != nil {
-			return fmt.Errorf("Error waiting: %+v", err)
-		}
-
-		d.SetId(*resp.(security.WorkspaceSetting).ID)
-
 	} else {
-		_, err := client.Update(ctx, "default", contact)
+		_, err := client.Update(ctx, name, contact)
 		if err != nil {
 			return fmt.Errorf("Error updating Security Center Workspace: %+v", err)
 		}
+	}
 
-		stateConf := &resource.StateChangeConf{
-			Pending:    []string{"Waiting"},
-			Target:     []string{"Populated"},
-			Timeout:    60 * time.Minute,
-			MinTimeout: 30 * time.Second,
-			Refresh: func() (interface{}, string, error) {
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"Waiting"},
+		Target:     []string{"Populated"},
+		Timeout:    60 * time.Minute,
+		MinTimeout: 30 * time.Second,
+		Refresh: func() (interface{}, string, error) {
 
-				resp, err := client.Get(ctx, "default")
-				if err != nil {
-					return resp, "Error", fmt.Errorf("Error reading Security Center Workspace: %+v", err)
+			resp, err := client.Get(ctx, name)
+			if err != nil {
+				return resp, "Error", fmt.Errorf("Error reading Security Center Workspace: %+v", err)
+			}
+
+			if properties := resp.WorkspaceSettingProperties; properties != nil {
+				if properties.WorkspaceID != nil && *properties.WorkspaceID != "" {
+					return resp, "Populated", nil
 				}
+			}
 
-				if properties := resp.WorkspaceSettingProperties; properties != nil {
-					if properties.WorkspaceID != nil && *properties.WorkspaceID != "" {
-						return resp, "Populated", nil
-					}
-				}
+			return resp, "Waiting", nil
+		},
+	}
 
-				return resp, "Waiting", nil
-			},
-		}
+	resp, err := stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("Error waiting: %+v", err)
+	}
 
-		_, err = stateConf.WaitForState()
-		if err != nil {
-			return fmt.Errorf("Error waiting: %+v", err)
-		}
+	if d.IsNewResource() {
+		d.SetId(*resp.(security.WorkspaceSetting).ID)
 	}
 
 	return resourceArmSecurityCenterWorkspaceRead(d, meta)
@@ -131,7 +106,7 @@ func resourceArmSecurityCenterWorkspaceRead(d *schema.ResourceData, meta interfa
 	client := meta.(*ArmClient).securityCenterWorkspaceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	resp, err := client.Get(ctx, "default")
+	resp, err := client.Get(ctx, resourceArmSecurityCenterWorkspaceName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Security Center Subscription Workspace was not found: %v", err)
@@ -154,7 +129,7 @@ func resourceArmSecurityCenterWorkspaceDelete(_ *schema.ResourceData, meta inter
 	client := meta.(*ArmClient).securityCenterWorkspaceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	resp, err := client.Delete(ctx, "default")
+	resp, err := client.Delete(ctx, resourceArmSecurityCenterWorkspaceName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			log.Printf("[DEBUG] Security Center Subscription Workspace was not found: %v", err)

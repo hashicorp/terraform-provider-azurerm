@@ -12,7 +12,7 @@ import (
 )
 
 func TestAccAzureRMSecurityCenterWorkspace_basic(t *testing.T) {
-	resourceName := "azurerm_securitycenter_workspace.test"
+	resourceName := "azurerm_security_center_workspace.test"
 	ri := acctest.RandInt()
 
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
@@ -39,7 +39,7 @@ func TestAccAzureRMSecurityCenterWorkspace_basic(t *testing.T) {
 }
 
 func TestAccAzureRMSecurityCenterWorkspace_update(t *testing.T) {
-	resourceName := "azurerm_securitycenter_workspace.test"
+	resourceName := "azurerm_security_center_workspace.test"
 	ri := acctest.RandInt()
 
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
@@ -101,11 +101,11 @@ func testCheckAzureRMSecurityCenterWorkspaceDestroy(s *terraform.State) error {
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, res := range s.RootModule().Resources {
-		if res.Type != "azurerm_securitycenter_workspace" {
+		if res.Type != "azurerm_security_center_workspace" {
 			continue
 		}
 
-		resp, err := client.Get(ctx, "default")
+		resp, err := client.Get(ctx, resourceArmSecurityCenterWorkspaceName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
@@ -134,7 +134,7 @@ resource "azurerm_log_analytics_workspace" "test1" {
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_securitycenter_workspace" "test" {
+resource "azurerm_security_center_workspace" "test" {
     scope        = "%[3]s"
     workspace_id = "${azurerm_log_analytics_workspace.test1.id}"
 }
@@ -155,7 +155,7 @@ resource "azurerm_log_analytics_workspace" "test2" {
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_securitycenter_workspace" "test" {
+resource "azurerm_security_center_workspace" "test" {
     scope        = "%[3]s"
     workspace_id = "${azurerm_log_analytics_workspace.test2.id}"
 }
