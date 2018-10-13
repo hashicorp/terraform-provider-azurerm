@@ -5,18 +5,20 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/2017-08-01-preview/security"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
-
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+//NOTE: seems default is the only valid pricing name:
+//Code="InvalidInputJson" Message="Pricing name 'kt's price' is not allowed. Expected 'default' for this scope."
+const securityCenterConfigurationSubscriptionPricingName = "default"
+
 func resourceArmSecurityCenterSubscriptionPricing() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSecurityCenterSubscriptionPricingCreateUpdate,
+		Create: resourceArmSecurityCenterSubscriptionPricingUpdate,
 		Read:   resourceArmSecurityCenterSubscriptionPricingRead,
-		Update: resourceArmSecurityCenterSubscriptionPricingCreateUpdate,
+		Update: resourceArmSecurityCenterSubscriptionPricingUpdate,
 		Delete: resourceArmSecurityCenterSubscriptionPricingDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -25,9 +27,8 @@ func resourceArmSecurityCenterSubscriptionPricing() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"tier": {
-				Type:             schema.TypeString,
-				Required:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:     schema.TypeString,
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(security.Free),
 					string(security.Standard),
@@ -37,9 +38,8 @@ func resourceArmSecurityCenterSubscriptionPricing() *schema.Resource {
 	}
 }
 
-//NOTE: seems default is the only valid pricing name:
-//Code="InvalidInputJson" Message="Pricing name '360k Sponsored' is not allowed. Expected 'default' for this scope."
-func resourceArmSecurityCenterSubscriptionPricingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSecurityCenterSubscriptionPricingUpdate(d *schema.ResourceData, meta interface{}) error {
+	name := securityCenterConfigurationSubscriptionPricingName
 	client := meta.(*ArmClient).securityCenterPricingClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -49,12 +49,12 @@ func resourceArmSecurityCenterSubscriptionPricingCreateUpdate(d *schema.Resource
 		},
 	}
 
-	_, err := client.UpdateSubscriptionPricing(ctx, "default", pricing)
+	_, err := client.UpdateSubscriptionPricing(ctx, name, pricing)
 	if err != nil {
 		return fmt.Errorf("Error creating/updating Security Center Subscription pricing: %+v", err)
 	}
 
-	resp, err := client.GetSubscriptionPricing(ctx, "default")
+	resp, err := client.GetSubscriptionPricing(ctx, name)
 	if err != nil {
 		return fmt.Errorf("Error reading Security Center Subscription pricing: %+v", err)
 	}
@@ -68,10 +68,11 @@ func resourceArmSecurityCenterSubscriptionPricingCreateUpdate(d *schema.Resource
 }
 
 func resourceArmSecurityCenterSubscriptionPricingRead(d *schema.ResourceData, meta interface{}) error {
+	name := securityCenterConfigurationSubscriptionPricingName
 	client := meta.(*ArmClient).securityCenterPricingClient
 	ctx := meta.(*ArmClient).StopContext
 
-	resp, err := client.GetSubscriptionPricing(ctx, "default")
+	resp, err := client.GetSubscriptionPricing(ctx, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Security Center Subscription was not found: %v", err)
@@ -90,5 +91,5 @@ func resourceArmSecurityCenterSubscriptionPricingRead(d *schema.ResourceData, me
 }
 
 func resourceArmSecurityCenterSubscriptionPricingDelete(_ *schema.ResourceData, _ interface{}) error {
-	return nil //cannot be deleted
+	return nil //cannot be deleted.
 }

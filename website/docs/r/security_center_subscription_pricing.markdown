@@ -1,19 +1,21 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_securitycenter_subscription_pricing"
-sidebar_current: "docs-azurerm-securitycenter-subscription-pricing"
+page_title: "Azure Resource Manager: azurerm_security_center_subscription_pricing"
+sidebar_current: "docs-azurerm-security-center-subscription-pricing"
 description: |-
-    Manages the subscription's Security Center pricing tier.
+    Manages the Pricing Tier for Azure Security Center in the current subscription.
 ---
 
-# azurerm_securitycenter_subscription_pricing
+# azurerm_security_center_subscription_pricing
 
-Manages the subscription's Security Center pricing tier.
+Manages the Pricing Tier for Azure Security Center in the current subscription.
+
+~> **NOTE:** Owner access permission is required.
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_securitycenter_subscription_pricing" "example" {
+resource "azurerm_security_center_subscription_pricing" "example" {
     tier = "Standard"
 }
 ```
