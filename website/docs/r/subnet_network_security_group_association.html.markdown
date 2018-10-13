@@ -11,7 +11,7 @@ description: |-
 
 Associates a [Network Security Group](network_security_group.html) with a [Subnet](subnet.html) within a [Virtual Network](virtual_network.html).
 
--> **NOTE:** Subnet <-> Network Security Group associations can be configured either using this resource, or by using the `network_security_group_id` field within the `azurerm_subnet` resource - however not both. The `network_security_group_id` field within the `azurerm_subnet` resource is Deprecated - and we recommend using this resource going forward.
+-> **NOTE:** Subnet <-> Network Security Group associations currently need to be configured on both this resource and using the `network_security_group_id` field on the `azurerm_subnet` resource. The next major version of the AzureRM Provider (2.0) will remove the `network_security_group_id` field from the `azurerm_subnet` resource such that this resource is used to link resources in future.
 
 ## Example Usage
 
@@ -29,10 +29,11 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "frontend"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.0.2.0/24"
+  name                       = "frontend"
+  resource_group_name        = "${azurerm_resource_group.test.name}"
+  virtual_network_name       = "${azurerm_virtual_network.test.name}"
+  address_prefix             = "10.0.2.0/24"
+  network_security_group_id  = "${azurerm_network_security_group.test.id}"
 }
 
 resource "azurerm_network_security_group" "test" {
