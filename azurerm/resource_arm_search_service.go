@@ -59,6 +59,16 @@ func resourceArmSearchService() *schema.Resource {
 			},
 
 			"tags": tagsForceNewSchema(),
+
+			"primary_key": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_key": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -146,6 +156,18 @@ func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) erro
 
 		if count := props.ReplicaCount; count != nil {
 			d.Set("replica_count", int(*count))
+		}
+	}
+
+	adminKeysClient := meta.(*ArmClient).searchAdminKeysClient
+	adminKeysResp, err := adminKeysClient.Get(ctx, resourceGroup, name, nil)
+	if err == nil {
+		if primaryKey := adminKeysResp.PrimaryKey; primaryKey != nil {
+			d.Set("primary_key", primaryKey)
+		}
+
+		if secondaryKey := adminKeysResp.SecondaryKey; secondaryKey != nil {
+			d.Set("secondary_key", secondaryKey)
 		}
 	}
 

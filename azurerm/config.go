@@ -60,7 +60,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
-
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
@@ -255,7 +254,8 @@ type ArmClient struct {
 	schedulerJobsClient           scheduler.JobsClient
 
 	// Search
-	searchServicesClient search.ServicesClient
+	searchServicesClient  search.ServicesClient
+	searchAdminKeysClient search.AdminKeysClient
 
 	// Security Centre
 	securityCenterPricingClient  security.PricingsClient
@@ -1030,6 +1030,10 @@ func (c *ArmClient) registerSearchClients(endpoint, subscriptionId string, auth 
 	searchClient := search.NewServicesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&searchClient.Client, auth)
 	c.searchServicesClient = searchClient
+
+	searchAdminKeysClient := search.NewAdminKeysClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&searchAdminKeysClient.Client, auth)
+	c.searchAdminKeysClient = searchAdminKeysClient
 }
 
 func (c *ArmClient) registerSecurityCenterClients(endpoint, subscriptionId, ascLocation string, auth autorest.Authorizer) {
