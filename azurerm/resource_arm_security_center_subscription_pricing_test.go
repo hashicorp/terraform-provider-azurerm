@@ -10,7 +10,7 @@ import (
 )
 
 func TestAccAzureRMSecurityCenterSubscriptionPricing_update(t *testing.T) {
-	resourceName := "azurerm_securitycenter_subscription_pricing.test"
+	resourceName := "azurerm_security_center_subscription_pricing.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -71,7 +71,7 @@ func testCheckAzureRMSecurityCenterSubscriptionPricingExists(name string) resour
 
 func testAccAzureRMSecurityCenterSubscriptionPricing_tier(tier string) string {
 	return fmt.Sprintf(`
-resource "azurerm_securitycenter_subscription_pricing" "test" {
+resource "azurerm_security_center_subscription_pricing" "test" {
     tier = "%s"
 }
 `, tier)

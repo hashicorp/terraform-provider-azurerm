@@ -3,18 +3,17 @@ package azurerm
 import (
 	"fmt"
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/2017-08-01-preview/security"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
-	"log"
-
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"log"
 )
 
 //seems you can only set one contact:
 // Invalid security contact name was provided - only 'defaultX' is allowed where X is an index
 // Invalid security contact name 'default0' was provided. Expected 'default1'
 // Message="Invalid security contact name 'default2' was provided. Expected 'default1'"
+const resourceArmSecurityCenterContactName = "default1"
 
 func resourceArmSecurityCenterContact() *schema.Resource {
 	return &schema.Resource{
@@ -29,17 +28,15 @@ func resourceArmSecurityCenterContact() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"email": {
-				Type:             schema.TypeString,
-				Required:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
-				//todo validation
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"phone": {
-				Type:             schema.TypeString,
-				Required:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     validation.NoZeroValues,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"alert_notifications": {
@@ -58,6 +55,8 @@ func resourceArmSecurityCenterContact() *schema.Resource {
 func resourceArmSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).securityCenterContactsClient
 	ctx := meta.(*ArmClient).StopContext
+
+	name := resourceArmSecurityCenterContactName
 
 	contact := security.Contact{
 		ContactProperties: &security.ContactProperties{
@@ -79,11 +78,12 @@ func resourceArmSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta i
 	}
 
 	if d.IsNewResource() {
-		if _, err := client.Create(ctx, "default1", contact); err != nil {
+		_, err := client.Create(ctx, name, contact)
+		if err != nil {
 			return fmt.Errorf("Error creating Security Center Contact: %+v", err)
 		}
 
-		resp, err := client.Get(ctx, "default1")
+		resp, err := client.Get(ctx, name)
 		if err != nil {
 			return fmt.Errorf("Error reading Security Center Contact: %+v", err)
 		}
@@ -93,7 +93,8 @@ func resourceArmSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta i
 
 		d.SetId(*resp.ID)
 	} else {
-		if _, err := client.Update(ctx, "default1", contact); err != nil {
+		_, err := client.Update(ctx, name, contact)
+		if err != nil {
 			return fmt.Errorf("Error updating Security Center Contact: %+v", err)
 		}
 	}
@@ -105,7 +106,9 @@ func resourceArmSecurityCenterContactRead(d *schema.ResourceData, meta interface
 	client := meta.(*ArmClient).securityCenterContactsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	resp, err := client.Get(ctx, "default1")
+	name := resourceArmSecurityCenterContactName
+
+	resp, err := client.Get(ctx, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Security Center Subscription Contact was not found: %v", err)
@@ -130,7 +133,9 @@ func resourceArmSecurityCenterContactDelete(_ *schema.ResourceData, meta interfa
 	client := meta.(*ArmClient).securityCenterContactsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	resp, err := client.Delete(ctx, "default1")
+	name := resourceArmSecurityCenterContactName
+
+	resp, err := client.Delete(ctx, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			log.Printf("[DEBUG] Security Center Subscription Contact was not found: %v", err)

@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_securitycenter_contact"
-sidebar_current: "docs-azurerm-securitycenter-contact"
+page_title: "Azure Resource Manager: azurerm_security_center_contact"
+sidebar_current: "docs-azurerm-security-center-contact"
 description: |-
     Manages the subscription's Security Center Contact.
 ---
@@ -13,7 +13,7 @@ Manages the subscription's Security Center Contact.
 ## Example Usage
 
 ```hcl
-resource "azurerm_securitycenter_contact" "example" {
+resource "azurerm_security_center_contact" "example" {
     email = "contact@example.com"
     phone = "+1-555-555-5555"
 
