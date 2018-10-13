@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -43,8 +44,41 @@ func resourceArmSql2017ElasticPool() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:             schema.TypeString,
-							Required:         true,
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"BasicPool",
+								"StandardPool",
+								"PremiumPool",
+								"GP_Gen4_2",
+								"GP_Gen4_4",
+								"GP_Gen4_8",
+								"GP_Gen4_16",
+								"GP_Gen4_24",
+								"GP_Gen5_2",
+								"GP_Gen5_4",
+								"GP_Gen5_8",
+								"GP_Gen5_16",
+								"GP_Gen5_24",
+								"BC_Gen4_2",
+								"BC_Gen4_4",
+								"BC_Gen4_8",
+								"BC_Gen4_16",
+								"BC_Gen4_20",
+								"BC_Gen4_24",
+								"BC_Gen4_32",
+								"BC_Gen4_40",
+								"BC_Gen4_80",
+								"BC_Gen5_2",
+								"BC_Gen5_4",
+								"BC_Gen5_8",
+								"BC_Gen5_16",
+								"BC_Gen5_20",
+								"BC_Gen5_24",
+								"BC_Gen5_32",
+								"BC_Gen5_40",
+								"BC_Gen5_80",
+							}, true),
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 
@@ -60,15 +94,45 @@ func resourceArmSql2017ElasticPool() *schema.Resource {
 						},
 
 						"tier": {
-							Type:             schema.TypeString,
-							Required:         true,
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Basic",
+								"Standard",
+								"Premium",
+								"GeneralPurpose",
+								"BusinessCritical",
+							}, true),
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 
 						"family": {
-							Type:             schema.TypeString,
-							Optional:         true,
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Gen4",
+								"Gen5",
+							}, true),
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+						},
+					},
+				},
+			},
+
+			"per_database_settings": {
+				Type:     schema.TypeList,
+				Required: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"min_capacity": {
+							Type:     schema.TypeFloat,
+							Required: true,
+						},
+
+						"max_capacity": {
+							Type:     schema.TypeFloat,
+							Required: true,
 						},
 					},
 				},
@@ -76,7 +140,7 @@ func resourceArmSql2017ElasticPool() *schema.Resource {
 
 			"elastic_pool_properties": {
 				Type:     schema.TypeList,
-				Required: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -93,25 +157,6 @@ func resourceArmSql2017ElasticPool() *schema.Resource {
 						"max_size_bytes": {
 							Type:     schema.TypeInt,
 							Computed: true,
-						},
-
-						"per_database_settings": {
-							Type:     schema.TypeList,
-							Required: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"min_capacity": {
-										Type:     schema.TypeFloat,
-										Required: true,
-									},
-
-									"max_capacity": {
-										Type:     schema.TypeFloat,
-										Required: true,
-									},
-								},
-							},
 						},
 
 						"zone_redundant": {
@@ -212,6 +257,10 @@ func resourceArmSql2017ElasticPoolRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error flattening `elastic_pool_properties`: %+v", err)
 	}
 
+	if err := d.Set("per_database_settings", flattenAzureRmSql2017ElasticPoolPerDatabaseSettings(resp.ElasticPoolProperties.PerDatabaseSettings)); err != nil {
+		return fmt.Errorf("Error flattening `per_database_settings`: %+v", err)
+	}
+
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil
@@ -241,15 +290,7 @@ func parseArmSql2017ElasticPoolId(sqlElasticPoolId string) (string, string, stri
 }
 
 func expandAzureRmSql2017ElasticPoolProperties(d *schema.ResourceData) *sql.ElasticPoolProperties {
-	elasticPoolProperties := d.Get("elastic_pool_properties").([]interface{})
-	elasticPoolProperty := elasticPoolProperties[0].(map[string]interface{})
-
-	// state := elasticPoolProperty["state"].(string)
-	// maxSizeBytes := int64(elasticPoolProperty["max_size_bytes"].(int))
-	// zoneRedundant := elasticPoolProperty["zone_redundant"].(bool)
-	// licenseType := elasticPoolProperty["license_type"].(string)
-
-	perDatabaseSettings := elasticPoolProperty["per_database_settings"].([]interface{})
+	perDatabaseSettings := d.Get("per_database_settings").([]interface{})
 	perDatabaseSetting := perDatabaseSettings[0].(map[string]interface{})
 
 	minCapacity := perDatabaseSetting["min_capacity"].(float64)
@@ -261,11 +302,7 @@ func expandAzureRmSql2017ElasticPoolProperties(d *schema.ResourceData) *sql.Elas
 	}
 
 	props := &sql.ElasticPoolProperties{
-		// State: sql.ElasticPoolState(state),
-		// MaxSizeBytes:        &maxSizeBytes,
 		PerDatabaseSettings: elasticPoolPerDatabaseSettings,
-		// ZoneRedundant:       utils.Bool(zoneRedundant),
-		// LicenseType:         sql.ElasticPoolLicenseType(licenseType),
 	}
 
 	return props
@@ -332,8 +369,6 @@ func flattenAzureRmSql2017ElasticPoolProperties(resp *sql.ElasticPoolProperties)
 	}
 
 	elasticPoolProperty["license_type"] = string(resp.LicenseType)
-
-	elasticPoolProperty["per_database_settings"] = flattenAzureRmSql2017ElasticPoolPerDatabaseSettings(resp.PerDatabaseSettings)
 
 	return []interface{}{elasticPoolProperty}
 }
