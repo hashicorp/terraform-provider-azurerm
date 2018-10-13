@@ -39,9 +39,10 @@ func resourceArmSecurityCenterSubscriptionPricing() *schema.Resource {
 }
 
 func resourceArmSecurityCenterSubscriptionPricingUpdate(d *schema.ResourceData, meta interface{}) error {
-	name := securityCenterConfigurationSubscriptionPricingName
 	client := meta.(*ArmClient).securityCenterPricingClient
 	ctx := meta.(*ArmClient).StopContext
+
+	name := securityCenterConfigurationSubscriptionPricingName
 
 	pricing := security.Pricing{
 		PricingProperties: &security.PricingProperties{
@@ -68,11 +69,10 @@ func resourceArmSecurityCenterSubscriptionPricingUpdate(d *schema.ResourceData, 
 }
 
 func resourceArmSecurityCenterSubscriptionPricingRead(d *schema.ResourceData, meta interface{}) error {
-	name := securityCenterConfigurationSubscriptionPricingName
 	client := meta.(*ArmClient).securityCenterPricingClient
 	ctx := meta.(*ArmClient).StopContext
 
-	resp, err := client.GetSubscriptionPricing(ctx, name)
+	resp, err := client.GetSubscriptionPricing(ctx, securityCenterConfigurationSubscriptionPricingName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Security Center Subscription was not found: %v", err)
