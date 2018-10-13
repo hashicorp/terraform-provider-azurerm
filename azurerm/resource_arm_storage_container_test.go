@@ -40,6 +40,47 @@ func TestAccAzureRMStorageContainer_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageContainer_update(t *testing.T) {
+	resourceName := "azurerm_storage_container.test"
+	var c storage.Container
+
+	ri := acctest.RandInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	at1 := "Private"
+	at2 := "Container"
+	initconfig := testAccAzureRMStorageContainer_update(ri, rs, testLocation(), at1)
+	updateconfig := testAccAzureRMStorageContainer_update(ri, rs, testLocation(), at2)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: initconfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageContainerExists(resourceName, &c),
+					// testCheckAzureRMStorageContainerAccessType(&c, initconfig),
+					resource.TestCheckResourceAttr(resourceName, "container_access_type", initconfig),
+				),
+			},
+			{
+				Config: updateconfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageContainerExists(resourceName, &c),
+					// testCheckAzureRMStorageContainerAccessType(&c, updateconfig),
+					resource.TestCheckResourceAttr(resourceName, "container_access_type", updateconfig),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMStorageContainer_disappears(t *testing.T) {
 	var c storage.Container
 
@@ -141,6 +182,15 @@ func testCheckAzureRMStorageContainerExists(name string, c *storage.Container) r
 
 		return nil
 	}
+}
+
+func testCheckAzureRMStorageContainerAccessType(c *storage.Container, accessType string) resource.TestCheckFunc {
+    return func(s *terraform.State) error {
+        if *c.container_access_type != accessType {
+            return fmt.Errorf("bad access type, expected \"%s\", got: %#v", accessType, *c.container_access_type)
+        }
+        return nil
+    }
 }
 
 func testAccARMStorageContainerDisappears(name string, c *storage.Container) resource.TestCheckFunc {
@@ -283,6 +333,34 @@ resource "azurerm_storage_container" "test" {
     container_access_type = "private"
 }
 `, rInt, location, rString)
+}
+
+func testAccAzureRMStorageContainer_update(rInt int, rString string, location string, accessType string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+    name                     = "acctestacc%s"
+    resource_group_name      = "${azurerm_resource_group.test.name}"
+    location                 = "${azurerm_resource_group.test.location}"
+    account_tier             = "Standard"
+    account_replication_type = "LRS"
+
+    tags {
+        environment = "staging"
+    }
+}
+
+resource "azurerm_storage_container" "test" {
+    name = "vhds"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    storage_account_name = "${azurerm_storage_account.test.name}"
+    container_access_type = "%s"
+}
+`, rInt, location, rString, accessType)
 }
 
 func testAccAzureRMStorageContainer_root(rInt int, rString string, location string) string {
