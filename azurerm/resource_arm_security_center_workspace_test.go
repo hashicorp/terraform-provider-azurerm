@@ -105,7 +105,7 @@ func testCheckAzureRMSecurityCenterWorkspaceDestroy(s *terraform.State) error {
 			continue
 		}
 
-		resp, err := client.Get(ctx, resourceArmSecurityCenterWorkspaceName)
+		resp, err := client.Get(ctx, securityCenterWorkspaceName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil

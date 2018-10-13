@@ -14,7 +14,7 @@ import (
 
 //only valid name is default
 // Message="Invalid workspace settings name 'kttest' , only default is allowed "
-const resourceArmSecurityCenterWorkspaceName = "default"
+const securityCenterWorkspaceName = "default"
 
 func resourceArmSecurityCenterWorkspace() *schema.Resource {
 	return &schema.Resource{
@@ -47,7 +47,23 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 	client := meta.(*ArmClient).securityCenterWorkspaceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	name := resourceArmSecurityCenterWorkspaceName
+	priceClient := meta.(*ArmClient).securityCenterPricingClient
+
+	//get pricing tier, workspace can only be configured when tier is not Free.
+	//API does not error, it just doesn't set the workspace scope
+	price, err := priceClient.GetSubscriptionPricing(ctx, securityCenterConfigurationSubscriptionPricingName)
+	if err != nil {
+		return fmt.Errorf("Error reading Security Center Subscription pricing: %+v", err)
+	}
+
+	if price.PricingProperties == nil {
+		return fmt.Errorf("Security Center Subscription pricing propertier is nil")
+	}
+	if price.PricingProperties.PricingTier == security.Free {
+		return fmt.Errorf("Security Center Subscription workspace cannot be set when pricing tier is `Free`")
+	}
+
+	name := securityCenterWorkspaceName
 
 	contact := security.WorkspaceSetting{
 		WorkspaceSettingProperties: &security.WorkspaceSettingProperties{
@@ -71,7 +87,7 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Waiting"},
 		Target:     []string{"Populated"},
-		Timeout:    60 * time.Minute,
+		Timeout:    15 * time.Minute,
 		MinTimeout: 30 * time.Second,
 		Refresh: func() (interface{}, string, error) {
 
@@ -106,7 +122,7 @@ func resourceArmSecurityCenterWorkspaceRead(d *schema.ResourceData, meta interfa
 	client := meta.(*ArmClient).securityCenterWorkspaceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	resp, err := client.Get(ctx, resourceArmSecurityCenterWorkspaceName)
+	resp, err := client.Get(ctx, securityCenterWorkspaceName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Security Center Subscription Workspace was not found: %v", err)
@@ -129,7 +145,7 @@ func resourceArmSecurityCenterWorkspaceDelete(_ *schema.ResourceData, meta inter
 	client := meta.(*ArmClient).securityCenterWorkspaceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	resp, err := client.Delete(ctx, resourceArmSecurityCenterWorkspaceName)
+	resp, err := client.Delete(ctx, securityCenterWorkspaceName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			log.Printf("[DEBUG] Security Center Subscription Workspace was not found: %v", err)

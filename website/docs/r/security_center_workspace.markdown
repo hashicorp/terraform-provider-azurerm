@@ -10,6 +10,8 @@ description: |-
 
 Manages the subscription's Security Center Workspace.
 
+
+
 ## Example Usage
 
 ```hcl
@@ -49,5 +51,5 @@ The following attributes are exported:
 The contact can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_securitycenter_workspace.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Security/securityWorkspaces/default
+terraform import azurerm_security_center_workspace.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Security/workspaceSettings/default
 ```
