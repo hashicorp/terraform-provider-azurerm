@@ -56,7 +56,7 @@ resource "azurerm_api_management_api" "test" {
 	path 						= "api1"
 
 	import {
-    content_value = "https://api.swaggerhub.com/apis/sparebanken-vest/tf-simple/1.0.2"
+    content_value  = "https://api.swaggerhub.com/apis/sparebanken-vest/tf-simple/1.0.2"
     content_format = "swagger-link-json"
   }
 
