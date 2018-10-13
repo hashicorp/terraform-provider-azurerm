@@ -2,10 +2,11 @@ package azurerm
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"log"
 	"regexp"
 	"strings"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -61,14 +62,15 @@ func resourceArmPublicIp() *schema.Resource {
 			},
 
 			"ip_version": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  string(network.IPv4),
-				ForceNew: true,
+				Type:             schema.TypeString,
+				Optional:         true,
+				Default:          string(network.IPv4),
+				ForceNew:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.IPv4),
 					string(network.IPv6),
-				}, false),
+				}, true),
 			},
 
 			"sku": {
@@ -135,7 +137,7 @@ func resourceArmPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
 	ipAllocationMethod := network.IPAllocationMethod(d.Get("public_ip_address_allocation").(string))
 	ipVersion := network.IPVersion(d.Get("ip_version").(string))
 
-	if strings.ToLower(string(ipVersion)) == "ipv6" {
+	if strings.EqualFold(string(ipVersion), string(network.IPv6)) {
 		if strings.EqualFold(string(ipAllocationMethod), "static") {
 			return fmt.Errorf("Cannot specify publicIpAllocationMethod as Static for IPv6 PublicIp")
 		}

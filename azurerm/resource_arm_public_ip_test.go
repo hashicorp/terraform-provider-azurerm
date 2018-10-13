@@ -102,8 +102,7 @@ func TestAccAzureRMPublicIpStatic_basic_withDNSLabel(t *testing.T) {
 
 func TestAccAzureRMPublicIpStatic_standard_withIPv6_fails(t *testing.T) {
 	ri := acctest.RandInt()
-	ipVersion := "IPV6"
-	config := testAccAzureRMPublicIPStatic_standard_withIPVersion(ri, testLocation(), ipVersion)
+	config := testAccAzureRMPublicIPStatic_standard_withIPVersion(ri, testLocation(), "IPv6")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -133,7 +132,7 @@ func TestAccAzureRMPublicIpDynamic_basic_withIPv6(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIpExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "ip_version", "ipv6"),
+					resource.TestCheckResourceAttr(resourceName, "ip_version", "IPv6"),
 				),
 			},
 			{
