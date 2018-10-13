@@ -19,6 +19,7 @@ func resourceArmStorageContainer() *schema.Resource {
 		Create:        resourceArmStorageContainerCreate,
 		Read:          resourceArmStorageContainerRead,
 		Delete:        resourceArmStorageContainerDelete,
+		Update:        resourceArmStorageContainerCreate,
 		MigrateState:  resourceStorageContainerMigrateState,
 		SchemaVersion: 1,
 		Importer: &schema.ResourceImporter{
@@ -41,7 +42,6 @@ func resourceArmStorageContainer() *schema.Resource {
 			"container_access_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				Default:      "private",
 				ValidateFunc: validateArmStorageContainerAccessType,
 			},
