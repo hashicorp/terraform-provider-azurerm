@@ -23,7 +23,8 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "My Company"
   publisher_email     = "company@terraform.io"
   sku {
-    name = "Developer"
+    name     = "Developer"
+    capacity = 1
   }
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -32,7 +33,7 @@ resource "azurerm_api_management" "test" {
 resource "azurerm_api_management_api" "test" {
   name                = "conferenceapi"
   service_name        = "${azurerm_api_management.test.name}"
-  path = "/conference"
+  path                = "conference"
   import {
     content_format = "swagger-link-json"
     content_value  = "http://conferenceapi.azurewebsites.net/?format=json"
@@ -58,25 +59,27 @@ The following arguments are supported:
 
 ---
 
+* `display_name` - (Optional) API name
+
 * `service_url` - (Optional) Absolute URL of the backend service implementing this API.
 
 * `description` - (Optional) Description of the API. May include HTML formatting tags.
 
 * `protocols` - (Optional) A list of protocols the operations in this API can be invoked. Supported values are `http` and `https`. Default is `https`.
 
-* `revision` - (Optional) The revision number of the API.
-
-* `revision_description` - (Optional) Description of current revision.
-
--> **Note:** Setting revision using this resource is supported, but revision are more of a deployment concept than infrastructure, so we recommend finding other means to manage revisions.
+* `subscription_key_parameter_names` - (Optional) A `subscription_key` block as documented below.
 
 * `import` - (Optional) A `import` block as documented below.
 
-* `oauth` - (Optional) A `oauth` block as documented below.
+* `soap_pass_through` - Make API Management expose a SOAP front end, instead of a HTTP front end.
 
-* `subscription_key` - (Optional) A `subscription_key` block as documented below.
+---
 
-* `soap_api_type` - (Optional) Type of Soap API. Possible values include: 'http' or 'soap'. `http` creates a SOAP to REST API. `soap` creates a SOAP pass-through API. Default behavior when not set is REST API to REST API.
+A `subscription_key_parameter_names` block exports the following:
+
+* `header` - (Optional) Subscription key header name. Default is `Ocp-Apim-Subscription-Key`.
+
+* `query` - (Optional) Subscription key query string parameter name. Default is `subscription-key`.
 
 ---
 
@@ -98,27 +101,21 @@ The following arguments are supported:
 
 ---
 
-`oauth` block supports the following:
-
-* `authorization_server_id` - (Required) OAuth authorization server identifier.
-
-* `scope` - (Required) Operations scope.
-
----
-
-`subscription_key` block supports the following:
-
-* `header` - (Optional) Subscription key header name.
-
-* `query` - (Optional) Subscription key query string parameter name.
-
--> **Note:** Set both `header` and `query` to support using subscription key in both, or one of `header` or `query` to support one of them.
-
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the API Management API component.
+
+* `revision` - Describes the Revision of the Api.
+
+* `version` - Indicates the Version identifier of the API if the API is versioned.
+
+* `version_set_id` - A resource identifier for the related ApiVersionSet.
+
+* `is_current` - Indicates if API revision is current api revision.
+
+* `is_online` - Indicates if API revision is accessible via the gateway.
 
 ## Import
 
