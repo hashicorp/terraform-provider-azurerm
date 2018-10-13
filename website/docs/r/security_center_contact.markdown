@@ -6,7 +6,7 @@ description: |-
     Manages the subscription's Security Center Contact.
 ---
 
-# azurerm_securitycenter_contact
+# azurerm_security_center_contact
 
 Manages the subscription's Security Center Contact.
 
