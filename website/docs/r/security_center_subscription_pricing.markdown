@@ -10,7 +10,9 @@ description: |-
 
 Manages the Pricing Tier for Azure Security Center in the current subscription.
 
-~> **NOTE:** Owner access permission is required.
+~> **NOTE:** This resource requires the `Owner` permission on the Subscription.
+
+~> **NOTE:** Deletion of this resource does not change or reset the pricing tier to `Free`
 
 ## Example Usage
 
@@ -24,7 +26,7 @@ resource "azurerm_security_center_subscription_pricing" "example" {
 
 The following arguments are supported:
 
-* `tier` - (Required) The pricing tier to use. Must be one of `Free` or `Standard`.
+* `tier` - (Required) The pricing tier to use. Possible values are `Free` and `Standard`.
 
 ~> **NOTE:** Changing the pricing tier to `Standard` affects all resources in the subscription and could be quite costly.
 
@@ -40,5 +42,5 @@ The following attributes are exported:
 The pricing tier can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_securitycenter_subscription_pricing.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Security/pricings/default
+terraform import azurerm_security_center_subscription_pricing.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Security/pricings/default
 ```
