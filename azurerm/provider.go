@@ -244,7 +244,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_route_table":                             resourceArmRouteTable(),
 			"azurerm_search_service":                          resourceArmSearchService(),
 			"azurerm_security_center_subscription_pricing":    resourceArmSecurityCenterSubscriptionPricing(),
-			"azurerm_securitycenter_contact":                  resourceArmSecurityCenterContact(),
+			"azurerm_security_center_contact":                 resourceArmSecurityCenterContact(),
 			"azurerm_servicebus_namespace":                    resourceArmServiceBusNamespace(),
 			"azurerm_servicebus_namespace_authorization_rule": resourceArmServiceBusNamespaceAuthorizationRule(),
 			"azurerm_servicebus_queue":                        resourceArmServiceBusQueue(),

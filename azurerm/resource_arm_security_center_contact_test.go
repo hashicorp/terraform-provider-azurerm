@@ -10,7 +10,7 @@ import (
 )
 
 func TestAccAzureRMSecurityCenterContact_basic(t *testing.T) {
-	resourceName := "azurerm_securitycenter_contact.test"
+	resourceName := "azurerm_security_center_contact.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -36,7 +36,7 @@ func TestAccAzureRMSecurityCenterContact_basic(t *testing.T) {
 }
 
 func TestAccAzureRMSecurityCenterContact_update(t *testing.T) {
-	resourceName := "azurerm_securitycenter_contact.test"
+	resourceName := "azurerm_security_center_contact.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -98,7 +98,7 @@ func testCheckAzureRMSecurityCenterContactExists(name string) resource.TestCheck
 
 func testAccAzureRMSecurityCenterContact_template(email, phone string, notifications, adminAlerts bool) string {
 	return fmt.Sprintf(`
-resource "azurerm_securitycenter_contact" "test" {
+resource "azurerm_security_center_contact" "test" {
     email = "%s"
     phone = "%s"
 
