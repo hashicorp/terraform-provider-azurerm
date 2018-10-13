@@ -39,8 +39,6 @@ func resourceArmApiManagementApi() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameSchema(),
 
-			"location": locationSchema(),
-
 			"path": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -208,9 +206,9 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	log.Printf("[DEBUG] Calling api with resource group %q, service name %q, api id %q", resGroup, serviceName, apiId)
-	apiContract, err := client.CreateOrUpdate(ctx, resGroup, serviceName, apiId, apiParams, "")
+	_, err := client.CreateOrUpdate(ctx, resGroup, serviceName, apiId, apiParams, "")
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating/updating API Management API %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if hasImport {
@@ -226,7 +224,16 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 		}
 	}
 
-	d.SetId(*apiContract.ID)
+	read, err := client.Get(ctx, resGroup, serviceName, apiId)
+	if err != nil {
+		return fmt.Errorf("Error retrieving API Management API %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	if read.ID == nil {
+		return fmt.Errorf("Cannot read ID for API Management API %q (Resource Group %q)", name, resGroup)
+	}
+
+	d.SetId(*read.ID)
 
 	return resourceArmApiManagementApiRead(d, meta)
 }

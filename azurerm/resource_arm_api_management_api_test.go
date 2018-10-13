@@ -30,6 +30,13 @@ func TestAccAzureRMApiManagementApi_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				// Ignore state that is only persisted in Terraform and not on Azure side
+				ImportStateVerifyIgnore: []string{
+					"import.#",
+					"import.0.content_format",
+					"import.0.content_value",
+					"import.0.wsdl_selector.#",
+				},
 			},
 		},
 	})
@@ -55,6 +62,15 @@ func TestAccAzureRMApiManagementApi_complete(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				// Ignore state that is only persisted in Terraform and not on Azure side
+				ImportStateVerifyIgnore: []string{
+					"import.#",
+					"import.0.content_format",
+					"import.0.content_value",
+					"import.0.wsdl_selector.#",
+					"import.0.wsdl_selector.0.service_name",
+					"import.0.wsdl_selector.0.endpoint_name",
+				},
 			},
 		},
 	})
@@ -152,7 +168,6 @@ resource "azurerm_api_management_api" "test" {
     content_format = "swagger-json"
   }
 
-  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt, rInt)
@@ -202,7 +217,6 @@ resource "azurerm_api_management_api" "test" {
 
 	protocols = ["http", "https"]
 
-  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt, rInt)
