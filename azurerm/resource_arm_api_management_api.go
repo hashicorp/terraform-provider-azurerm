@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/apimanagement/mgmt/2018-06-01-preview/apimanagement"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,16 +24,17 @@ func resourceArmApiManagementApi() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				// ValidateFunc: azure.ValidateApiManagementApiName,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.ApiManagementApiName,
 			},
 
 			"service_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.ApiManagementServiceName,
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
@@ -40,8 +42,14 @@ func resourceArmApiManagementApi() *schema.Resource {
 			"location": locationSchema(),
 
 			"path": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.ApiManagementApiPath,
+			},
+
+			"api_id": {
 				Type:     schema.TypeString,
-				Required: true,
+				Computed: true,
 			},
 
 			"display_name": {
@@ -140,15 +148,10 @@ func resourceArmApiManagementApi() *schema.Resource {
 				},
 			},
 
-			"soap_api_type": {
-				Type:    schema.TypeString,
-				Default: "",
-				ValidateFunc: validation.StringInSlice([]string{
-					string(apimanagement.HTTP),
-					string(apimanagement.Soap),
-				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-				Optional:         true,
+			"soap_pass_through": {
+				Type:     schema.TypeBool,
+				Default:  false,
+				Optional: true,
 			},
 
 			"revision": {
@@ -191,6 +194,7 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 
 	//Currently we don't support revisions, so we use 1 as default
 	apiId := fmt.Sprintf("%s;rev=%d", name, 1)
+	d.Set("api_id", apiId)
 
 	var properties *apimanagement.APICreateOrUpdateProperties
 
@@ -261,6 +265,7 @@ func resourceArmApiManagementApiRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error making Read request on API Management API %q on service %q (Resource Group %q): %+v", apiid, serviceName, resGroup, err)
 	}
 
+	d.Set("api_id", apiid)
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("service_name", serviceName)
@@ -270,20 +275,19 @@ func resourceArmApiManagementApiRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("service_url", props.ServiceURL)
 		d.Set("path", props.Path)
 		d.Set("description", props.Description)
-		d.Set("soap_api_type", props.APIType)
 		d.Set("revision", props.APIRevision)
 		d.Set("version", props.APIVersion)
 		d.Set("version_set_id", props.APIVersionSetID)
 		d.Set("is_current", props.IsCurrent)
 		d.Set("is_online", props.IsOnline)
 		d.Set("protocols", props.Protocols)
+		d.Set("soap_pass_through", string(props.APIType) == string(apimanagement.SoapPassThrough))
 
 		if err := d.Set("subscription_key_parameter_names", flattenApiManagementApiSubscriptionKeyParamNames(props.SubscriptionKeyParameterNames)); err != nil {
 			return fmt.Errorf("Error setting `subscription_key_parameter_names`: %+v", err)
 		}
 	}
 
-	log.Printf("%+v\n", resp)
 	return nil
 }
 
@@ -320,11 +324,9 @@ func expandApiManagementApiProperties(d *schema.ResourceData) *apimanagement.API
 	path := d.Get("path").(string)
 	serviceUrl := d.Get("service_url").(string)
 	description := d.Get("description").(string)
-	soapApiTypeConfig := d.Get("soap_api_type").(string)
-	soapApiType := apimanagement.APIType(soapApiTypeConfig)
+	soapPassThrough := d.Get("soap_pass_through").(bool)
 
-	return &apimanagement.APICreateOrUpdateProperties{
-		APIType:                       soapApiType,
+	props := &apimanagement.APICreateOrUpdateProperties{
 		Description:                   &description,
 		DisplayName:                   &displayName,
 		Path:                          &path,
@@ -332,6 +334,12 @@ func expandApiManagementApiProperties(d *schema.ResourceData) *apimanagement.API
 		ServiceURL:                    &serviceUrl,
 		SubscriptionKeyParameterNames: expandApiManagementApiSubscriptionKeyParamNames(d),
 	}
+
+	if soapPassThrough {
+		props.APIType = apimanagement.APIType(apimanagement.SoapPassThrough)
+	}
+
+	return props
 }
 
 func expandApiManagementApiSubscriptionKeyParamNames(d *schema.ResourceData) *apimanagement.SubscriptionKeyParameterNamesContract {
