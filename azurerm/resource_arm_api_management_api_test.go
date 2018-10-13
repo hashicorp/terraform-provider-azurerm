@@ -35,6 +35,31 @@ func TestAccAzureRMApiManagementApi_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMApiManagementApi_complete(t *testing.T) {
+	resourceName := "azurerm_api_management_api.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMApiManagementApi_complete(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApiManagementApiDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementApiExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMApiManagementApiDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).apiManagementApiClient
 
@@ -123,9 +148,59 @@ resource "azurerm_api_management_api" "test" {
 	path 						= "api1"
 
 	import {
-    content_value  = "https://api.swaggerhub.com/apis/sparebanken-vest/tf-simple/1.0.2"
-    content_format = "swagger-link-json"
+    content_value  = "${file("testdata/api_management_api_swagger.json")}"
+    content_format = "swagger-json"
   }
+
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMApiManagementApi_complete(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku {
+    name     = "Developer"
+    capacity = 1
+  }
+}
+
+resource "azurerm_api_management_api" "test" {
+  name            = "acctestAMA-%d"
+	service_name    = "${azurerm_api_management.test.name}"
+	path 						= "api1"
+
+	import {
+		content_value = "${file("testdata/api_management_api_wsdl.xml")}"
+    content_format = "wsdl"
+
+    wsdl_selector {
+      service_name  = "Calculator"
+      endpoint_name = "CalculatorHttpsSoap11Endpoint"
+    }
+  }
+
+	soap_pass_through = true
+
+	subscription_key_parameter_names {
+		header = "test1"
+		query = "test2"
+	}
+
+	protocols = ["http", "https"]
 
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
