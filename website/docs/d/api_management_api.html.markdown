@@ -36,8 +36,6 @@ output "api_management_api_id" {
 
 * `id` - The ID of the API Management API.
 
-* `display_name` - API name
-
 * `path` - Relative URL uniquely identifying this API and all of its resource paths within the API Management service instance. It is appended to the API endpoint base URL specified during the service instance creation to form a public URL for this API. The path cannot start or end with `/`.
 
 * `service_url` - Absolute URL of the backend service implementing this API.
