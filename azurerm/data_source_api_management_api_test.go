@@ -20,10 +20,6 @@ func TestAccDataSourceAzureRMApiManagementApi_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceApiManagementApi_basic(rInt, location),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "api_id", "api1"),
-					resource.TestCheckResourceAttr(dataSourceName, "import.#", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "import.0.content_format", "swagger-json"),
-					resource.TestCheckResourceAttr(dataSourceName, "import.0.wsdl_selector.#", "0"),
 					resource.TestCheckResourceAttr(dataSourceName, "is_current", "true"),
 					resource.TestCheckResourceAttr(dataSourceName, "is_online", "false"),
 					resource.TestCheckResourceAttr(dataSourceName, "name", "api1"),
@@ -74,7 +70,6 @@ resource "azurerm_api_management_api" "test" {
     content_format = "swagger-link-json"
   }
 
-  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
