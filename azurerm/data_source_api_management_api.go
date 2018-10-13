@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 
+	"github.com/Azure/azure-sdk-for-go/services/preview/apimanagement/mgmt/2018-06-01-preview/apimanagement"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -72,8 +73,8 @@ func dataSourceApiManagementApi() *schema.Resource {
 				},
 			},
 
-			"soap_api_type": {
-				Type:     schema.TypeString,
+			"soap_pass_through": {
+				Type:     schema.TypeBool,
 				Computed: true,
 			},
 
@@ -137,13 +138,13 @@ func dataSourceApiManagementApiRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("service_url", props.ServiceURL)
 		d.Set("path", props.Path)
 		d.Set("description", props.Description)
-		d.Set("soap_api_type", props.APIType)
 		d.Set("revision", props.APIRevision)
 		d.Set("version", props.APIVersion)
 		d.Set("version_set_id", props.APIVersionSetID)
 		d.Set("is_current", props.IsCurrent)
 		d.Set("is_online", props.IsOnline)
 		d.Set("protocols", props.Protocols)
+		d.Set("soap_pass_through", string(props.APIType) == string(apimanagement.SoapPassThrough))
 
 		if err := d.Set("subscription_key_parameter_names", flattenApiManagementApiSubscriptionKeyParamNames(props.SubscriptionKeyParameterNames)); err != nil {
 			return fmt.Errorf("Error setting `subscription_key_parameter_names`: %+v", err)
