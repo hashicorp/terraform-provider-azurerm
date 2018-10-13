@@ -1100,6 +1100,12 @@
 			"versionExact": "v0.11.3"
 		},
 		{
+			"checksumSHA1": "kD1ayilNruf2cES1LDfNZjYRscQ=",
+			"path": "github.com/hashicorp/terraform/httpclient",
+			"revision": "c96155cc68b1da43e49893ddc19a609f0085af19",
+			"revisionTime": "2018-10-04T21:23:31Z"
+		},
+		{
 			"checksumSHA1": "yFWmdS6yEJZpRJzUqd/mULqCYGk=",
 			"path": "github.com/hashicorp/terraform/moduledeps",
 			"revision": "3802b14260603f90c7a1faf55994dcc8933e2069",

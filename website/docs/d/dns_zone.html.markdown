@@ -3,13 +3,13 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_zone"
 sidebar_current: "docs-azurerm-datasource-dns-zone"
 description: |-
-  Get information about a DNS Zone.
+  Gets information about an existing DNS Zone.
 
 ---
 
 # Data Source: azurerm_dns_zone
 
-Use this data source to obtain information about a DNS Zone.
+Use this data source to access information about an existing DNS Zone.
 
 ## Example Usage
 

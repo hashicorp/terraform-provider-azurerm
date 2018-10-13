@@ -13,7 +13,7 @@ import (
 // Invalid security contact name was provided - only 'defaultX' is allowed where X is an index
 // Invalid security contact name 'default0' was provided. Expected 'default1'
 // Message="Invalid security contact name 'default2' was provided. Expected 'default1'"
-const resourceArmSecurityCenterContactName = "default1"
+const securityCenterContactName = "default1"
 
 func resourceArmSecurityCenterContact() *schema.Resource {
 	return &schema.Resource{
@@ -56,7 +56,7 @@ func resourceArmSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta i
 	client := meta.(*ArmClient).securityCenterContactsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	name := resourceArmSecurityCenterContactName
+	name := securityCenterContactName
 
 	contact := security.Contact{
 		ContactProperties: &security.ContactProperties{
@@ -106,7 +106,7 @@ func resourceArmSecurityCenterContactRead(d *schema.ResourceData, meta interface
 	client := meta.(*ArmClient).securityCenterContactsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	name := resourceArmSecurityCenterContactName
+	name := securityCenterContactName
 
 	resp, err := client.Get(ctx, name)
 	if err != nil {
@@ -133,7 +133,7 @@ func resourceArmSecurityCenterContactDelete(_ *schema.ResourceData, meta interfa
 	client := meta.(*ArmClient).securityCenterContactsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	name := resourceArmSecurityCenterContactName
+	name := securityCenterContactName
 
 	resp, err := client.Delete(ctx, name)
 	if err != nil {

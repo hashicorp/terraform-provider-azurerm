@@ -101,24 +101,19 @@ func testCheckAzureRMSecurityCenterContactExists(name string) resource.TestCheck
 func testCheckAzureRMSecurityCenterContactDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).securityCenterContactsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
-
 	for _, res := range s.RootModule().Resources {
-		if res.Type != "azurerm_securitycenter_contact" {
+		if res.Type != "azurerm_security_center_contact" {
 			continue
 		}
-
-		resp, err := client.Get(ctx, "default1")
+		resp, err := client.Get(ctx, securityCenterContactName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
 			}
-
 			return err
 		}
-
-		return fmt.Errorf("security center worspace contact still exists")
+		return fmt.Errorf("security center contact still exists")
 	}
-
 	return nil
 }
 

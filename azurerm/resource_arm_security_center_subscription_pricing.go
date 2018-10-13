@@ -12,7 +12,7 @@ import (
 
 //NOTE: seems default is the only valid pricing name:
 //Code="InvalidInputJson" Message="Pricing name 'kt's price' is not allowed. Expected 'default' for this scope."
-const securityCenterConfigurationSubscriptionPricingName = "default"
+const securityCenterSubscriptionPricingName = "default"
 
 func resourceArmSecurityCenterSubscriptionPricing() *schema.Resource {
 	return &schema.Resource{
@@ -39,9 +39,10 @@ func resourceArmSecurityCenterSubscriptionPricing() *schema.Resource {
 }
 
 func resourceArmSecurityCenterSubscriptionPricingUpdate(d *schema.ResourceData, meta interface{}) error {
-	name := securityCenterConfigurationSubscriptionPricingName
 	client := meta.(*ArmClient).securityCenterPricingClient
 	ctx := meta.(*ArmClient).StopContext
+
+	name := securityCenterSubscriptionPricingName
 
 	pricing := security.Pricing{
 		PricingProperties: &security.PricingProperties{
@@ -68,11 +69,10 @@ func resourceArmSecurityCenterSubscriptionPricingUpdate(d *schema.ResourceData, 
 }
 
 func resourceArmSecurityCenterSubscriptionPricingRead(d *schema.ResourceData, meta interface{}) error {
-	name := securityCenterConfigurationSubscriptionPricingName
 	client := meta.(*ArmClient).securityCenterPricingClient
 	ctx := meta.(*ArmClient).StopContext
 
-	resp, err := client.GetSubscriptionPricing(ctx, name)
+	resp, err := client.GetSubscriptionPricing(ctx, securityCenterSubscriptionPricingName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Security Center Subscription was not found: %v", err)
@@ -91,5 +91,6 @@ func resourceArmSecurityCenterSubscriptionPricingRead(d *schema.ResourceData, me
 }
 
 func resourceArmSecurityCenterSubscriptionPricingDelete(_ *schema.ResourceData, _ interface{}) error {
+	log.Printf("[DEBUG] Security Center Subscription deletion invocation")
 	return nil //cannot be deleted.
 }

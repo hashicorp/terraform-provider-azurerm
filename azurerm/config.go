@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -65,9 +66,10 @@ import (
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
 	uuid "github.com/hashicorp/go-uuid"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform/httpclient"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/authentication"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/terraform-providers/terraform-provider-azurerm/version"
 )
 
 // ArmClient contains the handles to all the specific Azure Resource Manager
@@ -153,6 +155,8 @@ type ArmClient struct {
 
 	// DevTestLabs
 	devTestLabsClient            dtl.LabsClient
+	devTestPoliciesClient        dtl.PoliciesClient
+	devTestVirtualMachinesClient dtl.VirtualMachinesClient
 	devTestVirtualNetworksClient dtl.VirtualNetworksClient
 
 	// Databases
@@ -198,8 +202,8 @@ type ArmClient struct {
 	managementGroupsSubscriptionClient managementgroups.SubscriptionsClient
 
 	// Monitor
-	actionGroupsClient      insights.ActionGroupsClient
-	monitorAlertRulesClient insights.AlertRulesClient
+	monitorActionGroupsClient insights.ActionGroupsClient
+	monitorAlertRulesClient   insights.AlertRulesClient
 
 	// MSI
 	userAssignedIdentitiesClient msi.UserAssignedIdentitiesClient
@@ -344,18 +348,16 @@ func withRequestLogging() autorest.SendDecorator {
 }
 
 func setUserAgent(client *autorest.Client) {
-	tfVersion := fmt.Sprintf("HashiCorp-Terraform-v%s", terraform.VersionString())
+	// TODO: This is the SDK version not the CLI version, once we are on 0.12, should revisit
+	tfUserAgent := httpclient.UserAgentString()
 
-	// if the user agent already has a value append the Terraform user agent string
-	if curUserAgent := client.UserAgent; curUserAgent != "" {
-		client.UserAgent = fmt.Sprintf("%s;%s", curUserAgent, tfVersion)
-	} else {
-		client.UserAgent = tfVersion
-	}
+	pv := version.ProviderVersion
+	providerUserAgent := fmt.Sprintf("%s terraform-provider-azurerm/%s", tfUserAgent, pv)
+	client.UserAgent = strings.TrimSpace(fmt.Sprintf("%s %s", client.UserAgent, providerUserAgent))
 
 	// append the CloudShell version to the user agent if it exists
 	if azureAgent := os.Getenv("AZURE_HTTP_USER_AGENT"); azureAgent != "" {
-		client.UserAgent = fmt.Sprintf("%s;%s", client.UserAgent, azureAgent)
+		client.UserAgent = fmt.Sprintf("%s %s", client.UserAgent, azureAgent)
 	}
 
 	log.Printf("[DEBUG] AzureRM Client User Agent: %s\n", client.UserAgent)
@@ -780,6 +782,14 @@ func (c *ArmClient) registerDevTestClients(endpoint, subscriptionId string, auth
 	c.configureClient(&labsClient.Client, auth)
 	c.devTestLabsClient = labsClient
 
+	devTestPoliciesClient := dtl.NewPoliciesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&devTestPoliciesClient.Client, auth)
+	c.devTestPoliciesClient = devTestPoliciesClient
+
+	devTestVirtualMachinesClient := dtl.NewVirtualMachinesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&devTestVirtualMachinesClient.Client, auth)
+	c.devTestVirtualMachinesClient = devTestVirtualMachinesClient
+
 	devTestVirtualNetworksClient := dtl.NewVirtualNetworksClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&devTestVirtualNetworksClient.Client, auth)
 	c.devTestVirtualNetworksClient = devTestVirtualNetworksClient
@@ -832,9 +842,9 @@ func (c *ArmClient) registerLogicClients(endpoint, subscriptionId string, auth a
 }
 
 func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
-	actionGroupsClient := insights.NewActionGroupsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&actionGroupsClient.Client, auth)
-	c.actionGroupsClient = actionGroupsClient
+	agc := insights.NewActionGroupsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&agc.Client, auth)
+	c.monitorActionGroupsClient = agc
 
 	arc := insights.NewAlertRulesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&arc.Client, auth)
