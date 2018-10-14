@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSecurityCenterSubscriptionPricing_update(t *testing.T) {
+func testAccAzureRMSecurityCenterSubscriptionPricing_update(t *testing.T) {
 	resourceName := "azurerm_security_center_subscription_pricing.test"
 
 	resource.Test(t, resource.TestCase{
