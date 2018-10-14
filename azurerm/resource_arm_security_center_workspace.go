@@ -51,7 +51,7 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 
 	//get pricing tier, workspace can only be configured when tier is not Free.
 	//API does not error, it just doesn't set the workspace scope
-	price, err := priceClient.GetSubscriptionPricing(ctx, securityCenterConfigurationSubscriptionPricingName)
+	price, err := priceClient.GetSubscriptionPricing(ctx, securityCenterSubscriptionPricingName)
 	if err != nil {
 		return fmt.Errorf("Error reading Security Center Subscription pricing: %+v", err)
 	}
