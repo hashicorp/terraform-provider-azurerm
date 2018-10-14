@@ -10,9 +10,7 @@ description: |-
 
 Manages the subscription's Security Center Contact.
 
-~> **NOTE:** Owner access permission is required.
-
-~> **NOTE:** The subscription's pricing model can not be `Free` for this to have any affect and it may take up to 15-30 minutes after switching pricing tiers for it to work. 
+~> **NOTE:** Owner access permission is required. 
 
 ## Example Usage
 

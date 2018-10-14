@@ -2,16 +2,16 @@ package azurerm
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/helper/acctest"
 	"os"
 	"testing"
 
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSecurityCenterWorkspace_basic(t *testing.T) {
+func testAccAzureRMSecurityCenterWorkspace_basic(t *testing.T) {
 	resourceName := "azurerm_security_center_workspace.test"
 	ri := acctest.RandInt()
 
@@ -23,7 +23,7 @@ func TestAccAzureRMSecurityCenterWorkspace_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSecurityCenterWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSecurityCenterWorkspace_basic(ri, testLocation(), scope),
+				Config: testAccAzureRMSecurityCenterWorkspace_basicCfg(ri, testLocation(), scope),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSecurityCenterWorkspaceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "scope", scope),
@@ -34,11 +34,15 @@ func TestAccAzureRMSecurityCenterWorkspace_basic(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				//reset pricing to free
+				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Free"),
+			},
 		},
 	})
 }
 
-func TestAccAzureRMSecurityCenterWorkspace_update(t *testing.T) {
+func testAccAzureRMSecurityCenterWorkspace_update(t *testing.T) {
 	resourceName := "azurerm_security_center_workspace.test"
 	ri := acctest.RandInt()
 
@@ -49,14 +53,14 @@ func TestAccAzureRMSecurityCenterWorkspace_update(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSecurityCenterWorkspace_basic(ri, testLocation(), scope),
+				Config: testAccAzureRMSecurityCenterWorkspace_basicCfg(ri, testLocation(), scope),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSecurityCenterWorkspaceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "scope", scope),
 				),
 			},
 			{
-				Config: testAccAzureRMSecurityCenterWorkspace_differentWorkspace(ri, testLocation(), scope),
+				Config: testAccAzureRMSecurityCenterWorkspace_differentWorkspaceCfg(ri, testLocation(), scope),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSecurityCenterWorkspaceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "scope", scope),
@@ -66,6 +70,10 @@ func TestAccAzureRMSecurityCenterWorkspace_update(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+			{
+				//reset pricing to free
+				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Free"),
 			},
 		},
 	})
@@ -120,8 +128,13 @@ func testCheckAzureRMSecurityCenterWorkspaceDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMSecurityCenterWorkspace_basic(rInt int, location, scope string) string {
+func testAccAzureRMSecurityCenterWorkspace_basicCfg(rInt int, location, scope string) string {
 	return fmt.Sprintf(`
+
+resource "azurerm_security_center_subscription_pricing" "test" {
+    tier = "Standard"
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -141,8 +154,12 @@ resource "azurerm_security_center_workspace" "test" {
 `, rInt, location, scope)
 }
 
-func testAccAzureRMSecurityCenterWorkspace_differentWorkspace(rInt int, location, scope string) string {
+func testAccAzureRMSecurityCenterWorkspace_differentWorkspaceCfg(rInt int, location, scope string) string {
 	return fmt.Sprintf(`
+resource "azurerm_security_center_subscription_pricing" "test" {
+    tier = "Standard"
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
