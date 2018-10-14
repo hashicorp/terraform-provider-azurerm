@@ -14,6 +14,7 @@ FEATURES:
 * **New Resource:** `azurerm_dev_test_windows_virtual_machine` [GH-2058]
 * **New Resource:** `azurerm_security_center_contact` [GH-2045]
 * **New Resource:** `azurerm_security_center_subscription_pricing` [GH-2043]
+* **New Resource:** `azurerm_security_center_workspace` [GH-2072]
 * **New Resource:** `azurerm_subnet_network_security_group_association` [GH-1933]
 * **New Resource:** `azurerm_subnet_route_table_association ` [GH-1933]
 
