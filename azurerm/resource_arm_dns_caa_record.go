@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
 	"github.com/hashicorp/terraform/helper/hashcode"
@@ -27,6 +28,9 @@ func resourceArmDnsCaaRecord() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				StateFunc: func(val interface{}) string {
+					return strings.ToLower(val.(string))
+				},
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
