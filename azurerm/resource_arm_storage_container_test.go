@@ -46,8 +46,8 @@ func TestAccAzureRMStorageContainer_update(t *testing.T) {
 
 	ri := acctest.RandInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	at1 := "Private"
-	at2 := "Container"
+	at1 := "private"
+	at2 := "container"
 	initconfig := testAccAzureRMStorageContainer_update(ri, rs, testLocation(), at1)
 	updateconfig := testAccAzureRMStorageContainer_update(ri, rs, testLocation(), at2)
 
@@ -60,16 +60,14 @@ func TestAccAzureRMStorageContainer_update(t *testing.T) {
 				Config: initconfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageContainerExists(resourceName, &c),
-					// testCheckAzureRMStorageContainerAccessType(&c, initconfig),
-					resource.TestCheckResourceAttr(resourceName, "container_access_type", initconfig),
+					resource.TestCheckResourceAttr(resourceName, "container_access_type", at1),
 				),
 			},
 			{
 				Config: updateconfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageContainerExists(resourceName, &c),
-					// testCheckAzureRMStorageContainerAccessType(&c, updateconfig),
-					resource.TestCheckResourceAttr(resourceName, "container_access_type", updateconfig),
+					resource.TestCheckResourceAttr(resourceName, "container_access_type", at2),
 				),
 			},
 			{
@@ -182,15 +180,6 @@ func testCheckAzureRMStorageContainerExists(name string, c *storage.Container) r
 
 		return nil
 	}
-}
-
-func testCheckAzureRMStorageContainerAccessType(c *storage.Container, accessType string) resource.TestCheckFunc {
-    return func(s *terraform.State) error {
-        if *c.container_access_type != accessType {
-            return fmt.Errorf("bad access type, expected \"%s\", got: %#v", accessType, *c.container_access_type)
-        }
-        return nil
-    }
 }
 
 func testAccARMStorageContainerDisappears(name string, c *storage.Container) resource.TestCheckFunc {
