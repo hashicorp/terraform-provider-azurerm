@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_subnet"
-sidebar_current: "docs-azurerm-resource-network-subnet"
+sidebar_current: "docs-azurerm-resource-network-subnet-x"
 description: |-
   Manages a subnet. Subnets represent network segments within the IP space defined by the virtual network.
 
@@ -50,9 +50,13 @@ The following arguments are supported:
 
 * `address_prefix` - (Required) The address prefix to use for the subnet.
 
-* `network_security_group_id` - (Optional) The ID of the Network Security Group to associate with the subnet.
+* `network_security_group_id` - (Optional / **Deprecated**) The ID of the Network Security Group to associate with the subnet.
 
-* `route_table_id` - (Optional) The ID of the Route Table to associate with the subnet.
+-> **NOTE:** At this time Subnet <-> Network Security Group associations need to be configured both using this field (which is now Deprecated) and/or using the `azurerm_subnet_network_security_group_association` resource. This field field is deprecated and will be removed in favour of that resource in the next major version (2.0) of the AzureRM Provider.
+
+* `route_table_id` - (Optional / **Deprecated**) The ID of the Route Table to associate with the subnet.
+
+-> **NOTE:** At this time Subnet <-> Route Table associations need to be configured both using this field (which is now Deprecated) and/or using the `azurerm_subnet_route_table_association` resource. This field is deprecated and will be removed in favour of that resource in the next major version (2.0) of the AzureRM Provider.
 
 * `service_endpoints` - (Optional) The list of Service endpoints to associate with the subnet. Possible values include: `Microsoft.Storage`, `Microsoft.Sql`.
 

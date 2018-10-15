@@ -20,6 +20,11 @@ func dataSourceArmPublicIP() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 
+			"ip_version": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"domain_name_label": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -71,6 +76,10 @@ func dataSourceArmPublicIPRead(d *schema.ResourceData, meta interface{}) error {
 			if v := dnsSettings.DomainNameLabel; v != nil && *v != "" {
 				d.Set("domain_name_label", v)
 			}
+		}
+
+		if ipVersion := props.PublicIPAddressVersion; string(ipVersion) != "" {
+			d.Set("ip_version", string(ipVersion))
 		}
 
 		if v := props.IPAddress; v != nil && *v != "" {

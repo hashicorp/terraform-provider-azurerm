@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_search_service
 
-Allows you to manage an Azure Search Service
+Allows you to manage an Azure Search Service.
 
 ## Example Usage
 
