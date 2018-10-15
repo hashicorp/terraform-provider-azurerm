@@ -216,6 +216,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_metric_alertrule":                          resourceArmMetricAlertRule(),
 			"azurerm_monitor_action_group":                      resourceArmMonitorActionGroup(),
 			"azurerm_monitor_activity_log_alert":                resourceArmMonitorActivityLogAlert(),
+			"azurerm_monitor_metric_alert":                      resourceArmMonitorMetricAlert(),
 			"azurerm_mysql_configuration":                       resourceArmMySQLConfiguration(),
 			"azurerm_mysql_database":                            resourceArmMySqlDatabase(),
 			"azurerm_mysql_firewall_rule":                       resourceArmMySqlFirewallRule(),
