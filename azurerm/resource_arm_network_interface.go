@@ -110,9 +110,10 @@ func resourceArmNetworkInterface() *schema.Resource {
 						},
 
 						"load_balancer_backend_address_pools_ids": {
-							Type:     schema.TypeSet,
-							Optional: true,
-							Computed: true,
+							Type:       schema.TypeSet,
+							Optional:   true,
+							Computed:   true,
+							Deprecated: "This field has been deprecated in favour of the `azurerm_network_interface_backend_address_pool_association` resource.",
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
 								ValidateFunc: azure.ValidateResourceID,
@@ -121,9 +122,10 @@ func resourceArmNetworkInterface() *schema.Resource {
 						},
 
 						"load_balancer_inbound_nat_rules_ids": {
-							Type:     schema.TypeSet,
-							Optional: true,
-							Computed: true,
+							Type:       schema.TypeSet,
+							Optional:   true,
+							Computed:   true,
+							Deprecated: "This field has been deprecated in favour of the `azurerm_network_interface_nat_rule_association` resource.",
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
 								ValidateFunc: azure.ValidateResourceID,
