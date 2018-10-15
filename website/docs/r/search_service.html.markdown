@@ -54,9 +54,9 @@ The following attributes are exported:
 
 * `id` - The Search Service ID.
 
-* `primary_key` - The Search Service primary key.
+* `primary_key` - The Search Service Administration primary key.
 
-* `secondary_key` - The Search Service secondary key.
+* `secondary_key` - The Search Service Administration secondary key.
 
 ## Import
 
