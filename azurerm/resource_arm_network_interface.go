@@ -14,6 +14,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+var networkInterfaceResourceName = "azurerm_network_interface"
+
 func resourceArmNetworkInterface() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmNetworkInterfaceCreateUpdate,
@@ -241,6 +243,9 @@ func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interf
 		EnableAcceleratedNetworking: &enableAcceleratedNetworking,
 	}
 
+	azureRMLockByName(name, networkInterfaceResourceName)
+	defer azureRMUnlockByName(name, networkInterfaceResourceName)
+
 	if v, ok := d.GetOk("network_security_group_id"); ok {
 		nsgId := v.(string)
 		properties.NetworkSecurityGroup = &network.SecurityGroup{
@@ -429,6 +434,9 @@ func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{})
 	}
 	resGroup := id.ResourceGroup
 	name := id.Path["networkInterfaces"]
+
+	azureRMLockByName(name, networkInterfaceResourceName)
+	defer azureRMUnlockByName(name, networkInterfaceResourceName)
 
 	if v, ok := d.GetOk("network_security_group_id"); ok {
 		networkSecurityGroupId := v.(string)

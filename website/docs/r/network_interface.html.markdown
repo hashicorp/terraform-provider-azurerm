@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_interface"
-sidebar_current: "docs-azurerm-resource-network-interface"
+sidebar_current: "docs-azurerm-resource-network-interface-x"
 description: |-
   Manages a Network Interface located in a Virtual Network, usually attached to a Virtual Machine.
 
