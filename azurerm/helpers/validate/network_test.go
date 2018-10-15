@@ -5,6 +5,57 @@ import (
 	"testing"
 )
 
+func TestIPv6Address(t *testing.T) {
+	cases := []struct {
+		IP     string
+		Errors int
+	}{
+		{
+			IP:     "",
+			Errors: 1,
+		},
+		{
+			IP:     "0.0.0.0",
+			Errors: 0,
+		},
+		{
+			IP:     "not:a:real:address:1:2:3:4",
+			Errors: 1,
+		},
+		{
+			IP:     "text",
+			Errors: 1,
+		},
+		{
+			IP:     "::",
+			Errors: 0,
+		},
+		{
+			IP:     "0:0:0:0:0:0:0:0",
+			Errors: 0,
+		},
+		{
+			IP:     "2001:0db8:85a3:0:0:8a2e:0370:7334",
+			Errors: 0,
+		},
+		{
+			IP:     "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
+			Errors: 0,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.IP, func(t *testing.T) {
+			_, errors := IPv6Address(tc.IP, "test")
+
+			if len(errors) != tc.Errors {
+				t.Fatalf("Expected IPv6Address to return %d error(s) not %d", tc.Errors, len(errors))
+			}
+		})
+	}
+
+}
+
 func TestIPv4Address(t *testing.T) {
 	cases := []struct {
 		IP     string

@@ -23,8 +23,7 @@ resource "azurerm_route_table" "test" {
   name                = "acceptanceTestSecurityGroup1"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-
-disable_bgp_route_propagation = false
+  disable_bgp_route_propagation = false
 
   route {
     name           = "route1"

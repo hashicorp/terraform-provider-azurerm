@@ -2,10 +2,11 @@ package azurerm
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"log"
 	"regexp"
 	"strings"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -57,6 +58,18 @@ func resourceArmPublicIp() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.Static),
 					string(network.Dynamic),
+				}, true),
+			},
+
+			"ip_version": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				Default:          string(network.IPv4),
+				ForceNew:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.IPv4),
+					string(network.IPv6),
 				}, true),
 			},
 
@@ -122,6 +135,13 @@ func resourceArmPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
 
 	idleTimeout := d.Get("idle_timeout_in_minutes").(int)
 	ipAllocationMethod := network.IPAllocationMethod(d.Get("public_ip_address_allocation").(string))
+	ipVersion := network.IPVersion(d.Get("ip_version").(string))
+
+	if strings.EqualFold(string(ipVersion), string(network.IPv6)) {
+		if strings.EqualFold(string(ipAllocationMethod), "static") {
+			return fmt.Errorf("Cannot specify publicIpAllocationMethod as Static for IPv6 PublicIp")
+		}
+	}
 
 	if strings.ToLower(string(sku.Name)) == "standard" {
 		if strings.ToLower(string(ipAllocationMethod)) != "static" {
@@ -135,6 +155,7 @@ func resourceArmPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
 		Sku:      &sku,
 		PublicIPAddressPropertiesFormat: &network.PublicIPAddressPropertiesFormat{
 			PublicIPAllocationMethod: ipAllocationMethod,
+			PublicIPAddressVersion:   ipVersion,
 			IdleTimeoutInMinutes:     utils.Int32(int32(idleTimeout)),
 		},
 		Tags:  expandTags(tags),
@@ -218,6 +239,7 @@ func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
 
 	if props := resp.PublicIPAddressPropertiesFormat; props != nil {
 		d.Set("public_ip_address_allocation", strings.ToLower(string(props.PublicIPAllocationMethod)))
+		d.Set("ip_version", strings.ToLower(string(props.PublicIPAddressVersion)))
 
 		if settings := props.DNSSettings; settings != nil {
 			d.Set("fqdn", settings.Fqdn)
