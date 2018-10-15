@@ -58,8 +58,6 @@ func resourceArmSearchService() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"tags": tagsForceNewSchema(),
-
 			"primary_key": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -69,6 +67,8 @@ func resourceArmSearchService() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"tags": tagsForceNewSchema(),
 		},
 	}
 }
@@ -162,13 +162,8 @@ func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) erro
 	adminKeysClient := meta.(*ArmClient).searchAdminKeysClient
 	adminKeysResp, err := adminKeysClient.Get(ctx, resourceGroup, name, nil)
 	if err == nil {
-		if primaryKey := adminKeysResp.PrimaryKey; primaryKey != nil {
-			d.Set("primary_key", primaryKey)
-		}
-
-		if secondaryKey := adminKeysResp.SecondaryKey; secondaryKey != nil {
-			d.Set("secondary_key", secondaryKey)
-		}
+		d.Set("primary_key", adminKeysResp.PrimaryKey)
+		d.Set("secondary_key", adminKeysResp.SecondaryKey)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
