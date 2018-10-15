@@ -470,7 +470,6 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerComputeClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerContainerInstanceClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerContainerRegistryClients(endpoint, c.SubscriptionID, auth, sender)
-	client.registerContainerRegistryReplicationsClient(endpoint, c.SubscriptionID, auth, sender)
 	client.registerContainerServicesClients(endpoint, c.SubscriptionID, auth)
 	client.registerCosmosDBClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDatabricksClients(endpoint, c.SubscriptionID, auth, sender)
@@ -643,12 +642,12 @@ func (c *ArmClient) registerContainerInstanceClients(endpoint, subscriptionId st
 }
 
 func (c *ArmClient) registerContainerRegistryClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	// container registry client
 	crc := containerregistry.NewRegistriesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&crc.Client, auth)
 	c.containerRegistryClient = crc
-}
 
-func (c *ArmClient) registerContainerRegistryReplicationsClient(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	// container registry replicalication client
 	crrc := containerregistry.NewReplicationsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&crrc.Client, auth)
 	c.containerRegistryReplicationsClient = crrc

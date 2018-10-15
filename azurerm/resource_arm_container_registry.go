@@ -58,8 +58,10 @@ func resourceArmContainerRegistry() *schema.Resource {
 			},
 
 			"georeplication_locations": {
-				Type:     schema.TypeList,
-				Optional: true,
+				Type:             schema.TypeList,
+				Optional:         true,
+				StateFunc:        azureRMNormalizeLocation,
+				DiffSuppressFunc: azureRMSuppressLocationDiff,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -152,7 +154,7 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 	}
 
 	// if locations have been specified for geo-replication then, the SKU has to be Premium
-	if len(geoReplicationLocations) > 0 && strings.ToLower(sku) != strings.ToLower(string(containerregistry.Premium)) {
+	if len(geoReplicationLocations) > 0 && !strings.EqualFold(sku, string(containerregistry.Premium)) {
 		return fmt.Errorf("ACR geo-replication can only be applied when using the Premium Sku.")
 	}
 
@@ -217,7 +219,7 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 	}
 
 	if v, ok := d.GetOk("storage_account_id"); ok {
-		if strings.ToLower(sku) != strings.ToLower(string(containerregistry.Classic)) {
+		if !strings.EqualFold(sku, string(containerregistry.Classic)) {
 			return fmt.Errorf("`storage_account_id` can only be specified for a Classic (unmanaged) Sku.")
 		}
 
@@ -225,18 +227,18 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 			ID: utils.String(v.(string)),
 		}
 	} else {
-		if strings.ToLower(sku) == strings.ToLower(string(containerregistry.Classic)) {
+		if strings.EqualFold(sku, string(containerregistry.Classic)) {
 			return fmt.Errorf("`storage_account_id` must be specified for a Classic (unmanaged) Sku.")
 		}
 	}
 
 	// geo replication is only supported by Premium Sku
-	if len(newGeoReplicationLocations) > 0 && strings.ToLower(sku) != strings.ToLower(string(containerregistry.Premium)) {
+	if len(newGeoReplicationLocations) > 0 && !strings.EqualFold(sku, string(containerregistry.Premium)) {
 		return fmt.Errorf("ACR geo-replication can only be applied when using the Premium Sku.")
 	}
 
 	// if the registry had replications and is updated to another Sku than premium - remove old locations
-	if strings.ToLower(sku) != strings.ToLower(string(containerregistry.Premium)) && len(oldGeoReplicationLocations) > 0 {
+	if !strings.EqualFold(sku, string(containerregistry.Premium)) && len(oldGeoReplicationLocations) > 0 {
 		err := applyGeoReplicationLocations(meta, resourceGroup, name, oldGeoReplicationLocations, newGeoReplicationLocations)
 		if err != nil {
 			return fmt.Errorf("Error applying geo replications for Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -253,7 +255,7 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error waiting for update of Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if strings.ToLower(sku) == strings.ToLower(string(containerregistry.Premium)) {
+	if strings.EqualFold(sku, string(containerregistry.Premium)) {
 		err = applyGeoReplicationLocations(meta, resourceGroup, name, oldGeoReplicationLocations, newGeoReplicationLocations)
 		if err != nil {
 			return fmt.Errorf("Error applying geo replications for Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
