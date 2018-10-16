@@ -178,10 +178,6 @@ func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{})
 		if props.TargetContainerHostResourceID != nil {
 			d.Set("target_container_host_resource_id", props.TargetContainerHostResourceID)
 		}
-
-		if props.TargetContainerHostCredentialsBase64 != nil {
-			d.Set("target_container_host_credentials_base64", props.TargetContainerHostCredentialsBase64)
-		}
 	}
 
 	flattenAndSetTags(d, result.Tags)
