@@ -110,9 +110,7 @@ func resourceArmUserAssignedIdentityRead(d *schema.ResourceData, meta interface{
 		if principalId := props.PrincipalID; principalId != nil {
 			d.Set("principal_id", principalId.String())
 		}
-	}
 
-	if props := resp.IdentityProperties; props != nil {
 		if clientId := props.ClientID; clientId != nil {
 			d.Set("client_id", clientId.String())
 		}

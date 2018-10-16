@@ -28,12 +28,6 @@ func TestAccAzureRMUserAssignedIdentity_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMUserAssignedIdentityExists(resourceName),
 					resource.TestMatchResourceAttr(resourceName, "principal_id", regexp.MustCompile(generatedUuidRegex)),
-				),
-			},
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMUserAssignedIdentityExists(resourceName),
 					resource.TestMatchResourceAttr(resourceName, "client_id", regexp.MustCompile(generatedUuidRegex)),
 				),
 			},
