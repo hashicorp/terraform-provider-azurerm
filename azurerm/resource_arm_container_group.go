@@ -147,11 +147,12 @@ func resourceArmContainerGroup() *schema.Resource {
 						},
 
 						"port": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							ForceNew:     true,
-							Deprecated:   "Use `ports` instead.",
-							ValidateFunc: validate.PortNumber,
+							Type:          schema.TypeInt,
+							Optional:      true,
+							ForceNew:      true,
+							ConflictsWith: []string{"ports"},
+							Deprecated:    "Use `ports` instead.",
+							ValidateFunc:  validate.PortNumber,
 						},
 
 						"ports": {
@@ -186,6 +187,7 @@ func resourceArmContainerGroup() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							ForceNew:         true,
+							ConflictsWith:    []string{"ports"},
 							Deprecated:       "Use `ports` instead.",
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc: validation.StringInSlice([]string{
