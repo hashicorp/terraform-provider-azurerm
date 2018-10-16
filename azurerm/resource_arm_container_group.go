@@ -154,12 +154,30 @@ func resourceArmContainerGroup() *schema.Resource {
 						},
 
 						"ports": {
-							Type:     schema.TypeList,
-							Optional: true,
-							ForceNew: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeInt,
-								ValidateFunc: validation.IntBetween(1, 65535),
+							Type:          schema.TypeList,
+							Optional:      true,
+							ForceNew:      true,
+							ConflictsWith: []string{"port", "protocol"},
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"protocol": {
+										Type:             schema.TypeString,
+										Optional:         true,
+										ForceNew:         true,
+										DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+										Default:          string("TCP"),
+										ValidateFunc: validation.StringInSlice([]string{
+											"tcp",
+											"udp",
+										}, true),
+									},
+									"port": {
+										Type:         schema.TypeInt,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validation.IntBetween(1, 65535),
+									},
+								},
 							},
 						},
 
@@ -167,6 +185,7 @@ func resourceArmContainerGroup() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							ForceNew:         true,
+							Deprecated:       "Use `ports` instead.",
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc: validation.StringInSlice([]string{
 								"tcp",
@@ -579,9 +598,14 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 			p := v.([]interface{})
 			var ports []containerinstance.ContainerPort
 			for _, v := range p {
-				port := int32(v.(int))
+				portObj := v.(map[string]interface{})
+				portI := portObj["port"]
+				port := int32(portI.(int))
+				protoI := portObj["protocol"]
+				proto := protoI.(string)
 				ports = append(ports, containerinstance.ContainerPort{
-					Port: &port,
+					Protocol: containerinstance.ContainerNetworkProtocol(strings.ToUpper(proto)),
+					Port:     &port,
 				})
 			}
 			container.Ports = &ports

@@ -9,7 +9,11 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+
+	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-04-01/containerinstance"
 )
+
+var emptyCheck = func(cg containerinstance.ContainerGroup) error { return nil }
 
 func TestAccAzureRMContainerGroup_imageRegistryCredentials(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
@@ -25,7 +29,7 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentials(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists(resourceName),
+					testCheckAzureRMContainerGroupExists(resourceName, emptyCheck),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.0.server", "hub.docker.com"),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.0.username", "yourusername"),
@@ -63,7 +67,7 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists(resourceName),
+					testCheckAzureRMContainerGroupExists(resourceName, emptyCheck),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.0.server", "hub.docker.com"),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.0.username", "yourusername"),
@@ -71,16 +75,38 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.1.server", "mine.acr.io"),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.1.username", "acrusername"),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.1.password", "acrpassword"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.port", "5443"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.protocol", "UDP"),
 				),
 			},
 			{
 				Config: updated,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists(resourceName),
+					testCheckAzureRMContainerGroupExists(resourceName, func(cg containerinstance.ContainerGroup) error {
+						if cg.Containers == nil || len(*cg.Containers) != 1 {
+							return fmt.Errorf("unexpected number of containers created")
+						}
+						containers := *cg.Containers
+						if containers[0].Ports == nil || len(*containers[0].Ports) != 1 {
+							return fmt.Errorf("unexpected number of ports created")
+						}
+						ports := *containers[0].Ports
+						if *ports[0].Port != 80 {
+							return fmt.Errorf("expected port to be 80, instead got %d", ports[0].Port)
+						}
+						if string(ports[0].Protocol) != "TCP" {
+							return fmt.Errorf("expected port to be TCP, instead got %s", string(ports[0].Protocol))
+						}
+						return nil
+					}),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.0.server", "hub.docker.com"),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.0.username", "updatedusername"),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.0.password", "updatedpassword"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.port", "81"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.ports.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.ports.0.port", "80"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.ports.0.protocol", "TCP"),
 				),
 			},
 		},
@@ -101,9 +127,26 @@ func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists(resourceName),
+					testCheckAzureRMContainerGroupExists(resourceName, func(cg containerinstance.ContainerGroup) error {
+						if cg.Containers == nil || len(*cg.Containers) != 1 {
+							return fmt.Errorf("unexpected number of containers created")
+						}
+						containers := *cg.Containers
+						if containers[0].Ports == nil || len(*containers[0].Ports) != 1 {
+							return fmt.Errorf("unexpected number of ports created")
+						}
+						ports := *containers[0].Ports
+						if *ports[0].Port != 80 {
+							return fmt.Errorf("expected port to be 80, instead got %d", ports[0].Port)
+						}
+						if string(ports[0].Protocol) != "TCP" {
+							return fmt.Errorf("expected port to be TCP, instead got %s", string(ports[0].Protocol))
+						}
+						return nil
+					}),
 					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Linux"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.port", "80"),
 				),
 			},
 			{
@@ -134,15 +177,42 @@ func TestAccAzureRMContainerGroup_linuxBasicUpdate(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists(resourceName),
+					testCheckAzureRMContainerGroupExists(resourceName, emptyCheck),
 					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
 				),
 			},
 			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists(resourceName),
+					testCheckAzureRMContainerGroupExists(resourceName, func(cg containerinstance.ContainerGroup) error {
+						if cg.Containers == nil || len(*cg.Containers) != 1 {
+							return fmt.Errorf("unexpected number of containers created")
+						}
+						containers := *cg.Containers
+						if containers[0].Ports == nil || len(*containers[0].Ports) != 2 {
+							return fmt.Errorf("unexpected number of ports created")
+						}
+						ports := *containers[0].Ports
+						if *ports[0].Port != 80 {
+							return fmt.Errorf("expected port to be 80, instead got %d", ports[0].Port)
+						}
+						if string(ports[0].Protocol) != "TCP" {
+							return fmt.Errorf("expected port to be TCP, instead got %s", string(ports[0].Protocol))
+						}
+						if *ports[1].Port != 5443 {
+							return fmt.Errorf("expected port to be 80, instead got %d", ports[0].Port)
+						}
+						if string(ports[1].Protocol) != "UDP" {
+							return fmt.Errorf("expected port to be UDP, instead got %s", string(ports[0].Protocol))
+						}
+						return nil
+					}),
 					resource.TestCheckResourceAttr(resourceName, "container.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.ports.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.ports.0.port", "80"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.ports.0.protocol", "TCP"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.ports.1.port", "5443"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.ports.1.protocol", "UDP"),
 				),
 			},
 		},
@@ -163,8 +233,28 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists(resourceName),
+					testCheckAzureRMContainerGroupExists(resourceName, func(cg containerinstance.ContainerGroup) error {
+						if cg.Containers == nil || len(*cg.Containers) != 1 {
+							return fmt.Errorf("unexpected number of containers created")
+						}
+						containers := *cg.Containers
+						if containers[0].Ports == nil || len(*containers[0].Ports) != 1 {
+							return fmt.Errorf("unexpected number of ports created")
+						}
+						ports := *containers[0].Ports
+						if *ports[0].Port != 80 {
+							return fmt.Errorf("expected port to be 80, instead got %d", ports[0].Port)
+						}
+						if string(ports[0].Protocol) != "TCP" {
+							return fmt.Errorf("expected port to be TCP, instead got %s", string(ports[0].Protocol))
+						}
+						return nil
+					}),
 					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.protocol", "UDP"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.ports.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.ports.port", "80"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.ports.protocol", "TCP"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.command", "/bin/bash -c ls"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.commands.#", "3"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.commands.0", "/bin/bash"),
@@ -207,9 +297,36 @@ func TestAccAzureRMContainerGroup_windowsBasic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists(resourceName),
+					testCheckAzureRMContainerGroupExists(resourceName, func(cg containerinstance.ContainerGroup) error {
+						if cg.Containers == nil || len(*cg.Containers) != 1 {
+							return fmt.Errorf("unexpected number of containers created")
+						}
+						containers := *cg.Containers
+						if containers[0].Ports == nil || len(*containers[0].Ports) != 2 {
+							return fmt.Errorf("unexpected number of ports created")
+						}
+						ports := *containers[0].Ports
+						if *ports[0].Port != 80 {
+							return fmt.Errorf("expected port to be 80, instead got %d", ports[0].Port)
+						}
+						if string(ports[0].Protocol) != "TCP" {
+							return fmt.Errorf("expected port to be TCP, instead got %s", string(ports[0].Protocol))
+						}
+						if *ports[1].Port != 443 {
+							return fmt.Errorf("expected port to be 80, instead got %d", ports[0].Port)
+						}
+						if string(ports[1].Protocol) != "TCP" {
+							return fmt.Errorf("expected port to be TCP, instead got %s", string(ports[0].Protocol))
+						}
+						return nil
+					}),
 					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Windows"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.ports.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.ports.0.port", "80"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.ports.0.protocol", "TCP"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.ports.0.port", "443"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.ports.0.protocol", "TCP"),
 				),
 			},
 			{
@@ -235,8 +352,28 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists(resourceName),
+					testCheckAzureRMContainerGroupExists(resourceName, func(cg containerinstance.ContainerGroup) error {
+						if cg.Containers == nil || len(*cg.Containers) != 1 {
+							return fmt.Errorf("unexpected number of containers created")
+						}
+						containers := *cg.Containers
+						if containers[0].Ports == nil || len(*containers[0].Ports) != 1 {
+							return fmt.Errorf("unexpected number of ports created")
+						}
+						ports := *containers[0].Ports
+						if *ports[0].Port != 80 {
+							return fmt.Errorf("expected port to be 80, instead got %d", ports[0].Port)
+						}
+						if string(ports[0].Protocol) != "TCP" {
+							return fmt.Errorf("expected port to be TCP, instead got %s", string(ports[0].Protocol))
+						}
+						return nil
+					}),
 					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.protocol", "TCP"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.ports.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.ports.0.port", "80"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.ports.0.protocol", "TCP"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.command", "cmd.exe echo hi"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.commands.#", "3"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.commands.0", "cmd.exe"),
@@ -277,7 +414,7 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    ports  = ["80"]
+    port   = 80
   }
 
   tags {
@@ -302,11 +439,12 @@ resource "azurerm_container_group" "test" {
   os_type             = "linux"
 
   container {
-    name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
-    cpu    = "0.5"
-    memory = "0.5"
-    ports  = ["80"]
+    name     = "hw"
+    image    = "microsoft/aci-helloworld:latest"
+    cpu      = "0.5"
+    memory   = "0.5"
+    port     = 5443
+    protocol = "udp"
   }
   
   image_registry_credential {
@@ -354,7 +492,10 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    ports  = ["80"]
+    port   = 81
+    ports  = {
+      port = 80
+    }
   }
   
   image_registry_credential {
@@ -396,7 +537,13 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    ports  = ["80"]
+    ports  = {
+      port     = 80
+    }
+    ports  = {
+      port     = 5443
+      protocol = "udp"
+    }
   }
 
   container {
@@ -432,7 +579,14 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/windowsservercore:latest"
     cpu    = "2.0"
     memory = "3.5"
-    ports  = ["80"]
+    ports  = {
+      port     = 80
+      protocol = "tcp"
+    }
+    ports  = {
+      port     = 443
+      protocol = "tcp"
+    }
   }
 
   tags {
@@ -463,13 +617,17 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/windowsservercore:latest"
     cpu    = "2.0"
     memory = "3.5"
-    ports  = ["80"]
+    ports  = {
+      port     = 80
+      protocol = "tcp"
+    }
+    protocol = "TCP"
 
-	environment_variables {
-		"foo"  = "bar"
-		"foo1" = "bar1"
-	}
-	commands = ["cmd.exe", "echo", "hi"]
+    environment_variables {
+      "foo"  = "bar"
+      "foo1" = "bar1"
+    }
+    commands = ["cmd.exe", "echo", "hi"]
   }
 
   tags {
@@ -482,71 +640,75 @@ resource "azurerm_container_group" "test" {
 func testAccAzureRMContainerGroup_linuxComplete(ri int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
-	name                     = "accsa%d"
-	resource_group_name      = "${azurerm_resource_group.test.name}"
-	location                 = "${azurerm_resource_group.test.location}"
-	account_tier             = "Standard"
-	account_replication_type = "LRS"
+  name                     = "accsa%d"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_share" "test" {
-	name = "acctestss-%d"
+  name = "acctestss-%d"
 
-	resource_group_name  = "${azurerm_resource_group.test.name}"
-	storage_account_name = "${azurerm_storage_account.test.name}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.test.name}"
 
-	quota = 50
+  quota = 50
 }
 
 resource "azurerm_container_group" "test" {
-	name                = "acctestcontainergroup-%d"
-	location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	ip_address_type     = "public"
-	dns_name_label      = "acctestcontainergroup-%d"
-	os_type             = "linux"
-	restart_policy      = "OnFailure"
+  name                = "acctestcontainergroup-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  ip_address_type     = "public"
+  dns_name_label      = "acctestcontainergroup-%d"
+  os_type             = "linux"
+  restart_policy      = "OnFailure"
 
-	container {
-		name   = "hf"
-		image  = "seanmckenna/aci-hellofiles"
-		cpu    = "1"
-		memory = "1.5"
+  container {
+    name   = "hf"
+    image  = "seanmckenna/aci-hellofiles"
+    cpu    = "1"
+    memory = "1.5"
 
-		ports    = ["80"]
-		protocol = "TCP"
+    ports  = {
+      port     = 80
+      protocol = "tcp"
+    }
 
-		volume {
-			name       = "logs"
-			mount_path = "/aci/logs"
-			read_only  = false
-			share_name = "${azurerm_storage_share.test.name}"
+    protocol = "UDP"
 
-			storage_account_name = "${azurerm_storage_account.test.name}"
-			storage_account_key = "${azurerm_storage_account.test.primary_access_key}"
-		}
+    volume {
+      name       = "logs"
+      mount_path = "/aci/logs"
+      read_only  = false
+      share_name = "${azurerm_storage_share.test.name}"
 
-		environment_variables {
-			"foo" = "bar"
-			"foo1" = "bar1"
-		}
+      storage_account_name = "${azurerm_storage_account.test.name}"
+      storage_account_key = "${azurerm_storage_account.test.primary_access_key}"
+    }
 
-		commands = ["/bin/bash", "-c", "ls"]
-	}
+    environment_variables {
+      "foo" = "bar"
+      "foo1" = "bar1"
+    }
 
-	tags {
-		environment = "Testing"
-	}
+    commands = ["/bin/bash", "-c", "ls"]
+  }
+
+  tags {
+    environment = "Testing"
+  }
 }
 `, ri, location, ri, ri, ri, ri)
 }
 
-func testCheckAzureRMContainerGroupExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMContainerGroupExists(name string, checkResp func(containerinstance.ContainerGroup) error) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
@@ -570,8 +732,7 @@ func testCheckAzureRMContainerGroupExists(name string) resource.TestCheckFunc {
 			}
 			return fmt.Errorf("Bad: Get on containerGroupsClient: %+v", err)
 		}
-
-		return nil
+		return checkResp(resp)
 	}
 }
 
