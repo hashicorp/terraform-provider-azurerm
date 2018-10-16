@@ -40,6 +40,7 @@ IMPROVEMENTS:
 * `azurerm_public_ip` - support for IPv6 addresses [GH-2019]
 * `azurerm_search_service` - adding the administrative `primary_key` and `secondary_key` propeties [GH-2074]
 * `azurerm_storage_container` - changing `container_access_type` no longer forces a new resource [GH-2075]
+* `azurerm_user_assigned_identity` - now exports the `client_id` property [GH-2078]
 
 ## 1.16.0 (October 01, 2018)
 
