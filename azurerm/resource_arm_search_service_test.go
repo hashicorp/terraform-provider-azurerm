@@ -47,6 +47,8 @@ func TestAccAzureRMSearchService_complete(t *testing.T) {
 					testCheckAzureRMSearchServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "replica_count", "2"),
+					resource.TestCheckResourceAttrSet(resourceName, "primary_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "secondary_key"),
 				),
 			},
 		},
