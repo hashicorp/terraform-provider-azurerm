@@ -34,11 +34,11 @@ func resourceArmContainerGroup() *schema.Resource {
 			"ip_address_type": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				Default:          "Public",
+				Default:          "public",
 				ForceNew:         true,
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				ValidateFunc: validation.StringInSlice([]string{
-					"Public",
+					"public",
 				}, true),
 			},
 
@@ -166,20 +166,17 @@ func resourceArmContainerGroup() *schema.Resource {
 						"environment_variables": {
 							Type:     schema.TypeMap,
 							Optional: true,
-							ForceNew: true,
 						},
 
-						"secure_environment_variables": {
+						"sensitive_environment_variables": {
 							Type:      schema.TypeMap,
 							Optional:  true,
-							ForceNew:  true,
 							Sensitive: true,
 						},
 
 						"command": {
 							Type:       schema.TypeString,
 							Optional:   true,
-							ForceNew:   true,
 							Computed:   true,
 							Deprecated: "Use `commands` instead.",
 						},
@@ -187,7 +184,6 @@ func resourceArmContainerGroup() *schema.Resource {
 						"commands": {
 							Type:     schema.TypeList,
 							Optional: true,
-							ForceNew: true,
 							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
@@ -571,7 +567,7 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 			containerGroupPorts = append(containerGroupPorts, containerGroupPort)
 		}
 
-		// Set both secure and non-secure environment variables
+		// Set both sensitive and non-secure environment variables
 		var envVars *[]containerinstance.EnvironmentVariable
 		var secEnvVars *[]containerinstance.EnvironmentVariable
 
@@ -580,8 +576,8 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 			envVars = expandContainerEnvironmentVariables(v, false)
 		}
 
-		// Expand secure_environment_variables into slice
-		if v, ok := data["secure_environment_variables"]; ok {
+		// Expand sensitive_environment_variables into slice
+		if v, ok := data["sensitive_environment_variables"]; ok {
 			secEnvVars = expandContainerEnvironmentVariables(v, true)
 		}
 
