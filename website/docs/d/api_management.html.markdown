@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management"
 sidebar_current: "docs-azurerm-datasource-api-management"
 description: |-
-  Gets information about the specified API Management Service.
+  Gets information about an existing API Management Service.
 ---
 
 # Data Source: azurerm_api_management
 
-Gets information about the specified API Management Service.
+Use this data source to access information about an existing API Management Service.
 
 ## Example Usage
 

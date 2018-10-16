@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_builtin_role_definition"
 sidebar_current: "docs-azurerm-datasource-builtin-role-definition"
 description: |-
-  Get information about a built-in Role Definition.
+  Get information about an existing built-in Role Definition.
 ---
 
 # Data Source: azurerm_builtin_role_definition
 
-Use this data source to access the properties of a built-in Role Definition. To access information about a custom Role Definition, [please see the `azurerm_role_definition` data source](role_definition.html) instead.
+Use this data source to access information about a built-in Role Definition. To access information about a custom Role Definition, [please see the `azurerm_role_definition` data source](role_definition.html) instead.
 
 ## Example Usage
 

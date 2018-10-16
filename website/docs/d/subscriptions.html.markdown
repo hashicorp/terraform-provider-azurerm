@@ -8,7 +8,7 @@ description: |-
 
 # Data Source: azurerm_subscriptions
 
-Use this data source to access a list of all Azure subscriptions currently available.
+Use this data source to access information about all the Subscriptions currently available.
 
 ## Example Usage
 

@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_public_ips"
 sidebar_current: "docs-azurerm-datasource-public-ips"
 description: |-
-  Provides a list of public IP addresses.
+  Gets information about a set of existing Public IP Addresses.
 ---
 
 # Data Source: azurerm_public_ips
 
-Use this data source to access a filtered list of Public IP Addresses
+Use this data source to access information about a set of existing Public IP Addresses.
 
 ## Example Usage
 

@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_security_group"
 sidebar_current: "docs-azurerm-datasource-network-security-group"
 description: |-
-  Get information about the specified Network Security Group.
+  Gets information about an existing Network Security Group.
 ---
 
 # Data Source: azurerm_network_security_group
 
-Use this data source to access the properties of a Network Security Group.
+Use this data source to access information about an existing Network Security Group.
 
 ## Example Usage
 

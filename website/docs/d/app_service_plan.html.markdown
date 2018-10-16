@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_plan"
 sidebar_current: "docs-azurerm-datasource-app-service-plan"
 description: |-
-  Get information about an App Service Plan.
+  Gets information about an existing App Service Plan.
 ---
 
 # Data Source: azurerm_app_service_plan
 
-Use this data source to obtain information about an App Service Plan (formerly known as a `Server Farm`).
+Use this data source to access information about an existing App Service Plan (formerly known as a `Server Farm`).
 
 ## Example Usage
 

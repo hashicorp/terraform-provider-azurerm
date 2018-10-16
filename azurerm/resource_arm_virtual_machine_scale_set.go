@@ -407,7 +407,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 
 									"primary": {
 										Type:     schema.TypeBool,
-										Optional: true,
+										Required: true,
 									},
 
 									"public_ip_address_configuration": {
@@ -1499,6 +1499,7 @@ func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *
 		for _, ipConfigConfig := range ipConfigurationConfigs {
 			ipconfig := ipConfigConfig.(map[string]interface{})
 			name := ipconfig["name"].(string)
+			primary := ipconfig["primary"].(bool)
 			subnetId := ipconfig["subnet_id"].(string)
 
 			ipConfiguration := compute.VirtualMachineScaleSetIPConfiguration{
@@ -1509,6 +1510,8 @@ func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *
 					},
 				},
 			}
+
+			ipConfiguration.Primary = &primary
 
 			if v := ipconfig["application_gateway_backend_address_pool_ids"]; v != nil {
 				pools := v.(*schema.Set).List()
@@ -1556,11 +1559,6 @@ func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *
 					})
 				}
 				ipConfiguration.LoadBalancerInboundNatPools = &rulesResources
-			}
-
-			if v := ipconfig["primary"]; v != nil {
-				primary := v.(bool)
-				ipConfiguration.Primary = &primary
 			}
 
 			if v := ipconfig["public_ip_address_configuration"]; v != nil {
