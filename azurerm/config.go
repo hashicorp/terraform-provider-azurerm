@@ -155,8 +155,8 @@ type ArmClient struct {
 	devTestLabsClient            dtl.LabsClient
 	devTestVirtualNetworksClient dtl.VirtualNetworksClient
 
-	// DevSpaces
-	devSpacesControllersClient devspaces.ControllersClient
+	// DevSpace
+	devSpaceControllerClient devspaces.ControllersClient
 
 	// Databases
 	mysqlConfigurationsClient                mysql.ConfigurationsClient
@@ -479,7 +479,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDeviceClients(endpoint, c.SubscriptionID, auth, sender)
-	client.registerDevSpacesClients(endpoint, c.SubscriptionID, auth)
+	client.registerDevSpaceClients(endpoint, c.SubscriptionID, auth)
 	client.registerDevTestClients(endpoint, c.SubscriptionID, auth)
 	client.registerDNSClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventGridClients(endpoint, c.SubscriptionID, auth, sender)
@@ -783,10 +783,10 @@ func (c *ArmClient) registerDevTestClients(endpoint, subscriptionId string, auth
 	c.devTestVirtualNetworksClient = devTestVirtualNetworksClient
 }
 
-func (c *ArmClient) registerDevSpacesClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+func (c *ArmClient) registerDevSpaceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	controllersClient := devspaces.NewControllersClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&controllersClient.Client, auth)
-	c.devSpacesControllersClient = controllersClient
+	c.devSpaceControllerClient = controllersClient
 }
 
 func (c *ArmClient) registerDNSClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {

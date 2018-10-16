@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform/helper/validation"
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/devspaces/mgmt/2018-06-01-preview/devspaces"
@@ -9,12 +10,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDevSpacesController() *schema.Resource {
+func resourceArmDevSpaceController() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDevSpacesControllerCreate,
-		Read:   resourceArmDevSpacesControllerRead,
-		Update: resourceArmDevSpacesControllerUpdate,
-		Delete: resourceArmDevSpacesControllerDelete,
+		Create: resourceArmDevSpaceControllerCreate,
+		Read:   resourceArmDevSpaceControllerRead,
+		Update: resourceArmDevSpaceControllerUpdate,
+		Delete: resourceArmDevSpaceControllerDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -23,6 +24,7 @@ func resourceArmDevSpacesController() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 
 			"location": locationSchema(),
@@ -31,17 +33,26 @@ func resourceArmDevSpacesController() *schema.Resource {
 
 			"sku": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
+				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string {
+								"S1",
+							}, false),
 						},
 						"tier": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string {
+								string(devspaces.Standard),
+							}, false),
 						},
 					},
 				},
@@ -49,6 +60,8 @@ func resourceArmDevSpacesController() *schema.Resource {
 
 			"host_suffix": {
 				Type: schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 
 			"data_plane_fqdn": {
@@ -59,11 +72,14 @@ func resourceArmDevSpacesController() *schema.Resource {
 			"target_container_host_resource_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 
 			"target_container_host_credentials_base64": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
+				Sensitive: true,
 			},
 
 			"tags": tagsSchema(),
@@ -71,18 +87,18 @@ func resourceArmDevSpacesController() *schema.Resource {
 	}
 }
 
-func resourceArmDevSpacesControllerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devSpacesControllersClient
+func resourceArmDevSpaceControllerCreate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).devSpaceControllerClient
 	ctx := meta.(*ArmClient).StopContext
 
-	log.Printf("[INFO] preparing arguments for DevSpaces Controller creation")
+	log.Printf("[INFO] preparing arguments for DevSpace Controller creation")
 
 	name := d.Get("name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroupName := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
-	sku := expandDevSpacesControllerSku(d)
+	sku := expandDevSpaceControllerSku(d)
 
 	hostSuffix := d.Get("host_suffix").(string)
 	tarCHResId := d.Get("target_container_host_resource_id").(string)
@@ -101,27 +117,27 @@ func resourceArmDevSpacesControllerCreate(d *schema.ResourceData, meta interface
 
 	future, err := client.Create(ctx, resGroupName, name, controller)
 	if err != nil {
-		return fmt.Errorf("Error creating DevSpaces Controller %q (Resource Group %q): %+v", name, resGroupName, err)
+		return fmt.Errorf("Error creating DevSpace Controller %q (Resource Group %q): %+v", name, resGroupName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of DevSpaces Controller %q (Resource Group %q): %+v", name, resGroupName, err)
+		return fmt.Errorf("Error waiting for creation of DevSpace Controller %q (Resource Group %q): %+v", name, resGroupName, err)
 	}
 
 	var result devspaces.Controller
 	if result, err = future.Result(client); err != nil {
-		return fmt.Errorf("Error retrieving result of DevSpaces Controller %q (Resource Group %q): %+v", name, resGroupName, err)
+		return fmt.Errorf("Error retrieving result of DevSpace Controller %q (Resource Group %q): %+v", name, resGroupName, err)
 	}
 	if result.ID == nil {
-		return fmt.Errorf("Cannot read DevSpaces Controller %q (Resource Group %q) ID", name, resGroupName)
+		return fmt.Errorf("Cannot read DevSpace Controller %q (Resource Group %q) ID", name, resGroupName)
 	}
 	d.SetId(*result.ID)
 
-	return resourceArmDevSpacesControllerRead(d, meta)
+	return resourceArmDevSpaceControllerRead(d, meta)
 }
 
-func resourceArmDevSpacesControllerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devSpacesControllersClient
+func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).devSpaceControllerClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -134,12 +150,12 @@ func resourceArmDevSpacesControllerRead(d *schema.ResourceData, meta interface{}
 	result, err := client.Get(ctx, resGroupName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(result.Response) {
-			log.Printf("[DEBUG] DevSpaces Controller %q was not found in Resource Group %q - removing from state!", name, resGroupName)
+			log.Printf("[DEBUG] DevSpace Controller %q was not found in Resource Group %q - removing from state!", name, resGroupName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on DevSpaces Controller Lab %q (Resource Group %q): %+v", name, resGroupName, err)
+		return fmt.Errorf("Error making Read request on DevSpace Controller Lab %q (Resource Group %q): %+v", name, resGroupName, err)
 	}
 
 	d.Set("name", result.Name)
@@ -148,7 +164,7 @@ func resourceArmDevSpacesControllerRead(d *schema.ResourceData, meta interface{}
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	d.Set("sku", flattenDevSpacesControllerSku(result.Sku))
+	d.Set("sku", flattenDevSpaceControllerSku(result.Sku))
 
 	if props := result.ControllerProperties; props != nil {
 		if props.HostSuffix != nil {
@@ -173,11 +189,11 @@ func resourceArmDevSpacesControllerRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceArmDevSpacesControllerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devSpacesControllersClient
+func resourceArmDevSpaceControllerUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).devSpaceControllerClient
 	ctx := meta.(*ArmClient).StopContext
 
-	log.Printf("[INFO] preparing arguments for DevSpaces Controller updating")
+	log.Printf("[INFO] preparing arguments for DevSpace Controller updating")
 
 	name := d.Get("name").(string)
 	resGroupName := d.Get("resource_group_name").(string)
@@ -189,14 +205,14 @@ func resourceArmDevSpacesControllerUpdate(d *schema.ResourceData, meta interface
 
 	_, err := client.Update(ctx, resGroupName, name, params)
 	if err != nil {
-		return fmt.Errorf("Error updating DevSpaces Controller %q (Resource Group %q): %+v", name, resGroupName, err)
+		return fmt.Errorf("Error updating DevSpace Controller %q (Resource Group %q): %+v", name, resGroupName, err)
 	}
 
 	return nil
 }
 
-func resourceArmDevSpacesControllerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devSpacesControllersClient
+func resourceArmDevSpaceControllerDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).devSpaceControllerClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -208,29 +224,29 @@ func resourceArmDevSpacesControllerDelete(d *schema.ResourceData, meta interface
 
 	future, err := client.Delete(ctx, resGroupName, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting DevSpaces Controller %q (Resource Group %q): %+v", name, resGroupName, err)
+		return fmt.Errorf("Error deleting DevSpace Controller %q (Resource Group %q): %+v", name, resGroupName, err)
 	}
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error waiting for the deletion of DevSpaces Controller %q (Resource Group %q): %+v", name, resGroupName, err)
+		return fmt.Errorf("Error waiting for the deletion of DevSpace Controller %q (Resource Group %q): %+v", name, resGroupName, err)
 	}
 
 	return nil
 }
 
-func expandDevSpacesControllerSku(d *schema.ResourceData) (sku devspaces.Sku) {
+func expandDevSpaceControllerSku(d *schema.ResourceData) (sku devspaces.Sku) {
 	skuConfigs := d.Get("sku").([]interface{})
 	skuConfig := skuConfigs[0].(map[string]interface{})
 
 	skuName := skuConfig["name"].(string)
 	sku.Name = &skuName
-	sku.Tier = skuConfig["tier"].(devspaces.SkuTier)
+	sku.Tier = (devspaces.SkuTier)(skuConfig["tier"].(string))
 
 	return
 }
 
-func flattenDevSpacesControllerSku(skuObj *devspaces.Sku) (skuConfigs []interface{}) {
+func flattenDevSpaceControllerSku(skuObj *devspaces.Sku) (skuConfigs []interface{}) {
 	if skuObj == nil {
 		return
 	}
