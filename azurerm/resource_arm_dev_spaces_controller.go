@@ -33,7 +33,7 @@ func resourceArmDevSpaceController() *schema.Resource {
 
 			"sku": {
 				Type:     schema.TypeList,
-				Optional: true,
+				Required: true,
 				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -107,7 +107,7 @@ func resourceArmDevSpaceControllerCreate(d *schema.ResourceData, meta interface{
 	controller := devspaces.Controller{
 		Location: &location,
 		Tags:     expandTags(tags),
-		Sku:      &sku,
+		Sku:      sku,
 		ControllerProperties: &devspaces.ControllerProperties{
 			HostSuffix:                           &hostSuffix,
 			TargetContainerHostResourceID:        &tarCHResId,
@@ -235,8 +235,14 @@ func resourceArmDevSpaceControllerDelete(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func expandDevSpaceControllerSku(d *schema.ResourceData) (sku devspaces.Sku) {
-	skuConfigs := d.Get("sku").([]interface{})
+func expandDevSpaceControllerSku(d *schema.ResourceData) (sku *devspaces.Sku) {
+	var skuConfigs []interface{}
+	if value, ok := d.GetOk("sku"); ok {
+		skuConfigs = value.([]interface{})
+	} else {
+		return
+	}
+
 	skuConfig := skuConfigs[0].(map[string]interface{})
 
 	skuName := skuConfig["name"].(string)
