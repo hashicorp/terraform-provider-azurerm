@@ -236,18 +236,19 @@ func resourceArmDevSpaceControllerDelete(d *schema.ResourceData, meta interface{
 }
 
 func expandDevSpaceControllerSku(d *schema.ResourceData) (sku *devspaces.Sku) {
-	var skuConfigs []interface{}
-	if value, ok := d.GetOk("sku"); ok {
-		skuConfigs = value.([]interface{})
-	} else {
+	if _, ok := d.GetOk("sku"); !ok {
 		return
 	}
 
+	skuConfigs := d.Get("sku").([]interface{})
 	skuConfig := skuConfigs[0].(map[string]interface{})
-
 	skuName := skuConfig["name"].(string)
-	sku.Name = &skuName
-	sku.Tier = (devspaces.SkuTier)(skuConfig["tier"].(string))
+	skuTier := devspaces.SkuTier(skuConfig["tier"].(string))
+
+	sku = &devspaces.Sku{
+		Name: &skuName,
+		Tier: skuTier,
+	}
 
 	return
 }
