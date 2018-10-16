@@ -60,7 +60,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
-
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
@@ -202,9 +201,11 @@ type ArmClient struct {
 	managementGroupsSubscriptionClient managementgroups.SubscriptionsClient
 
 	// Monitor
-	monitorActionGroupsClient insights.ActionGroupsClient
-	monitorAlertRulesClient   insights.AlertRulesClient
-	monitorLogProfilesClient  insights.LogProfilesClient
+	monitorActionGroupsClient      insights.ActionGroupsClient
+	monitorActivityLogAlertsClient insights.ActivityLogAlertsClient
+	monitorAlertRulesClient        insights.AlertRulesClient
+	monitorLogProfilesClient       insights.LogProfilesClient
+	monitorMetricAlertsClient      insights.MetricAlertsClient
 
 	// MSI
 	userAssignedIdentitiesClient msi.UserAssignedIdentitiesClient
@@ -256,7 +257,8 @@ type ArmClient struct {
 	schedulerJobsClient           scheduler.JobsClient
 
 	// Search
-	searchServicesClient search.ServicesClient
+	searchServicesClient  search.ServicesClient
+	searchAdminKeysClient search.AdminKeysClient
 
 	// Security Centre
 	securityCenterPricingClient   security.PricingsClient
@@ -847,6 +849,10 @@ func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth
 	c.configureClient(&agc.Client, auth)
 	c.monitorActionGroupsClient = agc
 
+	alac := insights.NewActivityLogAlertsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&alac.Client, auth)
+	c.monitorActivityLogAlertsClient = alac
+
 	arc := insights.NewAlertRulesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&arc.Client, auth)
 	c.monitorAlertRulesClient = arc
@@ -854,6 +860,10 @@ func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth
 	monitorLogProfilesClient := insights.NewLogProfilesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&monitorLogProfilesClient.Client, auth)
 	c.monitorLogProfilesClient = monitorLogProfilesClient
+
+	mac := insights.NewMetricAlertsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&mac.Client, auth)
+	c.monitorMetricAlertsClient = mac
 
 	autoscaleSettingsClient := insights.NewAutoscaleSettingsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&autoscaleSettingsClient.Client, auth)
@@ -1036,6 +1046,10 @@ func (c *ArmClient) registerSearchClients(endpoint, subscriptionId string, auth 
 	searchClient := search.NewServicesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&searchClient.Client, auth)
 	c.searchServicesClient = searchClient
+
+	searchAdminKeysClient := search.NewAdminKeysClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&searchAdminKeysClient.Client, auth)
+	c.searchAdminKeysClient = searchAdminKeysClient
 }
 
 func (c *ArmClient) registerSecurityCenterClients(endpoint, subscriptionId, ascLocation string, auth autorest.Authorizer) {
