@@ -382,8 +382,12 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 									"application_security_group_ids": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: azure.ValidateResourceID,
+										},
 										Set:      schema.HashString,
+										MaxItems: 20,
 									},
 
 									"load_balancer_backend_address_pool_ids": {

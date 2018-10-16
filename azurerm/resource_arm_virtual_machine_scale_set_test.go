@@ -88,6 +88,9 @@ func TestAccAzureRMVirtualMachineScaleSet_basicPublicIP(t *testing.T) {
 func TestAccAzureRMVirtualMachineScaleSet_basicApplicationSecurity(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
 	ri := acctest.RandInt()
+	networkProfileName := fmt.Sprintf("TestNetworkProfile-%d", ri)
+	networkProfile := map[string]interface{}{"name": networkProfileName, "primary": true}
+	networkProfileHash := fmt.Sprintf("%d", resourceArmVirtualMachineScaleSetNetworkConfigurationHash(networkProfile))
 	config := testAccAzureRMVirtualMachineScaleSet_basicApplicationSecurity(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -96,10 +99,8 @@ func TestAccAzureRMVirtualMachineScaleSet_basicApplicationSecurity(t *testing.T)
 		Steps: []resource.TestStep{
 			{
 				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(resourceName),
-					testCheckAzureRMVirtualMachineScaleSetApplicationSecurity(resourceName),
-				),
+				Check: resource.TestCheckResourceAttr(resourceName,
+					"network_profile."+networkProfileHash+".ip_configuration.0.application_security_group_ids.#", "1"),
 			},
 		},
 	})
@@ -1476,7 +1477,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
       ip_configuration {
         name = "TestIPConfiguration"
         subnet_id = "${azurerm_subnet.test.id}"
-		application_security_group_ids = ["${azurerm_application_security_group.test.id}"]
+        application_security_group_ids = ["${azurerm_application_security_group.test.id}"]
       }
   }
 
