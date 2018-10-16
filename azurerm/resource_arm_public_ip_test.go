@@ -160,7 +160,7 @@ func TestAccAzureRMPublicIpDynamic_basic_withIPv6(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIpExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "ip_version", "IPv6"),
+					resource.TestCheckResourceAttr(resourceName, "ip_version", "ipv6"), //api returns all lowercase
 				),
 			},
 			{
