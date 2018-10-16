@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_log_profile"
 sidebar_current: "docs-azurerm-resource-monitor-log-profile"
 description: |-
-  Creates a Log Profile.
+  Manages a Log Profile.
 ---
 
 # azurerm_monitor_log_profile
 
-Creates a [Log Profile](https://docs.microsoft.com/en-us/azure/monitoring-and-diagnostics/monitoring-overview-activity-logs#export-the-activity-log-with-a-log-profile). A Log Profile configures how Activity Logs are exported.
+Manages a [Log Profile](https://docs.microsoft.com/en-us/azure/monitoring-and-diagnostics/monitoring-overview-activity-logs#export-the-activity-log-with-a-log-profile). A Log Profile configures how Activity Logs are exported.
 
 ## Example Usage
 
