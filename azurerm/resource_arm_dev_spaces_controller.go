@@ -42,7 +42,7 @@ func resourceArmDevSpaceController() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string {
+							ValidateFunc: validation.StringInSlice([]string{
 								"S1",
 							}, false),
 						},
@@ -50,7 +50,7 @@ func resourceArmDevSpaceController() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string {
+							ValidateFunc: validation.StringInSlice([]string{
 								string(devspaces.Standard),
 							}, false),
 						},
@@ -59,7 +59,7 @@ func resourceArmDevSpaceController() *schema.Resource {
 			},
 
 			"host_suffix": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -76,9 +76,9 @@ func resourceArmDevSpaceController() *schema.Resource {
 			},
 
 			"target_container_host_credentials_base64": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:      schema.TypeString,
+				Required:  true,
+				ForceNew:  true,
 				Sensitive: true,
 			},
 

@@ -38,7 +38,6 @@ func TestAccAzureRMDevSpaceController_basic(t *testing.T) {
 	})
 }
 
-
 func testCheckAzureRMDevSpaceControllerExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -145,4 +144,3 @@ resource "azurerm_devspace_controller" test {
 }
 `, rInt, location, rInt, rInt)
 }
-
