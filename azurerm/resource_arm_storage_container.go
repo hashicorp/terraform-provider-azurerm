@@ -16,9 +16,10 @@ import (
 
 func resourceArmStorageContainer() *schema.Resource {
 	return &schema.Resource{
-		Create:        resourceArmStorageContainerCreate,
+		Create:        resourceArmStorageContainerCreateUpdate,
 		Read:          resourceArmStorageContainerRead,
 		Delete:        resourceArmStorageContainerDelete,
+		Update:        resourceArmStorageContainerCreateUpdate,
 		MigrateState:  resourceStorageContainerMigrateState,
 		SchemaVersion: 1,
 		Importer: &schema.ResourceImporter{
@@ -41,7 +42,6 @@ func resourceArmStorageContainer() *schema.Resource {
 			"container_access_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				Default:      "private",
 				ValidateFunc: validateArmStorageContainerAccessType,
 			},
@@ -87,7 +87,7 @@ func validateArmStorageContainerAccessType(v interface{}, k string) (ws []string
 	return
 }
 
-func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmStorageContainerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
 	ctx := armClient.StopContext
 

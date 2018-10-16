@@ -42,13 +42,15 @@ func resourceArmSubnet() *schema.Resource {
 			},
 
 			"network_security_group_id": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:       schema.TypeString,
+				Optional:   true,
+				Deprecated: "Use the `azurerm_subnet_network_security_group_association` resource instead.",
 			},
 
 			"route_table_id": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:       schema.TypeString,
+				Optional:   true,
+				Deprecated: "Use the `azurerm_subnet_route_table_association` resource instead.",
 			},
 
 			"ip_configurations": {
@@ -99,6 +101,8 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 
 		azureRMLockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
 		defer azureRMUnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
+	} else {
+		properties.NetworkSecurityGroup = nil
 	}
 
 	if v, ok := d.GetOk("route_table_id"); ok {
@@ -114,6 +118,8 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 
 		azureRMLockByName(routeTableName, routeTableResourceName)
 		defer azureRMUnlockByName(routeTableName, routeTableResourceName)
+	} else {
+		properties.RouteTable = nil
 	}
 
 	serviceEndpoints, serviceEndpointsErr := expandAzureRmServiceEndpoints(d)
@@ -184,9 +190,11 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("network_security_group_id", props.NetworkSecurityGroup.ID)
 		}
 
-		if props.RouteTable != nil {
-			d.Set("route_table_id", props.RouteTable.ID)
+		var routeTableId string
+		if props.RouteTable != nil && props.RouteTable.ID != nil {
+			routeTableId = *props.RouteTable.ID
 		}
+		d.Set("route_table_id", routeTableId)
 
 		ips := flattenSubnetIPConfigurations(props.IPConfigurations)
 		if err := d.Set("ip_configurations", ips); err != nil {

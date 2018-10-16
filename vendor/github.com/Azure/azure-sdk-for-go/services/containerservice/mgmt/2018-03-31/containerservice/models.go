@@ -1197,7 +1197,7 @@ type ManagedClusterProperties struct {
 	DNSPrefix *string `json:"dnsPrefix,omitempty"`
 	// Fqdn - FDQN for the master pool.
 	Fqdn *string `json:"fqdn,omitempty"`
-	// AgentPoolProfiles - Properties of the agent pool.
+	// AgentPoolProfiles - Properties of the agent pool. Currently only one agent pool can exist.
 	AgentPoolProfiles *[]ManagedClusterAgentPoolProfile `json:"agentPoolProfiles,omitempty"`
 	// LinuxProfile - Profile for Linux VMs in the container service cluster.
 	LinuxProfile *LinuxProfile `json:"linuxProfile,omitempty"`
