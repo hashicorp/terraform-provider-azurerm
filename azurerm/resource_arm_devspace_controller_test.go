@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -15,6 +16,8 @@ func TestAccAzureRMDevSpaceController_basic(t *testing.T) {
 	resourceName := "azurerm_devspace_controller.test"
 	rInt := acctest.RandInt()
 	location := testLocation()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -22,10 +25,10 @@ func TestAccAzureRMDevSpaceController_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDevSpaceControllerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevSpaceController_basic(rInt, location),
+				Config: testAccAzureRMDevSpaceController_basic(rInt, location, clientId, clientSecret),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDevSpaceControllerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "storage_type", "Premium"),
+					resource.TestCheckResourceAttr(resourceName, "sku.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
@@ -96,7 +99,7 @@ func testCheckAzureRMDevSpaceControllerDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDevSpaceController_basic(rInt int, location string) string {
+func testAccAzureRMDevSpaceController_basic(rInt int, location string, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -107,10 +110,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  dns_prefix          = "acctestaks-${random_id.test.dec}"
+  dns_prefix          = "acctestaks1"
 
   linux_profile {
-    admin_username = "acctestuser-${random_id.test.dec}"
+    admin_username = "acctestuser1"
     ssh_key {
       key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
     }
@@ -123,8 +126,8 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   service_principal {
-    client_id     = "${var.client_id}"
-    client_secret = "${var.client_secret}"
+    client_id     = "%s"
+    client_secret = "%s"
   }
 }
 
@@ -142,5 +145,5 @@ resource "azurerm_devspace_controller" test {
   target_container_host_resource_id        = "${azurerm_kubernetes_cluster.test.id}"
   target_container_host_credentials_base64 = "${base64encode(azurerm_kubernetes_cluster.test.kube_config_raw)}"
 }
-`, rInt, location, rInt, rInt)
+`, rInt, location, rInt, clientId, clientSecret, rInt)
 }
