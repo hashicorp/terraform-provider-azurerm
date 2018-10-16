@@ -67,7 +67,23 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists(resourceName, emptyCheck),
+					testCheckAzureRMContainerGroupExists(resourceName, func(cg containerinstance.ContainerGroup) error {
+						if cg.Containers == nil || len(*cg.Containers) != 1 {
+							return fmt.Errorf("unexpected number of containers created")
+						}
+						containers := *cg.Containers
+						if containers[0].Ports == nil || len(*containers[0].Ports) != 1 {
+							return fmt.Errorf("unexpected number of ports created")
+						}
+						ports := *containers[0].Ports
+						if *ports[0].Port != 5443 {
+							return fmt.Errorf("expected port to be 80, instead got %d", ports[0].Port)
+						}
+						if string(ports[0].Protocol) != "UDP" {
+							return fmt.Errorf("expected port to be UDP, instead got %s", string(ports[0].Protocol))
+						}
+						return nil
+					}),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.0.server", "hub.docker.com"),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.0.username", "yourusername"),
@@ -103,7 +119,6 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.0.server", "hub.docker.com"),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.0.username", "updatedusername"),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.0.password", "updatedpassword"),
-					resource.TestCheckResourceAttr(resourceName, "container.0.port", "81"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.ports.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.ports.0.port", "80"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.ports.0.protocol", "TCP"),
@@ -251,7 +266,6 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 						return nil
 					}),
 					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "container.0.protocol", "UDP"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.ports.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.ports.port", "80"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.ports.protocol", "TCP"),
@@ -370,7 +384,6 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 						return nil
 					}),
 					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "container.0.protocol", "TCP"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.ports.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.ports.0.port", "80"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.ports.0.protocol", "TCP"),
@@ -492,7 +505,6 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    port   = 81
     ports  = {
       port = 80
     }
@@ -621,7 +633,6 @@ resource "azurerm_container_group" "test" {
       port     = 80
       protocol = "tcp"
     }
-    protocol = "TCP"
 
     environment_variables {
       "foo"  = "bar"
@@ -680,8 +691,6 @@ resource "azurerm_container_group" "test" {
       port     = 80
       protocol = "tcp"
     }
-
-    protocol = "UDP"
 
     volume {
       name       = "logs"

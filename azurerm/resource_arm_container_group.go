@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-04-01/containerinstance"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -150,7 +151,7 @@ func resourceArmContainerGroup() *schema.Resource {
 							Optional:     true,
 							ForceNew:     true,
 							Deprecated:   "Use `ports` instead.",
-							ValidateFunc: validation.IntBetween(1, 65535),
+							ValidateFunc: validate.PortNumber,
 						},
 
 						"ports": {
@@ -175,7 +176,7 @@ func resourceArmContainerGroup() *schema.Resource {
 										Type:         schema.TypeInt,
 										Required:     true,
 										ForceNew:     true,
-										ValidateFunc: validation.IntBetween(1, 65535),
+										ValidateFunc: validate.PortNumber,
 									},
 								},
 							},
