@@ -38,6 +38,11 @@ func resourceArmUserAssignedIdentity() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"client_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -104,6 +109,10 @@ func resourceArmUserAssignedIdentityRead(d *schema.ResourceData, meta interface{
 	if props := resp.IdentityProperties; props != nil {
 		if principalId := props.PrincipalID; principalId != nil {
 			d.Set("principal_id", principalId.String())
+		}
+
+		if clientId := props.ClientID; clientId != nil {
+			d.Set("client_id", clientId.String())
 		}
 	}
 
