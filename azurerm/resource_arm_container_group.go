@@ -34,11 +34,11 @@ func resourceArmContainerGroup() *schema.Resource {
 			"ip_address_type": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				Default:          "public",
+				Default:          "Public",
 				ForceNew:         true,
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				ValidateFunc: validation.StringInSlice([]string{
-					"public",
+					"Public",
 				}, true),
 			},
 
