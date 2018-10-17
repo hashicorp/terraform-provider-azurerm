@@ -41,9 +41,9 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"azureEndpoints",
-					"nestedEndpoints",
-					"externalEndpoints",
+					"AzureEndpoints",
+					"NestedEndpoints",
+					"ExternalEndpoints",
 				}, false),
 			},
 
@@ -159,7 +159,7 @@ func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interfac
 
 	// lookup endpointType in Azure ID path
 	var endpointType string
-	typeRegex := regexp.MustCompile("azureEndpoints|externalEndpoints|nestedEndpoints")
+	typeRegex := regexp.MustCompile("AzureEndpoints|ExternalEndpoints|NestedEndpoints")
 	for k := range id.Path {
 		if typeRegex.MatchString(k) {
 			endpointType = k
