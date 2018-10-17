@@ -1,17 +1,47 @@
 ## 1.17.0 (Unreleased)
 
+UPGRADE NOTES:
+
+* `azurerm_virtual_machine_scale_set` - the field `primary` within the `ip_configuration` block within the `network_profile` block is now Required, to match behavioural changes in the Azure API. [GH-2035]
+
 FEATURES:
 
 * **New Resource:** `azurerm_api_management` [GH-1516]
 * **New Resource:** `azurerm_cognitive_account` [GH-962]
 * **New Resource:** `azurerm_databricks_workspace` [GH-1134]
+* **New Resource:** `azurerm_dev_test_policy` [GH-2070]
+* **New Resource:** `azurerm_dev_test_linux_virtual_machine` [GH-2058]
+* **New Resource:** `azurerm_dev_test_windows_virtual_machine` [GH-2058]
+* **New Resource:** `azurerm_monitor_activitylog_alert` [GH-1989]
+* **New Resource:** `azurerm_monitor_metric_alert` [GH-2026]
+* **New Resource:** `azurerm_network_interface_application_gateway_backend_address_pool_association` [GH-2079]
+* **New Resource:** `azurerm_network_interface_backend_address_pool_association` [GH-2079]
+* **New Resource:** `azurerm_network_interface_nat_rule_association` [GH-2079]
+* **New Resource:** `azurerm_security_center_contact` [GH-2045]
+* **New Resource:** `azurerm_security_center_subscription_pricing` [GH-2043]
+* **New Resource:** `azurerm_security_center_workspace` [GH-2072]
+* **New Resource:** `azurerm_subnet_network_security_group_association` [GH-1933]
+* **New Resource:** `azurerm_subnet_route_table_association ` [GH-1933]
 
 BUG FIXES:
 
 * Data Source `azurerm_subnet` - fixing the ordering of the resource group name and network name in the error message [GH-2017]
-* `azurerm_application_gateway` - supprt for the `StandardV2` and `WAFV2` skus and tiers [GH-2015] 
 * `azurerm_kubernetes_cluster` - using the correct casing for the `addon_profile` `oms_agent` property [GH-1995]
+* `azurerm_service_bus_queue` - support for `max_delivery_count` [GH-2028]
+* `azurerm_redis_cache` - now correctly handles scaling the capcity [GH-2088]
+* `azurerm_virtual_machine_scale_set` - `primary` is now required within the `ip_configuration` block within `network_profile` (matching a behavioural change with the Azure API) [GH-2035]
+
+IMPROVEMENTS:
+
+* `azurerm_application_gateway` - support for the `StandardV2` and `WAFV2` skus and tiers [GH-2015]
+* `azurerm_dev_test_virtual_network` - support for managing the Subnet [GH-2041]
+* `azurerm_key_vault` - support for Virtual Network Rules [GH-2027]
 * `azurerm_kubernetes_cluster` - changing the `oms_agent` property no longer forces a new resource [GH-2021]
+* `azurerm_postgresql_virtual_network_rule` - support for the `ignore_missing_vnet_service_endpoint` [GH-2056]
+* `azurerm_public_ip` - support for IPv6 addresses [GH-2019]
+* `azurerm_search_service` - adding the administrative `primary_key` and `secondary_key` propeties [GH-2074]
+* `azurerm_storage_container` - changing `container_access_type` no longer forces a new resource [GH-2075]
+* `azurerm_user_assigned_identity` - now exports the `client_id` property [GH-2078]
 
 ## 1.16.0 (October 01, 2018)
 

@@ -31,7 +31,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   name                = "k8s-workspace-${random_id.workspace.hex}"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "Free"
+  sku                 = "PerGB2018"
 }
 
 resource "azurerm_log_analytics_solution" "test" {

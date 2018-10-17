@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_management_group"
 sidebar_current: "docs-azurerm-datasource-management-group"
 description: |-
-  Get information about the specified Management Group.
+  Gets information about an existing Management Group.
 ---
 
 # Data Source: azurerm_management_group
 
-Use this data source to access the properties of a Management Group.
+Use this data source to access information about an existing Management Group.
 
 ## Example Usage
 
@@ -39,4 +39,3 @@ The following attributes are exported:
 * `parent_management_group_id` - The ID of any Parent Management Group.
 
 * `subscription_ids` - A list of Subscription ID's which are assigned to the Management Group.
-

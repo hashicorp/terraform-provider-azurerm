@@ -3,13 +3,13 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_shared_image_version"
 sidebar_current: "docs-azurerm-datasource-shared-image-version"
 description: |-
-  Gets information about the specified Version of a Shared Image within the Shared Image Gallery.
+  Gets information about an existing Version of a Shared Image within a Shared Image Gallery.
 
 ---
 
 # Data Source: azurerm_shared_image_version
 
-Gets information about the specified Version of a Shared Image within the Shared Image Gallery.
+Use this data source to access information about an existing Version of a Shared Image within a Shared Image Gallery.
 
 -> **NOTE** Shared Image Galleries are currently in Public Preview. You can find more information, including [how to register for the Public Preview here](https://azure.microsoft.com/en-gb/blog/announcing-the-public-preview-of-shared-image-gallery/).
 
@@ -48,6 +48,14 @@ The following attributes are exported:
 
 * `managed_image_id` - The ID of the Managed Image which was the source of this Shared Image Version.
 
-* `regions` - The list of Azure Regions in which this Image Version exists.
+* `target_region` - One or more `target_region` blocks as documented below.
 
 * `tags` - A mapping of tags assigned to the Shared Image.
+
+---
+
+The `target_region` block exports the following:
+
+* `name` - The Azure Region in which this Image Version exists.
+
+* `regional_replica_count` - The number of replicas of the Image Version to be created per region.
