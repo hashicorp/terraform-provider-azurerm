@@ -85,11 +85,14 @@ type ArmClient struct {
 
 	cosmosDBClient documentdb.DatabaseAccountsClient
 
-	automationAccountClient      automation.AccountClient
-	automationRunbookClient      automation.RunbookClient
-	automationCredentialClient   automation.CredentialClient
-	automationScheduleClient     automation.ScheduleClient
-	automationRunbookDraftClient automation.RunbookDraftClient
+	automationAccountClient              automation.AccountClient
+	automationCredentialClient           automation.CredentialClient
+	automationDscConfigurationClient     automation.DscConfigurationClient
+	automationDscNodeConfigurationClient automation.DscNodeConfigurationClient
+	automationModuleClient               automation.ModuleClient
+	automationRunbookClient              automation.RunbookClient
+	automationRunbookDraftClient         automation.RunbookDraftClient
+	automationScheduleClient             automation.ScheduleClient
 
 	dnsClient   dns.RecordSetsClient
 	zonesClient dns.ZonesClient
@@ -533,6 +536,18 @@ func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, a
 	credentialClient := automation.NewCredentialClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&credentialClient.Client, auth)
 	c.automationCredentialClient = credentialClient
+
+	dscConfigurationClient := automation.NewDscConfigurationClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&dscConfigurationClient.Client, auth)
+	c.automationDscConfigurationClient = dscConfigurationClient
+
+	dscNodeConfigurationClient := automation.NewDscNodeConfigurationClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&dscNodeConfigurationClient.Client, auth)
+	c.automationDscNodeConfigurationClient = dscNodeConfigurationClient
+
+	moduleClient := automation.NewModuleClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&moduleClient.Client, auth)
+	c.automationModuleClient = moduleClient
 
 	runbookClient := automation.NewRunbookClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&runbookClient.Client, auth)
