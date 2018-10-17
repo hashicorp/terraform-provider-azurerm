@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,15 +20,11 @@ func resourceArmActiveDirectoryGroup() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"object_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 		},
 	}
@@ -52,7 +49,6 @@ func resourceArmActiveDirectoryGroupCreate(d *schema.ResourceData, meta interfac
 	}
 
 	d.SetId(*group.ObjectID)
-	d.Set("object_id", group.ObjectID)
 
 	return resourceArmActiveDirectoryGroupRead(d, meta)
 }
@@ -81,8 +77,7 @@ func resourceArmActiveDirectoryGroupDelete(d *schema.ResourceData, meta interfac
 	client := meta.(*ArmClient).groupsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	resp, err := client.Delete(ctx, d.Id())
-	if err != nil {
+	if resp, err := client.Delete(ctx, d.Id()); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return fmt.Errorf("Error Deleting Azure AD Group with ID %q: %+v", d.Id(), err)
 		}

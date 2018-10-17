@@ -27,6 +27,11 @@ func TestAccAzureRMActiveDirectoryGroup_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctest%s", id)),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -47,6 +52,11 @@ func TestAccAzureRMActiveDirectoryGroup_complete(t *testing.T) {
 					testCheckAzureRMActiveDirectoryGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctest%s", id)),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

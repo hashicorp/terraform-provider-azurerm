@@ -40,7 +40,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `object_id` - The Object ID of the Group.
+* `id` - The Object ID of the Group.
 
 * `name` - The Display Name of the Group.
 
