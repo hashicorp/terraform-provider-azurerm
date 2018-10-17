@@ -468,6 +468,15 @@ resource "azurerm_container_group" "test" {
     port   = "80"
 
     environment_variables {
+      "foo"  = "bar"
+      "foo1" = "bar1"
+    }
+
+    sensitive_environment_variables {
+      "secureFoo"  = "secureBar"
+      "secureFoo1" = "secureBar1"
+    }
+
     commands = ["cmd.exe", "echo", "hi"]
   }
 
@@ -521,18 +530,23 @@ resource "azurerm_container_group" "test" {
         protocol = "TCP"
 
         volume {
-            name       = "logs"
-            mount_path = "/aci/logs"
-            read_only  = false
-            share_name = "${azurerm_storage_share.test.name}"
+          name       = "logs"
+          mount_path = "/aci/logs"
+          read_only  = false
+          share_name = "${azurerm_storage_share.test.name}"
 
-            storage_account_name = "${azurerm_storage_account.test.name}"
-            storage_account_key = "${azurerm_storage_account.test.primary_access_key}"
+          storage_account_name = "${azurerm_storage_account.test.name}"
+          storage_account_key = "${azurerm_storage_account.test.primary_access_key}"
         }
 
         environment_variables {
-            "foo" = "bar"
-            "foo1" = "bar1"
+          "foo" = "bar"
+          "foo1" = "bar1"
+        }
+
+        sensitive_environment_variables {
+          "secureFoo"  = "secureBar"
+          "secureFoo1" = "secureBar1"
         }
 
         commands = ["/bin/bash", "-c", "ls"]
