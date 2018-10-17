@@ -79,8 +79,8 @@ func Provider() terraform.ResourceProvider {
 
 		DataSourcesMap: map[string]*schema.Resource{
 			"azurerm_azuread_application":                   dataSourceArmAzureADApplication(),
-			"azurerm_azuread_service_principal":             dataSourceArmActiveDirectoryServicePrincipal(),
 			"azurerm_azuread_group":                         dataSourceArmAzureADGroup(),
+			"azurerm_azuread_service_principal":             dataSourceArmActiveDirectoryServicePrincipal(),
 			"azurerm_application_security_group":            dataSourceArmApplicationSecurityGroup(),
 			"azurerm_app_service":                           dataSourceArmAppService(),
 			"azurerm_app_service_plan":                      dataSourceAppServicePlan(),
@@ -125,9 +125,9 @@ func Provider() terraform.ResourceProvider {
 
 		ResourcesMap: map[string]*schema.Resource{
 			"azurerm_azuread_application":                     resourceArmActiveDirectoryApplication(),
+			"azurerm_azuread_group":                           resourceArmActiveDirectoryGroup(),
 			"azurerm_azuread_service_principal":               resourceArmActiveDirectoryServicePrincipal(),
 			"azurerm_azuread_service_principal_password":      resourceArmActiveDirectoryServicePrincipalPassword(),
-			"azurerm_azuread_group":                           resourceArmActiveDirectoryGroup(),
 			"azurerm_application_gateway":                     resourceArmApplicationGateway(),
 			"azurerm_application_insights":                    resourceArmApplicationInsights(),
 			"azurerm_application_security_group":              resourceArmApplicationSecurityGroup(),
