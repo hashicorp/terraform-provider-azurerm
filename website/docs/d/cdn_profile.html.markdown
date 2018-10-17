@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_profile"
 sidebar_current: "docs-azurerm-datasource-cdn-profile"
 description: |-
-  Gets information about a CDN Profile
+  Gets information about an existing CDN Profile
 ---
 
 # Data Source: azurerm_cdn_profile
 
-Use this data source to access information about a CDN Profile.
+Use this data source to access information about an existing CDN Profile.
 
 ## Example Usage
 

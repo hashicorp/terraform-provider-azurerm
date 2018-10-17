@@ -346,7 +346,7 @@ resource "azurerm_express_route_circuit" "test" {
 func testAccAzureRMExpressRouteCircuit_sku(rInt int, location string, tier string, family string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -376,7 +376,7 @@ resource "azurerm_express_route_circuit" "test" {
 func testAccAzureRMExpressRouteCircuit_allowClassicOperations(rInt int, location string, allowClassicOperations string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

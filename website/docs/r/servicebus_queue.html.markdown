@@ -63,16 +63,14 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group in which to
     create the namespace. Changing this forces a new resource to be created.
 
-* `auto_delete_on_idle` - (Optional) The idle interval after which the
-    Queue is automatically deleted, minimum of 5 minutes. Provided in the [TimeSpan](#timespan-format)
-    format.
+* `auto_delete_on_idle` - (Optional) The ISO 8601 timespan duration of the idle interval after which the
+    Queue is automatically deleted, minimum of 5 minutes.
 
-* `default_message_ttl` - (Optional) The TTL of messages sent to this queue. This is the default value
-    used when TTL is not set on message itself. Provided in the [TimeSpan](#timespan-format)
-    format.
+* `default_message_ttl` - (Optional) The ISO 8601 timespan duration of the TTL of messages sent to this
+    queue. This is the default value used when TTL is not set on message itself.
 
-* `duplicate_detection_history_time_window` - (Optional) The duration during which
-    duplicates can be detected. Default value is 10 minutes. Provided in the [TimeSpan](#timespan-format) format.
+* `duplicate_detection_history_time_window` - (Optional) The ISO 8601 timespan duration during which
+    duplicates can be detected. Default value is 10 minutes. (`PT10M`)
 
 * `enable_express` - (Optional) Boolean flag which controls whether Express Entities
     are enabled. An express queue holds a message in memory temporarily before writing
@@ -98,17 +96,14 @@ The following arguments are supported:
     the Queue requires duplicate detection. Changing this forces
     a new resource to be created. Defaults to `false`.
 
-* `requires_session` - (Optional) Boolean flag which controls whether the Queue requires sessions. 
-    This will allow ordered handling of unbounded sequences of related messages. With sessions enabled 
-    a queue can guarantee first-in-first-out delivery of messages. 
+* `requires_session` - (Optional) Boolean flag which controls whether the Queue requires sessions.
+    This will allow ordered handling of unbounded sequences of related messages. With sessions enabled
+    a queue can guarantee first-in-first-out delivery of messages.
     Changing this forces a new resource to be created. Defaults to `false`.
 
 * `dead_lettering_on_message_expiration` - (Optional) Boolean flag which controls whether the Queue has dead letter support when a message expires. Defaults to `false`.
-    
-### TimeSpan Format
 
-Some arguments for this resource are required in the TimeSpan format which is
-used to represent a length of time. The supported format is documented [here](https://msdn.microsoft.com/en-us/library/se73z7b9(v=vs.110).aspx#Anchor_2)
+* `max_delivery_count` - (Optional) Integer value which controls when a message is automatically deadlettered. Defaults to `10`.
 
 ## Attributes Reference
 

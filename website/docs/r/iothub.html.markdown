@@ -44,7 +44,7 @@ resource "azurerm_iothub" "test" {
   }
 
   endpoint {
-    type                        = "AzureIotHub.StorageContainers"
+    type                        = "AzureIotHub.StorageContainer"
     connection_string           = "${azurerm_storage_account.test.primary_blob_connection_string}"
     name                        = "export"
     batch_frequency_in_seconds  = 60
@@ -59,7 +59,7 @@ resource "azurerm_iothub" "test" {
     source          = "DeviceMessages"
     condition       = "true"
     endpoint_names  = ["export"]
-    is_enabled      = true
+    enabled         = true
   }
 
   tags {

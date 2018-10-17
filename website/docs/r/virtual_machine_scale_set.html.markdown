@@ -130,6 +130,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
     ip_configuration {
       name                                   = "TestIPConfiguration"
+      primary                                = true
       subnet_id                              = "${azurerm_subnet.test.id}"
       load_balancer_backend_address_pool_ids = ["${azurerm_lb_backend_address_pool.bpepool.id}"]
       load_balancer_inbound_nat_rules_ids    = ["${element(azurerm_lb_nat_pool.lbnatpool.*.id, count.index)}"]
@@ -216,6 +217,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
     ip_configuration {
       name      = "TestIPConfiguration"
+      primary   = true
       subnet_id = "${azurerm_subnet.test.id}"
     }
   }
@@ -374,7 +376,7 @@ output "principal_id" {
 * `application_gateway_backend_address_pool_ids` - (Optional) Specifies an array of references to backend address pools of application gateways. A scale set can reference backend address pools of one application gateway. Multiple scale sets cannot use the same application gateway.
 * `load_balancer_backend_address_pool_ids` - (Optional) Specifies an array of references to backend address pools of load balancers. A scale set can reference backend address pools of one public and one internal load balancer. Multiple scale sets cannot use the same load balancer.
 * `load_balancer_inbound_nat_rules_ids` - (Optional) Specifies an array of references to inbound NAT rules for load balancers.
-* `primary` - (Optional) Specifies if this ip_configuration is the primary one.
+* `primary` - (Required) Specifies if this ip_configuration is the primary one.
 * `public_ip_address_configuration` - (Optional) describes a virtual machines scale set IP Configuration's
  PublicIPAddress configuration. The public_ip_address_configuration is documented below.
 
@@ -388,7 +390,7 @@ output "principal_id" {
 
 * `name` - (Optional) Specifies the disk name. Must be specified when using unmanaged disk ('managed_disk_type' property not set).
 * `vhd_containers` - (Optional) Specifies the vhd uri. Cannot be used when `image` or `managed_disk_type` is specified.
-* `managed_disk_type` - (Optional) Specifies the type of managed disk to create. Value you must be either `Standard_LRS` or `Premium_LRS`. Cannot be used when `vhd_containers` or `image` is specified.
+* `managed_disk_type` - (Optional) Specifies the type of managed disk to create. Value you must be either `Standard_LRS`, `StandardSSD_LRS` or `Premium_LRS`. Cannot be used when `vhd_containers` or `image` is specified.
 * `create_option` - (Required) Specifies how the virtual machine should be created. The only possible option is `FromImage`.
 * `caching` - (Optional) Specifies the caching requirements. Possible values include: `None` (default), `ReadOnly`, `ReadWrite`.
 * `image` - (Optional) Specifies the blob uri for user image. A virtual machine scale set creates an os disk in the same container as the user image.
@@ -402,7 +404,7 @@ output "principal_id" {
 * `create_option` - (Optional) Specifies how the data disk should be created. The only possible options are `FromImage` and `Empty`.
 * `caching` - (Optional) Specifies the caching requirements. Possible values include: `None` (default), `ReadOnly`, `ReadWrite`.
 * `disk_size_gb` - (Optional) Specifies the size of the disk in GB. This element is required when creating an empty disk.
-* `managed_disk_type` - (Optional) Specifies the type of managed disk to create. Value must be either `Standard_LRS` or `Premium_LRS`.
+* `managed_disk_type` - (Optional) Specifies the type of managed disk to create. Value must be either `Standard_LRS`, `StandardSSD_LRS` or `Premium_LRS`.
 
 `storage_profile_image_reference` supports the following:
 

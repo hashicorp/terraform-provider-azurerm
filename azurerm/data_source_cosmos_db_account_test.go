@@ -53,6 +53,28 @@ func TestAccDataSourceAzureRMCosmosDBAccount_geoReplicated_customId(t *testing.T
 	})
 }
 
+func TestAccDataSourceAzureRMCosmosDBAccount_virtualNetworkFilter(t *testing.T) {
+	ri := acctest.RandInt()
+	dataSourceName := "data.azurerm_cosmosdb_account.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAzureRMCosmosDBAccount_virtualNetworkFilter(ri, testLocation()),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(dataSourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
+					resource.TestCheckResourceAttr(dataSourceName, "is_virtual_network_filter_enabled", "true"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "virtual_network_rule.0.id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "virtual_network_rule.1.id"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDataSourceAzureRMCosmosDBAccount_complete(t *testing.T) {
 	ri := acctest.RandInt()
 	dataSourceName := "data.azurerm_cosmosdb_account.test"
@@ -109,4 +131,15 @@ data "azurerm_cosmosdb_account" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, testAccAzureRMCosmosDBAccount_complete(rInt, location, altLocation))
+}
+
+func testAccDataSourceAzureRMCosmosDBAccount_virtualNetworkFilter(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_cosmosdb_account" "test" {
+  name                = "${azurerm_cosmosdb_account.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+`, testAccAzureRMCosmosDBAccount_virtualNetworkFilter(rInt, location))
 }

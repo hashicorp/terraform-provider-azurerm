@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -35,9 +37,10 @@ func resourceArmPublicIp() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"location": locationSchema(),
@@ -46,33 +49,46 @@ func resourceArmPublicIp() *schema.Resource {
 
 			"zones": singleZonesSchema(),
 
-			//should this perhaps be allocation_method?
+			//should this perhaps be allocation_method? (yes i think so)
 			"public_ip_address_allocation": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
+				StateFunc:        ignoreCaseStateFunc,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.Static),
 					string(network.Dynamic),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-				StateFunc:        ignoreCaseStateFunc,
+			},
+
+			"ip_version": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				Default:          string(network.IPv4),
+				ForceNew:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.IPv4),
+					string(network.IPv6),
+				}, true),
 			},
 
 			"sku": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(network.PublicIPAddressSkuNameBasic),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				Default:          string(network.PublicIPAddressSkuNameBasic),
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.PublicIPAddressSkuNameBasic),
 					string(network.PublicIPAddressSkuNameStandard),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"idle_timeout_in_minutes": {
 				Type:         schema.TypeInt,
 				Optional:     true,
+				Default:      4,
 				ValidateFunc: validation.IntBetween(4, 30),
 			},
 
@@ -117,7 +133,15 @@ func resourceArmPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
 	tags := d.Get("tags").(map[string]interface{})
 	zones := expandZones(d.Get("zones").([]interface{}))
 
+	idleTimeout := d.Get("idle_timeout_in_minutes").(int)
 	ipAllocationMethod := network.IPAllocationMethod(d.Get("public_ip_address_allocation").(string))
+	ipVersion := network.IPVersion(d.Get("ip_version").(string))
+
+	if strings.EqualFold(string(ipVersion), string(network.IPv6)) {
+		if strings.EqualFold(string(ipAllocationMethod), "static") {
+			return fmt.Errorf("Cannot specify publicIpAllocationMethod as Static for IPv6 PublicIp")
+		}
+	}
 
 	if strings.ToLower(string(sku.Name)) == "standard" {
 		if strings.ToLower(string(ipAllocationMethod)) != "static" {
@@ -125,8 +149,17 @@ func resourceArmPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	properties := network.PublicIPAddressPropertiesFormat{
-		PublicIPAllocationMethod: ipAllocationMethod,
+	publicIp := network.PublicIPAddress{
+		Name:     &name,
+		Location: &location,
+		Sku:      &sku,
+		PublicIPAddressPropertiesFormat: &network.PublicIPAddressPropertiesFormat{
+			PublicIPAllocationMethod: ipAllocationMethod,
+			PublicIPAddressVersion:   ipVersion,
+			IdleTimeoutInMinutes:     utils.Int32(int32(idleTimeout)),
+		},
+		Tags:  expandTags(tags),
+		Zones: zones,
 	}
 
 	dnl, dnlOk := d.GetOk("domain_name_label")
@@ -145,20 +178,7 @@ func resourceArmPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
 			dnsSettings.DomainNameLabel = &domainNameLabel
 		}
 
-		properties.DNSSettings = &dnsSettings
-	}
-
-	if v, ok := d.GetOk("idle_timeout_in_minutes"); ok {
-		properties.IdleTimeoutInMinutes = utils.Int32(int32(v.(int)))
-	}
-
-	publicIp := network.PublicIPAddress{
-		Name:     &name,
-		Location: &location,
-		Sku:      &sku,
-		PublicIPAddressPropertiesFormat: &properties,
-		Tags:  expandTags(tags),
-		Zones: zones,
+		publicIp.PublicIPAddressPropertiesFormat.DNSSettings = &dnsSettings
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, publicIp)
@@ -166,8 +186,7 @@ func resourceArmPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error Creating/Updating Public IP %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for completion of Public IP %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
@@ -220,22 +239,15 @@ func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
 
 	if props := resp.PublicIPAddressPropertiesFormat; props != nil {
 		d.Set("public_ip_address_allocation", strings.ToLower(string(props.PublicIPAllocationMethod)))
+		d.Set("ip_version", strings.ToLower(string(props.PublicIPAddressVersion)))
 
 		if settings := props.DNSSettings; settings != nil {
-			if fqdn := settings.Fqdn; fqdn != nil {
-				d.Set("fqdn", fqdn)
-			} else {
-				d.Set("fqdn", "")
-			}
-
+			d.Set("fqdn", settings.Fqdn)
 			d.Set("domain_name_label", settings.DomainNameLabel)
 		}
 
-		if ip := props.IPAddress; ip != nil {
-			d.Set("ip_address", ip)
-		} else {
-			d.Set("ip_address", "")
-		}
+		d.Set("ip_address", props.IPAddress)
+		d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -259,8 +271,7 @@ func resourceArmPublicIpDelete(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error deleting Public IP %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for deletion of Public IP %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 

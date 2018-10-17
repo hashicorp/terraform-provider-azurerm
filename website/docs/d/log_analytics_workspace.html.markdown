@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_log_analytics_workspace"
 sidebar_current: "docs-azurerm-datasource-oms-log-analytics-workspace"
 description: |-
-  Gets information about the specified Log Analytics (formally Operational Insights) Workspace.
+  Gets information about an existing Log Analytics (formally Operational Insights) Workspace.
 ---
 
 # Data Source: azurerm_log_analytics_workspace
 
-Gets information about the specified Log Analytics (formally Operational Insights) Workspace.
+Use this data source to access information about an existing Log Analytics (formally Operational Insights) Workspace.
 
 ## Example Usage
 

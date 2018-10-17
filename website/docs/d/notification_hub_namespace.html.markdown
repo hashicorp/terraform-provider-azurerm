@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_notification_hub_namespace"
 sidebar_current: "docs-azurerm-datasource-notification-hub-namespace"
 description: |-
-  Gets information about the specified Notification Hub Namespace.
+  Gets information about an existing Notification Hub Namespace.
 ---
 
 # Data Source: azurerm_notification_hub_namespace
 
-Gets information about the specified Notification Hub Namespace.
+Use this data source to access information about an existing Notification Hub Namespace.
 
 ## Example Usage
 

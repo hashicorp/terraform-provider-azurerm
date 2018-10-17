@@ -47,6 +47,8 @@ func TestAccAzureRMSearchService_complete(t *testing.T) {
 					testCheckAzureRMSearchServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "replica_count", "2"),
+					resource.TestCheckResourceAttrSet(resourceName, "primary_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "secondary_key"),
 				),
 			},
 		},
@@ -68,7 +70,6 @@ func testCheckAzureRMSearchServiceExists(name string) resource.TestCheckFunc {
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, searchName, nil)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Search Service %q (resource group %q) was not found: %+v", searchName, resourceGroup, err)
@@ -94,7 +95,6 @@ func testCheckAzureRMSearchServiceDestroy(s *terraform.State) error {
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, searchName, nil)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil

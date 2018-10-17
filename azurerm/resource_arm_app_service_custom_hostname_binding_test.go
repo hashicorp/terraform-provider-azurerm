@@ -45,6 +45,45 @@ func testAccAzureRMAppServiceCustomHostnameBinding_basic(t *testing.T) {
 	})
 }
 
+func testAccAzureRMAppServiceCustomHostnameBinding_multiple(t *testing.T) {
+	appServiceEnvVariable := "ARM_TEST_APP_SERVICE"
+	appServiceEnv := os.Getenv(appServiceEnvVariable)
+	if appServiceEnv == "" {
+		t.Skipf("Skipping as %q is not specified", appServiceEnvVariable)
+	}
+
+	domainEnvVariable := "ARM_TEST_DOMAIN"
+	domainEnv := os.Getenv(domainEnvVariable)
+	if domainEnv == "" {
+		t.Skipf("Skipping as %q is not specified", domainEnvVariable)
+	}
+
+	altDomainEnvVariable := "ARM_ALT_TEST_DOMAIN"
+	altDomainEnv := os.Getenv(altDomainEnvVariable)
+	if domainEnv == "" {
+		t.Skipf("Skipping as %q is not specified", domainEnvVariable)
+	}
+
+	resourceName := "azurerm_app_service_custom_hostname_binding.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+	config := testAccAzureRMAppServiceCustomHostnameBinding_multipleConfig(ri, location, appServiceEnv, domainEnv, altDomainEnv)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceCustomHostnameBindingDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceCustomHostnameBindingExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMAppServiceCustomHostnameBindingDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).appServicesClient
 
@@ -131,4 +170,17 @@ resource "azurerm_app_service_custom_hostname_binding" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt, appServiceName, domain)
+}
+
+func testAccAzureRMAppServiceCustomHostnameBinding_multipleConfig(rInt int, location, appServiceName, domain, altDomain string) string {
+	template := testAccAzureRMAppServiceCustomHostnameBinding_basicConfig(rInt, location, appServiceName, domain)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_custom_hostname_binding" "test2" {
+  hostname            = "%s"
+  app_service_name    = "${azurerm_app_service.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+`, template, altDomain)
 }
