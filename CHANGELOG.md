@@ -7,6 +7,9 @@ UPGRADE NOTES:
 FEATURES:
 
 * **New Resource:** `azurerm_api_management` [GH-1516]
+* **New Resource:** `azurerm_automation_dsc_configuration` [GH-1512]
+* **New Resource:** `azurerm_automation_dsc_nodeconfiguration` [GH-1512]
+* **New Resource:** `azurerm_automation_module` [GH-1512]
 * **New Resource:** `azurerm_cognitive_account` [GH-962]
 * **New Resource:** `azurerm_databricks_workspace` [GH-1134]
 * **New Resource:** `azurerm_dev_test_policy` [GH-2070]
