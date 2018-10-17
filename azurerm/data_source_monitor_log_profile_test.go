@@ -8,30 +8,6 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccDataSourceAzureRMMonitorLogProfile(t *testing.T) {
-	// NOTE: this is a combined test rather than separate split out tests due to
-	// Azure only being happy about provisioning one per subscription at once
-	// (which our test suite can't easily workaround)
-	testCases := map[string]map[string]func(t *testing.T){
-		"basic": {
-			"eventhub":       testAccDataSourceAzureRMMonitorLogProfile_eventhub,
-			"storageaccount": testAccDataSourceAzureRMMonitorLogProfile_storageaccount,
-		},
-	}
-
-	for group, m := range testCases {
-		m := m
-		t.Run(group, func(t *testing.T) {
-			for name, tc := range m {
-				tc := tc
-				t.Run(name, func(t *testing.T) {
-					tc(t)
-				})
-			}
-		})
-	}
-}
-
 func testAccDataSourceAzureRMMonitorLogProfile_storageaccount(t *testing.T) {
 	dataSourceName := "data.azurerm_monitor_log_profile.test"
 	ri := acctest.RandInt()

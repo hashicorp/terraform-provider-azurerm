@@ -58,6 +58,10 @@ func TestAccAzureRMMonitorLogProfile(t *testing.T) {
 			"complete":   testAccAzureRMMonitorLogProfile_complete,
 			"disappears": testAccAzureRMMonitorLogProfile_disappears,
 		},
+		"datasource": {
+			"eventhub":       testAccDataSourceAzureRMMonitorLogProfile_eventhub,
+			"storageaccount": testAccDataSourceAzureRMMonitorLogProfile_storageaccount,
+		},
 	}
 
 	for group, m := range testCases {
