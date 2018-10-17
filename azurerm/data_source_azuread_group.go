@@ -2,11 +2,13 @@ package azurerm
 
 import (
 	"fmt"
-	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"log"
 	"strings"
+
+	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
+	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmAzureADGroup() *schema.Resource {
@@ -17,18 +19,19 @@ func dataSourceArmAzureADGroup() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"object_id": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"name"},
-			},
-
 			"name": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				Computed:      true,
 				ConflictsWith: []string{"object_id"},
+			},
+
+			"object_id": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"name"},
+				ValidateFunc:  validate.UUID,
 			},
 		},
 	}

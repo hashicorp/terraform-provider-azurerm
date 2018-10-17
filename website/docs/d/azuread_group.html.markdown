@@ -3,13 +3,13 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_azuread_group"
 sidebar_current: "docs-azurerm-datasource-azuread-group"
 description: |-
-  Gets information about a group object within the Azure Active Directory.
+  Gets information about an Azure Active Directory group.
 
 ---
 
 # Data Source: azurerm_azuread_group
 
-Gets information about a Group object within the Azure Active Directory.
+Gets information about an Azure Active Directory group.
 
 -> **NOTE:** If you're authenticating using a Service Principal then it must have permissions to both `Read directory data` within the `Windows Azure Active Directory` API.
 
