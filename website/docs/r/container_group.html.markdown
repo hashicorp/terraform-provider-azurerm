@@ -55,7 +55,7 @@ resource "azurerm_container_group" "aci-helloworld" {
       "NODE_ENV" = "testing"
     }
 
-    sensitive_environment_variables {
+    secure_environment_variables {
       "ACCESS_KEY" = "secure_testing"
     }
 
@@ -125,7 +125,7 @@ The `container` block supports:
 
 * `environment_variables` - (Optional) A list of environment variables to be set on the container. Specified as a map of name/value pairs. Changing this forces a new resource to be created.
 
-* `sensitive_environment_variables` - (Optional) A list of sensitive environment variables to be set on the container. Specified as a map of name/value pairs. Changing this forces a new resource to be created.
+* `secure_environment_variables` - (Optional) A list of sensitive environment variables to be set on the container. Specified as a map of name/value pairs. Changing this forces a new resource to be created.
 
 * `command` - (Optional) A command line to be run on the container.
 

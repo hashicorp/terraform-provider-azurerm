@@ -168,7 +168,7 @@ func resourceArmContainerGroup() *schema.Resource {
 							Optional: true,
 						},
 
-						"sensitive_environment_variables": {
+						"secure_environment_variables": {
 							Type:      schema.TypeMap,
 							Optional:  true,
 							Sensitive: true,
@@ -369,154 +369,6 @@ func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]containerinstance.Container, containerGroupPorts *[]containerinstance.Port, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
-
-	containerConfigs := make([]interface{}, 0, len(*containers))
-	for _, container := range *containers {
-		containerConfig := make(map[string]interface{})
-		containerConfig["name"] = *container.Name
-		containerConfig["image"] = *container.Image
-
-		if resources := container.Resources; resources != nil {
-			if resourceRequests := resources.Requests; resourceRequests != nil {
-				containerConfig["cpu"] = *resourceRequests.CPU
-				containerConfig["memory"] = *resourceRequests.MemoryInGB
-			}
-		}
-
-		if len(*container.Ports) > 0 {
-			containerPort := *(*container.Ports)[0].Port
-			containerConfig["port"] = containerPort
-			// protocol isn't returned in container config, have to search in container group ports
-			protocol := ""
-			if containerGroupPorts != nil {
-				for _, cgPort := range *containerGroupPorts {
-					if *cgPort.Port == containerPort {
-						protocol = string(cgPort.Protocol)
-					}
-				}
-			}
-			if protocol != "" {
-				containerConfig["protocol"] = protocol
-			}
-		}
-
-		if container.EnvironmentVariables != nil {
-			if len(*container.EnvironmentVariables) > 0 {
-				containerConfig["environment_variables"] = flattenContainerEnvironmentVariables(container.EnvironmentVariables)
-			}
-		}
-
-		commands := make([]string, 0)
-		if command := container.Command; command != nil {
-			containerConfig["command"] = strings.Join(*command, " ")
-
-			for _, v := range *command {
-				commands = append(commands, v)
-			}
-		}
-		containerConfig["commands"] = commands
-
-		if containerGroupVolumes != nil && container.VolumeMounts != nil {
-			// Also pass in the container volume config from schema
-			var containerVolumesConfig *[]interface{}
-			containersConfigRaw := d.Get("container").([]interface{})
-			for _, containerConfigRaw := range containersConfigRaw {
-				data := containerConfigRaw.(map[string]interface{})
-				nameRaw := data["name"].(string)
-				if nameRaw == *container.Name {
-					// found container config for current container
-					// extract volume mounts from config
-					if v, ok := data["volume"]; ok {
-						containerVolumesRaw := v.([]interface{})
-						containerVolumesConfig = &containerVolumesRaw
-					}
-				}
-			}
-			containerConfig["volume"] = flattenContainerVolumes(container.VolumeMounts, containerGroupVolumes, containerVolumesConfig)
-		}
-
-		containerConfigs = append(containerConfigs, containerConfig)
-	}
-
-	return containerConfigs
-}
-
-func flattenContainerEnvironmentVariables(input *[]containerinstance.EnvironmentVariable) map[string]interface{} {
-	output := make(map[string]interface{})
-	if input == nil {
-		return output
-	}
-
-	for _, envVar := range *input {
-		if envVar.Name != nil && envVar.Value != nil {
-			output[*envVar.Name] = *envVar.Value
-		}
-	}
-
-	return output
-}
-
-func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, containerGroupVolumes *[]containerinstance.Volume, containerVolumesConfig *[]interface{}) []interface{} {
-	volumeConfigs := make([]interface{}, 0)
-
-	if volumeMounts == nil {
-		return volumeConfigs
-	}
-
-	for _, vm := range *volumeMounts {
-		volumeConfig := make(map[string]interface{})
-		if vm.Name != nil {
-			volumeConfig["name"] = *vm.Name
-		}
-		if vm.MountPath != nil {
-			volumeConfig["mount_path"] = *vm.MountPath
-		}
-		if vm.ReadOnly != nil {
-			volumeConfig["read_only"] = *vm.ReadOnly
-		}
-
-		// find corresponding volume in container group volumes
-		// and use the data
-		if containerGroupVolumes != nil {
-			for _, cgv := range *containerGroupVolumes {
-				if cgv.Name == nil || vm.Name == nil {
-					continue
-				}
-
-				if *cgv.Name == *vm.Name {
-					if file := cgv.AzureFile; file != nil {
-						if file.ShareName != nil {
-							volumeConfig["share_name"] = *file.ShareName
-						}
-						if file.StorageAccountName != nil {
-							volumeConfig["storage_account_name"] = *file.StorageAccountName
-						}
-						// skip storage_account_key, is always nil
-					}
-				}
-			}
-		}
-
-		// find corresponding volume in config
-		// and use the data
-		if containerVolumesConfig != nil {
-			for _, cvr := range *containerVolumesConfig {
-				cv := cvr.(map[string]interface{})
-				rawName := cv["name"].(string)
-				if vm.Name != nil && *vm.Name == rawName {
-					storageAccountKey := cv["storage_account_key"].(string)
-					volumeConfig["storage_account_key"] = storageAccountKey
-				}
-			}
-		}
-
-		volumeConfigs = append(volumeConfigs, volumeConfig)
-	}
-
-	return volumeConfigs
-}
-
 func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstance.Container, *[]containerinstance.Port, *[]containerinstance.Volume) {
 	containersConfig := d.Get("container").([]interface{})
 	containers := make([]containerinstance.Container, 0)
@@ -576,8 +428,8 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 			envVars = expandContainerEnvironmentVariables(v, false)
 		}
 
-		// Expand sensitive_environment_variables into slice
-		if v, ok := data["sensitive_environment_variables"]; ok {
+		// Expand secure_environment_variables into slice
+		if v, ok := data["secure_environment_variables"]; ok {
 			secEnvVars = expandContainerEnvironmentVariables(v, true)
 		}
 
@@ -669,37 +521,6 @@ func expandContainerImageRegistryCredentials(d *schema.ResourceData) *[]containe
 	return &output
 }
 
-func flattenContainerImageRegistryCredentials(d *schema.ResourceData, input *[]containerinstance.ImageRegistryCredential) []interface{} {
-	if input == nil {
-		return nil
-	}
-	configsOld := d.Get("image_registry_credential").([]interface{})
-
-	output := make([]interface{}, 0)
-	for i, cred := range *input {
-		credConfig := make(map[string]interface{})
-		if cred.Server != nil {
-			credConfig["server"] = *cred.Server
-		}
-		if cred.Username != nil {
-			credConfig["username"] = *cred.Username
-		}
-
-		if len(configsOld) > i {
-			data := configsOld[i].(map[string]interface{})
-			oldServer := data["server"].(string)
-			if cred.Server != nil && *cred.Server == oldServer {
-				if v, ok := d.GetOk(fmt.Sprintf("image_registry_credential.%d.password", i)); ok {
-					credConfig["password"] = v.(string)
-				}
-			}
-		}
-
-		output = append(output, credConfig)
-	}
-	return output
-}
-
 func expandContainerVolumes(input interface{}) (*[]containerinstance.VolumeMount, *[]containerinstance.Volume) {
 	volumesRaw := input.([]interface{})
 
@@ -742,4 +563,199 @@ func expandContainerVolumes(input interface{}) (*[]containerinstance.VolumeMount
 	}
 
 	return &volumeMounts, &containerGroupVolumes
+}
+
+func flattenContainerImageRegistryCredentials(d *schema.ResourceData, input *[]containerinstance.ImageRegistryCredential) []interface{} {
+	if input == nil {
+		return nil
+	}
+	configsOld := d.Get("image_registry_credential").([]interface{})
+
+	output := make([]interface{}, 0)
+	for i, cred := range *input {
+		credConfig := make(map[string]interface{})
+		if cred.Server != nil {
+			credConfig["server"] = *cred.Server
+		}
+		if cred.Username != nil {
+			credConfig["username"] = *cred.Username
+		}
+
+		if len(configsOld) > i {
+			data := configsOld[i].(map[string]interface{})
+			oldServer := data["server"].(string)
+			if cred.Server != nil && *cred.Server == oldServer {
+				if v, ok := d.GetOk(fmt.Sprintf("image_registry_credential.%d.password", i)); ok {
+					credConfig["password"] = v.(string)
+				}
+			}
+		}
+
+		output = append(output, credConfig)
+	}
+	return output
+}
+
+func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]containerinstance.Container, containerGroupPorts *[]containerinstance.Port, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
+
+	containerConfigs := make([]interface{}, 0, len(*containers))
+	for _, container := range *containers {
+		containerConfig := make(map[string]interface{})
+		containerConfig["name"] = *container.Name
+		containerConfig["image"] = *container.Image
+
+		if resources := container.Resources; resources != nil {
+			if resourceRequests := resources.Requests; resourceRequests != nil {
+				containerConfig["cpu"] = *resourceRequests.CPU
+				containerConfig["memory"] = *resourceRequests.MemoryInGB
+			}
+		}
+
+		if len(*container.Ports) > 0 {
+			containerPort := *(*container.Ports)[0].Port
+			containerConfig["port"] = containerPort
+			// protocol isn't returned in container config, have to search in container group ports
+			protocol := ""
+			if containerGroupPorts != nil {
+				for _, cgPort := range *containerGroupPorts {
+					if *cgPort.Port == containerPort {
+						protocol = string(cgPort.Protocol)
+					}
+				}
+			}
+			if protocol != "" {
+				containerConfig["protocol"] = protocol
+			}
+		}
+
+		if container.EnvironmentVariables != nil {
+			if len(*container.EnvironmentVariables) > 0 {
+				containerConfig["environment_variables"] = flattenContainerEnvironmentVariables(container.EnvironmentVariables, false)
+			}
+		}
+
+		if container.EnvironmentVariables != nil {
+			if len(*container.EnvironmentVariables) > 0 {
+				containerConfig["secure_environment_variables"] = flattenContainerEnvironmentVariables(container.EnvironmentVariables, true)
+			}
+		}
+
+		commands := make([]string, 0)
+		if command := container.Command; command != nil {
+			containerConfig["command"] = strings.Join(*command, " ")
+
+			for _, v := range *command {
+				commands = append(commands, v)
+			}
+		}
+		containerConfig["commands"] = commands
+
+		if containerGroupVolumes != nil && container.VolumeMounts != nil {
+			// Also pass in the container volume config from schema
+			var containerVolumesConfig *[]interface{}
+			containersConfigRaw := d.Get("container").([]interface{})
+			for _, containerConfigRaw := range containersConfigRaw {
+				data := containerConfigRaw.(map[string]interface{})
+				nameRaw := data["name"].(string)
+				if nameRaw == *container.Name {
+					// found container config for current container
+					// extract volume mounts from config
+					if v, ok := data["volume"]; ok {
+						containerVolumesRaw := v.([]interface{})
+						containerVolumesConfig = &containerVolumesRaw
+					}
+				}
+			}
+			containerConfig["volume"] = flattenContainerVolumes(container.VolumeMounts, containerGroupVolumes, containerVolumesConfig)
+		}
+
+		containerConfigs = append(containerConfigs, containerConfig)
+	}
+
+	return containerConfigs
+}
+
+func flattenContainerEnvironmentVariables(input *[]containerinstance.EnvironmentVariable, isSecure bool) map[string]interface{} {
+	output := make(map[string]interface{})
+	if input == nil {
+		return output
+	}
+
+	if isSecure {
+		for _, envVar := range *input {
+			if envVar.Name != nil && envVar.Value == nil {
+				log.Printf("[DEBUG] SECURE    : Name: %s - Value: nil", *envVar.Name)
+				output[*envVar.Name] = ""
+			}
+		}
+	} else {
+		for _, envVar := range *input {
+			if envVar.Name != nil && envVar.Value != nil {
+				log.Printf("[DEBUG] NOT SECURE: Name: %s - Value: %s", *envVar.Name, *envVar.Value)
+				output[*envVar.Name] = *envVar.Value
+			}
+		}
+	}
+
+	return output
+}
+
+func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, containerGroupVolumes *[]containerinstance.Volume, containerVolumesConfig *[]interface{}) []interface{} {
+	volumeConfigs := make([]interface{}, 0)
+
+	if volumeMounts == nil {
+		return volumeConfigs
+	}
+
+	for _, vm := range *volumeMounts {
+		volumeConfig := make(map[string]interface{})
+		if vm.Name != nil {
+			volumeConfig["name"] = *vm.Name
+		}
+		if vm.MountPath != nil {
+			volumeConfig["mount_path"] = *vm.MountPath
+		}
+		if vm.ReadOnly != nil {
+			volumeConfig["read_only"] = *vm.ReadOnly
+		}
+
+		// find corresponding volume in container group volumes
+		// and use the data
+		if containerGroupVolumes != nil {
+			for _, cgv := range *containerGroupVolumes {
+				if cgv.Name == nil || vm.Name == nil {
+					continue
+				}
+
+				if *cgv.Name == *vm.Name {
+					if file := cgv.AzureFile; file != nil {
+						if file.ShareName != nil {
+							volumeConfig["share_name"] = *file.ShareName
+						}
+						if file.StorageAccountName != nil {
+							volumeConfig["storage_account_name"] = *file.StorageAccountName
+						}
+						// skip storage_account_key, is always nil
+					}
+				}
+			}
+		}
+
+		// find corresponding volume in config
+		// and use the data
+		if containerVolumesConfig != nil {
+			for _, cvr := range *containerVolumesConfig {
+				cv := cvr.(map[string]interface{})
+				rawName := cv["name"].(string)
+				if vm.Name != nil && *vm.Name == rawName {
+					storageAccountKey := cv["storage_account_key"].(string)
+					volumeConfig["storage_account_key"] = storageAccountKey
+				}
+			}
+		}
+
+		volumeConfigs = append(volumeConfigs, volumeConfig)
+	}
+
+	return volumeConfigs
 }
