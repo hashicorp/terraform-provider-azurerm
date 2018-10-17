@@ -189,6 +189,8 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 				ImportStateVerifyIgnore: []string{
 					"container.0.volume.0.storage_account_key",
 					"container.0.sensitive_environment_variables.%",
+					"container.0.sensitive_environment_variables.secureFoo",
+					"container.0.sensitive_environment_variables.secureFoo1",
 				},
 			},
 		},
@@ -258,6 +260,8 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					"container.0.sensitive_environment_variables.%",
+					"container.0.sensitive_environment_variables.secureFoo",
+					"container.0.sensitive_environment_variables.secureFoo1",
 				},
 			},
 		},
