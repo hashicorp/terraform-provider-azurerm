@@ -42,7 +42,7 @@ resource "azurerm_container_group" "aci-helloworld" {
   resource_group_name = "${azurerm_resource_group.aci-rg.name}"
   ip_address_type     = "public"
   dns_name_label      = "aci-label"
-  os_type             = "linux"
+  os_type             = "Linux"
 
   container {
     name   = "hw"
@@ -116,6 +116,8 @@ The `container` block supports:
 * `memory` - (Required) The required memory of the containers in GB. Changing this forces a new resource to be created.
 
 * `port` - (Optional) A public port for the container. Changing this forces a new resource to be created.
+
+* `protocol` - (Optional) The protocol associated with port for the container. Allowed values are `TCP` and `UDP`.
 
 * `environment_variables` - (Optional) A list of environment variables to be set on the container. Specified as a map of name/value pairs. Changing this forces a new resource to be created.
 

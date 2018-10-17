@@ -1300,6 +1300,7 @@ resource "azurerm_virtual_machine_scale_set" "testdestination" {
     ip_configuration {
       name      = "TestIPConfiguration"
       subnet_id = "${azurerm_subnet.test.id}"
+      primary   = true
     }
   }
 

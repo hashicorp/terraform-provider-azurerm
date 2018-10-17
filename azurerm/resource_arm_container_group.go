@@ -48,8 +48,8 @@ func resourceArmContainerGroup() *schema.Resource {
 				ForceNew:         true,
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				ValidateFunc: validation.StringInSlice([]string{
-					"windows",
-					"linux",
+					string(containerinstance.Windows),
+					string(containerinstance.Linux),
 				}, true),
 			},
 
@@ -158,8 +158,8 @@ func resourceArmContainerGroup() *schema.Resource {
 							ForceNew:         true,
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc: validation.StringInSlice([]string{
-								"tcp",
-								"udp",
+								string(containerinstance.TCP),
+								string(containerinstance.UDP),
 							}, true),
 						},
 

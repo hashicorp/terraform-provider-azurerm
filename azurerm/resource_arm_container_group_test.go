@@ -270,14 +270,14 @@ resource "azurerm_container_group" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   ip_address_type     = "public"
-  os_type             = "linux"
+  os_type             = "Linux"
 
   container {
     name   = "hw"
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-	port   = "80"
+    port   = "80"
   }
 
   tags {
@@ -299,14 +299,14 @@ resource "azurerm_container_group" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   ip_address_type     = "public"
-  os_type             = "linux"
+  os_type             = "Linux"
 
   container {
     name   = "hw"
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-	  port   = "80"
+    port   = "80"
   }
   
   image_registry_credential {
@@ -347,14 +347,14 @@ resource "azurerm_container_group" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   ip_address_type     = "public"
-  os_type             = "linux"
+  os_type             = "Linux"
 
   container {
     name   = "hw"
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-	  port   = "80"
+    port   = "80"
   }
   
   image_registry_credential {
@@ -389,14 +389,14 @@ resource "azurerm_container_group" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   ip_address_type     = "public"
-  os_type             = "linux"
+  os_type             = "Linux"
 
   container {
     name   = "hw"
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-	port   = "80"
+    port   = "80"
   }
 
   container {
@@ -465,11 +465,11 @@ resource "azurerm_container_group" "test" {
     memory = "3.5"
     port   = "80"
 
-	environment_variables {
-		"foo"  = "bar"
-		"foo1" = "bar1"
-	}
-	commands = ["cmd.exe", "echo", "hi"]
+    environment_variables {
+        "foo"  = "bar"
+        "foo1" = "bar1"
+    }
+    commands = ["cmd.exe", "echo", "hi"]
   }
 
   tags {
@@ -482,66 +482,66 @@ resource "azurerm_container_group" "test" {
 func testAccAzureRMContainerGroup_linuxComplete(ri int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
+    name     = "acctestRG-%d"
+    location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
-	name                     = "accsa%d"
-	resource_group_name      = "${azurerm_resource_group.test.name}"
-	location                 = "${azurerm_resource_group.test.location}"
-	account_tier             = "Standard"
-	account_replication_type = "LRS"
+    name                     = "accsa%d"
+    resource_group_name      = "${azurerm_resource_group.test.name}"
+    location                 = "${azurerm_resource_group.test.location}"
+    account_tier             = "Standard"
+    account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_share" "test" {
-	name = "acctestss-%d"
+    name = "acctestss-%d"
 
-	resource_group_name  = "${azurerm_resource_group.test.name}"
-	storage_account_name = "${azurerm_storage_account.test.name}"
+    resource_group_name  = "${azurerm_resource_group.test.name}"
+    storage_account_name = "${azurerm_storage_account.test.name}"
 
-	quota = 50
+    quota = 50
 }
 
 resource "azurerm_container_group" "test" {
-	name                = "acctestcontainergroup-%d"
-	location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	ip_address_type     = "public"
-	dns_name_label      = "acctestcontainergroup-%d"
-	os_type             = "linux"
-	restart_policy      = "OnFailure"
+    name                = "acctestcontainergroup-%d"
+    location            = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    ip_address_type     = "public"
+    dns_name_label      = "acctestcontainergroup-%d"
+    os_type             = "Linux"
+    restart_policy      = "OnFailure"
 
-	container {
-		name   = "hf"
-		image  = "seanmckenna/aci-hellofiles"
-		cpu    = "1"
-		memory = "1.5"
+    container {
+        name   = "hf"
+        image  = "seanmckenna/aci-hellofiles"
+        cpu    = "1"
+        memory = "1.5"
 
-		port     = "80"
-		protocol = "TCP"
+        port     = "80"
+        protocol = "TCP"
 
-		volume {
-			name       = "logs"
-			mount_path = "/aci/logs"
-			read_only  = false
-			share_name = "${azurerm_storage_share.test.name}"
+        volume {
+            name       = "logs"
+            mount_path = "/aci/logs"
+            read_only  = false
+            share_name = "${azurerm_storage_share.test.name}"
 
-			storage_account_name = "${azurerm_storage_account.test.name}"
-			storage_account_key = "${azurerm_storage_account.test.primary_access_key}"
-		}
+            storage_account_name = "${azurerm_storage_account.test.name}"
+            storage_account_key = "${azurerm_storage_account.test.primary_access_key}"
+        }
 
-		environment_variables {
-			"foo" = "bar"
-			"foo1" = "bar1"
-		}
+        environment_variables {
+            "foo" = "bar"
+            "foo1" = "bar1"
+        }
 
-		commands = ["/bin/bash", "-c", "ls"]
-	}
+        commands = ["/bin/bash", "-c", "ls"]
+    }
 
-	tags {
-		environment = "Testing"
-	}
+    tags {
+        environment = "Testing"
+    }
 }
 `, ri, location, ri, ri, ri, ri)
 }

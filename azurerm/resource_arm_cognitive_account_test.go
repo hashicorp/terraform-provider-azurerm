@@ -153,7 +153,7 @@ func testCheckAzureRMCognitiveAccountExists(name string) resource.TestCheckFunc 
 func testAccAzureRMCognitiveAccount_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -174,7 +174,7 @@ resource "azurerm_cognitive_account" "test" {
 func testAccAzureRMCognitiveAccount_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
