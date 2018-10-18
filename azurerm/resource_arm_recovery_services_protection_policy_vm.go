@@ -311,8 +311,6 @@ func resourceArmRecoveryServicesProtectionPolicyVmCreateUpdate(d *schema.Resourc
 		return err
 	}
 
-	///Subscriptions/c0a607b2-6372-4ef3-abdb-dbe52a7b56ba/resourceGroups/tfex-recovery_services/providers/Microsoft.RecoveryServices/vaults/tfex-recovery-vault/backupPolicies/tfex-policy"
-
 	id := strings.Replace(*resp.ID, "Subscriptions", "subscriptions", 1)
 	d.SetId(id)
 

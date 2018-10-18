@@ -11,11 +11,6 @@ import (
 	"strconv"
 )
 
-//basic daily
-//basic weekly
-//complete daily
-//complete weekly
-
 func TestAccAzureRMRecoveryServicesProtectionPolicyVm_basicDaily(t *testing.T) {
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
 	ri := acctest.RandInt()
@@ -303,104 +298,6 @@ func testAccAzureRMRecoveryServicesProtectionPolicyVm_base(rInt int, location st
 resource "azurerm_resource_group" "test" { 
   name     = "acctestRG-%[1]d" 
   location = "%[2]s" 
-} 
-
-resource "azurerm_virtual_network" "test" {
-  name                = "vnet"
-  location            = "${azurerm_resource_group.test.location}"
-  address_space       = ["10.0.0.0/16"]
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctest_subnet"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  address_prefix       = "10.0.10.0/24"
-}
-
-resource "azurerm_network_interface" "test" {
-  name                = "acctest_nic"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  ip_configuration {
-    name                          = "acctestipconfig"
-    subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = "${azurerm_public_ip.test.id}"
-  }
-}
-
-resource "azurerm_public_ip" "test" {
-  name                         = "acctest-ip"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
-  domain_name_label            = "acctestip%[1]d"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctest%[3]s"
-  location                 = "${azurerm_resource_group.test.location}"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_managed_disk" "test" {
-  name                 = "acctest-datadisk"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  storage_account_type = "Standard_LRS"
-  create_option        = "Empty"
-  disk_size_gb         = "1023"
-}
-
-resource "azurerm_virtual_machine" "test" {
-  name                  = "acctestvm"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  vm_size               = "Standard_A0"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
-
-  storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
-    version   = "latest"
-  }
-
-  storage_os_disk {
-    name              = "acctest-osdisk"
-    managed_disk_type = "Standard_LRS"
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-  }
-
-  storage_data_disk {
-    name              = "acctest-datadisk"
-    managed_disk_id   = "${azurerm_managed_disk.test.id}"
-    managed_disk_type = "Standard_LRS"
-    disk_size_gb      = "1023"
-    create_option     = "Attach"
-    lun               = 0
-  }
-
-  os_profile {
-    computer_name  = "acctest"
-    admin_username = "vmadmin"
-    admin_password = "Password123!@#"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
-
-  boot_diagnostics {
-    enabled     = true
-    storage_uri = "${azurerm_storage_account.test.primary_blob_endpoint}"
-  }
 }
 
 resource "azurerm_recovery_services_vault" "test" {
