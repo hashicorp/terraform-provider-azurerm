@@ -60,6 +60,21 @@ func PossibleAggregatedReplicationStateValues() []AggregatedReplicationState {
 	return []AggregatedReplicationState{Completed, Failed, InProgress, Unknown}
 }
 
+// AvailabilitySetSkuTypes enumerates the values for availability set sku types.
+type AvailabilitySetSkuTypes string
+
+const (
+	// Aligned ...
+	Aligned AvailabilitySetSkuTypes = "Aligned"
+	// Classic ...
+	Classic AvailabilitySetSkuTypes = "Classic"
+)
+
+// PossibleAvailabilitySetSkuTypesValues returns an array of possible values for the AvailabilitySetSkuTypes const type.
+func PossibleAvailabilitySetSkuTypesValues() []AvailabilitySetSkuTypes {
+	return []AvailabilitySetSkuTypes{Aligned, Classic}
+}
+
 // CachingTypes enumerates the values for caching types.
 type CachingTypes string
 
@@ -214,6 +229,19 @@ func PossibleContainerServiceVMSizeTypesValues() []ContainerServiceVMSizeTypes {
 	return []ContainerServiceVMSizeTypes{StandardA0, StandardA1, StandardA10, StandardA11, StandardA2, StandardA3, StandardA4, StandardA5, StandardA6, StandardA7, StandardA8, StandardA9, StandardD1, StandardD11, StandardD11V2, StandardD12, StandardD12V2, StandardD13, StandardD13V2, StandardD14, StandardD14V2, StandardD1V2, StandardD2, StandardD2V2, StandardD3, StandardD3V2, StandardD4, StandardD4V2, StandardD5V2, StandardDS1, StandardDS11, StandardDS12, StandardDS13, StandardDS14, StandardDS2, StandardDS3, StandardDS4, StandardG1, StandardG2, StandardG3, StandardG4, StandardG5, StandardGS1, StandardGS2, StandardGS3, StandardGS4, StandardGS5}
 }
 
+// DiffDiskOptions enumerates the values for diff disk options.
+type DiffDiskOptions string
+
+const (
+	// Local ...
+	Local DiffDiskOptions = "Local"
+)
+
+// PossibleDiffDiskOptionsValues returns an array of possible values for the DiffDiskOptions const type.
+func PossibleDiffDiskOptionsValues() []DiffDiskOptions {
+	return []DiffDiskOptions{Local}
+}
+
 // DiskCreateOption enumerates the values for disk create option.
 type DiskCreateOption string
 
@@ -252,6 +280,25 @@ const (
 // PossibleDiskCreateOptionTypesValues returns an array of possible values for the DiskCreateOptionTypes const type.
 func PossibleDiskCreateOptionTypesValues() []DiskCreateOptionTypes {
 	return []DiskCreateOptionTypes{DiskCreateOptionTypesAttach, DiskCreateOptionTypesEmpty, DiskCreateOptionTypesFromImage}
+}
+
+// DiskStorageAccountTypes enumerates the values for disk storage account types.
+type DiskStorageAccountTypes string
+
+const (
+	// PremiumLRS ...
+	PremiumLRS DiskStorageAccountTypes = "Premium_LRS"
+	// StandardLRS ...
+	StandardLRS DiskStorageAccountTypes = "Standard_LRS"
+	// StandardSSDLRS ...
+	StandardSSDLRS DiskStorageAccountTypes = "StandardSSD_LRS"
+	// UltraSSDLRS ...
+	UltraSSDLRS DiskStorageAccountTypes = "UltraSSD_LRS"
+)
+
+// PossibleDiskStorageAccountTypesValues returns an array of possible values for the DiskStorageAccountTypes const type.
+func PossibleDiskStorageAccountTypesValues() []DiskStorageAccountTypes {
+	return []DiskStorageAccountTypes{PremiumLRS, StandardLRS, StandardSSDLRS, UltraSSDLRS}
 }
 
 // HostCaching enumerates the values for host caching.
@@ -596,21 +643,6 @@ func PossibleRollingUpgradeStatusCodeValues() []RollingUpgradeStatusCode {
 	return []RollingUpgradeStatusCode{RollingUpgradeStatusCodeCancelled, RollingUpgradeStatusCodeCompleted, RollingUpgradeStatusCodeFaulted, RollingUpgradeStatusCodeRollingForward}
 }
 
-// ScaleTier enumerates the values for scale tier.
-type ScaleTier string
-
-const (
-	// S100 ...
-	S100 ScaleTier = "S100"
-	// S30 ...
-	S30 ScaleTier = "S30"
-)
-
-// PossibleScaleTierValues returns an array of possible values for the ScaleTier const type.
-func PossibleScaleTierValues() []ScaleTier {
-	return []ScaleTier{S100, S30}
-}
-
 // SettingNames enumerates the values for setting names.
 type SettingNames string
 
@@ -630,17 +662,17 @@ func PossibleSettingNamesValues() []SettingNames {
 type SnapshotStorageAccountTypes string
 
 const (
-	// PremiumLRS ...
-	PremiumLRS SnapshotStorageAccountTypes = "Premium_LRS"
-	// StandardLRS ...
-	StandardLRS SnapshotStorageAccountTypes = "Standard_LRS"
-	// StandardZRS ...
-	StandardZRS SnapshotStorageAccountTypes = "Standard_ZRS"
+	// SnapshotStorageAccountTypesPremiumLRS ...
+	SnapshotStorageAccountTypesPremiumLRS SnapshotStorageAccountTypes = "Premium_LRS"
+	// SnapshotStorageAccountTypesStandardLRS ...
+	SnapshotStorageAccountTypesStandardLRS SnapshotStorageAccountTypes = "Standard_LRS"
+	// SnapshotStorageAccountTypesStandardZRS ...
+	SnapshotStorageAccountTypesStandardZRS SnapshotStorageAccountTypes = "Standard_ZRS"
 )
 
 // PossibleSnapshotStorageAccountTypesValues returns an array of possible values for the SnapshotStorageAccountTypes const type.
 func PossibleSnapshotStorageAccountTypesValues() []SnapshotStorageAccountTypes {
-	return []SnapshotStorageAccountTypes{PremiumLRS, StandardLRS, StandardZRS}
+	return []SnapshotStorageAccountTypes{SnapshotStorageAccountTypesPremiumLRS, SnapshotStorageAccountTypesStandardLRS, SnapshotStorageAccountTypesStandardZRS}
 }
 
 // StatusLevelTypes enumerates the values for status level types.
@@ -670,11 +702,13 @@ const (
 	StorageAccountTypesStandardLRS StorageAccountTypes = "Standard_LRS"
 	// StorageAccountTypesStandardSSDLRS ...
 	StorageAccountTypesStandardSSDLRS StorageAccountTypes = "StandardSSD_LRS"
+	// StorageAccountTypesUltraSSDLRS ...
+	StorageAccountTypesUltraSSDLRS StorageAccountTypes = "UltraSSD_LRS"
 )
 
 // PossibleStorageAccountTypesValues returns an array of possible values for the StorageAccountTypes const type.
 func PossibleStorageAccountTypesValues() []StorageAccountTypes {
-	return []StorageAccountTypes{StorageAccountTypesPremiumLRS, StorageAccountTypesStandardLRS, StorageAccountTypesStandardSSDLRS}
+	return []StorageAccountTypes{StorageAccountTypesPremiumLRS, StorageAccountTypesStandardLRS, StorageAccountTypesStandardSSDLRS, StorageAccountTypesUltraSSDLRS}
 }
 
 // UpgradeMode enumerates the values for upgrade mode.
@@ -1125,6 +1159,12 @@ type AccessURI struct {
 	AccessSAS *string `json:"accessSAS,omitempty"`
 }
 
+// AdditionalCapabilities enables or disables a capability on the virtual machine or virtual machine scale set.
+type AdditionalCapabilities struct {
+	// UltraSSDEnabled - The flag that enables or disables a capability to have one or more managed data disks with UltraSSD_LRS storage account type on the VM or VMSS. Managed disks with storage account type UltraSSD_LRS can be added to a virtual machine or virtual machine scale set only if this property is enabled.
+	UltraSSDEnabled *bool `json:"ultraSSDEnabled,omitempty"`
+}
+
 // AdditionalUnattendContent specifies additional XML formatted information that can be included in the
 // Unattend.xml file, which is used by Windows Setup. Contents are defined by setting name, component name, and the
 // pass in which the content is applied.
@@ -1186,7 +1226,7 @@ type AutoOSUpgradePolicy struct {
 type AvailabilitySet struct {
 	autorest.Response          `json:"-"`
 	*AvailabilitySetProperties `json:"properties,omitempty"`
-	// Sku - Sku of the availability set
+	// Sku - Sku of the availability set, only name is required to be set. See AvailabilitySetSkuTypes for possible set of values. Use 'Aligned' for virtual machines with managed disks and 'Classic' for virtual machines with unmanaged disks. Default value is 'Classic'.
 	Sku *Sku `json:"sku,omitempty"`
 	// ID - Resource Id
 	ID *string `json:"id,omitempty"`
@@ -1912,7 +1952,7 @@ type DataDisk struct {
 	WriteAcceleratorEnabled *bool `json:"writeAcceleratorEnabled,omitempty"`
 	// CreateOption - Specifies how the virtual machine should be created.<br><br> Possible values are:<br><br> **Attach** \u2013 This value is used when you are using a specialized disk to create the virtual machine.<br><br> **FromImage** \u2013 This value is used when you are using an image to create the virtual machine. If you are using a platform image, you also use the imageReference element described above. If you are using a marketplace image, you  also use the plan element previously described. Possible values include: 'DiskCreateOptionTypesFromImage', 'DiskCreateOptionTypesEmpty', 'DiskCreateOptionTypesAttach'
 	CreateOption DiskCreateOptionTypes `json:"createOption,omitempty"`
-	// DiskSizeGB - Specifies the size of an empty data disk in gigabytes. This element can be used to overwrite the name of the disk in a virtual machine image. <br><br> This value cannot be larger than 1023 GB
+	// DiskSizeGB - Specifies the size of an empty data disk in gigabytes. This element can be used to overwrite the size of the disk in a virtual machine image. <br><br> This value cannot be larger than 1023 GB
 	DiskSizeGB *int32 `json:"diskSizeGB,omitempty"`
 	// ManagedDisk - The managed disk parameters.
 	ManagedDisk *ManagedDiskParameters `json:"managedDisk,omitempty"`
@@ -1928,6 +1968,13 @@ type DataDiskImage struct {
 type DiagnosticsProfile struct {
 	// BootDiagnostics - Boot Diagnostics is a debugging feature which allows you to view Console Output and Screenshot to diagnose VM status. <br><br> For Linux Virtual Machines, you can easily view the output of your console log. <br><br> For both Windows and Linux virtual machines, Azure also enables you to see a screenshot of the VM from the hypervisor.
 	BootDiagnostics *BootDiagnostics `json:"bootDiagnostics,omitempty"`
+}
+
+// DiffDiskSettings describes the parameters of differencing disk settings that can be be specified for operating
+// system disk. <br><br> NOTE: The differencing disk settings can only be specified for managed disk.
+type DiffDiskSettings struct {
+	// Option - Specifies the differencing disk settings for operating system disk. Possible values include: 'Local'
+	Option DiffDiskOptions `json:"option,omitempty"`
 }
 
 // Disallowed describes the disallowed disk types.
@@ -2222,6 +2269,10 @@ type DiskProperties struct {
 	EncryptionSettings *EncryptionSettings `json:"encryptionSettings,omitempty"`
 	// ProvisioningState - The disk provisioning state.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// DiskIOPSReadWrite - The number of IOPS allowed for this disk; only settable for UltraSSD disks. One operation can transfer between 4k and 256k bytes.
+	DiskIOPSReadWrite *int64 `json:"diskIOPSReadWrite,omitempty"`
+	// DiskMBpsReadWrite - The bandwidth allowed for this disk; only settable for UltraSSD disks. MBps means millions of bytes per second - MB here uses the ISO notation, of powers of 10.
+	DiskMBpsReadWrite *int32 `json:"diskMBpsReadWrite,omitempty"`
 }
 
 // DisksCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
@@ -2302,10 +2353,10 @@ func (future *DisksGrantAccessFuture) Result(client DisksClient) (au AccessURI, 
 	return
 }
 
-// DiskSku the disks sku name. Can be Standard_LRS, Premium_LRS, or StandardSSD_LRS.
+// DiskSku the disks sku name. Can be Standard_LRS, Premium_LRS, StandardSSD_LRS, or UltraSSD_LRS.
 type DiskSku struct {
-	// Name - The sku name. Possible values include: 'StorageAccountTypesStandardLRS', 'StorageAccountTypesPremiumLRS', 'StorageAccountTypesStandardSSDLRS'
-	Name StorageAccountTypes `json:"name,omitempty"`
+	// Name - The sku name. Possible values include: 'StandardLRS', 'PremiumLRS', 'StandardSSDLRS', 'UltraSSDLRS'
+	Name DiskStorageAccountTypes `json:"name,omitempty"`
 	// Tier - The sku tier.
 	Tier *string `json:"tier,omitempty"`
 }
@@ -2433,6 +2484,10 @@ type DiskUpdateProperties struct {
 	DiskSizeGB *int32 `json:"diskSizeGB,omitempty"`
 	// EncryptionSettings - Encryption settings for disk or snapshot
 	EncryptionSettings *EncryptionSettings `json:"encryptionSettings,omitempty"`
+	// DiskIOPSReadWrite - The number of IOPS allowed for this disk; only settable for UltraSSD disks. One operation can transfer between 4k and 256k bytes.
+	DiskIOPSReadWrite *int64 `json:"diskIOPSReadWrite,omitempty"`
+	// DiskMBpsReadWrite - The bandwidth allowed for this disk; only settable for UltraSSD disks. MBps means millions of bytes per second - MB here uses the ISO notation, of powers of 10.
+	DiskMBpsReadWrite *int32 `json:"diskMBpsReadWrite,omitempty"`
 }
 
 // EncryptionSettings encryption settings for disk or snapshot
@@ -2496,7 +2551,7 @@ func (future *GalleriesDeleteFuture) Result(client GalleriesClient) (ar autorest
 	return
 }
 
-// Gallery specifies information about the gallery that you want to create or update.
+// Gallery specifies information about the Shared Image Gallery that you want to create or update.
 type Gallery struct {
 	autorest.Response  `json:"-"`
 	*GalleryProperties `json:"properties,omitempty"`
@@ -2607,21 +2662,21 @@ func (g *Gallery) UnmarshalJSON(body []byte) error {
 
 // GalleryArtifactPublishingProfileBase describes the basic gallery artifact publishing profile.
 type GalleryArtifactPublishingProfileBase struct {
-	// Regions - The regions where the artifact is going to be published.
-	Regions *[]string              `json:"regions,omitempty"`
-	Source  *GalleryArtifactSource `json:"source,omitempty"`
+	// TargetRegions - The target regions where the Image Version is going to be replicated to. This property is updateable.
+	TargetRegions *[]TargetRegion        `json:"targetRegions,omitempty"`
+	Source        *GalleryArtifactSource `json:"source,omitempty"`
 }
 
-// GalleryArtifactSource the source of the gallery artifact.
+// GalleryArtifactSource the source image from which the Image Version is going to be created.
 type GalleryArtifactSource struct {
 	ManagedImage *ManagedArtifact `json:"managedImage,omitempty"`
 }
 
 // GalleryDataDiskImage this is the data disk image.
 type GalleryDataDiskImage struct {
-	// Lun - Specifies the logical unit number of the data disk. This value is used to identify data disks within the VM and therefore must be unique for each data disk attached to a VM.
+	// Lun - This property specifies the logical unit number of the data disk. This value is used to identify data disks within the Virtual Machine and therefore must be unique for each data disk attached to the Virtual Machine.
 	Lun *int32 `json:"lun,omitempty"`
-	// SizeInGB - It indicates the size of the VHD to create.
+	// SizeInGB - This property indicates the size of the VHD to be created.
 	SizeInGB *int32 `json:"sizeInGB,omitempty"`
 	// HostCaching - The host caching of the disk. Valid values are 'None', 'ReadOnly', and 'ReadWrite'. Possible values include: 'HostCachingNone', 'HostCachingReadOnly', 'HostCachingReadWrite'
 	HostCaching HostCaching `json:"hostCaching,omitempty"`
@@ -2629,7 +2684,7 @@ type GalleryDataDiskImage struct {
 
 // GalleryDiskImage this is the disk image base class.
 type GalleryDiskImage struct {
-	// SizeInGB - It indicates the size of the VHD to create.
+	// SizeInGB - This property indicates the size of the VHD to be created.
 	SizeInGB *int32 `json:"sizeInGB,omitempty"`
 	// HostCaching - The host caching of the disk. Valid values are 'None', 'ReadOnly', and 'ReadWrite'. Possible values include: 'HostCachingNone', 'HostCachingReadOnly', 'HostCachingReadWrite'
 	HostCaching HostCaching `json:"hostCaching,omitempty"`
@@ -2637,11 +2692,11 @@ type GalleryDiskImage struct {
 
 // GalleryIdentifier describes the gallery unique name.
 type GalleryIdentifier struct {
-	// UniqueName - The unique name of the gallery
+	// UniqueName - The unique name of the Shared Image Gallery. This name is generated automatically by Azure.
 	UniqueName *string `json:"uniqueName,omitempty"`
 }
 
-// GalleryImage specifies information about the gallery image that you want to create or update.
+// GalleryImage specifies information about the gallery Image Definition that you want to create or update.
 type GalleryImage struct {
 	autorest.Response       `json:"-"`
 	*GalleryImageProperties `json:"properties,omitempty"`
@@ -2750,22 +2805,22 @@ func (gi *GalleryImage) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// GalleryImageIdentifier this is the gallery image identifier.
+// GalleryImageIdentifier this is the gallery Image Definition identifier.
 type GalleryImageIdentifier struct {
-	// Publisher - The gallery image publisher name.
+	// Publisher - The name of the gallery Image Definition publisher.
 	Publisher *string `json:"publisher,omitempty"`
-	// Offer - The gallery image offer name.
+	// Offer - The name of the gallery Image Definition offer.
 	Offer *string `json:"offer,omitempty"`
-	// Sku - The gallery image sku name.
+	// Sku - The name of the gallery Image Definition SKU.
 	Sku *string `json:"sku,omitempty"`
 }
 
 // GalleryImageList the List Gallery Images operation response.
 type GalleryImageList struct {
 	autorest.Response `json:"-"`
-	// Value - A list of gallery images.
+	// Value - A list of Shared Image Gallery images.
 	Value *[]GalleryImage `json:"value,omitempty"`
-	// NextLink - The uri to fetch the next page of gallery images. Call ListNext() with this to fetch the next page of gallery images.
+	// NextLink - The uri to fetch the next page of Image Definitions in the Shared Image Gallery. Call ListNext() with this to fetch the next page of gallery Image Definitions.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -2862,21 +2917,21 @@ func (page GalleryImageListPage) Values() []GalleryImage {
 	return *page.gil.Value
 }
 
-// GalleryImageProperties describes the properties of a gallery image.
+// GalleryImageProperties describes the properties of a gallery Image Definition.
 type GalleryImageProperties struct {
-	// Description - The description of this gallery image resource.
+	// Description - The description of this gallery Image Definition resource. This property is updateable.
 	Description *string `json:"description,omitempty"`
-	// Eula - The Eula agreement for the gallery image.
+	// Eula - The Eula agreement for the gallery Image Definition.
 	Eula *string `json:"eula,omitempty"`
 	// PrivacyStatementURI - The privacy statement uri.
 	PrivacyStatementURI *string `json:"privacyStatementUri,omitempty"`
 	// ReleaseNoteURI - The release note uri.
 	ReleaseNoteURI *string `json:"releaseNoteUri,omitempty"`
-	// OsType - This property allows you to specify the type of the OS that is included in the disk if creating a VM from user-image or a specialized VHD. <br><br> Possible values are: <br><br> **Windows** <br><br> **Linux**. Possible values include: 'Windows', 'Linux'
+	// OsType - This property allows you to specify the type of the OS that is included in the disk when creating a VM from a managed image. <br><br> Possible values are: <br><br> **Windows** <br><br> **Linux**. Possible values include: 'Windows', 'Linux'
 	OsType OperatingSystemTypes `json:"osType,omitempty"`
-	// OsState - The OS State. Possible values include: 'Generalized', 'Specialized'
+	// OsState - The allowed values for OS State are 'Generalized'. Possible values include: 'Generalized', 'Specialized'
 	OsState OperatingSystemStateTypes `json:"osState,omitempty"`
-	// EndOfLifeDate - The end of life of this gallery image.
+	// EndOfLifeDate - The end of life date of the gallery Image Definition. This property can be used for decommissioning purposes. This property is updateable.
 	EndOfLifeDate *date.Time                       `json:"endOfLifeDate,omitempty"`
 	Identifier    *GalleryImageIdentifier          `json:"identifier,omitempty"`
 	Recommended   *RecommendedMachineConfiguration `json:"recommended,omitempty"`
@@ -2937,7 +2992,7 @@ func (future *GalleryImagesDeleteFuture) Result(client GalleryImagesClient) (ar 
 	return
 }
 
-// GalleryImageVersion specifies information about the gallery image version that you want to create or update.
+// GalleryImageVersion specifies information about the gallery Image Version that you want to create or update.
 type GalleryImageVersion struct {
 	autorest.Response              `json:"-"`
 	*GalleryImageVersionProperties `json:"properties,omitempty"`
@@ -3049,9 +3104,9 @@ func (giv *GalleryImageVersion) UnmarshalJSON(body []byte) error {
 // GalleryImageVersionList the List Gallery Image version operation response.
 type GalleryImageVersionList struct {
 	autorest.Response `json:"-"`
-	// Value - A list of gallery image versions.
+	// Value - A list of gallery Image Versions.
 	Value *[]GalleryImageVersion `json:"value,omitempty"`
-	// NextLink - The uri to fetch the next page of gallery image versions. Call ListNext() with this to fetch the next page of gallery image versions.
+	// NextLink - The uri to fetch the next page of gallery Image Versions. Call ListNext() with this to fetch the next page of gallery Image Versions.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -3148,7 +3203,7 @@ func (page GalleryImageVersionListPage) Values() []GalleryImageVersion {
 	return *page.givl.Value
 }
 
-// GalleryImageVersionProperties describes the properties of a gallery image version.
+// GalleryImageVersionProperties describes the properties of a gallery Image Version.
 type GalleryImageVersionProperties struct {
 	PublishingProfile *GalleryImageVersionPublishingProfile `json:"publishingProfile,omitempty"`
 	// ProvisioningState - The provisioning state, which only appears in the response. Possible values include: 'ProvisioningState2Creating', 'ProvisioningState2Updating', 'ProvisioningState2Failed', 'ProvisioningState2Succeeded', 'ProvisioningState2Deleting', 'ProvisioningState2Migrating'
@@ -3157,19 +3212,19 @@ type GalleryImageVersionProperties struct {
 	ReplicationStatus *ReplicationStatus                 `json:"replicationStatus,omitempty"`
 }
 
-// GalleryImageVersionPublishingProfile the publishing profile of a gallery image version.
+// GalleryImageVersionPublishingProfile the publishing profile of a gallery Image Version.
 type GalleryImageVersionPublishingProfile struct {
-	// ScaleTier - The scale tier of the gallery image version. Valid values are 'S30' and 'S100'. Possible values include: 'S30', 'S100'
-	ScaleTier ScaleTier `json:"scaleTier,omitempty"`
-	// ExcludeFromLatest - The flag means that if it is set to true, people deploying VMs with 'latest' as version will not use this version.
+	// ReplicaCount - The number of replicas of the Image Version to be created per region. This property would take effect for a region when regionalReplicaCount is not specified. This property is updateable.
+	ReplicaCount *int32 `json:"replicaCount,omitempty"`
+	// ExcludeFromLatest - If set to true, Virtual Machines deployed from the latest version of the Image Definition won't use this Image Version.
 	ExcludeFromLatest *bool `json:"excludeFromLatest,omitempty"`
-	// PublishedDate - The time when the gallery image version is published.
+	// PublishedDate - The timestamp for when the gallery Image Version is published.
 	PublishedDate *date.Time `json:"publishedDate,omitempty"`
-	// EndOfLifeDate - The end of life date of the gallery image version.
+	// EndOfLifeDate - The end of life date of the gallery Image Version. This property can be used for decommissioning purposes. This property is updateable.
 	EndOfLifeDate *date.Time `json:"endOfLifeDate,omitempty"`
-	// Regions - The regions where the artifact is going to be published.
-	Regions *[]string              `json:"regions,omitempty"`
-	Source  *GalleryArtifactSource `json:"source,omitempty"`
+	// TargetRegions - The target regions where the Image Version is going to be replicated to. This property is updateable.
+	TargetRegions *[]TargetRegion        `json:"targetRegions,omitempty"`
+	Source        *GalleryArtifactSource `json:"source,omitempty"`
 }
 
 // GalleryImageVersionsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
@@ -3224,7 +3279,7 @@ func (future *GalleryImageVersionsDeleteFuture) Result(client GalleryImageVersio
 	return
 }
 
-// GalleryImageVersionStorageProfile this is the storage profile of a gallery image version.
+// GalleryImageVersionStorageProfile this is the storage profile of a gallery Image Version.
 type GalleryImageVersionStorageProfile struct {
 	OsDiskImage *GalleryOSDiskImage `json:"osDiskImage,omitempty"`
 	// DataDiskImages - A list of data disk images.
@@ -3335,15 +3390,15 @@ func (page GalleryListPage) Values() []Gallery {
 
 // GalleryOSDiskImage this is the OS disk image.
 type GalleryOSDiskImage struct {
-	// SizeInGB - It indicates the size of the VHD to create.
+	// SizeInGB - This property indicates the size of the VHD to be created.
 	SizeInGB *int32 `json:"sizeInGB,omitempty"`
 	// HostCaching - The host caching of the disk. Valid values are 'None', 'ReadOnly', and 'ReadWrite'. Possible values include: 'HostCachingNone', 'HostCachingReadOnly', 'HostCachingReadWrite'
 	HostCaching HostCaching `json:"hostCaching,omitempty"`
 }
 
-// GalleryProperties describes the properties of a gallery.
+// GalleryProperties describes the properties of a Shared Image Gallery.
 type GalleryProperties struct {
-	// Description - The description of this gallery resource.
+	// Description - The description of this Shared Image Gallery resource. This property is updateable.
 	Description *string            `json:"description,omitempty"`
 	Identifier  *GalleryIdentifier `json:"identifier,omitempty"`
 	// ProvisioningState - The provisioning state, which only appears in the response. Possible values include: 'ProvisioningStateCreating', 'ProvisioningStateUpdating', 'ProvisioningStateFailed', 'ProvisioningStateSucceeded', 'ProvisioningStateDeleting', 'ProvisioningStateMigrating'
@@ -3488,7 +3543,7 @@ type ImageDataDisk struct {
 	Caching CachingTypes `json:"caching,omitempty"`
 	// DiskSizeGB - Specifies the size of empty data disks in gigabytes. This element can be used to overwrite the name of the disk in a virtual machine image. <br><br> This value cannot be larger than 1023 GB
 	DiskSizeGB *int32 `json:"diskSizeGB,omitempty"`
-	// StorageAccountType - Specifies the storage account type for the managed disk. Possible values are: Standard_LRS, Premium_LRS, and StandardSSD_LRS. Possible values include: 'StorageAccountTypesStandardLRS', 'StorageAccountTypesPremiumLRS', 'StorageAccountTypesStandardSSDLRS'
+	// StorageAccountType - Specifies the storage account type for the managed disk. NOTE: UltraSSD_LRS can only be used with data disks, it cannot be used with OS Disk. Possible values include: 'StorageAccountTypesStandardLRS', 'StorageAccountTypesPremiumLRS', 'StorageAccountTypesStandardSSDLRS', 'StorageAccountTypesUltraSSDLRS'
 	StorageAccountType StorageAccountTypes `json:"storageAccountType,omitempty"`
 }
 
@@ -3618,7 +3673,7 @@ type ImageOSDisk struct {
 	Caching CachingTypes `json:"caching,omitempty"`
 	// DiskSizeGB - Specifies the size of empty data disks in gigabytes. This element can be used to overwrite the name of the disk in a virtual machine image. <br><br> This value cannot be larger than 1023 GB
 	DiskSizeGB *int32 `json:"diskSizeGB,omitempty"`
-	// StorageAccountType - Specifies the storage account type for the managed disk. Possible values are: Standard_LRS, Premium_LRS, and StandardSSD_LRS. Possible values include: 'StorageAccountTypesStandardLRS', 'StorageAccountTypesPremiumLRS', 'StorageAccountTypesStandardSSDLRS'
+	// StorageAccountType - Specifies the storage account type for the managed disk. UltraSSD_LRS cannot be used with OS Disk. Possible values include: 'StorageAccountTypesStandardLRS', 'StorageAccountTypesPremiumLRS', 'StorageAccountTypesStandardSSDLRS', 'StorageAccountTypesUltraSSDLRS'
 	StorageAccountType StorageAccountTypes `json:"storageAccountType,omitempty"`
 }
 
@@ -3632,7 +3687,7 @@ type ImageProperties struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 }
 
-// ImagePurchasePlan describes the gallery image purchase plan. This is used by marketplace images.
+// ImagePurchasePlan describes the gallery Image Definition purchase plan. This is used by marketplace images.
 type ImagePurchasePlan struct {
 	// Name - The plan ID.
 	Name *string `json:"name,omitempty"`
@@ -4094,7 +4149,7 @@ type ManagedArtifact struct {
 
 // ManagedDiskParameters the parameters of a managed disk.
 type ManagedDiskParameters struct {
-	// StorageAccountType - Specifies the storage account type for the managed disk. Possible values are: Standard_LRS, Premium_LRS, and StandardSSD_LRS. Possible values include: 'StorageAccountTypesStandardLRS', 'StorageAccountTypesPremiumLRS', 'StorageAccountTypesStandardSSDLRS'
+	// StorageAccountType - Specifies the storage account type for the managed disk. NOTE: UltraSSD_LRS can only be used with data disks, it cannot be used with OS Disk. Possible values include: 'StorageAccountTypesStandardLRS', 'StorageAccountTypesPremiumLRS', 'StorageAccountTypesStandardSSDLRS', 'StorageAccountTypesUltraSSDLRS'
 	StorageAccountType StorageAccountTypes `json:"storageAccountType,omitempty"`
 	// ID - Resource Id
 	ID *string `json:"id,omitempty"`
@@ -4267,9 +4322,11 @@ type OSDisk struct {
 	Caching CachingTypes `json:"caching,omitempty"`
 	// WriteAcceleratorEnabled - Specifies whether writeAccelerator should be enabled or disabled on the disk.
 	WriteAcceleratorEnabled *bool `json:"writeAcceleratorEnabled,omitempty"`
+	// DiffDiskSettings - Specifies the differencing Disk Settings for the operating system disk used by the virtual machine.
+	DiffDiskSettings *DiffDiskSettings `json:"diffDiskSettings,omitempty"`
 	// CreateOption - Specifies how the virtual machine should be created.<br><br> Possible values are:<br><br> **Attach** \u2013 This value is used when you are using a specialized disk to create the virtual machine.<br><br> **FromImage** \u2013 This value is used when you are using an image to create the virtual machine. If you are using a platform image, you also use the imageReference element described above. If you are using a marketplace image, you  also use the plan element previously described. Possible values include: 'DiskCreateOptionTypesFromImage', 'DiskCreateOptionTypesEmpty', 'DiskCreateOptionTypesAttach'
 	CreateOption DiskCreateOptionTypes `json:"createOption,omitempty"`
-	// DiskSizeGB - Specifies the size of an empty data disk in gigabytes. This element can be used to overwrite the name of the disk in a virtual machine image. <br><br> This value cannot be larger than 1023 GB
+	// DiskSizeGB - Specifies the size of an empty data disk in gigabytes. This element can be used to overwrite the size of the disk in a virtual machine image. <br><br> This value cannot be larger than 1023 GB
 	DiskSizeGB *int32 `json:"diskSizeGB,omitempty"`
 	// ManagedDisk - The managed disk parameters.
 	ManagedDisk *ManagedDiskParameters `json:"managedDisk,omitempty"`
@@ -4326,7 +4383,8 @@ type PurchasePlan struct {
 	Product *string `json:"product,omitempty"`
 }
 
-// RecommendedMachineConfiguration describes the recommended machine configuration.
+// RecommendedMachineConfiguration the properties describe the recommended machine configuration for this Image
+// Definition. These properties are updateable.
 type RecommendedMachineConfiguration struct {
 	VCPUs  *ResourceRange `json:"vCPUs,omitempty"`
 	Memory *ResourceRange `json:"memory,omitempty"`
@@ -4343,7 +4401,7 @@ type RecoveryWalkResponse struct {
 
 // RegionalReplicationStatus this is the regional replication status.
 type RegionalReplicationStatus struct {
-	// Region - The region where the gallery image version is published to.
+	// Region - The region to which the gallery Image Version is being replicated to.
 	Region *string `json:"region,omitempty"`
 	// State - This is the regional replication state. Possible values include: 'ReplicationStateUnknown', 'ReplicationStateReplicating', 'ReplicationStateCompleted', 'ReplicationStateFailed'
 	State ReplicationState `json:"state,omitempty"`
@@ -4353,9 +4411,9 @@ type RegionalReplicationStatus struct {
 	Progress *int32 `json:"progress,omitempty"`
 }
 
-// ReplicationStatus this is the replication status of the gallery image version.
+// ReplicationStatus this is the replication status of the gallery Image Version.
 type ReplicationStatus struct {
-	// AggregatedState - This is the aggregated replication status based on the regional replication status. Possible values include: 'Unknown', 'InProgress', 'Completed', 'Failed'
+	// AggregatedState - This is the aggregated replication status based on all the regional replication status flags. Possible values include: 'Unknown', 'InProgress', 'Completed', 'Failed'
 	AggregatedState AggregatedReplicationState `json:"aggregatedState,omitempty"`
 	// Summary - This is a summary of replication status for each region.
 	Summary *[]RegionalReplicationStatus `json:"summary,omitempty"`
@@ -4965,9 +5023,9 @@ type Sku struct {
 type Snapshot struct {
 	autorest.Response `json:"-"`
 	// ManagedBy - Unused. Always Null.
-	ManagedBy       *string      `json:"managedBy,omitempty"`
-	Sku             *SnapshotSku `json:"sku,omitempty"`
-	*DiskProperties `json:"properties,omitempty"`
+	ManagedBy           *string      `json:"managedBy,omitempty"`
+	Sku                 *SnapshotSku `json:"sku,omitempty"`
+	*SnapshotProperties `json:"properties,omitempty"`
 	// ID - Resource Id
 	ID *string `json:"id,omitempty"`
 	// Name - Resource name
@@ -4989,8 +5047,8 @@ func (s Snapshot) MarshalJSON() ([]byte, error) {
 	if s.Sku != nil {
 		objectMap["sku"] = s.Sku
 	}
-	if s.DiskProperties != nil {
-		objectMap["properties"] = s.DiskProperties
+	if s.SnapshotProperties != nil {
+		objectMap["properties"] = s.SnapshotProperties
 	}
 	if s.ID != nil {
 		objectMap["id"] = s.ID
@@ -5039,12 +5097,12 @@ func (s *Snapshot) UnmarshalJSON(body []byte) error {
 			}
 		case "properties":
 			if v != nil {
-				var diskProperties DiskProperties
-				err = json.Unmarshal(*v, &diskProperties)
+				var snapshotProperties SnapshotProperties
+				err = json.Unmarshal(*v, &snapshotProperties)
 				if err != nil {
 					return err
 				}
-				s.DiskProperties = &diskProperties
+				s.SnapshotProperties = &snapshotProperties
 			}
 		case "id":
 			if v != nil {
@@ -5199,6 +5257,22 @@ func (page SnapshotListPage) Values() []Snapshot {
 	return *page.sl.Value
 }
 
+// SnapshotProperties snapshot resource properties.
+type SnapshotProperties struct {
+	// TimeCreated - The time when the disk was created.
+	TimeCreated *date.Time `json:"timeCreated,omitempty"`
+	// OsType - The Operating System type. Possible values include: 'Windows', 'Linux'
+	OsType OperatingSystemTypes `json:"osType,omitempty"`
+	// CreationData - Disk source information. CreationData information cannot be changed after the disk has been created.
+	CreationData *CreationData `json:"creationData,omitempty"`
+	// DiskSizeGB - If creationData.createOption is Empty, this field is mandatory and it indicates the size of the VHD to create. If this field is present for updates or creation with other options, it indicates a resize. Resizes are only allowed if the disk is not attached to a running VM, and can only increase the disk's size.
+	DiskSizeGB *int32 `json:"diskSizeGB,omitempty"`
+	// EncryptionSettings - Encryption settings for disk or snapshot
+	EncryptionSettings *EncryptionSettings `json:"encryptionSettings,omitempty"`
+	// ProvisioningState - The disk provisioning state.
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+}
+
 // SnapshotsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type SnapshotsCreateOrUpdateFuture struct {
@@ -5280,7 +5354,7 @@ func (future *SnapshotsGrantAccessFuture) Result(client SnapshotsClient) (au Acc
 
 // SnapshotSku the snapshots sku name. Can be Standard_LRS, Premium_LRS, or Standard_ZRS.
 type SnapshotSku struct {
-	// Name - The sku name. Possible values include: 'StandardLRS', 'PremiumLRS', 'StandardZRS'
+	// Name - The sku name. Possible values include: 'SnapshotStorageAccountTypesStandardLRS', 'SnapshotStorageAccountTypesPremiumLRS', 'SnapshotStorageAccountTypesStandardZRS'
 	Name SnapshotStorageAccountTypes `json:"name,omitempty"`
 	// Tier - The sku tier.
 	Tier *string `json:"tier,omitempty"`
@@ -5339,7 +5413,7 @@ func (future *SnapshotsUpdateFuture) Result(client SnapshotsClient) (s Snapshot,
 
 // SnapshotUpdate snapshot update resource.
 type SnapshotUpdate struct {
-	*DiskUpdateProperties `json:"properties,omitempty"`
+	*SnapshotUpdateProperties `json:"properties,omitempty"`
 	// Tags - Resource tags
 	Tags map[string]*string `json:"tags"`
 	Sku  *SnapshotSku       `json:"sku,omitempty"`
@@ -5348,8 +5422,8 @@ type SnapshotUpdate struct {
 // MarshalJSON is the custom marshaler for SnapshotUpdate.
 func (su SnapshotUpdate) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if su.DiskUpdateProperties != nil {
-		objectMap["properties"] = su.DiskUpdateProperties
+	if su.SnapshotUpdateProperties != nil {
+		objectMap["properties"] = su.SnapshotUpdateProperties
 	}
 	if su.Tags != nil {
 		objectMap["tags"] = su.Tags
@@ -5371,12 +5445,12 @@ func (su *SnapshotUpdate) UnmarshalJSON(body []byte) error {
 		switch k {
 		case "properties":
 			if v != nil {
-				var diskUpdateProperties DiskUpdateProperties
-				err = json.Unmarshal(*v, &diskUpdateProperties)
+				var snapshotUpdateProperties SnapshotUpdateProperties
+				err = json.Unmarshal(*v, &snapshotUpdateProperties)
 				if err != nil {
 					return err
 				}
-				su.DiskUpdateProperties = &diskUpdateProperties
+				su.SnapshotUpdateProperties = &snapshotUpdateProperties
 			}
 		case "tags":
 			if v != nil {
@@ -5400,6 +5474,16 @@ func (su *SnapshotUpdate) UnmarshalJSON(body []byte) error {
 	}
 
 	return nil
+}
+
+// SnapshotUpdateProperties snapshot resource update properties.
+type SnapshotUpdateProperties struct {
+	// OsType - the Operating System type. Possible values include: 'Windows', 'Linux'
+	OsType OperatingSystemTypes `json:"osType,omitempty"`
+	// DiskSizeGB - If creationData.createOption is Empty, this field is mandatory and it indicates the size of the VHD to create. If this field is present for updates or creation with other options, it indicates a resize. Resizes are only allowed if the disk is not attached to a running VM, and can only increase the disk's size.
+	DiskSizeGB *int32 `json:"diskSizeGB,omitempty"`
+	// EncryptionSettings - Encryption settings for disk or snapshot
+	EncryptionSettings *EncryptionSettings `json:"encryptionSettings,omitempty"`
 }
 
 // SourceVault the vault id is an Azure Resource Manager Resoure id in the form
@@ -5444,6 +5528,14 @@ type SubResource struct {
 type SubResourceReadOnly struct {
 	// ID - Resource Id
 	ID *string `json:"id,omitempty"`
+}
+
+// TargetRegion describes the target region information.
+type TargetRegion struct {
+	// Name - The name of the region.
+	Name *string `json:"name,omitempty"`
+	// RegionalReplicaCount - The number of replicas of the Image Version to be created per region. This property is updateable.
+	RegionalReplicaCount *int32 `json:"regionalReplicaCount,omitempty"`
 }
 
 // ThrottledRequestsInput api request input for LogAnalytics getThrottledRequests Api.
@@ -6517,6 +6609,8 @@ type VirtualMachineProperties struct {
 	HardwareProfile *HardwareProfile `json:"hardwareProfile,omitempty"`
 	// StorageProfile - Specifies the storage settings for the virtual machine disks.
 	StorageProfile *StorageProfile `json:"storageProfile,omitempty"`
+	// AdditionalCapabilities - Specifies additional capabilities enabled or disabled on the virtual machine.
+	AdditionalCapabilities *AdditionalCapabilities `json:"additionalCapabilities,omitempty"`
 	// OsProfile - Specifies the operating system settings for the virtual machine.
 	OsProfile *OSProfile `json:"osProfile,omitempty"`
 	// NetworkProfile - Specifies the network interfaces of the virtual machine.
@@ -7531,7 +7625,7 @@ func (page VirtualMachineScaleSetListWithLinkResultPage) Values() []VirtualMachi
 
 // VirtualMachineScaleSetManagedDiskParameters describes the parameters of a ScaleSet managed disk.
 type VirtualMachineScaleSetManagedDiskParameters struct {
-	// StorageAccountType - Specifies the storage account type for the managed disk. Possible values are: Standard_LRS, Premium_LRS, and StandardSSD_LRS. Possible values include: 'StorageAccountTypesStandardLRS', 'StorageAccountTypesPremiumLRS', 'StorageAccountTypesStandardSSDLRS'
+	// StorageAccountType - Specifies the storage account type for the managed disk. NOTE: UltraSSD_LRS can only be used with data disks, it cannot be used with OS Disk. Possible values include: 'StorageAccountTypesStandardLRS', 'StorageAccountTypesPremiumLRS', 'StorageAccountTypesStandardSSDLRS', 'StorageAccountTypesUltraSSDLRS'
 	StorageAccountType StorageAccountTypes `json:"storageAccountType,omitempty"`
 }
 
@@ -7644,6 +7738,8 @@ type VirtualMachineScaleSetOSDisk struct {
 	WriteAcceleratorEnabled *bool `json:"writeAcceleratorEnabled,omitempty"`
 	// CreateOption - Specifies how the virtual machines in the scale set should be created.<br><br> The only allowed value is: **FromImage** \u2013 This value is used when you are using an image to create the virtual machine. If you are using a platform image, you also use the imageReference element described above. If you are using a marketplace image, you  also use the plan element previously described. Possible values include: 'DiskCreateOptionTypesFromImage', 'DiskCreateOptionTypesEmpty', 'DiskCreateOptionTypesAttach'
 	CreateOption DiskCreateOptionTypes `json:"createOption,omitempty"`
+	// DiffDiskSettings - Specifies the differencing Disk Settings for the operating system disk used by the virtual machine scale set.
+	DiffDiskSettings *DiffDiskSettings `json:"diffDiskSettings,omitempty"`
 	// DiskSizeGB - Specifies the size of the operating system disk in gigabytes. This element can be used to overwrite the size of the disk in a virtual machine image. <br><br> This value cannot be larger than 1023 GB
 	DiskSizeGB *int32 `json:"diskSizeGB,omitempty"`
 	// OsType - This property allows you to specify the type of the OS that is included in the disk if creating a VM from user-image or a specialized VHD. <br><br> Possible values are: <br><br> **Windows** <br><br> **Linux**. Possible values include: 'Windows', 'Linux'
@@ -8917,6 +9013,8 @@ type VirtualMachineScaleSetVMProfile struct {
 	OsProfile *VirtualMachineScaleSetOSProfile `json:"osProfile,omitempty"`
 	// StorageProfile - Specifies the storage settings for the virtual machine disks.
 	StorageProfile *VirtualMachineScaleSetStorageProfile `json:"storageProfile,omitempty"`
+	// AdditionalCapabilities - Specifies additional capabilities enabled or disabled on the virtual machine in the scale set. For instance: whether the virtual machine has the capability to support attaching managed data disks with UltraSSD_LRS storage account type.
+	AdditionalCapabilities *AdditionalCapabilities `json:"additionalCapabilities,omitempty"`
 	// NetworkProfile - Specifies properties of the network interfaces of the virtual machines in the scale set.
 	NetworkProfile *VirtualMachineScaleSetNetworkProfile `json:"networkProfile,omitempty"`
 	// DiagnosticsProfile - Specifies the boot diagnostic settings state. <br><br>Minimum api-version: 2015-06-15.
@@ -8943,6 +9041,8 @@ type VirtualMachineScaleSetVMProperties struct {
 	HardwareProfile *HardwareProfile `json:"hardwareProfile,omitempty"`
 	// StorageProfile - Specifies the storage settings for the virtual machine disks.
 	StorageProfile *StorageProfile `json:"storageProfile,omitempty"`
+	// AdditionalCapabilities - Specifies additional capabilities enabled or disabled on the virtual machine in the scale set. For instance: whether the virtual machine has the capability to support attaching managed data disks with UltraSSD_LRS storage account type.
+	AdditionalCapabilities *AdditionalCapabilities `json:"additionalCapabilities,omitempty"`
 	// OsProfile - Specifies the operating system settings for the virtual machine.
 	OsProfile *OSProfile `json:"osProfile,omitempty"`
 	// NetworkProfile - Specifies the network interfaces of the virtual machine.

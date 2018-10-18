@@ -1111,6 +1111,10 @@ const (
 	SkuNameBasic SkuName = "Basic"
 	// SkuNameDynamic ...
 	SkuNameDynamic SkuName = "Dynamic"
+	// SkuNameElasticIsolated ...
+	SkuNameElasticIsolated SkuName = "ElasticIsolated"
+	// SkuNameElasticPremium ...
+	SkuNameElasticPremium SkuName = "ElasticPremium"
 	// SkuNameFree ...
 	SkuNameFree SkuName = "Free"
 	// SkuNameIsolated ...
@@ -1127,7 +1131,7 @@ const (
 
 // PossibleSkuNameValues returns an array of possible values for the SkuName const type.
 func PossibleSkuNameValues() []SkuName {
-	return []SkuName{SkuNameBasic, SkuNameDynamic, SkuNameFree, SkuNameIsolated, SkuNamePremium, SkuNamePremiumV2, SkuNameShared, SkuNameStandard}
+	return []SkuName{SkuNameBasic, SkuNameDynamic, SkuNameElasticIsolated, SkuNameElasticPremium, SkuNameFree, SkuNameIsolated, SkuNamePremium, SkuNamePremiumV2, SkuNameShared, SkuNameStandard}
 }
 
 // SolutionType enumerates the values for solution type.
@@ -4033,6 +4037,8 @@ type AppServicePlanPatchResourceProperties struct {
 	// PerSiteScaling - If <code>true</code>, apps assigned to this App Service plan can be scaled independently.
 	// If <code>false</code>, apps assigned to this App Service plan will scale to all instances of the plan.
 	PerSiteScaling *bool `json:"perSiteScaling,omitempty"`
+	// MaximumElasticWorkerCount - Maximum number of total workers allowed for this ElasticScaleEnabled App Service Plan
+	MaximumElasticWorkerCount *int32 `json:"maximumElasticWorkerCount,omitempty"`
 	// NumberOfSites - Number of apps assigned to this App Service plan.
 	NumberOfSites *int32 `json:"numberOfSites,omitempty"`
 	// IsSpot - If <code>true</code>, this App Service Plan owns spot instances.
@@ -4076,6 +4082,8 @@ type AppServicePlanProperties struct {
 	// PerSiteScaling - If <code>true</code>, apps assigned to this App Service plan can be scaled independently.
 	// If <code>false</code>, apps assigned to this App Service plan will scale to all instances of the plan.
 	PerSiteScaling *bool `json:"perSiteScaling,omitempty"`
+	// MaximumElasticWorkerCount - Maximum number of total workers allowed for this ElasticScaleEnabled App Service Plan
+	MaximumElasticWorkerCount *int32 `json:"maximumElasticWorkerCount,omitempty"`
 	// NumberOfSites - Number of apps assigned to this App Service plan.
 	NumberOfSites *int32 `json:"numberOfSites,omitempty"`
 	// IsSpot - If <code>true</code>, this App Service Plan owns spot instances.
@@ -4479,6 +4487,64 @@ func (future *AppsRestoreSnapshotSlotFuture) Result(client AppsClient) (ar autor
 		return
 	}
 	ar.Response = future.Response()
+	return
+}
+
+// AppsStartWebSiteNetworkTraceOperationFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type AppsStartWebSiteNetworkTraceOperationFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *AppsStartWebSiteNetworkTraceOperationFuture) Result(client AppsClient) (so SetObject, err error) {
+	var done bool
+	done, err = future.Done(client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsStartWebSiteNetworkTraceOperationFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("web.AppsStartWebSiteNetworkTraceOperationFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if so.Response.Response, err = future.GetResult(sender); err == nil && so.Response.Response.StatusCode != http.StatusNoContent {
+		so, err = client.StartWebSiteNetworkTraceOperationResponder(so.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "web.AppsStartWebSiteNetworkTraceOperationFuture", "Result", so.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// AppsStartWebSiteNetworkTraceOperationSlotFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type AppsStartWebSiteNetworkTraceOperationSlotFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *AppsStartWebSiteNetworkTraceOperationSlotFuture) Result(client AppsClient) (so SetObject, err error) {
+	var done bool
+	done, err = future.Done(client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsStartWebSiteNetworkTraceOperationSlotFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("web.AppsStartWebSiteNetworkTraceOperationSlotFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if so.Response.Response, err = future.GetResult(sender); err == nil && so.Response.Response.StatusCode != http.StatusNoContent {
+		so, err = client.StartWebSiteNetworkTraceOperationSlotResponder(so.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "web.AppsStartWebSiteNetworkTraceOperationSlotFuture", "Result", so.Response.Response, "Failure responding to request")
+		}
+	}
 	return
 }
 
@@ -10843,6 +10909,12 @@ type ListHostingEnvironmentDiagnostics struct {
 	Value             *[]HostingEnvironmentDiagnostics `json:"value,omitempty"`
 }
 
+// ListNetworkTrace ...
+type ListNetworkTrace struct {
+	autorest.Response `json:"-"`
+	Value             *[]NetworkTrace `json:"value,omitempty"`
+}
+
 // ListOperation ...
 type ListOperation struct {
 	autorest.Response `json:"-"`
@@ -11838,6 +11910,16 @@ type NetworkFeaturesProperties struct {
 	HybridConnections *[]RelayServiceConnectionEntity `json:"hybridConnections,omitempty"`
 	// HybridConnectionsV2 - The Hybrid Connection V2 (Service Bus) view.
 	HybridConnectionsV2 *[]HybridConnection `json:"hybridConnectionsV2,omitempty"`
+}
+
+// NetworkTrace network trace
+type NetworkTrace struct {
+	// Path - Local file path for the captured network trace file.
+	Path *string `json:"path,omitempty"`
+	// Status - Current status of the network trace operation, same as Operation.Status (InProgress/Succeeded/Failed).
+	Status *string `json:"status,omitempty"`
+	// Message - Detailed message of a network trace operation, e.g. error message in case of failure.
+	Message *string `json:"message,omitempty"`
 }
 
 // Operation an operation on a resource.

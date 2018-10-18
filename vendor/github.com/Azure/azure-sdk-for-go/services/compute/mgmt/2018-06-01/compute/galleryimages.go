@@ -40,11 +40,13 @@ func NewGalleryImagesClientWithBaseURI(baseURI string, subscriptionID string) Ga
 	return GalleryImagesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate create or update a gallery image.
+// CreateOrUpdate create or update a gallery Image Definition.
 // Parameters:
 // resourceGroupName - the name of the resource group.
-// galleryName - the name of the gallery.
-// galleryImageName - the name of the gallery image.
+// galleryName - the name of the Shared Image Gallery in which the Image Definition is to be created.
+// galleryImageName - the name of the gallery Image Definition to be created or updated. The allowed characters
+// are alphabets and numbers with dots, dashes, and periods allowed in the middle. The maximum length is 80
+// characters.
 // galleryImage - parameters supplied to the create or update gallery image operation.
 func (client GalleryImagesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, galleryName string, galleryImageName string, galleryImage GalleryImage) (result GalleryImagesCreateOrUpdateFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
@@ -131,8 +133,8 @@ func (client GalleryImagesClient) CreateOrUpdateResponder(resp *http.Response) (
 // Delete delete a gallery image.
 // Parameters:
 // resourceGroupName - the name of the resource group.
-// galleryName - the name of the gallery.
-// galleryImageName - the name of the gallery image.
+// galleryName - the name of the Shared Image Gallery in which the Image Definition is to be deleted.
+// galleryImageName - the name of the gallery Image Definition to be deleted.
 func (client GalleryImagesClient) Delete(ctx context.Context, resourceGroupName string, galleryName string, galleryImageName string) (result GalleryImagesDeleteFuture, err error) {
 	req, err := client.DeletePreparer(ctx, resourceGroupName, galleryName, galleryImageName)
 	if err != nil {
@@ -200,11 +202,11 @@ func (client GalleryImagesClient) DeleteResponder(resp *http.Response) (result a
 	return
 }
 
-// Get retrieves information about a gallery image.
+// Get retrieves information about a gallery Image Definition.
 // Parameters:
 // resourceGroupName - the name of the resource group.
-// galleryName - the name of the gallery.
-// galleryImageName - the name of the gallery image.
+// galleryName - the name of the Shared Image Gallery from which the Image Definitions are to be retrieved.
+// galleryImageName - the name of the gallery Image Definition to be retrieved.
 func (client GalleryImagesClient) Get(ctx context.Context, resourceGroupName string, galleryName string, galleryImageName string) (result GalleryImage, err error) {
 	req, err := client.GetPreparer(ctx, resourceGroupName, galleryName, galleryImageName)
 	if err != nil {
@@ -269,10 +271,10 @@ func (client GalleryImagesClient) GetResponder(resp *http.Response) (result Gall
 	return
 }
 
-// ListByGallery list gallery images under a gallery.
+// ListByGallery list gallery Image Definitions in a gallery.
 // Parameters:
 // resourceGroupName - the name of the resource group.
-// galleryName - the name of the gallery.
+// galleryName - the name of the Shared Image Gallery from which Image Definitions are to be listed.
 func (client GalleryImagesClient) ListByGallery(ctx context.Context, resourceGroupName string, galleryName string) (result GalleryImageListPage, err error) {
 	result.fn = client.listByGalleryNextResults
 	req, err := client.ListByGalleryPreparer(ctx, resourceGroupName, galleryName)

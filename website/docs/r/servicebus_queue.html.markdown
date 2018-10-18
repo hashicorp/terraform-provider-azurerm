@@ -96,12 +96,14 @@ The following arguments are supported:
     the Queue requires duplicate detection. Changing this forces
     a new resource to be created. Defaults to `false`.
 
-* `requires_session` - (Optional) Boolean flag which controls whether the Queue requires sessions. 
-    This will allow ordered handling of unbounded sequences of related messages. With sessions enabled 
-    a queue can guarantee first-in-first-out delivery of messages. 
+* `requires_session` - (Optional) Boolean flag which controls whether the Queue requires sessions.
+    This will allow ordered handling of unbounded sequences of related messages. With sessions enabled
+    a queue can guarantee first-in-first-out delivery of messages.
     Changing this forces a new resource to be created. Defaults to `false`.
 
 * `dead_lettering_on_message_expiration` - (Optional) Boolean flag which controls whether the Queue has dead letter support when a message expires. Defaults to `false`.
+
+* `max_delivery_count` - (Optional) Integer value which controls when a message is automatically deadlettered. Defaults to `10`.
 
 ## Attributes Reference
 

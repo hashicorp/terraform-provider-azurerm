@@ -2,6 +2,8 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
@@ -21,14 +23,16 @@ func resourceArmActiveDirectoryApplication() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"homepage": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validate.URLIsHTTPS,
 			},
 
 			"identifier_uris": {
@@ -37,7 +41,8 @@ func resourceArmActiveDirectoryApplication() *schema.Resource {
 				Computed: true,
 				MinItems: 1,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:         schema.TypeString,
+					ValidateFunc: validate.URLIsHTTPS,
 				},
 			},
 
@@ -46,7 +51,8 @@ func resourceArmActiveDirectoryApplication() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:         schema.TypeString,
+					ValidateFunc: validate.URLIsHTTPS,
 				},
 			},
 
@@ -205,7 +211,7 @@ func expandAzureRmActiveDirectoryApplicationHomepage(d *schema.ResourceData, nam
 		return utils.String(v.(string))
 	}
 
-	return utils.String(fmt.Sprintf("http://%s", name))
+	return utils.String(fmt.Sprintf("https://%s", name))
 }
 
 func expandAzureRmActiveDirectoryApplicationIdentifierUris(d *schema.ResourceData) *[]string {

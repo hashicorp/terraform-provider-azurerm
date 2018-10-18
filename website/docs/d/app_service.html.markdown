@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service"
 sidebar_current: "docs-azurerm-datasource-app-service-x"
 description: |-
-  Get information about an App Service.
+  Gets information about an existing App Service.
 ---
 
 # Data Source: azurerm_app_service
 
-Use this data source to obtain information about an App Service.
+Use this data source to access information about an existing App Service.
 
 ## Example Usage
 

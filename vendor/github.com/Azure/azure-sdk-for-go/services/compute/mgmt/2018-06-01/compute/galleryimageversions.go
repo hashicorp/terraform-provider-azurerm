@@ -40,15 +40,15 @@ func NewGalleryImageVersionsClientWithBaseURI(baseURI string, subscriptionID str
 	return GalleryImageVersionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate create or update a gallery image version.
+// CreateOrUpdate create or update a gallery Image Version.
 // Parameters:
 // resourceGroupName - the name of the resource group.
-// galleryName - the name of the gallery.
-// galleryImageName - the name of the gallery image.
-// galleryImageVersionName - the name of the gallery image version. Needs to follow semantic version name
-// pattern: The allowed characters are digit and period. Digits must be within the range of a 32-bit integer.
-// Format: <MajorVersion>.<MinorVersion>.<Patch>
-// galleryImageVersion - parameters supplied to the create or update gallery image version operation.
+// galleryName - the name of the Shared Image Gallery in which the Image Definition resides.
+// galleryImageName - the name of the gallery Image Definition in which the Image Version is to be created.
+// galleryImageVersionName - the name of the gallery Image Version to be created. Needs to follow semantic
+// version name pattern: The allowed characters are digit and period. Digits must be within the range of a
+// 32-bit integer. Format: <MajorVersion>.<MinorVersion>.<Patch>
+// galleryImageVersion - parameters supplied to the create or update gallery Image Version operation.
 func (client GalleryImageVersionsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, galleryName string, galleryImageName string, galleryImageVersionName string, galleryImageVersion GalleryImageVersion) (result GalleryImageVersionsCreateOrUpdateFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: galleryImageVersion,
@@ -127,12 +127,12 @@ func (client GalleryImageVersionsClient) CreateOrUpdateResponder(resp *http.Resp
 	return
 }
 
-// Delete delete a gallery image version.
+// Delete delete a gallery Image Version.
 // Parameters:
 // resourceGroupName - the name of the resource group.
-// galleryName - the name of the gallery.
-// galleryImageName - the name of the gallery image.
-// galleryImageVersionName - the name of the gallery image version.
+// galleryName - the name of the Shared Image Gallery in which the Image Definition resides.
+// galleryImageName - the name of the gallery Image Definition in which the Image Version resides.
+// galleryImageVersionName - the name of the gallery Image Version to be deleted.
 func (client GalleryImageVersionsClient) Delete(ctx context.Context, resourceGroupName string, galleryName string, galleryImageName string, galleryImageVersionName string) (result GalleryImageVersionsDeleteFuture, err error) {
 	req, err := client.DeletePreparer(ctx, resourceGroupName, galleryName, galleryImageName, galleryImageVersionName)
 	if err != nil {
@@ -201,12 +201,12 @@ func (client GalleryImageVersionsClient) DeleteResponder(resp *http.Response) (r
 	return
 }
 
-// Get retrieves information about a gallery image version.
+// Get retrieves information about a gallery Image Version.
 // Parameters:
 // resourceGroupName - the name of the resource group.
-// galleryName - the name of the gallery.
-// galleryImageName - the name of the gallery image.
-// galleryImageVersionName - the name of the gallery image version.
+// galleryName - the name of the Shared Image Gallery in which the Image Definition resides.
+// galleryImageName - the name of the gallery Image Definition in which the Image Version resides.
+// galleryImageVersionName - the name of the gallery Image Version to be retrieved.
 // expand - the expand expression to apply on the operation.
 func (client GalleryImageVersionsClient) Get(ctx context.Context, resourceGroupName string, galleryName string, galleryImageName string, galleryImageVersionName string, expand ReplicationStatusTypes) (result GalleryImageVersion, err error) {
 	req, err := client.GetPreparer(ctx, resourceGroupName, galleryName, galleryImageName, galleryImageVersionName, expand)
@@ -276,11 +276,12 @@ func (client GalleryImageVersionsClient) GetResponder(resp *http.Response) (resu
 	return
 }
 
-// ListByGalleryImage list gallery image versions under a gallery image.
+// ListByGalleryImage list gallery Image Versions in a gallery Image Definition.
 // Parameters:
 // resourceGroupName - the name of the resource group.
-// galleryName - the name of the gallery.
-// galleryImageName - the name of the gallery image.
+// galleryName - the name of the Shared Image Gallery in which the Image Definition resides.
+// galleryImageName - the name of the Shared Image Gallery Image Definition from which the Image Versions are
+// to be listed.
 func (client GalleryImageVersionsClient) ListByGalleryImage(ctx context.Context, resourceGroupName string, galleryName string, galleryImageName string) (result GalleryImageVersionListPage, err error) {
 	result.fn = client.listByGalleryImageNextResults
 	req, err := client.ListByGalleryImagePreparer(ctx, resourceGroupName, galleryName, galleryImageName)
