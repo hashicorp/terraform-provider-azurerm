@@ -134,10 +134,6 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateWeekly(t *testing.T)
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
-			/*{
-				Config: testAccAzureRMRecoveryServicesProtectionPolicyVm_completeWeekly(ri, testLocation()),
-				Check:  checkAccAzureRMRecoveryServicesProtectionPolicyVm_completeWeekly(resourceName, ri),
-			},*/
 			{
 				Config: testAccAzureRMRecoveryServicesProtectionPolicyVm_basicWeekly(ri, testLocation()),
 				Check:  checkAccAzureRMRecoveryServicesProtectionPolicyVm_basicWeekly(resourceName, ri),
@@ -164,17 +160,13 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateWeeklyToPartial(t *t
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
-			/*{
-				Config: testAccAzureRMRecoveryServicesProtectionPolicyVm_basicWeekly(ri, testLocation()),
-				Check:  checkAccAzureRMRecoveryServicesProtectionPolicyVm_basicWeekly(resourceName, ri),
-			},*/
 			{
 				Config: testAccAzureRMRecoveryServicesProtectionPolicyVm_completeWeekly(ri, testLocation()),
 				Check:  checkAccAzureRMRecoveryServicesProtectionPolicyVm_completeWeekly(resourceName, ri),
 			},
 			{
-				Config: testAccAzureRMRecoveryServicesProtectionPolicyVm_completeWeekly2(ri, testLocation()),
-				//Check:  checkAccAzureRMRecoveryServicesProtectionPolicyVm_completeWeeklyPartial(resourceName, ri),
+				Config: testAccAzureRMRecoveryServicesProtectionPolicyVm_completeWeeklyPartial(ri, testLocation()),
+				Check:  checkAccAzureRMRecoveryServicesProtectionPolicyVm_completeWeeklyPartial(resourceName, ri),
 			},
 			{
 				ResourceName:      resourceName,

@@ -299,6 +299,14 @@
 			"versionExact": "v21.1.0"
 		},
 		{
+			"checksumSHA1": "k4NLpPdQn4J7GPxYozIcQ9vvlgE=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-12-01/backup",
+			"revision": "6d20bdbae88c06c36d72eb512295417693bfdf4e",
+			"revisionTime": "2018-09-27T22:44:43Z",
+			"version": "=v21.1.0",
+			"versionExact": "v21.1.0"
+		},
+		{
 			"checksumSHA1": "i/Nusgj1Ol8GAQKU3yCcVXQiBlg=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis",
 			"revision": "6d20bdbae88c06c36d72eb512295417693bfdf4e",
