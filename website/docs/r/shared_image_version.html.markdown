@@ -23,7 +23,7 @@ data "azurerm_image" "existing" {
 
 data "azurerm_shared_image" "existing" {
   name                = "existing-image"
-  gallery_name        = "existing-gallery"
+  gallery_name        = "existing_gallery"
   resource_group_name = "existing-resources"
 }
 

@@ -85,11 +85,14 @@ type ArmClient struct {
 
 	cosmosDBClient documentdb.DatabaseAccountsClient
 
-	automationAccountClient      automation.AccountClient
-	automationRunbookClient      automation.RunbookClient
-	automationCredentialClient   automation.CredentialClient
-	automationScheduleClient     automation.ScheduleClient
-	automationRunbookDraftClient automation.RunbookDraftClient
+	automationAccountClient              automation.AccountClient
+	automationCredentialClient           automation.CredentialClient
+	automationDscConfigurationClient     automation.DscConfigurationClient
+	automationDscNodeConfigurationClient automation.DscNodeConfigurationClient
+	automationModuleClient               automation.ModuleClient
+	automationRunbookClient              automation.RunbookClient
+	automationRunbookDraftClient         automation.RunbookDraftClient
+	automationScheduleClient             automation.ScheduleClient
 
 	dnsClient   dns.RecordSetsClient
 	zonesClient dns.ZonesClient
@@ -204,6 +207,7 @@ type ArmClient struct {
 	monitorActionGroupsClient      insights.ActionGroupsClient
 	monitorActivityLogAlertsClient insights.ActivityLogAlertsClient
 	monitorAlertRulesClient        insights.AlertRulesClient
+	monitorLogProfilesClient       insights.LogProfilesClient
 	monitorMetricAlertsClient      insights.MetricAlertsClient
 
 	// MSI
@@ -534,6 +538,18 @@ func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, a
 	c.configureClient(&credentialClient.Client, auth)
 	c.automationCredentialClient = credentialClient
 
+	dscConfigurationClient := automation.NewDscConfigurationClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&dscConfigurationClient.Client, auth)
+	c.automationDscConfigurationClient = dscConfigurationClient
+
+	dscNodeConfigurationClient := automation.NewDscNodeConfigurationClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&dscNodeConfigurationClient.Client, auth)
+	c.automationDscNodeConfigurationClient = dscNodeConfigurationClient
+
+	moduleClient := automation.NewModuleClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&moduleClient.Client, auth)
+	c.automationModuleClient = moduleClient
+
 	runbookClient := automation.NewRunbookClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&runbookClient.Client, auth)
 	c.automationRunbookClient = runbookClient
@@ -855,6 +871,10 @@ func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth
 	arc := insights.NewAlertRulesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&arc.Client, auth)
 	c.monitorAlertRulesClient = arc
+
+	monitorLogProfilesClient := insights.NewLogProfilesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&monitorLogProfilesClient.Client, auth)
+	c.monitorLogProfilesClient = monitorLogProfilesClient
 
 	mac := insights.NewMetricAlertsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&mac.Client, auth)
