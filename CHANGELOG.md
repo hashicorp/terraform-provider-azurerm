@@ -1,56 +1,56 @@
-## 1.17.0 (Unreleased)
+## 1.17.0 (October 18, 2018)
 
 UPGRADE NOTES:
 
-* `azurerm_virtual_machine_scale_set` - the field `primary` within the `ip_configuration` block within the `network_profile` block is now Required, to match behavioural changes in the Azure API. [GH-2035]
+* `azurerm_virtual_machine_scale_set` - the field `primary` within the `ip_configuration` block within the `network_profile` block is now Required, to match behavioural changes in the Azure API. ([#2035](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2035))
 
 FEATURES:
 
-* **New Data Source:** `azurerm_monitor_log_profile` [GH-1792]
-* **New Resource:** `azurerm_api_management` [GH-1516]
-* **New Resource:** `azurerm_automation_dsc_configuration` [GH-1512]
-* **New Resource:** `azurerm_automation_dsc_nodeconfiguration` [GH-1512]
-* **New Resource:** `azurerm_automation_module` [GH-1512]
-* **New Resource:** `azurerm_cognitive_account` [GH-962]
-* **New Resource:** `azurerm_databricks_workspace` [GH-1134]
-* **New Resource:** `azurerm_dev_test_policy` [GH-2070]
-* **New Resource:** `azurerm_dev_test_linux_virtual_machine` [GH-2058]
-* **New Resource:** `azurerm_dev_test_windows_virtual_machine` [GH-2058]
-* **New Resource:** `azurerm_monitor_activitylog_alert` [GH-1989]
-* **New Resource:** `azurerm_monitor_metric_alert` [GH-2026]
-* **New Resource:** `azurerm_monitor_log_profile` [GH-1792]
-* **New Resource:** `azurerm_network_interface_application_gateway_backend_address_pool_association` [GH-2079]
-* **New Resource:** `azurerm_network_interface_backend_address_pool_association` [GH-2079]
-* **New Resource:** `azurerm_network_interface_nat_rule_association` [GH-2079]
-* **New Resource:** `azurerm_recovery_services_protection_policy_vm` [GH-1978]
-* **New Resource:** ` azurerm_recovery_services_protected_vm` [GH-1637]
-* **New Resource:** `azurerm_security_center_contact` [GH-2045]
-* **New Resource:** `azurerm_security_center_subscription_pricing` [GH-2043]
-* **New Resource:** `azurerm_security_center_workspace` [GH-2072]
-* **New Resource:** `azurerm_subnet_network_security_group_association` [GH-1933]
-* **New Resource:** `azurerm_subnet_route_table_association ` [GH-1933]
+* **New Data Source:** `azurerm_monitor_log_profile` ([#1792](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1792))
+* **New Resource:** `azurerm_api_management` ([#1516](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1516))
+* **New Resource:** `azurerm_automation_dsc_configuration` ([#1512](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1512))
+* **New Resource:** `azurerm_automation_dsc_nodeconfiguration` ([#1512](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1512))
+* **New Resource:** `azurerm_automation_module` ([#1512](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1512))
+* **New Resource:** `azurerm_cognitive_account` ([#962](https://github.com/terraform-providers/terraform-provider-azurerm/issues/962))
+* **New Resource:** `azurerm_databricks_workspace` ([#1134](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1134))
+* **New Resource:** `azurerm_dev_test_policy` ([#2070](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2070))
+* **New Resource:** `azurerm_dev_test_linux_virtual_machine` ([#2058](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2058))
+* **New Resource:** `azurerm_dev_test_windows_virtual_machine` ([#2058](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2058))
+* **New Resource:** `azurerm_monitor_activitylog_alert` ([#1989](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1989))
+* **New Resource:** `azurerm_monitor_metric_alert` ([#2026](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2026))
+* **New Resource:** `azurerm_monitor_log_profile` ([#1792](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1792))
+* **New Resource:** `azurerm_network_interface_application_gateway_backend_address_pool_association` ([#2079](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2079))
+* **New Resource:** `azurerm_network_interface_backend_address_pool_association` ([#2079](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2079))
+* **New Resource:** `azurerm_network_interface_nat_rule_association` ([#2079](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2079))
+* **New Resource:** `azurerm_recovery_services_protection_policy_vm` ([#1978](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1978))
+* **New Resource:** ` azurerm_recovery_services_protected_vm` ([#1637](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1637))
+* **New Resource:** `azurerm_security_center_contact` ([#2045](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2045))
+* **New Resource:** `azurerm_security_center_subscription_pricing` ([#2043](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2043))
+* **New Resource:** `azurerm_security_center_workspace` ([#2072](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2072))
+* **New Resource:** `azurerm_subnet_network_security_group_association` ([#1933](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1933))
+* **New Resource:** `azurerm_subnet_route_table_association ` ([#1933](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1933))
 
 BUG FIXES:
 
-* Data Source `azurerm_subnet` - fixing the ordering of the resource group name and network name in the error message [GH-2017]
-* `azurerm_kubernetes_cluster` - using the correct casing for the `addon_profile` `oms_agent` property [GH-1995]
-* `azurerm_service_bus_queue` - support for `max_delivery_count` [GH-2028]
-* `azurerm_redis_cache` - `capcity` can now be successfully changed [GH-2088]
-* `azurerm_virtual_machine_scale_set` - `primary` is now required within the `ip_configuration` block within `network_profile` (matching a behavioural change with the Azure API) [GH-2035]
+* Data Source `azurerm_subnet` - fixing the ordering of the resource group name and network name in the error message ([#2017](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2017))
+* `azurerm_kubernetes_cluster` - using the correct casing for the `addon_profile` `oms_agent` property ([#1995](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1995))
+* `azurerm_service_bus_queue` - support for `max_delivery_count` ([#2028](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2028))
+* `azurerm_redis_cache` - `capcity` can now be successfully changed ([#2088](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2088))
+* `azurerm_virtual_machine_scale_set` - `primary` is now required within the `ip_configuration` block within `network_profile` (matching a behavioural change with the Azure API) ([#2035](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2035))
 
 IMPROVEMENTS:
 
-* `azurerm_application_gateway` - support for the `StandardV2` and `WAFV2` skus and tiers [GH-2015]
-* `azurerm_container_group` - adding the `secure_environment_variables` property [GH-2024]
-* `azurerm_dev_test_virtual_network` - support for managing the Subnet [GH-2041]
-* `azurerm_key_vault` - support for Virtual Network Rules [GH-2027]
-* `azurerm_kubernetes_cluster` - changing the `oms_agent` property no longer forces a new resource [GH-2021]
-* `azurerm_postgresql_virtual_network_rule` - support for the `ignore_missing_vnet_service_endpoint` [GH-2056]
-* `azurerm_public_ip` - support for IPv6 addresses [GH-2019]
-* `azurerm_search_service` - adding the administrative `primary_key` and `secondary_key` propeties [GH-2074]
-* `azurerm_role_definition` - adding the `data_actions` and `not_data_actions` to the data source [GH-2110]
-* `azurerm_storage_container` - changing `container_access_type` no longer forces a new resource [GH-2075]
-* `azurerm_user_assigned_identity` - now exports the `client_id` property [GH-2078]
+* `azurerm_application_gateway` - support for the `StandardV2` and `WAFV2` skus and tiers ([#2015](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2015))
+* `azurerm_container_group` - adding the `secure_environment_variables` property ([#2024](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2024))
+* `azurerm_dev_test_virtual_network` - support for managing the Subnet ([#2041](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2041))
+* `azurerm_key_vault` - support for Virtual Network Rules ([#2027](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2027))
+* `azurerm_kubernetes_cluster` - changing the `oms_agent` property no longer forces a new resource ([#2021](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2021))
+* `azurerm_postgresql_virtual_network_rule` - support for the `ignore_missing_vnet_service_endpoint` ([#2056](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2056))
+* `azurerm_public_ip` - support for IPv6 addresses ([#2019](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2019))
+* `azurerm_search_service` - adding the administrative `primary_key` and `secondary_key` propeties ([#2074](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2074))
+* `azurerm_role_definition` - adding the `data_actions` and `not_data_actions` to the data source ([#2110](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2110))
+* `azurerm_storage_container` - changing `container_access_type` no longer forces a new resource ([#2075](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2075))
+* `azurerm_user_assigned_identity` - now exports the `client_id` property ([#2078](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2078))
 
 
 ## 1.16.0 (October 01, 2018)
