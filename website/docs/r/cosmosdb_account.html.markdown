@@ -81,6 +81,8 @@ The following arguments are supported:
 
 * `virtual_network_rule` - (Optional) Specifies a `virtual_network_rules` resource, used to define which subnets are allowed to access this CosmosDB account.
 
+* `enable_multiple_write_locations` - (Optional) Enable multi-master support for this Cosmos DB account.
+
 `consistency_policy` Configures the database consistency and supports the following:
 
 * `consistency_level` - (Required) The Consistency Level to use for this CosmosDB Account - can be either `BoundedStaleness`, `Eventual`, `Session`, `Strong` or `ConsistentPrefix`.

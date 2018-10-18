@@ -478,6 +478,31 @@ func TestAccAzureRMCosmosDBAccount_complete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCosmosDBAccount_multiMaster(t *testing.T) {
+	ri := acctest.RandInt()
+	resourceName := "azurerm_cosmosdb_account.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDBAccount_multiMaster(ri, testLocation(), testAltLocation()),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
+					resource.TestCheckResourceAttr(resourceName, "enable_multiple_write_locations", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMCosmosDBAccountDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).cosmosDBClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -579,7 +604,7 @@ func testAccAzureRMCosmosDBAccount_mongoDB(rInt int, location string) string {
 func testAccAzureRMCosmosDBAccount_gremlin(rInt int, location string) string {
 	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", `
         kind = "GlobalDocumentDB"
- 
+
         capabilities = {
           name = "EnableGremlin"
         }
@@ -598,6 +623,18 @@ func testAccAzureRMCosmosDBAccount_table(rInt int, location string) string {
 
 func testAccAzureRMCosmosDBAccount_geoReplicated(rInt int, location string, altLocation string) string {
 	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", fmt.Sprintf(`
+        geo_location {
+            location          = "%s"
+            failover_priority = 1
+        }
+
+    `, altLocation))
+}
+
+func testAccAzureRMCosmosDBAccount_multiMaster(rInt int, location string, altLocation string) string {
+	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", fmt.Sprintf(`
+        enable_multiple_write_locations = true
+
         geo_location {
             location          = "%s"
             failover_priority = 1
