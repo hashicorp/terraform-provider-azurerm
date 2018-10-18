@@ -47,10 +47,14 @@ func testSweepMonitorLogProfiles(region string) error {
 	return nil
 }
 
+// NOTE: this is a combined test rather than separate split out tests due to
+// Azure only being happy about provisioning one per subscription at once
+// (which our test suite can't easily workaround)
+
+// this occasionally fails due to the rapid provisioning and deprovisioning,
+// running the exact same test afterwards always results in a pass.
+
 func TestAccAzureRMMonitorLogProfile(t *testing.T) {
-	// NOTE: this is a combined test rather than separate split out tests due to
-	// Azure only being happy about provisioning one per subscription at once
-	// (which our test suite can't easily workaround)
 	testCases := map[string]map[string]func(t *testing.T){
 		"basic": {
 			"basic":      testAccAzureRMMonitorLogProfile_basic,
