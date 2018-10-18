@@ -1,14 +1,14 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_recovery_services_protection_policy"
-sidebar_current: "docs-azurerm-resource-recovery-services-protection-policy"
+page_title: "Azure Resource Manager: azurerm_recovery_services_protection_policy_vm"
+sidebar_current: "docs-azurerm-resource-recovery-services-protection-policy-vm"
 description: |-
-  Manages an Recovery Services Protection Policy.
+  Manages an Recovery Services VM Protection Policy.
 ---
 
 # azurerm_recovery_services_protection_policy
 
-Manages an Recovery Protected    Protection Policy.
+Manages an Recovery Services VM Protection Policy.
 
 ## Example Usage
 
@@ -133,11 +133,11 @@ The `retention_yearly` block supports:
 
 The following attributes are exported:
 
-* `id` - The ID of the Recovery Services Vault Policy.
+* `id` - The ID of the Recovery Services VM Protection Policy.
 
 ## Import
 
-Recovery Services Vaults can be imported using the `resource id`, e.g.
+Recovery Services VM Protection Policy can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_recovery_services_protection_policy_vm.policy1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.RecoveryServices/vaults/example-recovery-vault/backupPolicies/policy1

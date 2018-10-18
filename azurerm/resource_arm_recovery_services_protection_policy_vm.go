@@ -429,7 +429,7 @@ func expandArmRecoveryServicesProtectionPolicySchedule(d *schema.ResourceData, t
 		block := bb[0].(map[string]interface{})
 
 		schedule := backup.SimpleSchedulePolicy{ //LongTermSchedulePolicy has no properties
-			SchedulePolicyType: backup.SchedulePolicyTypeSimpleSchedulePolicy, //so always use simple
+			SchedulePolicyType: backup.SchedulePolicyTypeSimpleSchedulePolicy,
 			ScheduleRunTimes:   &times,
 		}
 
@@ -499,10 +499,9 @@ func expandArmRecoveryServicesProtectionPolicyRetentionMonthly(d *schema.Resourc
 
 		retention := backup.MonthlyRetentionSchedule{
 			RetentionScheduleFormatType: backup.RetentionScheduleFormatWeekly, //this is always weekly ¯\_(ツ)_/¯
-
-			RetentionScheduleDaily:  nil, //and this is always nil..
-			RetentionScheduleWeekly: expandArmRecoveryServicesProtectionPolicyRetentionWeeklyFormat(block),
-			RetentionTimes:          &times,
+			RetentionScheduleDaily:      nil,                                  //and this is always nil..
+			RetentionScheduleWeekly:     expandArmRecoveryServicesProtectionPolicyRetentionWeeklyFormat(block),
+			RetentionTimes:              &times,
 			RetentionDuration: &backup.RetentionDuration{
 				Count:        utils.Int32(int32(block["count"].(int))),
 				DurationType: backup.RetentionDurationType(backup.RetentionDurationTypeMonths),

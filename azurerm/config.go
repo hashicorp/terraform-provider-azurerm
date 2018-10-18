@@ -244,6 +244,7 @@ type ArmClient struct {
 
 	// Recovery Services
 	recoveryServicesVaultsClient             recoveryservices.VaultsClient
+	recoveryServicesProtectedItemsClient     backup.ProtectedItemsClient
 	recoveryServicesProtectionPoliciesClient backup.ProtectionPoliciesClient
 
 	// Relay
@@ -1001,6 +1002,10 @@ func (c *ArmClient) registerRecoveryServiceClients(endpoint, subscriptionId stri
 	vaultsClient := recoveryservices.NewVaultsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&vaultsClient.Client, auth)
 	c.recoveryServicesVaultsClient = vaultsClient
+
+	protectedItemsClient := backup.NewProtectedItemsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&protectedItemsClient.Client, auth)
+	c.recoveryServicesProtectedItemsClient = protectedItemsClient
 
 	protectionPoliciesClient := backup.NewProtectionPoliciesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&protectionPoliciesClient.Client, auth)

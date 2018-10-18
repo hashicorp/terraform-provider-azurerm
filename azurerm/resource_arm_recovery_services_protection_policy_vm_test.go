@@ -154,7 +154,6 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateWeekly(t *testing.T)
 func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateDailyToWeekly(t *testing.T) {
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
 	ri := acctest.RandInt()
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -180,7 +179,6 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateDailyToWeekly(t *tes
 func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateWeeklyToDaily(t *testing.T) {
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
 	ri := acctest.RandInt()
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -212,10 +210,6 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateWeeklyToPartial(t *t
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMRecoveryServicesProtectionPolicyVm_basicWeekly(ri, testLocation()),
-				Check:  checkAccAzureRMRecoveryServicesProtectionPolicyVm_basicWeekly(resourceName, ri),
-			},
 			{
 				Config: testAccAzureRMRecoveryServicesProtectionPolicyVm_completeWeekly(ri, testLocation()),
 				Check:  checkAccAzureRMRecoveryServicesProtectionPolicyVm_completeWeekly(resourceName, ri),
