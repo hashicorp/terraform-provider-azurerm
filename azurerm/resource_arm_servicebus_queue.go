@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -117,6 +118,13 @@ func resourceArmServiceBusQueue() *schema.Resource {
 				Optional:   true,
 				Deprecated: "This field has been removed by Azure.",
 			},
+
+			"max_delivery_count": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      10,
+				ValidateFunc: validation.IntAtLeast(1),
+			},
 		},
 	}
 }
@@ -133,6 +141,7 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 	enableExpress := d.Get("enable_express").(bool)
 	enablePartitioning := d.Get("enable_partitioning").(bool)
 	maxSize := int32(d.Get("max_size_in_megabytes").(int))
+	maxDeliveryCount := int32(d.Get("max_delivery_count").(int))
 	requiresDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
 	requiresSession := d.Get("requires_session").(bool)
 	deadLetteringOnMessageExpiration := d.Get("dead_lettering_on_message_expiration").(bool)
@@ -143,6 +152,7 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 			EnableExpress:                    &enableExpress,
 			EnablePartitioning:               &enablePartitioning,
 			MaxSizeInMegabytes:               &maxSize,
+			MaxDeliveryCount:                 &maxDeliveryCount,
 			RequiresDuplicateDetection:       &requiresDuplicateDetection,
 			RequiresSession:                  &requiresSession,
 			DeadLetteringOnMessageExpiration: &deadLetteringOnMessageExpiration,
@@ -233,6 +243,7 @@ func resourceArmServiceBusQueueRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
 		d.Set("requires_session", props.RequiresSession)
 		d.Set("dead_lettering_on_message_expiration", props.DeadLetteringOnMessageExpiration)
+		d.Set("max_delivery_count", props.MaxDeliveryCount)
 
 		if maxSizeMB := props.MaxSizeInMegabytes; maxSizeMB != nil {
 			maxSize := int(*maxSizeMB)

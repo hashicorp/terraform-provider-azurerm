@@ -65,6 +65,36 @@ func TestAccDataSourceAzureRMKeyVault_complete(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAzureRMKeyVault_networkAcls(t *testing.T) {
+	dataSourceName := "data.azurerm_key_vault.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+	config := testAccDataSourceAzureRMKeyVault_networkAcls(ri, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(dataSourceName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "tenant_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "sku.0.name"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "access_policy.0.tenant_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "access_policy.0.object_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "access_policy.0.key_permissions.0", "create"),
+					resource.TestCheckResourceAttr(dataSourceName, "access_policy.0.secret_permissions.0", "set"),
+					resource.TestCheckResourceAttr(dataSourceName, "network_acls.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "network_acls.0.default_action", "Allow"),
+					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "0"),
+				),
+			},
+		},
+	})
+}
+
 func testAccDataSourceAzureRMKeyVault_basic(rInt int, location string) string {
 	resource := testAccAzureRMKeyVault_basic(rInt, location)
 	return fmt.Sprintf(`
@@ -79,6 +109,18 @@ data "azurerm_key_vault" "test" {
 
 func testAccDataSourceAzureRMKeyVault_complete(rInt int, location string) string {
 	resource := testAccAzureRMKeyVault_complete(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_key_vault" "test" {
+  name                = "${azurerm_key_vault.test.name}"
+  resource_group_name = "${azurerm_key_vault.test.resource_group_name}"
+}
+`, resource)
+}
+
+func testAccDataSourceAzureRMKeyVault_networkAcls(rInt int, location string) string {
+	resource := testAccAzureRMKeyVault_networkAclsUpdated(rInt, location)
 	return fmt.Sprintf(`
 %s
 

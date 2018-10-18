@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_subnet"
 sidebar_current: "docs-azurerm-datasource-subnet"
 description: |-
-  Get information about the specified Subnet located within a Virtual Network.
+  Gets information about an existing Subnet located within a Virtual Network.
 ---
 
 # Data Source: azurerm_subnet
 
-Use this data source to access the properties of an Azure Subnet located within a Virtual Network.
+Use this data source to access information about an existing Subnet within a Virtual Network.
 
 ## Example Usage
 

@@ -71,6 +71,34 @@ func TestAccAzureRMPublicIpStatic_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPublicIpStatic_zones(t *testing.T) {
+	resourceName := "azurerm_public_ip.test"
+	ri := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPublicIPStatic_withZone(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPublicIpExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
+					resource.TestCheckResourceAttr(resourceName, "public_ip_address_allocation", "static"),
+					resource.TestCheckResourceAttr(resourceName, "zones.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "zones.0", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMPublicIpStatic_basic_withDNSLabel(t *testing.T) {
 	resourceName := "azurerm_public_ip.test"
 	ri := acctest.RandInt()
@@ -89,6 +117,103 @@ func TestAccAzureRMPublicIpStatic_basic_withDNSLabel(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
 					resource.TestCheckResourceAttr(resourceName, "public_ip_address_allocation", "static"),
 					resource.TestCheckResourceAttr(resourceName, "domain_name_label", dnl),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMPublicIpStatic_standard_withIPv6_fails(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMPublicIPStatic_standard_withIPVersion(ri, testLocation(), "IPv6")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      config,
+				ExpectError: regexp.MustCompile("Cannot specify publicIpAllocationMethod as Static for IPv6 PublicIp"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMPublicIpDynamic_basic_withIPv6(t *testing.T) {
+	resourceName := "azurerm_public_ip.test"
+	ri := acctest.RandInt()
+	ipVersion := "Ipv6"
+	config := testAccAzureRMPublicIPDynamic_basic_withIPVersion(ri, testLocation(), ipVersion)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPublicIpExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "ip_version", "ipv6"), //api returns all lowercase
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+
+}
+
+func TestAccAzureRMPublicIpStatic_basic_defaultsToIPv4(t *testing.T) {
+	resourceName := "azurerm_public_ip.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMPublicIPStatic_basic(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPublicIpExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "ip_version", "ipv4"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+func TestAccAzureRMPublicIpStatic_basic_withIPv4(t *testing.T) {
+	resourceName := "azurerm_public_ip.test"
+	ri := acctest.RandInt()
+	ipVersion := "IPv4"
+	config := testAccAzureRMPublicIPStatic_basic_withIPVersion(ri, testLocation(), ipVersion)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPublicIpExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "ip_version", "ipv4"),
 				),
 			},
 			{
@@ -392,7 +517,7 @@ resource "azurerm_public_ip" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMPublicIPStatic_basic_withZone(rInt int, location string) string {
+func testAccAzureRMPublicIPStatic_withZone(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name     = "acctestRG-%d"
@@ -428,6 +553,24 @@ resource "azurerm_public_ip" "test" {
 `, rInt, location, rInt, dnsNameLabel)
 }
 
+func testAccAzureRMPublicIPStatic_basic_withIPVersion(rInt int, location string, ipVersion string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name     = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_public_ip" "test" {
+    name                         = "acctestpublicip-%d"
+    location                     = "${azurerm_resource_group.test.location}"
+    resource_group_name          = "${azurerm_resource_group.test.name}"
+    public_ip_address_allocation = "static"
+
+    ip_version                   = "%s"
+}
+`, rInt, location, rInt, ipVersion)
+}
+
 func testAccAzureRMPublicIPStatic_standard(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -443,6 +586,24 @@ resource "azurerm_public_ip" "test" {
     sku = "standard"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMPublicIPStatic_standard_withIPVersion(rInt int, location string, ipVersion string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_public_ip" "test" {
+    name = "acctestpublicip-%d"
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    public_ip_address_allocation = "static"
+    ip_version = "%s"
+    sku = "standard"
+}
+`, rInt, location, rInt, ipVersion)
 }
 
 func testAccAzureRMPublicIPStatic_update(rInt int, location string) string {
@@ -493,6 +654,24 @@ resource "azurerm_public_ip" "test" {
     public_ip_address_allocation = "dynamic"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMPublicIPDynamic_basic_withIPVersion(rInt int, location string, ipVersion string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_public_ip" "test" {
+    name = "acctestpublicip-%d"
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    public_ip_address_allocation = "dynamic"
+
+    ip_version = "%s"
+}
+`, rInt, location, rInt, ipVersion)
 }
 
 func testAccAzureRMPublicIPStatic_withTags(rInt int, location string) string {

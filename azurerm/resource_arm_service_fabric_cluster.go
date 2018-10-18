@@ -53,6 +53,12 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 				}, false),
 			},
 
+			"cluster_code_version": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+
 			"management_endpoint": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -275,6 +281,7 @@ func resourceArmServiceFabricClusterCreate(d *schema.ResourceData, meta interfac
 	reliabilityLevel := d.Get("reliability_level").(string)
 	managementEndpoint := d.Get("management_endpoint").(string)
 	upgradeMode := d.Get("upgrade_mode").(string)
+	clusterCodeVersion := d.Get("cluster_code_version").(string)
 	vmImage := d.Get("vm_image").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -313,6 +320,10 @@ func resourceArmServiceFabricClusterCreate(d *schema.ResourceData, meta interfac
 		},
 	}
 
+	if clusterCodeVersion != "" {
+		cluster.ClusterProperties.ClusterCodeVersion = utils.String(clusterCodeVersion)
+	}
+
 	future, err := client.Create(ctx, resourceGroup, name, cluster)
 	if err != nil {
 		return fmt.Errorf("Error creating Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -346,6 +357,7 @@ func resourceArmServiceFabricClusterUpdate(d *schema.ResourceData, meta interfac
 	name := d.Get("name").(string)
 	reliabilityLevel := d.Get("reliability_level").(string)
 	upgradeMode := d.Get("upgrade_mode").(string)
+	clusterCodeVersion := d.Get("cluster_code_version").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
 	addOnFeaturesRaw := d.Get("add_on_features").(*schema.Set).List()
@@ -374,6 +386,10 @@ func resourceArmServiceFabricClusterUpdate(d *schema.ResourceData, meta interfac
 			UpgradeMode:                  servicefabric.UpgradeMode1(upgradeMode),
 		},
 		Tags: expandTags(tags),
+	}
+
+	if clusterCodeVersion != "" {
+		parameters.ClusterPropertiesUpdateParameters.ClusterCodeVersion = utils.String(clusterCodeVersion)
 	}
 
 	future, err := client.Update(ctx, resourceGroup, name, parameters)
@@ -419,11 +435,12 @@ func resourceArmServiceFabricClusterRead(d *schema.ResourceData, meta interface{
 	}
 
 	if props := resp.ClusterProperties; props != nil {
+		d.Set("cluster_code_version", props.ClusterCodeVersion)
 		d.Set("cluster_endpoint", props.ClusterEndpoint)
 		d.Set("management_endpoint", props.ManagementEndpoint)
 		d.Set("reliability_level", string(props.ReliabilityLevel))
-		d.Set("upgrade_mode", string(props.UpgradeMode))
 		d.Set("vm_image", props.VMImage)
+		d.Set("upgrade_mode", string(props.UpgradeMode))
 
 		addOnFeatures := flattenServiceFabricClusterAddOnFeatures(props.AddOnFeatures)
 		if err := d.Set("add_on_features", schema.NewSet(schema.HashString, addOnFeatures)); err != nil {

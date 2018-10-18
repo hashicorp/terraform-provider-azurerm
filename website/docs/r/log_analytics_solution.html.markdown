@@ -31,11 +31,11 @@ resource "azurerm_log_analytics_workspace" "test" {
   name                = "k8s-workspace-${random_id.workspace.hex}"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "Free"
+  sku                 = "PerGB2018"
 }
 
 resource "azurerm_log_analytics_solution" "test" {
-  solution_name         = "Containers"
+  solution_name         = "ContainerInsights"
   location              = "${azurerm_resource_group.test.location}"
   resource_group_name   = "${azurerm_resource_group.test.name}"
   workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
@@ -43,7 +43,7 @@ resource "azurerm_log_analytics_solution" "test" {
 
   plan {
     publisher = "Microsoft"
-    product   = "OMSGallery/Containers"
+    product   = "OMSGallery/ContainerInsights"
   }
 }
 ```
