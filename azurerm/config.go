@@ -46,6 +46,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/management"
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/2017-08-01-preview/security"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/backup"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
 	"github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
@@ -242,7 +243,8 @@ type ArmClient struct {
 	notificationNamespacesClient notificationhubs.NamespacesClient
 
 	// Recovery Services
-	recoveryServicesVaultsClient recoveryservices.VaultsClient
+	recoveryServicesVaultsClient             recoveryservices.VaultsClient
+	recoveryServicesProtectionPoliciesClient backup.ProtectionPoliciesClient
 
 	// Relay
 	relayNamespacesClient relay.NamespacesClient
@@ -999,6 +1001,10 @@ func (c *ArmClient) registerRecoveryServiceClients(endpoint, subscriptionId stri
 	vaultsClient := recoveryservices.NewVaultsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&vaultsClient.Client, auth)
 	c.recoveryServicesVaultsClient = vaultsClient
+
+	protectionPoliciesClient := backup.NewProtectionPoliciesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&protectionPoliciesClient.Client, auth)
+	c.recoveryServicesProtectionPoliciesClient = protectionPoliciesClient
 }
 
 func (c *ArmClient) registerRedisClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
