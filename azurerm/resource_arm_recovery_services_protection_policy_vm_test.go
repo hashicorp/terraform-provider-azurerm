@@ -151,6 +151,56 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateWeekly(t *testing.T)
 	})
 }
 
+func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateDailyToWeekly(t *testing.T) {
+	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
+	ri := acctest.RandInt()
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRecoveryServicesProtectionPolicyVm_basicDaily(ri, testLocation()),
+				Check:  checkAccAzureRMRecoveryServicesProtectionPolicyVm_basicDaily(resourceName, ri),
+			},
+			{
+				Config: testAccAzureRMRecoveryServicesProtectionPolicyVm_basicWeekly(ri, testLocation()),
+				Check:  checkAccAzureRMRecoveryServicesProtectionPolicyVm_basicWeekly(resourceName, ri),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateWeeklyToDaily(t *testing.T) {
+	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
+	ri := acctest.RandInt()
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRecoveryServicesProtectionPolicyVm_basicWeekly(ri, testLocation()),
+				Check:  checkAccAzureRMRecoveryServicesProtectionPolicyVm_basicWeekly(resourceName, ri),
+			},
+			{
+				Config: testAccAzureRMRecoveryServicesProtectionPolicyVm_basicDaily(ri, testLocation()),
+				Check:  checkAccAzureRMRecoveryServicesProtectionPolicyVm_basicDaily(resourceName, ri),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateWeeklyToPartial(t *testing.T) {
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
 	ri := acctest.RandInt()
