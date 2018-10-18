@@ -402,6 +402,10 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 
 	appSettingsResp, err := client.ListApplicationSettings(ctx, resGroup, name)
 	if err != nil {
+		if utils.ResponseWasNotFound(appSettingsResp.Response) {
+			log.Printf("[DEBUG] Application Settings of Function App %q (resource group %q) were not found", name, resGroup)
+			return nil
+		}
 		return fmt.Errorf("Error making Read request on AzureRM Function App AppSettings %q: %+v", name, err)
 	}
 
