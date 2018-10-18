@@ -22,6 +22,7 @@ FEATURES:
 * **New Resource:** `azurerm_network_interface_application_gateway_backend_address_pool_association` [GH-2079]
 * **New Resource:** `azurerm_network_interface_backend_address_pool_association` [GH-2079]
 * **New Resource:** `azurerm_network_interface_nat_rule_association` [GH-2079]
+* **New Resource:** `azurerm_recovery_services_protection_policy_vm` [GH-1978]
 * **New Resource:** `azurerm_security_center_contact` [GH-2045]
 * **New Resource:** `azurerm_security_center_subscription_pricing` [GH-2043]
 * **New Resource:** `azurerm_security_center_workspace` [GH-2072]
