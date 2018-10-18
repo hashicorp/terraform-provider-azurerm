@@ -37,7 +37,7 @@ func TestSharedImageGalleryName(t *testing.T) {
 		},
 		{
 			Input:       "hello-123",
-			ShouldError: false,
+			ShouldError: true,
 		},
 		{
 			Input:       acctest.RandString(79),
