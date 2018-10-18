@@ -6,6 +6,7 @@ UPGRADE NOTES:
 
 FEATURES:
 
+* **New Data Source:** `azurerm_monitor_log_profile` [GH-1792]
 * **New Resource:** `azurerm_api_management` [GH-1516]
 * **New Resource:** `azurerm_automation_dsc_configuration` [GH-1512]
 * **New Resource:** `azurerm_automation_dsc_nodeconfiguration` [GH-1512]
@@ -17,6 +18,7 @@ FEATURES:
 * **New Resource:** `azurerm_dev_test_windows_virtual_machine` [GH-2058]
 * **New Resource:** `azurerm_monitor_activitylog_alert` [GH-1989]
 * **New Resource:** `azurerm_monitor_metric_alert` [GH-2026]
+* **New Resource:** `azurerm_monitor_log_profile` [GH-1792]
 * **New Resource:** `azurerm_network_interface_application_gateway_backend_address_pool_association` [GH-2079]
 * **New Resource:** `azurerm_network_interface_backend_address_pool_association` [GH-2079]
 * **New Resource:** `azurerm_network_interface_nat_rule_association` [GH-2079]
