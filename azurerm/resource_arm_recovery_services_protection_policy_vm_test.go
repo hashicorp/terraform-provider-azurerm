@@ -421,42 +421,6 @@ resource "azurerm_recovery_services_protection_policy_vm" "test" {
 `, testAccAzureRMRecoveryServicesProtectionPolicyVm_base(rInt, location), rInt)
 }
 
-func testAccAzureRMRecoveryServicesProtectionPolicyVm_completeWeekly2(rInt int, location string) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_recovery_services_protection_policy_vm" "test" {
-  name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
-  
-  backup = {
-    frequency = "Weekly"
-    time      = "23:00"
-    weekdays  = ["Sunday", "Wednesday", "Friday", "Saturday"]
-  } 
-
-  retention_weekly = {
-    count    = 42
-    weekdays = ["Sunday", "Wednesday", "Friday", "Saturday"]
-  }
-
-  retention_monthly = {
-    count    = 7
-    weekdays = ["Sunday", "Wednesday", "Friday", "Saturday"]
-    weeks    = ["First", "Last"]
-  }
-
-  retention_yearly = {
-    count    = 77
-    weekdays = ["Sunday", "Wednesday", "Friday", "Saturday"]
-    weeks    = ["First"]
-    months   = ["January", "July"]
-  }
-}
-`, testAccAzureRMRecoveryServicesProtectionPolicyVm_base(rInt, location), rInt)
-}
-
 func checkAccAzureRMRecoveryServicesProtectionPolicyVm_completeWeekly(resourceName string, ri int) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
 		testCheckAzureRMRecoveryServicesProtectionPolicyVmExists(resourceName),
