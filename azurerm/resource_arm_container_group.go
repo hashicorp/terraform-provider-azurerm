@@ -165,12 +165,14 @@ func resourceArmContainerGroup() *schema.Resource {
 
 						"environment_variables": {
 							Type:     schema.TypeMap,
+							ForceNew: true,
 							Optional: true,
 						},
 
 						"secure_environment_variables": {
 							Type:      schema.TypeMap,
 							Optional:  true,
+							ForceNew:  true,
 							Sensitive: true,
 						},
 
@@ -630,13 +632,13 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 
 		if container.EnvironmentVariables != nil {
 			if len(*container.EnvironmentVariables) > 0 {
-				containerConfig["environment_variables"] = flattenContainerEnvironmentVariables(container.EnvironmentVariables, false)
+				containerConfig["environment_variables"] = flattenContainerEnvironmentVariables(container.EnvironmentVariables, false, d)
 			}
 		}
 
 		if container.EnvironmentVariables != nil {
 			if len(*container.EnvironmentVariables) > 0 {
-				containerConfig["secure_environment_variables"] = flattenContainerEnvironmentVariables(container.EnvironmentVariables, true)
+				containerConfig["secure_environment_variables"] = flattenContainerEnvironmentVariables(container.EnvironmentVariables, true, d)
 			}
 		}
 
@@ -675,17 +677,22 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 	return containerConfigs
 }
 
-func flattenContainerEnvironmentVariables(input *[]containerinstance.EnvironmentVariable, isSecure bool) map[string]interface{} {
+func flattenContainerEnvironmentVariables(input *[]containerinstance.EnvironmentVariable, isSecure bool, d *schema.ResourceData) map[string]interface{} {
 	output := make(map[string]interface{})
+
 	if input == nil {
 		return output
 	}
 
 	if isSecure {
+
 		for _, envVar := range *input {
 			if envVar.Name != nil && envVar.Value == nil {
-				log.Printf("[DEBUG] SECURE    : Name: %s - Value: nil", *envVar.Name)
-				output[*envVar.Name] = ""
+				// this maybe a bug, since I am only grabing the values from the first secure_environment_variables object and there maybe multiple
+				if v, ok := d.GetOk(fmt.Sprintf("container.0.secure_environment_variables.%s", *envVar.Name)); ok {
+					log.Printf("[DEBUG] SECURE    : Name: %s - Value: %s", *envVar.Name, v.(string))
+					output[*envVar.Name] = v.(string)
+				}
 			}
 		}
 	} else {
