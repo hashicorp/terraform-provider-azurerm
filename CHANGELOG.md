@@ -35,7 +35,7 @@ BUG FIXES:
 * Data Source `azurerm_subnet` - fixing the ordering of the resource group name and network name in the error message [GH-2017]
 * `azurerm_kubernetes_cluster` - using the correct casing for the `addon_profile` `oms_agent` property [GH-1995]
 * `azurerm_service_bus_queue` - support for `max_delivery_count` [GH-2028]
-* `azurerm_redis_cache` - now correctly handles scaling the capcity [GH-2088]
+* `azurerm_redis_cache` - `capcity` can now be successfully changed [GH-2088]
 * `azurerm_virtual_machine_scale_set` - `primary` is now required within the `ip_configuration` block within `network_profile` (matching a behavioural change with the Azure API) [GH-2035]
 
 IMPROVEMENTS:
