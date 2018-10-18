@@ -37,7 +37,7 @@ BUG FIXES:
 * `azurerm_virtual_machine_scale_set` - `primary` is now required within the `ip_configuration` block within `network_profile` (matching a behavioural change with the Azure API) [GH-2035]
 
 IMPROVEMENTS:
-
+Adding  to  datasource
 * `azurerm_application_gateway` - support for the `StandardV2` and `WAFV2` skus and tiers [GH-2015]
 * `azurerm_dev_test_virtual_network` - support for managing the Subnet [GH-2041]
 * `azurerm_key_vault` - support for Virtual Network Rules [GH-2027]
@@ -45,6 +45,7 @@ IMPROVEMENTS:
 * `azurerm_postgresql_virtual_network_rule` - support for the `ignore_missing_vnet_service_endpoint` [GH-2056]
 * `azurerm_public_ip` - support for IPv6 addresses [GH-2019]
 * `azurerm_search_service` - adding the administrative `primary_key` and `secondary_key` propeties [GH-2074]
+* `azurerm_role_definition` - adding the `data_actions` and `not_data_actions` to the data source [GH-2110]
 * `azurerm_storage_container` - changing `container_access_type` no longer forces a new resource [GH-2075]
 * `azurerm_user_assigned_identity` - now exports the `client_id` property [GH-2078]
 
