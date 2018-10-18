@@ -152,7 +152,7 @@ A `aad_profile` block exports the following:
 
 * `server_app_id` - AzureAD Server Application ID.
 
-* `client_id` - AzureAD Client Application ID.
+* `client_app_id` - AzureAD Client Application ID.
 
 * `tenant_id` - AzureAD Tenant ID.
 

@@ -296,7 +296,7 @@ A `aad_profile` block supports the following:
 
 * `server_app_secret` - (Required) AzureAD Server Application Secret.
 
-* `client_id` - (Required) AzureAD Client Application ID.
+* `client_app_id` - (Required) AzureAD Client Application ID.
 
 * `tenant_id` - (Required) AzureAD Tenant ID.
 
