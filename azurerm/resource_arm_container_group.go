@@ -600,16 +600,38 @@ func flattenContainerImageRegistryCredentials(d *schema.ResourceData, input *[]c
 
 func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]containerinstance.Container, containerGroupPorts *[]containerinstance.Port, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
 
-	containerConfigs := make([]interface{}, 0, len(*containers))
+	//map old container names to index so we can look up things up
+	nameIndexMap := map[string]int{}
+	for i, c := range d.Get("container").([]interface{}) {
+		cfg := c.(map[string]interface{})
+		nameIndexMap[cfg["name"].(string)] = i
+
+	}
+
+	containerCfg := make([]interface{}, 0, len(*containers))
 	for _, container := range *containers {
+
+		//TODO fix this crash point
+		name := *container.Name
+
+		//get index from name
+		index := nameIndexMap[name]
+
 		containerConfig := make(map[string]interface{})
-		containerConfig["name"] = *container.Name
-		containerConfig["image"] = *container.Image
+		containerConfig["name"] = name
+
+		if v := container.Image; v != nil {
+			containerConfig["image"] = *v
+		}
 
 		if resources := container.Resources; resources != nil {
 			if resourceRequests := resources.Requests; resourceRequests != nil {
-				containerConfig["cpu"] = *resourceRequests.CPU
-				containerConfig["memory"] = *resourceRequests.MemoryInGB
+				if v := resourceRequests.CPU; v != nil {
+					containerConfig["cpu"] = *v
+				}
+				if v := resourceRequests.MemoryInGB; v != nil {
+					containerConfig["memory"] = *v
+				}
 			}
 		}
 
@@ -632,13 +654,13 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 
 		if container.EnvironmentVariables != nil {
 			if len(*container.EnvironmentVariables) > 0 {
-				containerConfig["environment_variables"] = flattenContainerEnvironmentVariables(container.EnvironmentVariables, false, d)
+				containerConfig["environment_variables"] = flattenContainerEnvironmentVariables(container.EnvironmentVariables, false, d, index)
 			}
 		}
 
 		if container.EnvironmentVariables != nil {
 			if len(*container.EnvironmentVariables) > 0 {
-				containerConfig["secure_environment_variables"] = flattenContainerEnvironmentVariables(container.EnvironmentVariables, true, d)
+				containerConfig["secure_environment_variables"] = flattenContainerEnvironmentVariables(container.EnvironmentVariables, true, d, index)
 			}
 		}
 
@@ -671,13 +693,13 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 			containerConfig["volume"] = flattenContainerVolumes(container.VolumeMounts, containerGroupVolumes, containerVolumesConfig)
 		}
 
-		containerConfigs = append(containerConfigs, containerConfig)
+		containerCfg = append(containerCfg, containerConfig)
 	}
 
-	return containerConfigs
+	return containerCfg
 }
 
-func flattenContainerEnvironmentVariables(input *[]containerinstance.EnvironmentVariable, isSecure bool, d *schema.ResourceData) map[string]interface{} {
+func flattenContainerEnvironmentVariables(input *[]containerinstance.EnvironmentVariable, isSecure bool, d *schema.ResourceData, oldContainerIndex int) map[string]interface{} {
 	output := make(map[string]interface{})
 
 	if input == nil {
@@ -685,11 +707,10 @@ func flattenContainerEnvironmentVariables(input *[]containerinstance.Environment
 	}
 
 	if isSecure {
-
 		for _, envVar := range *input {
+
 			if envVar.Name != nil && envVar.Value == nil {
-				// this maybe a bug, since I am only grabing the values from the first secure_environment_variables object and there maybe multiple
-				if v, ok := d.GetOk(fmt.Sprintf("container.0.secure_environment_variables.%s", *envVar.Name)); ok {
+				if v, ok := d.GetOk(fmt.Sprintf("container.%d.secure_environment_variables.%s", oldContainerIndex, *envVar.Name)); ok {
 					log.Printf("[DEBUG] SECURE    : Name: %s - Value: %s", *envVar.Name, v.(string))
 					output[*envVar.Name] = v.(string)
 				}
