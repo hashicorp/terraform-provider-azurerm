@@ -12,10 +12,10 @@ install:
 # packages that live there.
 # See: https://github.com/golang/go/issues/12933
 - bash scripts/gogetcookie.sh
-  make tools
+- make tools
 
 script:
-  make lint
+- make lint
 - make test
 - make vendor-status
 - make website-test

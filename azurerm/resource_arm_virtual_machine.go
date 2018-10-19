@@ -1016,7 +1016,7 @@ func flattenAzureRmVirtualMachineIdentity(identity *compute.VirtualMachineIdenti
 			  }
 			}
 		*/
-		for key, _ := range identity.UserAssignedIdentities {
+		for key := range identity.UserAssignedIdentities {
 			identityIds = append(identityIds, key)
 		}
 	}
