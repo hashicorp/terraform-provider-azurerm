@@ -207,6 +207,8 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Type:     schema.TypeInt,
 							Optional: true,
 							ForceNew: true,
+							Default: 30,
+							ValidateFunc:validation.IntAtLeast(1),
 						},
 
 						"vnet_subnet_id": {
