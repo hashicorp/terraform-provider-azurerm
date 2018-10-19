@@ -204,11 +204,11 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						},
 
 						"os_disk_size_gb": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							ForceNew: true,
-							Default: 30,
-							ValidateFunc:validation.IntAtLeast(1),
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ForceNew:     true,
+							Default:      30,
+							ValidateFunc: validation.IntAtLeast(1),
 						},
 
 						"vnet_subnet_id": {
