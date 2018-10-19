@@ -312,7 +312,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   enable_rbac = true
 
   aad_profile {
-    client_id = "..."
+    client_app_id = "..."
     server_app_id = "..."
     server_app_secret = "..."
     tenant_id = "..."
