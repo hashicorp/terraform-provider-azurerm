@@ -502,28 +502,16 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 
 			emails := san["emails"].([]interface{})
 			if len(emails) > 0 {
-				// emails := make([]string, len(e))
-				// for i, v := range e {
-				// 	emails[i] = fmt.Sprint(v)
-				// }
 				subjectAlternativeNames.Emails = expandKeyVaultSanProperty(emails)
 			}
 
 			dnsNames := san["dns_names"].([]interface{})
 			if len(dnsNames) > 0 {
-				// dnsNames := make([]string, len(n))
-				// for i, v := range n {
-				// 	dnsNames[i] = fmt.Sprint(v)
-				// }
 				subjectAlternativeNames.DNSNames = expandKeyVaultSanProperty(dnsNames)
 			}
 
 			upns := san["upns"].([]interface{})
 			if len(upns) > 0 {
-				// upns := make([]string, len(u))
-				// for i, v := range u {
-				// 	upns[i] = fmt.Sprint(v)
-				// }
 				subjectAlternativeNames.Upns = expandKeyVaultSanProperty(upns)
 			}
 		}
