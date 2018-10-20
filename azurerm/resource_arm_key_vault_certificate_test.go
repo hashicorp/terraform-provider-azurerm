@@ -347,6 +347,11 @@ resource "azurerm_key_vault_certificate" "test" {
       ]
 
       subject            = "CN=hello-world"
+      subject_alternative_names {
+        emails = ["mary@stu.co.uk"]
+        dns_names = ["internal.contoso.com"]
+        upns      = ["john@doe.com"]
+      }
       validity_in_months = 12
     }
   }
