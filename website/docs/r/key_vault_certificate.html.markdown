@@ -114,15 +114,20 @@ resource "azurerm_key_vault" "test" {
     object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
 
     certificate_permissions = [
-      "all",
+      "create","delete","deleteissuers",
+      "get","getissuers","import","list",
+      "listissuers","managecontacts","manageissuers",
+      "setissuers","update",
     ]
 
     key_permissions = [
-      "all",
+      "backup","create","decrypt","delete","encrypt","get",
+      "import","list","purge","recover","restore","sign",
+      "unwrapKey","update","verify","wrapKey",
     ]
 
     secret_permissions = [
-      "all",
+      "backup","delete","get","list","purge","recover","restore","set",
     ]
   }
 
