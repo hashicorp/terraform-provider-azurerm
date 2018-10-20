@@ -1110,8 +1110,10 @@
 		{
 			"checksumSHA1": "kD1ayilNruf2cES1LDfNZjYRscQ=",
 			"path": "github.com/hashicorp/terraform/httpclient",
-			"revision": "c96155cc68b1da43e49893ddc19a609f0085af19",
-			"revisionTime": "2018-10-04T21:23:31Z"
+			"revision": "4e44b41c8bc1b533d14f9939690adf09e3d2a2be",
+			"revisionTime": "2018-10-19T18:08:03Z",
+			"version": "v0.11.9",
+			"versionExact": "v0.11.9"
 		},
 		{
 			"checksumSHA1": "yFWmdS6yEJZpRJzUqd/mULqCYGk=",
