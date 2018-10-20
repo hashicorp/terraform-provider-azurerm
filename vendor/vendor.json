@@ -271,7 +271,7 @@
 			"path": "github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/2017-08-01-preview/security",
 			"revision": "6d20bdbae88c06c36d72eb512295417693bfdf4e",
 			"revisionTime": "2018-09-27T22:44:43Z",
-			"version": "=v21.1.0",
+			"version": "v21.1.0",
 			"versionExact": "v21.1.0"
 		},
 		{
@@ -287,7 +287,7 @@
 			"path": "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/backup",
 			"revision": "6d20bdbae88c06c36d72eb512295417693bfdf4e",
 			"revisionTime": "2018-09-27T22:44:43Z",
-			"version": "=v21.1.0",
+			"version": "v21.1.0",
 			"versionExact": "v21.1.0"
 		},
 		{
