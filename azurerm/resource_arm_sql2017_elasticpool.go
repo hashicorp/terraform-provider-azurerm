@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -50,34 +51,10 @@ func resourceArmSql2017ElasticPool() *schema.Resource {
 								"BasicPool",
 								"StandardPool",
 								"PremiumPool",
-								"GP_Gen4_2",
-								"GP_Gen4_4",
-								"GP_Gen4_8",
-								"GP_Gen4_16",
-								"GP_Gen4_24",
-								"GP_Gen5_2",
-								"GP_Gen5_4",
-								"GP_Gen5_8",
-								"GP_Gen5_16",
-								"GP_Gen5_24",
-								"BC_Gen4_2",
-								"BC_Gen4_4",
-								"BC_Gen4_8",
-								"BC_Gen4_16",
-								"BC_Gen4_20",
-								"BC_Gen4_24",
-								"BC_Gen4_32",
-								"BC_Gen4_40",
-								"BC_Gen4_80",
-								"BC_Gen5_2",
-								"BC_Gen5_4",
-								"BC_Gen5_8",
-								"BC_Gen5_16",
-								"BC_Gen5_20",
-								"BC_Gen5_24",
-								"BC_Gen5_32",
-								"BC_Gen5_40",
-								"BC_Gen5_80",
+								"GP_Gen4",
+								"GP_Gen5",
+								"BC_Gen4",
+								"BC_Gen5",
 							}, true),
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
@@ -85,12 +62,6 @@ func resourceArmSql2017ElasticPool() *schema.Resource {
 						"capacity": {
 							Type:     schema.TypeInt,
 							Required: true,
-						},
-
-						"size": {
-							Type:             schema.TypeString,
-							Optional:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 
 						"tier": {
@@ -173,6 +144,101 @@ func resourceArmSql2017ElasticPool() *schema.Resource {
 			},
 
 			"tags": tagsSchema(),
+		},
+
+		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+
+			name, _ := diff.GetOk("sku.0.name")
+			capacity, _ := diff.GetOk("sku.0.capacity")
+			minCapacity, _ := diff.GetOk("per_database_settings.0.min_capacity")
+			maxCapacity, _ := diff.GetOk("per_database_settings.0.max_capacity")
+
+			if strings.HasPrefix(strings.ToLower(name.(string)), "gp_") {
+
+				if capacity.(int) > 24 {
+					return fmt.Errorf("GeneralPurpose pricing tier only supports upto 24 vCores")
+				}
+
+				if capacity.(int) < 1 {
+					return fmt.Errorf("GeneralPurpose pricing tier must have a minimum of 1 vCores")
+				}
+
+				switch {
+				case capacity.(int) == 1:
+				case capacity.(int) == 2:
+				case capacity.(int) == 4:
+				case capacity.(int) == 8:
+				case capacity.(int) == 16:
+				case capacity.(int) == 24:
+				default:
+					return fmt.Errorf("GeneralPurpose pricing tier must have a capacity of 1, 2, 4, 8, 16, or 24 vCores")
+				}
+
+			}
+
+			if strings.HasPrefix(strings.ToLower(name.(string)), "bc_") {
+				if capacity.(int) > 80 {
+					return fmt.Errorf("BusinessCritical pricing tier only supports upto 80 vCores")
+				}
+
+				if capacity.(int) < 2 {
+					return fmt.Errorf("BusinessCritical pricing tier must have a minimum of 2 vCores")
+				}
+
+				switch {
+				case capacity.(int) == 1:
+				case capacity.(int) == 2:
+				case capacity.(int) == 4:
+				case capacity.(int) == 8:
+				case capacity.(int) == 16:
+				case capacity.(int) == 24:
+				case capacity.(int) == 32:
+				case capacity.(int) == 40:
+				case capacity.(int) == 80:
+				default:
+					return fmt.Errorf("BusinessCritical pricing tier must have a capacity of 2, 4, 8, 16, 24, 32, 40, or 80 vCores")
+				}
+			}
+
+			// vCore based
+			if (strings.HasPrefix(strings.ToLower(name.(string)), "gp_") || strings.HasPrefix(strings.ToLower(name.(string)), "bc_") {
+
+				capacity, _ := diff.GetOk("sku.0.capacity")
+				minCapacity, _ := diff.GetOk("per_database_settings.0.min_capacity")
+				maxCapacity, _ := diff.GetOk("per_database_settings.0.max_capacity")
+	
+				if maxCapacity.(float64) > capacity {
+					return fmt.Errorf("BusinessCritical pricing tier must have a capacity of 2, 4, 8, 16, 24, 32, 40, or 80 vCores")
+				}
+
+				if maxCapacity.(float64) > capacity {
+					return fmt.Errorf("BusinessCritical and GeneralPurpose pricing tiers perDatabaseSettings maxCapacity must not be higher than the SKUs capacity setting")
+				}
+
+				if  minCapacity.(float64) > maxCapacity.(float64) {
+					return fmt.Errorf("perDatabaseSettings maxCapacity must be greater than or equal to the perDatabaseSettings minCapacity value")
+				}
+			}
+
+			//DTU based
+			if !strings.HasPrefix(strings.ToLower(name.(string)), "gp_") && !strings.HasPrefix(strings.ToLower(name.(string)), "bc_") {
+
+				if maxCapacity.(float64) != math.Trunc(maxCapacity.(float64)) {
+					return fmt.Errorf("BasicPool, StandardPool, and PremiumPool SKUs must have whole numbers as thier maxCapacity")
+				}
+
+				if minCapacity.(float64) != math.Trunc(minCapacity.(float64)) {
+					return fmt.Errorf("BasicPool, StandardPool, and PremiumPool SKUs must have whole numbers as thier minCapacity")
+				}
+
+				if minCapacity.(float64) < 0 {
+
+				}
+
+				
+			}
+
+			return nil
 		},
 	}
 }
@@ -313,14 +379,12 @@ func expandAzureRmSql2017ElasticPoolSku(d *schema.ResourceData) *sql.Sku {
 	sku := skus[0].(map[string]interface{})
 
 	name := sku["name"].(string)
-	size := sku["size"].(string)
 	tier := sku["tier"].(string)
 	family := sku["family"].(string)
 	capacity := sku["capacity"].(int)
 
 	return &sql.Sku{
 		Name:     utils.String(name),
-		Size:     utils.String(size),
 		Tier:     utils.String(tier),
 		Family:   utils.String(family),
 		Capacity: utils.Int32(int32(capacity)),
@@ -332,10 +396,6 @@ func flattenAzureRmSql2017ElasticPoolSku(resp *sql.Sku) []interface{} {
 
 	if name := resp.Name; name != nil {
 		values["name"] = *name
-	}
-
-	if size := resp.Size; size != nil {
-		values["size"] = *size
 	}
 
 	values["tier"] = *resp.Tier
