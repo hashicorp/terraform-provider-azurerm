@@ -176,6 +176,10 @@ resource "azurerm_key_vault_certificate" "test" {
         "keyEncipherment",
       ]
 
+      subject_alternative_names {
+        dns_names = ["internal.contoso.com", "domain.hello.world"]
+      }
+
       subject            = "CN=hello-world"
       validity_in_months = 12
     }
@@ -246,7 +250,14 @@ The following arguments are supported:
 
 * `key_usage` - (Required) A list of uses associated with this Key. Possible values include `cRLSign`, `dataEncipherment`, `decipherOnly`, `digitalSignature`, `encipherOnly`, `keyAgreement`, `keyCertSign`, `keyEncipherment` and `nonRepudiation` and are case-sensitive. Changing this forces a new resource to be created.
 * `subject` - (Required) The Certificate's Subject. Changing this forces a new resource to be created.
+* `subject_alternative_names` - (Optional) A `subject_alternative_names` block as defined below.
 * `validity_in_months` - (Required) The Certificates Validity Period in Months. Changing this forces a new resource to be created.
+
+`subject_alternative_names` supports the following:
+
+* `dns_names` - (Optional) A list of alternative DNS names (FQDNs) identified by the Certificate. Changing this forces a new resource to be created.
+* `email` - (Optional) A list of email addresses identified by this Certificate. Changing this forces a new resource to be created.
+* `upns` - (Optional) A list of User Principal Names identified by the Certificate. Changing this forces a new resource to be created.
 
 
 ## Attributes Reference
