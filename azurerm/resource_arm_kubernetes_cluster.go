@@ -207,7 +207,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ForceNew:     true,
-							Default:      30,
+							Computed:     true,
 							ValidateFunc: validation.IntAtLeast(1),
 						},
 
