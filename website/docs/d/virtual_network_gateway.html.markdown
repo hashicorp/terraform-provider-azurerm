@@ -91,7 +91,7 @@ The `vpn_client_configuration` block supports:
     This setting is incompatible with the use of `root_certificate` and `revoked_certificate`.
 
 * `vpn_client_protocols` - (Optional) List of the protocols supported by the vpn client.
-    The supported values are `SSTP` and `IkeV2`.
+    The supported values are `SSTP`, `IkeV2` and `OpenVPN`.
 
 The `bgp_settings` block supports:
 

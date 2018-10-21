@@ -216,6 +216,7 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 								Type: schema.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
 									string(network.IkeV2),
+									string(network.OpenVPN),
 									string(network.SSTP),
 								}, true),
 							},
