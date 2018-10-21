@@ -2,8 +2,8 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"log"
-	"regexp"
 	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
@@ -95,7 +95,7 @@ func resourceArmPublicIp() *schema.Resource {
 			"domain_name_label": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validatePublicIpDomainNameLabel,
+				ValidateFunc: validate.PublicIpDomainNameLabel,
 			},
 
 			"reverse_fqdn": {
@@ -276,29 +276,4 @@ func resourceArmPublicIpDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return nil
-}
-
-func validatePublicIpDomainNameLabel(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(string)
-	if !regexp.MustCompile(`^[a-z0-9-]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"only lowercase alphanumeric characters and hyphens allowed in %q: %q",
-			k, value))
-	}
-
-	if len(value) > 61 {
-		errors = append(errors, fmt.Errorf(
-			"%q cannot be longer than 61 characters: %q", k, value))
-	}
-
-	if len(value) == 0 {
-		errors = append(errors, fmt.Errorf(
-			"%q cannot be an empty string: %q", k, value))
-	}
-	if regexp.MustCompile(`-$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"%q cannot end with a hyphen: %q", k, value))
-	}
-
-	return
 }
