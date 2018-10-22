@@ -188,6 +188,15 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
+									"extended_key_usage": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Computed: true,
+										ForceNew: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
 									"key_usage": {
 										Type:     schema.TypeList,
 										Required: true,
@@ -456,6 +465,14 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 	for _, v := range certificateProperties {
 		cert := v.(map[string]interface{})
 
+		extendedKeyUsage := make([]string, 0)
+		ekus := cert["extended_key_usage"].([]interface{})
+		if len(ekus) > 0 {
+			for _, key := range ekus {
+				extendedKeyUsage = append(extendedKeyUsage, key.(string))
+			}
+		}
+
 		keyUsage := make([]keyvault.KeyUsageType, 0)
 		keys := cert["key_usage"].([]interface{})
 		for _, key := range keys {
@@ -466,6 +483,7 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 			ValidityInMonths: utils.Int32(int32(cert["validity_in_months"].(int))),
 			Subject:          utils.String(cert["subject"].(string)),
 			KeyUsage:         &keyUsage,
+			Ekus:             &extendedKeyUsage,
 		}
 	}
 
@@ -537,6 +555,7 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []inter
 			usages = append(usages, string(usage))
 		}
 
+		certProps["extended_key_usage"] = props.Ekus
 		certProps["key_usage"] = usages
 		certProps["subject"] = *props.Subject
 		certProps["validity_in_months"] = int(*props.ValidityInMonths)
