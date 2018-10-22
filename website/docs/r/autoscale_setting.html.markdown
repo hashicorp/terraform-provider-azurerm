@@ -79,7 +79,6 @@ resource "azurerm_autoscale_setting" "test" {
   }
 
   notification {
-    operation = "Scale"
     email {
       send_to_subscription_administrator    = true
       send_to_subscription_co_administrator = true
@@ -168,8 +167,6 @@ resource "azurerm_autoscale_setting" "test" {
   }
 
   notification {
-    operation = "Scale"
-
     email {
       send_to_subscription_administrator    = true
       send_to_subscription_co_administrator = true
@@ -255,8 +252,6 @@ resource "azurerm_autoscale_setting" "test" {
   }
 
   notification {
-    operation = "Scale"
-
     email {
       send_to_subscription_administrator    = true
       send_to_subscription_co_administrator = true

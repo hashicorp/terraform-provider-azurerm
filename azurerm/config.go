@@ -330,12 +330,24 @@ func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Autho
 func withRequestLogging() autorest.SendDecorator {
 	return func(s autorest.Sender) autorest.Sender {
 		return autorest.SenderFunc(func(r *http.Request) (*http.Response, error) {
+			// strip the authorization header prior to printing
+			authHeaderName := "Authorization"
+			auth := r.Header.Get(authHeaderName)
+			if auth != "" {
+				r.Header.Del(authHeaderName)
+			}
+
 			// dump request to wire format
 			if dump, err := httputil.DumpRequestOut(r, true); err == nil {
 				log.Printf("[DEBUG] AzureRM Request: \n%s\n", dump)
 			} else {
 				// fallback to basic message
 				log.Printf("[DEBUG] AzureRM Request: %s to %s\n", r.Method, r.URL)
+			}
+
+			// add the auth header back
+			if auth != "" {
+				r.Header.Add(authHeaderName, auth)
 			}
 
 			resp, err := s.Do(r)
