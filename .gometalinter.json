@@ -4,6 +4,7 @@
     "errcheck",
     "unconvert",
     "gofmt",
+    "goimports",
     "gotype",
     "interfacer",
     "misspell",
