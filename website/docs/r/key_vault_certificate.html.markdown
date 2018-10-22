@@ -256,7 +256,7 @@ The following arguments are supported:
 `subject_alternative_names` supports the following:
 
 * `dns_names` - (Optional) A list of alternative DNS names (FQDNs) identified by the Certificate. Changing this forces a new resource to be created.
-* `email` - (Optional) A list of email addresses identified by this Certificate. Changing this forces a new resource to be created.
+* `emails` - (Optional) A list of email addresses identified by this Certificate. Changing this forces a new resource to be created.
 * `upns` - (Optional) A list of User Principal Names identified by the Certificate. Changing this forces a new resource to be created.
 
 
