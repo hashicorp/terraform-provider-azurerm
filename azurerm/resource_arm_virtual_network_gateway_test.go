@@ -493,7 +493,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
   vpn_client_configuration {
 	address_space = ["10.2.0.0/24"]
-	vpn_client_protocols = ["SSTP", "IkeV2", "OpenVPN"]
+	vpn_client_protocols = ["SSTP", "IkeV2"]
 
 	radius_server_address = "1.2.3.4"
     radius_server_secret = "1234"
