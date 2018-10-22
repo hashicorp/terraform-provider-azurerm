@@ -4,10 +4,12 @@
     "errcheck",
     "unconvert",
     "gofmt",
+    "gotype",
     "interfacer",
     "misspell",
     "structcheck",
     "unused",
+    "varcheck",
     "vet"
   ],
   "EnableGC": true,
