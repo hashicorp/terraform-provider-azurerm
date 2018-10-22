@@ -6,6 +6,7 @@
     "interfacer",
     "misspell",
     "structcheck",
+    "unused",
     "vet"
   ],
   "EnableGC": true,
