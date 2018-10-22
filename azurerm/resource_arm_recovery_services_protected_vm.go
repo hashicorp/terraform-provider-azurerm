@@ -91,7 +91,7 @@ func resourceArmRecoveryServicesProtectedVmCreateUpdate(d *schema.ResourceData, 
 		Tags: expandTags(tags),
 		Properties: &backup.AzureIaaSComputeVMProtectedItem{
 			PolicyID:          &policyId,
-			ProtectedItemType: backup.ProtectedItemType(backup.ProtectedItemTypeMicrosoftClassicComputevirtualMachines),
+			ProtectedItemType: backup.ProtectedItemTypeMicrosoftClassicComputevirtualMachines,
 			WorkloadType:      backup.VM,
 			SourceResourceID:  utils.String(vmId),
 			FriendlyName:      utils.String(vmName),

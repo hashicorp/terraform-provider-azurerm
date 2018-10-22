@@ -2,6 +2,7 @@
   "Deadline": "10m",
   "Enable": [
     "errcheck",
+    "unconvert",
     "gofmt",
     "interfacer",
     "misspell",

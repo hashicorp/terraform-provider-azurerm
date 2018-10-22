@@ -128,7 +128,7 @@ func resourceArmStorageTableRead(d *schema.ResourceData, meta interface{}) error
 
 	var storageTable *storage.Table
 	for _, table := range tables.Tables {
-		if string(table.Name) == id.tableName {
+		if table.Name == id.tableName {
 			storageTable = &table
 			break
 		}

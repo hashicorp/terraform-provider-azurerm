@@ -359,7 +359,7 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 	}
 
 	if v := cert.X509Thumbprint; v != nil {
-		x509Thumbprint, err := base64.RawURLEncoding.DecodeString(string(*v))
+		x509Thumbprint, err := base64.RawURLEncoding.DecodeString(*v)
 		if err != nil {
 			return err
 		}
