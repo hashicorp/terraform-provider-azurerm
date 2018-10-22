@@ -72,6 +72,9 @@ func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) err
 	log.Printf("[INFO] Creating share %q in storage account %q", name, storageAccountName)
 	reference := fileClient.GetShareReference(name)
 	err = reference.Create(options)
+	if err != nil {
+		return fmt.Errorf("Error creating Storage Share %q reference (storage account: %q) : %+v", name, storageAccountName, err)
+	}
 
 	log.Printf("[INFO] Setting share %q metadata in storage account %q", name, storageAccountName)
 	reference.Metadata = metaData

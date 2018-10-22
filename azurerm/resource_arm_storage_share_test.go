@@ -125,6 +125,9 @@ func testCheckAzureRMStorageShareExists(name string, sS *storage.Share) resource
 			Prefix:  name,
 			Timeout: 90,
 		})
+		if err != nil {
+			return fmt.Errorf("Error listing Storage Share %q shares (storage account: %q) : %+v", name, storageAccountName, err)
+		}
 
 		if len(shares.Shares) == 0 {
 			return fmt.Errorf("Bad: Share %q (storage account: %q) does not exist", name, storageAccountName)
@@ -174,6 +177,9 @@ func testAccARMStorageShareDisappears(name string, sS *storage.Share) resource.T
 		reference := fileClient.GetShareReference(sS.Name)
 		options := &storage.FileRequestOptions{}
 		err = reference.Create(options)
+		if err != nil {
+			return fmt.Errorf("Error creating Storage Share %q reference (storage account: %q) : %+v", name, storageAccountName, err)
+		}
 
 		if _, err = reference.DeleteIfExists(options); err != nil {
 			return fmt.Errorf("Error deleting storage file %q: %s", name, err)

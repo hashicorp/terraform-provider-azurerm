@@ -104,7 +104,7 @@ func testCheckAzureRMApplicationSecurityGroupDestroy(s *terraform.State) error {
 			return err
 		}
 
-		return fmt.Errorf("Applicaton Security Group still exists:\n%#v", resp)
+		return fmt.Errorf("Application Security Group still exists:\n%#v", resp)
 	}
 
 	return nil

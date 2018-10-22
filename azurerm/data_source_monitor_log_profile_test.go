@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-// These tests are actualy run as part of the resoure ones due to
+// These tests are actually run as part of the resoure ones due to
 // Azure only being happy about provisioning one per subscription at once
 // (which our test suite can't easily workaround)
 
