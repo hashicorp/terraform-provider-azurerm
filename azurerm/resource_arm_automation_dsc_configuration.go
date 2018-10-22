@@ -157,7 +157,9 @@ func resourceArmAutomationDscConfigurationRead(d *schema.ResourceData, meta inte
 	}
 
 	buf := new(bytes.Buffer)
-	buf.ReadFrom(contentresp.Body)
+	if _, err := buf.ReadFrom(contentresp.Body); err != nil {
+		return fmt.Errorf("Error reading from AzureRM Automation Dsc Configuration buffer %q: %+v", name, err)
+	}
 	content := buf.String()
 
 	d.Set("content_embedded", content)

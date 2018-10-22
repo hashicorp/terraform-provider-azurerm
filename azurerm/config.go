@@ -231,7 +231,6 @@ type ArmClient struct {
 	secGroupClient                  network.SecurityGroupsClient
 	secRuleClient                   network.SecurityRulesClient
 	subnetClient                    network.SubnetsClient
-	netUsageClient                  network.UsagesClient
 	vnetGatewayConnectionsClient    network.VirtualNetworkGatewayConnectionsClient
 	vnetGatewayClient               network.VirtualNetworkGatewaysClient
 	vnetClient                      network.VirtualNetworksClient
@@ -978,7 +977,7 @@ func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, a
 	c.watcherClient = watchersClient
 }
 
-func (c *ArmClient) registerNotificationHubsClient(endpoint, subscriptionId string, auth *autorest.BearerAuthorizer, sender autorest.Sender) {
+func (c *ArmClient) registerNotificationHubsClient(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
 	namespacesClient := notificationhubs.NewNamespacesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&namespacesClient.Client, auth)
 	c.notificationNamespacesClient = namespacesClient

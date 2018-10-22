@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"io"
 	"log"
 	"net/url"
@@ -234,7 +235,7 @@ func resourceArmStorageBlobPageUploadFromSource(container, name, source, content
 	if err != nil {
 		return fmt.Errorf("Error opening source file for upload %q: %s", source, err)
 	}
-	defer file.Close()
+	defer utils.IoCloseAndLogError(file, fmt.Sprintf("Error closing Storage Blob `%s` file `%s` after upload", name, source))
 
 	blobSize, pageList, err := resourceArmStorageBlobPageSplit(file)
 	if err != nil {
@@ -412,7 +413,7 @@ func resourceArmStorageBlobBlockUploadFromSource(container, name, source, conten
 	if err != nil {
 		return fmt.Errorf("Error opening source file for upload %q: %s", source, err)
 	}
-	defer file.Close()
+	defer utils.IoCloseAndLogError(file, fmt.Sprintf("Error closing Storage Blob `%s` file `%s` after upload", name, source))
 
 	blockList, parts, err := resourceArmStorageBlobBlockSplit(file)
 	if err != nil {
