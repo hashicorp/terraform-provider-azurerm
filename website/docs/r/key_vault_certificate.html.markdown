@@ -239,6 +239,7 @@ The following arguments are supported:
 
 `x509_certificate_properties` supports the following:
 
+* `extended_key_usage` - (Optional) A list of Extended/Enhanced Key Usages. If this argument is not specified, it defaults to ["1.3.6.1.5.5.7.3.1","1.3.6.1.5.5.7.3.2"] (Server Authentication and Client Authentication respectively). Changing this forces a new resource to be created.
 * `key_usage` - (Required) A list of uses associated with this Key. Possible values include `cRLSign`, `dataEncipherment`, `decipherOnly`, `digitalSignature`, `encipherOnly`, `keyAgreement`, `keyCertSign`, `keyEncipherment` and `nonRepudiation` and are case-sensitive. Changing this forces a new resource to be created.
 * `subject` - (Required) The Certificate's Subject. Changing this forces a new resource to be created.
 * `validity_in_months` - (Required) The Certificates Validity Period in Months. Changing this forces a new resource to be created.
