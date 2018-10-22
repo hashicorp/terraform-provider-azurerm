@@ -111,9 +111,9 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerateSans(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultCertificateExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "certificate_data"),
-					resource.TestCheckResourceAttr(resourceName, "certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.emails.0", "mary@stu.co.uk"),
-					resource.TestCheckResourceAttr(resourceName, "certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.dns_names.0", "internal.contoso.com"),
-					resource.TestCheckResourceAttr(resourceName, "certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.upns.0", "john@doe.com"),
+					resource.TestCheckResourceAttr(resourceName, "certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails.0", "mary@stu.co.uk"),
+					resource.TestCheckResourceAttr(resourceName, "certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.dns_names.0", "internal.contoso.com"),
+					resource.TestCheckResourceAttr(resourceName, "certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.upns.0", "john@doe.com"),
 				),
 			},
 		},
