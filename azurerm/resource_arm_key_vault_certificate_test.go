@@ -96,6 +96,30 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerate(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKeyVaultCertificate_basicGenerateSans(t *testing.T) {
+	resourceName := "azurerm_key_vault_certificate.test"
+	rs := acctest.RandString(6)
+	config := testAccAzureRMKeyVaultCertificate_basicGenerateSans(rs, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultCertificateExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "certificate_data"),
+					resource.TestCheckResourceAttr(resourceName, "certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.emails.0", "mary@stu.co.uk"),
+					resource.TestCheckResourceAttr(resourceName, "certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.dns_names.0", "internal.contoso.com"),
+					resource.TestCheckResourceAttr(resourceName, "certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.upns.0", "john@doe.com"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMKeyVaultCertificate_basicGenerateTags(t *testing.T) {
 	resourceName := "azurerm_key_vault_certificate.test"
 	rs := acctest.RandString(6)
@@ -347,6 +371,95 @@ resource "azurerm_key_vault_certificate" "test" {
       ]
 
       subject            = "CN=hello-world"
+      validity_in_months = 12
+    }
+  }
+}
+
+`, rString, location, rString, rString)
+}
+
+func testAccAzureRMKeyVaultCertificate_basicGenerateSans(rString string, location string) string {
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%s"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctestkeyvault%s"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+
+  sku {
+    name = "standard"
+  }
+
+  access_policy {
+    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+
+    certificate_permissions = [
+      "create",
+      "delete",
+      "get",
+      "update"
+    ]
+
+    key_permissions = [
+      "create",
+    ]
+
+    secret_permissions = [
+      "set",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_certificate" "test" {
+  name      = "acctestcert%s"
+  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+
+    lifetime_action {
+      action {
+        action_type = "AutoRenew"
+      }
+
+      trigger {
+        days_before_expiry = 30
+      }
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+
+    x509_certificate_properties {
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyCertSign",
+        "keyEncipherment",
+      ]
+
+      subject            = "CN=hello-world"
       subject_alternative_names {
         emails = ["mary@stu.co.uk"]
         dns_names = ["internal.contoso.com"]
@@ -359,6 +472,7 @@ resource "azurerm_key_vault_certificate" "test" {
 
 `, rString, location, rString, rString)
 }
+
 func testAccAzureRMKeyVaultCertificate_basicGenerateTags(rString string, location string) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
