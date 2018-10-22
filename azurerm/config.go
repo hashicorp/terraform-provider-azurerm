@@ -16,7 +16,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-10-12/cdn"
 	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
-	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-04-01/containerinstance"
+	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-06-01/containerinstance"
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
@@ -46,6 +46,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/management"
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/2017-08-01-preview/security"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/backup"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
 	"github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
@@ -85,11 +86,14 @@ type ArmClient struct {
 
 	cosmosDBClient documentdb.DatabaseAccountsClient
 
-	automationAccountClient      automation.AccountClient
-	automationRunbookClient      automation.RunbookClient
-	automationCredentialClient   automation.CredentialClient
-	automationScheduleClient     automation.ScheduleClient
-	automationRunbookDraftClient automation.RunbookDraftClient
+	automationAccountClient              automation.AccountClient
+	automationCredentialClient           automation.CredentialClient
+	automationDscConfigurationClient     automation.DscConfigurationClient
+	automationDscNodeConfigurationClient automation.DscNodeConfigurationClient
+	automationModuleClient               automation.ModuleClient
+	automationRunbookClient              automation.RunbookClient
+	automationRunbookDraftClient         automation.RunbookDraftClient
+	automationScheduleClient             automation.ScheduleClient
 
 	dnsClient   dns.RecordSetsClient
 	zonesClient dns.ZonesClient
@@ -204,6 +208,7 @@ type ArmClient struct {
 	monitorActionGroupsClient      insights.ActionGroupsClient
 	monitorActivityLogAlertsClient insights.ActivityLogAlertsClient
 	monitorAlertRulesClient        insights.AlertRulesClient
+	monitorLogProfilesClient       insights.LogProfilesClient
 	monitorMetricAlertsClient      insights.MetricAlertsClient
 
 	// MSI
@@ -238,7 +243,9 @@ type ArmClient struct {
 	notificationNamespacesClient notificationhubs.NamespacesClient
 
 	// Recovery Services
-	recoveryServicesVaultsClient recoveryservices.VaultsClient
+	recoveryServicesVaultsClient             recoveryservices.VaultsClient
+	recoveryServicesProtectedItemsClient     backup.ProtectedItemsClient
+	recoveryServicesProtectionPoliciesClient backup.ProtectionPoliciesClient
 
 	// Relay
 	relayNamespacesClient relay.NamespacesClient
@@ -533,6 +540,18 @@ func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, a
 	credentialClient := automation.NewCredentialClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&credentialClient.Client, auth)
 	c.automationCredentialClient = credentialClient
+
+	dscConfigurationClient := automation.NewDscConfigurationClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&dscConfigurationClient.Client, auth)
+	c.automationDscConfigurationClient = dscConfigurationClient
+
+	dscNodeConfigurationClient := automation.NewDscNodeConfigurationClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&dscNodeConfigurationClient.Client, auth)
+	c.automationDscNodeConfigurationClient = dscNodeConfigurationClient
+
+	moduleClient := automation.NewModuleClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&moduleClient.Client, auth)
+	c.automationModuleClient = moduleClient
 
 	runbookClient := automation.NewRunbookClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&runbookClient.Client, auth)
@@ -856,6 +875,10 @@ func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth
 	c.configureClient(&arc.Client, auth)
 	c.monitorAlertRulesClient = arc
 
+	monitorLogProfilesClient := insights.NewLogProfilesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&monitorLogProfilesClient.Client, auth)
+	c.monitorLogProfilesClient = monitorLogProfilesClient
+
 	mac := insights.NewMetricAlertsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&mac.Client, auth)
 	c.monitorMetricAlertsClient = mac
@@ -979,6 +1002,14 @@ func (c *ArmClient) registerRecoveryServiceClients(endpoint, subscriptionId stri
 	vaultsClient := recoveryservices.NewVaultsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&vaultsClient.Client, auth)
 	c.recoveryServicesVaultsClient = vaultsClient
+
+	protectedItemsClient := backup.NewProtectedItemsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&protectedItemsClient.Client, auth)
+	c.recoveryServicesProtectedItemsClient = protectedItemsClient
+
+	protectionPoliciesClient := backup.NewProtectionPoliciesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&protectionPoliciesClient.Client, auth)
+	c.recoveryServicesProtectionPoliciesClient = protectionPoliciesClient
 }
 
 func (c *ArmClient) registerRedisClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {

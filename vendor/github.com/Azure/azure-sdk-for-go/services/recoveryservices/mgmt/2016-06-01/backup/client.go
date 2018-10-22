@@ -1,7 +1,7 @@
-// Package containerinstance implements the Azure ARM Containerinstance service API version 2018-04-01.
+// Package backup implements the Azure ARM Backup service API version 2016-06-01.
 //
-//
-package containerinstance
+// Open API 2.0 Specs for Azure RecoveryServices Backup service
+package backup
 
 // Copyright (c) Microsoft and contributors.  All rights reserved.
 //
@@ -25,11 +25,11 @@ import (
 )
 
 const (
-	// DefaultBaseURI is the default URI used for the service Containerinstance
+	// DefaultBaseURI is the default URI used for the service Backup
 	DefaultBaseURI = "https://management.azure.com"
 )
 
-// BaseClient is the base client for Containerinstance.
+// BaseClient is the base client for Backup.
 type BaseClient struct {
 	autorest.Client
 	BaseURI        string

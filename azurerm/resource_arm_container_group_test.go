@@ -173,6 +173,9 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.foo", "bar"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.foo1", "bar1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.secure_environment_variables.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.secure_environment_variables.secureFoo", "secureBar"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.secure_environment_variables.secureFoo1", "secureBar1"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.volume.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.volume.0.mount_path", "/aci/logs"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.volume.0.name", "logs"),
@@ -187,6 +190,9 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					"container.0.volume.0.storage_account_key",
+					"container.0.secure_environment_variables.%",
+					"container.0.secure_environment_variables.secureFoo",
+					"container.0.secure_environment_variables.secureFoo1",
 				},
 			},
 		},
@@ -245,6 +251,9 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.foo", "bar"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.foo1", "bar1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.secure_environment_variables.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.secure_environment_variables.secureFoo", "secureBar"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.secure_environment_variables.secureFoo1", "secureBar1"),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Windows"),
 					resource.TestCheckResourceAttr(resourceName, "restart_policy", "Never"),
 				),
@@ -253,6 +262,11 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"container.0.secure_environment_variables.%",
+					"container.0.secure_environment_variables.secureFoo",
+					"container.0.secure_environment_variables.secureFoo1",
+				},
 			},
 		},
 	})
@@ -308,7 +322,7 @@ resource "azurerm_container_group" "test" {
     memory = "0.5"
     port   = "80"
   }
-  
+
   image_registry_credential {
     server   = "hub.docker.com"
     username = "yourusername"
@@ -356,7 +370,7 @@ resource "azurerm_container_group" "test" {
     memory = "0.5"
     port   = "80"
   }
-  
+
   image_registry_credential {
     server   = "hub.docker.com"
     username = "updatedusername"
@@ -466,9 +480,15 @@ resource "azurerm_container_group" "test" {
     port   = "80"
 
     environment_variables {
-        "foo"  = "bar"
-        "foo1" = "bar1"
+      "foo"  = "bar"
+      "foo1" = "bar1"
     }
+
+    secure_environment_variables {
+      "secureFoo"  = "secureBar"
+      "secureFoo1" = "secureBar1"
+    }
+
     commands = ["cmd.exe", "echo", "hi"]
   }
 
@@ -522,18 +542,23 @@ resource "azurerm_container_group" "test" {
         protocol = "TCP"
 
         volume {
-            name       = "logs"
-            mount_path = "/aci/logs"
-            read_only  = false
-            share_name = "${azurerm_storage_share.test.name}"
+          name       = "logs"
+          mount_path = "/aci/logs"
+          read_only  = false
+          share_name = "${azurerm_storage_share.test.name}"
 
-            storage_account_name = "${azurerm_storage_account.test.name}"
-            storage_account_key = "${azurerm_storage_account.test.primary_access_key}"
+          storage_account_name = "${azurerm_storage_account.test.name}"
+          storage_account_key = "${azurerm_storage_account.test.primary_access_key}"
         }
 
         environment_variables {
-            "foo" = "bar"
-            "foo1" = "bar1"
+          "foo" = "bar"
+          "foo1" = "bar1"
+        }
+
+        secure_environment_variables {
+          "secureFoo"  = "secureBar"
+          "secureFoo1" = "secureBar1"
         }
 
         commands = ["/bin/bash", "-c", "ls"]

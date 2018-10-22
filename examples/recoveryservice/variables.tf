@@ -1,7 +1,7 @@
 variable "resource_group_name" {
   type        = "string"
   description = "Name of the azure resource group."
-  default     = "tfex-recovery_vault"
+  default     = "tfex-recovery_services"
 }
 
 variable "resource_group_location" {
