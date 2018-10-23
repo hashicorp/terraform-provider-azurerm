@@ -91,7 +91,7 @@ A `subscription_key_parameter_names` block exports the following:
 
 ---
 
-`wsdl_selector` block supports the following:
+A `wsdl_selector` block supports the following:
 
 * `service_name` - (Required) Name of service to import from WSDL.
 
