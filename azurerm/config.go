@@ -108,7 +108,6 @@ type ArmClient struct {
 	eventHubConsumerGroupClient eventhub.ConsumerGroupsClient
 	eventHubNamespacesClient    eventhub.NamespacesClient
 
-	workspacesClient operationalinsights.WorkspacesClient
 	solutionsClient  operationsmanagement.SolutionsClient
 
 	redisClient               redis.Client
@@ -196,6 +195,10 @@ type ArmClient struct {
 	// KeyVault
 	keyVaultClient           keyvault.VaultsClient
 	keyVaultManagementClient keyVault.BaseClient
+
+	// LogServices
+	linkedServicesClient operationalinsights.LinkedServicesClient
+	workspacesClient operationalinsights.WorkspacesClient
 
 	// Logic
 	logicWorkflowsClient logic.WorkflowsClient
@@ -996,6 +999,10 @@ func (c *ArmClient) registerOperationalInsightsClients(endpoint, subscriptionId 
 	solutionsClient := operationsmanagement.NewSolutionsClientWithBaseURI(endpoint, subscriptionId, "Microsoft.OperationsManagement", "solutions", "testing")
 	c.configureClient(&solutionsClient.Client, auth)
 	c.solutionsClient = solutionsClient
+
+	lsClient := operationalinsights.NewLinkedServicesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&lsClient.Client, auth)
+	c.linkedServicesClient = lsClient
 }
 
 func (c *ArmClient) registerRecoveryServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
