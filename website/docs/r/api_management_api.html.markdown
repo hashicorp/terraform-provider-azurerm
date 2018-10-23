@@ -73,7 +73,7 @@ The following arguments are supported:
 
 ---
 
-A `subscription_key_parameter_names` block exports the following:
+A `subscription_key_parameter_names` block supports the following:
 
 * `header` - (Optional) Subscription key header name. Default is `Ocp-Apim-Subscription-Key`.
 
