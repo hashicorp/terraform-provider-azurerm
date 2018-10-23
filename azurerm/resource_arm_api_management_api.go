@@ -261,6 +261,7 @@ func resourceArmApiManagementApiRead(d *schema.ResourceData, meta interface{}) e
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[DEBUG] API Management API %q (Service %q / Resource Group %q) does not exist - removing from state!", name, serviceName, resGroup)
 			d.SetId("")
 			return nil
 		}
