@@ -108,7 +108,7 @@ type ArmClient struct {
 	eventHubConsumerGroupClient eventhub.ConsumerGroupsClient
 	eventHubNamespacesClient    eventhub.NamespacesClient
 
-	solutionsClient  operationsmanagement.SolutionsClient
+	solutionsClient operationsmanagement.SolutionsClient
 
 	redisClient               redis.Client
 	redisFirewallClient       redis.FirewallRulesClient
@@ -196,9 +196,9 @@ type ArmClient struct {
 	keyVaultClient           keyvault.VaultsClient
 	keyVaultManagementClient keyVault.BaseClient
 
-	// LogServices
+	// Log Analytics
 	linkedServicesClient operationalinsights.LinkedServicesClient
-	workspacesClient operationalinsights.WorkspacesClient
+	workspacesClient     operationalinsights.WorkspacesClient
 
 	// Logic
 	logicWorkflowsClient logic.WorkflowsClient
