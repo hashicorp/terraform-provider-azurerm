@@ -126,17 +126,17 @@ func testAccAzureRMLogAnalyticsLinkedServiceRequiredOnly(rInt int, location stri
 	}
 
 	resource "azurerm_automation_account" "test" {
-	  	name                = "acctestautomation-%d"
-	  	location            = "${azurerm_resource_group.test.location}"
-	  	resource_group_name = "${azurerm_resource_group.test.name}"
+		name                = "acctestautomation-%d"
+		location            = "${azurerm_resource_group.test.location}"
+		resource_group_name = "${azurerm_resource_group.test.name}"
 
-	  	sku {
-	  		name = "Basic"
-	  	}
+		sku {
+			name = "Basic"
+		}
 
-	  	tags {
-	  		environment = "development"
-	  	}
+		tags {
+			environment = "development"
+		}
 	}
 
 	resource "azurerm_log_analytics_workspace" "test" {
@@ -167,17 +167,17 @@ func testAccAzureRMLogAnalyticsLinkedServiceOptionalArguments(rInt int, location
 	}
 
 	resource "azurerm_automation_account" "test" {
-	  	name                = "acctestautomation-%d"
-	  	location            = "${azurerm_resource_group.test.location}"
-	  	resource_group_name = "${azurerm_resource_group.test.name}"
+		name                = "acctestautomation-%d"
+		location            = "${azurerm_resource_group.test.location}"
+		resource_group_name = "${azurerm_resource_group.test.name}"
 
-	  	sku {
-	  		name = "Basic"
-	  	}
+		sku {
+			name = "Basic"
+		}
 
-	  	tags {
-	  		environment = "development"
-	  	}
+		tags {
+			environment = "development"
+		}
 	}
 
 	resource "azurerm_log_analytics_workspace" "test" {
