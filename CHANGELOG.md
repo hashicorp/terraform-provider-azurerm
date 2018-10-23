@@ -1,4 +1,8 @@
-## 1.17.1 (Unreleased)
+## 1.18.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* `azurerm_virtual_network_gateway` - support for `OpenVP`N as a client protocol option [GH-2126]
 
 BUG FIXES:
 
