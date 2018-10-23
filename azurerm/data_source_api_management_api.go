@@ -119,7 +119,7 @@ func dataSourceApiManagementApiRead(d *schema.ResourceData, meta interface{}) er
 			return fmt.Errorf("API Management API %q (Service %q / Resource Group %q) was not found", name, serviceName, resGroup)
 		}
 
-		return fmt.Errorf("Error retrieving API Management API %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error retrieving API Management API %q (Service %q / Resource Group %q): %+v", name, serviceName, resGroup, err)
 	}
 
 	d.SetId(*resp.ID)
