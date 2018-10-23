@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -154,31 +155,7 @@ func resourceArmFunctionApp() *schema.Resource {
 				Default:  false,
 			},
 
-			"site_config": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"always_on": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"use_32_bit_worker_process": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  true,
-						},
-						"websockets_enabled": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-					},
-				},
-			},
+			"site_config": azure.SchemaAppServiceSiteConfig(),
 
 			"site_credential": {
 				Type:     schema.TypeList,
@@ -238,7 +215,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 
 	basicAppSettings := getBasicFunctionAppAppSettings(d, appServiceTier)
 
-	siteConfig := expandFunctionAppSiteConfig(d)
+	siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
 	siteConfig.AppSettings = &basicAppSettings
 
 	siteEnvelope := web.Site{
@@ -309,7 +286,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 	basicAppSettings := getBasicFunctionAppAppSettings(d, appServiceTier)
-	siteConfig := expandFunctionAppSiteConfig(d)
+	siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
 	siteConfig.AppSettings = &basicAppSettings
 
 	siteEnvelope := web.Site{
@@ -352,7 +329,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("site_config") {
-		siteConfig := expandFunctionAppSiteConfig(d)
+		siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
 		siteConfigResource := web.SiteConfigResource{
 			SiteConfig: &siteConfig,
 		}
@@ -470,7 +447,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error making Read request on AzureRM Function App Configuration %q: %+v", name, err)
 	}
 
-	siteConfig := flattenFunctionAppSiteConfig(configResp.SiteConfig)
+	siteConfig := azure.FlattenAppServiceSiteConfig(configResp.SiteConfig)
 	if err := d.Set("site_config", siteConfig); err != nil {
 		return err
 	}
@@ -572,56 +549,6 @@ func expandFunctionAppAppSettings(d *schema.ResourceData, appServiceTier string)
 	}
 
 	return output
-}
-
-func expandFunctionAppSiteConfig(d *schema.ResourceData) web.SiteConfig {
-	configs := d.Get("site_config").([]interface{})
-	siteConfig := web.SiteConfig{}
-
-	if len(configs) == 0 {
-		return siteConfig
-	}
-
-	config := configs[0].(map[string]interface{})
-
-	if v, ok := config["always_on"]; ok {
-		siteConfig.AlwaysOn = utils.Bool(v.(bool))
-	}
-
-	if v, ok := config["use_32_bit_worker_process"]; ok {
-		siteConfig.Use32BitWorkerProcess = utils.Bool(v.(bool))
-	}
-
-	if v, ok := config["websockets_enabled"]; ok {
-		siteConfig.WebSocketsEnabled = utils.Bool(v.(bool))
-	}
-
-	return siteConfig
-}
-
-func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
-	results := make([]interface{}, 0)
-	result := make(map[string]interface{}, 0)
-
-	if input == nil {
-		log.Printf("[DEBUG] SiteConfig is nil")
-		return results
-	}
-
-	if input.AlwaysOn != nil {
-		result["always_on"] = *input.AlwaysOn
-	}
-
-	if input.Use32BitWorkerProcess != nil {
-		result["use_32_bit_worker_process"] = *input.Use32BitWorkerProcess
-	}
-
-	if input.WebSocketsEnabled != nil {
-		result["websockets_enabled"] = *input.WebSocketsEnabled
-	}
-
-	results = append(results, result)
-	return results
 }
 
 func expandFunctionAppConnectionStrings(d *schema.ResourceData) map[string]*web.ConnStringValueTypePair {
