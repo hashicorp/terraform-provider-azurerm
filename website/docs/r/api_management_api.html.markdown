@@ -81,7 +81,7 @@ A `subscription_key_parameter_names` block exports the following:
 
 ---
 
-`import` block supports the following:
+A `import` block supports the following:
 
 * `content_format` - (Required) Format of the Content in which the API is getting imported. Possible values include: 'swagger-json', 'swagger-link-json', 'wadl-link-json', 'wadl-xml', 'wsdl', 'wsdl-link'.
 
