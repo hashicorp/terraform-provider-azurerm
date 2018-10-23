@@ -458,12 +458,12 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool) (*Arm
 func (c *ArmClient) registerApiManagementServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	ams := apimanagement.NewServiceClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&ams.Client, auth)
+	c.apiManagementServiceClient = ams
 
 	api := apimanagement.NewAPIClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&api.Client, auth)
-
-	c.apiManagementServiceClient = ams
 	c.apiManagementApiClient = api
+
 }
 
 func (c *ArmClient) registerAppInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
