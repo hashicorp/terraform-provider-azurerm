@@ -7,16 +7,16 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccAzureRMLogAnalyticsLinkedService_importRequiredOnly(t *testing.T) {
-	resourceName := "azurerm_log_analytics_linked_service.test"
+func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_importRequiredOnly(t *testing.T) {
+	resourceName := "azurerm_log_analytics_workspace_linked_service.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMLogAnalyticsLinkedServiceRequiredOnly(ri, testLocation())
+	config := testAccAzureRMLogAnalyticsWorkspaceLinkedServiceRequiredOnly(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
+		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -31,16 +31,16 @@ func TestAccAzureRMLogAnalyticsLinkedService_importRequiredOnly(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogAnalyticsLinkedService_importOptionalArguments(t *testing.T) {
-	resourceName := "azurerm_log_analytics_linked_service.test"
+func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_importOptionalArguments(t *testing.T) {
+	resourceName := "azurerm_log_analytics_workspace_linked_service.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMLogAnalyticsLinkedServiceOptionalArguments(ri, testLocation())
+	config := testAccAzureRMLogAnalyticsWorkspaceLinkedServiceOptionalArguments(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
+		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,

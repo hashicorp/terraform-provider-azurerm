@@ -9,12 +9,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLogAnalyticsLinkedService() *schema.Resource {
+func resourceArmLogAnalyticsWorkspaceLinkedService() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogAnalyticsLinkedServiceCreateUpdate,
-		Read:   resourceArmLogAnalyticsLinkedServiceRead,
-		Update: resourceArmLogAnalyticsLinkedServiceCreateUpdate,
-		Delete: resourceArmLogAnalyticsLinkedServiceDelete,
+		Create: resourceArmLogAnalyticsWorkspaceLinkedServiceCreateUpdate,
+		Read:   resourceArmLogAnalyticsWorkspaceLinkedServiceRead,
+		Update: resourceArmLogAnalyticsWorkspaceLinkedServiceCreateUpdate,
+		Delete: resourceArmLogAnalyticsWorkspaceLinkedServiceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -61,7 +61,7 @@ func resourceArmLogAnalyticsLinkedService() *schema.Resource {
 	}
 }
 
-func resourceArmLogAnalyticsLinkedServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLogAnalyticsWorkspaceLinkedServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).linkedServicesClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics linked services creation.")
@@ -100,11 +100,11 @@ func resourceArmLogAnalyticsLinkedServiceCreateUpdate(d *schema.ResourceData, me
 
 	d.SetId(*read.ID)
 
-	return resourceArmLogAnalyticsLinkedServiceRead(d, meta)
+	return resourceArmLogAnalyticsWorkspaceLinkedServiceRead(d, meta)
 
 }
 
-func resourceArmLogAnalyticsLinkedServiceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLogAnalyticsWorkspaceLinkedServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).linkedServicesClient
 	ctx := meta.(*ArmClient).StopContext
 	id, err := parseAzureResourceID(d.Id())
@@ -133,7 +133,7 @@ func resourceArmLogAnalyticsLinkedServiceRead(d *schema.ResourceData, meta inter
 	d.Set("workspace_name", workspaceName)
 	d.Set("linked_service_name", lsName)
 
-	linkedServiceProperties := flattenLogAnalyticsLinkedServiceProperties(resp.LinkedServiceProperties)
+	linkedServiceProperties := flattenLogAnalyticsWorkspaceLinkedServiceProperties(resp.LinkedServiceProperties)
 	if err := d.Set("linked_service_properties", linkedServiceProperties); err != nil {
 		return fmt.Errorf("Error flattening Log Analytics Linked Service Properties: %+v", err)
 	}
@@ -142,7 +142,7 @@ func resourceArmLogAnalyticsLinkedServiceRead(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func flattenLogAnalyticsLinkedServiceProperties(input *operationalinsights.LinkedServiceProperties) interface{} {
+func flattenLogAnalyticsWorkspaceLinkedServiceProperties(input *operationalinsights.LinkedServiceProperties) interface{} {
 	properties := make(map[string]interface{}, 0)
 
 	// resource id linked service
@@ -153,7 +153,7 @@ func flattenLogAnalyticsLinkedServiceProperties(input *operationalinsights.Linke
 	return interface{}(properties)
 }
 
-func resourceArmLogAnalyticsLinkedServiceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLogAnalyticsWorkspaceLinkedServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).linkedServicesClient
 	ctx := meta.(*ArmClient).StopContext
 	id, err := parseAzureResourceID(d.Id())
