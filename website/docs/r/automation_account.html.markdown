@@ -14,8 +14,8 @@ Manages a Automation Account.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
- name = "resourceGroup1"
- location = "West Europe"
+  name     = "resourceGroup1"
+  location = "West Europe"
 }
 
 resource "azurerm_automation_account" "example" {

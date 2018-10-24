@@ -14,8 +14,8 @@ Use this data source to access information about an existing Network Interface.
 
 ```hcl
 data "azurerm_network_interface" "test" {
-  name                 = "acctest-nic"
-  resource_group_name  = "networking"
+  name                = "acctest-nic"
+  resource_group_name = "networking"
 }
 
 output "network_interface_id" {

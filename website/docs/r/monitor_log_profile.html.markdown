@@ -25,7 +25,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "GRS"
 }
-	
+
 resource "azurerm_eventhub_namespace" "test" {
   name                = "logprofileeventhub"
   location            = "${azurerm_resource_group.test.location}"
@@ -42,19 +42,19 @@ resource "azurerm_monitor_log_profile" "test" {
     "Delete",
     "Write",
   ]
-	
+
   locations = [
     "westus",
     "global",
   ]
-	
+
   # RootManageSharedAccessKey is created by default with listen, send, manage permissions
   servicebus_rule_id = "${azurerm_eventhub_namespace.test.id}/authorizationrules/RootManageSharedAccessKey"
-  storage_account_id  = "${azurerm_storage_account.test.id}"
+  storage_account_id = "${azurerm_storage_account.test.id}"
 
   retention_policy {
     enabled = true
-    days = 7
+    days    = 7
   }
 }
 ```

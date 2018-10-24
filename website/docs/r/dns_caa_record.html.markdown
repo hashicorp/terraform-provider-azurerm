@@ -34,7 +34,7 @@ resource "azurerm_dns_caa_record" "test" {
     tag   = "issue"
     value = "example.com"
   }
-	
+
   record {
     flags = 0
     tag   = "issue"

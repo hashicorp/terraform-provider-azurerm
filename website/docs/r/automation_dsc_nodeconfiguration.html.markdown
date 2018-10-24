@@ -14,14 +14,15 @@ Manages a Automation DSC Node Configuration.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
- name = "resourceGroup1"
- location = "West Europe"
+  name     = "resourceGroup1"
+  location = "West Europe"
 }
 
 resource "azurerm_automation_account" "example" {
   name                = "account1"
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
+
   sku {
     name = "Basic"
   }
@@ -40,7 +41,8 @@ resource "azurerm_automation_dsc_nodeconfiguration" "example" {
   resource_group_name     = "${azurerm_resource_group.example.name}"
   automation_account_name = "${azurerm_automation_account.example.name}"
   depends_on              = ["azurerm_automation_dsc_configuration.example"]
-  content_embedded        = <<mofcontent
+
+  content_embedded = <<mofcontent
 instance of MSFT_FileDirectoryConfiguration as $MSFT_FileDirectoryConfiguration1ref
 {
   ResourceID = "[File]bla";

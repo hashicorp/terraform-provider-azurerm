@@ -47,8 +47,8 @@ resource "azurerm_container_group" "aci-helloworld" {
   container {
     name   = "hw"
     image  = "seanmckenna/aci-hellofiles"
-    cpu    ="0.5"
-    memory =  "1.5"
+    cpu    = "0.5"
+    memory = "1.5"
     port   = "80"
 
     environment_variables {
@@ -67,8 +67,8 @@ resource "azurerm_container_group" "aci-helloworld" {
       read_only  = false
       share_name = "${azurerm_storage_share.aci-share.name}"
 
-      storage_account_name  = "${azurerm_storage_account.aci-sa.name}"
-      storage_account_key   = "${azurerm_storage_account.aci-sa.primary_access_key}"
+      storage_account_name = "${azurerm_storage_account.aci-sa.name}"
+      storage_account_key  = "${azurerm_storage_account.aci-sa.primary_access_key}"
     }
   }
 
