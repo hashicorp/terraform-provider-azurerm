@@ -31,7 +31,6 @@ resource "azurerm_key_vault" "test" {
     name = "standard"
   }
 
-
   access_policy {
     tenant_id = "d6e396d0-5584-41dc-9fc0-268df99bc610"
     object_id = "d746815a-0433-4a21-b95d-fc437d2d475b"

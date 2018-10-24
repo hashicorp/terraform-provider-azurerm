@@ -38,20 +38,48 @@ resource "azurerm_key_vault" "test" {
     object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
 
     certificate_permissions = [
-      "create","delete","deleteissuers",
-      "get","getissuers","import","list",
-      "listissuers","managecontacts","manageissuers",
-      "setissuers","update",
+      "create",
+      "delete",
+      "deleteissuers",
+      "get",
+      "getissuers",
+      "import",
+      "list",
+      "listissuers",
+      "managecontacts",
+      "manageissuers",
+      "setissuers",
+      "update",
     ]
 
     key_permissions = [
-      "backup","create","decrypt","delete","encrypt","get",
-      "import","list","purge","recover","restore","sign",
-      "unwrapKey","update","verify","wrapKey",
+      "backup",
+      "create",
+      "decrypt",
+      "delete",
+      "encrypt",
+      "get",
+      "import",
+      "list",
+      "purge",
+      "recover",
+      "restore",
+      "sign",
+      "unwrapKey",
+      "update",
+      "verify",
+      "wrapKey",
     ]
 
     secret_permissions = [
-      "backup","delete","get","list","purge","recover","restore","set",
+      "backup",
+      "delete",
+      "get",
+      "list",
+      "purge",
+      "recover",
+      "restore",
+      "set",
     ]
   }
 
@@ -59,7 +87,6 @@ resource "azurerm_key_vault" "test" {
     environment = "Production"
   }
 }
-
 
 resource "azurerm_key_vault_certificate" "test" {
   name      = "imported-cert"

@@ -91,8 +91,8 @@ in different locations/regions.
 
 ```hcl
 resource "azurerm_resource_group" "us" {
-    name     = "us"
-    location = "East US"
+  name     = "us"
+  location = "East US"
 }
 
 resource "azurerm_virtual_network" "us" {

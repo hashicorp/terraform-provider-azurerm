@@ -14,14 +14,15 @@ Manages a Automation DSC Configuration.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
- name = "resourceGroup1"
- location = "West Europe"
+  name     = "resourceGroup1"
+  location = "West Europe"
 }
 
 resource "azurerm_automation_account" "example" {
   name                = "account1"
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
+
   sku {
     name = "Basic"
   }

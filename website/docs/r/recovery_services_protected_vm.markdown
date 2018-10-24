@@ -18,7 +18,6 @@ resource "azurerm_resource_group" "example" {
   location = "West US"
 }
 
-
 resource "azurerm_recovery_services_vault" "example" {
   name                = "tfex-recovery-vault"
   location            = "${azurerm_resource_group.example.location}"
@@ -34,7 +33,6 @@ resource "azurerm_recovery_services_protected_vm" "example" {
   source_vm_id        = "${azurerm_virtual_machine.example.id}"
   backup_policy_name  = "aBackupPolicy"
 }
-
 ```
 
 ## Argument Reference

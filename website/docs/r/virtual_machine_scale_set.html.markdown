@@ -103,10 +103,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_data_disk {
-    lun 		   = 0
-    caching        = "ReadWrite"
-    create_option  = "Empty"
-    disk_size_gb   = 10
+    lun           = 0
+    caching       = "ReadWrite"
+    create_option = "Empty"
+    disk_size_gb  = 10
   }
 
   os_profile {
@@ -303,6 +303,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     type_handler_version = "1.0"
     settings             = "{\"port\": 50342}"
   }
+
   # ...
 }
 
@@ -441,17 +442,19 @@ machine scale set, as in the [example below](#example-of-storage_profile_image_r
 
 ```hcl
 resource "azurerm_image" "test" {
-	name = "test"
+  name = "test"
+
   # ...
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
-	name = "test"
+  name = "test"
+
   # ...
 
-	storage_profile_image_reference {
-		id = "${azurerm_image.test.id}"
-	}
+  storage_profile_image_reference {
+    id = "${azurerm_image.test.id}"
+  }
 
   # ...
 }

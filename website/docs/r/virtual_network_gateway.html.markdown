@@ -38,7 +38,7 @@ resource "azurerm_public_ip" "test" {
   name                = "test"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  
+
   public_ip_address_allocation = "Dynamic"
 }
 
@@ -62,10 +62,11 @@ resource "azurerm_virtual_network_gateway" "test" {
   }
 
   vpn_client_configuration {
-    address_space = [ "10.2.0.0/24" ]
+    address_space = ["10.2.0.0/24"]
 
     root_certificate {
-      name             = "DigiCert-Federated-ID-Root-CA"
+      name = "DigiCert-Federated-ID-Root-CA"
+
       public_cert_data = <<EOF
 MIIDuzCCAqOgAwIBAgIQCHTZWCM+IlfFIRXIvyKSrjANBgkqhkiG9w0BAQsFADBn
 MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3

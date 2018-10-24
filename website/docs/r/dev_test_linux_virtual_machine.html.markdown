@@ -28,7 +28,6 @@ resource "azurerm_dev_test_lab" "test" {
   }
 }
 
-
 resource "azurerm_dev_test_virtual_network" "test" {
   name                = "example-network"
   lab_name            = "${azurerm_dev_test_lab.test.name}"
