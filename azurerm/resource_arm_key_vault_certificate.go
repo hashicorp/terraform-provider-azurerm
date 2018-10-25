@@ -188,6 +188,15 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
+									"extended_key_usage": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Computed: true,
+										ForceNew: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
 									"key_usage": {
 										Type:     schema.TypeList,
 										Required: true,
@@ -392,7 +401,7 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 	}
 
 	if v := cert.X509Thumbprint; v != nil {
-		x509Thumbprint, err := base64.RawURLEncoding.DecodeString(string(*v))
+		x509Thumbprint, err := base64.RawURLEncoding.DecodeString(*v)
 		if err != nil {
 			return err
 		}
@@ -489,6 +498,9 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 	for _, v := range certificateProperties {
 		cert := v.(map[string]interface{})
 
+		ekus := cert["extended_key_usage"].([]interface{})
+		extendedKeyUsage := utils.ExpandStringArray(ekus)
+
 		keyUsage := make([]keyvault.KeyUsageType, 0)
 		keys := cert["key_usage"].([]interface{})
 		for _, key := range keys {
@@ -520,6 +532,7 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 			ValidityInMonths:        utils.Int32(int32(cert["validity_in_months"].(int))),
 			Subject:                 utils.String(cert["subject"].(string)),
 			KeyUsage:                &keyUsage,
+			Ekus:                    extendedKeyUsage,
 			SubjectAlternativeNames: subjectAlternativeNames,
 		}
 	}
@@ -618,6 +631,9 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []inter
 		certProps["key_usage"] = usages
 		certProps["subject"] = *props.Subject
 		certProps["validity_in_months"] = int(*props.ValidityInMonths)
+		if props.Ekus != nil {
+			certProps["extended_key_usage"] = props.Ekus
+		}
 
 		certProps["subject_alternative_names"] = []interface{}{sanOutput}
 

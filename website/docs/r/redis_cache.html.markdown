@@ -103,6 +103,7 @@ resource "azurerm_redis_cache" "test" {
   family              = "P"
   sku_name            = "Premium"
   enable_non_ssl_port = false
+
   redis_configuration {
     rdb_backup_enabled            = true
     rdb_backup_frequency          = 60

@@ -534,7 +534,7 @@ func testCheckAzureRMCosmosDBAccountExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testAccAzureRMCosmosDBAccount_basic(rInt int, location string, consistency string, consistencyOptions string, addtional string) string {
+func testAccAzureRMCosmosDBAccount_basic(rInt int, location string, consistency string, consistencyOptions string, additional string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -560,7 +560,7 @@ resource "azurerm_cosmosdb_account" "test" {
 %s
 
 }
-`, rInt, location, rInt, consistency, consistencyOptions, addtional)
+`, rInt, location, rInt, consistency, consistencyOptions, additional)
 }
 
 func testAccAzureRMCosmosDBAccount_boundedStaleness_complete(rInt int, location string) string {

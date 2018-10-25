@@ -13,7 +13,6 @@ Manages a local network gateway connection over which specific connections can b
 ## Example Usage
 
 ```hcl
-
 resource "azurerm_resource_group" "test" {
   name     = "localNetworkGWTest"
   location = "West US"

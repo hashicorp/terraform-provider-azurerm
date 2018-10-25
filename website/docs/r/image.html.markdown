@@ -14,20 +14,20 @@ Manage a custom virtual machine image that can be used to create virtual machine
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name = "acctest"
+  name     = "acctest"
   location = "West US"
 }
 
 resource "azurerm_image" "test" {
-  name = "acctest"
-  location = "West US"
+  name                = "acctest"
+  location            = "West US"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   os_disk {
-    os_type = "Linux"
+    os_type  = "Linux"
     os_state = "Generalized"
     blob_uri = "{blob_uri}"
-    size_gb = 30
+    size_gb  = 30
   }
 }
 ```
@@ -36,14 +36,14 @@ resource "azurerm_image" "test" {
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name = "acctest"
+  name     = "acctest"
   location = "West US"
 }
 
 resource "azurerm_image" "test" {
-  name = "acctest"
-  location = "West US"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                      = "acctest"
+  location                  = "West US"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
   source_virtual_machine_id = "{vm_id}"
 }
 ```

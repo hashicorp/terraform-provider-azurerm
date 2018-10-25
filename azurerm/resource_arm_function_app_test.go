@@ -507,7 +507,7 @@ func testCheckAzureRMFunctionAppHasContentShare(name string) resource.TestCheckF
 			return fmt.Errorf("Error making Read request on AzureRM Function App AppSettings %q: %+v", functionAppName, err)
 		}
 
-		for k, _ := range appSettingsResp.Properties {
+		for k := range appSettingsResp.Properties {
 			if strings.EqualFold("WEBSITE_CONTENTSHARE", k) {
 				return nil
 			}

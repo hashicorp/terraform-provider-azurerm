@@ -18,7 +18,7 @@ Manages the Pricing Tier for Azure Security Center in the current subscription.
 
 ```hcl
 resource "azurerm_security_center_subscription_pricing" "example" {
-    tier = "Standard"
+  tier = "Standard"
 }
 ```
 

@@ -191,15 +191,7 @@ func resourceArmSchedulerJob() *schema.Resource {
 							Elem: &schema.Schema{
 								Type:             schema.TypeString,
 								DiffSuppressFunc: suppress.CaseDifference,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(scheduler.Sunday),
-									string(scheduler.Monday),
-									string(scheduler.Tuesday),
-									string(scheduler.Wednesday),
-									string(scheduler.Thursday),
-									string(scheduler.Friday),
-									string(scheduler.Saturday),
-								}, true),
+								ValidateFunc:     validate.DayOfTheWeek(true),
 							},
 						},
 
@@ -227,15 +219,7 @@ func resourceArmSchedulerJob() *schema.Resource {
 										Type:             schema.TypeString,
 										Required:         true,
 										DiffSuppressFunc: suppress.CaseDifference,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(scheduler.Sunday),
-											string(scheduler.Monday),
-											string(scheduler.Tuesday),
-											string(scheduler.Wednesday),
-											string(scheduler.Thursday),
-											string(scheduler.Friday),
-											string(scheduler.Saturday),
-										}, true),
+										ValidateFunc:     validate.DayOfTheWeek(true),
 									},
 
 									"occurrence": {
