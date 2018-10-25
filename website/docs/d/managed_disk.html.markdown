@@ -14,8 +14,8 @@ Use this data source to access information about an existing Managed Disk.
 
 ```hcl
 data "azurerm_managed_disk" "datasourcemd" {
-    name = "testManagedDisk"
-    resource_group_name = "acctestRG"
+  name                = "testManagedDisk"
+  resource_group_name = "acctestRG"
 }
 
 resource "azurerm_virtual_network" "test" {

@@ -16,7 +16,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-10-12/cdn"
 	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
-	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-04-01/containerinstance"
+	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-06-01/containerinstance"
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
@@ -46,6 +46,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/management"
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/2017-08-01-preview/security"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/backup"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
 	"github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
@@ -85,11 +86,14 @@ type ArmClient struct {
 
 	cosmosDBClient documentdb.DatabaseAccountsClient
 
-	automationAccountClient      automation.AccountClient
-	automationRunbookClient      automation.RunbookClient
-	automationCredentialClient   automation.CredentialClient
-	automationScheduleClient     automation.ScheduleClient
-	automationRunbookDraftClient automation.RunbookDraftClient
+	automationAccountClient              automation.AccountClient
+	automationCredentialClient           automation.CredentialClient
+	automationDscConfigurationClient     automation.DscConfigurationClient
+	automationDscNodeConfigurationClient automation.DscNodeConfigurationClient
+	automationModuleClient               automation.ModuleClient
+	automationRunbookClient              automation.RunbookClient
+	automationRunbookDraftClient         automation.RunbookDraftClient
+	automationScheduleClient             automation.ScheduleClient
 
 	dnsClient   dns.RecordSetsClient
 	zonesClient dns.ZonesClient
@@ -204,6 +208,7 @@ type ArmClient struct {
 	monitorActionGroupsClient      insights.ActionGroupsClient
 	monitorActivityLogAlertsClient insights.ActivityLogAlertsClient
 	monitorAlertRulesClient        insights.AlertRulesClient
+	monitorLogProfilesClient       insights.LogProfilesClient
 	monitorMetricAlertsClient      insights.MetricAlertsClient
 
 	// MSI
@@ -226,7 +231,6 @@ type ArmClient struct {
 	secGroupClient                  network.SecurityGroupsClient
 	secRuleClient                   network.SecurityRulesClient
 	subnetClient                    network.SubnetsClient
-	netUsageClient                  network.UsagesClient
 	vnetGatewayConnectionsClient    network.VirtualNetworkGatewayConnectionsClient
 	vnetGatewayClient               network.VirtualNetworkGatewaysClient
 	vnetClient                      network.VirtualNetworksClient
@@ -238,7 +242,9 @@ type ArmClient struct {
 	notificationNamespacesClient notificationhubs.NamespacesClient
 
 	// Recovery Services
-	recoveryServicesVaultsClient recoveryservices.VaultsClient
+	recoveryServicesVaultsClient             recoveryservices.VaultsClient
+	recoveryServicesProtectedItemsClient     backup.ProtectedItemsClient
+	recoveryServicesProtectionPoliciesClient backup.ProtectionPoliciesClient
 
 	// Relay
 	relayNamespacesClient relay.NamespacesClient
@@ -324,12 +330,24 @@ func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Autho
 func withRequestLogging() autorest.SendDecorator {
 	return func(s autorest.Sender) autorest.Sender {
 		return autorest.SenderFunc(func(r *http.Request) (*http.Response, error) {
+			// strip the authorization header prior to printing
+			authHeaderName := "Authorization"
+			auth := r.Header.Get(authHeaderName)
+			if auth != "" {
+				r.Header.Del(authHeaderName)
+			}
+
 			// dump request to wire format
 			if dump, err := httputil.DumpRequestOut(r, true); err == nil {
 				log.Printf("[DEBUG] AzureRM Request: \n%s\n", dump)
 			} else {
 				// fallback to basic message
 				log.Printf("[DEBUG] AzureRM Request: %s to %s\n", r.Method, r.URL)
+			}
+
+			// add the auth header back
+			if auth != "" {
+				r.Header.Add(authHeaderName, auth)
 			}
 
 			resp, err := s.Do(r)
@@ -470,39 +488,39 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 		return keyVaultSpt, nil
 	})
 
-	client.registerApiManagementServiceClients(endpoint, c.SubscriptionID, auth, sender)
-	client.registerAppInsightsClients(endpoint, c.SubscriptionID, auth, sender)
-	client.registerAutomationClients(endpoint, c.SubscriptionID, auth, sender)
-	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth, sender)
-	client.registerCDNClients(endpoint, c.SubscriptionID, auth, sender)
-	client.registerCognitiveServiceClients(endpoint, c.SubscriptionID, auth, sender)
-	client.registerComputeClients(endpoint, c.SubscriptionID, auth, sender)
-	client.registerContainerInstanceClients(endpoint, c.SubscriptionID, auth, sender)
-	client.registerContainerRegistryClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerApiManagementServiceClients(endpoint, c.SubscriptionID, auth)
+	client.registerAppInsightsClients(endpoint, c.SubscriptionID, auth)
+	client.registerAutomationClients(endpoint, c.SubscriptionID, auth)
+	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth)
+	client.registerCDNClients(endpoint, c.SubscriptionID, auth)
+	client.registerCognitiveServiceClients(endpoint, c.SubscriptionID, auth)
+	client.registerComputeClients(endpoint, c.SubscriptionID, auth)
+	client.registerContainerInstanceClients(endpoint, c.SubscriptionID, auth)
+	client.registerContainerRegistryClients(endpoint, c.SubscriptionID, auth)
 	client.registerContainerServicesClients(endpoint, c.SubscriptionID, auth)
-	client.registerCosmosDBClients(endpoint, c.SubscriptionID, auth, sender)
-	client.registerDatabricksClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerCosmosDBClients(endpoint, c.SubscriptionID, auth)
+	client.registerDatabricksClients(endpoint, c.SubscriptionID, auth)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
-	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth, sender)
-	client.registerDeviceClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth)
+	client.registerDeviceClients(endpoint, c.SubscriptionID, auth)
 	client.registerDevTestClients(endpoint, c.SubscriptionID, auth)
-	client.registerDNSClients(endpoint, c.SubscriptionID, auth, sender)
-	client.registerEventGridClients(endpoint, c.SubscriptionID, auth, sender)
-	client.registerEventHubClients(endpoint, c.SubscriptionID, auth, sender)
-	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth, sender)
-	client.registerLogicClients(endpoint, c.SubscriptionID, auth, sender)
-	client.registerMonitorClients(endpoint, c.SubscriptionID, auth, sender)
-	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth, sender)
-	client.registerNotificationHubsClient(endpoint, c.SubscriptionID, auth, sender)
-	client.registerOperationalInsightsClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerDNSClients(endpoint, c.SubscriptionID, auth)
+	client.registerEventGridClients(endpoint, c.SubscriptionID, auth)
+	client.registerEventHubClients(endpoint, c.SubscriptionID, auth)
+	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth)
+	client.registerLogicClients(endpoint, c.SubscriptionID, auth)
+	client.registerMonitorClients(endpoint, c.SubscriptionID, auth)
+	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth)
+	client.registerNotificationHubsClient(endpoint, c.SubscriptionID, auth)
+	client.registerOperationalInsightsClients(endpoint, c.SubscriptionID, auth)
 	client.registerRecoveryServiceClients(endpoint, c.SubscriptionID, auth)
 	client.registerPolicyClients(endpoint, c.SubscriptionID, auth)
 	client.registerManagementGroupClients(endpoint, auth)
-	client.registerRedisClients(endpoint, c.SubscriptionID, auth, sender)
-	client.registerRelayClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerRedisClients(endpoint, c.SubscriptionID, auth)
+	client.registerRelayClients(endpoint, c.SubscriptionID, auth)
 	client.registerResourcesClients(endpoint, c.SubscriptionID, auth)
 	client.registerSearchClients(endpoint, c.SubscriptionID, auth)
-	client.registerSecurityCenterClients(endpoint, c.SubscriptionID, "Global", auth)
+	client.registerSecurityCenterClients(endpoint, c.SubscriptionID, auth)
 	client.registerServiceBusClients(endpoint, c.SubscriptionID, auth)
 	client.registerServiceFabricClients(endpoint, c.SubscriptionID, auth)
 	client.registerSchedulerClients(endpoint, c.SubscriptionID, auth)
@@ -513,19 +531,19 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	return &client, nil
 }
 
-func (c *ArmClient) registerApiManagementServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+func (c *ArmClient) registerApiManagementServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	ams := apimanagement.NewServiceClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&ams.Client, auth)
 	c.apiManagementServiceClient = ams
 }
 
-func (c *ArmClient) registerAppInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+func (c *ArmClient) registerAppInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	ai := appinsights.NewComponentsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&ai.Client, auth)
 	c.appInsightsClient = ai
 }
 
-func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	accountClient := automation.NewAccountClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&accountClient.Client, auth)
 	c.automationAccountClient = accountClient
@@ -533,6 +551,18 @@ func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, a
 	credentialClient := automation.NewCredentialClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&credentialClient.Client, auth)
 	c.automationCredentialClient = credentialClient
+
+	dscConfigurationClient := automation.NewDscConfigurationClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&dscConfigurationClient.Client, auth)
+	c.automationDscConfigurationClient = dscConfigurationClient
+
+	dscNodeConfigurationClient := automation.NewDscNodeConfigurationClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&dscNodeConfigurationClient.Client, auth)
+	c.automationDscNodeConfigurationClient = dscNodeConfigurationClient
+
+	moduleClient := automation.NewModuleClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&moduleClient.Client, auth)
+	c.automationModuleClient = moduleClient
 
 	runbookClient := automation.NewRunbookClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&runbookClient.Client, auth)
@@ -547,7 +577,7 @@ func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, a
 	c.automationRunbookDraftClient = runbookDraftClient
 }
 
-func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscriptionId, tenantId string, auth, graphAuth autorest.Authorizer, sender autorest.Sender) {
+func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscriptionId, tenantId string, auth, graphAuth autorest.Authorizer) {
 	assignmentsClient := authorization.NewRoleAssignmentsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&assignmentsClient.Client, auth)
 	c.roleAssignmentsClient = assignmentsClient
@@ -565,7 +595,7 @@ func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscription
 	c.servicePrincipalsClient = servicePrincipalsClient
 }
 
-func (c *ArmClient) registerCDNClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+func (c *ArmClient) registerCDNClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	customDomainsClient := cdn.NewCustomDomainsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&customDomainsClient.Client, auth)
 	c.cdnCustomDomainsClient = customDomainsClient
@@ -579,19 +609,19 @@ func (c *ArmClient) registerCDNClients(endpoint, subscriptionId string, auth aut
 	c.cdnProfilesClient = profilesClient
 }
 
-func (c *ArmClient) registerCognitiveServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+func (c *ArmClient) registerCognitiveServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	accountsClient := cognitiveservices.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&accountsClient.Client, auth)
 	c.cognitiveAccountsClient = accountsClient
 }
 
-func (c *ArmClient) registerCosmosDBClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+func (c *ArmClient) registerCosmosDBClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	cdb := documentdb.NewDatabaseAccountsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&cdb.Client, auth)
 	c.cosmosDBClient = cdb
 }
 
-func (c *ArmClient) registerComputeClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+func (c *ArmClient) registerComputeClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	availabilitySetsClient := compute.NewAvailabilitySetsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&availabilitySetsClient.Client, auth)
 	c.availSetClient = availabilitySetsClient
@@ -645,13 +675,13 @@ func (c *ArmClient) registerComputeClients(endpoint, subscriptionId string, auth
 	c.galleryImageVersionsClient = galleryImageVersionsClient
 }
 
-func (c *ArmClient) registerContainerInstanceClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+func (c *ArmClient) registerContainerInstanceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	cgc := containerinstance.NewContainerGroupsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&cgc.Client, auth)
 	c.containerGroupsClient = cgc
 }
 
-func (c *ArmClient) registerContainerRegistryClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+func (c *ArmClient) registerContainerRegistryClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	crc := containerregistry.NewRegistriesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&crc.Client, auth)
 	c.containerRegistryClient = crc
@@ -669,7 +699,7 @@ func (c *ArmClient) registerContainerServicesClients(endpoint, subscriptionId st
 	c.kubernetesClustersClient = kubernetesClustersClient
 }
 
-func (c *ArmClient) registerDatabricksClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+func (c *ArmClient) registerDatabricksClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	databricksWorkspacesClient := databricks.NewWorkspacesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&databricksWorkspacesClient.Client, auth)
 	c.databricksWorkspacesClient = databricksWorkspacesClient
@@ -751,7 +781,7 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	c.sqlVirtualNetworkRulesClient = sqlVNRClient
 }
 
-func (c *ArmClient) registerDataLakeStoreClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+func (c *ArmClient) registerDataLakeStoreClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	storeAccountClient := storeAccount.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&storeAccountClient.Client, auth)
 	c.dataLakeStoreAccountClient = storeAccountClient
@@ -773,7 +803,7 @@ func (c *ArmClient) registerDataLakeStoreClients(endpoint, subscriptionId string
 	c.dataLakeAnalyticsFirewallRulesClient = analyticsFirewallRulesClient
 }
 
-func (c *ArmClient) registerDeviceClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+func (c *ArmClient) registerDeviceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	iotClient := devices.NewIotHubResourceClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&iotClient.Client, auth)
 	c.iothubResourceClient = iotClient
@@ -797,7 +827,7 @@ func (c *ArmClient) registerDevTestClients(endpoint, subscriptionId string, auth
 	c.devTestVirtualNetworksClient = devTestVirtualNetworksClient
 }
 
-func (c *ArmClient) registerDNSClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+func (c *ArmClient) registerDNSClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	dn := dns.NewRecordSetsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&dn.Client, auth)
 	c.dnsClient = dn
@@ -807,13 +837,13 @@ func (c *ArmClient) registerDNSClients(endpoint, subscriptionId string, auth aut
 	c.zonesClient = zo
 }
 
-func (c *ArmClient) registerEventGridClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+func (c *ArmClient) registerEventGridClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	egtc := eventgrid.NewTopicsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&egtc.Client, auth)
 	c.eventGridTopicsClient = egtc
 }
 
-func (c *ArmClient) registerEventHubClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+func (c *ArmClient) registerEventHubClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	ehc := eventhub.NewEventHubsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&ehc.Client, auth)
 	c.eventHubClient = ehc
@@ -827,7 +857,7 @@ func (c *ArmClient) registerEventHubClients(endpoint, subscriptionId string, aut
 	c.eventHubNamespacesClient = ehnc
 }
 
-func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, auth autorest.Authorizer, keyVaultAuth autorest.Authorizer, sender autorest.Sender) {
+func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, auth autorest.Authorizer, keyVaultAuth autorest.Authorizer) {
 	keyVaultClient := keyvault.NewVaultsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&keyVaultClient.Client, auth)
 	c.keyVaultClient = keyVaultClient
@@ -837,13 +867,13 @@ func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, aut
 	c.keyVaultManagementClient = keyVaultManagementClient
 }
 
-func (c *ArmClient) registerLogicClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+func (c *ArmClient) registerLogicClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	workflowsClient := logic.NewWorkflowsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&workflowsClient.Client, auth)
 	c.logicWorkflowsClient = workflowsClient
 }
 
-func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	agc := insights.NewActionGroupsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&agc.Client, auth)
 	c.monitorActionGroupsClient = agc
@@ -856,6 +886,10 @@ func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth
 	c.configureClient(&arc.Client, auth)
 	c.monitorAlertRulesClient = arc
 
+	monitorLogProfilesClient := insights.NewLogProfilesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&monitorLogProfilesClient.Client, auth)
+	c.monitorLogProfilesClient = monitorLogProfilesClient
+
 	mac := insights.NewMetricAlertsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&mac.Client, auth)
 	c.monitorMetricAlertsClient = mac
@@ -865,7 +899,7 @@ func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth
 	c.autoscaleSettingsClient = autoscaleSettingsClient
 }
 
-func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	applicationGatewaysClient := network.NewApplicationGatewaysClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&applicationGatewaysClient.Client, auth)
 	c.applicationGatewayClient = applicationGatewaysClient
@@ -955,7 +989,7 @@ func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, a
 	c.watcherClient = watchersClient
 }
 
-func (c *ArmClient) registerNotificationHubsClient(endpoint, subscriptionId string, auth *autorest.BearerAuthorizer, sender autorest.Sender) {
+func (c *ArmClient) registerNotificationHubsClient(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	namespacesClient := notificationhubs.NewNamespacesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&namespacesClient.Client, auth)
 	c.notificationNamespacesClient = namespacesClient
@@ -965,7 +999,7 @@ func (c *ArmClient) registerNotificationHubsClient(endpoint, subscriptionId stri
 	c.notificationHubsClient = notificationHubsClient
 }
 
-func (c *ArmClient) registerOperationalInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+func (c *ArmClient) registerOperationalInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	opwc := operationalinsights.NewWorkspacesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&opwc.Client, auth)
 	c.workspacesClient = opwc
@@ -979,9 +1013,17 @@ func (c *ArmClient) registerRecoveryServiceClients(endpoint, subscriptionId stri
 	vaultsClient := recoveryservices.NewVaultsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&vaultsClient.Client, auth)
 	c.recoveryServicesVaultsClient = vaultsClient
+
+	protectedItemsClient := backup.NewProtectedItemsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&protectedItemsClient.Client, auth)
+	c.recoveryServicesProtectedItemsClient = protectedItemsClient
+
+	protectionPoliciesClient := backup.NewProtectionPoliciesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&protectionPoliciesClient.Client, auth)
+	c.recoveryServicesProtectionPoliciesClient = protectionPoliciesClient
 }
 
-func (c *ArmClient) registerRedisClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+func (c *ArmClient) registerRedisClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	redisClient := redis.NewClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&redisClient.Client, auth)
 	c.redisClient = redisClient
@@ -995,7 +1037,7 @@ func (c *ArmClient) registerRedisClients(endpoint, subscriptionId string, auth a
 	c.redisPatchSchedulesClient = patchSchedulesClient
 }
 
-func (c *ArmClient) registerRelayClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+func (c *ArmClient) registerRelayClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	relayNamespacesClient := relay.NewNamespacesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&relayNamespacesClient.Client, auth)
 	c.relayNamespacesClient = relayNamespacesClient
@@ -1047,7 +1089,9 @@ func (c *ArmClient) registerSearchClients(endpoint, subscriptionId string, auth 
 	c.searchAdminKeysClient = searchAdminKeysClient
 }
 
-func (c *ArmClient) registerSecurityCenterClients(endpoint, subscriptionId, ascLocation string, auth autorest.Authorizer) {
+func (c *ArmClient) registerSecurityCenterClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	ascLocation := "Global"
+
 	securityCenterPricingClient := security.NewPricingsClientWithBaseURI(endpoint, subscriptionId, ascLocation)
 	c.configureClient(&securityCenterPricingClient.Client, auth)
 	c.securityCenterPricingClient = securityCenterPricingClient

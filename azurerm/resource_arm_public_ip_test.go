@@ -12,38 +12,6 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestResourceAzureRMPublicIpDomainNameLabel_validation(t *testing.T) {
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{
-			Value:    "tEsting123",
-			ErrCount: 1,
-		},
-		{
-			Value:    "testing123!",
-			ErrCount: 1,
-		},
-		{
-			Value:    "testing123-",
-			ErrCount: 1,
-		},
-		{
-			Value:    acctest.RandString(80),
-			ErrCount: 1,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := validatePublicIpDomainNameLabel(tc.Value, "azurerm_public_ip")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Azure RM Public IP Domain Name Label to trigger a validation error")
-		}
-	}
-}
-
 func TestAccAzureRMPublicIpStatic_basic(t *testing.T) {
 	resourceName := "azurerm_public_ip.test"
 	ri := acctest.RandInt()
@@ -160,7 +128,7 @@ func TestAccAzureRMPublicIpDynamic_basic_withIPv6(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIpExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "ip_version", "IPv6"),
+					resource.TestCheckResourceAttr(resourceName, "ip_version", "ipv6"), //api returns all lowercase
 				),
 			},
 			{
@@ -409,6 +377,32 @@ func TestAccAzureRMPublicIpStatic_importIdError(t *testing.T) {
 				ImportStateVerify: true,
 				ImportStateId:     fmt.Sprintf("/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/publicIPAdresses/acctestpublicip-%d", os.Getenv("ARM_SUBSCRIPTION_ID"), ri, ri),
 				ExpectError:       regexp.MustCompile("Error parsing supplied resource id."),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMPublicIpStatic_canLabelBe63(t *testing.T) {
+	resourceName := "azurerm_public_ip.test"
+	ri := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPublicIPStatic_canLabelBe63(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPublicIpExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
+					resource.TestCheckResourceAttr(resourceName, "public_ip_address_allocation", "static"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -711,6 +705,24 @@ resource "azurerm_public_ip" "test" {
     tags {
 	environment = "staging"
     }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMPublicIPStatic_canLabelBe63(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name     = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_public_ip" "test" {
+    name                = "acctestpublicip-%d"
+    location            = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+
+    public_ip_address_allocation = "static"
+    domain_name_label = "k2345678-1-2345678-2-2345678-3-2345678-4-2345678-5-2345678-6-23"
 }
 `, rInt, location, rInt)
 }

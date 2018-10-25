@@ -326,10 +326,10 @@ func resourceArmAutomationScheduleRead(d *schema.ResourceData, meta interface{})
 	d.Set("frequency", string(resp.Frequency))
 
 	if v := resp.StartTime; v != nil {
-		d.Set("start_time", string(v.Format(time.RFC3339)))
+		d.Set("start_time", v.Format(time.RFC3339))
 	}
 	if v := resp.ExpiryTime; v != nil {
-		d.Set("expiry_time", string(v.Format(time.RFC3339)))
+		d.Set("expiry_time", v.Format(time.RFC3339))
 	}
 	if v := resp.Interval; v != nil {
 		//seems to me missing its type in swagger, leading to it being a interface{} float64

@@ -277,6 +277,9 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.foo", "bar"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.foo1", "bar1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.secure_environment_variables.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.secure_environment_variables.secureFoo", "secureBar"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.secure_environment_variables.secureFoo1", "secureBar1"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.volume.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.volume.0.mount_path", "/aci/logs"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.volume.0.name", "logs"),
@@ -291,6 +294,9 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					"container.0.volume.0.storage_account_key",
+					"container.0.secure_environment_variables.%",
+					"container.0.secure_environment_variables.secureFoo",
+					"container.0.secure_environment_variables.secureFoo1",
 				},
 			},
 		},
@@ -395,6 +401,9 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.foo", "bar"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.foo1", "bar1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.secure_environment_variables.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.secure_environment_variables.secureFoo", "secureBar"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.secure_environment_variables.secureFoo1", "secureBar1"),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Windows"),
 					resource.TestCheckResourceAttr(resourceName, "restart_policy", "Never"),
 				),
@@ -403,6 +412,11 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"container.0.secure_environment_variables.%",
+					"container.0.secure_environment_variables.secureFoo",
+					"container.0.secure_environment_variables.secureFoo1",
+				},
 			},
 		},
 	})
@@ -420,7 +434,7 @@ resource "azurerm_container_group" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   ip_address_type     = "public"
-  os_type             = "linux"
+  os_type             = "Linux"
 
   container {
     name   = "hw"
@@ -449,7 +463,7 @@ resource "azurerm_container_group" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   ip_address_type     = "public"
-  os_type             = "linux"
+  os_type             = "Linux"
 
   container {
     name     = "hw"
@@ -459,7 +473,7 @@ resource "azurerm_container_group" "test" {
     port     = 5443
     protocol = "udp"
   }
-  
+
   image_registry_credential {
     server   = "hub.docker.com"
     username = "yourusername"
@@ -498,7 +512,7 @@ resource "azurerm_container_group" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   ip_address_type     = "public"
-  os_type             = "linux"
+  os_type             = "Linux"
 
   container {
     name   = "hw"
@@ -509,7 +523,7 @@ resource "azurerm_container_group" "test" {
       port = 80
     }
   }
-  
+
   image_registry_credential {
     server   = "hub.docker.com"
     username = "updatedusername"
@@ -542,7 +556,7 @@ resource "azurerm_container_group" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   ip_address_type     = "public"
-  os_type             = "linux"
+  os_type             = "Linux"
 
   container {
     name   = "hw"
@@ -638,6 +652,12 @@ resource "azurerm_container_group" "test" {
       "foo"  = "bar"
       "foo1" = "bar1"
     }
+
+    secure_environment_variables {
+      "secureFoo"  = "secureBar"
+      "secureFoo1" = "secureBar1"
+    }
+
     commands = ["cmd.exe", "echo", "hi"]
   }
 
@@ -705,6 +725,11 @@ resource "azurerm_container_group" "test" {
     environment_variables {
       "foo" = "bar"
       "foo1" = "bar1"
+    }
+
+    secure_environment_variables {
+      "secureFoo"  = "secureBar"
+      "secureFoo1" = "secureBar1"
     }
 
     commands = ["/bin/bash", "-c", "ls"]

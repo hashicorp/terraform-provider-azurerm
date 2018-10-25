@@ -18,7 +18,8 @@ resource "azurerm_policy_definition" "policy" {
   policy_type  = "BuiltIn"
   mode         = "Indexed"
   display_name = "acceptance test policy definition"
-  policy_rule  = <<POLICY_RULE
+
+  policy_rule = <<POLICY_RULE
 	{
     "if": {
       "not": {
@@ -44,7 +45,6 @@ POLICY_RULE
     }
   }
 PARAMETERS
-
 }
 ```
 

@@ -49,6 +49,8 @@ The following attributes are exported:
 
 * `principal_id` - Service Principal ID associated with the user assigned identity.
 
+* `client_id` - Client ID associated with the user assigned identity.
+
 ## Import
 
 User Assigned Identitites can be imported using the `resource id`, e.g.

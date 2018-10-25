@@ -429,7 +429,7 @@ func flattenMySQLStorageProfile(resp *mysql.StorageProfile) []interface{} {
 		values["backup_retention_days"] = *backupRetentionDays
 	}
 
-	values["geo_redundant_backup"] = mysql.GeoRedundantBackup(resp.GeoRedundantBackup)
+	values["geo_redundant_backup"] = string(resp.GeoRedundantBackup)
 
 	return []interface{}{values}
 }
