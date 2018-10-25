@@ -77,7 +77,6 @@ func dataSourceApiManagementApi() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 				Default:  1,
-				Computed: true,
 			},
 
 			"api_version": {
