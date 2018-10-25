@@ -1367,22 +1367,13 @@ func expandApplicationGatewaySslCertificates(d *schema.ResourceData) *[]network.
 	for _, configRaw := range configs {
 		raw := configRaw.(map[string]interface{})
 
-		name := raw["name"].(string)
-		data := raw["data"].(string)
-		password := raw["password"].(string)
-
-		// data must be base64 encoded
-		data = base64Encode(data)
-
-		cert := network.ApplicationGatewaySslCertificate{
-			Name: &name,
+		sslCerts = append(sslCerts,  network.ApplicationGatewaySslCertificate{
+			Name: utils.String(raw["name"].(string)),
 			ApplicationGatewaySslCertificatePropertiesFormat: &network.ApplicationGatewaySslCertificatePropertiesFormat{
-				Data:     &data,
-				Password: &password,
+				Data:     utils.String(base64Encode(raw["data"].(string))),
+				Password: utils.String(raw["password"].(string)),
 			},
-		}
-
-		sslCerts = append(sslCerts, cert)
+		})
 	}
 
 	return &sslCerts
@@ -1390,10 +1381,12 @@ func expandApplicationGatewaySslCertificates(d *schema.ResourceData) *[]network.
 
 func flattenApplicationGatewaySku(sku *network.ApplicationGatewaySku) []interface{} {
 	result := make(map[string]interface{})
-
+	
 	result["name"] = string(sku.Name)
 	result["tier"] = string(sku.Tier)
-	result["capacity"] = int(*sku.Capacity)
+	if v:= sku.Capacity; v!= nil {
+		result["capacity"] = int(*v)
+	}
 
 	return []interface{}{result}
 }
@@ -1401,8 +1394,11 @@ func flattenApplicationGatewaySku(sku *network.ApplicationGatewaySku) []interfac
 func flattenApplicationGatewayWafConfig(waf *network.ApplicationGatewayWebApplicationFirewallConfiguration) []interface{} {
 	result := make(map[string]interface{})
 
-	result["enabled"] = *waf.Enabled
+	if v:= waf.Enabled; v!= nil {
+		result["enabled"] = *v
+	}
 	result["firewall_mode"] = string(waf.FirewallMode)
+	//todo should these be dereferenced?
 	result["rule_set_type"] = waf.RuleSetType
 	result["rule_set_version"] = waf.RuleSetVersion
 
@@ -1419,7 +1415,6 @@ func flattenApplicationGatewaySslPolicy(policy *network.ApplicationGatewaySslPol
 			}
 		}
 	}
-
 	return result
 }
 
