@@ -54,14 +54,14 @@ output "api_management_api_id" {
 
 * `version_set_id` - A resource identifier for the related ApiVersionSet.
 
-* `is_current` - Indicates if API revision is current api revision.
+* `is_current` - Indicates if the API revision is current api revision.
 
-* `is_online` - Indicates if API revision is accessible via the gateway.
+* `is_online` - Indicates if the API revision is accessible via the gateway.
 
 ---
 
 A `subscription_key_parameter_names` block exports the following:
 
-* `header` - Subscription key header name. Default is `Ocp-Apim-Subscription-Key`.
+* `header` - Subscription key header name.
 
-* `query` - Subscription key query string parameter name. Default is `subscription-key`.
+* `query` - Subscription key query string parameter name.
