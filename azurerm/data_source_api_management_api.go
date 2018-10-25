@@ -75,15 +75,17 @@ func dataSourceApiManagementApi() *schema.Resource {
 
 			"revision": {
 				Type:     schema.TypeInt,
+				Optional: true,
+				Default:  1,
 				Computed: true,
 			},
 
-			"version": {
+			"api_version": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"version_set_id": {
+			"api_version_set_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -108,9 +110,9 @@ func dataSourceApiManagementApiRead(d *schema.ResourceData, meta interface{}) er
 	resGroup := d.Get("resource_group_name").(string)
 	serviceName := d.Get("service_name").(string)
 	name := d.Get("name").(string)
+	revision := int32(d.Get("revision").(int))
 
-	//Currently we don't support revisions, so we use 1 as default
-	apiId := fmt.Sprintf("%s;rev=%d", name, 1)
+	apiId := fmt.Sprintf("%s;rev=%d", name, revision)
 
 	resp, err := client.Get(ctx, resGroup, serviceName, apiId)
 
@@ -133,8 +135,8 @@ func dataSourceApiManagementApiRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("path", props.Path)
 		d.Set("description", props.Description)
 		d.Set("revision", props.APIRevision)
-		d.Set("version", props.APIVersion)
-		d.Set("version_set_id", props.APIVersionSetID)
+		d.Set("api_version", props.APIVersion)
+		d.Set("api_version_set_id", props.APIVersionSetID)
 		d.Set("is_current", props.IsCurrent)
 		d.Set("is_online", props.IsOnline)
 		d.Set("protocols", props.Protocols)

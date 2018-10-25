@@ -38,7 +38,6 @@ resource "azurerm_api_management_api" "test" {
     content_format = "swagger-link-json"
     content_value  = "http://conferenceapi.azurewebsites.net/?format=json"
   }
-  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 ```
@@ -47,13 +46,11 @@ resource "azurerm_api_management_api" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the API Management API.
+* `name` - (Required) The name of the API Management API. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The Name of the Resource Group where the API Management API exists.
+* `resource_group_name` - (Required) The Name of the Resource Group where the API Management API exists. Changing this forces a new resource to be created.
 
-* `location` - (Required) The Azure location where the API Management API exists.
-
-* `service_name` - (Required) The Name of the API Management Service where the API Management API exists
+* `service_name` - (Required) The Name of the API Management Service where the API Management API exists. Changing this forces a new resource to be created.
 
 * `path` - (Required) Relative URL uniquely identifying this API and all of its resource paths within the API Management service instance. It is appended to the API endpoint base URL specified during the service instance creation to form a public URL for this API.
 
@@ -111,9 +108,9 @@ In addition to all arguments above, the following attributes are exported:
 
 * `version_set_id` - A resource identifier for the related ApiVersionSet.
 
-* `is_current` - Indicates if API revision is current api revision.
+* `is_current` - Indicates if the API revision is current api revision.
 
-* `is_online` - Indicates if API revision is accessible via the gateway.
+* `is_online` - Indicates if the API revision is accessible via the gateway.
 
 ## Import
 

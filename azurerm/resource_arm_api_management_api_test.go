@@ -32,10 +32,7 @@ func TestAccAzureRMApiManagementApi_basic(t *testing.T) {
 				ImportStateVerify: true,
 				// Ignore state that is only persisted in Terraform and not on Azure side
 				ImportStateVerifyIgnore: []string{
-					"import.#",
-					"import.0.content_format",
-					"import.0.content_value",
-					"import.0.wsdl_selector.#",
+					"import",
 				},
 			},
 		},
@@ -64,12 +61,7 @@ func TestAccAzureRMApiManagementApi_complete(t *testing.T) {
 				ImportStateVerify: true,
 				// Ignore state that is only persisted in Terraform and not on Azure side
 				ImportStateVerifyIgnore: []string{
-					"import.#",
-					"import.0.content_format",
-					"import.0.content_value",
-					"import.0.wsdl_selector.#",
-					"import.0.wsdl_selector.0.service_name",
-					"import.0.wsdl_selector.0.endpoint_name",
+					"import",
 				},
 			},
 		},
@@ -124,7 +116,7 @@ func testCheckAzureRMApiManagementApiExists(name string) resource.TestCheckFunc 
 		conn := testAccProvider.Meta().(*ArmClient).apiManagementApiClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		apiId := fmt.Sprintf("%s;rev=%d", name, 1)
+		apiId := fmt.Sprintf("%s;rev=%s", name, rs.Primary.Attributes["revision"])
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiId)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -159,11 +151,11 @@ resource "azurerm_api_management" "test" {
 }
 
 resource "azurerm_api_management_api" "test" {
-  name            = "acctestAMA-%d"
-	service_name    = "${azurerm_api_management.test.name}"
-	path 						= "api1"
+  name         = "acctestAMA-%d"
+  service_name = "${azurerm_api_management.test.name}"
+  path         = "api1"
 
-	import {
+  import {
     content_value  = "${file("testdata/api_management_api_swagger.json")}"
     content_format = "swagger-json"
   }
@@ -194,12 +186,12 @@ resource "azurerm_api_management" "test" {
 }
 
 resource "azurerm_api_management_api" "test" {
-  name            = "acctestAMA-%d"
-	service_name    = "${azurerm_api_management.test.name}"
-	path 						= "api1"
+  name         = "acctestAMA-%d"
+  service_name = "${azurerm_api_management.test.name}"
+  path         = "api1"
 
-	import {
-		content_value = "${file("testdata/api_management_api_wsdl.xml")}"
+  import {
+    content_value  = "${file("testdata/api_management_api_wsdl.xml")}"
     content_format = "wsdl"
 
     wsdl_selector {
@@ -208,14 +200,14 @@ resource "azurerm_api_management_api" "test" {
     }
   }
 
-	soap_pass_through = true
+  soap_pass_through = true
 
-	subscription_key_parameter_names {
-		header = "test1"
-		query = "test2"
-	}
+  subscription_key_parameter_names {
+    header = "test1"
+    query  = "test2"
+  }
 
-	protocols = ["http", "https"]
+  protocols = ["http", "https"]
 
   resource_group_name = "${azurerm_resource_group.test.name}"
 }

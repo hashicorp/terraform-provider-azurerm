@@ -61,12 +61,12 @@ resource "azurerm_api_management" "test" {
 }
 
 resource "azurerm_api_management_api" "test" {
-  name            = "acctestAMA-%d"
-	service_name    = "${azurerm_api_management.test.name}"
-	path 						= "api1"
+  name         = "acctestAMA-%d"
+  service_name = "${azurerm_api_management.test.name}"
+  path         = "api1"
 
-	import {
-		content_value  = "${file("testdata/api_management_api_swagger.json")}"
+  import {
+    content_value  = "${file("testdata/api_management_api_swagger.json")}"
     content_format = "swagger-json"
   }
 
@@ -75,7 +75,7 @@ resource "azurerm_api_management_api" "test" {
 
 data "azurerm_api_management_api" "test" {
   name                = "${azurerm_api_management_api.test.name}"
-	service_name    		= "${azurerm_api_management.test.name}"
+  service_name        = "${azurerm_api_management.test.name}"
   resource_group_name = "${azurerm_api_management_api.test.resource_group_name}"
 }
 `, rInt, location, rInt, rInt)

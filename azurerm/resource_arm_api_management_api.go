@@ -45,6 +45,18 @@ func resourceArmApiManagementApi() *schema.Resource {
 				ValidateFunc: validate.ApiManagementApiPath,
 			},
 
+			"protocols": {
+				Type: schema.TypeList,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(apimanagement.ProtocolHTTP),
+						string(apimanagement.ProtocolHTTPS),
+					}, false),
+				},
+				Required: true,
+			},
+
 			"api_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -80,8 +92,7 @@ func resourceArmApiManagementApi() *schema.Resource {
 								string(apimanagement.WadlXML),
 								string(apimanagement.Wsdl),
 								string(apimanagement.WsdlLink),
-							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							}, false),
 						},
 
 						"wsdl_selector": {
@@ -104,20 +115,6 @@ func resourceArmApiManagementApi() *schema.Resource {
 						},
 					},
 				},
-			},
-
-			"protocols": {
-				Type: schema.TypeList,
-				Elem: &schema.Schema{
-					Type:             schema.TypeString,
-					DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(apimanagement.ProtocolHTTP),
-						string(apimanagement.ProtocolHTTPS),
-					}, true),
-				},
-				Optional: true,
-				Computed: true, // Azure API sets protocols to https by default
 			},
 
 			"subscription_key_parameter_names": {
@@ -149,7 +146,8 @@ func resourceArmApiManagementApi() *schema.Resource {
 
 			"revision": {
 				Type:     schema.TypeInt,
-				Computed: true,
+				Optional: true,
+				Default:  1,
 			},
 
 			"version": {
@@ -184,9 +182,9 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 	resGroup := d.Get("resource_group_name").(string)
 	serviceName := d.Get("service_name").(string)
 	name := d.Get("name").(string)
+	revision := int32(d.Get("revision").(int))
 
-	//Currently we don't support revisions, so we use 1 as default
-	apiId := fmt.Sprintf("%s;rev=%d", name, 1)
+	apiId := fmt.Sprintf("%s;rev=%d", name, revision)
 	d.Set("api_id", apiId)
 
 	var properties *apimanagement.APICreateOrUpdateProperties
@@ -327,7 +325,6 @@ func expandApiManagementApiProperties(d *schema.ResourceData) *apimanagement.API
 	path := d.Get("path").(string)
 	serviceUrl := d.Get("service_url").(string)
 	description := d.Get("description").(string)
-	soapPassThrough := d.Get("soap_pass_through").(bool)
 
 	props := &apimanagement.APICreateOrUpdateProperties{
 		Description:                   &description,
@@ -338,31 +335,43 @@ func expandApiManagementApiProperties(d *schema.ResourceData) *apimanagement.API
 		SubscriptionKeyParameterNames: expandApiManagementApiSubscriptionKeyParamNames(d),
 	}
 
-	if soapPassThrough {
-		props.APIType = apimanagement.APIType(apimanagement.SoapPassThrough)
+	if v, ok := d.GetOk("soap_pass_through"); ok {
+		soapPassThrough := v.(bool)
+
+		if soapPassThrough {
+			props.APIType = apimanagement.APIType(apimanagement.SoapPassThrough)
+		} else {
+			props.APIType = apimanagement.APIType(apimanagement.SoapToRest)
+		}
 	}
 
 	return props
 }
 
 func expandApiManagementApiSubscriptionKeyParamNames(d *schema.ResourceData) *apimanagement.SubscriptionKeyParameterNamesContract {
-	var contract apimanagement.SubscriptionKeyParameterNamesContract
+	vs := d.Get("subscription_key_parameter_names").([]interface{})
 
-	if v, ok := d.GetOk("subscription_key_parameter_names.0.header"); ok {
-		header := v.(string)
-		contract.Header = &header
+	if len(vs) > 0 {
+		v := vs[0].(map[string]interface{})
+		contract := apimanagement.SubscriptionKeyParameterNamesContract{}
+
+		query := v["query"].(string)
+		header := v["header"].(string)
+
+		if query != "" {
+			contract.Query = utils.String(query)
+		}
+
+		if header != "" {
+			contract.Header = utils.String(header)
+		}
+
+		if query != "" || header != "" {
+			return &contract
+		}
 	}
 
-	if v, ok := d.GetOk("subscription_key_parameter_names.0.query"); ok {
-		query := v.(string)
-		contract.Query = &query
-	}
-
-	if contract.Header == nil && contract.Query == nil {
-		return nil
-	}
-
-	return &contract
+	return nil
 }
 
 func expandApiManagementApiProtocols(d *schema.ResourceData) *[]apimanagement.Protocol {
@@ -388,27 +397,25 @@ func expandApiManagementImportProperties(d *schema.ResourceData) *apimanagement.
 		Path: &path,
 	}
 
-	if v, ok := d.GetOk("import.0.content_format"); ok {
-		props.ContentFormat = apimanagement.ContentFormat(v.(string))
-	}
+	importVs := d.Get("import").([]interface{})
+	importV := importVs[0].(map[string]interface{})
 
-	if v, ok := d.GetOk("import.0.content_value"); ok {
-		content_val := v.(string)
-		props.ContentValue = &content_val
-	}
+	props.ContentFormat = apimanagement.ContentFormat(importV["content_format"].(string))
 
-	if _, selectorUsed := d.GetOk("import.0.wsdl_selector"); selectorUsed {
+	cVal := importV["content_value"].(string)
+	props.ContentValue = &cVal
+
+	wsdlSelectorVs := importV["wsdl_selector"].([]interface{})
+
+	if len(wsdlSelectorVs) > 0 {
+		wsdlSelectorV := wsdlSelectorVs[0].(map[string]interface{})
 		props.WsdlSelector = &apimanagement.APICreateOrUpdatePropertiesWsdlSelector{}
 
-		if v, ok := d.GetOk("import.0.wsdl_selector.0.service_name"); ok {
-			serviceName := v.(string)
-			props.WsdlSelector.WsdlServiceName = &serviceName
-		}
+		wSvcName := wsdlSelectorV["service_name"].(string)
+		wEndpName := wsdlSelectorV["endpoint_name"].(string)
 
-		if v, ok := d.GetOk("import.0.wsdl_selector.0.endpoint_name"); ok {
-			endpointName := v.(string)
-			props.WsdlSelector.WsdlEndpointName = &endpointName
-		}
+		props.WsdlSelector.WsdlServiceName = &wSvcName
+		props.WsdlSelector.WsdlEndpointName = &wEndpName
 	}
 
 	return props
