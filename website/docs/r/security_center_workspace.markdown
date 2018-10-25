@@ -40,13 +40,14 @@ resource "azurerm_security_center_workspace" "example" {
 The following arguments are supported:
 
 * `scope` - (Required) The scope of VMs to send their security data to the desired workspace, unless overridden by a setting with more specific scope.
-* `workspace_id` - (Required) The resource ID of the log analytics workspace to save the data in.
+
+* `workspace_id` - (Required) The ID of the Log Analytics Workspace to save the data in.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The Security Center Contact ID.
+* `id` - The Security Center Workspace ID.
 
 ## Import
 
