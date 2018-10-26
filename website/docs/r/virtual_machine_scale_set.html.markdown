@@ -378,8 +378,8 @@ output "principal_id" {
 * `load_balancer_backend_address_pool_ids` - (Optional) Specifies an array of references to backend address pools of load balancers. A scale set can reference backend address pools of one public and one internal load balancer. Multiple scale sets cannot use the same load balancer.
 * `load_balancer_inbound_nat_rules_ids` - (Optional) Specifies an array of references to inbound NAT rules for load balancers.
 * `primary` - (Required) Specifies if this ip_configuration is the primary one.
-* `public_ip_address_configuration` - (Optional) describes a virtual machines scale set IP Configuration's
- PublicIPAddress configuration. The public_ip_address_configuration is documented below.
+* `application_security_group_ids` - (Optional) Specifies up to `20` application security group IDs.
+* `public_ip_address_configuration` - (Optional) Describes a virtual machines scale set IP Configuration's PublicIPAddress configuration. The public_ip_address_configuration is documented below.
 
 `public_ip_address_configuration` supports the following:
 
