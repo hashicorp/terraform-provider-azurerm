@@ -1021,32 +1021,6 @@ func testCheckAzureRMVirtualMachineScaleSetPublicIPName(name, publicIPName strin
 	}
 }
 
-func testCheckAzureRMVirtualMachineScaleSetApplicationSecurity(name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		resp, err := testGetAzureRMVirtualMachineScaleSet(s, name)
-		if err != nil {
-			return err
-		}
-
-		n := resp.VirtualMachineProfile.NetworkProfile.NetworkInterfaceConfigurations
-		if n == nil || len(*n) == 0 {
-			return fmt.Errorf("Bad: Could not get network interface configurations for scale set %v", name)
-		}
-
-		ip := (*n)[0].IPConfigurations
-		if ip == nil || len(*ip) == 0 {
-			return fmt.Errorf("Bad: Could not get ip configurations for scale set %v", name)
-		}
-
-		asgs := (*ip)[0].ApplicationSecurityGroups
-		if asgs == nil || len(*asgs) == 0 {
-			return fmt.Errorf("Bad: Application Security Groups was empty for scale set %v", name)
-		}
-
-		return nil
-	}
-}
-
 func testCheckAzureRMVirtualMachineScaleSetAcceleratedNetworking(name string, boolean bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		resp, err := testGetAzureRMVirtualMachineScaleSet(s, name)
