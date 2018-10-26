@@ -1139,59 +1139,68 @@ func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.Virtual
 				config := make(map[string]interface{})
 				config["name"] = *ipConfig.Name
 
-				properties := ipConfig.VirtualMachineScaleSetIPConfigurationProperties
+				if properties := ipConfig.VirtualMachineScaleSetIPConfigurationProperties; properties != nil {
 
-				if ipConfig.VirtualMachineScaleSetIPConfigurationProperties.Subnet != nil {
-					config["subnet_id"] = *properties.Subnet.ID
-				}
-
-				addressPools := make([]interface{}, 0)
-				if properties.ApplicationGatewayBackendAddressPools != nil {
-					for _, pool := range *properties.ApplicationGatewayBackendAddressPools {
-						addressPools = append(addressPools, *pool.ID)
+					if properties.Subnet != nil {
+						config["subnet_id"] = *properties.Subnet.ID
 					}
-				}
-				config["application_gateway_backend_address_pool_ids"] = schema.NewSet(schema.HashString, addressPools)
 
-				applicationSecurityGroups := make([]interface{}, 0)
-				if properties.ApplicationSecurityGroups != nil {
-					for _, asg := range *properties.ApplicationSecurityGroups {
-						applicationSecurityGroups = append(applicationSecurityGroups, *asg.ID)
+					addressPools := make([]interface{}, 0)
+					if properties.ApplicationGatewayBackendAddressPools != nil {
+						for _, pool := range *properties.ApplicationGatewayBackendAddressPools {
+							if v := pool.ID; v != nil {
+								addressPools = append(addressPools, *v)
+							}
+						}
 					}
-				}
-				config["application_security_group_ids"] = schema.NewSet(schema.HashString, applicationSecurityGroups)
+					config["application_gateway_backend_address_pool_ids"] = schema.NewSet(schema.HashString, addressPools)
 
-				if properties.LoadBalancerBackendAddressPools != nil {
-					addressPools := make([]interface{}, 0, len(*properties.LoadBalancerBackendAddressPools))
-					for _, pool := range *properties.LoadBalancerBackendAddressPools {
-						addressPools = append(addressPools, *pool.ID)
+					applicationSecurityGroups := make([]interface{}, 0)
+					if properties.ApplicationSecurityGroups != nil {
+						for _, asg := range *properties.ApplicationSecurityGroups {
+							if v := asg.ID; v != nil {
+								applicationSecurityGroups = append(applicationSecurityGroups, *v)
+							}
+						}
 					}
-					config["load_balancer_backend_address_pool_ids"] = schema.NewSet(schema.HashString, addressPools)
-				}
+					config["application_security_group_ids"] = schema.NewSet(schema.HashString, applicationSecurityGroups)
 
-				if properties.LoadBalancerInboundNatPools != nil {
-					inboundNatPools := make([]interface{}, 0, len(*properties.LoadBalancerInboundNatPools))
-					for _, rule := range *properties.LoadBalancerInboundNatPools {
-						inboundNatPools = append(inboundNatPools, *rule.ID)
+					if properties.LoadBalancerBackendAddressPools != nil {
+						addressPools := make([]interface{}, 0, len(*properties.LoadBalancerBackendAddressPools))
+						for _, pool := range *properties.LoadBalancerBackendAddressPools {
+							if v := pool.ID; v != nil {
+								addressPools = append(addressPools, *v)
+							}
+						}
+						config["load_balancer_backend_address_pool_ids"] = schema.NewSet(schema.HashString, addressPools)
 					}
-					config["load_balancer_inbound_nat_rules_ids"] = schema.NewSet(schema.HashString, inboundNatPools)
-				}
 
-				if properties.Primary != nil {
-					config["primary"] = *properties.Primary
-				}
+					if properties.LoadBalancerInboundNatPools != nil {
+						inboundNatPools := make([]interface{}, 0, len(*properties.LoadBalancerInboundNatPools))
+						for _, rule := range *properties.LoadBalancerInboundNatPools {
+							if v := rule.ID; v != nil {
+								inboundNatPools = append(inboundNatPools, *v)
+							}
+						}
+						config["load_balancer_inbound_nat_rules_ids"] = schema.NewSet(schema.HashString, inboundNatPools)
+					}
 
-				if properties.PublicIPAddressConfiguration != nil {
-					publicIpInfo := properties.PublicIPAddressConfiguration
-					publicIpConfigs := make([]map[string]interface{}, 0, 1)
-					publicIpConfig := make(map[string]interface{})
-					publicIpConfig["name"] = *publicIpInfo.Name
-					publicIpConfig["domain_name_label"] = *publicIpInfo.VirtualMachineScaleSetPublicIPAddressConfigurationProperties.DNSSettings
-					publicIpConfig["idle_timeout"] = *publicIpInfo.VirtualMachineScaleSetPublicIPAddressConfigurationProperties.IdleTimeoutInMinutes
-					config["public_ip_address_configuration"] = publicIpConfigs
-				}
+					if properties.Primary != nil {
+						config["primary"] = *properties.Primary
+					}
 
-				ipConfigs = append(ipConfigs, config)
+					if properties.PublicIPAddressConfiguration != nil {
+						publicIpInfo := properties.PublicIPAddressConfiguration
+						publicIpConfigs := make([]map[string]interface{}, 0, 1)
+						publicIpConfig := make(map[string]interface{})
+						publicIpConfig["name"] = *publicIpInfo.Name
+						publicIpConfig["domain_name_label"] = *publicIpInfo.VirtualMachineScaleSetPublicIPAddressConfigurationProperties.DNSSettings
+						publicIpConfig["idle_timeout"] = *publicIpInfo.VirtualMachineScaleSetPublicIPAddressConfigurationProperties.IdleTimeoutInMinutes
+						config["public_ip_address_configuration"] = publicIpConfigs
+					}
+
+					ipConfigs = append(ipConfigs, config)
+				}
 			}
 
 			s["ip_configuration"] = ipConfigs
