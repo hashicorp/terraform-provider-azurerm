@@ -113,7 +113,7 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 		if props := resp.Properties; props != nil {
 			subscriptionIdsToRemove, err := determineManagementGroupSubscriptionsIdsToRemove(props.Children, subscriptionIds)
 			if err != nil {
-				return fmt.Errorf("Error determing which subscriptions should be removed from Management Group %q: %+v", groupId, err)
+				return fmt.Errorf("Error determining which subscriptions should be removed from Management Group %q: %+v", groupId, err)
 			}
 
 			for _, subscriptionId := range *subscriptionIdsToRemove {

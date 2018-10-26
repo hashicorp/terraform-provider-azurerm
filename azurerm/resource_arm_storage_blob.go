@@ -13,6 +13,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+
 	"github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -234,7 +236,7 @@ func resourceArmStorageBlobPageUploadFromSource(container, name, source, content
 	if err != nil {
 		return fmt.Errorf("Error opening source file for upload %q: %s", source, err)
 	}
-	defer file.Close()
+	defer utils.IoCloseAndLogError(file, fmt.Sprintf("Error closing Storage Blob `%s` file `%s` after upload", name, source))
 
 	blobSize, pageList, err := resourceArmStorageBlobPageSplit(file)
 	if err != nil {
@@ -412,7 +414,7 @@ func resourceArmStorageBlobBlockUploadFromSource(container, name, source, conten
 	if err != nil {
 		return fmt.Errorf("Error opening source file for upload %q: %s", source, err)
 	}
-	defer file.Close()
+	defer utils.IoCloseAndLogError(file, fmt.Sprintf("Error closing Storage Blob `%s` file `%s` after upload", name, source))
 
 	blockList, parts, err := resourceArmStorageBlobBlockSplit(file)
 	if err != nil {

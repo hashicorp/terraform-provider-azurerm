@@ -161,6 +161,9 @@ func testCheckAzureRMStorageContainerExists(name string, c *storage.Container) r
 			Prefix:  name,
 			Timeout: 90,
 		})
+		if err != nil {
+			return fmt.Errorf("Error listing Storage Container %q containers (storage account: %q) : %+v", name, storageAccountName, err)
+		}
 
 		if len(containers.Containers) == 0 {
 			return fmt.Errorf("Bad: Storage Container %q (storage account: %q) does not exist", name, storageAccountName)

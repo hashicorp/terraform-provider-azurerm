@@ -109,6 +109,7 @@ resource "azurerm_virtual_machine_scale_set" "scaleset" {
       subnet_id                              = "${azurerm_subnet.subnet.id}"
       load_balancer_backend_address_pool_ids = ["${azurerm_lb_backend_address_pool.backlb.id}"]
       load_balancer_inbound_nat_rules_ids    = ["${element(azurerm_lb_nat_pool.np.*.id, count.index)}"]
+      primary                                = true
     }
   }
 

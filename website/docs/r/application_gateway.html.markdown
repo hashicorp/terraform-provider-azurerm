@@ -55,23 +55,23 @@ resource "azurerm_application_gateway" "network" {
   location            = "West US"
 
   sku {
-    name           = "Standard_Small"
-    tier           = "Standard"
-    capacity       = 2
+    name     = "Standard_Small"
+    tier     = "Standard"
+    capacity = 2
   }
 
   gateway_ip_configuration {
-    name         = "my-gateway-ip-configuration"
-    subnet_id    = "${azurerm_virtual_network.vnet.id}/subnets/${azurerm_subnet.sub1.name}"
+    name      = "my-gateway-ip-configuration"
+    subnet_id = "${azurerm_virtual_network.vnet.id}/subnets/${azurerm_subnet.sub1.name}"
   }
 
   frontend_port {
-    name         = "${azurerm_virtual_network.vnet.name}-feport"
-    port         = 80
+    name = "${azurerm_virtual_network.vnet.name}-feport"
+    port = 80
   }
 
   frontend_ip_configuration {
-    name         = "${azurerm_virtual_network.vnet.name}-feip"
+    name                 = "${azurerm_virtual_network.vnet.name}-feip"
     public_ip_address_id = "${azurerm_public_ip.pip.id}"
   }
 
@@ -88,10 +88,10 @@ resource "azurerm_application_gateway" "network" {
   }
 
   http_listener {
-    name                            = "${azurerm_virtual_network.vnet.name}-httplstn"
-    frontend_ip_configuration_name  = "${azurerm_virtual_network.vnet.name}-feip"
-    frontend_port_name              = "${azurerm_virtual_network.vnet.name}-feport"
-    protocol                        = "Http"
+    name                           = "${azurerm_virtual_network.vnet.name}-httplstn"
+    frontend_ip_configuration_name = "${azurerm_virtual_network.vnet.name}-feip"
+    frontend_port_name             = "${azurerm_virtual_network.vnet.name}-feport"
+    protocol                       = "Http"
   }
 
   request_routing_rule {
@@ -114,9 +114,11 @@ resource "azurerm_application_gateway" "network" {
   backend_address_pool {
     name = "${azurerm_virtual_network.vnet.name}-beap-fallback"
   }
+
   backend_address_pool {
     name = "${azurerm_virtual_network.vnet.name}-beap-first"
   }
+
   backend_address_pool {
     name = "${azurerm_virtual_network.vnet.name}-beap-second"
   }
@@ -129,20 +131,21 @@ resource "azurerm_application_gateway" "network" {
   }
 
   url_path_map {
-    name = "pbr.contoso.com"
-    default_backend_address_pool_name = "${azurerm_virtual_network.vnet.name}-beap-fallback"
+    name                               = "pbr.contoso.com"
+    default_backend_address_pool_name  = "${azurerm_virtual_network.vnet.name}-beap-fallback"
     default_backend_http_settings_name = "${azurerm_virtual_network.vnet.name}-be-htst"
 
     path_rule {
-      name = "pbr.contoso.com_first"
-      paths = ["/first/*"]
-      backend_address_pool_name = "${local.awg_clusters_name}-beap-first"
+      name                       = "pbr.contoso.com_first"
+      paths                      = ["/first/*"]
+      backend_address_pool_name  = "${local.awg_clusters_name}-beap-first"
       backend_http_settings_name = "${local.awg_clusters_name}-be-htst"
     }
+
     path_rule {
-      name = "pbr.contoso.com_second"
-      paths = ["/second/*"]
-      backend_address_pool_name = "${local.awg_clusters_name}-beap-second"
+      name                       = "pbr.contoso.com_second"
+      paths                      = ["/second/*"]
+      backend_address_pool_name  = "${local.awg_clusters_name}-beap-second"
       backend_http_settings_name = "${local.awg_clusters_name}-be-htst"
     }
   }

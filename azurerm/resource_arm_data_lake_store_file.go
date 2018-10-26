@@ -63,7 +63,7 @@ func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}
 	if err != nil {
 		return fmt.Errorf("error opening file %q: %+v", localFilePath, err)
 	}
-	defer file.Close()
+	defer utils.IoCloseAndLogError(file, fmt.Sprintf("Error closing Data Lake Store File %q", localFilePath))
 
 	// Read the file contents
 	fileContents, err := ioutil.ReadAll(file)

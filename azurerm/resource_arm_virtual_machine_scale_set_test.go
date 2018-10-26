@@ -3334,7 +3334,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 func testAccAzureRMVirtualMachineScaleSetUserAssignedMSI(rInt int, location string, rString string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%[1]d"
+  name     = "acctestRG-%[1]d"
   location = "%[2]s"
 }
 

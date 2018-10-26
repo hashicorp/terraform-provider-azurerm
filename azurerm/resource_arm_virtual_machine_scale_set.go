@@ -974,7 +974,7 @@ func flattenAzureRmVirtualMachineScaleSetIdentity(identity *compute.VirtualMachi
 
 	identityIds := make([]string, 0)
 	if identity.UserAssignedIdentities != nil {
-		for key, _ := range identity.UserAssignedIdentities {
+		for key := range identity.UserAssignedIdentities {
 			identityIds = append(identityIds, key)
 		}
 	}
