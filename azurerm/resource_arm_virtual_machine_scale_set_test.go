@@ -1452,6 +1452,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
       primary = true
       ip_configuration {
         name = "TestIPConfiguration"
+        primary = true
         subnet_id = "${azurerm_subnet.test.id}"
         application_security_group_ids = ["${azurerm_application_security_group.test.id}"]
       }
