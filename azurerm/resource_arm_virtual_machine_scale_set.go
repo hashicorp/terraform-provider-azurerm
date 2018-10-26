@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 
@@ -119,6 +120,57 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 					string(compute.Manual),
 					string(compute.Rolling),
 				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+			},
+
+			"health_probe_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
+			"automatic_os_upgrade": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"rolling_upgrade_policy": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"max_batch_instance_percent": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      20,
+							ValidateFunc: validation.IntBetween(5, 100),
+						},
+
+						"max_unhealthy_instance_percent": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      20,
+							ValidateFunc: validation.IntBetween(5, 100),
+						},
+
+						"max_unhealthy_upgraded_instance_percent": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      20,
+							ValidateFunc: validation.IntBetween(5, 100),
+						},
+
+						"pause_time_between_batches": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "PT0S",
+							ValidateFunc: validateIso8601Duration(),
+						},
+					},
+				},
+				DiffSuppressFunc: azureRmVirtualMachineScaleSetSuppressRollingUpgradePolicyDiff,
 			},
 
 			"overprovision": {
@@ -670,6 +722,8 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 
 			"tags": tagsSchema(),
 		},
+
+		CustomizeDiff: azureRmVirtualMachineScaleSetCustomizeDiff,
 	}
 }
 
@@ -723,14 +777,17 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 		return err
 	}
 
-	updatePolicy := d.Get("upgrade_policy_mode").(string)
+	upgradePolicy := d.Get("upgrade_policy_mode").(string)
+	automaticOsUpgrade := d.Get("automatic_os_upgrade").(bool)
 	overprovision := d.Get("overprovision").(bool)
 	singlePlacementGroup := d.Get("single_placement_group").(bool)
 	priority := d.Get("priority").(string)
 
 	scaleSetProps := compute.VirtualMachineScaleSetProperties{
 		UpgradePolicy: &compute.UpgradePolicy{
-			Mode: compute.UpgradeMode(updatePolicy),
+			Mode:                 compute.UpgradeMode(upgradePolicy),
+			AutomaticOSUpgrade:   utils.Bool(automaticOsUpgrade),
+			RollingUpgradePolicy: expandAzureRmRollingUpgradePolicy(d),
 		},
 		VirtualMachineProfile: &compute.VirtualMachineScaleSetVMProfile{
 			NetworkProfile:   expandAzureRmVirtualMachineScaleSetNetworkProfile(d),
@@ -746,6 +803,12 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 	if _, ok := d.GetOk("boot_diagnostics"); ok {
 		diagnosticProfile := expandAzureRMVirtualMachineScaleSetsDiagnosticProfile(d)
 		scaleSetProps.VirtualMachineProfile.DiagnosticsProfile = &diagnosticProfile
+	}
+
+	if v, ok := d.GetOk("health_probe_id"); ok {
+		scaleSetProps.VirtualMachineProfile.NetworkProfile.HealthProbe = &compute.APIEntityReference{
+			ID: utils.String(v.(string)),
+		}
 	}
 
 	properties := compute.VirtualMachineScaleSet{
@@ -834,9 +897,15 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 	}
 
 	if properties := resp.VirtualMachineScaleSetProperties; properties != nil {
-
 		if upgradePolicy := properties.UpgradePolicy; upgradePolicy != nil {
 			d.Set("upgrade_policy_mode", upgradePolicy.Mode)
+			d.Set("automatic_os_upgrade", upgradePolicy.AutomaticOSUpgrade)
+
+			if rollingUpgradePolicy := upgradePolicy.RollingUpgradePolicy; rollingUpgradePolicy != nil {
+				if err := d.Set("rolling_upgrade_policy", flattenAzureRmVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicy)); err != nil {
+					return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Rolling Upgrade Policy error: %#v", err)
+				}
+			}
 		}
 		d.Set("overprovision", properties.Overprovision)
 		d.Set("single_placement_group", properties.SinglePlacementGroup)
@@ -863,7 +932,6 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 					if err := d.Set("os_profile_secrets", flattenedSecrets); err != nil {
 						return fmt.Errorf("[DEBUG] Error setting `os_profile_secrets`: %#v", err)
 					}
-
 				}
 
 				if windowsConfiguration := osProfile.WindowsConfiguration; windowsConfiguration != nil {
@@ -885,6 +953,12 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 			}
 
 			if networkProfile := profile.NetworkProfile; networkProfile != nil {
+				if hp := networkProfile.HealthProbe; hp != nil {
+					if id := hp.ID; id != nil {
+						d.Set("health_probe_id", id)
+					}
+				}
+
 				flattenedNetworkProfile := flattenAzureRmVirtualMachineScaleSetNetworkProfile(networkProfile)
 				if err := d.Set("network_profile", flattenedNetworkProfile); err != nil {
 					return fmt.Errorf("[DEBUG] Error setting `network_profile`: %#v", err)
@@ -924,6 +998,7 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 				}
 			}
 		}
+
 	}
 
 	if plan := resp.Plan; plan != nil {
@@ -1094,6 +1169,25 @@ func flattenAzureRmVirtualMachineScaleSetBootDiagnostics(bootDiagnostic *compute
 	b := map[string]interface{}{
 		"enabled":     *bootDiagnostic.Enabled,
 		"storage_uri": *bootDiagnostic.StorageURI,
+	}
+
+	return []interface{}{b}
+}
+
+func flattenAzureRmVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicy *compute.RollingUpgradePolicy) []interface{} {
+	b := make(map[string]interface{}, 0)
+
+	if v := rollingUpgradePolicy.MaxBatchInstancePercent; v != nil {
+		b["max_batch_instance_percent"] = *v
+	}
+	if v := rollingUpgradePolicy.MaxUnhealthyInstancePercent; v != nil {
+		b["max_unhealthy_instance_percent"] = *v
+	}
+	if v := rollingUpgradePolicy.MaxUnhealthyUpgradedInstancePercent; v != nil {
+		b["max_unhealthy_upgraded_instance_percent"] = *v
+	}
+	if v := rollingUpgradePolicy.PauseTimeBetweenBatches; v != nil {
+		b["pause_time_between_batches"] = *v
 	}
 
 	return []interface{}{b}
@@ -1472,6 +1566,19 @@ func expandVirtualMachineScaleSetSku(d *schema.ResourceData) (*compute.Sku, erro
 	}
 
 	return sku, nil
+}
+
+func expandAzureRmRollingUpgradePolicy(d *schema.ResourceData) *compute.RollingUpgradePolicy {
+	if config, ok := d.GetOk("rolling_upgrade_policy.0"); ok {
+		policy := config.(map[string]interface{})
+		return &compute.RollingUpgradePolicy{
+			MaxBatchInstancePercent:             utils.Int32(int32(policy["max_batch_instance_percent"].(int))),
+			MaxUnhealthyInstancePercent:         utils.Int32(int32(policy["max_unhealthy_instance_percent"].(int))),
+			MaxUnhealthyUpgradedInstancePercent: utils.Int32(int32(policy["max_unhealthy_upgraded_instance_percent"].(int))),
+			PauseTimeBetweenBatches:             utils.String(policy["pause_time_between_batches"].(string)),
+		}
+	}
+	return nil
 }
 
 func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *compute.VirtualMachineScaleSetNetworkProfile {
@@ -2061,4 +2168,30 @@ func flattenAzureRmVirtualMachineScaleSetPlan(plan *compute.Plan) []interface{} 
 	result["product"] = *plan.Product
 
 	return []interface{}{result}
+}
+
+// When upgrade_policy_mode is not Rolling, we will just ignore rolling_upgrade_policy (returns true).
+func azureRmVirtualMachineScaleSetSuppressRollingUpgradePolicyDiff(k, old, new string, d *schema.ResourceData) bool {
+	if k == "rolling_upgrade_policy.#" && new == "0" {
+		return strings.ToLower(d.Get("upgrade_policy_mode").(string)) != "rolling"
+	}
+	return false
+}
+
+// Make sure rolling_upgrade_policy is default value when upgrade_policy_mode is not Rolling.
+func azureRmVirtualMachineScaleSetCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
+	mode := d.Get("upgrade_policy_mode").(string)
+	if strings.ToLower(mode) != "rolling" {
+		if policyRaw, ok := d.GetOk("rolling_upgrade_policy.0"); ok {
+			policy := policyRaw.(map[string]interface{})
+			isDefault := (policy["max_batch_instance_percent"].(int) == 20) &&
+				(policy["max_unhealthy_instance_percent"].(int) == 20) &&
+				(policy["max_unhealthy_upgraded_instance_percent"].(int) == 20) &&
+				(policy["pause_time_between_batches"] == "PT0S")
+			if !isDefault {
+				return fmt.Errorf("If `upgrade_policy_mode` is `%s`, `rolling_upgrade_policy` must be removed or set to default values", mode)
+			}
+		}
+	}
+	return nil
 }
