@@ -31,8 +31,8 @@ func TestAccDataSourceAzureRMApiManagementApi_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "subscription_key_parameter_names.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "subscription_key_parameter_names.0.header", "Ocp-Apim-Subscription-Key"),
 					resource.TestCheckResourceAttr(dataSourceName, "subscription_key_parameter_names.0.query", "subscription-key"),
-					resource.TestCheckResourceAttr(dataSourceName, "version", ""),
-					resource.TestCheckResourceAttr(dataSourceName, "version_set_id", ""),
+					resource.TestCheckResourceAttr(dataSourceName, "api_version", ""),
+					resource.TestCheckResourceAttr(dataSourceName, "api_version_set_id", ""),
 				),
 			},
 		},
@@ -64,6 +64,7 @@ resource "azurerm_api_management_api" "test" {
   name         = "acctestAMA-%d"
   service_name = "${azurerm_api_management.test.name}"
   path         = "api1"
+  protocols    = ["https"]
 
   import {
     content_value  = "${file("testdata/api_management_api_swagger.json")}"

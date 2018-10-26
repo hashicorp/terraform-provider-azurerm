@@ -147,7 +147,8 @@ func resourceArmApiManagementApi() *schema.Resource {
 			"revision": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Default:  1,
+				Computed: true,
+				Default:  nil,
 			},
 
 			"version": {

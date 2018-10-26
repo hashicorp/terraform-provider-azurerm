@@ -154,6 +154,7 @@ resource "azurerm_api_management_api" "test" {
   name         = "acctestAMA-%d"
   service_name = "${azurerm_api_management.test.name}"
   path         = "api1"
+  protocols    = ["https"]
 
   import {
     content_value  = "${file("testdata/api_management_api_swagger.json")}"
@@ -189,6 +190,7 @@ resource "azurerm_api_management_api" "test" {
   name         = "acctestAMA-%d"
   service_name = "${azurerm_api_management.test.name}"
   path         = "api1"
+  protocols    = ["http", "https"]
 
   import {
     content_value  = "${file("testdata/api_management_api_wsdl.xml")}"
@@ -206,8 +208,6 @@ resource "azurerm_api_management_api" "test" {
     header = "test1"
     query  = "test2"
   }
-
-  protocols = ["http", "https"]
 
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
