@@ -279,7 +279,7 @@ func testCheckAzureRMContainerRegistryExists(name string) resource.TestCheckFunc
 func testAccAzureRMContainerRegistry_basicManaged(rInt int, location string, sku string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "testAccRg-%d"
+  name     = "acctestRg-%d"
   location = "%s"
 }
 
@@ -295,7 +295,7 @@ resource "azurerm_container_registry" "test" {
 func testAccAzureRMContainerRegistry_basicUnmanaged(rInt int, rStr string, location string, sku string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "testAccRg-%d"
+  name     = "acctestRg-%d"
   location = "%s"
 }
 
@@ -320,7 +320,7 @@ resource "azurerm_container_registry" "test" {
 func testAccAzureRMContainerRegistry_complete(rInt int, rStr string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "testAccRg-%d"
+  name     = "acctestRg-%d"
   location = "%s"
 }
 
@@ -350,7 +350,7 @@ resource "azurerm_container_registry" "test" {
 func testAccAzureRMContainerRegistry_completeUpdated(rInt int, rStr string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "testAccRg-%d"
+  name     = "acctestRg-%d"
   location = "%s"
 }
 

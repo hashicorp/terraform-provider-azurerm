@@ -28,12 +28,10 @@ resource "azurerm_dev_test_lab" "test" {
   }
 }
 
-
 resource "azurerm_dev_test_virtual_network" "test" {
   name                = "example-network"
   lab_name            = "${azurerm_dev_test_lab.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
 
   subnet {
     use_public_ip_address           = "Allow"
@@ -51,8 +49,6 @@ The following arguments are supported:
 * `lab_name` - (Required) Specifies the name of the Dev Test Lab in which the Virtual Network should be created. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which the Dev Test Lab resource exists. Changing this forces a new resource to be created.
-
-* `location` - (Required) Specifies the supported Azure location where the Dev Test Lab exists. Changing this forces a new resource to be created.
 
 * `description` - (Optional) A description for the Virtual Network.
 

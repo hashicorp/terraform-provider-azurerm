@@ -17,9 +17,9 @@ Manages a custom Role Definition, used to assign Roles to Users/Principals. See 
 data "azurerm_subscription" "primary" {}
 
 resource "azurerm_role_definition" "test" {
-  name               = "my-custom-role"
-  scope              = "${data.azurerm_subscription.primary.id}"
-  description        = "This is a custom role created via Terraform"
+  name        = "my-custom-role"
+  scope       = "${data.azurerm_subscription.primary.id}"
+  description = "This is a custom role created via Terraform"
 
   permissions {
     actions     = ["*"]

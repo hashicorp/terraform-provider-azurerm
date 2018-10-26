@@ -179,6 +179,32 @@ func TestAccAzureRMRedisCache_premiumSharded(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMRedisCache_premiumShardedScaling(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMRedisCache_premiumSharded(ri, testLocation())
+	config_scaled := testAccAzureRMRedisCache_premiumShardedScaled(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRedisCacheExists("azurerm_redis_cache.test"),
+				),
+			},
+			{
+				Config: config_scaled,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRedisCacheExists("azurerm_redis_cache.test"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMRedisCache_NonStandardCasing(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMRedisCacheNonStandardCasing(ri, testLocation())
@@ -530,6 +556,31 @@ resource "azurerm_redis_cache" "test" {
     location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     capacity            = 1
+    family              = "P"
+    sku_name            = "Premium"
+    enable_non_ssl_port = true
+    shard_count         = 3
+    redis_configuration {
+      maxmemory_reserved = 2
+      maxmemory_delta    = 2
+      maxmemory_policy   = "allkeys-lru"
+    }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMRedisCache_premiumShardedScaled(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_redis_cache" "test" {
+    name                = "acctestRedis-%d"
+    location            = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    capacity            = 2
     family              = "P"
     sku_name            = "Premium"
     enable_non_ssl_port = true

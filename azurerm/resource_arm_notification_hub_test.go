@@ -90,7 +90,7 @@ func testCheckAzureRMNotificationHubDestroy(s *terraform.State) error {
 func testAzureRMNotificationHub_basic(ri int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestrgpol-%d"
+  name = "acctestRGpol-%d"
   location = "%s"
 }
 

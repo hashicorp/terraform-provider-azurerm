@@ -168,7 +168,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     client_id     = "00000000-0000-0000-0000-000000000000"
     client_secret = "00000000000000000000000000000000"
   }
- 
+
   addon_profile {
     oms_agent {
       enabled                    = true
@@ -204,7 +204,6 @@ output "docker_bridge_cidr" {
 output "pod_cidr" {
   value = "${azurerm_kubernetes_cluster.test.network_profile.0.pod_cidr}"
 }
-
 ```
 
 ## Argument Reference

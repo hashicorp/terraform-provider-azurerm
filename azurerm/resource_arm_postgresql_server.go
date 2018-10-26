@@ -443,7 +443,7 @@ func flattenPostgreSQLStorageProfile(resp *postgresql.StorageProfile) []interfac
 		values["backup_retention_days"] = *backupRetentionDays
 	}
 
-	values["geo_redundant_backup"] = postgresql.GeoRedundantBackup(resp.GeoRedundantBackup)
+	values["geo_redundant_backup"] = string(resp.GeoRedundantBackup)
 
 	return []interface{}{values}
 }

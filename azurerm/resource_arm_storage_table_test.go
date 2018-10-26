@@ -91,7 +91,9 @@ func testCheckAzureRMStorageTableExists(name string, t *storage.Table) resource.
 
 		options := &storage.QueryTablesOptions{}
 		tables, err := tableClient.QueryTables(storage.MinimalMetadata, options)
-
+		if err != nil {
+			return fmt.Errorf("Error querying Storage Table %q (storage account: %q) : %+v", name, storageAccountName, err)
+		}
 		if len(tables.Tables) == 0 {
 			return fmt.Errorf("Bad: Storage Table %q (storage account: %q) does not exist", name, storageAccountName)
 		}

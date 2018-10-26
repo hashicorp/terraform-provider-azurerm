@@ -57,18 +57,18 @@ func findLoadBalancerBackEndAddressPoolByName(lb *network.LoadBalancer, name str
 	return nil, -1, false
 }
 
-func findLoadBalancerFrontEndIpConfigurationByName(lb *network.LoadBalancer, name string) (*network.FrontendIPConfiguration, int, bool) {
+func findLoadBalancerFrontEndIpConfigurationByName(lb *network.LoadBalancer, name string) (*network.FrontendIPConfiguration, bool) {
 	if lb == nil || lb.LoadBalancerPropertiesFormat == nil || lb.LoadBalancerPropertiesFormat.FrontendIPConfigurations == nil {
-		return nil, -1, false
+		return nil, false
 	}
 
-	for i, feip := range *lb.LoadBalancerPropertiesFormat.FrontendIPConfigurations {
+	for _, feip := range *lb.LoadBalancerPropertiesFormat.FrontendIPConfigurations {
 		if feip.Name != nil && *feip.Name == name {
-			return &feip, i, true
+			return &feip, true
 		}
 	}
 
-	return nil, -1, false
+	return nil, false
 }
 
 func findLoadBalancerRuleByName(lb *network.LoadBalancer, name string) (*network.LoadBalancingRule, int, bool) {

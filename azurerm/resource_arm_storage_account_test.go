@@ -555,7 +555,7 @@ func testCheckAzureRMStorageAccountDestroy(s *terraform.State) error {
 func testAccAzureRMStorageAccount_basic(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "testAccAzureRMSA-%d"
+    name = "acctestAzureRMSA-%d"
     location = "%s"
 }
 
@@ -577,7 +577,7 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_premium(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "testAccAzureRMSA-%d"
+    name = "acctestAzureRMSA-%d"
     location = "%s"
 }
 
@@ -599,7 +599,7 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_update(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "testAccAzureRMSA-%d"
+    name = "acctestAzureRMSA-%d"
     location = "%s"
 }
 
@@ -621,7 +621,7 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_blobEncryption(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "testAccAzureRMSA-%d"
+    name = "acctestAzureRMSA-%d"
     location = "%s"
 }
 
@@ -644,7 +644,7 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_blobEncryptionDisabled(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "testAccAzureRMSA-%d"
+    name = "acctestAzureRMSA-%d"
     location = "%s"
 }
 
@@ -667,7 +667,7 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_fileEncryption(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "testAccAzureRMSA-%d"
+    name = "acctestAzureRMSA-%d"
     location = "%s"
 }
 
@@ -690,7 +690,7 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_fileEncryptionDisabled(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "testAccAzureRMSA-%d"
+    name = "acctestAzureRMSA-%d"
     location = "%s"
 }
 
@@ -713,7 +713,7 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_enableHttpsTrafficOnly(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "testAccAzureRMSA-%d"
+    name = "acctestAzureRMSA-%d"
     location = "%s"
 }
 
@@ -736,7 +736,7 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_enableHttpsTrafficOnlyDisabled(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "testAccAzureRMSA-%d"
+    name = "acctestAzureRMSA-%d"
     location = "%s"
 }
 
@@ -759,7 +759,7 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_blobStorage(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "testAccAzureRMSA-%d"
+    name = "acctestAzureRMSA-%d"
     location = "%s"
 }
 
@@ -782,7 +782,7 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_blobStorageUpdate(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "testAccAzureRMSA-%d"
+    name = "acctestAzureRMSA-%d"
     location = "%s"
 }
 
@@ -806,7 +806,7 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_storageV2(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "testAccAzureRMSA-%d"
+    name = "acctestAzureRMSA-%d"
     location = "%s"
 }
 
@@ -829,7 +829,7 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_storageV2Update(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "testAccAzureRMSA-%d"
+    name = "acctestAzureRMSA-%d"
     location = "%s"
 }
 
@@ -853,7 +853,7 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_nonStandardCasing(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "testAccAzureRMSA-%d"
+    name = "acctestAzureRMSA-%d"
     location = "%s"
 }
 resource "azurerm_storage_account" "testsa" {
@@ -872,7 +872,7 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_identity(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "testAccAzureRMSA-%d"
+    name = "acctestAzureRMSA-%d"
     location = "%s"
 }
 
@@ -898,7 +898,7 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_networkRules(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "testAccAzureRMSA-%d"
+    name = "acctestAzureRMSA-%d"
     location = "%s"
 }
 resource "azurerm_virtual_network" "test" {
@@ -935,7 +935,7 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_networkRulesUpdate(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "testAccAzureRMSA-%d"
+    name = "acctestAzureRMSA-%d"
     location = "%s"
 }
 resource "azurerm_virtual_network" "test" {

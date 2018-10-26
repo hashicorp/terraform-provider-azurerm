@@ -14,7 +14,7 @@ Use this data source to access information about an existing CDN Profile.
 
 ```hcl
 data "azurerm_cdn_profile" "test" {
-  name = "myfirstcdnprofile"
+  name                = "myfirstcdnprofile"
   resource_group_name = "example-resources"
 }
 
