@@ -82,7 +82,6 @@ func resourceArmLogAnalyticsWorkspaceLinkedServiceCreateUpdate(d *schema.Resourc
 	tags := d.Get("tags").(map[string]interface{})
 
 	parameters := operationalinsights.LinkedService{
-		// Name: &name,
 		Tags: expandTags(tags),
 		LinkedServiceProperties: &operationalinsights.LinkedServiceProperties{
 			ResourceID: &resourceID,
