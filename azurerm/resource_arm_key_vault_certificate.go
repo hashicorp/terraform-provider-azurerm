@@ -630,6 +630,8 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []inter
 			if upns := san.Upns; upns != nil {
 				sanOutput["upns"] = *upns
 			}
+			
+			sanOutputs = append(sanOutputs, sanOutput)
 		}
 
 		certProps["key_usage"] = usages
