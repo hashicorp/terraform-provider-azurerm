@@ -516,39 +516,31 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 
 				emails := san["emails"].([]interface{})
 				if len(emails) > 0 {
-					subjectAlternativeNames.Emails = expandKeyVaultSanProperty(emails)
+					subjectAlternativeNames.Emails = utils.ExpandStringArray(emails)
 				}
 
 				dnsNames := san["dns_names"].([]interface{})
 				if len(dnsNames) > 0 {
-					subjectAlternativeNames.DNSNames = expandKeyVaultSanProperty(dnsNames)
+					subjectAlternativeNames.DNSNames = utils.ExpandStringArray(dnsNames)
 				}
 
 				upns := san["upns"].([]interface{})
 				if len(upns) > 0 {
-					subjectAlternativeNames.Upns = expandKeyVaultSanProperty(upns)
+					subjectAlternativeNames.Upns = utils.ExpandStringArray(upns)
 				}
 			}
 		}
 
 		policy.X509CertificateProperties = &keyvault.X509CertificateProperties{
-			ValidityInMonths: utils.Int32(int32(cert["validity_in_months"].(int))),
-			Subject:          utils.String(cert["subject"].(string)),
-			KeyUsage:         &keyUsage,
-			Ekus:             extendedKeyUsage,
+			ValidityInMonths:        utils.Int32(int32(cert["validity_in_months"].(int))),
+			Subject:                 utils.String(cert["subject"].(string)),
+			KeyUsage:                &keyUsage,
+			Ekus:                    extendedKeyUsage,
 			SubjectAlternativeNames: subjectAlternativeNames,
 		}
 	}
 
 	return policy
-}
-
-func expandKeyVaultSanProperty(input []interface{}) *[]string {
-	properties := make([]string, len(input))
-	for i, v := range input {
-		properties[i] = fmt.Sprint(v)
-	}
-	return &properties
 }
 
 func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []interface{} {
@@ -630,7 +622,7 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []inter
 			if upns := san.Upns; upns != nil {
 				sanOutput["upns"] = *upns
 			}
-			
+
 			sanOutputs = append(sanOutputs, sanOutput)
 		}
 
@@ -640,9 +632,7 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []inter
 		if props.Ekus != nil {
 			certProps["extended_key_usage"] = props.Ekus
 		}
-					certProps["subject_alternative_names"] = sanOutputs
-			certProps["subject_alternative_names"] = []interface{}{sanOutput}
-		}
+		certProps["subject_alternative_names"] = sanOutputs
 		policy["x509_certificate_properties"] = []interface{}{certProps}
 	}
 
