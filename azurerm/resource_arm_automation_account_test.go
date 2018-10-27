@@ -24,6 +24,9 @@ func TestAccAzureRMAutomationAccount_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationAccountExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Basic"),
+					resource.TestCheckResourceAttrSet(resourceName, "dsc_server_endpoint"),
+					resource.TestCheckResourceAttrSet(resourceName, "dsc_primary_access_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "dsc_secondary_access_key"),
 				),
 			},
 			{
