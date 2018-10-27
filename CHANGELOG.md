@@ -1,5 +1,9 @@
 ## 1.18.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_log_analytics_workspace_linked_service` [GH-2139]
+
 IMPROVEMENTS:
 
 * `azurerm_key_vault_certificate` - support for setting `extended_key_usage` [GH-2128]
