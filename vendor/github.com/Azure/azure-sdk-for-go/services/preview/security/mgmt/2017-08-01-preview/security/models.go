@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/satori/go.uuid"
 	"net/http"
 )
 
@@ -2541,6 +2542,244 @@ func (essp *ExternalSecuritySolutionProperties) UnmarshalJSON(body []byte) error
 	return nil
 }
 
+// InformationProtectionKeyword the information type keyword.
+type InformationProtectionKeyword struct {
+	// Pattern - The keyword pattern.
+	Pattern *string `json:"pattern,omitempty"`
+	// Custom - Indicates whether the keyword is custom or not.
+	Custom *bool `json:"custom,omitempty"`
+	// CanBeNumeric - Indicates whether the keyword can be applied on numeric types or not.
+	CanBeNumeric *bool `json:"canBeNumeric,omitempty"`
+	// Excluded - Indicates whether the keyword is excluded or not.
+	Excluded *bool `json:"excluded,omitempty"`
+}
+
+// InformationProtectionPolicy information protection policy.
+type InformationProtectionPolicy struct {
+	autorest.Response `json:"-"`
+	// InformationProtectionPolicyProperties - Information protection policy data
+	*InformationProtectionPolicyProperties `json:"properties,omitempty"`
+	// ID - Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for InformationProtectionPolicy.
+func (ipp InformationProtectionPolicy) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ipp.InformationProtectionPolicyProperties != nil {
+		objectMap["properties"] = ipp.InformationProtectionPolicyProperties
+	}
+	if ipp.ID != nil {
+		objectMap["id"] = ipp.ID
+	}
+	if ipp.Name != nil {
+		objectMap["name"] = ipp.Name
+	}
+	if ipp.Type != nil {
+		objectMap["type"] = ipp.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for InformationProtectionPolicy struct.
+func (ipp *InformationProtectionPolicy) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var informationProtectionPolicyProperties InformationProtectionPolicyProperties
+				err = json.Unmarshal(*v, &informationProtectionPolicyProperties)
+				if err != nil {
+					return err
+				}
+				ipp.InformationProtectionPolicyProperties = &informationProtectionPolicyProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				ipp.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				ipp.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				ipp.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// InformationProtectionPolicyList information protection policies response.
+type InformationProtectionPolicyList struct {
+	autorest.Response `json:"-"`
+	// Value - List of information protection policies.
+	Value *[]InformationProtectionPolicy `json:"value,omitempty"`
+	// NextLink - The URI to fetch the next page.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// InformationProtectionPolicyListIterator provides access to a complete listing of InformationProtectionPolicy
+// values.
+type InformationProtectionPolicyListIterator struct {
+	i    int
+	page InformationProtectionPolicyListPage
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *InformationProtectionPolicyListIterator) Next() error {
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err := iter.page.Next()
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter InformationProtectionPolicyListIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter InformationProtectionPolicyListIterator) Response() InformationProtectionPolicyList {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter InformationProtectionPolicyListIterator) Value() InformationProtectionPolicy {
+	if !iter.page.NotDone() {
+		return InformationProtectionPolicy{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (ippl InformationProtectionPolicyList) IsEmpty() bool {
+	return ippl.Value == nil || len(*ippl.Value) == 0
+}
+
+// informationProtectionPolicyListPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (ippl InformationProtectionPolicyList) informationProtectionPolicyListPreparer() (*http.Request, error) {
+	if ippl.NextLink == nil || len(to.String(ippl.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare(&http.Request{},
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(ippl.NextLink)))
+}
+
+// InformationProtectionPolicyListPage contains a page of InformationProtectionPolicy values.
+type InformationProtectionPolicyListPage struct {
+	fn   func(InformationProtectionPolicyList) (InformationProtectionPolicyList, error)
+	ippl InformationProtectionPolicyList
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *InformationProtectionPolicyListPage) Next() error {
+	next, err := page.fn(page.ippl)
+	if err != nil {
+		return err
+	}
+	page.ippl = next
+	return nil
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page InformationProtectionPolicyListPage) NotDone() bool {
+	return !page.ippl.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page InformationProtectionPolicyListPage) Response() InformationProtectionPolicyList {
+	return page.ippl
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page InformationProtectionPolicyListPage) Values() []InformationProtectionPolicy {
+	if page.ippl.IsEmpty() {
+		return nil
+	}
+	return *page.ippl.Value
+}
+
+// InformationProtectionPolicyProperties describes properties of an information protection policy.
+type InformationProtectionPolicyProperties struct {
+	// LastModifiedUtc - Describes the last UTC time the policy was modified.
+	LastModifiedUtc *date.Time `json:"lastModifiedUtc,omitempty"`
+	// Labels - Dictionary of sensitivity labels.
+	Labels map[string]*SensitivityLabel `json:"labels"`
+	// InformationTypes - The sensitivity information types.
+	InformationTypes map[string]*InformationType `json:"informationTypes"`
+}
+
+// MarshalJSON is the custom marshaler for InformationProtectionPolicyProperties.
+func (ippp InformationProtectionPolicyProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ippp.LastModifiedUtc != nil {
+		objectMap["lastModifiedUtc"] = ippp.LastModifiedUtc
+	}
+	if ippp.Labels != nil {
+		objectMap["labels"] = ippp.Labels
+	}
+	if ippp.InformationTypes != nil {
+		objectMap["informationTypes"] = ippp.InformationTypes
+	}
+	return json.Marshal(objectMap)
+}
+
+// InformationType the information type.
+type InformationType struct {
+	// DisplayName - The name of the information type.
+	DisplayName *string `json:"displayName,omitempty"`
+	// Order - The order of the information type.
+	Order *float64 `json:"order,omitempty"`
+	// RecommendedLabelID - The recommended label id to be associated with this information type.
+	RecommendedLabelID *uuid.UUID `json:"recommendedLabelId,omitempty"`
+	// Enabled - Indicates whether the information type is enabled or not.
+	Enabled *bool `json:"enabled,omitempty"`
+	// Custom - Indicates whether the information type is custom or not.
+	Custom *bool `json:"custom,omitempty"`
+	// Keywords - The information type keywords.
+	Keywords *[]InformationProtectionKeyword `json:"keywords,omitempty"`
+}
+
 // JitNetworkAccessPoliciesList ...
 type JitNetworkAccessPoliciesList struct {
 	autorest.Response `json:"-"`
@@ -3172,6 +3411,16 @@ type Resource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// SensitivityLabel the sensitivity label.
+type SensitivityLabel struct {
+	// DisplayName - The name of the sensitivity label.
+	DisplayName *string `json:"displayName,omitempty"`
+	// Order - The order of the sensitivity label.
+	Order *float64 `json:"order,omitempty"`
+	// Enabled - Indicates whether the label is enabled or not.
+	Enabled *bool `json:"enabled,omitempty"`
+}
+
 // BasicSetting represents a security setting in Azure Security Center.
 type BasicSetting interface {
 	AsDataExportSetting() (*DataExportSetting, bool)
@@ -3668,6 +3917,242 @@ type TaskProperties struct {
 	LastStateChangeTimeUtc *date.Time `json:"lastStateChangeTimeUtc,omitempty"`
 	// SubState - Additional data on the state of the task
 	SubState *string `json:"subState,omitempty"`
+}
+
+// TopologyList ...
+type TopologyList struct {
+	autorest.Response `json:"-"`
+	Value             *[]TopologyResource `json:"value,omitempty"`
+	// NextLink - The URI to fetch the next page.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// TopologyListIterator provides access to a complete listing of TopologyResource values.
+type TopologyListIterator struct {
+	i    int
+	page TopologyListPage
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *TopologyListIterator) Next() error {
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err := iter.page.Next()
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter TopologyListIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter TopologyListIterator) Response() TopologyList {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter TopologyListIterator) Value() TopologyResource {
+	if !iter.page.NotDone() {
+		return TopologyResource{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (tl TopologyList) IsEmpty() bool {
+	return tl.Value == nil || len(*tl.Value) == 0
+}
+
+// topologyListPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (tl TopologyList) topologyListPreparer() (*http.Request, error) {
+	if tl.NextLink == nil || len(to.String(tl.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare(&http.Request{},
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(tl.NextLink)))
+}
+
+// TopologyListPage contains a page of TopologyResource values.
+type TopologyListPage struct {
+	fn func(TopologyList) (TopologyList, error)
+	tl TopologyList
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *TopologyListPage) Next() error {
+	next, err := page.fn(page.tl)
+	if err != nil {
+		return err
+	}
+	page.tl = next
+	return nil
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page TopologyListPage) NotDone() bool {
+	return !page.tl.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page TopologyListPage) Response() TopologyList {
+	return page.tl
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page TopologyListPage) Values() []TopologyResource {
+	if page.tl.IsEmpty() {
+		return nil
+	}
+	return *page.tl.Value
+}
+
+// TopologyResource ...
+type TopologyResource struct {
+	autorest.Response `json:"-"`
+	// ID - Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - Resource type
+	Type *string `json:"type,omitempty"`
+	// Location - Location where the resource is stored
+	Location                    *string `json:"location,omitempty"`
+	*TopologyResourceProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TopologyResource.
+func (tr TopologyResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if tr.ID != nil {
+		objectMap["id"] = tr.ID
+	}
+	if tr.Name != nil {
+		objectMap["name"] = tr.Name
+	}
+	if tr.Type != nil {
+		objectMap["type"] = tr.Type
+	}
+	if tr.Location != nil {
+		objectMap["location"] = tr.Location
+	}
+	if tr.TopologyResourceProperties != nil {
+		objectMap["properties"] = tr.TopologyResourceProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for TopologyResource struct.
+func (tr *TopologyResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				tr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				tr.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				tr.Type = &typeVar
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				tr.Location = &location
+			}
+		case "properties":
+			if v != nil {
+				var topologyResourceProperties TopologyResourceProperties
+				err = json.Unmarshal(*v, &topologyResourceProperties)
+				if err != nil {
+					return err
+				}
+				tr.TopologyResourceProperties = &topologyResourceProperties
+			}
+		}
+	}
+
+	return nil
+}
+
+// TopologyResourceProperties ...
+type TopologyResourceProperties struct {
+	// CalculatedDateTime - The UTC time on which the topology was calculated
+	CalculatedDateTime *date.Time `json:"calculatedDateTime,omitempty"`
+	// TopologyResources - Azure resources which are part of this topology resource
+	TopologyResources *[]TopologySingleResource `json:"topologyResources,omitempty"`
+}
+
+// TopologySingleResource ...
+type TopologySingleResource struct {
+	// ResourceID - Azure resource id
+	ResourceID *string `json:"resourceId,omitempty"`
+	// Severity - The security severity of the resource
+	Severity *string `json:"severity,omitempty"`
+	// RecommendationsExist - Indicates if the resource has security recommendations
+	RecommendationsExist *bool `json:"recommendationsExist,omitempty"`
+	// NetworkZones - Indicates the resource connectivity level to the Internet (InternetFacing, Internal ,etc.)
+	NetworkZones *string `json:"networkZones,omitempty"`
+	// TopologyScore - Score of the resource based on its security severity
+	TopologyScore *int32 `json:"topologyScore,omitempty"`
+	// Location - The location of this resource
+	Location *string `json:"location,omitempty"`
+	// Parents - Azure resources connected to this resource which are in higher level in the topology view
+	Parents *[]TopologySingleResourceParent `json:"parents,omitempty"`
+	// Children - Azure resources connected to this resource which are in lower level in the topology view
+	Children *[]TopologySingleResourceChild `json:"children,omitempty"`
+}
+
+// TopologySingleResourceChild ...
+type TopologySingleResourceChild struct {
+	// ResourceID - Azure resource id which serves as child resource in topology view
+	ResourceID *string `json:"resourceId,omitempty"`
+}
+
+// TopologySingleResourceParent ...
+type TopologySingleResourceParent struct {
+	// ResourceID - Azure resource id which serves as parent resource in topology view
+	ResourceID *string `json:"resourceId,omitempty"`
 }
 
 // WorkspaceSetting configures where to store the OMS agent data for workspaces under a scope
