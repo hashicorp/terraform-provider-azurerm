@@ -618,6 +618,7 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []inter
 
 		sanOutputs := make([]interface{}, 0)
 		if san := props.SubjectAlternativeNames; san != nil {
+			sanOutput := make(map[string]interface{}, 0)
 			if emails := san.Emails; emails != nil {
 				sanOutput["emails"] = *emails
 			}
