@@ -640,7 +640,7 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []inter
 		if props.Ekus != nil {
 			certProps["extended_key_usage"] = props.Ekus
 		}
-		if len(sanOutput) > 0 {
+					certProps["subject_alternative_names"] = sanOutputs
 			certProps["subject_alternative_names"] = []interface{}{sanOutput}
 		}
 		policy["x509_certificate_properties"] = []interface{}{certProps}
