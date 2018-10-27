@@ -10,20 +10,20 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccAzureRMLogAnalyticsLinkedService_requiredOnly(t *testing.T) {
-	resourceName := "azurerm_log_analytics_linked_service.test"
+func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_requiredOnly(t *testing.T) {
+	resourceName := "azurerm_log_analytics_workspace_linked_service.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMLogAnalyticsLinkedServiceRequiredOnly(ri, testLocation())
+	config := testAccAzureRMLogAnalyticsWorkspaceLinkedServiceRequiredOnly(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
+		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsLinkedServiceExists(resourceName),
+					testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctestworkspace-%d/Automation", ri)),
 					resource.TestCheckResourceAttr(resourceName, "workspace_name", fmt.Sprintf("acctestworkspace-%d", ri)),
 					resource.TestCheckResourceAttr(resourceName, "linked_service_name", "automation"),
@@ -33,20 +33,20 @@ func TestAccAzureRMLogAnalyticsLinkedService_requiredOnly(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogAnalyticsLinkedService_optionalArguments(t *testing.T) {
-	resourceName := "azurerm_log_analytics_linked_service.test"
+func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_optionalArguments(t *testing.T) {
+	resourceName := "azurerm_log_analytics_workspace_linked_service.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMLogAnalyticsLinkedServiceOptionalArguments(ri, testLocation())
+	config := testAccAzureRMLogAnalyticsWorkspaceLinkedServiceOptionalArguments(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
+		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsLinkedServiceExists(resourceName),
+					testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "linked_service_name", "automation"),
 				),
 			},
@@ -54,12 +54,12 @@ func TestAccAzureRMLogAnalyticsLinkedService_optionalArguments(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMLogAnalyticsLinkedServiceDestroy(s *terraform.State) error {
+func testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).linkedServicesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_log_analytics_linked_service" {
+		if rs.Type != "azurerm_log_analytics_workspace_linked_service" {
 			continue
 		}
 
@@ -85,7 +85,7 @@ func testCheckAzureRMLogAnalyticsLinkedServiceDestroy(s *terraform.State) error 
 	return nil
 }
 
-func testCheckAzureRMLogAnalyticsLinkedServiceExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
@@ -118,7 +118,55 @@ func testCheckAzureRMLogAnalyticsLinkedServiceExists(name string) resource.TestC
 	}
 }
 
-func testAccAzureRMLogAnalyticsLinkedServiceRequiredOnly(rInt int, location string) string {
+func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_importRequiredOnly(t *testing.T) {
+	resourceName := "azurerm_log_analytics_workspace_linked_service.test"
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMLogAnalyticsWorkspaceLinkedServiceRequiredOnly(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_importOptionalArguments(t *testing.T) {
+	resourceName := "azurerm_log_analytics_workspace_linked_service.test"
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMLogAnalyticsWorkspaceLinkedServiceOptionalArguments(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testAccAzureRMLogAnalyticsWorkspaceLinkedServiceRequiredOnly(rInt int, location string) string {
 	return fmt.Sprintf(`
 	resource "azurerm_resource_group" "test" {
 		name     = "acctestresourcegroup-%d"
@@ -147,7 +195,7 @@ func testAccAzureRMLogAnalyticsLinkedServiceRequiredOnly(rInt int, location stri
 		retention_in_days   = 30
 	}
 
-	resource "azurerm_log_analytics_linked_service" "test" {
+	resource "azurerm_log_analytics_workspace_linked_service" "test" {
 		resource_group_name = "${azurerm_resource_group.test.name}"
 		workspace_name      = "${azurerm_log_analytics_workspace.test.name}"
 
@@ -159,7 +207,7 @@ func testAccAzureRMLogAnalyticsLinkedServiceRequiredOnly(rInt int, location stri
 `, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMLogAnalyticsLinkedServiceOptionalArguments(rInt int, location string) string {
+func testAccAzureRMLogAnalyticsWorkspaceLinkedServiceOptionalArguments(rInt int, location string) string {
 	return fmt.Sprintf(`
 	resource "azurerm_resource_group" "test" {
 		name     = "acctestresourcegroup-%d"
@@ -188,7 +236,7 @@ func testAccAzureRMLogAnalyticsLinkedServiceOptionalArguments(rInt int, location
 		retention_in_days   = 30
 	}
 
-	resource "azurerm_log_analytics_linked_service" "test" {
+	resource "azurerm_log_analytics_workspace_linked_service" "test" {
 		resource_group_name = "${azurerm_resource_group.test.name}"
 		workspace_name      = "${azurerm_log_analytics_workspace.test.name}"
 		linked_service_name = "automation"

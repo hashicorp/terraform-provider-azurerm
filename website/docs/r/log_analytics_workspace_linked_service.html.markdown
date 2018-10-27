@@ -1,12 +1,12 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_log_analytics_linked_service"
-sidebar_current: "docs-azurerm-resource-oms-log-analytics-linked-service"
+page_title: "Azure Resource Manager: azurerm_log_analytics_workspace_linked_service"
+sidebar_current: "docs-azurerm-resource-oms-log-analytics-workspace-linked-service"
 description: |-
   Manages a Log Analytics (formally Operational Insights) Linked Service.
 ---
 
-# azurerm_log_analytics_linked_service
+# azurerm_log_analytics_workspace_linked_service
 
 Links a Log Analytics (formally Operational Insights) Workspace to another resource. The (currently) only linkable service is an Azure Automation Account.
 
@@ -40,7 +40,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   retention_in_days   = 30
 }
 
-resource "azurerm_log_analytics_linked_service" "test" {
+resource "azurerm_log_analytics_workspace_linked_service" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   workspace_name      = "${azurerm_log_analytics_workspace.test.name}"
 
@@ -68,7 +68,6 @@ The following arguments are supported:
 
 * `resource_id` - (Required) The resource id of the resource that will be linked to the workspace.
 
-
 ## Attributes Reference
 
 The following attributes are exported:
@@ -82,5 +81,5 @@ The following attributes are exported:
 Log Analytics Workspaces can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_log_analytics_linked_service.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/linkedservices/automation
+terraform import azurerm_log_analytics_workspace_linked_service.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/linkedservices/automation
 ```
