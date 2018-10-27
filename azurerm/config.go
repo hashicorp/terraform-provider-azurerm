@@ -86,14 +86,15 @@ type ArmClient struct {
 
 	cosmosDBClient documentdb.DatabaseAccountsClient
 
-	automationAccountClient              automation.AccountClient
-	automationCredentialClient           automation.CredentialClient
-	automationDscConfigurationClient     automation.DscConfigurationClient
-	automationDscNodeConfigurationClient automation.DscNodeConfigurationClient
-	automationModuleClient               automation.ModuleClient
-	automationRunbookClient              automation.RunbookClient
-	automationRunbookDraftClient         automation.RunbookDraftClient
-	automationScheduleClient             automation.ScheduleClient
+	automationAccountClient               automation.AccountClient
+	automationAgentRegistrationInfoClient automation.AgentRegistrationInformationClient
+	automationCredentialClient            automation.CredentialClient
+	automationDscConfigurationClient      automation.DscConfigurationClient
+	automationDscNodeConfigurationClient  automation.DscNodeConfigurationClient
+	automationModuleClient                automation.ModuleClient
+	automationRunbookClient               automation.RunbookClient
+	automationRunbookDraftClient          automation.RunbookDraftClient
+	automationScheduleClient              automation.ScheduleClient
 
 	dnsClient   dns.RecordSetsClient
 	zonesClient dns.ZonesClient
@@ -550,6 +551,10 @@ func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, a
 	accountClient := automation.NewAccountClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&accountClient.Client, auth)
 	c.automationAccountClient = accountClient
+
+	agentRegistrationInfoClient := automation.NewAgentRegistrationInformationClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&agentRegistrationInfoClient.Client, auth)
+	c.automationAgentRegistrationInfoClient = agentRegistrationInfoClient
 
 	credentialClient := automation.NewCredentialClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&credentialClient.Client, auth)
