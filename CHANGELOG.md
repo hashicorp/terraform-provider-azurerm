@@ -1,10 +1,16 @@
 ## 1.18.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_log_analytics_workspace_linked_service` [GH-2139]
+
 IMPROVEMENTS:
 
-* `azurerm_key_vault_certificate` - adding the `eku` property [GH-2128]
-* `azurerm_monitor_activity_log_alert` - add criteria fields `resource_provider`, `resource_type`, `resource_group` [GH-2150]
-* `azurerm_virtual_network_gateway` - support for `OpenVP`N as a client protocol option [GH-2126]
+* `azurerm_key_vault_certificate` - support for setting `extended_key_usage` [GH-2128]
+* `azurerm_monitor_activity_log_alert` - support the criteria fields `resource_provider`, `resource_type`, `resource_group` [GH-2150]
+* `azurerm_virtual_network_gateway` - support for `OpenVPN` as a client protocol option [GH-2126]
+* `azurerm_virtual_machine_scale_set` - support for the `application_security_group_ids` property of `ip_configuration`  [GH-2009]
+* `azurerm_virtual_machine_scale_set` - support for a Rolling Upgrade Policy with Automatic OS upgrades [GH-922]
 
 BUG FIXES:
 
