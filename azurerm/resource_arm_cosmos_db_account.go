@@ -757,7 +757,7 @@ func expandAzureRmCosmosDBAccountGeoLocations(databaseName string, d *schema.Res
 	for _, location := range locations {
 
 		priority := int(*location.FailoverPriority)
-		name := string(*location.LocationName)
+		name := *location.LocationName
 
 		if _, ok := byPriorities[priority]; ok {
 			return nil, fmt.Errorf("Each `geo_location` needs to have a unique failover_prioroty. Multiple instances of '%d' found", priority)

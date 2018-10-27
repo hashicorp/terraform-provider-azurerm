@@ -427,19 +427,16 @@ func flattenAzureRmContainerServiceDiagnosticsProfile(profile *containerservice.
 
 func expandAzureRmContainerServiceDiagnostics(d *schema.ResourceData) containerservice.DiagnosticsProfile {
 	configs := d.Get("diagnostics_profile").(*schema.Set).List()
-	profile := containerservice.DiagnosticsProfile{}
 
 	data := configs[0].(map[string]interface{})
 
 	enabled := data["enabled"].(bool)
 
-	profile = containerservice.DiagnosticsProfile{
+	return containerservice.DiagnosticsProfile{
 		VMDiagnostics: &containerservice.VMDiagnostics{
 			Enabled: &enabled,
 		},
 	}
-
-	return profile
 }
 
 func expandAzureRmContainerServiceLinuxProfile(d *schema.ResourceData) containerservice.LinuxProfile {

@@ -14,14 +14,15 @@ Manages a Automation Runbook.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
- name = "resourceGroup1"
- location = "West Europe"
+  name     = "resourceGroup1"
+  location = "West Europe"
 }
 
 resource "azurerm_automation_account" "example" {
   name                = "account1"
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
+
   sku {
     name = "Basic"
   }
@@ -36,6 +37,7 @@ resource "azurerm_automation_runbook" "example" {
   log_progress        = "true"
   description         = "This is an example runbook"
   runbook_type        = "PowerShellWorkflow"
+
   publish_content_link {
     uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
   }
@@ -46,14 +48,15 @@ resource "azurerm_automation_runbook" "example" {
 
 ```hcl
 resource "azurerm_resource_group" "example" {
- name = "resourceGroup1"
- location = "West Europe"
+  name     = "resourceGroup1"
+  location = "West Europe"
 }
 
 resource "azurerm_automation_account" "example" {
   name                = "account1"
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
+
   sku {
     name = "Basic"
   }
@@ -72,10 +75,12 @@ resource "azurerm_automation_runbook" "example" {
   log_progress        = "true"
   description         = "This is an example runbook"
   runbook_type        = "PowerShell"
+
   publish_content_link {
     uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
   }
-  content             = "${data.local_file.example.content}"
+
+  content = "${data.local_file.example.content}"
 }
 ```
 

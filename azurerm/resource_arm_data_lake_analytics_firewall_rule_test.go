@@ -5,10 +5,11 @@ import (
 	"net/http"
 	"testing"
 
+	"strconv"
+
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"strconv"
 )
 
 func TestAccAzureRMDataLakeAnalyticsFirewallRule_basic(t *testing.T) {

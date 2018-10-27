@@ -28,7 +28,6 @@ resource "azurerm_databricks_workspace" "test" {
     Environment = "Production"
   }
 }
-
 ```
 
 ## Argument Reference

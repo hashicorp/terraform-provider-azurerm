@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 //todo, now in terraform helper, switch over once vended
@@ -45,4 +46,33 @@ func RFC3339DateInFutureBy(d time.Duration) schema.SchemaValidateFunc {
 
 		return
 	}
+}
+
+func DayOfTheWeek(ignoreCase bool) schema.SchemaValidateFunc {
+	return validation.StringInSlice([]string{
+		"Monday",
+		"Tuesday",
+		"Wednesday",
+		"Thursday",
+		"Friday",
+		"Saturday",
+		"Sunday",
+	}, ignoreCase)
+}
+
+func Month(ignoreCase bool) schema.SchemaValidateFunc {
+	return validation.StringInSlice([]string{
+		"January",
+		"February",
+		"March",
+		"April",
+		"May",
+		"June",
+		"July",
+		"August",
+		"September",
+		"October",
+		"November",
+		"December",
+	}, ignoreCase)
 }
