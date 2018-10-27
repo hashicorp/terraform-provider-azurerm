@@ -490,7 +490,7 @@ func TestAccAzureRMCosmosDBAccount_multiMaster(t *testing.T) {
 			{
 				Config: testAccAzureRMCosmosDBAccount_multiMaster(ri, testLocation(), testAltLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 2),
 					resource.TestCheckResourceAttr(resourceName, "enable_multiple_write_locations", "true"),
 				),
 			},
