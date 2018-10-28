@@ -513,21 +513,23 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 		if v, ok := cert["subject_alternative_names"]; ok {
 
 			if sans := v.([]interface{}); len(sans) > 0 {
-				san := sans[0].(map[string]interface{})
+				if sans[0] != nil {
+					san := sans[0].(map[string]interface{})
 
-				emails := san["emails"].([]interface{})
-				if len(emails) > 0 {
-					subjectAlternativeNames.Emails = utils.ExpandStringArray(emails)
-				}
+					emails := san["emails"].([]interface{})
+					if len(emails) > 0 {
+						subjectAlternativeNames.Emails = utils.ExpandStringArray(emails)
+					}
 
-				dnsNames := san["dns_names"].([]interface{})
-				if len(dnsNames) > 0 {
-					subjectAlternativeNames.DNSNames = utils.ExpandStringArray(dnsNames)
-				}
+					dnsNames := san["dns_names"].([]interface{})
+					if len(dnsNames) > 0 {
+						subjectAlternativeNames.DNSNames = utils.ExpandStringArray(dnsNames)
+					}
 
-				upns := san["upns"].([]interface{})
-				if len(upns) > 0 {
-					subjectAlternativeNames.Upns = utils.ExpandStringArray(upns)
+					upns := san["upns"].([]interface{})
+					if len(upns) > 0 {
+						subjectAlternativeNames.Upns = utils.ExpandStringArray(upns)
+					}
 				}
 			}
 		}
