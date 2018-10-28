@@ -613,15 +613,15 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []inter
 		if san := props.SubjectAlternativeNames; san != nil {
 			sanOutput := make(map[string]interface{}, 0)
 			if emails := san.Emails; emails != nil {
-				sanOutput["emails"] = *emails
+				sanOutput["emails"] = utils.FlattenStringArray(san.Emails)
 			}
 
 			if dnsNames := san.DNSNames; dnsNames != nil {
-				sanOutput["dns_names"] = *dnsNames
+				sanOutput["dns_names"] = utils.FlattenStringArray(san.DNSNames)
 			}
 
 			if upns := san.Upns; upns != nil {
-				sanOutput["upns"] = *upns
+				sanOutput["upns"] = utils.FlattenStringArray(san.Upns)
 			}
 
 			sanOutputs = append(sanOutputs, sanOutput)
