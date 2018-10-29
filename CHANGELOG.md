@@ -2,8 +2,8 @@
 
 FEATURES:
 
-* **New Resource:** `azurerm_log_analytics_workspace_linked_service` [GH-2139]
 * **New Resource:** `azurerm_devspace_controller` [GH-2086]
+* **New Resource:** `azurerm_log_analytics_workspace_linked_service` [GH-2139]
 
 IMPROVEMENTS:
 
