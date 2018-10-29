@@ -14,14 +14,15 @@ Manages a Automation Schedule.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
- name     = "tfex-automation-account"
- location = "West Europe"
+  name     = "tfex-automation-account"
+  location = "West Europe"
 }
 
 resource "azurerm_automation_account" "example" {
   name                = "tfex-automation-account"
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
+
   sku {
     name = "Basic"
   }

@@ -1,4 +1,31 @@
 ## 1.18.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource:** `azurerm_devspace_controller` [GH-2086]
+* **New Resource:** `azurerm_log_analytics_workspace_linked_service` [GH-2139]
+
+IMPROVEMENTS:
+
+* dependencies: upgrading to v21.3.0 of `github.com/Azure/azure-sdk-for-go` [GH-2163]
+* authentication: using the Proxy from the Environment, if set [GH-2133]
+* `azurerm_automation_account` - exposing `dsc_server_endpoint`, `dsc_primary_access_key`, `dsc_secondary_access_key` properties [GH-2166] 
+* `azurerm_automation_account` - support for the `free` SKU [GH-2166] 
+* `azurerm_cosmosdb_account` - support for the `enable_multiple_write_locations` property [GH-2109] 
+* `azurerm_key_vault_certificate` - support for setting `extended_key_usage` [GH-2128]
+* `azurerm_monitor_activity_log_alert` - support the criteria fields `resource_provider`, `resource_type`, `resource_group` [GH-2150]
+* `azurerm_virtual_network_gateway` - support for `OpenVPN` as a client protocol option [GH-2126]
+* `azurerm_virtual_machine_scale_set` - support for the `application_security_group_ids` property of `ip_configuration`  [GH-2009]
+* `azurerm_virtual_machine_scale_set` - support for a Rolling Upgrade Policy with Automatic OS upgrades [GH-922]
+
+BUG FIXES:
+
+* security: removing the `Authorization` header from the debug logs [GH-2131]
+* `azurerm_function_app` - correctly marking the resource as missing upon manual deletion [GH-2111]
+* `azurerm_kubernetes_cluster` - changing `os_disk_size_gb` to computed as the API now returns a valid default [GH-2117]
+* `azurerm_public_ip` - `domain_name_label` validation now allows 63 characters [GH-2122]
+
+
 ## 1.17.0 (October 18, 2018)
 
 UPGRADE NOTES:
@@ -310,7 +337,7 @@ IMPROVEMENTS:
 * `azurerm_cosmosdb_account` - checking to see if the name is in use before creating ([#1464](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1464))
 * `azurerm_cosmosdb_account` - fixing the validation on the `ip_range_filter` field ([#1463](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1463))
 * `azurerm_dns_zone` - support for Private DNS Zones ([#1404](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1404))
-* `azurerm_image` - change os_disk property to a list and add addtional property validation ([#1443](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1443))
+* `azurerm_image` - change os_disk property to a list and add additional property validation ([#1443](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1443))
 * `azurerm_lb` - allow `private_ip_address` to be set to an empty value ([#1481](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1481))
 * `azurerm_mysql_server` - changing the `storage_mb` property no longer forces a new resource ([#1532](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1532))
 * `azurerm_postgresql_server` - changing the `storage_mb` property no longer forces a new resource ([#1532](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1532))
@@ -341,13 +368,13 @@ IMPROVEMENTS:
 
 * dependencies: upgrading to v10.11.4 of `Azure/go-autorest` ([#1418](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1418))
 * dependencies: upgrading to v17.4.0 of `Azure/azure-sdk-for-go` ([#1418](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1418))
-* `azurerm_lb` - addtional validation on properties ([#1403](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1403))
+* `azurerm_lb` - additional validation on properties ([#1403](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1403))
 * `azurerm_application_gateway` - support for the `match` block for Probes ([#1446](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1446))
 * `azurerm_log_analytics_solution` - support for Sovereign Clouds ([#1410](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1410))
 * `azurerm_log_analytics_workspace` - support for Sovereign Clouds ([#1410](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1410))
 * `azurerm_log_analytics_workspace` - support for the `PerGB2018` SKU ([#1079](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1079))
 * `azurerm_mysql_server` -  `GeneralPurpose` and `MemoryOptimized` sku tiers now allow 4tb for the `storage_mb` property ([#1449](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1449))
-* `azurerm_network_interface` - addtional validation on properties ([#1403](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1403))
+* `azurerm_network_interface` - additional validation on properties ([#1403](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1403))
 * `azurerm_postgresql_server` -  `GeneralPurpose` and `MemoryOptimized` sku tiers now allow 4tb for the `storage_mb` property ([#1449](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1449))
 * `azurerm_postgresql_server` - adding support for version 10.0 ([#1457](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1457))
 * `azurerm_route_table` - adding the  disable BGP propagation property ([#1435](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1435))

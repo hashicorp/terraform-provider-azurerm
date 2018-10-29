@@ -123,6 +123,11 @@ func dataSourceArmCosmosDBAccount() *schema.Resource {
 				},
 			},
 
+			"enable_multiple_write_locations": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
 			"endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -244,6 +249,8 @@ func dataSourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) 
 			}
 		}
 		d.Set("write_endpoints", writeEndpoints)
+
+		d.Set("enable_multiple_write_locations", resp.EnableMultipleWriteLocations)
 	}
 
 	keys, err := client.ListKeys(ctx, resourceGroup, name)

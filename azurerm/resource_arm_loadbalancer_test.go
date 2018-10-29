@@ -345,46 +345,6 @@ resource "azurerm_lb" "test" {
 }`, rInt, location, rInt, rInt, rInt, rInt, rInt)
 }
 
-func testAccAzureRMLoadBalancer_frontEndConfig_withZone(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-    name = "acctvn-%d"
-    address_space = ["10.0.0.0/16"]
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_subnet" "test" {
-    name = "acctsub-%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_network_name = "${azurerm_virtual_network.test.name}"
-    address_prefix = "10.0.2.0/24"
-}
-
-resource "azurerm_lb" "test" {
-    name = "arm-test-loadbalancer-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-
-    frontend_ip_configuration {
-      name = "one-%d"
-      subnet_id = "${azurerm_subnet.test.id}"
-      zones = ["1"]
-    }
-
-    frontend_ip_configuration {
-      name = "two-%d"
-      subnet_id = "${azurerm_subnet.test.id}"
-      zones = ["1"]
-    }
-}`, rInt, location, rInt, rInt, rInt, rInt, rInt)
-}
-
 func testAccAzureRMLoadBalancer_frontEndConfigRemovalWithIP(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {

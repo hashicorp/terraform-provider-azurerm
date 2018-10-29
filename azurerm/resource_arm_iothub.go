@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"time"
 
+	"strings"
+
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2018-04-01/devices"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -14,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"strings"
 )
 
 func resourceArmIotHub() *schema.Resource {

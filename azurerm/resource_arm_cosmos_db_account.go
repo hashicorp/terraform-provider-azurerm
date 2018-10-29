@@ -228,6 +228,12 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 				Set: resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash,
 			},
 
+			"enable_multiple_write_locations": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			//computed
 			"endpoint": {
 				Type:     schema.TypeString,
@@ -300,6 +306,7 @@ func resourceArmCosmosDBAccountCreate(d *schema.ResourceData, meta interface{}) 
 	ipRangeFilter := d.Get("ip_range_filter").(string)
 	isVirtualNetworkFilterEnabled := d.Get("is_virtual_network_filter_enabled").(bool)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
+	enableMultipleWriteLocations := d.Get("enable_multiple_write_locations").(bool)
 
 	r, err := client.CheckNameExists(ctx, name)
 	if err != nil {
@@ -338,6 +345,7 @@ func resourceArmCosmosDBAccountCreate(d *schema.ResourceData, meta interface{}) 
 			Locations:                     &geoLocations,
 			Capabilities:                  expandAzureRmCosmosDBAccountCapabilities(d),
 			VirtualNetworkRules:           expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
+			EnableMultipleWriteLocations:  utils.Bool(enableMultipleWriteLocations),
 		},
 		Tags: expandTags(tags),
 	}
@@ -373,6 +381,7 @@ func resourceArmCosmosDBAccountUpdate(d *schema.ResourceData, meta interface{}) 
 	ipRangeFilter := d.Get("ip_range_filter").(string)
 	isVirtualNetworkFilterEnabled := d.Get("is_virtual_network_filter_enabled").(bool)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
+	enableMultipleWriteLocations := d.Get("enable_multiple_write_locations").(bool)
 
 	//hacky, todo fix up once deprecated field 'failover_policy' is removed
 	var newLocations []documentdb.Location
@@ -425,6 +434,7 @@ func resourceArmCosmosDBAccountUpdate(d *schema.ResourceData, meta interface{}) 
 			ConsistencyPolicy:             expandAzureRmCosmosDBAccountConsistencyPolicy(d),
 			Locations:                     &oldLocations,
 			VirtualNetworkRules:           expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
+			EnableMultipleWriteLocations:  utils.Bool(enableMultipleWriteLocations),
 		},
 		Tags: expandTags(tags),
 	}
@@ -528,6 +538,10 @@ func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) er
 
 	if v := resp.EnableAutomaticFailover; v != nil {
 		d.Set("enable_automatic_failover", resp.EnableAutomaticFailover)
+	}
+
+	if v := resp.EnableMultipleWriteLocations; v != nil {
+		d.Set("enable_multiple_write_locations", resp.EnableMultipleWriteLocations)
 	}
 
 	if err := d.Set("consistency_policy", flattenAzureRmCosmosDBAccountConsistencyPolicy(resp.ConsistencyPolicy)); err != nil {
@@ -743,7 +757,7 @@ func expandAzureRmCosmosDBAccountGeoLocations(databaseName string, d *schema.Res
 	for _, location := range locations {
 
 		priority := int(*location.FailoverPriority)
-		name := string(*location.LocationName)
+		name := *location.LocationName
 
 		if _, ok := byPriorities[priority]; ok {
 			return nil, fmt.Errorf("Each `geo_location` needs to have a unique failover_prioroty. Multiple instances of '%d' found", priority)

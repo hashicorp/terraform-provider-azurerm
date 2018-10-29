@@ -55,11 +55,13 @@ The following attributes are exported:
 
 * `virtual_network_rule` - Subnets that are allowed to access this CosmosDB account.
 
+* `enable_multiple_write_locations` - If multi-master is enabled for this Cosmos DB account.
+
 `consistency_policy` The current consistency Settings for this CosmosDB account with the following properties:
 
 * `consistency_level` - The Consistency Level used by this CosmosDB Account.
 * `max_interval_in_seconds` - The amount of staleness (in seconds) tolerated when the consistency level is Bounded Staleness.
-* `max_staleness_prefix` - The number of stale requests tolerated when the consistency level is Bounded Staleness.  
+* `max_staleness_prefix` - The number of stale requests tolerated when the consistency level is Bounded Staleness.
 
 
 `geo_location` The geographic locations data is replicated to with the following properties:

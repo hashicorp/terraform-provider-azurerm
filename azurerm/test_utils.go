@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+
 	"github.com/hashicorp/terraform/terraform"
 )
 

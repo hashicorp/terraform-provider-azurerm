@@ -1,4 +1,4 @@
-package dns
+package devspaces
 
 import "github.com/Azure/azure-sdk-for-go/version"
 
@@ -21,7 +21,7 @@ import "github.com/Azure/azure-sdk-for-go/version"
 
 // UserAgent returns the UserAgent string to use when sending http.Requests.
 func UserAgent() string {
-	return "Azure-SDK-For-Go/" + version.Number + " dns/2016-04-01"
+	return "Azure-SDK-For-Go/" + version.Number + " devspaces/2018-06-01-preview"
 }
 
 // Version returns the semantic version (see http://semver.org) of the client.

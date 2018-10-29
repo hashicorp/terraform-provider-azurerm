@@ -435,7 +435,7 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 			secEnvVars = expandContainerEnvironmentVariables(v, true)
 		}
 
-		// Combine environment variabel slices
+		// Combine environment variable slices
 		*envVars = append(*envVars, *secEnvVars...)
 
 		// Set both secure and non secure environment variables

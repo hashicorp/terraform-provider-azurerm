@@ -2,10 +2,11 @@ package azurerm
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
 	"testing"
 	"time"
+
+	"github.com/hashicorp/terraform/helper/acctest"
+	"github.com/hashicorp/terraform/helper/resource"
 )
 
 func TestAccDataSourceArmStorageAccountSas_basic(t *testing.T) {

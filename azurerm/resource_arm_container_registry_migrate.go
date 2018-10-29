@@ -49,13 +49,13 @@ func migrateAzureRMContainerRegistryStateV1toV2(is *terraform.InstanceState, met
 	// Basic's been renamed Classic to allow for "ManagedBasic" ¯\_(ツ)_/¯
 	is.Attributes["sku"] = "Classic"
 
-	updateV1ToV2StorageAccountName(is, meta)
+	err := updateV1ToV2StorageAccountName(is, meta)
 
 	// we have to look this up, since we don't have the resource group name
 
 	log.Printf("[DEBUG] ARM Container Registry Attributes after State Migration: %#v", is.Attributes)
 
-	return is, nil
+	return is, err
 }
 
 func updateV1ToV2StorageAccountName(is *terraform.InstanceState, meta interface{}) error {

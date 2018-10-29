@@ -478,6 +478,32 @@ func TestAccAzureRMCosmosDBAccount_complete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCosmosDBAccount_multiMaster(t *testing.T) {
+	ri := acctest.RandInt()
+	resourceName := "azurerm_cosmosdb_account.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDBAccount_multiMaster(ri, testLocation(), testAltLocation()),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "geo_location.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "write_endpoints.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "enable_multiple_write_locations", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMCosmosDBAccountDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).cosmosDBClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -534,7 +560,7 @@ func testCheckAzureRMCosmosDBAccountExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testAccAzureRMCosmosDBAccount_basic(rInt int, location string, consistency string, consistencyOptions string, addtional string) string {
+func testAccAzureRMCosmosDBAccount_basic(rInt int, location string, consistency string, consistencyOptions string, additional string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -560,7 +586,7 @@ resource "azurerm_cosmosdb_account" "test" {
 %s
 
 }
-`, rInt, location, rInt, consistency, consistencyOptions, addtional)
+`, rInt, location, rInt, consistency, consistencyOptions, additional)
 }
 
 func testAccAzureRMCosmosDBAccount_boundedStaleness_complete(rInt int, location string) string {
@@ -579,7 +605,7 @@ func testAccAzureRMCosmosDBAccount_mongoDB(rInt int, location string) string {
 func testAccAzureRMCosmosDBAccount_gremlin(rInt int, location string) string {
 	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", `
         kind = "GlobalDocumentDB"
- 
+
         capabilities = {
           name = "EnableGremlin"
         }
@@ -598,6 +624,18 @@ func testAccAzureRMCosmosDBAccount_table(rInt int, location string) string {
 
 func testAccAzureRMCosmosDBAccount_geoReplicated(rInt int, location string, altLocation string) string {
 	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", fmt.Sprintf(`
+        geo_location {
+            location          = "%s"
+            failover_priority = 1
+        }
+
+    `, altLocation))
+}
+
+func testAccAzureRMCosmosDBAccount_multiMaster(rInt int, location string, altLocation string) string {
+	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", fmt.Sprintf(`
+        enable_multiple_write_locations = true
+
         geo_location {
             location          = "%s"
             failover_priority = 1
@@ -685,6 +723,7 @@ func checkAccAzureRMCosmosDBAccount_basic(resourceName string, location string, 
 		resource.TestCheckResourceAttrSet(resourceName, "endpoint"),
 		resource.TestCheckResourceAttr(resourceName, "read_endpoints.#", strconv.Itoa(locationCount)),
 		resource.TestCheckResourceAttr(resourceName, "write_endpoints.#", "1"),
+		resource.TestCheckResourceAttr(resourceName, "enable_multiple_write_locations", "false"),
 		resource.TestCheckResourceAttrSet(resourceName, "primary_master_key"),
 		resource.TestCheckResourceAttrSet(resourceName, "secondary_master_key"),
 		resource.TestCheckResourceAttrSet(resourceName, "primary_readonly_master_key"),

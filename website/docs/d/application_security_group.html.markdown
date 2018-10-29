@@ -14,7 +14,7 @@ Use this data source to access information about an existing Application Securit
 
 ```hcl
 data "azurerm_application_security_group" "test" {
-  name = "tf-appsecuritygroup"
+  name                = "tf-appsecuritygroup"
   resource_group_name = "my-resource-group"
 }
 

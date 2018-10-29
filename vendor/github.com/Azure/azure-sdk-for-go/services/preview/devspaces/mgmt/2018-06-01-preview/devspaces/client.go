@@ -1,7 +1,7 @@
-// Package dns implements the Azure ARM Dns service API version 2016-04-01.
+// Package devspaces implements the Azure ARM Devspaces service API version 2018-06-01-preview.
 //
-// The DNS Management Client.
-package dns
+// Dev Spaces Client
+package devspaces
 
 // Copyright (c) Microsoft and contributors.  All rights reserved.
 //
@@ -25,11 +25,11 @@ import (
 )
 
 const (
-	// DefaultBaseURI is the default URI used for the service Dns
+	// DefaultBaseURI is the default URI used for the service Devspaces
 	DefaultBaseURI = "https://management.azure.com"
 )
 
-// BaseClient is the base client for Dns.
+// BaseClient is the base client for Devspaces.
 type BaseClient struct {
 	autorest.Client
 	BaseURI        string

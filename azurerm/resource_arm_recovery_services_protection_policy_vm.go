@@ -459,7 +459,7 @@ func expandArmRecoveryServicesProtectionPolicyRetentionDaily(d *schema.ResourceD
 			RetentionTimes: &times,
 			RetentionDuration: &backup.RetentionDuration{
 				Count:        utils.Int32(int32(block["count"].(int))),
-				DurationType: backup.RetentionDurationType(backup.RetentionDurationTypeDays),
+				DurationType: backup.RetentionDurationTypeDays,
 			},
 		}
 	}
@@ -475,7 +475,7 @@ func expandArmRecoveryServicesProtectionPolicyRetentionWeekly(d *schema.Resource
 			RetentionTimes: &times,
 			RetentionDuration: &backup.RetentionDuration{
 				Count:        utils.Int32(int32(block["count"].(int))),
-				DurationType: backup.RetentionDurationType(backup.RetentionDurationTypeWeeks),
+				DurationType: backup.RetentionDurationTypeWeeks,
 			},
 		}
 
@@ -504,7 +504,7 @@ func expandArmRecoveryServicesProtectionPolicyRetentionMonthly(d *schema.Resourc
 			RetentionTimes:              &times,
 			RetentionDuration: &backup.RetentionDuration{
 				Count:        utils.Int32(int32(block["count"].(int))),
-				DurationType: backup.RetentionDurationType(backup.RetentionDurationTypeMonths),
+				DurationType: backup.RetentionDurationTypeMonths,
 			},
 		}
 
@@ -525,7 +525,7 @@ func expandArmRecoveryServicesProtectionPolicyRetentionYearly(d *schema.Resource
 			RetentionTimes:              &times,
 			RetentionDuration: &backup.RetentionDuration{
 				Count:        utils.Int32(int32(block["count"].(int))),
-				DurationType: backup.RetentionDurationType(backup.RetentionDurationTypeYears),
+				DurationType: backup.RetentionDurationTypeYears,
 			},
 		}
 

@@ -15,7 +15,7 @@ Manage and manage a ServiceBus Queue.
 ```hcl
 variable "location" {
   description = "Azure datacenter to deploy to."
-  default = "West US"
+  default     = "West US"
 }
 
 variable "servicebus_name" {
