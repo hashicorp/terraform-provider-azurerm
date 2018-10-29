@@ -304,12 +304,7 @@ func resourceArmImageDelete(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return future.WaitForCompletionRef(ctx, client.Client)
 }
 
 func flattenAzureRmImageOSDisk(osDisk *compute.ImageOSDisk) []interface{} {

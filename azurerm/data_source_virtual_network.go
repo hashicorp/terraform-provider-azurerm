@@ -120,7 +120,7 @@ func flattenVnetSubnetsNames(input *[]network.Subnet) []interface{} {
 }
 
 func flattenVnetPeerings(input *[]network.VirtualNetworkPeering) map[string]interface{} {
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 
 	if peerings := input; peerings != nil {
 		for _, vnetpeering := range *peerings {

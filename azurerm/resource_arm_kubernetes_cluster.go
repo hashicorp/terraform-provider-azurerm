@@ -548,7 +548,7 @@ func flattenAzureRmKubernetesClusterLinuxProfile(profile *containerservice.Linux
 	if ssh := profile.SSH; ssh != nil {
 		if keys := ssh.PublicKeys; keys != nil {
 			for _, sshKey := range *keys {
-				outputs := make(map[string]interface{}, 0)
+				outputs := make(map[string]interface{})
 				if keyData := sshKey.KeyData; keyData != nil {
 					outputs["key_data"] = *keyData
 				}
@@ -860,7 +860,7 @@ func expandAzureRmKubernetesClusterAddonProfiles(d *schema.ResourceData) map[str
 }
 
 func flattenAzureRmKubernetesClusterAddonProfiles(profile map[string]*containerservice.ManagedClusterAddonProfile) []interface{} {
-	values := make(map[string]interface{}, 0)
+	values := make(map[string]interface{})
 
 	routes := make([]interface{}, 0)
 	if httpApplicationRouting := profile["httpApplicationRouting"]; httpApplicationRouting != nil {

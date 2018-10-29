@@ -149,7 +149,10 @@ func resourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	nameServers := flattenDnsZoneNameservers(resp.NameServers)
+	nameServers := make([]string, 0)
+	if s := resp.NameServers; s != nil {
+		nameServers = *s
+	}
 	if err := d.Set("name_servers", nameServers); err != nil {
 		return err
 	}
@@ -241,16 +244,4 @@ func flattenDnsZoneResolutionVirtualNetworkIDs(input *[]dns.SubResource) []strin
 	}
 
 	return resolutionVirtualNetworks
-}
-
-func flattenDnsZoneNameservers(input *[]string) []string {
-	nameServers := make([]string, 0)
-
-	if input != nil {
-		for _, ns := range *input {
-			nameServers = append(nameServers, ns)
-		}
-	}
-
-	return nameServers
 }

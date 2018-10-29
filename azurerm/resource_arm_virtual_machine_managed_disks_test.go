@@ -341,7 +341,7 @@ func TestAccAzureRMVirtualMachine_multipleNICs(t *testing.T) {
 
 func TestAccAzureRMVirtualMachine_managedServiceIdentity(t *testing.T) {
 	var vm compute.VirtualMachine
-	match := regexp.MustCompile("^(\\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\\}{0,1})$")
+	match := regexp.MustCompile(`^(\\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\\}{0,1})$`)
 	resourceName := "azurerm_virtual_machine.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMVirtualMachine_withManagedServiceIdentity(ri, testLocation())

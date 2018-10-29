@@ -398,7 +398,7 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 			},
 		}
 
-		if v, _ := data["port"]; v != 0 {
+		if v := data["port"]; v != 0 {
 			port := int32(v.(int))
 
 			// container port (port number)
@@ -452,7 +452,7 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 		}
 
 		if container.Command == nil {
-			if v, _ := data["command"]; v != "" {
+			if v := data["command"]; v != "" {
 				command := strings.Split(v.(string), " ")
 				container.Command = &command
 			}
@@ -477,7 +477,7 @@ func expandContainerEnvironmentVariables(input interface{}, secure bool) *[]cont
 	envVars := input.(map[string]interface{})
 	output := make([]containerinstance.EnvironmentVariable, 0, len(envVars))
 
-	if secure == true {
+	if secure {
 
 		for k, v := range envVars {
 			ev := containerinstance.EnvironmentVariable{
@@ -667,10 +667,7 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 		commands := make([]string, 0)
 		if command := container.Command; command != nil {
 			containerConfig["command"] = strings.Join(*command, " ")
-
-			for _, v := range *command {
-				commands = append(commands, v)
-			}
+			commands = *command
 		}
 		containerConfig["commands"] = commands
 

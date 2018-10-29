@@ -486,17 +486,17 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 }
 
 func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []interface{} {
-	policy := make(map[string]interface{}, 0)
+	policy := make(map[string]interface{})
 
 	if params := input.IssuerParameters; params != nil {
-		issuerParams := make(map[string]interface{}, 0)
+		issuerParams := make(map[string]interface{})
 		issuerParams["name"] = *params.Name
 		policy["issuer_parameters"] = []interface{}{issuerParams}
 	}
 
 	// key properties
 	if props := input.KeyProperties; props != nil {
-		keyProps := make(map[string]interface{}, 0)
+		keyProps := make(map[string]interface{})
 		keyProps["exportable"] = *props.Exportable
 		keyProps["key_size"] = int(*props.KeySize)
 		keyProps["key_type"] = *props.KeyType
@@ -509,15 +509,15 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []inter
 	lifetimeActions := make([]interface{}, 0)
 	if actions := input.LifetimeActions; actions != nil {
 		for _, action := range *actions {
-			lifetimeAction := make(map[string]interface{}, 0)
+			lifetimeAction := make(map[string]interface{})
 
-			actionOutput := make(map[string]interface{}, 0)
+			actionOutput := make(map[string]interface{})
 			if act := action.Action; act != nil {
 				actionOutput["action_type"] = string(act.ActionType)
 			}
 			lifetimeAction["action"] = []interface{}{actionOutput}
 
-			triggerOutput := make(map[string]interface{}, 0)
+			triggerOutput := make(map[string]interface{})
 			if trigger := action.Trigger; trigger != nil {
 				if days := trigger.DaysBeforeExpiry; days != nil {
 					triggerOutput["days_before_expiry"] = int(*trigger.DaysBeforeExpiry)
@@ -535,7 +535,7 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []inter
 
 	// secret properties
 	if props := input.SecretProperties; props != nil {
-		keyProps := make(map[string]interface{}, 0)
+		keyProps := make(map[string]interface{})
 		keyProps["content_type"] = *props.ContentType
 
 		policy["secret_properties"] = []interface{}{keyProps}
@@ -543,7 +543,7 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []inter
 
 	// x509 Certificate Properties
 	if props := input.X509CertificateProperties; props != nil {
-		certProps := make(map[string]interface{}, 0)
+		certProps := make(map[string]interface{})
 
 		usages := make([]string, 0)
 		for _, usage := range *props.KeyUsage {

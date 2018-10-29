@@ -1255,7 +1255,7 @@ func expandAzureRmVirtualMachineIdentity(d *schema.ResourceData) *compute.Virtua
 	identity := identities[0].(map[string]interface{})
 	identityType := compute.ResourceIdentityType(identity["type"].(string))
 
-	identityIds := make(map[string]*compute.VirtualMachineIdentityUserAssignedIdentitiesValue, 0)
+	identityIds := make(map[string]*compute.VirtualMachineIdentityUserAssignedIdentitiesValue)
 	for _, id := range identity["identity_ids"].([]interface{}) {
 		identityIds[id.(string)] = &compute.VirtualMachineIdentityUserAssignedIdentitiesValue{}
 	}

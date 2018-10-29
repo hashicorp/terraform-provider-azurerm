@@ -37,13 +37,7 @@ func TestAccDataSourceAzureRMClientConfig_basic(t *testing.T) {
 // in case of mismatch
 func testAzureRMClientConfigAttr(name, key, value string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		err := resource.TestCheckResourceAttr(name, key, value)(s)
-		if err != nil {
-			// return fmt.Errorf("%s: Attribute '%s', failed check (values hidden)", name, key)
-			return err
-		}
-
-		return nil
+		return resource.TestCheckResourceAttr(name, key, value)(s)
 	}
 }
 
@@ -54,12 +48,7 @@ func testAzureRMClientConfigGUIDAttr(name, key string) resource.TestCheckFunc {
 			return err
 		}
 
-		err = resource.TestMatchResourceAttr(name, key, r)(s)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return resource.TestMatchResourceAttr(name, key, r)(s)
 	}
 }
 

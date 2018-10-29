@@ -210,10 +210,5 @@ func resourceArmVirtualMachineExtensionsDelete(d *schema.ResourceData, meta inte
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return future.WaitForCompletionRef(ctx, client.Client)
 }

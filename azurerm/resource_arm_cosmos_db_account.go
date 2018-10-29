@@ -831,7 +831,7 @@ func expandAzureRmCosmosDBAccountFailoverPolicy(databaseName string, d *schema.R
 func expandAzureRmCosmosDBAccountCapabilities(d *schema.ResourceData) *[]documentdb.Capability {
 
 	capabilities := d.Get("capabilities").(*schema.Set).List()
-	s := make([]documentdb.Capability, 0, 0)
+	s := make([]documentdb.Capability, 0)
 
 	for _, c := range capabilities {
 		m := c.(map[string]interface{})

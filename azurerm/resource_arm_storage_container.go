@@ -70,10 +70,10 @@ func validateArmStorageContainerName(v interface{}, k string) (ws []string, erro
 		errors = append(errors, fmt.Errorf(
 			"%q cannot begin with a hyphen: %q", k, value))
 	}
-	return
+	return ws, errors
 }
 
-func validateArmStorageContainerAccessType(v interface{}, k string) (ws []string, errors []error) {
+func validateArmStorageContainerAccessType(v interface{}, _ string) (ws []string, errors []error) {
 	value := strings.ToLower(v.(string))
 	validTypes := map[string]struct{}{
 		"private":   {},
@@ -84,7 +84,7 @@ func validateArmStorageContainerAccessType(v interface{}, k string) (ws []string
 	if _, ok := validTypes[value]; !ok {
 		errors = append(errors, fmt.Errorf("Storage container access type %q is invalid, must be %q, %q or %q", value, "private", "blob", "page"))
 	}
-	return
+	return ws, errors
 }
 
 func resourceArmStorageContainerCreateUpdate(d *schema.ResourceData, meta interface{}) error {

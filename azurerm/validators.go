@@ -20,7 +20,7 @@ func validateRFC3339Date(v interface{}, k string) (ws []string, errors []error) 
 		errors = append(errors, fmt.Errorf("%q is an invalid RFC3339 date: %+v", k, err))
 	}
 
-	return
+	return ws, errors
 }
 
 // validateIntInSlice returns a SchemaValidateFunc which tests if the provided value
@@ -40,7 +40,7 @@ func validateIntInSlice(valid []int) schema.SchemaValidateFunc {
 		}
 
 		es = append(es, fmt.Errorf("expected %q to be one of %v, got %v", k, valid, v))
-		return
+		return s, es
 	}
 }
 
@@ -48,7 +48,7 @@ func validateUUID(v interface{}, k string) (ws []string, errors []error) {
 	if _, err := uuid.FromString(v.(string)); err != nil {
 		errors = append(errors, fmt.Errorf("%q is an invalid UUUID: %s", k, err))
 	}
-	return
+	return ws, errors
 }
 
 func evaluateSchemaValidateFunc(i interface{}, k string, validateFunc schema.SchemaValidateFunc) (bool, error) { //nolint: unparam
@@ -74,7 +74,7 @@ func validateIso8601Duration() schema.SchemaValidateFunc {
 		if !matched {
 			es = append(es, fmt.Errorf("expected %s to be in ISO 8601 duration format, got %s", k, v))
 		}
-		return
+		return s, es
 	}
 }
 
@@ -212,7 +212,7 @@ func validateIntBetweenDivisibleBy(min, max, divisor int) schema.SchemaValidateF
 			return
 		}
 
-		return
+		return s, es
 	}
 }
 
@@ -231,7 +231,7 @@ func validateCollation() schema.SchemaValidateFunc {
 			return
 		}
 
-		return
+		return s, es
 	}
 }
 
@@ -243,6 +243,6 @@ func validateFilePath() schema.SchemaValidateFunc {
 			es = append(es, fmt.Errorf("%q must start with `/`", k))
 		}
 
-		return
+		return ws, es
 	}
 }

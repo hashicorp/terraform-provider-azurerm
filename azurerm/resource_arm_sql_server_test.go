@@ -208,12 +208,7 @@ func testCheckAzureRMSqlServerDisappears(name string) resource.TestCheckFunc {
 			return err
 		}
 
-		err = future.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return future.WaitForCompletionRef(ctx, client.Client)
 	}
 }
 

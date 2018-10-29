@@ -262,8 +262,9 @@ type ArmClient struct {
 	subscriptionsClient   subscriptions.Client
 
 	// Scheduler
-	schedulerJobCollectionsClient scheduler.JobCollectionsClient
-	schedulerJobsClient           scheduler.JobsClient
+	schedulerJobCollectionsClient scheduler.JobCollectionsClient //nolint: megacheck
+
+	schedulerJobsClient scheduler.JobsClient //nolint: megacheck
 
 	// Search
 	searchServicesClient  search.ServicesClient
@@ -1082,11 +1083,11 @@ func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, au
 }
 
 func (c *ArmClient) registerSchedulerClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	jobCollectionsClient := scheduler.NewJobCollectionsClientWithBaseURI(endpoint, subscriptionId)
+	jobCollectionsClient := scheduler.NewJobCollectionsClientWithBaseURI(endpoint, subscriptionId) //nolint: megacheck
 	c.configureClient(&jobCollectionsClient.Client, auth)
 	c.schedulerJobCollectionsClient = jobCollectionsClient
 
-	jobsClient := scheduler.NewJobsClientWithBaseURI(endpoint, subscriptionId)
+	jobsClient := scheduler.NewJobsClientWithBaseURI(endpoint, subscriptionId) //nolint: megacheck
 	c.configureClient(&jobsClient.Client, auth)
 	c.schedulerJobsClient = jobsClient
 }
@@ -1254,7 +1255,7 @@ func (armClient *ArmClient) getBlobStorageClientForStorageAccount(ctx context.Co
 	if err != nil {
 		return nil, accountExists, err
 	}
-	if accountExists == false {
+	if !accountExists {
 		return nil, false, nil
 	}
 
@@ -1273,7 +1274,7 @@ func (armClient *ArmClient) getFileServiceClientForStorageAccount(ctx context.Co
 	if err != nil {
 		return nil, accountExists, err
 	}
-	if accountExists == false {
+	if !accountExists {
 		return nil, false, nil
 	}
 
@@ -1292,7 +1293,7 @@ func (armClient *ArmClient) getTableServiceClientForStorageAccount(ctx context.C
 	if err != nil {
 		return nil, accountExists, err
 	}
-	if accountExists == false {
+	if !accountExists {
 		return nil, false, nil
 	}
 
@@ -1311,7 +1312,7 @@ func (armClient *ArmClient) getQueueServiceClientForStorageAccount(ctx context.C
 	if err != nil {
 		return nil, accountExists, err
 	}
-	if accountExists == false {
+	if !accountExists {
 		return nil, false, nil
 	}
 

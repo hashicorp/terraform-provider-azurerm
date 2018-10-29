@@ -102,37 +102,37 @@ func resourceArmStorageBlob() *schema.Resource {
 	}
 }
 
-func validateArmStorageBlobParallelism(v interface{}, k string) (ws []string, errors []error) {
+func validateArmStorageBlobParallelism(v interface{}, _ string) (ws []string, errors []error) {
 	value := v.(int)
 
 	if value <= 0 {
 		errors = append(errors, fmt.Errorf("Blob Parallelism %q is invalid, must be greater than 0", value))
 	}
 
-	return
+	return ws, errors
 }
 
-func validateArmStorageBlobAttempts(v interface{}, k string) (ws []string, errors []error) {
+func validateArmStorageBlobAttempts(v interface{}, _ string) (ws []string, errors []error) {
 	value := v.(int)
 
 	if value <= 0 {
 		errors = append(errors, fmt.Errorf("Blob Attempts %q is invalid, must be greater than 0", value))
 	}
 
-	return
+	return ws, errors
 }
 
-func validateArmStorageBlobSize(v interface{}, k string) (ws []string, errors []error) {
+func validateArmStorageBlobSize(v interface{}, _ string) (ws []string, errors []error) {
 	value := v.(int)
 
 	if value%512 != 0 {
 		errors = append(errors, fmt.Errorf("Blob Size %q is invalid, must be a multiple of 512", value))
 	}
 
-	return
+	return ws, errors
 }
 
-func validateArmStorageBlobType(v interface{}, k string) (ws []string, errors []error) {
+func validateArmStorageBlobType(v interface{}, _ string) (ws []string, errors []error) {
 	value := strings.ToLower(v.(string))
 	validTypes := map[string]struct{}{
 		"block": {},
@@ -142,7 +142,7 @@ func validateArmStorageBlobType(v interface{}, k string) (ws []string, errors []
 	if _, ok := validTypes[value]; !ok {
 		errors = append(errors, fmt.Errorf("Blob type %q is invalid, must be %q or %q", value, "block", "page"))
 	}
-	return
+	return ws, errors
 }
 
 func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) error {

@@ -232,5 +232,5 @@ func validateArmStorageShareName(v interface{}, k string) (ws []string, errors [
 		errors = append(errors, fmt.Errorf(
 			"%q does not allow consecutive hyphens: %q", k, value))
 	}
-	return
+	return ws, errors
 }

@@ -128,9 +128,7 @@ func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 
 		nameServers := make([]string, 0)
 		if ns := props.NameServers; ns != nil {
-			for _, ns := range *ns {
-				nameServers = append(nameServers, ns)
-			}
+			nameServers = *ns
 		}
 		if err := d.Set("name_servers", nameServers); err != nil {
 			return err
