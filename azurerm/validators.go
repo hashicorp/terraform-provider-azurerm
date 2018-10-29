@@ -51,7 +51,7 @@ func validateUUID(v interface{}, k string) (ws []string, errors []error) {
 	return ws, errors
 }
 
-func evaluateSchemaValidateFunc(i interface{}, k string, validateFunc schema.SchemaValidateFunc) (bool, error) { //nolint: unparam
+func evaluateSchemaValidateFunc(i interface{}, k string, validateFunc schema.SchemaValidateFunc) (bool, error) { // nolint: unparam
 	_, es := validateFunc(i, k)
 
 	if len(es) > 0 {
@@ -194,7 +194,7 @@ func validateAzureVirtualMachineTimeZone() schema.SchemaValidateFunc {
 
 // intBetweenDivisibleBy returns a SchemaValidateFunc which tests if the provided value
 // is of type int and is between min and max (inclusive) and is divisible by a given number
-func validateIntBetweenDivisibleBy(min, max, divisor int) schema.SchemaValidateFunc { //nolint: unparam
+func validateIntBetweenDivisibleBy(min, max, divisor int) schema.SchemaValidateFunc { // nolint: unparam
 	return func(i interface{}, k string) (s []string, es []error) {
 		v, ok := i.(int)
 		if !ok {
