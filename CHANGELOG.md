@@ -7,7 +7,7 @@ FEATURES:
 IMPROVEMENTS:
 
 * dependencies: upgrading to v21.3.0 of `github.com/Azure/azure-sdk-for-go` [GH-2163]
-* * authentication: using the Proxy from the Environment, if set [GH-2133]
+* authentication: using the Proxy from the Environment, if set [GH-2133]
 * `azurerm_automation_account` - exposing `dsc_server_endpoint`, `dsc_primary_access_key`, `dsc_secondary_access_key` properties [GH-2166] 
 * `azurerm_automation_account` - support for the `free` SKU [GH-2166] 
 * `azurerm_cosmosdb_account` - support for the `enable_multiple_write_locations` property [GH-2109] 
