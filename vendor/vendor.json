@@ -283,6 +283,14 @@
 			"versionExact": "v21.3.0"
 		},
 		{
+			"checksumSHA1": "28xCpXfx5zWtMy6gXgxQw7nD4YQ=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/preview/signalr/mgmt/2018-03-01-preview/signalr",
+			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
+			"revisionTime": "2018-10-19T17:11:53Z",
+			"version": "v21.3.0",
+			"versionExact": "v21.3.0"
+		},
+		{
 			"checksumSHA1": "/lxvjQjQNmBuS4tOwMdG3n4nWd0=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql",
 			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
