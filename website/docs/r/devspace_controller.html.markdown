@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_devspace_controller"
 sidebar_current: "docs-azurerm-resource-devspace-controller"
 description: |-
-  Manages an Azure DevSpace Controller.
+  Manages a DevSpace Controller.
 ---
 
 # azurerm_devspace_controller
 
-Manages an Azure DevSpace Controller.
+Manages a DevSpace Controller.
 
 ## Example Usage
 
@@ -60,15 +60,15 @@ resource "azurerm_devspace_controller" test {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Azure DevSpace Controller. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the DevSpace Controller. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group under which the Azure DevSpace Controller resource has to be created. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group under which the DevSpace Controller resource has to be created. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the Azure DevSpace Controller should exist. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the supported location where the DevSpace Controller should exist. Changing this forces a new resource to be created.
 
 * `sku` - (Required) A `sku` block as documented below. Changing this forces a new resource to be created.
 
-* `host_suffix` - (Required) The host suffix for the Azure DevSpace Controller. Changing this forces a new resource to be created.
+* `host_suffix` - (Required) The host suffix for the DevSpace Controller. Changing this forces a new resource to be created.
 
 * `target_container_host_resource_id` - (Required) The resource id of Azure Kubernetes Service cluster. Changing this forces a new resource to be created.
 
@@ -80,20 +80,20 @@ The following arguments are supported:
 
 A `sku` block supports the following:
 
-* `name` - (Required) The name of the SKU for Azure DevSpace Controller. Currently supported value is `S1`. Changing this forces a new resource to be created.
-* `tier` - (Required) The tier of the SKU for Azure DevSpace Controller. Currently supported value is `Standard`. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the SKU for DevSpace Controller. Currently supported value is `S1`. Changing this forces a new resource to be created.
+* `tier` - (Required) The tier of the SKU for DevSpace Controller. Currently supported value is `Standard`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The ID of the Azure DevSpace Controller.
+* `id` - The ID of the DevSpace Controller.
 
 * `data_plane_fqdn` - DNS name for accessing DataPlane services.
 
 ## Import
 
-Azure DevSpace Controller can be imported using the `resource id`, e.g.
+DevSpace Controller can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_devspace_controller.controller1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DevSpaces/controllers/controller1Name
