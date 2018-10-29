@@ -266,7 +266,7 @@ func resourceArmIotHubCreateAndUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if !*res.NameAvailable {
-		_, err := client.Get(ctx, resourceGroup, name)
+		_, err = client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("An IoTHub already exists with the name %q - please choose an alternate name: %s", name, string(res.Reason))
 		}
