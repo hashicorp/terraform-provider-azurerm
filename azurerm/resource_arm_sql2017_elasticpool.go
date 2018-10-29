@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"math"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
@@ -200,29 +201,26 @@ func resourceArmSql2017ElasticPool() *schema.Resource {
 				}
 			}
 
-			// vCore based
-			if (strings.HasPrefix(strings.ToLower(name.(string)), "gp_") || strings.HasPrefix(strings.ToLower(name.(string)), "bc_") {
-
+			// Addutional checks based of SKU type...
+			if strings.HasPrefix(strings.ToLower(name.(string)), "gp_") || strings.HasPrefix(strings.ToLower(name.(string)), "bc_") {
+				// vCore based
 				capacity, _ := diff.GetOk("sku.0.capacity")
 				minCapacity, _ := diff.GetOk("per_database_settings.0.min_capacity")
 				maxCapacity, _ := diff.GetOk("per_database_settings.0.max_capacity")
-	
-				if maxCapacity.(float64) > capacity {
+
+				if maxCapacity.(float64) > capacity.(float64) {
 					return fmt.Errorf("BusinessCritical pricing tier must have a capacity of 2, 4, 8, 16, 24, 32, 40, or 80 vCores")
 				}
 
-				if maxCapacity.(float64) > capacity {
-					return fmt.Errorf("BusinessCritical and GeneralPurpose pricing tiers perDatabaseSettings maxCapacity must not be higher than the SKUs capacity setting")
+				if maxCapacity.(float64) > capacity.(float64) {
+					return fmt.Errorf("BusinessCritical and GeneralPurpose pricing tiers perDatabaseSettings maxCapacity must not be higher than the SKUs capacity value")
 				}
 
-				if  minCapacity.(float64) > maxCapacity.(float64) {
+				if minCapacity.(float64) > maxCapacity.(float64) {
 					return fmt.Errorf("perDatabaseSettings maxCapacity must be greater than or equal to the perDatabaseSettings minCapacity value")
 				}
-			}
-
-			//DTU based
-			if !strings.HasPrefix(strings.ToLower(name.(string)), "gp_") && !strings.HasPrefix(strings.ToLower(name.(string)), "bc_") {
-
+			} else {
+				// DTU based
 				if maxCapacity.(float64) != math.Trunc(maxCapacity.(float64)) {
 					return fmt.Errorf("BasicPool, StandardPool, and PremiumPool SKUs must have whole numbers as thier maxCapacity")
 				}
@@ -231,11 +229,9 @@ func resourceArmSql2017ElasticPool() *schema.Resource {
 					return fmt.Errorf("BasicPool, StandardPool, and PremiumPool SKUs must have whole numbers as thier minCapacity")
 				}
 
-				if minCapacity.(float64) < 0 {
-
+				if minCapacity.(float64) < 0.0 {
+					return fmt.Errorf("BasicPool, StandardPool, and PremiumPool SKUs per_database_settings min_capacity must be equal to or greater than zero")
 				}
-
-				
 			}
 
 			return nil
