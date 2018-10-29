@@ -63,7 +63,7 @@ resource "azurerm_recovery_services_protection_policy_vm" "example" {
   }
 
   retention_monthly = {
-    weeks    = ["First","Second"]
+    weeks    = ["First", "Second"]
     weekdays = ["Monday", "Wednesday"]
     count    = 100
   }

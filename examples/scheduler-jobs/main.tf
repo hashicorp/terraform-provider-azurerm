@@ -139,7 +139,6 @@ resource "azurerm_scheduler_job" "storage-queue" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
 
-
   action_storage_queue = {
     storage_account_name = "${azurerm_storage_account.example.name}"
     storage_queue_name   = "${azurerm_storage_queue.example.name}"
@@ -155,7 +154,6 @@ resource "azurerm_scheduler_job" "storage-queue" {
 
   start_time = "2019-07-07T07:07:07-07:00"
 }
-
 
 resource "azurerm_scheduler_job" "web-recurring_monthly-error_action" {
   name                = "tfex-web-recurring_monthly-auth_ad"
