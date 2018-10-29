@@ -66,6 +66,9 @@ func resourceArmMySqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta
 	// BUG: https://github.com/Azure/azure-rest-api-specs/issues/3719
 	subnetsClient := meta.(*ArmClient).subnetClient
 	subnetParsedId, err := parseAzureResourceID(subnetId)
+	if err != nil {
+		return err
+	}
 
 	subnetResourceGroup := subnetParsedId.ResourceGroup
 	virtualNetwork := subnetParsedId.Path["virtualNetworks"]

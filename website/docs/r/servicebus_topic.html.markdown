@@ -17,7 +17,7 @@ Manage a ServiceBus Topic.
 ```hcl
 variable "location" {
   description = "Azure datacenter to deploy to."
-  default = "West US"
+  default     = "West US"
 }
 
 resource "azurerm_resource_group" "test" {

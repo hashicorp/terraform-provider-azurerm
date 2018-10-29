@@ -237,7 +237,7 @@ func resourceArmApiManagementService() *schema.Resource {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
-								Schema: apiManagementResourceHostnameProxySchema("proxy"),
+								Schema: apiManagementResourceHostnameProxySchema(),
 							},
 						},
 						"scm": {
@@ -581,8 +581,6 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 			"scm":        scmResults,
 		},
 	}
-
-	return nil
 }
 
 func expandAzureRmApiManagementCertificates(d *schema.ResourceData) *[]apimanagement.CertificateConfiguration {
@@ -816,8 +814,8 @@ func apiManagementResourceHostnameSchema(schemaName string) map[string]*schema.S
 	}
 }
 
-func apiManagementResourceHostnameProxySchema(schemaName string) map[string]*schema.Schema {
-	hostnameSchema := apiManagementResourceHostnameSchema(schemaName)
+func apiManagementResourceHostnameProxySchema() map[string]*schema.Schema {
+	hostnameSchema := apiManagementResourceHostnameSchema("proxy")
 
 	hostnameSchema["default_ssl_binding"] = &schema.Schema{
 		Type:     schema.TypeBool,

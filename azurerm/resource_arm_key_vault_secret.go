@@ -120,6 +120,9 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 
 		// "" indicates the latest version
 		read, err := client.GetSecret(ctx, id.KeyVaultBaseUrl, id.Name, "")
+		if err != nil {
+			return fmt.Errorf("Error getting Key Vault Secret %q : %+v", id.Name, err)
+		}
 		id, err = parseKeyVaultChildID(*read.ID)
 		if err != nil {
 			return err

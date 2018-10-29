@@ -40,6 +40,45 @@ func TestAccAzureRMStorageContainer_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageContainer_update(t *testing.T) {
+	resourceName := "azurerm_storage_container.test"
+	var c storage.Container
+
+	ri := acctest.RandInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	at1 := "private"
+	at2 := "container"
+	initconfig := testAccAzureRMStorageContainer_update(ri, rs, testLocation(), at1)
+	updateconfig := testAccAzureRMStorageContainer_update(ri, rs, testLocation(), at2)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: initconfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageContainerExists(resourceName, &c),
+					resource.TestCheckResourceAttr(resourceName, "container_access_type", at1),
+				),
+			},
+			{
+				Config: updateconfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageContainerExists(resourceName, &c),
+					resource.TestCheckResourceAttr(resourceName, "container_access_type", at2),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMStorageContainer_disappears(t *testing.T) {
 	var c storage.Container
 
@@ -122,6 +161,9 @@ func testCheckAzureRMStorageContainerExists(name string, c *storage.Container) r
 			Prefix:  name,
 			Timeout: 90,
 		})
+		if err != nil {
+			return fmt.Errorf("Error listing Storage Container %q containers (storage account: %q) : %+v", name, storageAccountName, err)
+		}
 
 		if len(containers.Containers) == 0 {
 			return fmt.Errorf("Bad: Storage Container %q (storage account: %q) does not exist", name, storageAccountName)
@@ -283,6 +325,34 @@ resource "azurerm_storage_container" "test" {
     container_access_type = "private"
 }
 `, rInt, location, rString)
+}
+
+func testAccAzureRMStorageContainer_update(rInt int, rString string, location string, accessType string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+    name                     = "acctestacc%s"
+    resource_group_name      = "${azurerm_resource_group.test.name}"
+    location                 = "${azurerm_resource_group.test.location}"
+    account_tier             = "Standard"
+    account_replication_type = "LRS"
+
+    tags {
+        environment = "staging"
+    }
+}
+
+resource "azurerm_storage_container" "test" {
+    name = "vhds"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    storage_account_name = "${azurerm_storage_account.test.name}"
+    container_access_type = "%s"
+}
+`, rInt, location, rString, accessType)
 }
 
 func testAccAzureRMStorageContainer_root(rInt int, rString string, location string) string {

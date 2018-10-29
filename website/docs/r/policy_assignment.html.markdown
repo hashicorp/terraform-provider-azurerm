@@ -18,7 +18,8 @@ resource "azurerm_policy_definition" "test" {
   policy_type  = "Custom"
   mode         = "All"
   display_name = "acctestpol-%d"
-  policy_rule  = <<POLICY_RULE
+
+  policy_rule = <<POLICY_RULE
 	{
     "if": {
       "not": {
@@ -47,7 +48,7 @@ PARAMETERS
 }
 
 resource "azurerm_resource_group" "test" {
-  name = "test-resources"
+  name     = "test-resources"
   location = "West Europe"
 }
 
@@ -57,6 +58,7 @@ resource "azurerm_policy_assignment" "test" {
   policy_definition_id = "${azurerm_policy_definition.test.id}"
   description          = "Policy Assignment created via an Acceptance Test"
   display_name         = "Acceptance Test Run %d"
+
   parameters = <<PARAMETERS
 {
   "allowedLocations": {

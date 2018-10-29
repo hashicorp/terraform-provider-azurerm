@@ -15,7 +15,7 @@ Manage a ServiceBus Subscription.
 ```hcl
 variable "location" {
   description = "Azure datacenter to deploy to."
-  default = "West US"
+  default     = "West US"
 }
 
 variable "servicebus_name" {

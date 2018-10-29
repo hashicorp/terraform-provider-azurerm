@@ -75,7 +75,7 @@ func TestAccAzureRMLoadBalancerProbe_removal(t *testing.T) {
 	})
 }
 
-func maProbe_update(t *testing.T) {
+func TestAccAzureRMLoadBalancerProbe_update(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := acctest.RandInt()
 	probeName := fmt.Sprintf("probe-%d", ri)

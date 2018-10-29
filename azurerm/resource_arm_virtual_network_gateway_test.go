@@ -185,6 +185,27 @@ func TestAccAzureRMVirtualNetworkGateway_vpnClientConfig(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualNetworkGateway_vpnClientConfigOpenVPN(t *testing.T) {
+	ri := acctest.RandInt()
+	resourceName := "azurerm_virtual_network_gateway.test"
+	config := testAccAzureRMVirtualNetworkGateway_vpnClientConfigOpenVPN(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkGatewayExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "vpn_client_configuration.0.vpn_client_protocols.#", "1"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMVirtualNetworkGatewayExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		name, resourceGroup, err := getArmResourceNameAndGroup(s, name)
@@ -497,6 +518,58 @@ resource "azurerm_virtual_network_gateway" "test" {
 
 	radius_server_address = "1.2.3.4"
     radius_server_secret = "1234"
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMVirtualNetworkGateway_vpnClientConfigOpenVPN(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name = "acctestvn-%d"
+  location = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  address_space = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name = "GatewaySubnet"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix = "10.0.1.0/24"
+}
+
+resource "azurerm_public_ip" "test" {
+  name = "acctestpip-%d"
+  location = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "Dynamic"
+}
+
+resource "azurerm_virtual_network_gateway" "test" {
+  depends_on = ["azurerm_public_ip.test"]
+  name = "acctestvng-%d"
+  location = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  type = "Vpn"
+  vpn_type = "RouteBased"
+  sku = "VpnGw1"
+
+  ip_configuration {
+    public_ip_address_id = "${azurerm_public_ip.test.id}"
+    private_ip_address_allocation = "Dynamic"
+    subnet_id = "${azurerm_subnet.test.id}"
+  }
+
+  vpn_client_configuration {
+	address_space = ["10.2.0.0/24"]
+	vpn_client_protocols = ["OpenVPN"]
   }
 }
 `, rInt, location, rInt, rInt, rInt)

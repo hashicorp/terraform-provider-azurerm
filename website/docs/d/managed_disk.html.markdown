@@ -3,19 +3,19 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_managed_disk"
 sidebar_current: "docs-azurerm-datasource-managed-disk"
 description: |-
-  Get information about the specified managed disk.
+  Get information about an existing Managed Disk.
 ---
 
 # Data Source: azurerm_managed_disk
 
-Use this data source to access the properties of an existing Azure Managed Disk.
+Use this data source to access information about an existing Managed Disk.
 
 ## Example Usage
 
 ```hcl
 data "azurerm_managed_disk" "datasourcemd" {
-    name = "testManagedDisk"
-    resource_group_name = "acctestRG"
+  name                = "testManagedDisk"
+  resource_group_name = "acctestRG"
 }
 
 resource "azurerm_virtual_network" "test" {
