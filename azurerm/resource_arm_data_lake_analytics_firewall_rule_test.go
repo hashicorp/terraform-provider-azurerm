@@ -183,5 +183,5 @@ resource "azurerm_data_lake_analytics_firewall_rule" "test" {
   start_ip_address    = "%[4]s"
   end_ip_address      = "%[5]s"
 }
-`, rInt, location, strconv.Itoa(rInt)[0:15], startIP, endIP)
+`, rInt, location, strconv.Itoa(rInt)[0:10], startIP, endIP)
 }

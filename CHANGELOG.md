@@ -1,11 +1,20 @@
 ## 1.18.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_log_analytics_workspace_linked_service` [GH-2139]
+
 IMPROVEMENTS:
 
+dependencies: upgrading to v21.3.0 of `github.com/Azure/azure-sdk-for-go` [GH-2163]
+* `azurerm_automation_account` - exposing `dsc_server_endpoint`, `dsc_primary_access_key`, `dsc_secondary_access_key` properties [GH-2166] 
+* `azurerm_automation_account` - support for the `free` SKU [GH-2166] 
+* `azurerm_cosmosdb_account` - support for the `enable_multiple_write_locations` property [GH-2109] 
 * `azurerm_key_vault_certificate` - support for setting `extended_key_usage` [GH-2128]
 * `azurerm_monitor_activity_log_alert` - support the criteria fields `resource_provider`, `resource_type`, `resource_group` [GH-2150]
 * `azurerm_virtual_network_gateway` - support for `OpenVPN` as a client protocol option [GH-2126]
 * `azurerm_virtual_machine_scale_set` - support for the `application_security_group_ids` property of `ip_configuration`  [GH-2009]
+* `azurerm_virtual_machine_scale_set` - support for a Rolling Upgrade Policy with Automatic OS upgrades [GH-922]
 
 BUG FIXES:
 
