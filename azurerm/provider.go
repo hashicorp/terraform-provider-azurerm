@@ -164,6 +164,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_data_lake_store":                                                        resourceArmDataLakeStore(),
 			"azurerm_data_lake_store_file":                                                   resourceArmDataLakeStoreFile(),
 			"azurerm_data_lake_store_firewall_rule":                                          resourceArmDataLakeStoreFirewallRule(),
+			"azurerm_devspace_controller":                                                    resourceArmDevSpaceController(),
 			"azurerm_dev_test_lab":                                                           resourceArmDevTestLab(),
 			"azurerm_dev_test_policy":                                                        resourceArmDevTestPolicy(),
 			"azurerm_dev_test_linux_virtual_machine":                                         resourceArmDevTestLinuxVirtualMachine(),

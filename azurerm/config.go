@@ -38,6 +38,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/Azure/azure-sdk-for-go/services/preview/apimanagement/mgmt/2018-06-01-preview/apimanagement"
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
+	"github.com/Azure/azure-sdk-for-go/services/preview/devspaces/mgmt/2018-06-01-preview/devspaces"
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi"
@@ -61,6 +62,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
+
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
@@ -161,6 +163,9 @@ type ArmClient struct {
 	devTestPoliciesClient        dtl.PoliciesClient
 	devTestVirtualMachinesClient dtl.VirtualMachinesClient
 	devTestVirtualNetworksClient dtl.VirtualNetworksClient
+
+	// DevSpace
+	devSpaceControllerClient devspaces.ControllersClient
 
 	// Databases
 	mysqlConfigurationsClient                mysql.ConfigurationsClient
@@ -515,6 +520,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth)
 	client.registerDeviceClients(endpoint, c.SubscriptionID, auth)
+	client.registerDevSpaceClients(endpoint, c.SubscriptionID, auth)
 	client.registerDevTestClients(endpoint, c.SubscriptionID, auth)
 	client.registerDNSClients(endpoint, c.SubscriptionID, auth)
 	client.registerEventGridClients(endpoint, c.SubscriptionID, auth)
@@ -841,6 +847,12 @@ func (c *ArmClient) registerDevTestClients(endpoint, subscriptionId string, auth
 	devTestVirtualNetworksClient := dtl.NewVirtualNetworksClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&devTestVirtualNetworksClient.Client, auth)
 	c.devTestVirtualNetworksClient = devTestVirtualNetworksClient
+}
+
+func (c *ArmClient) registerDevSpaceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	controllersClient := devspaces.NewControllersClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&controllersClient.Client, auth)
+	c.devSpaceControllerClient = controllersClient
 }
 
 func (c *ArmClient) registerDNSClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
