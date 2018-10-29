@@ -26,11 +26,11 @@ func TestAccAzureRMSqlElasticPool2017_basic_DTU(t *testing.T) {
 					testCheckAzureRMSqlElasticPool2017Exists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "BasicPool"),
 				),
-				{
-					ResourceName:      resourceName,
-					ImportState:       true,
-					ImportStateVerify: true,
-				},
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -52,11 +52,11 @@ func TestAccAzureRMSqlElasticPool2017_basic_vCore(t *testing.T) {
 					testCheckAzureRMSqlElasticPool2017Exists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "GP_Gen5"),
 				),
-				{
-					ResourceName:      resourceName,
-					ImportState:       true,
-					ImportStateVerify: true,
-				},
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

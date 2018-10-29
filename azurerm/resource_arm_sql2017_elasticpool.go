@@ -222,11 +222,11 @@ func resourceArmSql2017ElasticPool() *schema.Resource {
 			} else {
 				// DTU based
 				if maxCapacity.(float64) != math.Trunc(maxCapacity.(float64)) {
-					return fmt.Errorf("BasicPool, StandardPool, and PremiumPool SKUs must have whole numbers as thier maxCapacity")
+					return fmt.Errorf("BasicPool, StandardPool, and PremiumPool SKUs must have whole numbers as their maxCapacity")
 				}
 
 				if minCapacity.(float64) != math.Trunc(minCapacity.(float64)) {
-					return fmt.Errorf("BasicPool, StandardPool, and PremiumPool SKUs must have whole numbers as thier minCapacity")
+					return fmt.Errorf("BasicPool, StandardPool, and PremiumPool SKUs must have whole numbers as their minCapacity")
 				}
 
 				if minCapacity.(float64) < 0.0 {
@@ -414,7 +414,7 @@ func flattenAzureRmSql2017ElasticPoolProperties(resp *sql.ElasticPoolProperties)
 		elasticPoolProperty["max_size_bytes"] = *maxSizeBytes
 	}
 
-	elasticPoolProperty["state"] = sql.ElasticPoolState(resp.State)
+	elasticPoolProperty["state"] = string(resp.State)
 
 	if date := resp.CreationDate; date != nil {
 		elasticPoolProperty["creation_date"] = date.String()
