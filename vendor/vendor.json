@@ -221,10 +221,10 @@
 		{
 			"checksumSHA1": "wGW3tQ2ARxHa8qNWfNY0yiqWEmU=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/preview/devspaces/mgmt/2018-06-01-preview/devspaces",
-			"revision": "6d20bdbae88c06c36d72eb512295417693bfdf4e",
-			"revisionTime": "2018-09-27T22:44:43Z",
-			"version": "v21.1.0",
-			"versionExact": "v21.1.0"
+			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
+			"revisionTime": "2018-10-19T17:11:53Z",
+			"version": "v21.3.0",
+			"versionExact": "v21.3.0"
 		},
 		{
 			"checksumSHA1": "P5j/WdC8zYfnoyr7VSyPjvozy4Q=",
