@@ -155,14 +155,10 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 		properties.RouteTable = nil
 	}
 
-	serviceEndpoints, serviceEndpointsErr := expandSubnetServiceEndpoints(d)
-	if serviceEndpointsErr != nil {
-		return fmt.Errorf("Error Building list of Service Endpoints: %+v", serviceEndpointsErr)
-	}
-
+	serviceEndpoints := expandSubnetServiceEndpoints(d)
 	properties.ServiceEndpoints = &serviceEndpoints
 
-	delegations, err := expandSubnetDelegations(d)
+	delegations := expandSubnetDelegations(d)
 	properties.Delegations = &delegations
 
 	subnet := network.Subnet{
@@ -298,7 +294,7 @@ func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func expandSubnetServiceEndpoints(d *schema.ResourceData) ([]network.ServiceEndpointPropertiesFormat, error) {
+func expandSubnetServiceEndpoints(d *schema.ResourceData) []network.ServiceEndpointPropertiesFormat {
 	serviceEndpoints := d.Get("service_endpoints").([]interface{})
 	enpoints := make([]network.ServiceEndpointPropertiesFormat, 0)
 
@@ -312,7 +308,7 @@ func expandSubnetServiceEndpoints(d *schema.ResourceData) ([]network.ServiceEndp
 		enpoints = append(enpoints, endpoint)
 	}
 
-	return enpoints, nil
+	return enpoints
 }
 
 func flattenSubnetServiceEndpoints(serviceEndpoints *[]network.ServiceEndpointPropertiesFormat) []string {
@@ -339,14 +335,15 @@ func flattenSubnetIPConfigurations(ipConfigurations *[]network.IPConfiguration) 
 	return ips
 }
 
-func expandSubnetDelegations(d *schema.ResourceData) ([]network.Delegation, error) {
+func expandSubnetDelegations(d *schema.ResourceData) []network.Delegation {
 	delegations := d.Get("delegations").([]interface{})
 	retDelegations := make([]network.Delegation, 0)
 
 	for _, deleValue := range delegations {
 		deleData := deleValue.(map[string]interface{})
 		deleName := deleData["name"].(string)
-		srvDelegation := deleData["service_delegation"].([]interface{})[0].(map[string]interface{})
+		srvDelegations := deleData["service_delegation"].([]interface{})
+		srvDelegation := srvDelegations[0].(map[string]interface{})
 		srvName := srvDelegation["service_name"].(string)
 		srvActions := srvDelegation["actions"].([]interface{})
 
@@ -367,5 +364,5 @@ func expandSubnetDelegations(d *schema.ResourceData) ([]network.Delegation, erro
 		retDelegations = append(retDelegations, retDelegation)
 	}
 
-	return retDelegations, nil
+	return retDelegations
 }

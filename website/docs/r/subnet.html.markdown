@@ -35,15 +35,13 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.1.0/24"
-  delegations          = [
-    {
-      name = "acctestdelegations"
-      service_delegation = {
-        service_name = "Microsoft.ContainerInstance/containerGroups"
-        actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-      }
+  delegations {
+    name = "acctestdelegations"
+    service_delegation {
+      service_name = "Microsoft.ContainerInstance/containerGroups"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
-  ]
+  }
 }
 ```
 
@@ -78,10 +76,10 @@ A `delegation` block supports the following:
 
 ---
 A `service_delegation` block supports the following:
-* `service_name` The name of service. Possible values include: `Microsoft.ContainerInstance/containerGroups`.
-* `actions` The list of actions. Possible values include: `Microsoft.Network/virtualNetworks/subnets/action`.
+* `service_name` - (Required) The name of service to delegate to. Possible values include: `Microsoft.ContainerInstance/containerGroups`.
+* `actions` - (Optional) A list of Actions which should be delegated. Possible values include: `Microsoft.Network/virtualNetworks/subnets/action`.
 
-Please follow the [list-available-delegations](https://docs.microsoft.com/en-us/cli/azure/network/vnet/subnet?view=azure-cli-latest#az-network-vnet-subnet-list-available-delegations) to get delegation information.
+[More information on Subnet Delegation can be found in the Azure CLI documentation](https://docs.microsoft.com/en-us/cli/azure/network/vnet/subnet?view=azure-cli-latest#az-network-vnet-subnet-list-available-delegations)
 
 ## Attributes Reference
 
