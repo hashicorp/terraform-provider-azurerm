@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-06-01/containerinstance"
+	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -38,7 +38,7 @@ func resourceArmContainerGroup() *schema.Resource {
 				ForceNew:         true,
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				ValidateFunc: validation.StringInSlice([]string{
-					"Public",
+					string(containerinstance.Public),
 				}, true),
 			},
 
@@ -263,7 +263,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 			Containers:    containers,
 			RestartPolicy: containerinstance.ContainerGroupRestartPolicy(restartPolicy),
 			IPAddress: &containerinstance.IPAddress{
-				Type:  &IPAddressType,
+				Type:  containerinstance.ContainerGroupIPAddressType(IPAddressType),
 				Ports: containerGroupPorts,
 			},
 			OsType:                   containerinstance.OperatingSystemTypes(OSType),

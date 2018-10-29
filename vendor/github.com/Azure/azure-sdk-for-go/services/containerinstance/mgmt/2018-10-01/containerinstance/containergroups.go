@@ -51,15 +51,15 @@ func (client ContainerGroupsClient) CreateOrUpdate(ctx context.Context, resource
 			Constraints: []validation.Constraint{{Target: "containerGroup.ContainerGroupProperties", Name: validation.Null, Rule: true,
 				Chain: []validation.Constraint{{Target: "containerGroup.ContainerGroupProperties.Containers", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "containerGroup.ContainerGroupProperties.IPAddress", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "containerGroup.ContainerGroupProperties.IPAddress.Ports", Name: validation.Null, Rule: true, Chain: nil},
-							{Target: "containerGroup.ContainerGroupProperties.IPAddress.Type", Name: validation.Null, Rule: true, Chain: nil},
-						}},
+						Chain: []validation.Constraint{{Target: "containerGroup.ContainerGroupProperties.IPAddress.Ports", Name: validation.Null, Rule: true, Chain: nil}}},
 					{Target: "containerGroup.ContainerGroupProperties.Diagnostics", Name: validation.Null, Rule: false,
 						Chain: []validation.Constraint{{Target: "containerGroup.ContainerGroupProperties.Diagnostics.LogAnalytics", Name: validation.Null, Rule: false,
 							Chain: []validation.Constraint{{Target: "containerGroup.ContainerGroupProperties.Diagnostics.LogAnalytics.WorkspaceID", Name: validation.Null, Rule: true, Chain: nil},
 								{Target: "containerGroup.ContainerGroupProperties.Diagnostics.LogAnalytics.WorkspaceKey", Name: validation.Null, Rule: true, Chain: nil},
 							}},
 						}},
+					{Target: "containerGroup.ContainerGroupProperties.NetworkProfile", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{{Target: "containerGroup.ContainerGroupProperties.NetworkProfile.ID", Name: validation.Null, Rule: true, Chain: nil}}},
 				}}}}}); err != nil {
 		return result, validation.NewError("containerinstance.ContainerGroupsClient", "CreateOrUpdate", err.Error())
 	}
@@ -87,7 +87,7 @@ func (client ContainerGroupsClient) CreateOrUpdatePreparer(ctx context.Context, 
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2018-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -167,7 +167,7 @@ func (client ContainerGroupsClient) DeletePreparer(ctx context.Context, resource
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2018-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -236,7 +236,7 @@ func (client ContainerGroupsClient) GetPreparer(ctx context.Context, resourceGro
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2018-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -301,7 +301,7 @@ func (client ContainerGroupsClient) ListPreparer(ctx context.Context) (*http.Req
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2018-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -396,7 +396,7 @@ func (client ContainerGroupsClient) ListByResourceGroupPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2018-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -456,7 +456,7 @@ func (client ContainerGroupsClient) ListByResourceGroupComplete(ctx context.Cont
 	return
 }
 
-// Restart restarts all containers in a contaienr group in place. If container image has updates, new image will be
+// Restart restarts all containers in a container group in place. If container image has updates, new image will be
 // downloaded.
 // Parameters:
 // resourceGroupName - the name of the resource group.
@@ -485,7 +485,7 @@ func (client ContainerGroupsClient) RestartPreparer(ctx context.Context, resourc
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2018-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -527,7 +527,7 @@ func (client ContainerGroupsClient) RestartResponder(resp *http.Response) (resul
 	return
 }
 
-// Stop stops all containers in a contaienr group. Compute resources will be deallocated and billing will stop.
+// Stop stops all containers in a container group. Compute resources will be deallocated and billing will stop.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // containerGroupName - the name of the container group.
@@ -561,7 +561,7 @@ func (client ContainerGroupsClient) StopPreparer(ctx context.Context, resourceGr
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2018-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -628,7 +628,7 @@ func (client ContainerGroupsClient) UpdatePreparer(ctx context.Context, resource
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2018-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
