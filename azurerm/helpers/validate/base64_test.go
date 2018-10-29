@@ -11,7 +11,7 @@ func TestBase64String(t *testing.T) {
 	}{
 		{
 			Input:  "",
-			Errors: 0,
+			Errors: 1,
 		},
 		{
 			Input:  "aGVsbG8td29ybGQ=",
