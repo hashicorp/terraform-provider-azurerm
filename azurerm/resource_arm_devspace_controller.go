@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/devspaces/mgmt/2018-06-01-preview/devspaces"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -68,9 +69,9 @@ func resourceArmDevSpaceController() *schema.Resource {
 			},
 
 			"target_container_host_resource_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
@@ -129,10 +130,11 @@ func resourceArmDevSpaceControllerCreate(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error waiting for creation of DevSpace Controller %q (Resource Group %q): %+v", name, resGroupName, err)
 	}
 
-	var result devspaces.Controller
-	if result, err = future.Result(client); err != nil {
-		return fmt.Errorf("Error retrieving result of DevSpace Controller %q (Resource Group %q): %+v", name, resGroupName, err)
+	result, err := client.Get(ctx, resGroupName, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving DevSpace %q (Resource Group %q): %+v", name, resGroupName, err)
 	}
+
 	if result.ID == nil {
 		return fmt.Errorf("Cannot read DevSpace Controller %q (Resource Group %q) ID", name, resGroupName)
 	}
@@ -204,12 +206,17 @@ func resourceArmDevSpaceControllerUpdate(d *schema.ResourceData, meta interface{
 		Tags: expandTags(tags),
 	}
 
-	_, err := client.Update(ctx, resGroupName, name, params)
+	result, err := client.Update(ctx, resGroupName, name, params)
 	if err != nil {
 		return fmt.Errorf("Error updating DevSpace Controller %q (Resource Group %q): %+v", name, resGroupName, err)
 	}
 
-	return nil
+	if result.ID == nil {
+		return fmt.Errorf("Cannot read DevSpace Controller %q (Resource Group %q) ID", name, resGroupName)
+	}
+	d.SetId(*result.ID)
+
+	return resourceArmDevSpaceControllerRead(d, meta)
 }
 
 func resourceArmDevSpaceControllerDelete(d *schema.ResourceData, meta interface{}) error {
@@ -228,17 +235,16 @@ func resourceArmDevSpaceControllerDelete(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error deleting DevSpace Controller %q (Resource Group %q): %+v", name, resGroupName, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for the deletion of DevSpace Controller %q (Resource Group %q): %+v", name, resGroupName, err)
 	}
 
 	return nil
 }
 
-func expandDevSpaceControllerSku(d *schema.ResourceData) (sku *devspaces.Sku) {
+func expandDevSpaceControllerSku(d *schema.ResourceData) *devspaces.Sku {
 	if _, ok := d.GetOk("sku"); !ok {
-		return
+		return nil
 	}
 
 	skuConfigs := d.Get("sku").([]interface{})
@@ -246,24 +252,20 @@ func expandDevSpaceControllerSku(d *schema.ResourceData) (sku *devspaces.Sku) {
 	skuName := skuConfig["name"].(string)
 	skuTier := devspaces.SkuTier(skuConfig["tier"].(string))
 
-	sku = &devspaces.Sku{
+	return &devspaces.Sku{
 		Name: &skuName,
 		Tier: skuTier,
 	}
-
-	return
 }
 
-func flattenDevSpaceControllerSku(skuObj *devspaces.Sku) (skuConfigs []interface{}) {
+func flattenDevSpaceControllerSku(skuObj *devspaces.Sku) []interface{} {
 	if skuObj == nil {
-		return
+		return []interface{}{}
 	}
 
 	skuConfig := make(map[string]interface{}, 0)
 	skuConfig["name"] = *skuObj.Name
 	skuConfig["tier"] = skuObj.Tier
 
-	skuConfigs = append(skuConfigs, skuConfig)
-
-	return
+	return []interface{}{skuConfig}
 }
