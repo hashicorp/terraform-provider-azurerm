@@ -79,10 +79,11 @@ func testCheckAzureRMNetworkInterfaceNATRuleAssociationExists(name string) resou
 			return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
 		}
 
-		config := azure.FindNetworkInterfaceIPConfiguration(read.InterfacePropertiesFormat.IPConfigurations, ipConfigurationName)
-		if config == nil {
+		c := azure.FindNetworkInterfaceIPConfiguration(read.InterfacePropertiesFormat.IPConfigurations, ipConfigurationName)
+		if c == nil {
 			return fmt.Errorf("IP Configuration %q wasn't found for Network Interface %q (Resource Group %q)", ipConfigurationName, nicName, resourceGroup)
 		}
+		config := *c
 
 		found := false
 		if config.InterfaceIPConfigurationPropertiesFormat.LoadBalancerInboundNatRules != nil {
