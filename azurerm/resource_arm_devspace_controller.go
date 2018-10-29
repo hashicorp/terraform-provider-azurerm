@@ -71,6 +71,7 @@ func resourceArmDevSpaceController() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"target_container_host_credentials_base64": {
