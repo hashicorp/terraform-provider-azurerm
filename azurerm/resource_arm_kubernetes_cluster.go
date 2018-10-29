@@ -759,23 +759,21 @@ func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []conta
 	name := config["name"].(string)
 	count := int32(config["count"].(int))
 	vmSize := config["vm_size"].(string)
-	osType := config["os_type"].(string)
-
-	// If this value is not provided, the default value read from configuration will be 0.
-	// AKS API prefers to accept nil pointer instead of 0.
 	osDiskSizeGB := int32(config["os_disk_size_gb"].(int))
-	var osDiskSizeGBPtr *int32 = nil
-	if osDiskSizeGB > 0 {
-		osDiskSizeGBPtr = utils.Int32(osDiskSizeGB)
-	}
+	osType := config["os_type"].(string)
 
 	profile := containerservice.ManagedClusterAgentPoolProfile{
 		Name:           utils.String(name),
 		Count:          utils.Int32(count),
 		VMSize:         containerservice.VMSizeTypes(vmSize),
-		OsDiskSizeGB:   osDiskSizeGBPtr,
 		StorageProfile: containerservice.ManagedDisks,
 		OsType:         containerservice.OSType(osType),
+	}
+
+	// If this value is not provided by user, the default value read from configuration will be 0.
+	// AKS API requires to pass nil pointer instead of 0.
+	if osDiskSizeGB > 0 {
+		profile.OsDiskSizeGB = utils.Int32(osDiskSizeGB)
 	}
 
 	if maxPods := int32(config["max_pods"].(int)); maxPods > 0 {
