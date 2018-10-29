@@ -21,6 +21,6 @@ func DevSpaceName() schema.SchemaValidateFunc {
 			return s, es
 		}
 
-		return nil, nil
+		return s, es
 	}
 }
