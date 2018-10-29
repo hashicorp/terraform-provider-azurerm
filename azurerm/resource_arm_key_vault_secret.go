@@ -113,18 +113,17 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 			Tags:        expandTags(tags),
 		}
 
-		_, err := client.SetSecret(ctx, id.KeyVaultBaseUrl, id.Name, parameters)
+		_, err = client.SetSecret(ctx, id.KeyVaultBaseUrl, id.Name, parameters)
 		if err != nil {
 			return err
 		}
 
 		// "" indicates the latest version
-		read, err := client.GetSecret(ctx, id.KeyVaultBaseUrl, id.Name, "")
-		if err != nil {
-			return fmt.Errorf("Error getting Key Vault Secret %q : %+v", id.Name, err)
+		read, err2 := client.GetSecret(ctx, id.KeyVaultBaseUrl, id.Name, "")
+		if err2 != nil {
+			return fmt.Errorf("Error getting Key Vault Secret %q : %+v", id.Name, err2)
 		}
-		_, err = parseKeyVaultChildID(*read.ID)
-		if err != nil {
+		if _, err = parseKeyVaultChildID(*read.ID); err != nil {
 			return err
 		}
 
@@ -136,8 +135,7 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 			Tags:        expandTags(tags),
 		}
 
-		_, err = client.UpdateSecret(ctx, id.KeyVaultBaseUrl, id.Name, id.Version, parameters)
-		if err != nil {
+		if _, err = client.UpdateSecret(ctx, id.KeyVaultBaseUrl, id.Name, id.Version, parameters); err != nil {
 			return err
 		}
 	}
@@ -191,6 +189,5 @@ func resourceArmKeyVaultSecretDelete(d *schema.ResourceData, meta interface{}) e
 	}
 
 	_, err = client.DeleteSecret(ctx, id.KeyVaultBaseUrl, id.Name)
-
 	return err
 }

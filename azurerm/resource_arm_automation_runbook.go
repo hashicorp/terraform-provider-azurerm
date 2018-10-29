@@ -159,7 +159,7 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 		content := v.(string)
 		reader := ioutil.NopCloser(bytes.NewBufferString(content))
 		draftClient := meta.(*ArmClient).automationRunbookDraftClient
-		_, err := draftClient.ReplaceContent(ctx, resGroup, accName, name, reader)
+		_, err = draftClient.ReplaceContent(ctx, resGroup, accName, name, reader)
 		if err != nil {
 			return fmt.Errorf("Error setting the draft Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
 		}

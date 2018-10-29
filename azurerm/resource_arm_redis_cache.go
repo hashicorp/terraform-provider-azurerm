@@ -275,7 +275,7 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 		Timeout:    60 * time.Minute,
 		MinTimeout: 15 * time.Second,
 	}
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Redis Instance (%s) to become available: %s", d.Get("name"), err)
 	}
 
@@ -354,7 +354,7 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 		Timeout:    60 * time.Minute,
 		MinTimeout: 15 * time.Second,
 	}
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Redis Instance (%s) to become available: %s", d.Get("name"), err)
 	}
 
@@ -414,7 +414,7 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 	schedule, err := patchSchedulesClient.Get(ctx, resGroup, name)
 	if err == nil {
 		patchSchedule := flattenRedisPatchSchedules(schedule)
-		if err := d.Set("patch_schedule", patchSchedule); err != nil {
+		if err = d.Set("patch_schedule", patchSchedule); err != nil {
 			return fmt.Errorf("Error setting `patch_schedule`: %+v", err)
 		}
 	}

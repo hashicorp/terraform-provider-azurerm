@@ -752,17 +752,17 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 	storageProfile.OsDisk = osDisk
 
 	if _, ok := d.GetOk("storage_profile_data_disk"); ok {
-		dataDisks, err := expandAzureRMVirtualMachineScaleSetsStorageProfileDataDisk(d)
-		if err != nil {
-			return err
+		dataDisks, err2 := expandAzureRMVirtualMachineScaleSetsStorageProfileDataDisk(d)
+		if err2 != nil {
+			return err2
 		}
 		storageProfile.DataDisks = &dataDisks
 	}
 
 	if _, ok := d.GetOk("storage_profile_image_reference"); ok {
-		imageRef, err := expandAzureRmVirtualMachineScaleSetStorageProfileImageReference(d)
-		if err != nil {
-			return err
+		imageRef, err2 := expandAzureRmVirtualMachineScaleSetStorageProfileImageReference(d)
+		if err2 != nil {
+			return err2
 		}
 		storageProfile.ImageReference = imageRef
 	}
@@ -829,9 +829,9 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 	}
 
 	if _, ok := d.GetOk("plan"); ok {
-		plan, err := expandAzureRmVirtualMachineScaleSetPlan(d)
-		if err != nil {
-			return err
+		plan, err2 := expandAzureRmVirtualMachineScaleSetPlan(d)
+		if err2 != nil {
+			return err2
 		}
 
 		properties.Plan = plan
@@ -842,7 +842,7 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 		return err
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 
@@ -1029,7 +1029,7 @@ func resourceArmVirtualMachineScaleSetDelete(d *schema.ResourceData, meta interf
 		return err
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 

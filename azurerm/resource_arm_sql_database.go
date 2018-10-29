@@ -353,9 +353,9 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	if v, ok := d.GetOk("source_database_deletion_date"); ok {
 		sourceDatabaseDeletionString := v.(string)
-		sourceDatabaseDeletionDate, err := date.ParseTime(time.RFC3339, sourceDatabaseDeletionString)
-		if err != nil {
-			return fmt.Errorf("`source_database_deletion_date` wasn't a valid RFC3339 date %q: %+v", sourceDatabaseDeletionString, err)
+		sourceDatabaseDeletionDate, err2 := date.ParseTime(time.RFC3339, sourceDatabaseDeletionString)
+		if err2 != nil {
+			return fmt.Errorf("`source_database_deletion_date` wasn't a valid RFC3339 date %q: %+v", sourceDatabaseDeletionString, err2)
 		}
 
 		properties.DatabaseProperties.SourceDatabaseDeletionDate = &date.Time{
@@ -365,9 +365,9 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	if v, ok := d.GetOk("requested_service_objective_id"); ok {
 		requestedServiceObjectiveID := v.(string)
-		id, err := uuid.FromString(requestedServiceObjectiveID)
-		if err != nil {
-			return fmt.Errorf("`requested_service_objective_id` wasn't a valid UUID %q: %+v", requestedServiceObjectiveID, err)
+		id, err2 := uuid.FromString(requestedServiceObjectiveID)
+		if err2 != nil {
+			return fmt.Errorf("`requested_service_objective_id` wasn't a valid UUID %q: %+v", requestedServiceObjectiveID, err2)
 		}
 		properties.DatabaseProperties.RequestedServiceObjectiveID = &id
 	}
@@ -384,9 +384,9 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	if v, ok := d.GetOk("restore_point_in_time"); ok {
 		restorePointInTime := v.(string)
-		restorePointInTimeDate, err := date.ParseTime(time.RFC3339, restorePointInTime)
-		if err != nil {
-			return fmt.Errorf("`restore_point_in_time` wasn't a valid RFC3339 date %q: %+v", restorePointInTime, err)
+		restorePointInTimeDate, err2 := date.ParseTime(time.RFC3339, restorePointInTime)
+		if err2 != nil {
+			return fmt.Errorf("`restore_point_in_time` wasn't a valid RFC3339 date %q: %+v", restorePointInTime, err2)
 		}
 
 		properties.DatabaseProperties.RestorePointInTime = &date.Time{
@@ -415,9 +415,9 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 			return fmt.Errorf("import can only be used when create_mode is Default")
 		}
 		importParameters := expandAzureRmSqlDatabaseImport(d)
-		importFuture, err := client.CreateImportOperation(ctx, resourceGroup, serverName, name, importParameters)
-		if err != nil {
-			return err
+		importFuture, err2 := client.CreateImportOperation(ctx, resourceGroup, serverName, name, importParameters)
+		if err2 != nil {
+			return err2
 		}
 
 		// this is set in config.go, but something sets
@@ -425,8 +425,7 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 		// for most imports
 		client.Client.PollingDuration = 60 * time.Minute
 
-		err = importFuture.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
+		if err = importFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return err
 		}
 	}
