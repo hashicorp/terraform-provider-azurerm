@@ -39,8 +39,9 @@ func resourceArmRoute() *schema.Resource {
 			},
 
 			"address_prefix": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"next_hop_type": {
@@ -57,9 +58,9 @@ func resourceArmRoute() *schema.Resource {
 			},
 
 			"next_hop_in_ip_address": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 		},
 	}
