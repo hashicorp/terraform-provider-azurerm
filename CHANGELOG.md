@@ -15,6 +15,7 @@ IMPROVEMENTS:
 * `azurerm_cosmosdb_account` - support for the `enable_multiple_write_locations` property [GH-2109]
 * `azurerm_eventhub_namespace` - allow `maximum_throughput_units` to be zero [GH-2124]
 * `azurerm_key_vault_certificate` - support for setting `extended_key_usage` [GH-2128]
+* `azurerm_managed_disk` - support for the `UltraSSD_LRS` storage account type [GH-2118]
 * `azurerm_monitor_activity_log_alert` - support the criteria fields `resource_provider`, `resource_type`, `resource_group` [GH-2150]
 * `azurerm_virtual_network_gateway` - support for `OpenVPN` as a client protocol option [GH-2126]
 * `azurerm_virtual_machine_scale_set` - support for the `application_security_group_ids` property of `ip_configuration`  [GH-2009]
