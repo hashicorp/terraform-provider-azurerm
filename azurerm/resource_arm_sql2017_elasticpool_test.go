@@ -85,7 +85,7 @@ func TestAccAzureRMSqlElasticPool2017_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMSqlElasticPool2017_resize_DTU(t *testing.T) {
-	resourceName := "azurerm_sql_elasticpool.test"
+	resourceName := "azurerm_sql2017_elasticpool.test"
 	ri := acctest.RandInt()
 	location := testLocation()
 	preConfig := testAccAzureRMSqlElasticPool2017_basic_DTU(ri, location)
@@ -100,16 +100,16 @@ func TestAccAzureRMSqlElasticPool2017_resize_DTU(t *testing.T) {
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlElasticPool2017Exists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "0"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "100"),
+					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "0.0"),
+					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "100.0"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlElasticPool2017Exists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "50"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "1000"),
+					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "50.0"),
+					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "1000.0"),
 				),
 			},
 		},
@@ -117,7 +117,7 @@ func TestAccAzureRMSqlElasticPool2017_resize_DTU(t *testing.T) {
 }
 
 func TestAccAzureRMSqlElasticPool2017_resize_vCore(t *testing.T) {
-	resourceName := "azurerm_sql_elasticpool.test"
+	resourceName := "azurerm_sql2017_elasticpool.test"
 	ri := acctest.RandInt()
 	location := testLocation()
 	preConfig := testAccAzureRMSqlElasticPool2017_basic_vCore(ri, location)
@@ -133,7 +133,7 @@ func TestAccAzureRMSqlElasticPool2017_resize_vCore(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlElasticPool2017Exists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "0.25"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "4"),
+					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "4.0"),
 				),
 			},
 			{
@@ -141,7 +141,7 @@ func TestAccAzureRMSqlElasticPool2017_resize_vCore(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlElasticPool2017Exists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "0.0"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "8"),
+					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "8.0"),
 				),
 			},
 		},
