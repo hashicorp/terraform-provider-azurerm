@@ -11,9 +11,8 @@ import (
 )
 
 func TestAccAzureRMEventHubConsumerGroup_basic(t *testing.T) {
-
+	resourceName := "azurerm_eventhub_consumer_group.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMEventHubConsumerGroup_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -21,19 +20,23 @@ func TestAccAzureRMEventHubConsumerGroup_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMEventHubConsumerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMEventHubConsumerGroup_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubConsumerGroupExists("azurerm_eventhub_consumer_group.test"),
+					testCheckAzureRMEventHubConsumerGroupExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func TestAccAzureRMEventHubConsumerGroup_complete(t *testing.T) {
-
+	resourceName := "azurerm_eventhub_consumer_group.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMEventHubConsumerGroup_complete(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -41,10 +44,15 @@ func TestAccAzureRMEventHubConsumerGroup_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMEventHubConsumerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMEventHubConsumerGroup_complete(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubConsumerGroupExists("azurerm_eventhub_consumer_group.test"),
+					testCheckAzureRMEventHubConsumerGroupExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -53,8 +61,6 @@ func TestAccAzureRMEventHubConsumerGroup_complete(t *testing.T) {
 func TestAccAzureRMEventHubConsumerGroup_userMetadataUpdate(t *testing.T) {
 	resourceName := "azurerm_eventhub_consumer_group.test"
 	ri := acctest.RandInt()
-	preConfig := testAccAzureRMEventHubConsumerGroup_basic(ri, testLocation())
-	postConfig := testAccAzureRMEventHubConsumerGroup_complete(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -62,17 +68,22 @@ func TestAccAzureRMEventHubConsumerGroup_userMetadataUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMEventHubConsumerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMEventHubConsumerGroup_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubConsumerGroupExists(resourceName),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMEventHubConsumerGroup_complete(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubConsumerGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "user_metadata", "some-meta-data"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

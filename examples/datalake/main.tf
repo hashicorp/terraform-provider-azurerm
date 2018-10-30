@@ -13,7 +13,7 @@ resource "azurerm_data_lake_store" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   location            = "${azurerm_resource_group.example.location}"
 
-  tier                = "Consumption"
+  tier = "Consumption"
 }
 
 resource "azurerm_data_lake_store_firewall_rule" "test" {

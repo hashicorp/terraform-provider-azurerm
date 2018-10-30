@@ -77,7 +77,7 @@ func (client ContainerClient) ExecuteCommandPreparer(ctx context.Context, resour
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2018-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -150,7 +150,7 @@ func (client ContainerClient) ListLogsPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2018-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

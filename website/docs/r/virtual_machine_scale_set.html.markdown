@@ -98,10 +98,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     max_unhealthy_upgraded_instance_percent = 5
     pause_time_between_batches              = "PT0S"
   }
-  
+
   # required when using rolling upgrade policy
   health_probe_id = "${azurerm_lb_probe.test.id}"
-      
+
 
   sku {
     name     = "Standard_F2"
@@ -290,7 +290,7 @@ The following arguments are supported:
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 * `zones` - (Optional) A collection of availability zones to spread the Virtual Machines over.
 
--> **Please Note**: Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](http://aka.ms/azenroll).
+-> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).
 
 `sku` supports the following:
 
