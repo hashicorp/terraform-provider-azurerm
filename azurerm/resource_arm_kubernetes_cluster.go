@@ -262,6 +262,13 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Set: resourceAzureRMKubernetesClusterServicePrincipalProfileHash,
 			},
 
+			"enable_rbac": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+				Default:  true,
+			},
+
 			"network_profile": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -375,6 +382,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	dnsPrefix := d.Get("dns_prefix").(string)
 	kubernetesVersion := d.Get("kubernetes_version").(string)
+	enableRbac := d.Get("enable_rbac").(bool)
 
 	linuxProfile := expandAzureRmKubernetesClusterLinuxProfile(d)
 	agentProfiles := expandAzureRmKubernetesClusterAgentProfiles(d)
@@ -407,6 +415,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 			LinuxProfile:            linuxProfile,
 			ServicePrincipalProfile: servicePrincipalProfile,
 			NetworkProfile:          networkProfile,
+			EnableRBAC:				 &enableRbac,
 		},
 		Tags: expandTags(tags),
 	}
@@ -474,6 +483,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("fqdn", props.Fqdn)
 		d.Set("kubernetes_version", props.KubernetesVersion)
 		d.Set("node_resource_group", props.NodeResourceGroup)
+		d.Set("enable_rbac", props.EnableRBAC)
 
 		linuxProfile := flattenAzureRmKubernetesClusterLinuxProfile(props.LinuxProfile)
 		if err := d.Set("linux_profile", linuxProfile); err != nil {
