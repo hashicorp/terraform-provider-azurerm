@@ -16,6 +16,7 @@ IMPROVEMENTS:
 * `azurerm_cosmosdb_account` - support for the `enable_multiple_write_locations` property [GH-2109]
 * `azurerm_eventhub_namespace` - allow `maximum_throughput_units` to be zero [GH-2124]
 * `azurerm_key_vault_certificate` - support for setting `extended_key_usage` [GH-2128]
+* `azurerm_key_vault_certificate` - support for setting `subject_alternative_names` [GH-2123]
 * `azurerm_managed_disk` - support for the `UltraSSD_LRS` storage account type [GH-2118]
 * `azurerm_monitor_activity_log_alert` - support the criteria fields `resource_provider`, `resource_type`, `resource_group` [GH-2150]
 * `azurerm_recovery_services_protected_vm` - `backup_policy_id` is now required [GH-2154]
