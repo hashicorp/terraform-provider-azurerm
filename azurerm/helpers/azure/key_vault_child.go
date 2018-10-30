@@ -5,6 +5,8 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 type KeyVaultChildID struct {
@@ -48,4 +50,26 @@ func ValidateKeyVaultChildName(v interface{}, k string) (ws []string, es []error
 	}
 
 	return ws, es
+}
+
+// Unfortunately this can't (easily) go in the Validate package
+// since there's a circular reference on this package
+func ValidateKeyVaultChildId(i interface{}, k string) (s []string, es []error) {
+	if s, es = validation.NoZeroValues(i, k); len(es) > 0 {
+		return s, es
+	}
+
+	v, ok := i.(string)
+	if !ok {
+		es = append(es, fmt.Errorf("Expected %s to be a string!", k))
+		return s, es
+	}
+
+	_, err := ParseKeyVaultChildID(v)
+	if err != nil {
+		es = append(es, fmt.Errorf("Error parsing Key Vault Child ID: %s", err))
+		return s, es
+	}
+
+	return s, es
 }
