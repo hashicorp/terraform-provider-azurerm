@@ -12,6 +12,7 @@ IMPROVEMENTS:
 * sdk: upgrading to `2018-10-01` of the `containerinstance` sdk [GH-2174]
 * `azurerm_automation_account` - exposing `dsc_server_endpoint`, `dsc_primary_access_key`, `dsc_secondary_access_key` properties [GH-2166] 
 * `azurerm_automation_account` - support for the `free` SKU [GH-2166]
+* `azurerm_client_config` - ensuring the `service_principal_application_id` and `service_principal_object_id` are always set [GH-2120]
 * `azurerm_cosmosdb_account` - support for the `enable_multiple_write_locations` property [GH-2109]
 * `azurerm_eventhub_namespace` - allow `maximum_throughput_units` to be zero [GH-2124]
 * `azurerm_key_vault_certificate` - support for setting `extended_key_usage` [GH-2128]
