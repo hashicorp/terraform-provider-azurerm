@@ -58,7 +58,7 @@ The following arguments are supported:
 
 -> **NOTE:** At this time Subnet <-> Route Table associations need to be configured both using this field (which is now Deprecated) and/or using the `azurerm_subnet_route_table_association` resource. This field is deprecated and will be removed in favour of that resource in the next major version (2.0) of the AzureRM Provider.
 
-* `service_endpoints` - (Optional) The list of Service endpoints to associate with the subnet. Possible values include: `Microsoft.Storage`, `Microsoft.Sql`.
+* `service_endpoints` - (Optional) The list of Service endpoints to associate with the subnet. Possible values include: `Microsoft.AzureActiveDirectory`, `Microsoft.AzureCosmosDB`, `Microsoft.EventHub`, `Microsoft.KeyVault`, `Microsoft.ServiceBus`, `Microsoft.Sql` and `Microsoft.Storage`.
 
 ## Attributes Reference
 
