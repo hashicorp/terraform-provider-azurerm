@@ -80,8 +80,8 @@ The following arguments are supported:
 
 A `sku` block supports the following:
 
-* `name` - (Required) The name of the SKU for DevSpace Controller. Currently supported value is `S1`. Changing this forces a new resource to be created.
-* `tier` - (Required) The tier of the SKU for DevSpace Controller. Currently supported value is `Standard`. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the SKU for DevSpace Controller. Currently the only supported value is `S1`. Changing this forces a new resource to be created.
+* `tier` - (Required) The tier of the SKU for DevSpace Controller. Currently the only supported value is `Standard`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -93,7 +93,7 @@ The following attributes are exported:
 
 ## Import
 
-DevSpace Controller can be imported using the `resource id`, e.g.
+DevSpace Controller's can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_devspace_controller.controller1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DevSpaces/controllers/controller1Name
