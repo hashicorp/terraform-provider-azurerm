@@ -101,7 +101,7 @@ func TestAccAzureRMSqlElasticPool2017_resize_DTU(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlElasticPool2017Exists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "0"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "100"),
+					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "50"),
 				),
 			},
 			{
@@ -109,7 +109,7 @@ func TestAccAzureRMSqlElasticPool2017_resize_DTU(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlElasticPool2017Exists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "50"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "1000"),
+					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "100"),
 				),
 			},
 		},
@@ -249,14 +249,14 @@ resource "azurerm_sql2017_elasticpool" "test" {
   server_name         = "${azurerm_sql_server.test.name}"
 
   sku {
-    name     = "BasicPool"
-    tier     = "Basic"
-    capacity = 1000
+    name     = "StandardPool"
+    tier     = "Standard"
+    capacity = 50
   }
 
   per_database_settings {
     min_capacity = 0
-    max_capacity = 100
+    max_capacity = 50
   }
 }
 `, rInt, location)
@@ -322,14 +322,14 @@ resource "azurerm_sql2017_elasticpool" "test" {
   server_name         = "${azurerm_sql_server.test.name}"
 
   sku {
-    name     = "BasicPool"
-    tier     = "Basic"
-    capacity = 1000
+    name     = "StandardPool"
+    tier     = "Standard"
+    capacity = 100
   }
 
   per_database_settings {
     min_capacity = 50
-    max_capacity = 1000
+    max_capacity = 100
   }
 }
 `, rInt, location)
