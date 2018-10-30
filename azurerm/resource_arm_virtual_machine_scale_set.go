@@ -1831,7 +1831,7 @@ func expandAzureRmVirtualMachineScaleSetIdentity(d *schema.ResourceData) *comput
 		Type: identityType,
 	}
 
-	if vmssIdentity.Type == compute.ResourceIdentityTypeUserAssigned {
+	if vmssIdentity.Type == compute.ResourceIdentityTypeUserAssigned || vmssIdentity.Type == compute.ResourceIdentityTypeSystemAssignedUserAssigned {
 		vmssIdentity.UserAssignedIdentities = identityIds
 	}
 
