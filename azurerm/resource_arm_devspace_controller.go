@@ -172,18 +172,14 @@ func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{})
 	}
 
 	if err := d.Set("sku", flattenDevSpaceControllerSku(result.Sku)); err != nil {
-		return fmt.Errorf("Error flattenning Sku for DevSpace Controller %q (Resource Group %q): %+v", name, resGroupName, err)
+		return fmt.Errorf("Error flattenning `sku`: %+v", err)
 	}
 
-	var hostSuffix, dataPlaneFqdn, targetContainerHostResourceID *string
 	if props := result.ControllerProperties; props != nil {
-		hostSuffix = props.HostSuffix
-		dataPlaneFqdn = props.DataPlaneFqdn
-		targetContainerHostResourceID = props.TargetContainerHostResourceID
+		d.Set("host_suffix", props.HostSuffix)
+		d.Set("data_plane_fqdn", props.DataPlaneFqdn)
+		d.Set("target_container_host_resource_id", props.TargetContainerHostResourceID)
 	}
-	d.Set("host_suffix", hostSuffix)
-	d.Set("data_plane_fqdn", dataPlaneFqdn)
-	d.Set("target_container_host_resource_id", targetContainerHostResourceID)
 
 	flattenAndSetTags(d, result.Tags)
 
