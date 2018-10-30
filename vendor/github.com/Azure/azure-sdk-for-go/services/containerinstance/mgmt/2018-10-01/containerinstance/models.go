@@ -26,6 +26,21 @@ import (
 	"net/http"
 )
 
+// ContainerGroupIPAddressType enumerates the values for container group ip address type.
+type ContainerGroupIPAddressType string
+
+const (
+	// Private ...
+	Private ContainerGroupIPAddressType = "Private"
+	// Public ...
+	Public ContainerGroupIPAddressType = "Public"
+)
+
+// PossibleContainerGroupIPAddressTypeValues returns an array of possible values for the ContainerGroupIPAddressType const type.
+func PossibleContainerGroupIPAddressTypeValues() []ContainerGroupIPAddressType {
+	return []ContainerGroupIPAddressType{Private, Public}
+}
+
 // ContainerGroupNetworkProtocol enumerates the values for container group network protocol.
 type ContainerGroupNetworkProtocol string
 
@@ -73,6 +88,21 @@ func PossibleContainerNetworkProtocolValues() []ContainerNetworkProtocol {
 	return []ContainerNetworkProtocol{ContainerNetworkProtocolTCP, ContainerNetworkProtocolUDP}
 }
 
+// LogAnalyticsLogType enumerates the values for log analytics log type.
+type LogAnalyticsLogType string
+
+const (
+	// ContainerInsights ...
+	ContainerInsights LogAnalyticsLogType = "ContainerInsights"
+	// ContainerInstanceLogs ...
+	ContainerInstanceLogs LogAnalyticsLogType = "ContainerInstanceLogs"
+)
+
+// PossibleLogAnalyticsLogTypeValues returns an array of possible values for the LogAnalyticsLogType const type.
+func PossibleLogAnalyticsLogTypeValues() []LogAnalyticsLogType {
+	return []LogAnalyticsLogType{ContainerInsights, ContainerInstanceLogs}
+}
+
 // OperatingSystemTypes enumerates the values for operating system types.
 type OperatingSystemTypes string
 
@@ -101,6 +131,25 @@ const (
 // PossibleOperationsOriginValues returns an array of possible values for the OperationsOrigin const type.
 func PossibleOperationsOriginValues() []OperationsOrigin {
 	return []OperationsOrigin{System, User}
+}
+
+// ResourceIdentityType enumerates the values for resource identity type.
+type ResourceIdentityType string
+
+const (
+	// None ...
+	None ResourceIdentityType = "None"
+	// SystemAssigned ...
+	SystemAssigned ResourceIdentityType = "SystemAssigned"
+	// SystemAssignedUserAssigned ...
+	SystemAssignedUserAssigned ResourceIdentityType = "SystemAssigned, UserAssigned"
+	// UserAssigned ...
+	UserAssigned ResourceIdentityType = "UserAssigned"
+)
+
+// PossibleResourceIdentityTypeValues returns an array of possible values for the ResourceIdentityType const type.
+func PossibleResourceIdentityTypeValues() []ResourceIdentityType {
+	return []ResourceIdentityType{None, SystemAssigned, SystemAssignedUserAssigned, UserAssigned}
 }
 
 // Scheme enumerates the values for scheme.
@@ -216,7 +265,9 @@ type ContainerExecResponse struct {
 
 // ContainerGroup a container group.
 type ContainerGroup struct {
-	autorest.Response         `json:"-"`
+	autorest.Response `json:"-"`
+	// Identity - The identity of the container group, if configured.
+	Identity                  *ContainerGroupIdentity `json:"identity,omitempty"`
 	*ContainerGroupProperties `json:"properties,omitempty"`
 	// ID - The resource id.
 	ID *string `json:"id,omitempty"`
@@ -233,6 +284,9 @@ type ContainerGroup struct {
 // MarshalJSON is the custom marshaler for ContainerGroup.
 func (cg ContainerGroup) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if cg.Identity != nil {
+		objectMap["identity"] = cg.Identity
+	}
 	if cg.ContainerGroupProperties != nil {
 		objectMap["properties"] = cg.ContainerGroupProperties
 	}
@@ -263,6 +317,15 @@ func (cg *ContainerGroup) UnmarshalJSON(body []byte) error {
 	}
 	for k, v := range m {
 		switch k {
+		case "identity":
+			if v != nil {
+				var identity ContainerGroupIdentity
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				cg.Identity = &identity
+			}
 		case "properties":
 			if v != nil {
 				var containerGroupProperties ContainerGroupProperties
@@ -327,6 +390,44 @@ func (cg *ContainerGroup) UnmarshalJSON(body []byte) error {
 type ContainerGroupDiagnostics struct {
 	// LogAnalytics - Container group log analytics information.
 	LogAnalytics *LogAnalytics `json:"logAnalytics,omitempty"`
+}
+
+// ContainerGroupIdentity identity for the container group.
+type ContainerGroupIdentity struct {
+	// PrincipalID - The principal id of the container group identity. This property will only be provided for a system assigned identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// TenantID - The tenant id associated with the container group. This property will only be provided for a system assigned identity.
+	TenantID *string `json:"tenantId,omitempty"`
+	// Type - The type of identity used for the container group. The type 'SystemAssigned, UserAssigned' includes both an implicitly created identity and a set of user assigned identities. The type 'None' will remove any identities from the container group. Possible values include: 'SystemAssigned', 'UserAssigned', 'SystemAssignedUserAssigned', 'None'
+	Type ResourceIdentityType `json:"type,omitempty"`
+	// UserAssignedIdentities - The list of user identities associated with the container group. The user identity dictionary key references will be ARM resource ids in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}'.
+	UserAssignedIdentities map[string]*ContainerGroupIdentityUserAssignedIdentitiesValue `json:"userAssignedIdentities"`
+}
+
+// MarshalJSON is the custom marshaler for ContainerGroupIdentity.
+func (cgiVar ContainerGroupIdentity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cgiVar.PrincipalID != nil {
+		objectMap["principalId"] = cgiVar.PrincipalID
+	}
+	if cgiVar.TenantID != nil {
+		objectMap["tenantId"] = cgiVar.TenantID
+	}
+	if cgiVar.Type != "" {
+		objectMap["type"] = cgiVar.Type
+	}
+	if cgiVar.UserAssignedIdentities != nil {
+		objectMap["userAssignedIdentities"] = cgiVar.UserAssignedIdentities
+	}
+	return json.Marshal(objectMap)
+}
+
+// ContainerGroupIdentityUserAssignedIdentitiesValue ...
+type ContainerGroupIdentityUserAssignedIdentitiesValue struct {
+	// PrincipalID - The principal id of user assigned identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// ClientID - The client id of user assigned identity.
+	ClientID *string `json:"clientId,omitempty"`
 }
 
 // ContainerGroupListResult the container group list response that contains the container group properties.
@@ -431,6 +532,12 @@ func (page ContainerGroupListResultPage) Values() []ContainerGroup {
 	return *page.cglr.Value
 }
 
+// ContainerGroupNetworkProfile container group network profile information.
+type ContainerGroupNetworkProfile struct {
+	// ID - The identifier for a network profile.
+	ID *string `json:"id,omitempty"`
+}
+
 // ContainerGroupProperties ...
 type ContainerGroupProperties struct {
 	// ProvisioningState - The provisioning state of the container group. This only appears in the response.
@@ -455,6 +562,8 @@ type ContainerGroupProperties struct {
 	InstanceView *ContainerGroupPropertiesInstanceView `json:"instanceView,omitempty"`
 	// Diagnostics - The diagnostic information for a container group.
 	Diagnostics *ContainerGroupDiagnostics `json:"diagnostics,omitempty"`
+	// NetworkProfile - The network profile information for a container group.
+	NetworkProfile *ContainerGroupNetworkProfile `json:"networkProfile,omitempty"`
 }
 
 // ContainerGroupPropertiesInstanceView the instance view of the container group. Only valid in response.
@@ -651,8 +760,8 @@ type ImageRegistryCredential struct {
 type IPAddress struct {
 	// Ports - The list of ports exposed on the container group.
 	Ports *[]Port `json:"ports,omitempty"`
-	// Type - Specifies if the IP is exposed to the public internet.
-	Type *string `json:"type,omitempty"`
+	// Type - Specifies if the IP is exposed to the public internet or private VNET. Possible values include: 'Public', 'Private'
+	Type ContainerGroupIPAddressType `json:"type,omitempty"`
 	// IP - The IP exposed to the public internet.
 	IP *string `json:"ip,omitempty"`
 	// DNSNameLabel - The Dns name label for the IP.
@@ -667,6 +776,28 @@ type LogAnalytics struct {
 	WorkspaceID *string `json:"workspaceId,omitempty"`
 	// WorkspaceKey - The workspace key for log analytics
 	WorkspaceKey *string `json:"workspaceKey,omitempty"`
+	// LogType - The log type to be used. Possible values include: 'ContainerInsights', 'ContainerInstanceLogs'
+	LogType LogAnalyticsLogType `json:"logType,omitempty"`
+	// Metadata - Metadata for log analytics.
+	Metadata map[string]*string `json:"metadata"`
+}
+
+// MarshalJSON is the custom marshaler for LogAnalytics.
+func (la LogAnalytics) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if la.WorkspaceID != nil {
+		objectMap["workspaceId"] = la.WorkspaceID
+	}
+	if la.WorkspaceKey != nil {
+		objectMap["workspaceKey"] = la.WorkspaceKey
+	}
+	if la.LogType != "" {
+		objectMap["logType"] = la.LogType
+	}
+	if la.Metadata != nil {
+		objectMap["metadata"] = la.Metadata
+	}
+	return json.Marshal(objectMap)
 }
 
 // Logs the logs.
