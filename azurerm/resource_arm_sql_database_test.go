@@ -12,8 +12,8 @@ import (
 )
 
 func TestAccAzureRMSqlDatabase_basic(t *testing.T) {
+	resourceName := "azurerm_sql_database.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMSqlDatabase_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -21,10 +21,16 @@ func TestAccAzureRMSqlDatabase_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSqlDatabase_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlDatabaseExists("azurerm_sql_database.test"),
+					testCheckAzureRMSqlDatabaseExists(resourceName),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"create_mode"},
 			},
 		},
 	})
@@ -33,7 +39,6 @@ func TestAccAzureRMSqlDatabase_basic(t *testing.T) {
 func TestAccAzureRMSqlDatabase_disappears(t *testing.T) {
 	resourceName := "azurerm_sql_database.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMSqlDatabase_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -41,7 +46,7 @@ func TestAccAzureRMSqlDatabase_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSqlDatabase_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlDatabaseExists(resourceName),
 					testCheckAzureRMSqlDatabaseDisappears(resourceName),
@@ -55,7 +60,6 @@ func TestAccAzureRMSqlDatabase_disappears(t *testing.T) {
 func TestAccAzureRMSqlDatabase_elasticPool(t *testing.T) {
 	resourceName := "azurerm_sql_database.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMSqlDatabase_elasticPool(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -63,11 +67,17 @@ func TestAccAzureRMSqlDatabase_elasticPool(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSqlDatabase_elasticPool(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlDatabaseExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "elastic_pool_name", fmt.Sprintf("acctestep%d", ri)),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"create_mode"},
 			},
 		},
 	})
@@ -104,8 +114,8 @@ func TestAccAzureRMSqlDatabase_withTags(t *testing.T) {
 }
 
 func TestAccAzureRMSqlDatabase_dataWarehouse(t *testing.T) {
+	resourceName := "azurerm_sql_database.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMSqlDatabase_dataWarehouse(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -113,10 +123,16 @@ func TestAccAzureRMSqlDatabase_dataWarehouse(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSqlDatabase_dataWarehouse(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlDatabaseExists("azurerm_sql_database.test"),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"create_mode"},
 			},
 		},
 	})
