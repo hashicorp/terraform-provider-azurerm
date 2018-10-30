@@ -81,7 +81,7 @@ The following arguments are supported:
 A `sku` block supports the following:
 
 * `name` - (Required) The name of the SKU for DevSpace Controller. Currently the only supported value is `S1`. Changing this forces a new resource to be created.
-* `tier` - (Required) The tier of the SKU for DevSpace Controller. Currently supported value is `Standard`. Changing this forces a new resource to be created.
+* `tier` - (Required) The tier of the SKU for DevSpace Controller. Currently the only supported value is `Standard`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
