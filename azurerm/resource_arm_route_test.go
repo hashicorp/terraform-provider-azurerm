@@ -35,6 +35,41 @@ func TestAccAzureRMRoute_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMRoute_update(t *testing.T) {
+	resourceName := "azurerm_route.test"
+	ri := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRouteDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRoute_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRouteExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "next_hop_type", "VnetLocal"),
+				),
+			},
+			{
+				Config: testAccAzureRMRoute_basicAppliance(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRouteExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "next_hop_type", "VirtualAppliance"),
+					resource.TestCheckResourceAttr(resourceName, "next_hop_in_ip_address", "192.168.0.1"),
+				),
+			},
+			{
+				Config: testAccAzureRMRoute_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRouteExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "next_hop_type", "VnetLocal"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMRoute_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMRoute_basic(ri, testLocation())
@@ -193,6 +228,31 @@ resource "azurerm_route" "test" {
 
     address_prefix = "10.1.0.0/16"
     next_hop_type  = "vnetlocal"
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMRoute_basicAppliance(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name     = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_route_table" "test" {
+    name                = "acctestrt%d"
+    location            = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_route" "test" {
+    name                = "acctestroute%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    route_table_name    = "${azurerm_route_table.test.name}"
+
+    address_prefix         = "10.1.0.0/16"
+    next_hop_type          = "VirtualAppliance"
+    next_hop_in_ip_address = "192.168.0.1"
 }
 `, rInt, location, rInt, rInt)
 }
