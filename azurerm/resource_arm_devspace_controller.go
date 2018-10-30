@@ -172,7 +172,7 @@ func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{})
 	}
 
 	if err := d.Set("sku", flattenDevSpaceControllerSku(result.Sku)); err != nil {
-		return fmt.Errorf("Error flattenning Sku for DevSpace Controller %q (Resource Group %q): %+v", name, resGroupName, err)
+		return fmt.Errorf("Error flattening`sku`: %+v", err)
 	}
 
 	var hostSuffix, dataPlaneFqdn, targetContainerHostResourceID *string
