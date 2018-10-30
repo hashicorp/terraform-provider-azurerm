@@ -100,16 +100,16 @@ func TestAccAzureRMSqlElasticPool2017_resize_DTU(t *testing.T) {
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlElasticPool2017Exists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "0.0"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "100.0"),
+					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "0"),
+					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "100"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlElasticPool2017Exists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "50.0"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "1000.0"),
+					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "50"),
+					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "1000"),
 				),
 			},
 		},
@@ -133,15 +133,15 @@ func TestAccAzureRMSqlElasticPool2017_resize_vCore(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlElasticPool2017Exists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "0.25"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "4.0"),
+					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "4"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlElasticPool2017Exists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "0.0"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "8.0"),
+					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "0"),
+					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "8"),
 				),
 			},
 		},

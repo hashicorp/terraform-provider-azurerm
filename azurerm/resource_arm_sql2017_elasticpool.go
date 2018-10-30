@@ -208,11 +208,11 @@ func resourceArmSql2017ElasticPool() *schema.Resource {
 				minCapacity, _ := diff.GetOk("per_database_settings.0.min_capacity")
 				maxCapacity, _ := diff.GetOk("per_database_settings.0.max_capacity")
 
-				if maxCapacity.(float64) > capacity.(float64) {
+				if maxCapacity.(float64) > float64(capacity.(int)) {
 					return fmt.Errorf("BusinessCritical pricing tier must have a capacity of 2, 4, 8, 16, 24, 32, 40, or 80 vCores")
 				}
 
-				if maxCapacity.(float64) > capacity.(float64) {
+				if maxCapacity.(float64) > float64(capacity.(int)) {
 					return fmt.Errorf("BusinessCritical and GeneralPurpose pricing tiers perDatabaseSettings maxCapacity must not be higher than the SKUs capacity value")
 				}
 
