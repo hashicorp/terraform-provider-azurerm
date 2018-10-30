@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"log"
 	"strings"
 
@@ -18,6 +19,7 @@ func resourceArmManagedDisk() *schema.Resource {
 		Read:   resourceArmManagedDiskRead,
 		Update: resourceArmManagedDiskCreate,
 		Delete: resourceArmManagedDiskDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -42,8 +44,9 @@ func resourceArmManagedDisk() *schema.Resource {
 					string(compute.StandardLRS),
 					string(compute.PremiumLRS),
 					string(compute.StandardSSDLRS),
+					string(compute.UltraSSDLRS),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"create_option": {

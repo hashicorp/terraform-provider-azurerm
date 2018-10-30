@@ -7,13 +7,18 @@ FEATURES:
 
 IMPROVEMENTS:
 
-* dependencies: upgrading to v21.3.0 of `github.com/Azure/azure-sdk-for-go` [GH-2163]
 * authentication: using the Proxy from the Environment, if set [GH-2133]
+* dependencies: upgrading to v21.3.0 of `github.com/Azure/azure-sdk-for-go` [GH-2163]
+* sdk: upgrading to `2018-10-01` of the `containerinstance` sdk [GH-2174]
 * `azurerm_automation_account` - exposing `dsc_server_endpoint`, `dsc_primary_access_key`, `dsc_secondary_access_key` properties [GH-2166] 
-* `azurerm_automation_account` - support for the `free` SKU [GH-2166] 
-* `azurerm_cosmosdb_account` - support for the `enable_multiple_write_locations` property [GH-2109] 
+* `azurerm_automation_account` - support for the `free` SKU [GH-2166]
+* `azurerm_client_config` - ensuring the `service_principal_application_id` and `service_principal_object_id` are always set [GH-2120]
+* `azurerm_cosmosdb_account` - support for the `enable_multiple_write_locations` property [GH-2109]
+* `azurerm_eventhub_namespace` - allow `maximum_throughput_units` to be zero [GH-2124]
 * `azurerm_key_vault_certificate` - support for setting `extended_key_usage` [GH-2128]
+* `azurerm_managed_disk` - support for the `UltraSSD_LRS` storage account type [GH-2118]
 * `azurerm_monitor_activity_log_alert` - support the criteria fields `resource_provider`, `resource_type`, `resource_group` [GH-2150]
+* `azurerm_recovery_services_protected_vm` - `backup_policy_id` is now required [GH-2154]
 * `azurerm_virtual_network_gateway` - support for `OpenVPN` as a client protocol option [GH-2126]
 * `azurerm_virtual_machine_scale_set` - support for the `application_security_group_ids` property of `ip_configuration`  [GH-2009]
 * `azurerm_virtual_machine_scale_set` - support for a Rolling Upgrade Policy with Automatic OS upgrades [GH-922]

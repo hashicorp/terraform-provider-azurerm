@@ -165,9 +165,8 @@ func TestAccAzureRMEventHubArchiveNameFormat_validation(t *testing.T) {
 }
 
 func TestAccAzureRMEventHub_basic(t *testing.T) {
-
+	resourceName := "azurerm_eventhub.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMEventHub_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -175,19 +174,23 @@ func TestAccAzureRMEventHub_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMEventHub_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubExists("azurerm_eventhub.test"),
+					testCheckAzureRMEventHubExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func TestAccAzureRMEventHub_standard(t *testing.T) {
-
+	resourceName := "azurerm_eventhub.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMEventHub_standard(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -195,10 +198,15 @@ func TestAccAzureRMEventHub_standard(t *testing.T) {
 		CheckDestroy: testCheckAzureRMEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMEventHub_standard(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubExists("azurerm_eventhub.test"),
+					testCheckAzureRMEventHubExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -208,7 +216,6 @@ func TestAccAzureRMEventHub_captureDescription(t *testing.T) {
 	resourceName := "azurerm_eventhub.test"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(5)
-	config := testAccAzureRMEventHub_captureDescription(ri, rs, testLocation(), true)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -216,11 +223,16 @@ func TestAccAzureRMEventHub_captureDescription(t *testing.T) {
 		CheckDestroy: testCheckAzureRMEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMEventHub_captureDescription(ri, rs, testLocation(), true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "capture_description.0.enabled", "true"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
