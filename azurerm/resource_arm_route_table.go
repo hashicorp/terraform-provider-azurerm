@@ -110,7 +110,7 @@ func resourceArmRouteTableCreateUpdate(d *schema.ResourceData, meta interface{})
 		Name:     &name,
 		Location: &location,
 		RouteTablePropertiesFormat: &network.RouteTablePropertiesFormat{
-			Routes:                     expandRouteTableRoutes(d),
+			Routes: expandRouteTableRoutes(d),
 			DisableBgpRoutePropagation: utils.Bool(d.Get("disable_bgp_route_propagation").(bool)),
 		},
 		Tags: expandTags(tags),
