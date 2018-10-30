@@ -154,16 +154,14 @@ func resourceArmFirewallNetworkRuleCollectionCreateUpdate(d *schema.ResourceData
 
 	if !d.IsNewResource() {
 		index := -1
-		if ruleCollections != nil {
-			for i, v := range ruleCollections {
-				if v.Name == nil {
-					continue
-				}
+		for i, v := range ruleCollections {
+			if v.Name == nil {
+				continue
+			}
 
-				if *v.Name == name {
-					index = i
-					break
-				}
+			if *v.Name == name {
+				index = i
+				break
 			}
 		}
 

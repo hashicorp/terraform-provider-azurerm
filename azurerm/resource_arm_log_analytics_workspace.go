@@ -203,7 +203,7 @@ func resourceArmLogAnalyticsWorkspaceDelete(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func validateAzureRmLogAnalyticsWorkspaceName(v interface{}, k string) (ws []string, errors []error) {
+func validateAzureRmLogAnalyticsWorkspaceName(v interface{}, _ string) (ws []string, errors []error) {
 	value := v.(string)
 
 	r, _ := regexp.Compile("^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$")
@@ -216,5 +216,5 @@ func validateAzureRmLogAnalyticsWorkspaceName(v interface{}, k string) (ws []str
 		errors = append(errors, fmt.Errorf("Workspace Name can only be between 4 and 63 letters"))
 	}
 
-	return
+	return ws, errors
 }

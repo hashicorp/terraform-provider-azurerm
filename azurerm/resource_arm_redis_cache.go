@@ -642,7 +642,7 @@ func flattenRedisPatchSchedules(schedule redis.PatchSchedule) []interface{} {
 	outputs := make([]interface{}, 0)
 
 	for _, entry := range *schedule.ScheduleEntries.ScheduleEntries {
-		output := make(map[string]interface{}, 0)
+		output := make(map[string]interface{})
 
 		output["day_of_week"] = string(entry.DayOfWeek)
 		output["start_hour_utc"] = int(*entry.StartHourUtc)
@@ -663,7 +663,7 @@ func validateRedisFamily(v interface{}, k string) (ws []string, errors []error) 
 	if !families[value] {
 		errors = append(errors, fmt.Errorf("Redis Family can only be C or P"))
 	}
-	return
+	return ws, errors
 }
 
 func validateRedisMaxMemoryPolicy(v interface{}, k string) (ws []string, errors []error) {
@@ -681,7 +681,7 @@ func validateRedisMaxMemoryPolicy(v interface{}, k string) (ws []string, errors 
 		errors = append(errors, fmt.Errorf("Redis Max Memory Policy can only be 'noeviction' / 'allkeys-lru' / 'volatile-lru' / 'allkeys-random' / 'volatile-random' / 'volatile-ttl'"))
 	}
 
-	return
+	return ws, errors
 }
 
 func validateRedisBackupFrequency(v interface{}, k string) (ws []string, errors []error) {
@@ -699,5 +699,5 @@ func validateRedisBackupFrequency(v interface{}, k string) (ws []string, errors 
 		errors = append(errors, fmt.Errorf("Redis Backup Frequency can only be '15', '30', '60', '360', '720' or '1440'"))
 	}
 
-	return
+	return ws, errors
 }

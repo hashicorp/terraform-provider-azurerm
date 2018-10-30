@@ -601,7 +601,7 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) web.SiteConfig {
 
 func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 	results := make([]interface{}, 0)
-	result := make(map[string]interface{}, 0)
+	result := make(map[string]interface{})
 
 	if input == nil {
 		log.Printf("[DEBUG] SiteConfig is nil")
@@ -648,7 +648,7 @@ func flattenFunctionAppConnectionStrings(input map[string]*web.ConnStringValueTy
 	results := make([]interface{}, 0)
 
 	for k, v := range input {
-		result := make(map[string]interface{}, 0)
+		result := make(map[string]interface{})
 		result["name"] = k
 		result["type"] = string(v.Type)
 		result["value"] = *v.Value
@@ -678,7 +678,7 @@ func flattenFunctionAppIdentity(identity *web.ManagedServiceIdentity) interface{
 
 func flattenFunctionAppSiteCredential(input *web.UserProperties) []interface{} {
 	results := make([]interface{}, 0)
-	result := make(map[string]interface{}, 0)
+	result := make(map[string]interface{})
 
 	if input == nil {
 		log.Printf("[DEBUG] UserProperties is nil")

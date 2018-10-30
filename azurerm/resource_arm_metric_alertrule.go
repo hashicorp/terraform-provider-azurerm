@@ -252,10 +252,9 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 				}
 
 				custom_emails := []string{}
-				for _, custom_email := range *emailAction.CustomEmails {
-					custom_emails = append(custom_emails, custom_email)
+				if s := emailAction.CustomEmails; s != nil {
+					custom_emails = *s
 				}
-
 				email_action["custom_emails"] = custom_emails
 
 				email_actions = append(email_actions, email_action)
@@ -264,10 +263,10 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 
 				webhook_action["service_uri"] = *webhookAction.ServiceURI
 
-				properties := make(map[string]string, 0)
-				if props := webhookAction.Properties; props != nil {
-					for k, v := range props {
-						if k != "$type" {
+				properties := make(map[string]string)
+				for k, v := range webhookAction.Properties {
+					if k != "$type" {
+						if v != nil {
 							properties[k] = *v
 						}
 					}

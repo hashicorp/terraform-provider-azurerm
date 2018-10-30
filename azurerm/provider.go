@@ -21,8 +21,7 @@ import (
 
 // Provider returns a terraform.ResourceProvider.
 func Provider() terraform.ResourceProvider {
-	var p *schema.Provider
-	p = &schema.Provider{
+	p := &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"subscription_id": {
 				Type:        schema.TypeString,

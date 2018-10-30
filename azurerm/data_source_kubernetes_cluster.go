@@ -340,7 +340,7 @@ func flattenKubernetesClusterDataSourceLinuxProfile(input *containerservice.Linu
 			if keys := ssh.PublicKeys; keys != nil {
 				for _, sshKey := range *keys {
 					if keyData := sshKey.KeyData; keyData != nil {
-						outputs := make(map[string]interface{}, 0)
+						outputs := make(map[string]interface{})
 						outputs["key_data"] = *keyData
 						sshKeys = append(sshKeys, outputs)
 					}
@@ -474,7 +474,7 @@ func flattenKubernetesClusterDataSourceNetworkProfile(profile *containerservice.
 }
 
 func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*containerservice.ManagedClusterAddonProfile) interface{} {
-	values := make(map[string]interface{}, 0)
+	values := make(map[string]interface{})
 
 	routes := make([]interface{}, 0)
 	if httpApplicationRouting := profile["httpApplicationRouting"]; httpApplicationRouting != nil {

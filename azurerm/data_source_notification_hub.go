@@ -130,7 +130,7 @@ func flattenNotificationHubsDataSourceAPNSCredentials(input *notificationhubs.Ap
 		return make([]interface{}, 0)
 	}
 
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 
 	if bundleId := input.AppName; bundleId != nil {
 		output["bundle_id"] = *bundleId
@@ -165,7 +165,7 @@ func flattenNotificationHubsDataSourceGCMCredentials(input *notificationhubs.Gcm
 		return []interface{}{}
 	}
 
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 	if props := input.GcmCredentialProperties; props != nil {
 		if apiKey := props.GoogleAPIKey; apiKey != nil {
 			output["api_key"] = *apiKey

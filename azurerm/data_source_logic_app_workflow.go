@@ -93,7 +93,7 @@ func dataSourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{})
 }
 
 func flattenLogicAppDataSourceWorkflowParameters(input map[string]*logic.WorkflowParameter) map[string]interface{} {
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 
 	for k, v := range input {
 		if v != nil {

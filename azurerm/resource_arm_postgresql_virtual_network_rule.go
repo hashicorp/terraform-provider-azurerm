@@ -194,7 +194,7 @@ func postgreSQLVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, cli
 
 		if props := resp.VirtualNetworkRuleProperties; props != nil {
 			log.Printf("[DEBUG] Retrieving PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q) returned Status %s", resourceGroup, serverName, name, props.State)
-			return resp, fmt.Sprintf("%s", props.State), nil
+			return resp, string(props.State), nil
 		}
 
 		//Valid response was returned but VirtualNetworkRuleProperties was nil. Basically the rule exists, but with no properties for some reason. Assume Unknown instead of returning error.

@@ -335,7 +335,7 @@ func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 
 func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	results := make([]interface{}, 0)
-	result := make(map[string]interface{}, 0)
+	result := make(map[string]interface{})
 
 	if input == nil {
 		log.Printf("[DEBUG] SiteConfig is nil")
@@ -381,7 +381,7 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	restrictions := make([]interface{}, 0)
 	if vs := input.IPSecurityRestrictions; vs != nil {
 		for _, v := range *vs {
-			result := make(map[string]interface{}, 0)
+			result := make(map[string]interface{})
 			if ip := v.IPAddress; ip != nil {
 				// the 2018-02-01 API uses CIDR format (a.b.c.d/x), so translate that back to IP and mask
 				if strings.Contains(*ip, "/") {

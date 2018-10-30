@@ -530,7 +530,7 @@ func expandIoTHubEndpoints(d *schema.ResourceData, subscriptionId string) (*devi
 				Encoding:                &encoding,
 			}
 			storageContainerProperties = append(storageContainerProperties, storageContainer)
-			break
+
 		case "AzureIotHub.ServiceBusQueue":
 			sbQueue := devices.RoutingServiceBusQueueEndpointProperties{
 				ConnectionString: &connectionStr,
@@ -539,7 +539,7 @@ func expandIoTHubEndpoints(d *schema.ResourceData, subscriptionId string) (*devi
 				ResourceGroup:    &resourceGroup,
 			}
 			serviceBusQueueEndpointProperties = append(serviceBusQueueEndpointProperties, sbQueue)
-			break
+
 		case "AzureIotHub.ServiceBusTopic":
 			sbTopic := devices.RoutingServiceBusTopicEndpointProperties{
 				ConnectionString: &connectionStr,
@@ -548,7 +548,7 @@ func expandIoTHubEndpoints(d *schema.ResourceData, subscriptionId string) (*devi
 				ResourceGroup:    &resourceGroup,
 			}
 			serviceBusTopicEndpointProperties = append(serviceBusTopicEndpointProperties, sbTopic)
-			break
+
 		case "AzureIotHub.EventHub":
 			eventHub := devices.RoutingEventHubProperties{
 				ConnectionString: &connectionStr,
@@ -557,7 +557,6 @@ func expandIoTHubEndpoints(d *schema.ResourceData, subscriptionId string) (*devi
 				ResourceGroup:    &resourceGroup,
 			}
 			eventHubProperties = append(eventHubProperties, eventHub)
-			break
 		}
 	}
 
@@ -585,7 +584,7 @@ func expandIoTHubSku(d *schema.ResourceData) devices.IotHubSkuInfo {
 }
 
 func flattenIoTHubSku(input *devices.IotHubSkuInfo) []interface{} {
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 
 	output["name"] = string(input.Name)
 	output["tier"] = string(input.Tier)
@@ -630,7 +629,7 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 
 		if containers := input.Endpoints.StorageContainers; containers != nil {
 			for _, container := range *containers {
-				output := make(map[string]interface{}, 0)
+				output := make(map[string]interface{})
 
 				if connString := container.ConnectionString; connString != nil {
 					output["connection_string"] = *connString
@@ -661,7 +660,7 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 
 		if queues := input.Endpoints.ServiceBusQueues; queues != nil {
 			for _, queue := range *queues {
-				output := make(map[string]interface{}, 0)
+				output := make(map[string]interface{})
 
 				if connString := queue.ConnectionString; connString != nil {
 					output["connection_string"] = *connString
@@ -676,7 +675,7 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 
 		if topics := input.Endpoints.ServiceBusTopics; topics != nil {
 			for _, topic := range *topics {
-				output := make(map[string]interface{}, 0)
+				output := make(map[string]interface{})
 
 				if connString := topic.ConnectionString; connString != nil {
 					output["connection_string"] = *connString
@@ -691,7 +690,7 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 
 		if eventHubs := input.Endpoints.EventHubs; eventHubs != nil {
 			for _, eventHub := range *eventHubs {
-				output := make(map[string]interface{}, 0)
+				output := make(map[string]interface{})
 
 				if connString := eventHub.ConnectionString; connString != nil {
 					output["connection_string"] = *connString
@@ -713,7 +712,7 @@ func flattenIoTHubRoute(input *devices.RoutingProperties) []interface{} {
 
 	if input != nil && input.Routes != nil {
 		for _, route := range *input.Routes {
-			output := make(map[string]interface{}, 0)
+			output := make(map[string]interface{})
 
 			if name := route.Name; name != nil {
 				output["name"] = *name
@@ -752,7 +751,7 @@ func validateIoTHubEndpointName(v interface{}, k string) (ws []string, errors []
 		}
 	}
 
-	return
+	return ws, errors
 }
 
 func validateIoTHubFileNameFormat(v interface{}, k string) (ws []string, errors []error) {
@@ -774,5 +773,5 @@ func validateIoTHubFileNameFormat(v interface{}, k string) (ws []string, errors 
 		}
 	}
 
-	return
+	return ws, errors
 }

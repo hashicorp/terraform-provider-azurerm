@@ -733,7 +733,7 @@ func validateArmVirtualNetworkGatewaySubnetId(i interface{}, k string) (s []stri
 		es = append(es, fmt.Errorf("expected %s to reference a gateway subnet with name GatewaySubnet", k))
 	}
 
-	return
+	return s, es
 }
 
 func validateArmVirtualNetworkGatewayPolicyBasedVpnSku() schema.SchemaValidateFunc {

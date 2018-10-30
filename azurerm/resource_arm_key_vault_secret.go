@@ -123,7 +123,7 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 		if err != nil {
 			return fmt.Errorf("Error getting Key Vault Secret %q : %+v", id.Name, err)
 		}
-		id, err = parseKeyVaultChildID(*read.ID)
+		_, err = parseKeyVaultChildID(*read.ID)
 		if err != nil {
 			return err
 		}
