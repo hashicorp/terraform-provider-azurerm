@@ -1,4 +1,4 @@
-package azurerm
+package azure
 
 import (
 	"fmt"
@@ -7,7 +7,13 @@ import (
 	"strings"
 )
 
-func parseKeyVaultChildID(id string) (*KeyVaultChildID, error) {
+type KeyVaultChildID struct {
+	KeyVaultBaseUrl string
+	Name            string
+	Version         string
+}
+
+func ParseKeyVaultChildID(id string) (*KeyVaultChildID, error) {
 	// example: https://tharvey-keyvault.vault.azure.net/type/bird/fdf067c93bbb4b22bff4d8b7a9a56217
 	idURL, err := url.ParseRequestURI(id)
 	if err != nil {
@@ -34,13 +40,7 @@ func parseKeyVaultChildID(id string) (*KeyVaultChildID, error) {
 	return &childId, nil
 }
 
-type KeyVaultChildID struct {
-	KeyVaultBaseUrl string
-	Name            string
-	Version         string
-}
-
-func validateKeyVaultChildName(v interface{}, k string) (ws []string, es []error) {
+func ValidateKeyVaultChildName(v interface{}, k string) (ws []string, es []error) {
 	value := v.(string)
 
 	if matched := regexp.MustCompile(`^[0-9a-zA-Z-]+$`).Match([]byte(value)); !matched {

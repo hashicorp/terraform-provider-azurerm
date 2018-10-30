@@ -1,56 +1,6 @@
-package azurerm
+package azure
 
 import "testing"
-
-func TestAccAzureRMKeyVaultChild_validateName(t *testing.T) {
-	cases := []struct {
-		Input       string
-		ExpectError bool
-	}{
-		{
-			Input:       "",
-			ExpectError: true,
-		},
-		{
-			Input:       "hello",
-			ExpectError: false,
-		},
-		{
-			Input:       "hello-world",
-			ExpectError: false,
-		},
-		{
-			Input:       "hello-world-21",
-			ExpectError: false,
-		},
-		{
-			Input:       "hello_world_21",
-			ExpectError: true,
-		},
-		{
-			Input:       "Hello-World",
-			ExpectError: false,
-		},
-		{
-			Input:       "20202020",
-			ExpectError: false,
-		},
-		{
-			Input:       "ABC123!@£",
-			ExpectError: true,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := validateKeyVaultChildName(tc.Input, "")
-
-		hasError := len(errors) > 0
-
-		if tc.ExpectError && !hasError {
-			t.Fatalf("Expected the Key Vault Child Name to trigger a validation error for '%s'", tc.Input)
-		}
-	}
-}
 
 func TestAccAzureRMKeyVaultChild_parseID(t *testing.T) {
 	cases := []struct {
@@ -104,7 +54,7 @@ func TestAccAzureRMKeyVaultChild_parseID(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		secretId, err := parseKeyVaultChildID(tc.Input)
+		secretId, err := ParseKeyVaultChildID(tc.Input)
 		if err != nil {
 			if !tc.ExpectError {
 				t.Fatalf("Got error for ID '%s': %+v", tc.Input, err)
@@ -127,6 +77,56 @@ func TestAccAzureRMKeyVaultChild_parseID(t *testing.T) {
 
 		if tc.Expected.Version != secretId.Version {
 			t.Fatalf("Expected 'Version' to be '%s', got '%s' for ID '%s'", tc.Expected.Version, secretId.Version, tc.Input)
+		}
+	}
+}
+
+func TestAccAzureRMKeyVaultChild_validateName(t *testing.T) {
+	cases := []struct {
+		Input       string
+		ExpectError bool
+	}{
+		{
+			Input:       "",
+			ExpectError: true,
+		},
+		{
+			Input:       "hello",
+			ExpectError: false,
+		},
+		{
+			Input:       "hello-world",
+			ExpectError: false,
+		},
+		{
+			Input:       "hello-world-21",
+			ExpectError: false,
+		},
+		{
+			Input:       "hello_world_21",
+			ExpectError: true,
+		},
+		{
+			Input:       "Hello-World",
+			ExpectError: false,
+		},
+		{
+			Input:       "20202020",
+			ExpectError: false,
+		},
+		{
+			Input:       "ABC123!@£",
+			ExpectError: true,
+		},
+	}
+
+	for _, tc := range cases {
+		_, errors := ValidateKeyVaultChildName(tc.Input, "")
+
+		hasError := len(errors) > 0
+
+		if tc.ExpectError && !hasError {
+			t.Fatalf("Expected the Key Vault Child Name to trigger a validation error for '%s'", tc.Input)
 		}
 	}
 }
