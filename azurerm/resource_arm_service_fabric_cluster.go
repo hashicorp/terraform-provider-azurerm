@@ -549,7 +549,7 @@ func flattenServiceFabricClusterCertificate(input *servicefabric.CertificateDesc
 	results := make([]interface{}, 0)
 
 	if v := input; v != nil {
-		output := make(map[string]interface{}, 0)
+		output := make(map[string]interface{})
 
 		if thumbprint := input.Thumbprint; thumbprint != nil {
 			output["thumbprint"] = *thumbprint
@@ -593,7 +593,7 @@ func flattenServiceFabricClusterClientCertificateThumbprints(input *[]servicefab
 	results := make([]interface{}, 0)
 
 	for _, v := range *input {
-		result := make(map[string]interface{}, 0)
+		result := make(map[string]interface{})
 
 		if thumbprint := v.CertificateThumbprint; thumbprint != nil {
 			result["thumbprint"] = *thumbprint
@@ -636,7 +636,7 @@ func flattenServiceFabricClusterDiagnosticsConfig(input *servicefabric.Diagnosti
 	results := make([]interface{}, 0)
 
 	if v := input; v != nil {
-		output := make(map[string]interface{}, 0)
+		output := make(map[string]interface{})
 
 		if name := v.StorageAccountName; name != nil {
 			output["storage_account_name"] = *name
@@ -699,13 +699,13 @@ func flattenServiceFabricClusterFabricSettings(input *[]servicefabric.SettingsSe
 	results := make([]interface{}, 0)
 
 	for _, v := range *input {
-		result := make(map[string]interface{}, 0)
+		result := make(map[string]interface{})
 
 		if name := v.Name; name != nil {
 			result["name"] = *name
 		}
 
-		parameters := make(map[string]interface{}, 0)
+		parameters := make(map[string]interface{})
 		if paramsRaw := v.Parameters; paramsRaw != nil {
 			for _, p := range *paramsRaw {
 				if p.Name == nil || p.Value == nil {
@@ -784,7 +784,7 @@ func flattenServiceFabricClusterNodeTypes(input *[]servicefabric.NodeTypeDescrip
 	results := make([]interface{}, 0)
 
 	for _, v := range *input {
-		output := make(map[string]interface{}, 0)
+		output := make(map[string]interface{})
 
 		if name := v.Name; name != nil {
 			output["name"] = *name
@@ -810,7 +810,7 @@ func flattenServiceFabricClusterNodeTypes(input *[]servicefabric.NodeTypeDescrip
 
 		applicationPorts := make([]interface{}, 0)
 		if ports := v.ApplicationPorts; ports != nil {
-			r := make(map[string]interface{}, 0)
+			r := make(map[string]interface{})
 			if start := ports.StartPort; start != nil {
 				r["start_port"] = int(*start)
 			}
@@ -823,7 +823,7 @@ func flattenServiceFabricClusterNodeTypes(input *[]servicefabric.NodeTypeDescrip
 
 		ephermeralPorts := make([]interface{}, 0)
 		if ports := v.EphemeralPorts; ports != nil {
-			r := make(map[string]interface{}, 0)
+			r := make(map[string]interface{})
 			if start := ports.StartPort; start != nil {
 				r["start_port"] = int(*start)
 			}

@@ -147,7 +147,7 @@ func resourceArmLogAnalyticsWorkspaceLinkedServiceRead(d *schema.ResourceData, m
 }
 
 func flattenLogAnalyticsWorkspaceLinkedServiceProperties(input *operationalinsights.LinkedServiceProperties) interface{} {
-	properties := make(map[string]interface{}, 0)
+	properties := make(map[string]interface{})
 
 	// resource id linked service
 	if resourceID := input.ResourceID; resourceID != nil {

@@ -328,9 +328,7 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 
 		zones := make([]string, 0)
 		if zs := config.Zones; zs != nil {
-			for _, zone := range *zs {
-				zones = append(zones, zone)
-			}
+			zones = *zs
 		}
 		ipConfig["zones"] = zones
 

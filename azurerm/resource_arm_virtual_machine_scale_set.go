@@ -1175,7 +1175,7 @@ func flattenAzureRmVirtualMachineScaleSetBootDiagnostics(bootDiagnostic *compute
 }
 
 func flattenAzureRmVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicy *compute.RollingUpgradePolicy) []interface{} {
-	b := make(map[string]interface{}, 0)
+	b := make(map[string]interface{})
 
 	if v := rollingUpgradePolicy.MaxBatchInstancePercent; v != nil {
 		b["max_batch_instance_percent"] = *v
@@ -1214,17 +1214,15 @@ func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.Virtual
 			s["network_security_group_id"] = *v.ID
 		}
 
-		if netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.DNSSettings != nil {
-			dnsSetting := make(map[string]interface{})
-			dnsServers := make([]string, 0, len(*netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.DNSSettings.DNSServers))
-			if netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.DNSSettings.DNSServers != nil {
-				for _, dnsServer := range *netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.DNSSettings.DNSServers {
-					dnsServers = append(dnsServers, dnsServer)
-				}
-				dnsSetting["dns_servers"] = dnsServers
+		if dnsSettings := netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.DNSSettings; dnsSettings != nil {
+			dnsServers := make([]string, 0)
+			if s := dnsSettings.DNSServers; s != nil {
+				dnsServers = *s
 			}
 
-			s["dns_settings"] = []interface{}{dnsSetting}
+			s["dns_settings"] = []interface{}{map[string]interface{}{
+				"dns_servers": dnsServers,
+			}}
 		}
 
 		if netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.IPConfigurations != nil {
@@ -1807,7 +1805,7 @@ func expandAzureRmVirtualMachineScaleSetIdentity(d *schema.ResourceData) *comput
 	identity := identities[0].(map[string]interface{})
 	identityType := compute.ResourceIdentityType(identity["type"].(string))
 
-	identityIds := make(map[string]*compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue, 0)
+	identityIds := make(map[string]*compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue)
 	for _, id := range identity["identity_ids"].([]interface{}) {
 		identityIds[id.(string)] = &compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue{}
 	}

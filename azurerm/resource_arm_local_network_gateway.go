@@ -241,7 +241,7 @@ func expandLocalNetworkGatewayAddressSpaces(d *schema.ResourceData) []string {
 }
 
 func flattenLocalNetworkGatewayBGPSettings(input *network.BgpSettings) []interface{} {
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 
 	if input == nil {
 		return []interface{}{}

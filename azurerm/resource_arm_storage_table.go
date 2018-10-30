@@ -52,7 +52,7 @@ func validateArmStorageTableName(v interface{}, k string) (ws []string, errors [
 			k, value))
 	}
 
-	return
+	return ws, errors
 }
 
 func resourceArmStorageTableCreate(d *schema.ResourceData, meta interface{}) error {

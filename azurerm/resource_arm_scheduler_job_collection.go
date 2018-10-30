@@ -1,3 +1,5 @@
+// nolint: megacheck
+// entire automation SDK has been depreciated in v21.3 in favor of logic apps, an entirely different service.
 package azurerm
 
 import (

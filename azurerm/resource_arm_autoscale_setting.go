@@ -848,10 +848,8 @@ func flattenAzureRmAutoScaleSettingRecurrence(input *insights.Recurrence) []inte
 		}
 
 		days := make([]string, 0)
-		if schedule.Days != nil {
-			for _, v := range *schedule.Days {
-				days = append(days, v)
-			}
+		if s := schedule.Days; s != nil {
+			days = *s
 		}
 		result["days"] = days
 
@@ -887,7 +885,7 @@ func flattenAzureRmAutoScaleSettingNotification(notifications *[]insights.Autosc
 
 		emails := make([]interface{}, 0)
 		if email := notification.Email; email != nil {
-			result := make(map[string]interface{}, 0)
+			result := make(map[string]interface{})
 
 			if send := email.SendToSubscriptionAdministrator; send != nil {
 				result["send_to_subscription_administrator"] = *send

@@ -103,13 +103,13 @@ func resourceArmManagedDisk() *schema.Resource {
 	}
 }
 
-func validateDiskSizeGB(v interface{}, k string) (ws []string, errors []error) {
+func validateDiskSizeGB(v interface{}, _ string) (ws []string, errors []error) {
 	value := v.(int)
 	if value < 0 || value > 4095 {
 		errors = append(errors, fmt.Errorf(
 			"The `disk_size_gb` can only be between 0 and 4095"))
 	}
-	return
+	return ws, errors
 }
 
 func resourceArmManagedDiskCreate(d *schema.ResourceData, meta interface{}) error {

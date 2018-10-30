@@ -291,7 +291,7 @@ func flattenArmPacketCaptureStorageLocation(input *network.PacketCaptureStorageL
 		return []interface{}{}
 	}
 
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 
 	if path := input.FilePath; path != nil {
 		output["file_path"] = *path
@@ -343,7 +343,7 @@ func flattenArmPacketCaptureFilters(input *[]network.PacketCaptureFilter) []inte
 
 	if inFilter := input; inFilter != nil {
 		for _, v := range *inFilter {
-			filter := make(map[string]interface{}, 0)
+			filter := make(map[string]interface{})
 
 			if address := v.LocalIPAddress; address != nil {
 				filter["local_ip_address"] = *address

@@ -202,7 +202,7 @@ func flattenKeyVaultDataSourceNetworkAcls(input *keyvault.NetworkRuleSet) []inte
 		return []interface{}{}
 	}
 
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 
 	output["bypass"] = string(input.Bypass)
 	output["default_action"] = string(input.DefaultAction)
