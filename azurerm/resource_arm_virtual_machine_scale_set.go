@@ -56,6 +56,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.ResourceIdentityTypeSystemAssigned),
 								string(compute.ResourceIdentityTypeUserAssigned),
+								string(compute.ResourceIdentityTypeSystemAssignedUserAssigned),
 							}, false),
 						},
 						"identity_ids": {
