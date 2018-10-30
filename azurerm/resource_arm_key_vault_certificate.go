@@ -220,6 +220,41 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 										Required: true,
 										ForceNew: true,
 									},
+									"subject_alternative_names": {
+										Type:     schema.TypeList,
+										Optional: true,
+										ForceNew: true,
+										Computed: true,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"emails": {
+													Type:     schema.TypeList,
+													Optional: true,
+													ForceNew: true,
+													Elem: &schema.Schema{
+														Type: schema.TypeString,
+													},
+												},
+												"dns_names": {
+													Type:     schema.TypeList,
+													Optional: true,
+													ForceNew: true,
+													Elem: &schema.Schema{
+														Type: schema.TypeString,
+													},
+												},
+												"upns": {
+													Type:     schema.TypeList,
+													Optional: true,
+													ForceNew: true,
+													Elem: &schema.Schema{
+														Type: schema.TypeString,
+													},
+												},
+											},
+										},
+									},
 									"validity_in_months": {
 										Type:     schema.TypeInt,
 										Required: true,
@@ -474,11 +509,37 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 			keyUsage = append(keyUsage, keyvault.KeyUsageType(key.(string)))
 		}
 
+		subjectAlternativeNames := &keyvault.SubjectAlternativeNames{}
+		if v, ok := cert["subject_alternative_names"]; ok {
+
+			if sans := v.([]interface{}); len(sans) > 0 {
+				if sans[0] != nil {
+					san := sans[0].(map[string]interface{})
+
+					emails := san["emails"].([]interface{})
+					if len(emails) > 0 {
+						subjectAlternativeNames.Emails = utils.ExpandStringArray(emails)
+					}
+
+					dnsNames := san["dns_names"].([]interface{})
+					if len(dnsNames) > 0 {
+						subjectAlternativeNames.DNSNames = utils.ExpandStringArray(dnsNames)
+					}
+
+					upns := san["upns"].([]interface{})
+					if len(upns) > 0 {
+						subjectAlternativeNames.Upns = utils.ExpandStringArray(upns)
+					}
+				}
+			}
+		}
+
 		policy.X509CertificateProperties = &keyvault.X509CertificateProperties{
 			ValidityInMonths: utils.Int32(int32(cert["validity_in_months"].(int))),
 			Subject:          utils.String(cert["subject"].(string)),
 			KeyUsage:         &keyUsage,
 			Ekus:             extendedKeyUsage,
+			SubjectAlternativeNames: subjectAlternativeNames,
 		}
 	}
 
@@ -549,13 +610,25 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []inter
 		for _, usage := range *props.KeyUsage {
 			usages = append(usages, string(usage))
 		}
+
+		sanOutputs := make([]interface{}, 0)
+		if san := props.SubjectAlternativeNames; san != nil {
+			sanOutput := make(map[string]interface{}, 0)
+
+			sanOutput["emails"] = utils.FlattenStringArray(san.Emails)
+			sanOutput["dns_names"] = utils.FlattenStringArray(san.DNSNames)
+			sanOutput["upns"] = utils.FlattenStringArray(san.Upns)
+
+			sanOutputs = append(sanOutputs, sanOutput)
+		}
+
 		certProps["key_usage"] = usages
 		certProps["subject"] = *props.Subject
 		certProps["validity_in_months"] = int(*props.ValidityInMonths)
 		if props.Ekus != nil {
 			certProps["extended_key_usage"] = props.Ekus
 		}
-
+		certProps["subject_alternative_names"] = sanOutputs
 		policy["x509_certificate_properties"] = []interface{}{certProps}
 	}
 
