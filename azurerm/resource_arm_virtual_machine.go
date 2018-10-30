@@ -74,6 +74,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 				StateFunc: func(id interface{}) string {
 					return strings.ToLower(id.(string))
 				},
+				ConflictsWith: []string{"zones"},
 			},
 
 			"identity": {
