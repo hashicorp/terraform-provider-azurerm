@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
-	"net/http/httputil"
 	"os"
 	"strings"
 	"sync"
@@ -66,10 +64,11 @@ import (
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
-	"github.com/Azure/go-autorest/autorest/azure"
+	az "github.com/Azure/go-autorest/autorest/azure"
 	uuid "github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform/httpclient"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/authentication"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/terraform-providers/terraform-provider-azurerm/version"
 )
@@ -81,7 +80,7 @@ type ArmClient struct {
 	tenantId                 string
 	subscriptionId           string
 	usingServicePrincipal    bool
-	environment              azure.Environment
+	environment              az.Environment
 	skipProviderRegistration bool
 
 	StopContext context.Context
@@ -332,57 +331,9 @@ func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Autho
 	setUserAgent(client)
 	client.Authorizer = auth
 	//client.RequestInspector = azure.WithClientID(clientRequestID())
-	client.Sender = buildSender()
+	client.Sender = azure.BuildSender()
 	client.SkipResourceProviderRegistration = c.skipProviderRegistration
 	client.PollingDuration = 60 * time.Minute
-}
-
-func buildSender() autorest.Sender {
-	return autorest.DecorateSender(&http.Client{
-		Transport: &http.Transport{
-			Proxy: http.ProxyFromEnvironment,
-		},
-	}, withRequestLogging())
-}
-
-func withRequestLogging() autorest.SendDecorator {
-	return func(s autorest.Sender) autorest.Sender {
-		return autorest.SenderFunc(func(r *http.Request) (*http.Response, error) {
-			// strip the authorization header prior to printing
-			authHeaderName := "Authorization"
-			auth := r.Header.Get(authHeaderName)
-			if auth != "" {
-				r.Header.Del(authHeaderName)
-			}
-
-			// dump request to wire format
-			if dump, err := httputil.DumpRequestOut(r, true); err == nil {
-				log.Printf("[DEBUG] AzureRM Request: \n%s\n", dump)
-			} else {
-				// fallback to basic message
-				log.Printf("[DEBUG] AzureRM Request: %s to %s\n", r.Method, r.URL)
-			}
-
-			// add the auth header back
-			if auth != "" {
-				r.Header.Add(authHeaderName, auth)
-			}
-
-			resp, err := s.Do(r)
-			if resp != nil {
-				// dump response to wire format
-				if dump, err := httputil.DumpResponse(resp, true); err == nil {
-					log.Printf("[DEBUG] AzureRM Response for %s: \n%s\n", r.URL, dump)
-				} else {
-					// fallback to basic message
-					log.Printf("[DEBUG] AzureRM Response: %s for %s\n", resp.Status, r.URL)
-				}
-			} else {
-				log.Printf("[DEBUG] Request to %s completed with no response", r.URL)
-			}
-			return resp, err
-		})
-	}
 }
 
 func setUserAgent(client *autorest.Client) {
@@ -429,8 +380,6 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 		return nil, fmt.Errorf("Unable to configure OAuthConfig for tenant %s", c.TenantID)
 	}
 
-	sender := buildSender()
-
 	// Resource Manager endpoints
 	endpoint := env.ResourceManagerEndpoint
 	auth, err := authentication.GetAuthorizationToken(c, oauthConfig, endpoint)
@@ -446,6 +395,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	}
 
 	// Key Vault Endpoints
+	sender := azure.BuildSender()
 	keyVaultAuth := autorest.NewBearerAuthorizerCallback(sender, func(tenantID, resource string) (*autorest.BearerAuthorizer, error) {
 		keyVaultSpt, err := authentication.GetAuthorizationToken(c, oauthConfig, resource)
 		if err != nil {
