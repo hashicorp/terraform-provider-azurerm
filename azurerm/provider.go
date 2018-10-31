@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/authentication"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/resourceproviders"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 )
 
@@ -381,7 +382,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			}
 
 			if !config.SkipProviderRegistration {
-				err = registerAzureResourceProvidersWithSubscription(ctx, providerList.Values(), client.providersClient)
+				err = registerAzureResourceProvidersWithSubscription(ctx, client.providersClient, providerList.Values())
 				if err != nil {
 					return nil, err
 				}
@@ -392,52 +393,8 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 	}
 }
 
-func registerProviderWithSubscription(ctx context.Context, providerName string, client resources.ProvidersClient) error {
-	_, err := client.Register(ctx, providerName)
-	if err != nil {
-		return fmt.Errorf("Cannot register provider %s with Azure Resource Manager: %s.", providerName, err)
-	}
-
-	return nil
-}
-
 func determineAzureResourceProvidersToRegister(providerList []resources.Provider) map[string]struct{} {
-	providers := map[string]struct{}{
-		"Microsoft.ApiManagement":       {},
-		"Microsoft.Authorization":       {},
-		"Microsoft.Automation":          {},
-		"Microsoft.Cache":               {},
-		"Microsoft.Cdn":                 {},
-		"Microsoft.CognitiveServices":   {},
-		"Microsoft.Compute":             {},
-		"Microsoft.ContainerInstance":   {},
-		"Microsoft.ContainerRegistry":   {},
-		"Microsoft.ContainerService":    {},
-		"Microsoft.Databricks":          {},
-		"Microsoft.DataLakeStore":       {},
-		"Microsoft.DBforMySQL":          {},
-		"Microsoft.DBforPostgreSQL":     {},
-		"Microsoft.Devices":             {},
-		"Microsoft.DevTestLab":          {},
-		"Microsoft.DocumentDB":          {},
-		"Microsoft.EventGrid":           {},
-		"Microsoft.EventHub":            {},
-		"Microsoft.KeyVault":            {},
-		"microsoft.insights":            {},
-		"Microsoft.Logic":               {},
-		"Microsoft.ManagedIdentity":     {},
-		"Microsoft.Management":          {},
-		"Microsoft.Network":             {},
-		"Microsoft.NotificationHubs":    {},
-		"Microsoft.OperationalInsights": {},
-		"Microsoft.Relay":               {},
-		"Microsoft.Resources":           {},
-		"Microsoft.Search":              {},
-		"Microsoft.ServiceBus":          {},
-		"Microsoft.ServiceFabric":       {},
-		"Microsoft.Sql":                 {},
-		"Microsoft.Storage":             {},
-	}
+	providers := requiredResourceProviders()
 
 	// filter out any providers already registered
 	for _, p := range providerList {
@@ -458,7 +415,7 @@ func determineAzureResourceProvidersToRegister(providerList []resources.Provider
 // all Azure resource providers which the Terraform provider may require (regardless of
 // whether they are actually used by the configuration or not). It was confirmed by Microsoft
 // that this is the approach their own internal tools also take.
-func registerAzureResourceProvidersWithSubscription(ctx context.Context, providerList []resources.Provider, client resources.ProvidersClient) error {
+func registerAzureResourceProvidersWithSubscription(ctx context.Context, client resources.ProvidersClient, providerList []resources.Provider) error {
 	providers := determineAzureResourceProvidersToRegister(providerList)
 
 	var err error
@@ -468,8 +425,8 @@ func registerAzureResourceProvidersWithSubscription(ctx context.Context, provide
 	for providerName := range providers {
 		go func(p string) {
 			defer wg.Done()
-			log.Printf("[DEBUG] Registering provider with namespace %s\n", p)
-			if innerErr := registerProviderWithSubscription(ctx, p, client); err != nil {
+			log.Printf("[DEBUG] Registering resource provider with namespace %s\n", p)
+			if innerErr := resourceproviders.RegisterWithSubscription(ctx, p, client); err != nil {
 				err = innerErr
 			}
 		}(providerName)

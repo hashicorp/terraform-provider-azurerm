@@ -125,7 +125,7 @@ func TestAccAzureRMResourceProviderRegistration(t *testing.T) {
 			"error: %s", err)
 	}
 
-	err = registerAzureResourceProvidersWithSubscription(ctx, providerList.Values(), client)
+	err = registerAzureResourceProvidersWithSubscription(ctx, client, providerList.Values())
 	if err != nil {
 		t.Fatalf("Error registering Resource Providers: %+v", err)
 	}
