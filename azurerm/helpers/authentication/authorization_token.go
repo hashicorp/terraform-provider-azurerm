@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/adal"
 )
 
+// GetAuthorizationToken returns an authentication token for the current authentication method
 func GetAuthorizationToken(c *Config, oauthConfig *adal.OAuthConfig, endpoint string) (*autorest.BearerAuthorizer, error) {
 	useServicePrincipal := c.ClientSecret != ""
 

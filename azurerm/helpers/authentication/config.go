@@ -34,6 +34,9 @@ type Config struct {
 	MsiEndpoint  string
 }
 
+// LoadTokensFromAzureCLI loads the access tokens and subscription/tenant ID's from the
+// Azure CLI metadata if it's not provided
+// NOTE: this'll become an internal-only method in the near future
 func (c *Config) LoadTokensFromAzureCLI() error {
 	profilePath, err := cli.ProfilePath()
 	if err != nil {

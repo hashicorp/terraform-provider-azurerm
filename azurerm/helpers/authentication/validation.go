@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/go-multierror"
 )
 
+// Validate ensures that the current set of credentials provided
+// are valid for the selected authentication type (e.g. Client Secret, Azure CLI, MSI etc.)
 func (c *Config) Validate() error {
 	if c.UseMsi {
 		log.Printf("[DEBUG] use_msi specified - using MSI Authentication")

@@ -7,6 +7,8 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 )
 
+// DetermineEnvironment determines what the Environment name is within
+// the Azure SDK for Go and then returns the association environment, if it exists.
 func DetermineEnvironment(name string) (*azure.Environment, error) {
 	// detect cloud from environment
 	env, envErr := azure.EnvironmentFromName(name)
