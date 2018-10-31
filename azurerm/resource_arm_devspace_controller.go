@@ -261,7 +261,7 @@ func flattenDevSpaceControllerSku(skuObj *devspaces.Sku) []interface{} {
 	if skuObj.Name != nil {
 		skuConfig["name"] = *skuObj.Name
 	}
-  
+
 	skuConfig["tier"] = skuObj.Tier
 
 	return []interface{}{skuConfig}
