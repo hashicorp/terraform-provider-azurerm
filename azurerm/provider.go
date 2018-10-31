@@ -382,9 +382,12 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			}
 
 			if !config.SkipProviderRegistration {
-				err = registerAzureResourceProvidersWithSubscription(ctx, client.providersClient, providerList.Values())
+				availableResourceProviders := providerList.Values()
+				requiredResourceProviders := requiredResourceProviders()
+
+				err := ensureResourceProvidersAreRegistered(ctx, client.providersClient, availableResourceProviders, requiredResourceProviders)
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("Error ensuring Resource Providers are registered: %s", err)
 				}
 			}
 		}
@@ -393,11 +396,11 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 	}
 }
 
-func determineAzureResourceProvidersToRegister(providerList []resources.Provider) map[string]struct{} {
-	providers := requiredResourceProviders()
+func determineAzureResourceProvidersToRegister(availableResourceProviders []resources.Provider, requiredResourceProviders map[string]struct{}) map[string]struct{} {
+	providers := requiredResourceProviders
 
 	// filter out any providers already registered
-	for _, p := range providerList {
+	for _, p := range availableResourceProviders {
 		if _, ok := providers[*p.Namespace]; !ok {
 			continue
 		}
@@ -411,21 +414,43 @@ func determineAzureResourceProvidersToRegister(providerList []resources.Provider
 	return providers
 }
 
-// registerAzureResourceProvidersWithSubscription uses the providers client to register
+func ensureResourceProvidersAreRegistered(ctx context.Context, client resources.ProvidersClient, availableRPs []resources.Provider, requiredRPs map[string]struct{}) error {
+	providerList, err := client.List(ctx, nil, "")
+	if err != nil {
+		return fmt.Errorf("Unable to list provider registration status, it is possible that this is due to invalid "+
+			"credentials or the service principal does not have permission to use the Resource Manager API, Azure "+
+			"error: %s", err)
+	}
+
+	log.Printf("[DEBUG] Determining which Resource Providers require Registration")
+	providersToRegister := determineAzureResourceProvidersToRegister(providerList.Values(), requiredRPs)
+
+	if len(providersToRegister) > 0 {
+		log.Printf("[DEBUG] Registering %d Resource Providers", len(providersToRegister))
+		err = registerResourceProvidersWithSubscription(ctx, client, providersToRegister)
+		if err != nil {
+			return err
+		}
+	} else {
+		log.Printf("[DEBUG] all required Resource Providers are registered")
+	}
+
+	return nil
+}
+
+// registerResourceProvidersWithSubscription uses the providers client to register
 // all Azure resource providers which the Terraform provider may require (regardless of
 // whether they are actually used by the configuration or not). It was confirmed by Microsoft
 // that this is the approach their own internal tools also take.
-func registerAzureResourceProvidersWithSubscription(ctx context.Context, client resources.ProvidersClient, providerList []resources.Provider) error {
-	providers := determineAzureResourceProvidersToRegister(providerList)
-
+func registerResourceProvidersWithSubscription(ctx context.Context, client resources.ProvidersClient, providersToRegister map[string]struct{}) error {
 	var err error
 	var wg sync.WaitGroup
-	wg.Add(len(providers))
+	wg.Add(len(providersToRegister))
 
-	for providerName := range providers {
+	for providerName := range providersToRegister {
 		go func(p string) {
 			defer wg.Done()
-			log.Printf("[DEBUG] Registering resource provider with namespace %s\n", p)
+			log.Printf("[DEBUG] Registering Resource Provider %q with namespace", p)
 			if innerErr := resourceproviders.RegisterWithSubscription(ctx, p, client); err != nil {
 				err = innerErr
 			}

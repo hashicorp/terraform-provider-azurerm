@@ -125,13 +125,23 @@ func TestAccAzureRMResourceProviderRegistration(t *testing.T) {
 			"error: %s", err)
 	}
 
-	err = registerAzureResourceProvidersWithSubscription(ctx, client, providerList.Values())
+	availableResourceProviders := providerList.Values()
+	requiredResourceProviders := requiredResourceProviders()
+	err = ensureResourceProvidersAreRegistered(ctx, client, availableResourceProviders, requiredResourceProviders)
 	if err != nil {
 		t.Fatalf("Error registering Resource Providers: %+v", err)
 	}
 
-	needingRegistration := determineAzureResourceProvidersToRegister(providerList.Values())
-	if len(needingRegistration) > 0 {
-		t.Fatalf("'%d' Resource Providers are still Pending Registration: %s", len(needingRegistration), spew.Sprint(needingRegistration))
+	// refresh the list now things have been re-registered
+	providerList, err = client.List(ctx, nil, "")
+	if err != nil {
+		t.Fatalf("Unable to list provider registration status, it is possible that this is due to invalid "+
+			"credentials or the service principal does not have permission to use the Resource Manager API, Azure "+
+			"error: %s", err)
+	}
+
+	stillRequiringRegistration := determineAzureResourceProvidersToRegister(providerList.Values(), requiredResourceProviders)
+	if len(stillRequiringRegistration) > 0 {
+		t.Fatalf("'%d' Resource Providers are still Pending Registration: %s", len(stillRequiringRegistration), spew.Sprint(stillRequiringRegistration))
 	}
 }
