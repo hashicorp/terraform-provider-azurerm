@@ -2,24 +2,9 @@ package authentication
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/hashicorp/go-multierror"
 )
-
-func (c *Config) validate() error {
-	// Azure CLI / CloudShell
-	log.Printf("[DEBUG] No Client Secret specified - loading credentials from Azure CLI")
-	if err := c.LoadTokensFromAzureCLI(); err != nil {
-		return err
-	}
-
-	if err := c.validateAzureCliBearerAuth(); err != nil {
-		return fmt.Errorf("Please specify either a Service Principal, or log in with the Azure CLI (using `az login`)")
-	}
-
-	return nil
-}
 
 func (c *Config) validateAzureCliBearerAuth() error {
 	var err *multierror.Error
