@@ -13,7 +13,9 @@ func TestAccAzureRMEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
 		return
 	}
 
-	armClient, err := getArmClient(config)
+	// this test intentionally checks all the RP's are registered - so this is intentional
+	skipProviderRegistration := true
+	armClient, err := getArmClient(config, skipProviderRegistration)
 	if err != nil {
 		t.Fatalf("Error building ARM Client: %+v", err)
 	}

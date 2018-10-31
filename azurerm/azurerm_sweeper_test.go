@@ -31,12 +31,11 @@ func buildConfigForSweepers() (*ArmClient, error) {
 	}
 
 	builder := &authentication.Builder{
-		SubscriptionID:           subscriptionID,
-		ClientID:                 clientID,
-		ClientSecret:             clientSecret,
-		TenantID:                 tenantID,
-		Environment:              environment,
-		SkipProviderRegistration: false,
+		SubscriptionID: subscriptionID,
+		ClientID:       clientID,
+		ClientSecret:   clientSecret,
+		TenantID:       tenantID,
+		Environment:    environment,
 
 		// Feature Toggles
 		SupportsClientSecretAuth: true,
@@ -47,7 +46,8 @@ func buildConfigForSweepers() (*ArmClient, error) {
 		return nil, fmt.Errorf("Error building ARM Client: %+v", err)
 	}
 
-	return getArmClient(config)
+	skipProviderRegistration := false
+	return getArmClient(config, skipProviderRegistration)
 }
 
 func shouldSweepAcceptanceTestResource(name string, resourceLocation string, region string) bool {

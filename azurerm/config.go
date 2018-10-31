@@ -354,7 +354,7 @@ func setUserAgent(client *autorest.Client) {
 
 // getArmClient is a helper method which returns a fully instantiated
 // *ArmClient based on the Config's current settings.
-func getArmClient(c *authentication.Config) (*ArmClient, error) {
+func getArmClient(c *authentication.Config, skipProviderRegistration bool) (*ArmClient, error) {
 	env, err := authentication.DetermineEnvironment(c.Environment)
 	if err != nil {
 		return nil, err
@@ -367,7 +367,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 		subscriptionId:           c.SubscriptionID,
 		environment:              *env,
 		usingServicePrincipal:    c.AuthenticatedAsAServicePrincipal,
-		skipProviderRegistration: c.SkipProviderRegistration,
+		skipProviderRegistration: skipProviderRegistration,
 	}
 
 	oauthConfig, err := adal.NewOAuthConfig(env.ActiveDirectoryEndpoint, c.TenantID)
@@ -382,14 +382,14 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 
 	// Resource Manager endpoints
 	endpoint := env.ResourceManagerEndpoint
-	auth, err := authentication.GetAuthorizationToken(c, oauthConfig, endpoint)
+	auth, err := c.GetAuthorizationToken(oauthConfig, endpoint)
 	if err != nil {
 		return nil, err
 	}
 
 	// Graph Endpoints
 	graphEndpoint := env.GraphEndpoint
-	graphAuth, err := authentication.GetAuthorizationToken(c, oauthConfig, graphEndpoint)
+	graphAuth, err := c.GetAuthorizationToken(oauthConfig, graphEndpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -397,7 +397,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	// Key Vault Endpoints
 	sender := azure.BuildSender()
 	keyVaultAuth := autorest.NewBearerAuthorizerCallback(sender, func(tenantID, resource string) (*autorest.BearerAuthorizer, error) {
-		keyVaultSpt, err := authentication.GetAuthorizationToken(c, oauthConfig, resource)
+		keyVaultSpt, err := c.GetAuthorizationToken(oauthConfig, resource)
 		if err != nil {
 			return nil, err
 		}

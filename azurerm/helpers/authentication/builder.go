@@ -7,11 +7,10 @@ import (
 
 type Builder struct {
 	// Core
-	ClientID                 string
-	SubscriptionID           string
-	TenantID                 string
-	Environment              string
-	SkipProviderRegistration bool
+	ClientID       string
+	SubscriptionID string
+	TenantID       string
+	Environment    string
 
 	// Azure CLI Parsing / CloudShell Auth
 	SupportsAzureCliCloudShellParsing bool
@@ -27,11 +26,10 @@ type Builder struct {
 
 func (b Builder) Build() (*Config, error) {
 	config := Config{
-		ClientID:                 b.ClientID,
-		SubscriptionID:           b.SubscriptionID,
-		TenantID:                 b.TenantID,
-		Environment:              b.Environment,
-		SkipProviderRegistration: b.SkipProviderRegistration,
+		ClientID:       b.ClientID,
+		SubscriptionID: b.SubscriptionID,
+		TenantID:       b.TenantID,
+		Environment:    b.Environment,
 	}
 
 	if b.SupportsClientSecretAuth && b.ClientSecret != "" {

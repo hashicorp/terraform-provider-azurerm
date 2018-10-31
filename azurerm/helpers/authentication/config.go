@@ -1,5 +1,10 @@
 package authentication
 
+import (
+	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/adal"
+)
+
 // Config is the configuration structure used to instantiate a
 // new Azure management client.
 type Config struct {
@@ -13,9 +18,10 @@ type Config struct {
 	AuthenticatedAsAServicePrincipal bool
 
 	authMethod authMethod
+}
 
-	// to be removed
-	SkipProviderRegistration bool
+func (c Config) GetAuthorizationToken(oauthConfig *adal.OAuthConfig, endpoint string) (*autorest.BearerAuthorizer, error) {
+	return c.authMethod.getAuthorizationToken(oauthConfig, endpoint)
 }
 
 func (c Config) validate() (*Config, error) {

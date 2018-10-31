@@ -312,13 +312,12 @@ func Provider() terraform.ResourceProvider {
 func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 	return func(d *schema.ResourceData) (interface{}, error) {
 		builder := &authentication.Builder{
-			SubscriptionID:           d.Get("subscription_id").(string),
-			ClientID:                 d.Get("client_id").(string),
-			ClientSecret:             d.Get("client_secret").(string),
-			TenantID:                 d.Get("tenant_id").(string),
-			Environment:              d.Get("environment").(string),
-			MsiEndpoint:              d.Get("msi_endpoint").(string),
-			SkipProviderRegistration: d.Get("skip_provider_registration").(bool),
+			SubscriptionID: d.Get("subscription_id").(string),
+			ClientID:       d.Get("client_id").(string),
+			ClientSecret:   d.Get("client_secret").(string),
+			TenantID:       d.Get("tenant_id").(string),
+			Environment:    d.Get("environment").(string),
+			MsiEndpoint:    d.Get("msi_endpoint").(string),
 
 			// Feature Toggles
 			SupportsClientSecretAuth:          true,
@@ -331,7 +330,8 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			return nil, fmt.Errorf("Error building AzureRM Client: %s", err)
 		}
 
-		client, err := getArmClient(config)
+		skipProviderRegistration := d.Get("skip_provider_registration").(bool)
+		client, err := getArmClient(config, skipProviderRegistration)
 		if err != nil {
 			return nil, err
 		}
@@ -356,7 +356,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 					"error: %s", err)
 			}
 
-			if !config.SkipProviderRegistration {
+			if !skipProviderRegistration {
 				availableResourceProviders := providerList.Values()
 				requiredResourceProviders := requiredResourceProviders()
 
