@@ -39,7 +39,7 @@ goimport:
 
 lint:
 	@echo "==> Checking source code against linters..."
-	@gometalinter ./$(PKG_NAME)
+	@gometalinter ./$(PKG_NAME)/...
 
 tools:
 	@echo "==> installing required tooling..."

@@ -85,7 +85,7 @@ func TestAzureFindValidAccessTokenForTenant_ExpiringIn(t *testing.T) {
 			t.Fatalf("Expected the Client ID to be %q for minute %d but got %q", expectedToken.ClientID, minute, token.ClientID)
 		}
 
-		if token.IsCloudShell != false {
+		if token.IsCloudShell {
 			t.Fatalf("Expected `IsCloudShell` to be false for minute %d but got true", minute)
 		}
 	}
@@ -198,7 +198,7 @@ func TestAzureFindValidAccessTokenForTenant_ValidFromAzureCLI(t *testing.T) {
 		t.Fatalf("Expected the Client ID to be %q but got %q", expectedToken.ClientID, token.ClientID)
 	}
 
-	if token.IsCloudShell != false {
+	if token.IsCloudShell {
 		t.Fatalf("Expected `IsCloudShell` to be false but got true")
 	}
 }

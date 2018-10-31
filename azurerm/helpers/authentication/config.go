@@ -50,7 +50,7 @@ func (c *Config) LoadTokensFromAzureCLI() error {
 	// find the Subscription ID if it's not specified
 	if c.SubscriptionID == "" {
 		// we want to expose a more friendly error to the user, but this is useful for debug purposes
-		err := c.populateSubscriptionFromCLIProfile(cliProfile)
+		err = c.populateSubscriptionFromCLIProfile(cliProfile)
 		if err != nil {
 			log.Printf("Error Populating the Subscription from the CLI Profile: %s", err)
 		}
@@ -58,7 +58,7 @@ func (c *Config) LoadTokensFromAzureCLI() error {
 
 	// find the Tenant ID for that subscription if they're not specified
 	if c.TenantID == "" {
-		err := c.populateTenantFromCLIProfile(cliProfile)
+		err = c.populateTenantFromCLIProfile(cliProfile)
 		if err != nil {
 			// we want to expose a more friendly error to the user, but this is useful for debug purposes
 			log.Printf("Error Populating the Tenant from the CLI Profile: %s", err)
@@ -68,13 +68,13 @@ func (c *Config) LoadTokensFromAzureCLI() error {
 	foundToken := false
 	if c.TenantID != "" {
 		// pull out the ClientID and the AccessToken from the Azure Access Token
-		tokensPath, err := cli.AccessTokensPath()
-		if err != nil {
-			return fmt.Errorf("Error loading the Tokens Path from the Azure CLI: %+v", err)
+		tokensPath, err2 := cli.AccessTokensPath()
+		if err2 != nil {
+			return fmt.Errorf("Error loading the Tokens Path from the Azure CLI: %+v", err2)
 		}
 
-		tokens, err := cli.LoadTokens(tokensPath)
-		if err != nil {
+		tokens, err2 := cli.LoadTokens(tokensPath)
+		if err2 != nil {
 			return fmt.Errorf("Azure CLI Authorization Tokens were not found. Please ensure the Azure CLI is installed and then log-in with `az login`.")
 		}
 
@@ -82,7 +82,7 @@ func (c *Config) LoadTokensFromAzureCLI() error {
 		if validToken != nil {
 			foundToken, err = c.populateFromAccessToken(validToken)
 			if err != nil {
-				return err
+				return err2
 			}
 		}
 	}

@@ -65,7 +65,7 @@ func ExpandServiceBusAuthorizationRuleRights(d *schema.ResourceData) *[]serviceb
 	return &rights
 }
 
-func FlattenServiceBusAuthorizationRuleRights(rights *[]servicebus.AccessRights) (listen bool, send bool, manage bool) {
+func FlattenServiceBusAuthorizationRuleRights(rights *[]servicebus.AccessRights) (listen, send, manage bool) {
 	//zero (initial) value for a bool in go is false
 
 	if rights != nil {
@@ -83,7 +83,7 @@ func FlattenServiceBusAuthorizationRuleRights(rights *[]servicebus.AccessRights)
 		}
 	}
 
-	return
+	return listen, send, manage
 }
 
 //shared schema
