@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_policy_assignment"
 sidebar_current: "docs-azurerm-resource-policy-assignment"
 description: |-
-  Configured the specified Policy Definition at the specified Scope.
+  Configures the specified Policy Definition at the specified Scope.
 ---
 
 # azurerm_policy_assignment
 
-Configured the specified Policy Definition at the specified Scope.
+Configures the specified Policy Definition at the specified Scope.
 
 ## Example Usage
 
