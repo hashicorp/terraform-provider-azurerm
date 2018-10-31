@@ -312,15 +312,14 @@ func Provider() terraform.ResourceProvider {
 func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 	return func(d *schema.ResourceData) (interface{}, error) {
 		config := &authentication.Config{
-			SubscriptionID:            d.Get("subscription_id").(string),
-			ClientID:                  d.Get("client_id").(string),
-			ClientSecret:              d.Get("client_secret").(string),
-			TenantID:                  d.Get("tenant_id").(string),
-			Environment:               d.Get("environment").(string),
-			UseMsi:                    d.Get("use_msi").(bool),
-			MsiEndpoint:               d.Get("msi_endpoint").(string),
-			SkipCredentialsValidation: d.Get("skip_credentials_validation").(bool),
-			SkipProviderRegistration:  d.Get("skip_provider_registration").(bool),
+			SubscriptionID:           d.Get("subscription_id").(string),
+			ClientID:                 d.Get("client_id").(string),
+			ClientSecret:             d.Get("client_secret").(string),
+			TenantID:                 d.Get("tenant_id").(string),
+			Environment:              d.Get("environment").(string),
+			UseMsi:                   d.Get("use_msi").(bool),
+			MsiEndpoint:              d.Get("msi_endpoint").(string),
+			SkipProviderRegistration: d.Get("skip_provider_registration").(bool),
 		}
 
 		err := config.Validate()
@@ -341,7 +340,8 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			return nil
 		}
 
-		if !config.SkipCredentialsValidation {
+		skipCredentialsValidation := d.Get("skip_credentials_validation").(bool)
+		if !skipCredentialsValidation {
 			// List all the available providers and their registration state to avoid unnecessary
 			// requests. This also lets us check if the provider credentials are correct.
 			ctx := client.StopContext

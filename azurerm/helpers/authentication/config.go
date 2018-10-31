@@ -9,7 +9,11 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure/cli"
 )
 
-// TODO: separate objects for Input/Output
+// TODO: separate objects for Input/Output - `Builder` perhaps?
+
+type SupportedAuthenticationModes struct {
+	ServicePrincipalClientSecret bool
+}
 
 // Config is the configuration structure used to instantiate a
 // new Azure management client.
@@ -17,12 +21,11 @@ type Config struct {
 	// TODO: feature toggles for which Authentication Providers are supported
 
 	// Core
-	ClientID                  string
-	SubscriptionID            string
-	TenantID                  string
-	Environment               string
-	SkipCredentialsValidation bool
-	SkipProviderRegistration  bool
+	ClientID                 string
+	SubscriptionID           string
+	TenantID                 string
+	Environment              string
+	SkipProviderRegistration bool
 
 	// Service Principal Auth
 	ClientSecret string
