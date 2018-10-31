@@ -126,5 +126,5 @@ func composeAzureResourceID(idObj *ResourceID) (id string, err error) {
 		}
 	}
 
-	return
+	return id, err
 }

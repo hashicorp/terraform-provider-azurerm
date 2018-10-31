@@ -16,7 +16,7 @@ type AccessToken struct {
 	IsCloudShell bool
 }
 
-func findValidAccessTokenForTenant(tokens []cli.Token, tenantId string) (*AccessToken, error) {
+func findValidAccessTokenForTenant(tokens []cli.Token, tenantId string) (*AccessToken, error) { // nolint: unparam
 	for _, accessToken := range tokens {
 		token, err := accessToken.ToADALToken()
 		if err != nil {

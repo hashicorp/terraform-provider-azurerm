@@ -348,7 +348,7 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 
 	documents := make([]string, 0)
 	if s := input.DefaultDocuments; s != nil {
-			documents = *s
+		documents = *s
 	}
 	result["default_documents"] = documents
 
