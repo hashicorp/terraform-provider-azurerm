@@ -3,19 +3,19 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_policy_definition"
 sidebar_current: "docs-azurerm-resource-policy-definition"
 description: |-
-  Manages a policy for all of the resource groups under the subscription.
+  Manages a policy rule definition. Policy definitions do not take effect until they are assigned to a scope using a Policy Assignment.
 ---
 
 # azurerm_policy_definition
 
-Manages a policy for all of the resource groups under the subscription.
+Manages a policy rule definition. Policy definitions do not take effect until they are assigned to a scope using a Policy Assignment.
 
 ## Example Usage
 
 ```hcl
 resource "azurerm_policy_definition" "policy" {
   name         = "accTestPolicy"
-  policy_type  = "BuiltIn"
+  policy_type  = "Custom"
   mode         = "Indexed"
   display_name = "acceptance test policy definition"
 
@@ -72,8 +72,8 @@ The following arguments are supported:
     a then block.
 
 * `metadata` - (Optional) The metadata for the policy definition. This
-    is a json object representing the rule that contains an if and
-    a then block.
+    is a json object representing additional metadata that should be stored
+    with the policy definition.
 
 * `parameters` - (Optional) Parameters for the policy definition. This field
     is a json object that allows you to parameterize your policy definition.
