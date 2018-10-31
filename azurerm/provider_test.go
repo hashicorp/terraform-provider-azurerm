@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
@@ -70,19 +69,7 @@ func testArmEnvironmentName() string {
 
 func testArmEnvironment() (*azure.Environment, error) {
 	envName := testArmEnvironmentName()
-
-	// detect cloud from environment
-	env, envErr := azure.EnvironmentFromName(envName)
-	if envErr != nil {
-		// try again with wrapped value to support readable values like german instead of AZUREGERMANCLOUD
-		wrapped := fmt.Sprintf("AZURE%sCLOUD", envName)
-		var innerErr error
-		if env, innerErr = azure.EnvironmentFromName(wrapped); innerErr != nil {
-			return nil, envErr
-		}
-	}
-
-	return &env, nil
+	return authentication.DetermineEnvironment(envName)
 }
 
 func testGetAzureConfig(t *testing.T) *authentication.Config {
@@ -103,45 +90,4 @@ func testGetAzureConfig(t *testing.T) *authentication.Config {
 		SkipProviderRegistration: false,
 	}
 	return &config
-}
-
-func TestAccAzureRMResourceProviderRegistration(t *testing.T) {
-	config := testGetAzureConfig(t)
-	if config == nil {
-		return
-	}
-
-	armClient, err := getArmClient(config)
-	if err != nil {
-		t.Fatalf("Error building ARM Client: %+v", err)
-	}
-
-	client := armClient.providersClient
-	ctx := testAccProvider.StopContext()
-	providerList, err := client.List(ctx, nil, "")
-	if err != nil {
-		t.Fatalf("Unable to list provider registration status, it is possible that this is due to invalid "+
-			"credentials or the service principal does not have permission to use the Resource Manager API, Azure "+
-			"error: %s", err)
-	}
-
-	availableResourceProviders := providerList.Values()
-	requiredResourceProviders := requiredResourceProviders()
-	err = ensureResourceProvidersAreRegistered(ctx, client, availableResourceProviders, requiredResourceProviders)
-	if err != nil {
-		t.Fatalf("Error registering Resource Providers: %+v", err)
-	}
-
-	// refresh the list now things have been re-registered
-	providerList, err = client.List(ctx, nil, "")
-	if err != nil {
-		t.Fatalf("Unable to list provider registration status, it is possible that this is due to invalid "+
-			"credentials or the service principal does not have permission to use the Resource Manager API, Azure "+
-			"error: %s", err)
-	}
-
-	stillRequiringRegistration := determineAzureResourceProvidersToRegister(providerList.Values(), requiredResourceProviders)
-	if len(stillRequiringRegistration) > 0 {
-		t.Fatalf("'%d' Resource Providers are still Pending Registration: %s", len(stillRequiringRegistration), spew.Sprint(stillRequiringRegistration))
-	}
 }

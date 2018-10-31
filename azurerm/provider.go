@@ -1,22 +1,18 @@
 package azurerm
 
 import (
-	"context"
 	"crypto/sha1"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"log"
 	"strings"
-	"sync"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/hashicorp/terraform/helper/mutexkv"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/authentication"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/resourceproviders"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 )
 
@@ -394,72 +390,6 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 		return client, nil
 	}
-}
-
-func determineAzureResourceProvidersToRegister(availableResourceProviders []resources.Provider, requiredResourceProviders map[string]struct{}) map[string]struct{} {
-	providers := requiredResourceProviders
-
-	// filter out any providers already registered
-	for _, p := range availableResourceProviders {
-		if _, ok := providers[*p.Namespace]; !ok {
-			continue
-		}
-
-		if strings.ToLower(*p.RegistrationState) == "registered" {
-			log.Printf("[DEBUG] Skipping provider registration for namespace %s\n", *p.Namespace)
-			delete(providers, *p.Namespace)
-		}
-	}
-
-	return providers
-}
-
-func ensureResourceProvidersAreRegistered(ctx context.Context, client resources.ProvidersClient, availableRPs []resources.Provider, requiredRPs map[string]struct{}) error {
-	providerList, err := client.List(ctx, nil, "")
-	if err != nil {
-		return fmt.Errorf("Unable to list provider registration status, it is possible that this is due to invalid "+
-			"credentials or the service principal does not have permission to use the Resource Manager API, Azure "+
-			"error: %s", err)
-	}
-
-	log.Printf("[DEBUG] Determining which Resource Providers require Registration")
-	providersToRegister := determineAzureResourceProvidersToRegister(providerList.Values(), requiredRPs)
-
-	if len(providersToRegister) > 0 {
-		log.Printf("[DEBUG] Registering %d Resource Providers", len(providersToRegister))
-		err = registerResourceProvidersWithSubscription(ctx, client, providersToRegister)
-		if err != nil {
-			return err
-		}
-	} else {
-		log.Printf("[DEBUG] all required Resource Providers are registered")
-	}
-
-	return nil
-}
-
-// registerResourceProvidersWithSubscription uses the providers client to register
-// all Azure resource providers which the Terraform provider may require (regardless of
-// whether they are actually used by the configuration or not). It was confirmed by Microsoft
-// that this is the approach their own internal tools also take.
-func registerResourceProvidersWithSubscription(ctx context.Context, client resources.ProvidersClient, providersToRegister map[string]struct{}) error {
-	var err error
-	var wg sync.WaitGroup
-	wg.Add(len(providersToRegister))
-
-	for providerName := range providersToRegister {
-		go func(p string) {
-			defer wg.Done()
-			log.Printf("[DEBUG] Registering Resource Provider %q with namespace", p)
-			if innerErr := resourceproviders.RegisterWithSubscription(ctx, p, client); err != nil {
-				err = innerErr
-			}
-		}(providerName)
-	}
-
-	wg.Wait()
-
-	return err
 }
 
 // armMutexKV is the instance of MutexKV for ARM resources
