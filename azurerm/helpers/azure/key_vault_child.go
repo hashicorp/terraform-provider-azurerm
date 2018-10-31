@@ -1,13 +1,21 @@
-package azurerm
+package azure
 
 import (
 	"fmt"
 	"net/url"
 	"regexp"
 	"strings"
+
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
-func parseKeyVaultChildID(id string) (*KeyVaultChildID, error) {
+type KeyVaultChildID struct {
+	KeyVaultBaseUrl string
+	Name            string
+	Version         string
+}
+
+func ParseKeyVaultChildID(id string) (*KeyVaultChildID, error) {
 	// example: https://tharvey-keyvault.vault.azure.net/type/bird/fdf067c93bbb4b22bff4d8b7a9a56217
 	idURL, err := url.ParseRequestURI(id)
 	if err != nil {
@@ -34,13 +42,7 @@ func parseKeyVaultChildID(id string) (*KeyVaultChildID, error) {
 	return &childId, nil
 }
 
-type KeyVaultChildID struct {
-	KeyVaultBaseUrl string
-	Name            string
-	Version         string
-}
-
-func validateKeyVaultChildName(v interface{}, k string) (ws []string, es []error) {
+func ValidateKeyVaultChildName(v interface{}, k string) (ws []string, es []error) {
 	value := v.(string)
 
 	if matched := regexp.MustCompile(`^[0-9a-zA-Z-]+$`).Match([]byte(value)); !matched {
@@ -48,4 +50,26 @@ func validateKeyVaultChildName(v interface{}, k string) (ws []string, es []error
 	}
 
 	return ws, es
+}
+
+// Unfortunately this can't (easily) go in the Validate package
+// since there's a circular reference on this package
+func ValidateKeyVaultChildId(i interface{}, k string) (s []string, es []error) {
+	if s, es = validation.NoZeroValues(i, k); len(es) > 0 {
+		return s, es
+	}
+
+	v, ok := i.(string)
+	if !ok {
+		es = append(es, fmt.Errorf("Expected %s to be a string!", k))
+		return s, es
+	}
+
+	_, err := ParseKeyVaultChildID(v)
+	if err != nil {
+		es = append(es, fmt.Errorf("Error parsing Key Vault Child ID: %s", err))
+		return s, es
+	}
+
+	return s, es
 }
