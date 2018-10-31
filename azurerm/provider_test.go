@@ -80,13 +80,15 @@ func testGetAzureConfig(t *testing.T) *authentication.Config {
 
 	environment := testArmEnvironmentName()
 
-	// we deliberately don't use the main config - since we care about
 	builder := authentication.Builder{
 		SubscriptionID: os.Getenv("ARM_SUBSCRIPTION_ID"),
 		ClientID:       os.Getenv("ARM_CLIENT_ID"),
 		TenantID:       os.Getenv("ARM_TENANT_ID"),
 		ClientSecret:   os.Getenv("ARM_CLIENT_SECRET"),
 		Environment:    environment,
+
+		// we intentionally only support Client Secret auth for tests (since those variables are used all over)
+		SupportsClientSecretAuth: true,
 	}
 	config, err := builder.Build()
 	if err != nil {
