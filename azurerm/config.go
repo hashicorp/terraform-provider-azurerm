@@ -404,15 +404,9 @@ func setUserAgent(client *autorest.Client) {
 // getArmClient is a helper method which returns a fully instantiated
 // *ArmClient based on the Config's current settings.
 func getArmClient(c *authentication.Config) (*ArmClient, error) {
-	// detect cloud from environment
-	env, envErr := azure.EnvironmentFromName(c.Environment)
-	if envErr != nil {
-		// try again with wrapped value to support readable values like german instead of AZUREGERMANCLOUD
-		wrapped := fmt.Sprintf("AZURE%sCLOUD", c.Environment)
-		var innerErr error
-		if env, innerErr = azure.EnvironmentFromName(wrapped); innerErr != nil {
-			return nil, envErr
-		}
+	env, err := authentication.DetermineEnvironment(c.Environment)
+	if err != nil {
+		return nil, err
 	}
 
 	// client declarations:
@@ -420,7 +414,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 		clientId:                 c.ClientID,
 		tenantId:                 c.TenantID,
 		subscriptionId:           c.SubscriptionID,
-		environment:              env,
+		environment:              *env,
 		usingServicePrincipal:    c.ClientSecret != "",
 		skipProviderRegistration: c.SkipProviderRegistration,
 	}
