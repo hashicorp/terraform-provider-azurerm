@@ -28,6 +28,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * security: removing the `Authorization` header from the debug logs [GH-2131]
+* `azurerm_api_management` - validating the Key Vault Secret ID for the `key_vault_id` field in the `hostname_configuration` block [GH-2189]
 * `azurerm_function_app` - correctly marking the resource as missing upon manual deletion [GH-2111]
 * `azurerm_kubernetes_cluster` - changing `os_disk_size_gb` to computed as the API now returns a valid default [GH-2117]
 * `azurerm_public_ip` - `domain_name_label` validation now allows 63 characters [GH-2122]
