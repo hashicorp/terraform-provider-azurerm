@@ -317,12 +317,12 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			ClientSecret:             d.Get("client_secret").(string),
 			TenantID:                 d.Get("tenant_id").(string),
 			Environment:              d.Get("environment").(string),
-			UseMsi:                   d.Get("use_msi").(bool),
 			MsiEndpoint:              d.Get("msi_endpoint").(string),
 			SkipProviderRegistration: d.Get("skip_provider_registration").(bool),
 
 			// Feature Toggles
-			SupportsClientSecretAuth: true,
+			SupportsClientSecretAuth:       true,
+			SupportsManagedServiceIdentity: d.Get("use_msi").(bool),
 		}
 
 		config, err := builder.Build()

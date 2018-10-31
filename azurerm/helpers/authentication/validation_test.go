@@ -179,7 +179,7 @@ func TestAzureValidateMsi(t *testing.T) {
 		{
 			Description: "Missing Subscription ID",
 			Config: Config{
-				MsiEndpoint: "http://localhost:50342/oauth2/token",
+				msiEndpoint: "http://localhost:50342/oauth2/token",
 				TenantID:    "9834f8d0-24b3-41b7-8b8d-c611c461a129",
 				Environment: "public",
 			},
@@ -188,7 +188,7 @@ func TestAzureValidateMsi(t *testing.T) {
 		{
 			Description: "Missing Tenant ID",
 			Config: Config{
-				MsiEndpoint:    "http://localhost:50342/oauth2/token",
+				msiEndpoint:    "http://localhost:50342/oauth2/token",
 				SubscriptionID: "8e8b5e02-5c13-4822-b7dc-4232afb7e8c2",
 				Environment:    "public",
 			},
@@ -197,7 +197,7 @@ func TestAzureValidateMsi(t *testing.T) {
 		{
 			Description: "Missing Environment",
 			Config: Config{
-				MsiEndpoint:    "http://localhost:50342/oauth2/token",
+				msiEndpoint:    "http://localhost:50342/oauth2/token",
 				SubscriptionID: "8e8b5e02-5c13-4822-b7dc-4232afb7e8c2",
 				TenantID:       "9834f8d0-24b3-41b7-8b8d-c611c461a129",
 			},
@@ -215,7 +215,7 @@ func TestAzureValidateMsi(t *testing.T) {
 		{
 			Description: "Valid Configuration",
 			Config: Config{
-				MsiEndpoint:    "http://localhost:50342/oauth2/token",
+				msiEndpoint:    "http://localhost:50342/oauth2/token",
 				SubscriptionID: "8e8b5e02-5c13-4822-b7dc-4232afb7e8c2",
 				TenantID:       "9834f8d0-24b3-41b7-8b8d-c611c461a129",
 				Environment:    "public",

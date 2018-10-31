@@ -19,8 +19,8 @@ func GetAuthorizationToken(c *Config, oauthConfig *adal.OAuthConfig, endpoint st
 		return auth, nil
 	}
 
-	if c.UseMsi {
-		spt, err := adal.NewServicePrincipalTokenFromMSI(c.MsiEndpoint, endpoint)
+	if c.usingManagedServiceIdentity {
+		spt, err := adal.NewServicePrincipalTokenFromMSI(c.msiEndpoint, endpoint)
 		if err != nil {
 			return nil, err
 		}

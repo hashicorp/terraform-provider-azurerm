@@ -4,31 +4,12 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/hashicorp/go-multierror"
 )
 
 // Validate ensures that the current set of credentials provided
 // are valid for the selected authentication type (e.g. Client Secret, Azure CLI, MSI etc.)
 func (c *Config) Validate() error {
-	if c.UseMsi {
-		log.Printf("[DEBUG] use_msi specified - using MSI Authentication")
-		if c.MsiEndpoint == "" {
-			msiEndpoint, err := adal.GetMSIVMEndpoint()
-			if err != nil {
-				return fmt.Errorf("Could not retrieve MSI endpoint from VM settings."+
-					"Ensure the VM has MSI enabled, or try setting msi_endpoint. Error: %s", err)
-			}
-			c.MsiEndpoint = msiEndpoint
-		}
-		log.Printf("[DEBUG] Using MSI endpoint %s", c.MsiEndpoint)
-		if err := c.validateMsi(); err != nil {
-			return err
-		}
-
-		return nil
-	}
-
 	// Azure CLI / CloudShell
 	log.Printf("[DEBUG] No Client Secret specified - loading credentials from Azure CLI")
 	if err := c.LoadTokensFromAzureCLI(); err != nil {
@@ -98,7 +79,7 @@ func (c *Config) validateMsi() error {
 	if c.Environment == "" {
 		err = multierror.Append(err, fmt.Errorf("Environment must be configured for the AzureRM provider"))
 	}
-	if c.MsiEndpoint == "" {
+	if c.msiEndpoint == "" {
 		err = multierror.Append(err, fmt.Errorf("MSI endpoint must be configured for the AzureRM provider"))
 	}
 
