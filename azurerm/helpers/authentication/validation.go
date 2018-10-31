@@ -20,7 +20,7 @@ func (c *Config) Validate() error {
 			c.MsiEndpoint = msiEndpoint
 		}
 		log.Printf("[DEBUG] Using MSI endpoint %s", c.MsiEndpoint)
-		if err := c.ValidateMsi(); err != nil {
+		if err := c.validateMsi(); err != nil {
 			return err
 		}
 
@@ -29,7 +29,7 @@ func (c *Config) Validate() error {
 
 	if c.ClientSecret != "" {
 		log.Printf("[DEBUG] Client Secret specified - using Service Principal for Authentication")
-		if err := c.ValidateServicePrincipal(); err != nil {
+		if err := c.validateServicePrincipal(); err != nil {
 			return err
 		}
 
@@ -42,15 +42,14 @@ func (c *Config) Validate() error {
 		return err
 	}
 
-	if err := c.ValidateBearerAuth(); err != nil {
+	if err := c.validateAzureCliBearerAuth(); err != nil {
 		return fmt.Errorf("Please specify either a Service Principal, or log in with the Azure CLI (using `az login`)")
 	}
 
 	return nil
 }
 
-// TODO: these can become internal-only
-func (c *Config) ValidateBearerAuth() error {
+func (c *Config) validateAzureCliBearerAuth() error {
 	var err *multierror.Error
 
 	if c.AccessToken == nil {
@@ -72,7 +71,7 @@ func (c *Config) ValidateBearerAuth() error {
 	return err.ErrorOrNil()
 }
 
-func (c *Config) ValidateServicePrincipal() error {
+func (c *Config) validateServicePrincipal() error {
 	var err *multierror.Error
 
 	if c.SubscriptionID == "" {
@@ -94,7 +93,7 @@ func (c *Config) ValidateServicePrincipal() error {
 	return err.ErrorOrNil()
 }
 
-func (c *Config) ValidateMsi() error {
+func (c *Config) validateMsi() error {
 	var err *multierror.Error
 
 	if c.SubscriptionID == "" {
