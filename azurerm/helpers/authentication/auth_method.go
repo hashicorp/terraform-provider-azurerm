@@ -6,7 +6,7 @@ import (
 )
 
 type authMethod interface {
-	getAuthorizationToken(c *Config, oauthConfig *adal.OAuthConfig, endpoint string) (*autorest.BearerAuthorizer, error)
+	getAuthorizationToken(oauthConfig *adal.OAuthConfig, endpoint string) (*autorest.BearerAuthorizer, error)
 
 	validate() error
 }

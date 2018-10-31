@@ -26,8 +26,8 @@ func newServicePrincipalClientSecretAuth(b Builder) authMethod {
 	}
 }
 
-func (a servicePrincipalClientSecretAuth) getAuthorizationToken(c *Config, oauthConfig *adal.OAuthConfig, endpoint string) (*autorest.BearerAuthorizer, error) {
-	spt, err := adal.NewServicePrincipalToken(*oauthConfig, c.ClientID, c.clientSecret, endpoint)
+func (a servicePrincipalClientSecretAuth) getAuthorizationToken(oauthConfig *adal.OAuthConfig, endpoint string) (*autorest.BearerAuthorizer, error) {
+	spt, err := adal.NewServicePrincipalToken(*oauthConfig, a.clientId, a.clientSecret, endpoint)
 	if err != nil {
 		return nil, err
 	}
