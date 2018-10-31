@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"regexp"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
@@ -27,6 +28,10 @@ func resourceArmSql2017ElasticPool() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile("^[-a-z0-9]{2,60}$"),
+					"SQL2017 ElasticPool name must be 2 - 60 characters long, contain only letters, numbers and hyphens.",
+				),
 			},
 
 			"location": locationSchema(),
@@ -37,6 +42,10 @@ func resourceArmSql2017ElasticPool() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile("^[-a-z0-9]{3,50}$"),
+					"SQL server name must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
+				),
 			},
 
 			"sku": {
