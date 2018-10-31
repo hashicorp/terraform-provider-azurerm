@@ -7,8 +7,10 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* authentication: decoupling the authentication methods from the provider to enable splitting out the authentication library [GH-2197]
 * authentication: using the Proxy from the Environment, if set [GH-2133]
 * dependencies: upgrading to v21.3.0 of `github.com/Azure/azure-sdk-for-go` [GH-2163]
+* refactoring:  decoupling Resource Provider Registration to enable splitting out the authentication library [GH-2197]
 * sdk: upgrading to `2018-10-01` of the `containerinstance` sdk [GH-2174]
 * `azurerm_automation_account` - exposing `dsc_server_endpoint`, `dsc_primary_access_key`, `dsc_secondary_access_key` properties [GH-2166] 
 * `azurerm_automation_account` - support for the `free` SKU [GH-2166]
