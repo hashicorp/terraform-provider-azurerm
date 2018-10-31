@@ -2,15 +2,17 @@
   "Deadline": "10m",
   "Enable": [
     "errcheck",
-    "unconvert",
     "gofmt",
     "goimports",
     "gotype",
     "ineffassign",
     "interfacer",
+    "megacheck",
+    "nakedret",
     "misspell",
     "structcheck",
     "unparam",
+    "unconvert",
     "unused",
     "varcheck",
     "vet"
@@ -19,6 +21,9 @@
   "Linters": {
     "errcheck": {
       "Command": "errcheck -abspath {not_tests=-ignoretests} -ignore github.com/hashicorp/terraform/helper/schema:ForceNew|Set -ignore io:Close"
+    },
+    "nakedret": {
+      "Command": "nakedret -l 1"
     }
   },
   "Sort": [

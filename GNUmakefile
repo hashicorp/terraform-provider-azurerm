@@ -33,6 +33,10 @@ fmt:
 fmtcheck:
 	@sh "$(CURDIR)/scripts/gofmtcheck.sh"
 
+goimport:
+	@echo "==> Fixing imports code with goimports..."
+	goimports -w azurerm/
+
 lint:
 	@echo "==> Checking source code against linters..."
 	@gometalinter ./$(PKG_NAME)

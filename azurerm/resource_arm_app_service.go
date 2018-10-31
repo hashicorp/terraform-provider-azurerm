@@ -466,12 +466,12 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
 	identity := flattenAzureRmAppServiceMachineIdentity(resp.Identity)
 	if err := d.Set("identity", identity); err != nil {
 		return err
 	}
+
+	flattenAndSetTags(d, resp.Tags)
 
 	return nil
 }
@@ -503,7 +503,7 @@ func resourceArmAppServiceDelete(d *schema.ResourceData, meta interface{}) error
 
 func flattenAppServiceSourceControl(input *web.SiteSourceControlProperties) []interface{} {
 	results := make([]interface{}, 0)
-	result := make(map[string]interface{}, 0)
+	result := make(map[string]interface{})
 
 	if input == nil {
 		log.Printf("[DEBUG] SiteSourceControlProperties is nil")
@@ -557,7 +557,7 @@ func flattenAppServiceConnectionStrings(input map[string]*web.ConnStringValueTyp
 	results := make([]interface{}, 0)
 
 	for k, v := range input {
-		result := make(map[string]interface{}, 0)
+		result := make(map[string]interface{})
 		result["name"] = k
 		result["type"] = string(v.Type)
 		result["value"] = *v.Value
@@ -568,7 +568,7 @@ func flattenAppServiceConnectionStrings(input map[string]*web.ConnStringValueTyp
 }
 
 func flattenAppServiceAppSettings(input map[string]*string) map[string]string {
-	output := make(map[string]string, 0)
+	output := make(map[string]string)
 	for k, v := range input {
 		output[k] = *v
 	}
@@ -610,12 +610,12 @@ func validateAppServiceName(v interface{}, k string) (ws []string, es []error) {
 		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters and dashes and up to 60 characters in length", k))
 	}
 
-	return
+	return ws, es
 }
 
 func flattenAppServiceSiteCredential(input *web.UserProperties) []interface{} {
 	results := make([]interface{}, 0)
-	result := make(map[string]interface{}, 0)
+	result := make(map[string]interface{})
 
 	if input == nil {
 		log.Printf("[DEBUG] UserProperties is nil")

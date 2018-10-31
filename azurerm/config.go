@@ -16,7 +16,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-10-12/cdn"
 	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
-	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-06-01/containerinstance"
+	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
@@ -267,8 +267,9 @@ type ArmClient struct {
 	subscriptionsClient   subscriptions.Client
 
 	// Scheduler
-	schedulerJobCollectionsClient scheduler.JobCollectionsClient
-	schedulerJobsClient           scheduler.JobsClient
+	schedulerJobCollectionsClient scheduler.JobCollectionsClient //nolint: megacheck
+
+	schedulerJobsClient scheduler.JobsClient //nolint: megacheck
 
 	// Search
 	searchServicesClient  search.ServicesClient
@@ -1102,11 +1103,11 @@ func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, au
 }
 
 func (c *ArmClient) registerSchedulerClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	jobCollectionsClient := scheduler.NewJobCollectionsClientWithBaseURI(endpoint, subscriptionId)
+	jobCollectionsClient := scheduler.NewJobCollectionsClientWithBaseURI(endpoint, subscriptionId) //nolint: megacheck
 	c.configureClient(&jobCollectionsClient.Client, auth)
 	c.schedulerJobCollectionsClient = jobCollectionsClient
 
-	jobsClient := scheduler.NewJobsClientWithBaseURI(endpoint, subscriptionId)
+	jobsClient := scheduler.NewJobsClientWithBaseURI(endpoint, subscriptionId) //nolint: megacheck
 	c.configureClient(&jobsClient.Client, auth)
 	c.schedulerJobsClient = jobsClient
 }
@@ -1274,7 +1275,7 @@ func (armClient *ArmClient) getBlobStorageClientForStorageAccount(ctx context.Co
 	if err != nil {
 		return nil, accountExists, err
 	}
-	if accountExists == false {
+	if !accountExists {
 		return nil, false, nil
 	}
 
@@ -1293,7 +1294,7 @@ func (armClient *ArmClient) getFileServiceClientForStorageAccount(ctx context.Co
 	if err != nil {
 		return nil, accountExists, err
 	}
-	if accountExists == false {
+	if !accountExists {
 		return nil, false, nil
 	}
 
@@ -1312,7 +1313,7 @@ func (armClient *ArmClient) getTableServiceClientForStorageAccount(ctx context.C
 	if err != nil {
 		return nil, accountExists, err
 	}
-	if accountExists == false {
+	if !accountExists {
 		return nil, false, nil
 	}
 
@@ -1331,7 +1332,7 @@ func (armClient *ArmClient) getQueueServiceClientForStorageAccount(ctx context.C
 	if err != nil {
 		return nil, accountExists, err
 	}
-	if accountExists == false {
+	if !accountExists {
 		return nil, false, nil
 	}
 

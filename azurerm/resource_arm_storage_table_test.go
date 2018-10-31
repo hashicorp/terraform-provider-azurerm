@@ -142,12 +142,7 @@ func testAccARMStorageTableDisappears(name string, t *storage.Table) resource.Te
 		table := tableClient.GetTableReference(t.Name)
 		timeout := uint(60)
 		options := &storage.TableOptions{}
-		err = table.Delete(timeout, options)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return table.Delete(timeout, options)
 	}
 }
 
@@ -177,7 +172,6 @@ func testCheckAzureRMStorageTableDestroy(s *terraform.State) error {
 
 		options := &storage.QueryTablesOptions{}
 		tables, err := tableClient.QueryTables(storage.NoMetadata, options)
-
 		if err != nil {
 			return nil
 		}

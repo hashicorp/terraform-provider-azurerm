@@ -16,14 +16,8 @@ func parseKeyVaultChildID(id string) (*KeyVaultChildID, error) {
 
 	path := idURL.Path
 
-	path = strings.TrimSpace(path)
-	if strings.HasPrefix(path, "/") {
-		path = path[1:]
-	}
-
-	if strings.HasSuffix(path, "/") {
-		path = path[:len(path)-1]
-	}
+	path = strings.TrimPrefix(path, "/")
+	path = strings.TrimSuffix(path, "/")
 
 	components := strings.Split(path, "/")
 
@@ -53,5 +47,5 @@ func validateKeyVaultChildName(v interface{}, k string) (ws []string, es []error
 		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters and dashes", k))
 	}
 
-	return
+	return ws, es
 }

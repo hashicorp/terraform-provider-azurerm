@@ -249,7 +249,7 @@ func flattenSharedImageVersionTargetRegions(input *[]compute.TargetRegion) []int
 
 	if input != nil {
 		for _, v := range *input {
-			output := make(map[string]interface{}, 0)
+			output := make(map[string]interface{})
 
 			if v.Name != nil {
 				output["name"] = azureRMNormalizeLocation(*v.Name)

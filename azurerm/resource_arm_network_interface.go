@@ -388,22 +388,19 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 
 	var appliedDNSServers []string
 	var dnsServers []string
-	if dns := props.DNSSettings; dns != nil {
-		if appliedServers := dns.AppliedDNSServers; appliedServers != nil && len(appliedDNSServers) > 0 {
-			for _, applied := range appliedDNSServers {
-				appliedDNSServers = append(appliedDNSServers, applied)
-			}
+	if dnsSettings := props.DNSSettings; dnsSettings != nil {
+		if s := dnsSettings.AppliedDNSServers; s != nil {
+			appliedDNSServers = *s
 		}
 
-		if servers := dns.DNSServers; servers != nil && len(*servers) > 0 {
-			for _, dns := range *servers {
-				dnsServers = append(dnsServers, dns)
-			}
+		if s := dnsSettings.DNSServers; s != nil {
+			dnsServers = *s
 		}
 
-		d.Set("internal_fqdn", props.DNSSettings.InternalFqdn)
-		d.Set("internal_dns_name_label", props.DNSSettings.InternalDNSNameLabel)
+		d.Set("internal_fqdn", dnsSettings.InternalFqdn)
+		d.Set("internal_dns_name_label", dnsSettings.InternalDNSNameLabel)
 	}
+
 	d.Set("applied_dns_servers", appliedDNSServers)
 	d.Set("dns_servers", dnsServers)
 

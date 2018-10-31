@@ -393,7 +393,7 @@ func flattenKeyVaultNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {
 		return []interface{}{}
 	}
 
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 
 	output["bypass"] = string(input.Bypass)
 	output["default_action"] = string(input.DefaultAction)
@@ -431,7 +431,7 @@ func validateKeyVaultName(v interface{}, k string) (ws []string, errors []error)
 		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters and dashes and must be between 3-24 chars", k))
 	}
 
-	return
+	return ws, errors
 }
 
 func keyVaultRefreshFunc(vaultUri string) resource.StateRefreshFunc {

@@ -229,5 +229,5 @@ func validateSnapshotName(v interface{}, k string) (ws []string, errors []error)
 		errors = append(errors, fmt.Errorf("Snapshot Name can be up to 80 characters, currently %d.", length))
 	}
 
-	return
+	return ws, errors
 }
