@@ -9,17 +9,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure/cli"
 )
 
-// TODO: separate objects for Input/Output - `Builder` perhaps?
-
-type SupportedAuthenticationModes struct {
-	ServicePrincipalClientSecret bool
-}
-
-// Config is the configuration structure used to instantiate a
-// new Azure management client.
-type Config struct {
-	// TODO: feature toggles for which Authentication Providers are supported
-
+type Builder struct {
 	// Core
 	ClientID                 string
 	SubscriptionID           string
@@ -27,14 +17,79 @@ type Config struct {
 	Environment              string
 	SkipProviderRegistration bool
 
-	// Service Principal Auth
-	ClientSecret string
+	// Service Principal (Client Secret) Auth
+	SupportsClientSecretAuth bool
+	ClientSecret             string
 
 	// Bearer Auth
 	AccessToken  *adal.Token
 	IsCloudShell bool
 	UseMsi       bool
 	MsiEndpoint  string
+}
+
+func (b Builder) Build() (*Config, error) {
+	config := Config{
+		ClientID:                 b.ClientID,
+		SubscriptionID:           b.SubscriptionID,
+		TenantID:                 b.TenantID,
+		Environment:              b.Environment,
+		SkipProviderRegistration: b.SkipProviderRegistration,
+
+		// Bearer Auth
+		AccessToken:  b.AccessToken,
+		IsCloudShell: b.IsCloudShell,
+		MsiEndpoint:  b.MsiEndpoint,
+		UseMsi:       b.UseMsi,
+	}
+
+	if b.SupportsClientSecretAuth && b.ClientSecret != "" {
+		log.Printf("[DEBUG] Using Service Principal / Client Secret Authentication")
+		config.clientSecret = b.ClientSecret
+		config.usingClientSecret = true
+		config.AuthenticatedAsAServicePrincipal = true
+
+		err := config.validateServicePrincipal()
+		if err != nil {
+			return nil, err
+		}
+
+		return &config, nil
+	}
+
+	// TODO: remove this in favour of individual calls above
+	err := config.Validate()
+	if err != nil {
+		return nil, err
+	}
+
+	return &config, nil
+}
+
+// Config is the configuration structure used to instantiate a
+// new Azure management client.
+type Config struct {
+	// Core
+	ClientID                 string
+	SubscriptionID           string
+	TenantID                 string
+	Environment              string
+	SkipProviderRegistration bool
+
+	// Service Principal (Client Secret) Auth
+	clientSecret string
+
+	// Bearer Auth
+	AccessToken  *adal.Token
+	IsCloudShell bool
+	UseMsi       bool
+	MsiEndpoint  string
+
+	// internal-only feature flags
+	usingClientSecret bool
+
+	// temporarily public feature flags
+	AuthenticatedAsAServicePrincipal bool
 }
 
 // LoadTokensFromAzureCLI loads the access tokens and subscription/tenant ID's from the

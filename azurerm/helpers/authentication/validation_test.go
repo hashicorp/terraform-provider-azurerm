@@ -93,7 +93,7 @@ func TestAzureValidateServicePrincipal(t *testing.T) {
 			Description: "Missing Client ID",
 			Config: Config{
 				SubscriptionID: "8e8b5e02-5c13-4822-b7dc-4232afb7e8c2",
-				ClientSecret:   "Does Hammer Time have Daylight Savings Time?",
+				clientSecret:   "Does Hammer Time have Daylight Savings Time?",
 				TenantID:       "9834f8d0-24b3-41b7-8b8d-c611c461a129",
 				Environment:    "public",
 			},
@@ -103,7 +103,7 @@ func TestAzureValidateServicePrincipal(t *testing.T) {
 			Description: "Missing Subscription ID",
 			Config: Config{
 				ClientID:     "62e73395-5017-43b6-8ebf-d6c30a514cf1",
-				ClientSecret: "Does Hammer Time have Daylight Savings Time?",
+				clientSecret: "Does Hammer Time have Daylight Savings Time?",
 				TenantID:     "9834f8d0-24b3-41b7-8b8d-c611c461a129",
 				Environment:  "public",
 			},
@@ -124,7 +124,7 @@ func TestAzureValidateServicePrincipal(t *testing.T) {
 			Config: Config{
 				ClientID:       "62e73395-5017-43b6-8ebf-d6c30a514cf1",
 				SubscriptionID: "8e8b5e02-5c13-4822-b7dc-4232afb7e8c2",
-				ClientSecret:   "Does Hammer Time have Daylight Savings Time?",
+				clientSecret:   "Does Hammer Time have Daylight Savings Time?",
 				Environment:    "public",
 			},
 			ExpectError: true,
@@ -134,7 +134,7 @@ func TestAzureValidateServicePrincipal(t *testing.T) {
 			Config: Config{
 				ClientID:       "62e73395-5017-43b6-8ebf-d6c30a514cf1",
 				SubscriptionID: "8e8b5e02-5c13-4822-b7dc-4232afb7e8c2",
-				ClientSecret:   "Does Hammer Time have Daylight Savings Time?",
+				clientSecret:   "Does Hammer Time have Daylight Savings Time?",
 				TenantID:       "9834f8d0-24b3-41b7-8b8d-c611c461a129",
 			},
 			ExpectError: true,
@@ -144,7 +144,7 @@ func TestAzureValidateServicePrincipal(t *testing.T) {
 			Config: Config{
 				ClientID:       "62e73395-5017-43b6-8ebf-d6c30a514cf1",
 				SubscriptionID: "8e8b5e02-5c13-4822-b7dc-4232afb7e8c2",
-				ClientSecret:   "Does Hammer Time have Daylight Savings Time?",
+				clientSecret:   "Does Hammer Time have Daylight Savings Time?",
 				TenantID:       "9834f8d0-24b3-41b7-8b8d-c611c461a129",
 				Environment:    "public",
 			},

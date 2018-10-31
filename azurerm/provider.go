@@ -311,7 +311,7 @@ func Provider() terraform.ResourceProvider {
 
 func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 	return func(d *schema.ResourceData) (interface{}, error) {
-		config := &authentication.Config{
+		builder := &authentication.Builder{
 			SubscriptionID:           d.Get("subscription_id").(string),
 			ClientID:                 d.Get("client_id").(string),
 			ClientSecret:             d.Get("client_secret").(string),
@@ -320,11 +320,14 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			UseMsi:                   d.Get("use_msi").(bool),
 			MsiEndpoint:              d.Get("msi_endpoint").(string),
 			SkipProviderRegistration: d.Get("skip_provider_registration").(bool),
+
+			// Feature Toggles
+			SupportsClientSecretAuth: true,
 		}
 
-		err := config.Validate()
+		config, err := builder.Build()
 		if err != nil {
-			return nil, fmt.Errorf("Error validating provider: %s", err)
+			return nil, fmt.Errorf("Error building AzureRM Client: %s", err)
 		}
 
 		client, err := getArmClient(config)

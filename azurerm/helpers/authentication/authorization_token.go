@@ -9,10 +9,8 @@ import (
 
 // GetAuthorizationToken returns an authentication token for the current authentication method
 func GetAuthorizationToken(c *Config, oauthConfig *adal.OAuthConfig, endpoint string) (*autorest.BearerAuthorizer, error) {
-	useServicePrincipal := c.ClientSecret != ""
-
-	if useServicePrincipal {
-		spt, err := adal.NewServicePrincipalToken(*oauthConfig, c.ClientID, c.ClientSecret, endpoint)
+	if c.usingClientSecret {
+		spt, err := adal.NewServicePrincipalToken(*oauthConfig, c.ClientID, c.clientSecret, endpoint)
 		if err != nil {
 			return nil, err
 		}

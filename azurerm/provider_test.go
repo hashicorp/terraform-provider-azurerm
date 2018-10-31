@@ -81,7 +81,7 @@ func testGetAzureConfig(t *testing.T) *authentication.Config {
 	environment := testArmEnvironmentName()
 
 	// we deliberately don't use the main config - since we care about
-	config := authentication.Config{
+	builder := authentication.Builder{
 		SubscriptionID:           os.Getenv("ARM_SUBSCRIPTION_ID"),
 		ClientID:                 os.Getenv("ARM_CLIENT_ID"),
 		TenantID:                 os.Getenv("ARM_TENANT_ID"),
@@ -89,5 +89,11 @@ func testGetAzureConfig(t *testing.T) *authentication.Config {
 		Environment:              environment,
 		SkipProviderRegistration: false,
 	}
-	return &config
+	config, err := builder.Build()
+	if err != nil {
+		t.Fatalf("Error building ARM Client: %+v", err)
+		return nil
+	}
+
+	return config
 }

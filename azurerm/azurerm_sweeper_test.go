@@ -30,13 +30,21 @@ func buildConfigForSweepers() (*ArmClient, error) {
 		return nil, fmt.Errorf("ARM_SUBSCRIPTION_ID, ARM_CLIENT_ID, ARM_CLIENT_SECRET and ARM_TENANT_ID must be set for acceptance tests")
 	}
 
-	config := &authentication.Config{
+	builder := &authentication.Builder{
 		SubscriptionID:           subscriptionID,
 		ClientID:                 clientID,
 		ClientSecret:             clientSecret,
 		TenantID:                 tenantID,
 		Environment:              environment,
 		SkipProviderRegistration: false,
+
+		// Feature Toggles
+		SupportsClientSecretAuth: true,
+	}
+
+	config, err := builder.Build()
+	if err != nil {
+		return nil, fmt.Errorf("Error building ARM Client: %+v", err)
 	}
 
 	return getArmClient(config)

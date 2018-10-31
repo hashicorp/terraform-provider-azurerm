@@ -366,7 +366,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 		tenantId:                 c.TenantID,
 		subscriptionId:           c.SubscriptionID,
 		environment:              *env,
-		usingServicePrincipal:    c.ClientSecret != "",
+		usingServicePrincipal:    c.AuthenticatedAsAServicePrincipal,
 		skipProviderRegistration: c.SkipProviderRegistration,
 	}
 

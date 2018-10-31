@@ -29,15 +29,6 @@ func (c *Config) Validate() error {
 		return nil
 	}
 
-	if c.ClientSecret != "" {
-		log.Printf("[DEBUG] Client Secret specified - using Service Principal for Authentication")
-		if err := c.validateServicePrincipal(); err != nil {
-			return err
-		}
-
-		return nil
-	}
-
 	// Azure CLI / CloudShell
 	log.Printf("[DEBUG] No Client Secret specified - loading credentials from Azure CLI")
 	if err := c.LoadTokensFromAzureCLI(); err != nil {
@@ -82,7 +73,7 @@ func (c *Config) validateServicePrincipal() error {
 	if c.ClientID == "" {
 		err = multierror.Append(err, fmt.Errorf("Client ID must be configured for the AzureRM provider"))
 	}
-	if c.ClientSecret == "" {
+	if c.clientSecret == "" {
 		err = multierror.Append(err, fmt.Errorf("Client Secret must be configured for the AzureRM provider"))
 	}
 	if c.TenantID == "" {
