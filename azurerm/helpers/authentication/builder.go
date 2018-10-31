@@ -16,7 +16,7 @@ type Builder struct {
 	SkipProviderRegistration bool
 
 	// Azure CLI Parsing / CloudShell Auth
-	SupportsParsingFromAzureCLI bool
+	SupportsAzureCliCloudShellParsing bool
 
 	// Managed Service Identity Auth
 	SupportsManagedServiceIdentity bool
@@ -75,7 +75,7 @@ func (b Builder) Build() (*Config, error) {
 	}
 
 	// note: this includes CloudShell
-	if b.SupportsParsingFromAzureCLI {
+	if b.SupportsAzureCliCloudShellParsing {
 		log.Printf("[DEBUG] Using CloudShell for Authentication")
 
 		// given CloudShell is technically parsing Azure CLI creds - we set both

@@ -321,8 +321,9 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			SkipProviderRegistration: d.Get("skip_provider_registration").(bool),
 
 			// Feature Toggles
-			SupportsClientSecretAuth:       true,
-			SupportsManagedServiceIdentity: d.Get("use_msi").(bool),
+			SupportsClientSecretAuth:          true,
+			SupportsManagedServiceIdentity:    d.Get("use_msi").(bool),
+			SupportsAzureCliCloudShellParsing: true,
 		}
 
 		config, err := builder.Build()
