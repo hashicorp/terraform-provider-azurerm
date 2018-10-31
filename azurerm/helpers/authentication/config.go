@@ -1,9 +1,5 @@
 package authentication
 
-import (
-	"github.com/Azure/go-autorest/autorest/adal"
-)
-
 // Config is the configuration structure used to instantiate a
 // new Azure management client.
 type Config struct {
@@ -16,10 +12,9 @@ type Config struct {
 	// temporarily public feature flags
 	AuthenticatedAsAServicePrincipal bool
 
+	authMethod authMethod
+
 	// to be removed
-	accessToken              *adal.Token
-	usingCloudShell          bool
-	authMethod               authMethod
 	SkipProviderRegistration bool
 }
 
