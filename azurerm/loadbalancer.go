@@ -147,7 +147,7 @@ func validateLoadBalancerPrivateIpAddressAllocation(v interface{}, _ string) (ws
 }
 
 // sets the loadbalancer_id in the ResourceData from the sub resources full id
-func loadBalancerSubResourceStateImporter(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func loadBalancerSubResourceStateImporter(d *schema.ResourceData, _ interface{}) ([]*schema.ResourceData, error) {
 	r, err := regexp.Compile(`.+\/loadBalancers\/.+?\/`)
 	if err != nil {
 		return nil, err

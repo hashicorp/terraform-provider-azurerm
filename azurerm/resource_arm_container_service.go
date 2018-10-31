@@ -221,9 +221,9 @@ func resourceArmContainerServiceCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	ctx := meta.(*ArmClient).StopContext
-	_, error := containerServiceClient.CreateOrUpdate(ctx, resGroup, name, parameters)
-	if error != nil {
-		return error
+	_, err := containerServiceClient.CreateOrUpdate(ctx, resGroup, name, parameters)
+	if err != nil {
+		return err
 	}
 
 	read, err := containerServiceClient.Get(ctx, resGroup, name)
@@ -442,7 +442,7 @@ func expandAzureRmContainerServiceLinuxProfile(d *schema.ResourceData) container
 	adminUsername := config["admin_username"].(string)
 
 	linuxKeys := config["ssh_key"].(*schema.Set).List()
-	sshPublicKeys := []containerservice.SSHPublicKey{}
+	sshPublicKeys := make([]containerservice.SSHPublicKey, 0)
 
 	key := linuxKeys[0].(map[string]interface{})
 	keyData := key["key_data"].(string)

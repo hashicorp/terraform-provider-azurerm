@@ -256,7 +256,7 @@ func flattenRouteTableRoutes(input *[]network.Route) []interface{} {
 }
 
 func flattenRouteTableSubnets(subnets *[]network.Subnet) []string {
-	output := []string{}
+	output := make([]string, 0)
 
 	if subnets != nil {
 		for _, subnet := range *subnets {

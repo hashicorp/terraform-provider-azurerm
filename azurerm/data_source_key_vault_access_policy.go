@@ -52,7 +52,7 @@ func dataSourceArmKeyVaultAccessPolicy() *schema.Resource {
 	}
 }
 
-func dataSourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, _ interface{}) error {
 	name := d.Get("name").(string)
 	templateManagementPermissions := map[string][]string{
 		"key": {

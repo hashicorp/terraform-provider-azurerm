@@ -42,7 +42,7 @@ func ValidateEventHubAuthorizationRuleName() schema.SchemaValidateFunc {
 
 //schema
 func ExpandEventHubAuthorizationRuleRights(d *schema.ResourceData) *[]eventhub.AccessRights {
-	rights := []eventhub.AccessRights{}
+	rights := make([]eventhub.AccessRights, 0)
 
 	if d.Get("listen").(bool) {
 		rights = append(rights, eventhub.Listen)

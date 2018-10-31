@@ -494,7 +494,7 @@ func ignoreCaseStateFunc(val interface{}) string {
 	return strings.ToLower(val.(string))
 }
 
-func userDataDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
+func userDataDiffSuppressFunc(_, old, new string, _ *schema.ResourceData) bool {
 	return userDataStateFunc(old) == new
 }
 

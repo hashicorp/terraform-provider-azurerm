@@ -43,6 +43,6 @@ func azureRMNormalizeLocation(location interface{}) string {
 	return strings.Replace(strings.ToLower(input), " ", "", -1)
 }
 
-func azureRMSuppressLocationDiff(k, old, new string, d *schema.ResourceData) bool {
+func azureRMSuppressLocationDiff(_, old, new string, _ *schema.ResourceData) bool {
 	return azureRMNormalizeLocation(old) == azureRMNormalizeLocation(new)
 }

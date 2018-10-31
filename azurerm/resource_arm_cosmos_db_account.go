@@ -407,7 +407,7 @@ func resourceArmCosmosDBAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error making Read request on AzureRM CosmosDB Account '%s': %s", name, err)
 	}
 
-	oldLocations := []documentdb.Location{}
+	oldLocations := make([]documentdb.Location, 0)
 	oldLocationsMap := map[string]documentdb.Location{}
 	for _, l := range *resp.FailoverPolicies {
 		location := documentdb.Location{
@@ -567,7 +567,7 @@ func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	if p := resp.ReadLocations; p != nil {
-		readEndpoints := []string{}
+		readEndpoints := make([]string, 0)
 		for _, l := range *p {
 			readEndpoints = append(readEndpoints, *l.DocumentEndpoint)
 		}
@@ -575,7 +575,7 @@ func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	if p := resp.WriteLocations; p != nil {
-		writeEndpoints := []string{}
+		writeEndpoints := make([]string, 0)
 		for _, l := range *p {
 			writeEndpoints = append(writeEndpoints, *l.DocumentEndpoint)
 		}

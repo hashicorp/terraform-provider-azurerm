@@ -241,7 +241,7 @@ func resourceArmEventHubDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func validateEventHubPartitionCount(v interface{}, k string) (ws []string, errors []error) {
+func validateEventHubPartitionCount(v interface{}, _ string) (ws []string, errors []error) {
 	value := v.(int)
 
 	if !(32 >= value && value >= 2) {
@@ -251,7 +251,7 @@ func validateEventHubPartitionCount(v interface{}, k string) (ws []string, error
 	return ws, errors
 }
 
-func validateEventHubMessageRetentionCount(v interface{}, k string) (ws []string, errors []error) {
+func validateEventHubMessageRetentionCount(v interface{}, _ string) (ws []string, errors []error) {
 	value := v.(int)
 
 	if !(7 >= value && value >= 1) {

@@ -134,21 +134,3 @@ func composeAzureResourceID(idObj *ResourceID) (id string, err error) {
 
 	return
 }
-
-func ParseNetworkSecurityGroupName(networkSecurityGroupId string) (string, error) {
-	id, err := ParseAzureResourceID(networkSecurityGroupId)
-	if err != nil {
-		return "", fmt.Errorf("[ERROR] Unable to Parse Network Security Group ID '%s': %+v", networkSecurityGroupId, err)
-	}
-
-	return id.Path["networkSecurityGroups"], nil
-}
-
-func ParseRouteTableName(routeTableId string) (string, error) {
-	id, err := ParseAzureResourceID(routeTableId)
-	if err != nil {
-		return "", fmt.Errorf("[ERROR] Unable to parse Route Table ID '%s': %+v", routeTableId, err)
-	}
-
-	return id.Path["routeTables"], nil
-}

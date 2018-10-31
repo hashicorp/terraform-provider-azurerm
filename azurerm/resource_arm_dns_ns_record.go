@@ -161,9 +161,9 @@ func resourceArmDnsNsRecordDelete(d *schema.ResourceData, meta interface{}) erro
 	name := id.Path["NS"]
 	zoneName := id.Path["dnszones"]
 
-	resp, error := dnsClient.Delete(ctx, resGroup, zoneName, name, dns.NS, "")
+	resp, err := dnsClient.Delete(ctx, resGroup, zoneName, name, dns.NS, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS NS Record %s: %+v", name, error)
+		return fmt.Errorf("Error deleting DNS NS Record %s: %+v", name, err)
 	}
 
 	return nil
