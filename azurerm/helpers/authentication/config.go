@@ -9,10 +9,12 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure/cli"
 )
 
+// TODO: separate objects for Input/Output
+
 // Config is the configuration structure used to instantiate a
 // new Azure management client.
 type Config struct {
-	ManagementURL string
+	// TODO: feature toggles for which Authentication Providers are supported
 
 	// Core
 	ClientID                  string
@@ -32,6 +34,9 @@ type Config struct {
 	MsiEndpoint  string
 }
 
+// LoadTokensFromAzureCLI loads the access tokens and subscription/tenant ID's from the
+// Azure CLI metadata if it's not provided
+// NOTE: this'll become an internal-only method in the near future
 func (c *Config) LoadTokensFromAzureCLI() error {
 	profilePath, err := cli.ProfilePath()
 	if err != nil {
