@@ -9,10 +9,14 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure/cli"
 )
 
+// TODO: separate objects for Input/Output
+
 // Config is the configuration structure used to instantiate a
 // new Azure management client.
 type Config struct {
 	ManagementURL string
+
+	// TODO: feature toggles for which Authentication Providers are supported
 
 	// Core
 	ClientID                  string

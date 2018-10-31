@@ -2,10 +2,54 @@ package authentication
 
 import (
 	"fmt"
+	"log"
 
+	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/hashicorp/go-multierror"
 )
 
+func (c *Config) Validate() error {
+	if c.UseMsi {
+		log.Printf("[DEBUG] use_msi specified - using MSI Authentication")
+		if c.MsiEndpoint == "" {
+			msiEndpoint, err := adal.GetMSIVMEndpoint()
+			if err != nil {
+				return fmt.Errorf("Could not retrieve MSI endpoint from VM settings."+
+					"Ensure the VM has MSI enabled, or try setting msi_endpoint. Error: %s", err)
+			}
+			c.MsiEndpoint = msiEndpoint
+		}
+		log.Printf("[DEBUG] Using MSI endpoint %s", c.MsiEndpoint)
+		if err := c.ValidateMsi(); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	if c.ClientSecret != "" {
+		log.Printf("[DEBUG] Client Secret specified - using Service Principal for Authentication")
+		if err := c.ValidateServicePrincipal(); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	// Azure CLI / CloudShell
+	log.Printf("[DEBUG] No Client Secret specified - loading credentials from Azure CLI")
+	if err := c.LoadTokensFromAzureCLI(); err != nil {
+		return err
+	}
+
+	if err := c.ValidateBearerAuth(); err != nil {
+		return fmt.Errorf("Please specify either a Service Principal, or log in with the Azure CLI (using `az login`)")
+	}
+
+	return nil
+}
+
+// TODO: these can become internal-only
 func (c *Config) ValidateBearerAuth() error {
 	var err *multierror.Error
 

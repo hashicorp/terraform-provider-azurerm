@@ -5,10 +5,8 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"log"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/hashicorp/terraform/helper/mutexkv"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
@@ -323,34 +321,9 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			SkipProviderRegistration:  d.Get("skip_provider_registration").(bool),
 		}
 
-		if config.UseMsi {
-			log.Printf("[DEBUG] use_msi specified - using MSI Authentication")
-			if config.MsiEndpoint == "" {
-				msiEndpoint, err := adal.GetMSIVMEndpoint()
-				if err != nil {
-					return nil, fmt.Errorf("Could not retrieve MSI endpoint from VM settings."+
-						"Ensure the VM has MSI enabled, or try setting msi_endpoint. Error: %s", err)
-				}
-				config.MsiEndpoint = msiEndpoint
-			}
-			log.Printf("[DEBUG] Using MSI endpoint %s", config.MsiEndpoint)
-			if err := config.ValidateMsi(); err != nil {
-				return nil, err
-			}
-		} else if config.ClientSecret != "" {
-			log.Printf("[DEBUG] Client Secret specified - using Service Principal for Authentication")
-			if err := config.ValidateServicePrincipal(); err != nil {
-				return nil, err
-			}
-		} else {
-			log.Printf("[DEBUG] No Client Secret specified - loading credentials from Azure CLI")
-			if err := config.LoadTokensFromAzureCLI(); err != nil {
-				return nil, err
-			}
-
-			if err := config.ValidateBearerAuth(); err != nil {
-				return nil, fmt.Errorf("Please specify either a Service Principal, or log in with the Azure CLI (using `az login`)")
-			}
+		err := config.Validate()
+		if err != nil {
+			return nil, fmt.Errorf("Error validating provider: %s", err)
 		}
 
 		client, err := getArmClient(config)
