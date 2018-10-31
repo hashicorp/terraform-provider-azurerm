@@ -401,51 +401,6 @@ func setUserAgent(client *autorest.Client) {
 	log.Printf("[DEBUG] AzureRM Client User Agent: %s\n", client.UserAgent)
 }
 
-func getAuthorizationToken(c *authentication.Config, oauthConfig *adal.OAuthConfig, endpoint string) (*autorest.BearerAuthorizer, error) {
-	useServicePrincipal := c.ClientSecret != ""
-
-	if useServicePrincipal {
-		spt, err := adal.NewServicePrincipalToken(*oauthConfig, c.ClientID, c.ClientSecret, endpoint)
-		if err != nil {
-			return nil, err
-		}
-
-		auth := autorest.NewBearerAuthorizer(spt)
-		return auth, nil
-	}
-
-	if c.UseMsi {
-		spt, err := adal.NewServicePrincipalTokenFromMSI(c.MsiEndpoint, endpoint)
-		if err != nil {
-			return nil, err
-		}
-		auth := autorest.NewBearerAuthorizer(spt)
-		return auth, nil
-	}
-
-	if c.IsCloudShell {
-		// load the refreshed tokens from the Azure CLI
-		err := c.LoadTokensFromAzureCLI()
-		if err != nil {
-			return nil, fmt.Errorf("Error loading the refreshed CloudShell tokens: %+v", err)
-		}
-	}
-
-	spt, err := adal.NewServicePrincipalTokenFromManualToken(*oauthConfig, c.ClientID, endpoint, *c.AccessToken)
-	if err != nil {
-		return nil, err
-	}
-
-	err = spt.Refresh()
-
-	if err != nil {
-		return nil, fmt.Errorf("Error refreshing Service Principal Token: %+v", err)
-	}
-
-	auth := autorest.NewBearerAuthorizer(spt)
-	return auth, nil
-}
-
 // getArmClient is a helper method which returns a fully instantiated
 // *ArmClient based on the Config's current settings.
 func getArmClient(c *authentication.Config) (*ArmClient, error) {
@@ -484,21 +439,21 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 
 	// Resource Manager endpoints
 	endpoint := env.ResourceManagerEndpoint
-	auth, err := getAuthorizationToken(c, oauthConfig, endpoint)
+	auth, err := authentication.GetAuthorizationToken(c, oauthConfig, endpoint)
 	if err != nil {
 		return nil, err
 	}
 
 	// Graph Endpoints
 	graphEndpoint := env.GraphEndpoint
-	graphAuth, err := getAuthorizationToken(c, oauthConfig, graphEndpoint)
+	graphAuth, err := authentication.GetAuthorizationToken(c, oauthConfig, graphEndpoint)
 	if err != nil {
 		return nil, err
 	}
 
 	// Key Vault Endpoints
 	keyVaultAuth := autorest.NewBearerAuthorizerCallback(sender, func(tenantID, resource string) (*autorest.BearerAuthorizer, error) {
-		keyVaultSpt, err := getAuthorizationToken(c, oauthConfig, resource)
+		keyVaultSpt, err := authentication.GetAuthorizationToken(c, oauthConfig, resource)
 		if err != nil {
 			return nil, err
 		}
