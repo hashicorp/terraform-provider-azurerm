@@ -192,15 +192,15 @@ func TestAzurePopulateFromAccessToken_Exists(t *testing.T) {
 		t.Fatalf("Expected the population of an existing token to be successful, it wasn't")
 	}
 
-	if config.IsCloudShell != token.IsCloudShell {
-		t.Fatalf("Expected `IsCloudShell` to be %t, got %t", token.IsCloudShell, config.IsCloudShell)
+	if config.usingCloudShell != token.IsCloudShell {
+		t.Fatalf("Expected `usingCloudShell` to be %t, got %t", token.IsCloudShell, config.usingCloudShell)
 	}
 
 	if config.ClientID != token.ClientID {
 		t.Fatalf("Expected `ClientID` to be %q, got %q", token.ClientID, config.ClientID)
 	}
 
-	if config.AccessToken != token.AccessToken {
-		t.Fatalf("Expected `AccessToken` to be %+v, got %+v", token.AccessToken, config.AccessToken)
+	if config.accessToken != token.AccessToken {
+		t.Fatalf("Expected `accessToken` to be %+v, got %+v", token.AccessToken, config.accessToken)
 	}
 }

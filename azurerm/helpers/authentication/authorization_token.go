@@ -28,15 +28,15 @@ func GetAuthorizationToken(c *Config, oauthConfig *adal.OAuthConfig, endpoint st
 		return auth, nil
 	}
 
-	if c.IsCloudShell {
-		// load the refreshed tokens from the Azure CLI
+	if c.usingCloudShell {
+		// load the refreshed tokens from the CloudShell Azure CLI credentials
 		err := c.LoadTokensFromAzureCLI()
 		if err != nil {
 			return nil, fmt.Errorf("Error loading the refreshed CloudShell tokens: %+v", err)
 		}
 	}
 
-	spt, err := adal.NewServicePrincipalTokenFromManualToken(*oauthConfig, c.ClientID, endpoint, *c.AccessToken)
+	spt, err := adal.NewServicePrincipalTokenFromManualToken(*oauthConfig, c.ClientID, endpoint, *c.accessToken)
 	if err != nil {
 		return nil, err
 	}

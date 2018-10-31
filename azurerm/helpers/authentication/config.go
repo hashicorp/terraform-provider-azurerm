@@ -9,88 +9,6 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure/cli"
 )
 
-type Builder struct {
-	// Core
-	ClientID                 string
-	SubscriptionID           string
-	TenantID                 string
-	Environment              string
-	SkipProviderRegistration bool
-
-	// Service Principal (Client Secret) Auth
-	SupportsClientSecretAuth bool
-	ClientSecret             string
-
-	// Managed Service Identity
-	SupportsManagedServiceIdentity bool
-
-	// Bearer Auth
-	IsCloudShell bool
-	AccessToken  *adal.Token
-	MsiEndpoint  string
-}
-
-func (b Builder) Build() (*Config, error) {
-	config := Config{
-		ClientID:                 b.ClientID,
-		SubscriptionID:           b.SubscriptionID,
-		TenantID:                 b.TenantID,
-		Environment:              b.Environment,
-		SkipProviderRegistration: b.SkipProviderRegistration,
-
-		// Bearer Auth
-		AccessToken:  b.AccessToken,
-		IsCloudShell: b.IsCloudShell,
-	}
-
-	if b.SupportsClientSecretAuth && b.ClientSecret != "" {
-		log.Printf("[DEBUG] Using Service Principal / Client Secret for Authentication")
-		config.clientSecret = b.ClientSecret
-		config.usingClientSecret = true
-		config.AuthenticatedAsAServicePrincipal = true
-
-		err := config.validateServicePrincipal()
-		if err != nil {
-			return nil, err
-		}
-
-		return &config, nil
-	}
-
-	if b.SupportsManagedServiceIdentity {
-		log.Printf("[DEBUG] Using Managed Service Identity for Authentication")
-
-		endpoint := b.MsiEndpoint
-		if endpoint == "" {
-			msiEndpoint, err := adal.GetMSIVMEndpoint()
-			if err != nil {
-				return nil, fmt.Errorf("Could not retrieve MSI endpoint from VM settings."+
-					"Ensure the VM has MSI enabled, or configure the MSI Endpoint. Error: %s", err)
-			}
-			endpoint = msiEndpoint
-		}
-
-		log.Printf("[DEBUG] Using MSI endpoint %q", endpoint)
-		config.msiEndpoint = endpoint
-
-		err := config.validateMsi()
-		if err != nil {
-			return nil, err
-		}
-
-		return &config, nil
-	}
-
-	// TODO: remove this in favour of individual calls above
-	err := config.Validate()
-	if err != nil {
-		return nil, err
-	}
-
-	// TODO: return nil, fmt.Errorf("none found..")
-	return &config, nil
-}
-
 // Config is the configuration structure used to instantiate a
 // new Azure management client.
 type Config struct {
@@ -106,16 +24,19 @@ type Config struct {
 	// Managed Service Identity Auth
 	msiEndpoint string
 
+	// Azure CLI
+	accessToken *adal.Token
+
 	// internal-only feature flags
 	usingClientSecret           bool
+	usingAzureCliParsing        bool
+	usingCloudShell             bool
 	usingManagedServiceIdentity bool
 
 	// temporarily public feature flags
 	AuthenticatedAsAServicePrincipal bool
 
 	// to be sorted
-	AccessToken              *adal.Token
-	IsCloudShell             bool
 	SkipProviderRegistration bool
 }
 
@@ -157,7 +78,7 @@ func (c *Config) LoadTokensFromAzureCLI() error {
 
 	foundToken := false
 	if c.TenantID != "" {
-		// pull out the ClientID and the AccessToken from the Azure Access Token
+		// pull out the ClientID and the accessToken from the Azure Access Token
 		tokensPath, err := cli.AccessTokensPath()
 		if err != nil {
 			return fmt.Errorf("Error loading the Tokens Path from the Azure CLI: %+v", err)
@@ -231,8 +152,8 @@ func (c *Config) populateFromAccessToken(token *AccessToken) (bool, error) {
 	}
 
 	c.ClientID = token.ClientID
-	c.AccessToken = token.AccessToken
-	c.IsCloudShell = token.IsCloudShell
+	c.accessToken = token.AccessToken
+	c.usingCloudShell = token.IsCloudShell
 
 	return true, nil
 }

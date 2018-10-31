@@ -7,9 +7,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 )
 
-// Validate ensures that the current set of credentials provided
-// are valid for the selected authentication type (e.g. Client Secret, Azure CLI, MSI etc.)
-func (c *Config) Validate() error {
+func (c *Config) validate() error {
 	// Azure CLI / CloudShell
 	log.Printf("[DEBUG] No Client Secret specified - loading credentials from Azure CLI")
 	if err := c.LoadTokensFromAzureCLI(); err != nil {
@@ -26,7 +24,7 @@ func (c *Config) Validate() error {
 func (c *Config) validateAzureCliBearerAuth() error {
 	var err *multierror.Error
 
-	if c.AccessToken == nil {
+	if c.accessToken == nil {
 		err = multierror.Append(err, fmt.Errorf("Access Token was not found in your Azure CLI Credentials.\n\nPlease login to the Azure CLI again via `az login`"))
 	}
 
@@ -45,7 +43,7 @@ func (c *Config) validateAzureCliBearerAuth() error {
 	return err.ErrorOrNil()
 }
 
-func (c *Config) validateServicePrincipal() error {
+func (c *Config) validateServicePrincipalClientSecret() error {
 	var err *multierror.Error
 
 	if c.SubscriptionID == "" {

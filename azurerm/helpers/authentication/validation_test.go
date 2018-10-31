@@ -29,7 +29,7 @@ func TestAzureValidateBearerAuth(t *testing.T) {
 		{
 			Description: "Missing Client ID",
 			Config: Config{
-				AccessToken:    &adal.Token{},
+				accessToken:    &adal.Token{},
 				SubscriptionID: "8e8b5e02-5c13-4822-b7dc-4232afb7e8c2",
 				TenantID:       "9834f8d0-24b3-41b7-8b8d-c611c461a129",
 			},
@@ -38,7 +38,7 @@ func TestAzureValidateBearerAuth(t *testing.T) {
 		{
 			Description: "Missing Subscription ID",
 			Config: Config{
-				AccessToken: &adal.Token{},
+				accessToken: &adal.Token{},
 				ClientID:    "62e73395-5017-43b6-8ebf-d6c30a514cf1",
 				TenantID:    "9834f8d0-24b3-41b7-8b8d-c611c461a129",
 			},
@@ -47,7 +47,7 @@ func TestAzureValidateBearerAuth(t *testing.T) {
 		{
 			Description: "Missing Tenant ID",
 			Config: Config{
-				AccessToken:    &adal.Token{},
+				accessToken:    &adal.Token{},
 				ClientID:       "62e73395-5017-43b6-8ebf-d6c30a514cf1",
 				SubscriptionID: "8e8b5e02-5c13-4822-b7dc-4232afb7e8c2",
 			},
@@ -56,7 +56,7 @@ func TestAzureValidateBearerAuth(t *testing.T) {
 		{
 			Description: "Valid Configuration",
 			Config: Config{
-				AccessToken:    &adal.Token{},
+				accessToken:    &adal.Token{},
 				ClientID:       "62e73395-5017-43b6-8ebf-d6c30a514cf1",
 				SubscriptionID: "8e8b5e02-5c13-4822-b7dc-4232afb7e8c2",
 				TenantID:       "9834f8d0-24b3-41b7-8b8d-c611c461a129",
@@ -153,7 +153,7 @@ func TestAzureValidateServicePrincipal(t *testing.T) {
 	}
 
 	for _, v := range cases {
-		err := v.Config.validateServicePrincipal()
+		err := v.Config.validateServicePrincipalClientSecret()
 
 		if v.ExpectError && err == nil {
 			t.Fatalf("Expected an error for %q: didn't get one", v.Description)
