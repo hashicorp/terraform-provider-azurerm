@@ -8,18 +8,16 @@ import (
 // Config is the configuration structure used to instantiate a
 // new Azure management client.
 type Config struct {
-	// Core
-	ClientID       string
-	SubscriptionID string
-	TenantID       string
-	Environment    string
-
-	// temporarily public feature flags
+	ClientID                         string
+	SubscriptionID                   string
+	TenantID                         string
+	Environment                      string
 	AuthenticatedAsAServicePrincipal bool
 
 	authMethod authMethod
 }
 
+// GetAuthorizationToken returns an authorization token for the authentication method defined in the Config
 func (c Config) GetAuthorizationToken(oauthConfig *adal.OAuthConfig, endpoint string) (*autorest.BearerAuthorizer, error) {
 	return c.authMethod.getAuthorizationToken(oauthConfig, endpoint)
 }

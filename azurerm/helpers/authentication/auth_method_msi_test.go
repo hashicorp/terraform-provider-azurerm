@@ -30,9 +30,11 @@ func TestManagedServiceIdentity_validate(t *testing.T) {
 			ExpectError: true,
 		},
 		{
-			Description: "Missing MSI Endpoint",
-			Config:      managedServiceIdentityAuth{},
-			ExpectError: true,
+			Description: "Valid Configuration",
+			Config: managedServiceIdentityAuth{
+				endpoint: "https://some-location",
+			},
+			ExpectError: false,
 		},
 	}
 

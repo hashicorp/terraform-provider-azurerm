@@ -5,6 +5,8 @@ import (
 	"log"
 )
 
+// Builder supports all of the possible Authentication values and feature toggles
+// required to build a working Config for Authentication purposes.
 type Builder struct {
 	// Core
 	ClientID       string
@@ -29,6 +31,8 @@ type Builder struct {
 	ClientSecret             string
 }
 
+// Build takes the configuration from the Builder and builds up a validated Config
+// for authenticating with Azure
 func (b Builder) Build() (*Config, error) {
 	config := Config{
 		ClientID:       b.ClientID,
@@ -63,7 +67,6 @@ func (b Builder) Build() (*Config, error) {
 		return config.validate()
 	}
 
-	// note: this includes CloudShell
 	if b.SupportsAzureCliCloudShellParsing {
 		log.Printf("[DEBUG] Parsing credentials from the Azure CLI for Authentication")
 
