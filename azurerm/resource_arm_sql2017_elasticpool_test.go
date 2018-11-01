@@ -24,7 +24,7 @@ func TestAccAzureRMSqlElasticPool2017_basic_DTU(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlElasticPool2017Exists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "BasicPool"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "StandardPool"),
 				),
 			},
 			{
