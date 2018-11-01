@@ -139,7 +139,7 @@ func TestAzureValidateServiceName(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.ID, func(t *testing.T) {
+		t.Run(tc.ServiceName, func(t *testing.T) {
 			_, errors := ValidateServiceName(tc.ServiceName, "name")
 
 			if len(errors) < tc.Errors {
