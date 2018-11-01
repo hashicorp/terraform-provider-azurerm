@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/subscription"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 func dataSourceArmSubscriptions() *schema.Resource {
@@ -16,7 +16,7 @@ func dataSourceArmSubscriptions() *schema.Resource {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
-					Schema: subscription.SubscriptionSchema(false),
+					Schema: azure.SchemaSubscription(false),
 				},
 			},
 		},
@@ -36,7 +36,7 @@ func dataSourceArmSubscriptionsRead(d *schema.ResourceData, meta interface{}) er
 
 	//iterate across each subscriptions and append them to slice
 	subscriptions := make([]map[string]interface{}, 0)
-	for err = nil; results.NotDone(); err = results.Next() {
+	for results.NotDone() {
 		val := results.Value()
 
 		s := make(map[string]interface{})
@@ -60,10 +60,14 @@ func dataSourceArmSubscriptionsRead(d *schema.ResourceData, meta interface{}) er
 		}
 
 		subscriptions = append(subscriptions, s)
+
+		if err = results.Next(); err != nil {
+			return fmt.Errorf("Error going to next subscriptions value: %+v", err)
+		}
 	}
 
 	d.SetId("subscriptions-" + armClient.tenantId)
-	if err := d.Set("subscriptions", subscriptions); err != nil {
+	if err = d.Set("subscriptions", subscriptions); err != nil {
 		return fmt.Errorf("Error flattening `subscriptions`: %+v", err)
 	}
 

@@ -178,6 +178,60 @@ func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenetComplete
 	})
 }
 
+func TestAccDataSourceAzureRMKubernetesCluster_addOnProfileOMS(t *testing.T) {
+	dataSourceName := "data.azurerm_kubernetes_cluster.test"
+	ri := acctest.RandInt()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	location := testLocation()
+	config := testAccDataSourceAzureRMKubernetesCluster_addOnProfileOMS(ri, clientId, clientSecret, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(dataSourceName),
+					resource.TestCheckResourceAttr(dataSourceName, "addon_profile.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "addon_profile.0.oms_agent.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "addon_profile.0.oms_agent.0.enabled", "true"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "addon_profile.0.oms_agent.0.log_analytics_workspace_id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAzureRMKubernetesCluster_addOnProfileRouting(t *testing.T) {
+	dataSourceName := "data.azurerm_kubernetes_cluster.test"
+	ri := acctest.RandInt()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	location := testLocation()
+	config := testAccDataSourceAzureRMKubernetesCluster_addOnProfileRouting(ri, clientId, clientSecret, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(dataSourceName),
+					resource.TestCheckResourceAttr(dataSourceName, "addon_profile.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "addon_profile.0.http_application_routing.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "addon_profile.0.http_application_routing.0.enabled", "true"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "addon_profile.0.http_application_routing.0.http_application_routing_zone_name"),
+				),
+			},
+		},
+	})
+}
+
 func testAccDataSourceAzureRMKubernetesCluster_basic(rInt int, clientId string, clientSecret string, location string) string {
 	resource := testAccAzureRMKubernetesCluster_basic(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
@@ -240,6 +294,30 @@ data "azurerm_kubernetes_cluster" "test" {
 
 func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenetComplete(rInt int, clientId string, clientSecret string, location string) string {
 	resource := testAccAzureRMKubernetesCluster_advancedNetworkingComplete(rInt, clientId, clientSecret, location, "kubenet")
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = "${azurerm_kubernetes_cluster.test.name}"
+  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+}
+`, resource)
+}
+
+func testAccDataSourceAzureRMKubernetesCluster_addOnProfileOMS(rInt int, clientId string, clientSecret string, location string) string {
+	resource := testAccAzureRMKubernetesCluster_addonProfileOMS(rInt, clientId, clientSecret, location)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = "${azurerm_kubernetes_cluster.test.name}"
+  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+}
+`, resource)
+}
+
+func testAccDataSourceAzureRMKubernetesCluster_addOnProfileRouting(rInt int, clientId string, clientSecret string, location string) string {
+	resource := testAccAzureRMKubernetesCluster_addonProfileRouting(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
 %s
 

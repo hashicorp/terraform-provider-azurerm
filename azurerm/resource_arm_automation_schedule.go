@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -107,14 +108,87 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				//todo figure out how to validate this properly
 			},
 
-			//todo missing properties: week_days, month_days, month_week_day from advanced automation section
+			"week_days": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(automation.Monday),
+						string(automation.Tuesday),
+						string(automation.Wednesday),
+						string(automation.Thursday),
+						string(automation.Friday),
+						string(automation.Saturday),
+						string(automation.Sunday),
+					}, true),
+				},
+				Set:           set.HashStringIgnoreCase,
+				ConflictsWith: []string{"month_days", "monthly_occurrence"},
+			},
+
+			"month_days": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeInt,
+					ValidateFunc: validate.IntBetweenAndNot(-1, 31, 0),
+				},
+				Set:           set.HashInt,
+				ConflictsWith: []string{"week_days", "monthly_occurrence"},
+			},
+
+			"monthly_occurrence": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"day": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(automation.Monday),
+								string(automation.Tuesday),
+								string(automation.Wednesday),
+								string(automation.Thursday),
+								string(automation.Friday),
+								string(automation.Saturday),
+								string(automation.Sunday),
+							}, true),
+						},
+						"occurrence": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validate.IntBetweenAndNot(-1, 5, 0),
+						},
+					},
+				},
+				ConflictsWith: []string{"week_days", "month_days"},
+			},
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
 
+			frequency := strings.ToLower(diff.Get("frequency").(string))
 			interval, _ := diff.GetOk("interval")
-			if strings.ToLower(diff.Get("frequency").(string)) == "onetime" && interval.(int) > 0 {
-				return fmt.Errorf("interval canot be set when frequency is not OneTime")
+			if frequency == "onetime" && interval.(int) > 0 {
+				return fmt.Errorf("`interval` cannot be set when frequency is `OneTime`")
+			}
+
+			_, hasWeekDays := diff.GetOk("week_days")
+			if hasWeekDays && frequency != "week" {
+				return fmt.Errorf("`week_days` can only be set when frequency is `Week`")
+			}
+
+			_, hasMonthDays := diff.GetOk("month_days")
+			if hasMonthDays && frequency != "month" {
+				return fmt.Errorf("`month_days` can only be set when frequency is `Month`")
+			}
+
+			_, hasMonthlyOccurances := diff.GetOk("monthly_occurrence")
+			if hasMonthlyOccurances && frequency != "month" {
+				return fmt.Errorf("`monthly_occurrence` can only be set when frequency is `Month`")
 			}
 
 			_, hasAccount := diff.GetOk("automation_account_name")
@@ -193,6 +267,16 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 			properties.Interval = 1
 		}
 	}
+
+	//only pay attention to the advanced schedule fields if frequency is either Week or Month
+	if properties.Frequency == automation.Week || properties.Frequency == automation.Month {
+		advancedRef, err := expandArmAutomationScheduleAdvanced(d, d.Id() != "")
+		if err != nil {
+			return err
+		}
+		properties.AdvancedSchedule = advancedRef
+	}
+
 	_, err := client.CreateOrUpdate(ctx, resGroup, accountName, name, parameters)
 	if err != nil {
 		return err
@@ -242,10 +326,10 @@ func resourceArmAutomationScheduleRead(d *schema.ResourceData, meta interface{})
 	d.Set("frequency", string(resp.Frequency))
 
 	if v := resp.StartTime; v != nil {
-		d.Set("start_time", string(v.Format(time.RFC3339)))
+		d.Set("start_time", v.Format(time.RFC3339))
 	}
 	if v := resp.ExpiryTime; v != nil {
-		d.Set("expiry_time", string(v.Format(time.RFC3339)))
+		d.Set("expiry_time", v.Format(time.RFC3339))
 	}
 	if v := resp.Interval; v != nil {
 		//seems to me missing its type in swagger, leading to it being a interface{} float64
@@ -256,6 +340,18 @@ func resourceArmAutomationScheduleRead(d *schema.ResourceData, meta interface{})
 	}
 	if v := resp.TimeZone; v != nil {
 		d.Set("timezone", v)
+	}
+
+	if v := resp.AdvancedSchedule; v != nil {
+		if err := d.Set("week_days", flattenArmAutomationScheduleAdvancedWeekDays(v)); err != nil {
+			return fmt.Errorf("Error setting `week_days`: %+v", err)
+		}
+		if err := d.Set("month_days", flattenArmAutomationScheduleAdvancedMonthDays(v)); err != nil {
+			return fmt.Errorf("Error setting `month_days`: %+v", err)
+		}
+		if err := d.Set("monthly_occurrence", flattenArmAutomationScheduleAdvancedMonthlyOccurrences(v)); err != nil {
+			return fmt.Errorf("Error setting `monthly_occurrence`: %+v", err)
+		}
 	}
 	return nil
 }
@@ -281,4 +377,82 @@ func resourceArmAutomationScheduleDelete(d *schema.ResourceData, meta interface{
 	}
 
 	return nil
+}
+
+func expandArmAutomationScheduleAdvanced(d *schema.ResourceData, isUpdate bool) (*automation.AdvancedSchedule, error) {
+
+	expandedAdvancedSchedule := automation.AdvancedSchedule{}
+
+	// If frequency is set to `Month` the `week_days` array cannot be set (even empty), otherwise the API returns an error.
+	// During update it can be set and it will not return an error. Workaround for the APIs behavior
+	if v, ok := d.GetOk("week_days"); ok {
+		weekDays := v.(*schema.Set).List()
+		expandedWeekDays := make([]string, len(weekDays))
+		for i := range weekDays {
+			expandedWeekDays[i] = weekDays[i].(string)
+		}
+		expandedAdvancedSchedule.WeekDays = &expandedWeekDays
+	} else if isUpdate {
+		expandedAdvancedSchedule.WeekDays = &[]string{}
+	}
+
+	// Same as above with `week_days`
+	if v, ok := d.GetOk("month_days"); ok {
+		monthDays := v.(*schema.Set).List()
+		expandedMonthDays := make([]int32, len(monthDays))
+		for i := range monthDays {
+			expandedMonthDays[i] = int32(monthDays[i].(int))
+		}
+		expandedAdvancedSchedule.MonthDays = &expandedMonthDays
+	} else if isUpdate {
+		expandedAdvancedSchedule.MonthDays = &[]int32{}
+	}
+
+	monthlyOccurrences := d.Get("monthly_occurrence").([]interface{})
+	expandedMonthlyOccurrences := make([]automation.AdvancedScheduleMonthlyOccurrence, len(monthlyOccurrences))
+	for i := range monthlyOccurrences {
+		m := monthlyOccurrences[i].(map[string]interface{})
+		occurrence := int32(m["occurrence"].(int))
+
+		expandedMonthlyOccurrences[i] = automation.AdvancedScheduleMonthlyOccurrence{
+			Occurrence: &occurrence,
+			Day:        automation.ScheduleDay(m["day"].(string)),
+		}
+	}
+	expandedAdvancedSchedule.MonthlyOccurrences = &expandedMonthlyOccurrences
+
+	return &expandedAdvancedSchedule, nil
+}
+
+func flattenArmAutomationScheduleAdvancedWeekDays(s *automation.AdvancedSchedule) *schema.Set {
+	flattenedWeekDays := schema.NewSet(set.HashStringIgnoreCase, []interface{}{})
+	if weekDays := s.WeekDays; weekDays != nil {
+		for _, v := range *weekDays {
+			flattenedWeekDays.Add(v)
+		}
+	}
+	return flattenedWeekDays
+}
+
+func flattenArmAutomationScheduleAdvancedMonthDays(s *automation.AdvancedSchedule) *schema.Set {
+	flattenedMonthDays := schema.NewSet(set.HashInt, []interface{}{})
+	if monthDays := s.MonthDays; monthDays != nil {
+		for _, v := range *monthDays {
+			flattenedMonthDays.Add(int(v))
+		}
+	}
+	return flattenedMonthDays
+}
+
+func flattenArmAutomationScheduleAdvancedMonthlyOccurrences(s *automation.AdvancedSchedule) []map[string]interface{} {
+	flattenedMonthlyOccurrences := make([]map[string]interface{}, 0)
+	if monthlyOccurrences := s.MonthlyOccurrences; monthlyOccurrences != nil {
+		for _, v := range *monthlyOccurrences {
+			f := make(map[string]interface{})
+			f["day"] = v.Day
+			f["occurrence"] = int(*v.Occurrence)
+			flattenedMonthlyOccurrences = append(flattenedMonthlyOccurrences, f)
+		}
+	}
+	return flattenedMonthlyOccurrences
 }

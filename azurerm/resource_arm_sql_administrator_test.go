@@ -75,11 +75,7 @@ func testCheckAzureRMSqlAdministratorExists(name string) resource.TestCheckFunc 
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		_, err := client.Get(ctx, resourceGroup, serverName)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 

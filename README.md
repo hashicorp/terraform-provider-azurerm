@@ -59,7 +59,7 @@ resource "azurerm_resource_group" "main" {
   location = "West US"
 }
 
-# Create a virtual network in the web_servers resource group
+# Create a virtual network in the production-resources resource group
 resource "azurerm_virtual_network" "network" {
   name                = "production-network"
   resource_group_name = "${azurerm_resource_group.main.name}"

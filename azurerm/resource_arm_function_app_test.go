@@ -234,8 +234,8 @@ func TestAccAzureRMFunctionApp_updateVersion(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
 	ri := acctest.RandInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	preConfig := testAccAzureRMFunctionApp_version(ri, rs, testLocation(), "beta")
-	postConfig := testAccAzureRMFunctionApp_version(ri, rs, testLocation(), "~1")
+	preConfig := testAccAzureRMFunctionApp_version(ri, rs, testLocation(), "~1")
+	postConfig := testAccAzureRMFunctionApp_version(ri, rs, testLocation(), "~2")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -246,14 +246,14 @@ func TestAccAzureRMFunctionApp_updateVersion(t *testing.T) {
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFunctionAppExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "version", "beta"),
+					resource.TestCheckResourceAttr(resourceName, "version", "~1"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFunctionAppExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "version", "~1"),
+					resource.TestCheckResourceAttr(resourceName, "version", "~2"),
 				),
 			},
 		},
@@ -333,6 +333,35 @@ func TestAccAzureRMFunctionApp_consumptionPlan(t *testing.T) {
 					testCheckAzureRMFunctionAppHasContentShare(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.use_32_bit_worker_process", "true"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMFunctionApp_consumptionPlanUppercaseName(t *testing.T) {
+	resourceName := "azurerm_function_app.test"
+	ri := acctest.RandInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+	config := testAccAzureRMFunctionApp_consumptionPlanUppercaseName(ri, rs, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFunctionAppExists(resourceName),
+					testCheckAzureRMFunctionAppHasContentShare(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.use_32_bit_worker_process", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -478,7 +507,7 @@ func testCheckAzureRMFunctionAppHasContentShare(name string) resource.TestCheckF
 			return fmt.Errorf("Error making Read request on AzureRM Function App AppSettings %q: %+v", functionAppName, err)
 		}
 
-		for k, _ := range appSettingsResp.Properties {
+		for k := range appSettingsResp.Properties {
 			if strings.EqualFold("WEBSITE_CONTENTSHARE", k) {
 				return nil
 			}
@@ -974,6 +1003,43 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_function_app" "test" {
   name                      = "acctest-%d-func"
+  location                  = "${azurerm_resource_group.test.location}"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
+  app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
+  storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+}
+`, rInt, location, rString, rInt, rInt)
+}
+
+func testAccAzureRMFunctionApp_consumptionPlanUppercaseName(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  kind                = "FunctionApp"
+
+  sku {
+    tier = "Dynamic"
+    size = "Y1"
+  }
+}
+
+resource "azurerm_function_app" "test" {
+  name                      = "acctest-%d-FuncWithUppercase"
   location                  = "${azurerm_resource_group.test.location}"
   resource_group_name       = "${azurerm_resource_group.test.name}"
   app_service_plan_id       = "${azurerm_app_service_plan.test.id}"

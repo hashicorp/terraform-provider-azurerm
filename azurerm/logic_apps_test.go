@@ -42,7 +42,7 @@ func testCheckAzureRMLogicAppActionExists(name string) resource.TestCheckFunc {
 		actions := definition["actions"].(map[string]interface{})
 
 		exists := false
-		for k, _ := range actions {
+		for k := range actions {
 			if strings.EqualFold(k, actionName) {
 				exists = true
 				break
@@ -90,7 +90,7 @@ func testCheckAzureRMLogicAppTriggerExists(name string) resource.TestCheckFunc {
 		triggers := definition["triggers"].(map[string]interface{})
 
 		exists := false
-		for k, _ := range triggers {
+		for k := range triggers {
 			if strings.EqualFold(k, triggerName) {
 				exists = true
 				break

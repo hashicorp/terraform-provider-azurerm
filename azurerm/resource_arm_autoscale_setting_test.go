@@ -31,6 +31,7 @@ func TestAccAzureRMAutoScaleSetting_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "profile.0.name", "metricRules"),
 					resource.TestCheckResourceAttr(resourceName, "profile.0.rule.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "0"),
+					resource.TestCheckNoResourceAttr(resourceName, "tags.$type"),
 				),
 			},
 		},
@@ -763,6 +764,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     ip_configuration {
       name      = "TestIPConfiguration"
       subnet_id = "${azurerm_subnet.test.id}"
+      primary   = true
     }
   }
 

@@ -42,7 +42,7 @@ func TestResourceAzureRMLoadBalancerPrivateIpAddressAllocation_validation(t *tes
 		_, errors := validateLoadBalancerPrivateIpAddressAllocation(tc.Value, "azurerm_lb")
 
 		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Azure RM LoadBalancer private_ip_address_allocation to trigger a validation error")
+			t.Fatalf("Expected the Azure RM Load Balancer private_ip_address_allocation to trigger a validation error")
 		}
 	}
 }
@@ -62,6 +62,11 @@ func TestAccAzureRMLoadBalancer_basic(t *testing.T) {
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 				),
 			},
+			{
+				ResourceName:      "azurerm_lb.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -80,6 +85,11 @@ func TestAccAzureRMLoadBalancer_standard(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 				),
+			},
+			{
+				ResourceName:      "azurerm_lb.test",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -102,6 +112,11 @@ func TestAccAzureRMLoadBalancer_frontEndConfig(t *testing.T) {
 					testCheckAzureRMLoadBalancerExists(resourceName, &lb),
 					resource.TestCheckResourceAttr(resourceName, "frontend_ip_configuration.#", "2"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAzureRMLoadBalancer_frontEndConfigRemovalWithIP(ri, location),
@@ -193,7 +208,7 @@ func testCheckAzureRMLoadBalancerExists(name string, lb *network.LoadBalancer) r
 		resp, err := client.Get(ctx, resourceGroup, loadBalancerName, "")
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
-				return fmt.Errorf("Bad: LoadBalancer %q (resource group: %q) does not exist", loadBalancerName, resourceGroup)
+				return fmt.Errorf("Bad: Load Balancer %q (resource group: %q) does not exist", loadBalancerName, resourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on loadBalancerClient: %+v", err)
@@ -326,46 +341,6 @@ resource "azurerm_lb" "test" {
     frontend_ip_configuration {
       name = "two-%d"
       public_ip_address_id = "${azurerm_public_ip.test1.id}"
-    }
-}`, rInt, location, rInt, rInt, rInt, rInt, rInt)
-}
-
-func testAccAzureRMLoadBalancer_frontEndConfig_withZone(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-    name = "acctvn-%d"
-    address_space = ["10.0.0.0/16"]
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_subnet" "test" {
-    name = "acctsub-%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_network_name = "${azurerm_virtual_network.test.name}"
-    address_prefix = "10.0.2.0/24"
-}
-
-resource "azurerm_lb" "test" {
-    name = "arm-test-loadbalancer-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-
-    frontend_ip_configuration {
-      name = "one-%d"
-      subnet_id = "${azurerm_subnet.test.id}"
-      zones = ["1"]
-    }
-
-    frontend_ip_configuration {
-      name = "two-%d"
-      subnet_id = "${azurerm_subnet.test.id}"
-      zones = ["1"]
     }
 }`, rInt, location, rInt, rInt, rInt, rInt, rInt)
 }

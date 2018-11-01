@@ -35,6 +35,13 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_basic(t *testing.T) {
 						"azurerm_lb_backend_address_pool.test", "id", backendAddressPoolId),
 				),
 			},
+			{
+				ResourceName:      "azurerm_lb.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				// location is deprecated and was never actually used
+				ImportStateVerifyIgnore: []string{"location"},
+			},
 		},
 	})
 }
@@ -160,12 +167,12 @@ func testCheckAzureRMLoadBalancerBackEndAddressPoolDisappears(addressPoolName st
 
 		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, *lb.Name, *lb)
 		if err != nil {
-			return fmt.Errorf("Error Creating/Updating LoadBalancer %+v", err)
+			return fmt.Errorf("Error Creating/Updating Load Balancer %+v", err)
 		}
 
 		err = future.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
-			return fmt.Errorf("Error Creating/Updating LoadBalancer %+v", err)
+			return fmt.Errorf("Error Creating/Updating Load Balancer %+v", err)
 		}
 
 		_, err = client.Get(ctx, id.ResourceGroup, *lb.Name, "")

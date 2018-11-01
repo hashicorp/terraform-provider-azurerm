@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_public_ip
 
-Create a Public IP Address.
+Manage a Public IP Address.
 
 ## Example Usage
 
@@ -52,6 +52,10 @@ The following arguments are supported:
 
 ~> **Note** `Dynamic` Public IP Addresses aren't allocated until they're assigned to a resource (such as a Virtual Machine or a Load Balancer) by design within Azure - [more information is available below](#ip_address).
 
+* `ip_version` - (Optional) The IP Version to use, IPv6 or IPv4.
+
+-> **Note** Only `dynamic` IP address allocation is supported for IPv6.
+
 * `idle_timeout_in_minutes` - (Optional) Specifies the timeout for the TCP idle connection. The value can be set between 4 and 30 minutes.
 
 * `domain_name_label` - (Optional) Label for the Domain Name. Will be used to make up the FQDN.  If a domain name label is specified, an A DNS record is created for the public IP in the Microsoft Azure DNS system.
@@ -62,7 +66,7 @@ The following arguments are supported:
 
 * `zones` - (Optional) A collection containing the availability zone to allocate the Public IP in.
 
--> **Please Note**: Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](http://aka.ms/azenroll).
+-> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).
 
 ## Attributes Reference
 

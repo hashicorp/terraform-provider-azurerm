@@ -14,6 +14,8 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -153,16 +155,8 @@ func resourceArmRedisCache() *schema.Resource {
 						"day_of_week": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-							ValidateFunc: validation.StringInSlice([]string{
-								"Monday",
-								"Tuesday",
-								"Wednesday",
-								"Thursday",
-								"Friday",
-								"Saturday",
-								"Sunday",
-							}, true),
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc:     validate.DayOfTheWeek(true),
 						},
 						"start_hour_utc": {
 							Type:         schema.TypeInt,
@@ -275,7 +269,7 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 
 	log.Printf("[DEBUG] Waiting for Redis Instance (%s) to become available", d.Get("name"))
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"Updating", "Creating"},
+		Pending:    []string{"Scaling", "Updating", "Creating"},
 		Target:     []string{"Succeeded"},
 		Refresh:    redisStateRefreshFunc(ctx, client, resGroup, name),
 		Timeout:    60 * time.Minute,
@@ -354,7 +348,7 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 
 	log.Printf("[DEBUG] Waiting for Redis Instance (%s) to become available", d.Get("name"))
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"Updating", "Creating"},
+		Pending:    []string{"Scaling", "Updating", "Creating"},
 		Target:     []string{"Succeeded"},
 		Refresh:    redisStateRefreshFunc(ctx, client, resGroup, name),
 		Timeout:    60 * time.Minute,
@@ -590,21 +584,21 @@ func flattenRedisConfiguration(input map[string]*string) ([]interface{}, error) 
 	if v := input["maxclients"]; v != nil {
 		i, err := strconv.Atoi(*v)
 		if err != nil {
-			return nil, fmt.Errorf("Error parsing `maxclients` %q: %+v", v, err)
+			return nil, fmt.Errorf("Error parsing `maxclients` %q: %+v", *v, err)
 		}
 		outputs["maxclients"] = i
 	}
 	if v := input["maxmemory-delta"]; v != nil {
 		i, err := strconv.Atoi(*v)
 		if err != nil {
-			return nil, fmt.Errorf("Error parsing `maxmemory-delta` %q: %+v", v, err)
+			return nil, fmt.Errorf("Error parsing `maxmemory-delta` %q: %+v", *v, err)
 		}
 		outputs["maxmemory_delta"] = i
 	}
 	if v := input["maxmemory-reserved"]; v != nil {
 		i, err := strconv.Atoi(*v)
 		if err != nil {
-			return nil, fmt.Errorf("Error parsing `maxmemory-reserved` %q: %+v", v, err)
+			return nil, fmt.Errorf("Error parsing `maxmemory-reserved` %q: %+v", *v, err)
 		}
 		outputs["maxmemory_reserved"] = i
 	}
@@ -616,21 +610,21 @@ func flattenRedisConfiguration(input map[string]*string) ([]interface{}, error) 
 	if v := input["rdb-backup-enabled"]; v != nil {
 		b, err := strconv.ParseBool(*v)
 		if err != nil {
-			return nil, fmt.Errorf("Error parsing `rdb-backup-enabled` %q: %+v", v, err)
+			return nil, fmt.Errorf("Error parsing `rdb-backup-enabled` %q: %+v", *v, err)
 		}
 		outputs["rdb_backup_enabled"] = b
 	}
 	if v := input["rdb-backup-frequency"]; v != nil {
 		i, err := strconv.Atoi(*v)
 		if err != nil {
-			return nil, fmt.Errorf("Error parsing `rdb-backup-frequency` %q: %+v", v, err)
+			return nil, fmt.Errorf("Error parsing `rdb-backup-frequency` %q: %+v", *v, err)
 		}
 		outputs["rdb_backup_frequency"] = i
 	}
 	if v := input["rdb-backup-max-snapshot-count"]; v != nil {
 		i, err := strconv.Atoi(*v)
 		if err != nil {
-			return nil, fmt.Errorf("Error parsing `rdb-backup-max-snapshot-count` %q: %+v", v, err)
+			return nil, fmt.Errorf("Error parsing `rdb-backup-max-snapshot-count` %q: %+v", *v, err)
 		}
 		outputs["rdb_backup_max_snapshot_count"] = i
 	}
@@ -648,7 +642,7 @@ func flattenRedisPatchSchedules(schedule redis.PatchSchedule) []interface{} {
 	outputs := make([]interface{}, 0)
 
 	for _, entry := range *schedule.ScheduleEntries.ScheduleEntries {
-		output := make(map[string]interface{}, 0)
+		output := make(map[string]interface{})
 
 		output["day_of_week"] = string(entry.DayOfWeek)
 		output["start_hour_utc"] = int(*entry.StartHourUtc)
@@ -669,7 +663,7 @@ func validateRedisFamily(v interface{}, k string) (ws []string, errors []error) 
 	if !families[value] {
 		errors = append(errors, fmt.Errorf("Redis Family can only be C or P"))
 	}
-	return
+	return ws, errors
 }
 
 func validateRedisMaxMemoryPolicy(v interface{}, k string) (ws []string, errors []error) {
@@ -687,7 +681,7 @@ func validateRedisMaxMemoryPolicy(v interface{}, k string) (ws []string, errors 
 		errors = append(errors, fmt.Errorf("Redis Max Memory Policy can only be 'noeviction' / 'allkeys-lru' / 'volatile-lru' / 'allkeys-random' / 'volatile-random' / 'volatile-ttl'"))
 	}
 
-	return
+	return ws, errors
 }
 
 func validateRedisBackupFrequency(v interface{}, k string) (ws []string, errors []error) {
@@ -705,5 +699,5 @@ func validateRedisBackupFrequency(v interface{}, k string) (ws []string, errors 
 		errors = append(errors, fmt.Errorf("Redis Backup Frequency can only be '15', '30', '60', '360', '720' or '1440'"))
 	}
 
-	return
+	return ws, errors
 }

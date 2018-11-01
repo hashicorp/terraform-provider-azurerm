@@ -138,7 +138,7 @@ func flattenDataSourcePublicIPs(input []network.PublicIPAddress) []interface{} {
 }
 
 func flattenDataSourcePublicIP(input network.PublicIPAddress) map[string]string {
-	output := make(map[string]string, 0)
+	output := make(map[string]string)
 
 	if input.ID != nil {
 		output["id"] = *input.ID

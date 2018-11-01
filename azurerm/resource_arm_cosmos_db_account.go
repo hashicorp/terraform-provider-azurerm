@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
@@ -15,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -205,6 +207,33 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 				Set: resourceAzureRMCosmosDBAccountCapabilitiesHash,
 			},
 
+			"is_virtual_network_filter_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"virtual_network_rule": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+					},
+				},
+				Set: resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash,
+			},
+
+			"enable_multiple_write_locations": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			//computed
 			"endpoint": {
 				Type:     schema.TypeString,
@@ -275,7 +304,9 @@ func resourceArmCosmosDBAccountCreate(d *schema.ResourceData, meta interface{}) 
 	kind := d.Get("kind").(string)
 	offerType := d.Get("offer_type").(string)
 	ipRangeFilter := d.Get("ip_range_filter").(string)
+	isVirtualNetworkFilterEnabled := d.Get("is_virtual_network_filter_enabled").(bool)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
+	enableMultipleWriteLocations := d.Get("enable_multiple_write_locations").(bool)
 
 	r, err := client.CheckNameExists(ctx, name)
 	if err != nil {
@@ -306,12 +337,15 @@ func resourceArmCosmosDBAccountCreate(d *schema.ResourceData, meta interface{}) 
 		Location: utils.String(location),
 		Kind:     documentdb.DatabaseAccountKind(kind),
 		DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
-			DatabaseAccountOfferType: utils.String(offerType),
-			IPRangeFilter:            utils.String(ipRangeFilter),
-			EnableAutomaticFailover:  utils.Bool(enableAutomaticFailover),
-			ConsistencyPolicy:        expandAzureRmCosmosDBAccountConsistencyPolicy(d),
-			Locations:                &geoLocations,
-			Capabilities:             expandAzureRmCosmosDBAccountCapabilities(d),
+			DatabaseAccountOfferType:      utils.String(offerType),
+			IPRangeFilter:                 utils.String(ipRangeFilter),
+			IsVirtualNetworkFilterEnabled: utils.Bool(isVirtualNetworkFilterEnabled),
+			EnableAutomaticFailover:       utils.Bool(enableAutomaticFailover),
+			ConsistencyPolicy:             expandAzureRmCosmosDBAccountConsistencyPolicy(d),
+			Locations:                     &geoLocations,
+			Capabilities:                  expandAzureRmCosmosDBAccountCapabilities(d),
+			VirtualNetworkRules:           expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
+			EnableMultipleWriteLocations:  utils.Bool(enableMultipleWriteLocations),
 		},
 		Tags: expandTags(tags),
 	}
@@ -345,7 +379,9 @@ func resourceArmCosmosDBAccountUpdate(d *schema.ResourceData, meta interface{}) 
 	kind := d.Get("kind").(string)
 	offerType := d.Get("offer_type").(string)
 	ipRangeFilter := d.Get("ip_range_filter").(string)
+	isVirtualNetworkFilterEnabled := d.Get("is_virtual_network_filter_enabled").(bool)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
+	enableMultipleWriteLocations := d.Get("enable_multiple_write_locations").(bool)
 
 	//hacky, todo fix up once deprecated field 'failover_policy' is removed
 	var newLocations []documentdb.Location
@@ -390,12 +426,15 @@ func resourceArmCosmosDBAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		Location: utils.String(location),
 		Kind:     documentdb.DatabaseAccountKind(kind),
 		DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
-			DatabaseAccountOfferType: utils.String(offerType),
-			IPRangeFilter:            utils.String(ipRangeFilter),
-			EnableAutomaticFailover:  utils.Bool(enableAutomaticFailover),
-			Capabilities:             expandAzureRmCosmosDBAccountCapabilities(d),
-			ConsistencyPolicy:        expandAzureRmCosmosDBAccountConsistencyPolicy(d),
-			Locations:                &oldLocations,
+			DatabaseAccountOfferType:      utils.String(offerType),
+			IPRangeFilter:                 utils.String(ipRangeFilter),
+			IsVirtualNetworkFilterEnabled: utils.Bool(isVirtualNetworkFilterEnabled),
+			EnableAutomaticFailover:       utils.Bool(enableAutomaticFailover),
+			Capabilities:                  expandAzureRmCosmosDBAccountCapabilities(d),
+			ConsistencyPolicy:             expandAzureRmCosmosDBAccountConsistencyPolicy(d),
+			Locations:                     &oldLocations,
+			VirtualNetworkRules:           expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
+			EnableMultipleWriteLocations:  utils.Bool(enableMultipleWriteLocations),
 		},
 		Tags: expandTags(tags),
 	}
@@ -493,8 +532,16 @@ func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("ip_range_filter", resp.IPRangeFilter)
 	d.Set("endpoint", resp.DocumentEndpoint)
 
+	if v := resp.IsVirtualNetworkFilterEnabled; v != nil {
+		d.Set("is_virtual_network_filter_enabled", resp.IsVirtualNetworkFilterEnabled)
+	}
+
 	if v := resp.EnableAutomaticFailover; v != nil {
 		d.Set("enable_automatic_failover", resp.EnableAutomaticFailover)
+	}
+
+	if v := resp.EnableMultipleWriteLocations; v != nil {
+		d.Set("enable_multiple_write_locations", resp.EnableMultipleWriteLocations)
 	}
 
 	if err := d.Set("consistency_policy", flattenAzureRmCosmosDBAccountConsistencyPolicy(resp.ConsistencyPolicy)); err != nil {
@@ -513,6 +560,10 @@ func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) er
 
 	if err := d.Set("capabilities", flattenAzureRmCosmosDBAccountCapabilities(resp.Capabilities)); err != nil {
 		return fmt.Errorf("Error setting `capabilities`: %+v", err)
+	}
+
+	if err := d.Set("virtual_network_rule", flattenAzureRmCosmosDBAccountVirtualNetworkRules(resp.VirtualNetworkRules)); err != nil {
+		return fmt.Errorf("Error setting `virtual_network_rule`: %+v", err)
 	}
 
 	if p := resp.ReadLocations; p != nil {
@@ -706,7 +757,7 @@ func expandAzureRmCosmosDBAccountGeoLocations(databaseName string, d *schema.Res
 	for _, location := range locations {
 
 		priority := int(*location.FailoverPriority)
-		name := string(*location.LocationName)
+		name := *location.LocationName
 
 		if _, ok := byPriorities[priority]; ok {
 			return nil, fmt.Errorf("Each `geo_location` needs to have a unique failover_prioroty. Multiple instances of '%d' found", priority)
@@ -780,13 +831,24 @@ func expandAzureRmCosmosDBAccountFailoverPolicy(databaseName string, d *schema.R
 func expandAzureRmCosmosDBAccountCapabilities(d *schema.ResourceData) *[]documentdb.Capability {
 
 	capabilities := d.Get("capabilities").(*schema.Set).List()
-	s := make([]documentdb.Capability, 0, 0)
+	s := make([]documentdb.Capability, 0)
 
 	for _, c := range capabilities {
 		m := c.(map[string]interface{})
 		s = append(s, documentdb.Capability{Name: utils.String(m["name"].(string))})
 	}
 
+	return &s
+}
+
+func expandAzureRmCosmosDBAccountVirtualNetworkRules(d *schema.ResourceData) *[]documentdb.VirtualNetworkRule {
+	virtualNetworkRules := d.Get("virtual_network_rule").(*schema.Set).List()
+
+	s := make([]documentdb.VirtualNetworkRule, len(virtualNetworkRules))
+	for i, r := range virtualNetworkRules {
+		m := r.(map[string]interface{})
+		s[i] = documentdb.VirtualNetworkRule{ID: utils.String(m["id"].(string))}
+	}
 	return &s
 }
 
@@ -873,6 +935,23 @@ func flattenAzureRmCosmosDBAccountCapabilities(capabilities *[]documentdb.Capabi
 	return &s
 }
 
+func flattenAzureRmCosmosDBAccountVirtualNetworkRules(rules *[]documentdb.VirtualNetworkRule) *schema.Set {
+	results := schema.Set{
+		F: resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash,
+	}
+
+	if rules != nil {
+		for _, r := range *rules {
+			rule := map[string]interface{}{
+				"id": *r.ID,
+			}
+			results.Add(rule)
+		}
+	}
+
+	return &results
+}
+
 //todo remove once deprecated field `failover_policy` is removed
 func resourceAzureRMCosmosDBAccountFailoverPolicyHash(v interface{}) int {
 	var buf bytes.Buffer
@@ -909,6 +988,16 @@ func resourceAzureRMCosmosDBAccountCapabilitiesHash(v interface{}) int {
 
 	if m, ok := v.(map[string]interface{}); ok {
 		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
+	}
+
+	return hashcode.String(buf.String())
+}
+
+func resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(strings.ToLower(m["id"].(string)))
 	}
 
 	return hashcode.String(buf.String())

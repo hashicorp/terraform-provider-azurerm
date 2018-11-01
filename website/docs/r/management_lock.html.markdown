@@ -49,11 +49,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name = "locked-publicip"
-  location = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                         = "locked-publicip"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
   public_ip_address_allocation = "static"
-  idle_timeout_in_minutes = 30
+  idle_timeout_in_minutes      = 30
 }
 
 resource "azurerm_management_lock" "public-ip" {
@@ -76,7 +76,7 @@ The following arguments are supported:
 
 ~> **Note:** `CanNotDelete` means authorized users are able to read and modify the resources, but not delete. `ReadOnly` means authorized users can only read from a resource, but they can't modify or delete it.
 
-* `note` - (Optional) Specifies some notes about the lock. Maximum of 512 characters. Changing this forces a new resource to be created.
+* `notes` - (Optional) Specifies some notes about the lock. Maximum of 512 characters. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

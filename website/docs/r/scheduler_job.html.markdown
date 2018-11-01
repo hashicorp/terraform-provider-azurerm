@@ -39,9 +39,9 @@ resource "azurerm_scheduler_job" "web-recurring-daily" {
   job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
 
   action_web {
-    url     = "https://this.url.fails"
-    method  = "put"
-    body    = "this is some text"
+    url    = "https://this.url.fails"
+    method = "put"
+    body   = "this is some text"
 
     headers = {
       Content-Type = "text"
@@ -56,15 +56,16 @@ resource "azurerm_scheduler_job" "web-recurring-daily" {
   retry {
     # retry every 5 min a maximum of 10 times
     interval = "00:05:00"
-    count    =  10
+    count    = 10
   }
 
   recurrence {
     frequency = "day"
     count     = 1000
+
     # run 4 times an hour every 12 hours
-    hours     = [0,12]
-    minutes   = [0,15,30,45]
+    hours   = [0, 12]
+    minutes = [0, 15, 30, 45]
   }
 
   start_time = "2018-07-07T07:07:07-07:00"
@@ -80,7 +81,8 @@ resource "azurerm_scheduler_job" "web-recurring-daily" {
   job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
 
   action_web {
-    url     = "https://this.url.fails"
+    url = "https://this.url.fails"
+
     authentication_certificate {
       pfx      = "${base64encode(file("your_cert.pfx"))}"
       password = "cert_password"
@@ -88,9 +90,9 @@ resource "azurerm_scheduler_job" "web-recurring-daily" {
   }
 
   error_action_web {
-    url     = "https://this.url.fails"
-    method  = "put"
-    body    = "The job failed"
+    url    = "https://this.url.fails"
+    method = "put"
+    body   = "The job failed"
 
     headers = {
       "Content-Type" = "text"
@@ -105,6 +107,7 @@ resource "azurerm_scheduler_job" "web-recurring-daily" {
   recurrence {
     frequency = "monthly"
     count     = 1000
+
     monthly_occurrences = [
       {
         # first Sunday
@@ -120,7 +123,7 @@ resource "azurerm_scheduler_job" "web-recurring-daily" {
         # last Sunday
         day        = "Sunday"
         occurrence = -1
-      }
+      },
     ]
   }
 

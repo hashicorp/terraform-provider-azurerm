@@ -62,6 +62,7 @@ resource "azurerm_virtual_machine" "main" {
   # Uncomment this line to delete the OS disk automatically when deleting the VM
   # delete_os_disk_on_termination = true
 
+
   # Uncomment this line to delete the data disks automatically when deleting the VM
   # delete_data_disks_on_termination = true
 
@@ -71,24 +72,20 @@ resource "azurerm_virtual_machine" "main" {
     sku       = "16.04-LTS"
     version   = "latest"
   }
-
   storage_os_disk {
     name              = "myosdisk1"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
-
   os_profile {
     computer_name  = "hostname"
     admin_username = "testadmin"
     admin_password = "Password1234!"
   }
-
   os_profile_linux_config {
     disable_password_authentication = false
   }
-
   tags {
     environment = "staging"
   }
@@ -147,7 +144,7 @@ The following arguments are supported:
 
 * `zones` - (Optional) A list of a single item of the Availability Zone which the Virtual Machine should be allocated in.
 
--> **Please Note**: Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](http://aka.ms/azenroll).
+-> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).
 
 For more information on the different example configurations, please check out the [Azure documentation](https://docs.microsoft.com/en-gb/rest/api/compute/virtualmachines/createorupdate#examples)
 
@@ -302,7 +299,7 @@ A `storage_data_disk` block supports the following:
 
 The following properties apply when using Managed Disks:
 
-* `managed_disk_type` - (Optional) Specifies the type of managed disk to create. Possible values are either `Standard_LRS` or `Premium_LRS`.
+* `managed_disk_type` - (Optional) Specifies the type of managed disk to create. Possible values are either `Standard_LRS`, `StandardSSD_LRS` or `Premium_LRS`.
 
 * `managed_disk_id` - (Optional) Specifies the ID of an Existing Managed Disk which should be attached to this Virtual Machine. When this field is set `create_option` must be set to `Attach`.
 
@@ -332,7 +329,7 @@ The following properties apply when using Managed Disks:
 
 * `managed_disk_id` - (Optional) Specifies the ID of an existing Managed Disk which should be attached as the OS Disk of this Virtual Machine. If this is set then the `create_option` must be set to `Attach`.
 
-* `managed_disk_type` - (Optional) Specifies the type of Managed Disk which should be created. Possible values are `Standard_LRS` or `Premium_LRS`.
+* `managed_disk_type` - (Optional) Specifies the type of Managed Disk which should be created. Possible values are `Standard_LRS`, `StandardSSD_LRS` or `Premium_LRS`.
 
 The following properties apply when using Unmanaged Disks:
 

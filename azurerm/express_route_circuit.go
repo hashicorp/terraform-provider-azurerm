@@ -4,20 +4,16 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
-	"github.com/hashicorp/errwrap"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func extractResourceGroupAndErcName(resourceId string) (resourceGroup string, name string, err error) {
+func extractResourceGroupAndErcName(resourceId string) (resourceGroup string, name string, e error) {
 	id, err := parseAzureResourceID(resourceId)
-
 	if err != nil {
 		return "", "", err
 	}
-	resourceGroup = id.ResourceGroup
-	name = id.Path["expressRouteCircuits"]
 
-	return
+	return id.ResourceGroup, id.Path["expressRouteCircuits"], err
 }
 
 func retrieveErcByResourceId(resourceId string, meta interface{}) (erc *network.ExpressRouteCircuit, resourceGroup string, e error) {
@@ -26,7 +22,7 @@ func retrieveErcByResourceId(resourceId string, meta interface{}) (erc *network.
 
 	resGroup, name, err := extractResourceGroupAndErcName(resourceId)
 	if err != nil {
-		return nil, "", errwrap.Wrapf("Error Parsing Azure Resource ID - {{err}}", err)
+		return nil, "", fmt.Errorf("Error Parsing Azure Resource ID -: %+v", err)
 	}
 
 	resp, err := ercClient.Get(ctx, resGroup, name)
@@ -34,7 +30,7 @@ func retrieveErcByResourceId(resourceId string, meta interface{}) (erc *network.
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil, "", nil
 		}
-		return nil, "", errwrap.Wrapf(fmt.Sprintf("Error making Read request on Express Route Circuit %s: {{err}}", name), err)
+		return nil, "", fmt.Errorf("Error making Read request on Express Route Circuit %s: %+v", name, err)
 	}
 
 	return &resp, resGroup, nil

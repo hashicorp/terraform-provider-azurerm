@@ -8,14 +8,14 @@ description: |-
 
 # azurerm_servicebus_subscription_rule
 
-Create a ServiceBus Subscription Rule.
+Manage a ServiceBus Subscription Rule.
 
 ## Example Usage (SQL Filter)
 
 ```hcl
 variable "location" {
   description = "Azure datacenter to deploy to."
-  default = "West US"
+  default     = "West US"
 }
 
 variable "servicebus_name" {
@@ -70,7 +70,7 @@ resource "azurerm_servicebus_subscription_rule" "test" {
 ```hcl
 variable "location" {
   description = "Azure datacenter to deploy to."
-  default = "West US"
+  default     = "West US"
 }
 
 variable "servicebus_name" {
@@ -116,7 +116,8 @@ resource "azurerm_servicebus_subscription_rule" "test" {
   topic_name          = "${azurerm_servicebus_topic.test.name}"
   subscription_name   = "${azurerm_servicebus_subscription.test.name}"
   filter_type         = "CorrelationFilter"
-  correlation_filter  = {
+
+  correlation_filter = {
     correlation_id = "high"
     label          = "red"
   }

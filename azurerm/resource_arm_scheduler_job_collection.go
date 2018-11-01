@@ -1,3 +1,5 @@
+// nolint: megacheck
+// entire automation SDK has been depreciated in v21.3 in favor of logic apps, an entirely different service.
 package azurerm
 
 import (
@@ -199,7 +201,7 @@ func resourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interfac
 		d.Set("state", string(properties.State))
 
 		if err := d.Set("quota", flattenAzureArmSchedulerJobCollectionQuota(properties.Quota)); err != nil {
-			return fmt.Errorf("Error flattening quota for Job Collection %q (Resource Group %q): %+v", collection.Name, resourceGroup, err)
+			return fmt.Errorf("Error flattening quota for Job Collection %q (Resource Group %q): %+v", *collection.Name, resourceGroup, err)
 		}
 	}
 

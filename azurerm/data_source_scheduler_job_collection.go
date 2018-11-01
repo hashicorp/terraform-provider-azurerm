@@ -77,7 +77,7 @@ func dataSourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interf
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
-	collection, err := client.Get(ctx, resourceGroup, name)
+	collection, err := client.Get(ctx, resourceGroup, name) //nolint: megacheck
 	if err != nil {
 		if utils.ResponseWasNotFound(collection.Response) {
 			return fmt.Errorf("Error: Scheduler Job Collection %q (Resource Group %q) was not found", name, resourceGroup)
@@ -105,7 +105,7 @@ func dataSourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interf
 		d.Set("state", string(properties.State))
 
 		if err := d.Set("quota", flattenAzureArmSchedulerJobCollectionQuota(properties.Quota)); err != nil {
-			return fmt.Errorf("Error flattening quota for Job Collection %q (Resource Group %q): %+v", collection.Name, resourceGroup, err)
+			return fmt.Errorf("Error flattening quota for Job Collection %q (Resource Group %q): %+v", *collection.Name, resourceGroup, err)
 		}
 	}
 
