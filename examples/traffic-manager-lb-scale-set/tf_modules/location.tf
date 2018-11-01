@@ -134,6 +134,7 @@ resource "azurerm_virtual_machine_scale_set" "webserver_ss" {
       name                                   = "web_ss_ip_profile"
       subnet_id                              = "${azurerm_subnet.webservers_subnet.id}"
       load_balancer_backend_address_pool_ids = ["${azurerm_lb_backend_address_pool.webservers_lb_backend.id}"]
+      primary                                = true
     }
   }
 

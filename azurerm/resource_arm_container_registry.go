@@ -331,5 +331,5 @@ func validateAzureRMContainerRegistryName(v interface{}, k string) (ws []string,
 		errors = append(errors, fmt.Errorf("%q cannot be longer than 50 characters: %q %d", k, value, len(value)))
 	}
 
-	return
+	return ws, errors
 }

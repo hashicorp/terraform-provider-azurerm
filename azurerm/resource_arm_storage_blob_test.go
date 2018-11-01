@@ -144,6 +144,7 @@ func TestResourceAzureRMStorageBlobAttempts_validation(t *testing.T) {
 }
 
 func TestAccAzureRMStorageBlob_basic(t *testing.T) {
+	resourceName := "azurerm_storage_blob.test"
 	ri := acctest.RandInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageBlob_basic(ri, rs, testLocation())
@@ -156,14 +157,21 @@ func TestAccAzureRMStorageBlob_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageBlobExists("azurerm_storage_blob.test"),
+					testCheckAzureRMStorageBlobExists(resourceName),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
 			},
 		},
 	})
 }
 
 func TestAccAzureRMStorageBlob_disappears(t *testing.T) {
+	resourceName := "azurerm_storage_blob.test"
 	ri := acctest.RandInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageBlob_basic(ri, rs, testLocation())
@@ -176,8 +184,8 @@ func TestAccAzureRMStorageBlob_disappears(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageBlobExists("azurerm_storage_blob.test"),
-					testCheckAzureRMStorageBlobDisappears("azurerm_storage_blob.test"),
+					testCheckAzureRMStorageBlobExists(resourceName),
+					testCheckAzureRMStorageBlobDisappears(resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -221,6 +229,7 @@ func TestAccAzureRMStorageBlobBlock_source(t *testing.T) {
 }
 
 func TestAccAzureRMStorageBlobPage_source(t *testing.T) {
+	resourceName := "azurerm_storage_blob.source"
 	ri := acctest.RandInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	sourceBlob, err := ioutil.TempFile("", "")
@@ -272,7 +281,7 @@ func TestAccAzureRMStorageBlobPage_source(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageBlobMatchesFile("azurerm_storage_blob.source", storage.BlobTypePage, sourceBlob.Name()),
+					testCheckAzureRMStorageBlobMatchesFile(resourceName, storage.BlobTypePage, sourceBlob.Name()),
 				),
 			},
 		},
@@ -280,6 +289,7 @@ func TestAccAzureRMStorageBlobPage_source(t *testing.T) {
 }
 
 func TestAccAzureRMStorageBlob_source_uri(t *testing.T) {
+	resourceName := "azurerm_storage_blob.destination"
 	ri := acctest.RandInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	sourceBlob, err := ioutil.TempFile("", "")
@@ -307,8 +317,14 @@ func TestAccAzureRMStorageBlob_source_uri(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageBlobMatchesFile("azurerm_storage_blob.destination", storage.BlobTypeBlock, sourceBlob.Name()),
+					testCheckAzureRMStorageBlobMatchesFile(resourceName, storage.BlobTypeBlock, sourceBlob.Name()),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
 			},
 		},
 	})
@@ -430,11 +446,7 @@ func testCheckAzureRMStorageBlobDisappears(name string) resource.TestCheckFunc {
 		blob := container.GetBlobReference(name)
 		options := &storage.DeleteBlobOptions{}
 		_, err = blob.DeleteIfExists(options)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 
@@ -683,31 +695,32 @@ resource "azurerm_storage_account" "source" {
 }
 
 resource "azurerm_storage_container" "source" {
-    name = "source"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    storage_account_name = "${azurerm_storage_account.source.name}"
-    container_access_type = "blob"
+  name = "source"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.source.name}"
+  container_access_type = "blob"
 }
 
 resource "azurerm_storage_blob" "source" {
-    name = "source.vhd"
+  name = "source.vhd"
 
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    storage_account_name = "${azurerm_storage_account.source.name}"
-    storage_container_name = "${azurerm_storage_container.source.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.source.name}"
+  storage_container_name = "${azurerm_storage_container.source.name}"
 
-    type = "block"
-    source = "%s"
-    parallelism = 4
-    attempts = 2
+  type = "block"
+  source = "%s"
+  parallelism = 4
+  attempts = 2
 }
 
 resource "azurerm_storage_blob" "destination" {
-    name = "destination.vhd"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    storage_account_name = "${azurerm_storage_account.source.name}"
-    storage_container_name = "${azurerm_storage_container.source.name}"
-    source_uri = "${azurerm_storage_blob.source.url}"
+  name = "destination.vhd"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.source.name}"
+  storage_container_name = "${azurerm_storage_container.source.name}"
+  source_uri = "${azurerm_storage_blob.source.url}"
+  type = "block"
 }
 `, rInt, location, rString, sourceBlobName)
 }

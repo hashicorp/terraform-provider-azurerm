@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_lb_rule
 
-Create a Load Balancer Rule.
+Manages a Load Balancer Rule.
 
 ~> **NOTE** When using this resource, the Load Balancer needs to have a FrontEnd IP Configuration Attached
 
@@ -57,9 +57,9 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group in which to create the resource.
 * `loadbalancer_id` - (Required) The ID of the Load Balancer in which to create the Rule.
 * `frontend_ip_configuration_name` - (Required) The name of the frontend IP configuration to which the rule is associated.
-* `protocol` - (Required) The transport protocol for the external endpoint. Possible values are `Udp` or `Tcp`.
-* `frontend_port` - (Required) The port for the external endpoint. Port numbers for each Rule must be unique within the Load Balancer. Possible values range between 1 and 65534, inclusive.
-* `backend_port` - (Required) The port used for internal connections on the endpoint. Possible values range between 1 and 65535, inclusive.
+* `protocol` - (Required) The transport protocol for the external endpoint. Possible values are `Tcp`, `Udp` or `All`.
+* `frontend_port` - (Required) The port for the external endpoint. Port numbers for each Rule must be unique within the Load Balancer. Possible values range between 0 and 65534, inclusive.
+* `backend_port` - (Required) The port used for internal connections on the endpoint. Possible values range between 0 and 65535, inclusive.
 * `backend_address_pool_id` - (Optional) A reference to a Backend Address Pool over which this Load Balancing Rule operates.
 * `probe_id` - (Optional) A reference to a Probe used by this Load Balancing Rule.
 * `enable_floating_ip` - (Optional) Floating IP is pertinent to failover scenarios: a "floating” IP is reassigned to a secondary server in case the primary server fails. Floating IP is required for SQL AlwaysOn.

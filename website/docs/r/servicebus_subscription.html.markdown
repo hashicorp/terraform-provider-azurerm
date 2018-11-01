@@ -8,14 +8,14 @@ description: |-
 
 # azurerm_servicebus_subscription
 
-Create a ServiceBus Subscription.
+Manage a ServiceBus Subscription.
 
 ## Example Usage
 
 ```hcl
 variable "location" {
   description = "Azure datacenter to deploy to."
-  default = "West US"
+  default     = "West US"
 }
 
 variable "servicebus_name" {

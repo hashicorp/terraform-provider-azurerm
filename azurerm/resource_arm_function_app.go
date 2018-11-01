@@ -52,10 +52,6 @@ func resourceArmFunctionApp() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "~1",
-				ValidateFunc: validation.StringInSlice([]string{
-					"~1",
-					"beta",
-				}, false),
 			},
 
 			"storage_connection_string": {
@@ -406,6 +402,11 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 
 	appSettingsResp, err := client.ListApplicationSettings(ctx, resGroup, name)
 	if err != nil {
+		if utils.ResponseWasNotFound(appSettingsResp.Response) {
+			log.Printf("[DEBUG] Application Settings of Function App %q (resource group %q) were not found", name, resGroup)
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("Error making Read request on AzureRM Function App AppSettings %q: %+v", name, err)
 	}
 
@@ -510,6 +511,8 @@ func resourceArmFunctionAppDelete(d *schema.ResourceData, meta interface{}) erro
 }
 
 func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier string) []web.NameValuePair {
+	// TODO: This is a workaround since there are no public Functions API
+	// You may track the API request here: https://github.com/Azure/azure-rest-api-specs/issues/3750
 	dashboardPropName := "AzureWebJobsDashboard"
 	storagePropName := "AzureWebJobsStorage"
 	functionVersionPropName := "FUNCTIONS_EXTENSION_VERSION"
@@ -518,7 +521,7 @@ func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier strin
 
 	storageConnection := d.Get("storage_connection_string").(string)
 	functionVersion := d.Get("version").(string)
-	contentShare := d.Get("name").(string) + "-content"
+	contentShare := strings.ToLower(d.Get("name").(string)) + "-content"
 
 	basicSettings := []web.NameValuePair{
 		{Name: &dashboardPropName, Value: &storageConnection},
@@ -598,7 +601,7 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) web.SiteConfig {
 
 func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 	results := make([]interface{}, 0)
-	result := make(map[string]interface{}, 0)
+	result := make(map[string]interface{})
 
 	if input == nil {
 		log.Printf("[DEBUG] SiteConfig is nil")
@@ -645,7 +648,7 @@ func flattenFunctionAppConnectionStrings(input map[string]*web.ConnStringValueTy
 	results := make([]interface{}, 0)
 
 	for k, v := range input {
-		result := make(map[string]interface{}, 0)
+		result := make(map[string]interface{})
 		result["name"] = k
 		result["type"] = string(v.Type)
 		result["value"] = *v.Value
@@ -675,7 +678,7 @@ func flattenFunctionAppIdentity(identity *web.ManagedServiceIdentity) interface{
 
 func flattenFunctionAppSiteCredential(input *web.UserProperties) []interface{} {
 	results := make([]interface{}, 0)
-	result := make(map[string]interface{}, 0)
+	result := make(map[string]interface{})
 
 	if input == nil {
 		log.Printf("[DEBUG] UserProperties is nil")

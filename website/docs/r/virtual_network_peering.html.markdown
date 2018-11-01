@@ -97,8 +97,9 @@ resource "azurerm_virtual_network_peering" "peering" {
   remote_virtual_network_id    = "${element(azurerm_virtual_network.vnet.*.id, 1 - count.index)}"
   allow_virtual_network_access = true
   allow_forwarded_traffic      = true
+
   # `allow_gateway_transit` must be set to false for vnet Global Peering
-  allow_gateway_transit        = false
+  allow_gateway_transit = false
 }
 ```
 

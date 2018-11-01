@@ -26,7 +26,7 @@ func TestAccDataSourceAzureRMAzureADApplication_byObjectId(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(dataSourceName),
 					resource.TestCheckResourceAttr(dataSourceName, "name", fmt.Sprintf("acctest%s", id)),
-					resource.TestCheckResourceAttr(dataSourceName, "homepage", fmt.Sprintf("http://acctest%s", id)),
+					resource.TestCheckResourceAttr(dataSourceName, "homepage", fmt.Sprintf("https://acctest%s", id)),
 					resource.TestCheckResourceAttr(dataSourceName, "identifier_uris.#", "0"),
 					resource.TestCheckResourceAttr(dataSourceName, "reply_urls.#", "0"),
 					resource.TestCheckResourceAttr(dataSourceName, "oauth2_allow_implicit_flow", "false"),
@@ -53,7 +53,7 @@ func TestAccDataSourceAzureRMAzureADApplication_byObjectIdComplete(t *testing.T)
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(dataSourceName),
 					resource.TestCheckResourceAttr(dataSourceName, "name", fmt.Sprintf("acctest%s", id)),
-					resource.TestCheckResourceAttr(dataSourceName, "homepage", fmt.Sprintf("http://homepage-%s", id)),
+					resource.TestCheckResourceAttr(dataSourceName, "homepage", fmt.Sprintf("https://homepage-%s", id)),
 					resource.TestCheckResourceAttr(dataSourceName, "identifier_uris.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "reply_urls.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "oauth2_allow_implicit_flow", "true"),
@@ -82,7 +82,7 @@ func TestAccDataSourceAzureRMAzureADApplication_byName(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(dataSourceName),
 					resource.TestCheckResourceAttr(dataSourceName, "name", fmt.Sprintf("acctest%s", id)),
-					resource.TestCheckResourceAttr(dataSourceName, "homepage", fmt.Sprintf("http://acctest%s", id)),
+					resource.TestCheckResourceAttr(dataSourceName, "homepage", fmt.Sprintf("https://acctest%s", id)),
 					resource.TestCheckResourceAttr(dataSourceName, "identifier_uris.#", "0"),
 					resource.TestCheckResourceAttr(dataSourceName, "reply_urls.#", "0"),
 					resource.TestCheckResourceAttr(dataSourceName, "oauth2_allow_implicit_flow", "false"),

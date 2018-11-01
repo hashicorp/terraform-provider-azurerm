@@ -6,10 +6,10 @@ import (
 
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
 	"github.com/hashicorp/terraform/helper/schema"
-	uuid "github.com/satori/go.uuid"
-	azschema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/schema"
+	"github.com/satori/go.uuid"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -53,11 +53,11 @@ func resourceArmKeyVaultAccessPolicy() *schema.Resource {
 				ValidateFunc: validateUUID,
 			},
 
-			"certificate_permissions": azschema.KeyVaultCertificatePermissionsSchema(),
+			"certificate_permissions": azure.SchemaKeyVaultCertificatePermissions(),
 
-			"key_permissions": azschema.KeyVaultKeyPermissionsSchema(),
+			"key_permissions": azure.SchemaKeyVaultKeyPermissions(),
 
-			"secret_permissions": azschema.KeyVaultSecretPermissionsSchema(),
+			"secret_permissions": azure.SchemaKeyVaultSecretPermissions(),
 		},
 	}
 }
@@ -79,13 +79,13 @@ func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta 
 	objectId := d.Get("object_id").(string)
 
 	certPermissionsRaw := d.Get("certificate_permissions").([]interface{})
-	certPermissions := azschema.ExpandCertificatePermissions(certPermissionsRaw)
+	certPermissions := azure.ExpandCertificatePermissions(certPermissionsRaw)
 
 	keyPermissionsRaw := d.Get("key_permissions").([]interface{})
-	keyPermissions := azschema.ExpandKeyPermissions(keyPermissionsRaw)
+	keyPermissions := azure.ExpandKeyPermissions(keyPermissionsRaw)
 
 	secretPermissionsRaw := d.Get("secret_permissions").([]interface{})
-	secretPermissions := azschema.ExpandSecretPermissions(secretPermissionsRaw)
+	secretPermissions := azure.ExpandSecretPermissions(secretPermissionsRaw)
 
 	accessPolicy := keyvault.AccessPolicyEntry{
 		ObjectID: utils.String(objectId),
@@ -209,17 +209,17 @@ func resourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{
 	}
 
 	if permissions := policy.Permissions; permissions != nil {
-		certificatePermissions := azschema.FlattenCertificatePermissions(permissions.Certificates)
+		certificatePermissions := azure.FlattenCertificatePermissions(permissions.Certificates)
 		if err := d.Set("certificate_permissions", certificatePermissions); err != nil {
 			return fmt.Errorf("Error flattening `certificate_permissions`: %+v", err)
 		}
 
-		keyPermissions := azschema.FlattenKeyPermissions(permissions.Keys)
+		keyPermissions := azure.FlattenKeyPermissions(permissions.Keys)
 		if err := d.Set("key_permissions", keyPermissions); err != nil {
 			return fmt.Errorf("Error flattening `key_permissions`: %+v", err)
 		}
 
-		secretPermissions := azschema.FlattenSecretPermissions(permissions.Secrets)
+		secretPermissions := azure.FlattenSecretPermissions(permissions.Secrets)
 		if err := d.Set("secret_permissions", secretPermissions); err != nil {
 			return fmt.Errorf("Error flattening `secret_permissions`: %+v", err)
 		}

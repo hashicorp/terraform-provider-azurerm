@@ -8,7 +8,7 @@ description: |-
 
 # Data Source: azurerm_key_vault
 
-Gets information about a Key Vault.
+Use this data source to access information about an existing Key Vault.
 
 ## Example Usage
 

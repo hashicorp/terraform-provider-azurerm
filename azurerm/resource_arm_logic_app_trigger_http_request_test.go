@@ -82,7 +82,7 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_relativePath(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogicAppTriggerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "method", "POST"),
-					resource.TestCheckResourceAttr(resourceName, "relative_path", "hello_there"),
+					resource.TestCheckResourceAttr(resourceName, "relative_path", "customers/{id}"),
 				),
 			},
 		},
@@ -178,7 +178,7 @@ resource "azurerm_logic_app_trigger_http_request" "test" {
   logic_app_id  = "${azurerm_logic_app_workflow.test.id}"
   schema        = "{}"
   method        = "POST"
-  relative_path = "hello_there"
+  relative_path = "customers/{id}"
 }
 `, template)
 }

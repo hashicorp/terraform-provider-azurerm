@@ -9,6 +9,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+var appServiceCustomHostnameBindingResourceName = "azurerm_app_service_custom_hostname_binding"
+
 func resourceArmAppServiceCustomHostnameBinding() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmAppServiceCustomHostnameBindingCreate,
@@ -45,6 +47,9 @@ func resourceArmAppServiceCustomHostnameBindingCreate(d *schema.ResourceData, me
 	resourceGroup := d.Get("resource_group_name").(string)
 	appServiceName := d.Get("app_service_name").(string)
 	hostname := d.Get("hostname").(string)
+
+	azureRMLockByName(appServiceName, appServiceCustomHostnameBindingResourceName)
+	defer azureRMUnlockByName(appServiceName, appServiceCustomHostnameBindingResourceName)
 
 	properties := web.HostNameBinding{
 		HostNameBindingProperties: &web.HostNameBindingProperties{
@@ -109,6 +114,9 @@ func resourceArmAppServiceCustomHostnameBindingDelete(d *schema.ResourceData, me
 	resGroup := id.ResourceGroup
 	appServiceName := id.Path["sites"]
 	hostname := id.Path["hostNameBindings"]
+
+	azureRMLockByName(appServiceName, appServiceCustomHostnameBindingResourceName)
+	defer azureRMUnlockByName(appServiceName, appServiceCustomHostnameBindingResourceName)
 
 	log.Printf("[DEBUG] Deleting App Service Hostname Binding %q (App Service %q / Resource Group %q)", hostname, appServiceName, resGroup)
 

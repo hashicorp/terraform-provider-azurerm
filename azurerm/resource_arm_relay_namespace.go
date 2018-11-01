@@ -253,7 +253,7 @@ func flattenRelayNamespaceSku(input *relay.Sku) []interface{} {
 		return []interface{}{}
 	}
 
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 	if name := input.Name; name != nil {
 		output["name"] = *name
 	}

@@ -53,6 +53,12 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 				}, false),
 			},
 
+			"cluster_code_version": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+
 			"management_endpoint": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -97,7 +103,7 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 			"client_certificate_thumbprint": {
 				Type:     schema.TypeList,
 				Optional: true,
-				MaxItems: 1,
+				MaxItems: 2,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"thumbprint": {
@@ -275,6 +281,7 @@ func resourceArmServiceFabricClusterCreate(d *schema.ResourceData, meta interfac
 	reliabilityLevel := d.Get("reliability_level").(string)
 	managementEndpoint := d.Get("management_endpoint").(string)
 	upgradeMode := d.Get("upgrade_mode").(string)
+	clusterCodeVersion := d.Get("cluster_code_version").(string)
 	vmImage := d.Get("vm_image").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -313,6 +320,10 @@ func resourceArmServiceFabricClusterCreate(d *schema.ResourceData, meta interfac
 		},
 	}
 
+	if clusterCodeVersion != "" {
+		cluster.ClusterProperties.ClusterCodeVersion = utils.String(clusterCodeVersion)
+	}
+
 	future, err := client.Create(ctx, resourceGroup, name, cluster)
 	if err != nil {
 		return fmt.Errorf("Error creating Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -346,6 +357,7 @@ func resourceArmServiceFabricClusterUpdate(d *schema.ResourceData, meta interfac
 	name := d.Get("name").(string)
 	reliabilityLevel := d.Get("reliability_level").(string)
 	upgradeMode := d.Get("upgrade_mode").(string)
+	clusterCodeVersion := d.Get("cluster_code_version").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
 	addOnFeaturesRaw := d.Get("add_on_features").(*schema.Set).List()
@@ -374,6 +386,10 @@ func resourceArmServiceFabricClusterUpdate(d *schema.ResourceData, meta interfac
 			UpgradeMode:                  servicefabric.UpgradeMode1(upgradeMode),
 		},
 		Tags: expandTags(tags),
+	}
+
+	if clusterCodeVersion != "" {
+		parameters.ClusterPropertiesUpdateParameters.ClusterCodeVersion = utils.String(clusterCodeVersion)
 	}
 
 	future, err := client.Update(ctx, resourceGroup, name, parameters)
@@ -419,11 +435,12 @@ func resourceArmServiceFabricClusterRead(d *schema.ResourceData, meta interface{
 	}
 
 	if props := resp.ClusterProperties; props != nil {
+		d.Set("cluster_code_version", props.ClusterCodeVersion)
 		d.Set("cluster_endpoint", props.ClusterEndpoint)
 		d.Set("management_endpoint", props.ManagementEndpoint)
 		d.Set("reliability_level", string(props.ReliabilityLevel))
-		d.Set("upgrade_mode", string(props.UpgradeMode))
 		d.Set("vm_image", props.VMImage)
+		d.Set("upgrade_mode", string(props.UpgradeMode))
 
 		addOnFeatures := flattenServiceFabricClusterAddOnFeatures(props.AddOnFeatures)
 		if err := d.Set("add_on_features", schema.NewSet(schema.HashString, addOnFeatures)); err != nil {
@@ -532,7 +549,7 @@ func flattenServiceFabricClusterCertificate(input *servicefabric.CertificateDesc
 	results := make([]interface{}, 0)
 
 	if v := input; v != nil {
-		output := make(map[string]interface{}, 0)
+		output := make(map[string]interface{})
 
 		if thumbprint := input.Thumbprint; thumbprint != nil {
 			output["thumbprint"] = *thumbprint
@@ -576,7 +593,7 @@ func flattenServiceFabricClusterClientCertificateThumbprints(input *[]servicefab
 	results := make([]interface{}, 0)
 
 	for _, v := range *input {
-		result := make(map[string]interface{}, 0)
+		result := make(map[string]interface{})
 
 		if thumbprint := v.CertificateThumbprint; thumbprint != nil {
 			result["thumbprint"] = *thumbprint
@@ -619,7 +636,7 @@ func flattenServiceFabricClusterDiagnosticsConfig(input *servicefabric.Diagnosti
 	results := make([]interface{}, 0)
 
 	if v := input; v != nil {
-		output := make(map[string]interface{}, 0)
+		output := make(map[string]interface{})
 
 		if name := v.StorageAccountName; name != nil {
 			output["storage_account_name"] = *name
@@ -682,13 +699,13 @@ func flattenServiceFabricClusterFabricSettings(input *[]servicefabric.SettingsSe
 	results := make([]interface{}, 0)
 
 	for _, v := range *input {
-		result := make(map[string]interface{}, 0)
+		result := make(map[string]interface{})
 
 		if name := v.Name; name != nil {
 			result["name"] = *name
 		}
 
-		parameters := make(map[string]interface{}, 0)
+		parameters := make(map[string]interface{})
 		if paramsRaw := v.Parameters; paramsRaw != nil {
 			for _, p := range *paramsRaw {
 				if p.Name == nil || p.Value == nil {
@@ -767,7 +784,7 @@ func flattenServiceFabricClusterNodeTypes(input *[]servicefabric.NodeTypeDescrip
 	results := make([]interface{}, 0)
 
 	for _, v := range *input {
-		output := make(map[string]interface{}, 0)
+		output := make(map[string]interface{})
 
 		if name := v.Name; name != nil {
 			output["name"] = *name
@@ -793,7 +810,7 @@ func flattenServiceFabricClusterNodeTypes(input *[]servicefabric.NodeTypeDescrip
 
 		applicationPorts := make([]interface{}, 0)
 		if ports := v.ApplicationPorts; ports != nil {
-			r := make(map[string]interface{}, 0)
+			r := make(map[string]interface{})
 			if start := ports.StartPort; start != nil {
 				r["start_port"] = int(*start)
 			}
@@ -806,7 +823,7 @@ func flattenServiceFabricClusterNodeTypes(input *[]servicefabric.NodeTypeDescrip
 
 		ephermeralPorts := make([]interface{}, 0)
 		if ports := v.EphemeralPorts; ports != nil {
-			r := make(map[string]interface{}, 0)
+			r := make(map[string]interface{})
 			if start := ports.StartPort; start != nil {
 				r["start_port"] = int(*start)
 			}

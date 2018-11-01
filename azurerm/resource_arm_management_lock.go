@@ -171,5 +171,5 @@ func validateArmManagementLockName(v interface{}, k string) (ws []string, es []e
 		es = append(es, fmt.Errorf("%s can only be a maximum of 260 characters", k))
 	}
 
-	return
+	return ws, es
 }

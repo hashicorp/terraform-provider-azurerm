@@ -7,16 +7,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func extractResourceGroupAndErcName(resourceId string) (resourceGroup string, name string, err error) {
+func extractResourceGroupAndErcName(resourceId string) (resourceGroup string, name string, e error) {
 	id, err := parseAzureResourceID(resourceId)
-
 	if err != nil {
 		return "", "", err
 	}
-	resourceGroup = id.ResourceGroup
-	name = id.Path["expressRouteCircuits"]
 
-	return
+	return id.ResourceGroup, id.Path["expressRouteCircuits"], err
 }
 
 func retrieveErcByResourceId(resourceId string, meta interface{}) (erc *network.ExpressRouteCircuit, resourceGroup string, e error) {

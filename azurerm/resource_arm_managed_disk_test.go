@@ -5,44 +5,51 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
 
 func TestAccAzureRMManagedDisk_empty(t *testing.T) {
-	var d compute.Disk
+	resourceName := "azurerm_managed_disk.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMManagedDisk_empty(ri, testLocation())
+	var d compute.Disk
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMManagedDisk_empty(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists("azurerm_managed_disk.test", &d, true),
+					testCheckAzureRMManagedDiskExists(resourceName, &d, true),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func TestAccAzureRMManagedDisk_zeroGbFromPlatformImage(t *testing.T) {
-	var d compute.Disk
+	resourceName := "azurerm_managed_disk.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMManagedDisk_zeroGbFromPlatformImage(ri, testLocation())
+	var d compute.Disk
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMManagedDisk_zeroGbFromPlatformImage(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists("azurerm_managed_disk.test", &d, true),
+					testCheckAzureRMManagedDiskExists(resourceName, &d, true),
 				),
 			},
 		},
@@ -50,12 +57,12 @@ func TestAccAzureRMManagedDisk_zeroGbFromPlatformImage(t *testing.T) {
 }
 
 func TestAccAzureRMManagedDisk_import(t *testing.T) {
-	var d compute.Disk
-	var vm compute.VirtualMachine
-	ri := acctest.RandInt()
+	resourceName := "azurerm_managed_disk.test"
 	location := testLocation()
-	vmConfig := testAccAzureRMVirtualMachine_basicLinuxMachine(ri, location)
-	config := testAccAzureRMManagedDisk_import(ri, location)
+	ri := acctest.RandInt()
+	var vm compute.VirtualMachine
+	var d compute.Disk
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -63,7 +70,7 @@ func TestAccAzureRMManagedDisk_import(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				//need to create a vm and then delete it so we can use the vhd to test import
-				Config:             vmConfig,
+				Config:             testAccAzureRMVirtualMachine_basicLinuxMachine(ri, location),
 				Destroy:            false,
 				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeTestCheckFunc(
@@ -72,9 +79,9 @@ func TestAccAzureRMManagedDisk_import(t *testing.T) {
 				),
 			},
 			{
-				Config: config,
+				Config: testAccAzureRMManagedDisk_import(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists("azurerm_managed_disk.test", &d, true),
+					testCheckAzureRMManagedDiskExists(resourceName, &d, true),
 				),
 			},
 		},
@@ -82,18 +89,19 @@ func TestAccAzureRMManagedDisk_import(t *testing.T) {
 }
 
 func TestAccAzureRMManagedDisk_copy(t *testing.T) {
-	var d compute.Disk
+	resourceName := "azurerm_managed_disk.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMManagedDisk_copy(ri, testLocation())
+	var d compute.Disk
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMManagedDisk_copy(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists("azurerm_managed_disk.test", &d, true),
+					testCheckAzureRMManagedDiskExists(resourceName, &d, true),
 				),
 			},
 		},
@@ -101,18 +109,19 @@ func TestAccAzureRMManagedDisk_copy(t *testing.T) {
 }
 
 func TestAccAzureRMManagedDisk_fromPlatformImage(t *testing.T) {
-	var d compute.Disk
+	resourceName := "azurerm_managed_disk.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMManagedDisk_platformImage(ri, testLocation())
+	var d compute.Disk
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMManagedDisk_platformImage(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists("azurerm_managed_disk.test", &d, true),
+					testCheckAzureRMManagedDiskExists(resourceName, &d, true),
 				),
 			},
 		},
@@ -120,36 +129,34 @@ func TestAccAzureRMManagedDisk_fromPlatformImage(t *testing.T) {
 }
 
 func TestAccAzureRMManagedDisk_update(t *testing.T) {
-	var d compute.Disk
-
 	resourceName := "azurerm_managed_disk.test"
 	ri := acctest.RandInt()
-	preConfig := testAccAzureRMManagedDisk_empty(ri, testLocation())
-	postConfig := testAccAzureRMManagedDisk_empty_updated(ri, testLocation())
+	var d compute.Disk
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMManagedDisk_empty(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagedDiskExists(resourceName, &d, true),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "acctest"),
 					resource.TestCheckResourceAttr(resourceName, "tags.cost-center", "ops"),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "1"),
-					resource.TestCheckResourceAttr(resourceName, "storage_account_type", string(compute.StandardLRS)),
+					resource.TestCheckResourceAttr(resourceName, "storage_account_type", string(compute.StorageAccountTypesStandardLRS)),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMManagedDisk_empty_updated(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagedDiskExists(resourceName, &d, true),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "acctest"),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "2"),
-					resource.TestCheckResourceAttr(resourceName, "storage_account_type", string(compute.PremiumLRS)),
+					resource.TestCheckResourceAttr(resourceName, "storage_account_type", string(compute.StorageAccountTypesPremiumLRS)),
 				),
 			},
 		},
@@ -157,19 +164,18 @@ func TestAccAzureRMManagedDisk_update(t *testing.T) {
 }
 
 func TestAccAzureRMManagedDisk_encryption(t *testing.T) {
-	var d compute.Disk
-
 	resourceName := "azurerm_managed_disk.test"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
-	preConfig := testAccAzureRMManagedDisk_encryption(ri, rs, testLocation())
+	var d compute.Disk
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMManagedDisk_encryption(ri, rs, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagedDiskExists(resourceName, &d, true),
 					resource.TestCheckResourceAttr(resourceName, "encryption_settings.#", "1"),
@@ -187,8 +193,10 @@ func TestAccAzureRMManagedDisk_encryption(t *testing.T) {
 }
 
 func TestAccAzureRMManagedDisk_NonStandardCasing(t *testing.T) {
-	var d compute.Disk
+	resourceName := "azurerm_managed_disk.test"
 	ri := acctest.RandInt()
+	var d compute.Disk
+
 	config := testAccAzureRMManagedDiskNonStandardCasing(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -198,13 +206,38 @@ func TestAccAzureRMManagedDisk_NonStandardCasing(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists("azurerm_managed_disk.test", &d, true),
+					testCheckAzureRMManagedDiskExists(resourceName, &d, true),
 				),
 			},
 			{
 				Config:             config,
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMManagedDisk_importEmpty_withZone(t *testing.T) {
+	resourceName := "azurerm_managed_disk.test"
+	ri := acctest.RandInt()
+	var d compute.Disk
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMManagedDisk_empty_withZone(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMManagedDiskExists(resourceName, &d, true),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

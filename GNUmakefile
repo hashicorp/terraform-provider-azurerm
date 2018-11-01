@@ -1,5 +1,4 @@
 TEST?=$$(go list ./... |grep -v 'vendor')
-GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
 WEBSITE_REPO=github.com/hashicorp/terraform-website
 PKG_NAME=azurerm
 
@@ -21,28 +20,32 @@ test: fmtcheck
 		xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
 
 testacc: fmtcheck
-	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 180m
+	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 180m -ldflags="-X=github.com/terraform-providers/terraform-provider-azurerm/version.ProviderVersion=acc"
 
 debugacc: fmtcheck
 	TF_ACC=1 dlv test $(TEST) --headless --listen=:2345 --api-version=2 -- -test.v $(TESTARGS)
 
-vet:
-	@echo "go vet ."
-	@go vet $$(go list ./... | grep -v vendor/) ; if [ $$? -eq 1 ]; then \
-		echo ""; \
-		echo "Vet found suspicious constructs. Please check the reported constructs"; \
-		echo "and fix them if necessary before submitting the code for review."; \
-		exit 1; \
-	fi
-
 fmt:
-	gofmt -w $(GOFMT_FILES)
+	@echo "==> Fixing source code with gofmt..."
+	gofmt -s -w ./$(PKG_NAME)
 
+# Currently required by tf-deploy compile
 fmtcheck:
 	@sh "$(CURDIR)/scripts/gofmtcheck.sh"
 
-errcheck:
-	@sh "$(CURDIR)/scripts/errcheck.sh"
+goimport:
+	@echo "==> Fixing imports code with goimports..."
+	goimports -w azurerm/
+
+lint:
+	@echo "==> Checking source code against linters..."
+	@gometalinter ./$(PKG_NAME)
+
+tools:
+	@echo "==> installing required tooling..."
+	go get -u github.com/kardianos/govendor
+	go get -u github.com/alecthomas/gometalinter
+	gometalinter --install
 
 vendor-status:
 	@govendor status

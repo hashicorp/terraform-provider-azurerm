@@ -3,19 +3,19 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_network"
 sidebar_current: "docs-azurerm-datasource-virtual-network-x"
 description: |-
-  Get information about the specified Virtual Network.
+  Gets information about an existing Virtual Network.
 ---
 
 # Data Source: azurerm_virtual_network
 
-Use this data source to access the properties of an Azure Virtual Network.
+Use this data source to access information about an existing Virtual Network.
 
 ## Example Usage
 
 ```hcl
 data "azurerm_virtual_network" "test" {
-  name                 = "production"
-  resource_group_name  = "networking"
+  name                = "production"
+  resource_group_name = "networking"
 }
 
 output "virtual_network_id" {

@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_application_security_group
 
-Create an Application Security Group.
+Manage an Application Security Group.
 
 ## Example Usage
 
@@ -22,8 +22,9 @@ resource "azurerm_application_security_group" "test" {
   name                = "tf-appsecuritygroup"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
   tags {
-	"Hello" = "World"
+    "Hello" = "World"
   }
 }
 ```
