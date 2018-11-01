@@ -43,11 +43,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
@@ -72,6 +67,11 @@ func resourceArmApplicationGateway() *schema.Resource {
 								Type: schema.TypeString,
 							},
 						},
+
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -82,11 +82,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
@@ -146,6 +141,11 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Optional: true,
 						},
 
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
 						"probe_id": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -160,11 +160,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
@@ -198,6 +193,11 @@ func resourceArmApplicationGateway() *schema.Resource {
 								string(network.Static),
 							}, true),
 						},
+
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -207,11 +207,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
@@ -220,6 +215,11 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"port": {
 							Type:     schema.TypeInt,
 							Required: true,
+						},
+
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 					},
 				},
@@ -230,11 +230,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
@@ -243,6 +238,11 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"subnet_id": {
 							Type:     schema.TypeString,
 							Required: true,
+						},
+
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 					},
 				},
@@ -253,11 +253,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
@@ -268,19 +263,9 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Required: true,
 						},
 
-						"frontend_ip_configuration_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
 						"frontend_port_name": {
 							Type:     schema.TypeString,
 							Required: true,
-						},
-
-						"frontend_port_id": {
-							Type:     schema.TypeString,
-							Computed: true,
 						},
 
 						"protocol": {
@@ -303,14 +288,28 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Optional: true,
 						},
 
-						"ssl_certificate_id": {
+						"require_sni": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+
+						"frontend_ip_configuration_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 
-						"require_sni": {
-							Type:     schema.TypeBool,
-							Optional: true,
+						"frontend_port_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"ssl_certificate_id": {
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 					},
 				},
@@ -322,11 +321,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
@@ -347,12 +341,17 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Required: true,
 						},
 
-						"http_listener_id": {
+						"backend_address_pool_name": {
 							Type:     schema.TypeString,
-							Computed: true,
+							Optional: true,
 						},
 
-						"backend_address_pool_name": {
+						"backend_http_settings_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
+						"url_path_map_name": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
@@ -362,19 +361,19 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Computed: true,
 						},
 
-						"backend_http_settings_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-
 						"backend_http_settings_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 
-						"url_path_map_name": {
+						"http_listener_id": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Computed: true,
+						},
+
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 
 						"url_path_map_id": {
@@ -433,11 +432,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
@@ -447,6 +441,11 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Type:      schema.TypeString,
 							Required:  true,
 							Sensitive: true,
+						},
+
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 					},
 				},
@@ -472,11 +471,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
@@ -545,6 +539,11 @@ func resourceArmApplicationGateway() *schema.Resource {
 								},
 							},
 						},
+
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -555,11 +554,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
@@ -577,6 +571,11 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Sensitive: true,
 						},
 
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
 						"public_cert_data": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -590,11 +589,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
@@ -605,19 +599,9 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Required: true,
 						},
 
-						"default_backend_address_pool_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
 						"default_backend_http_settings_name": {
 							Type:     schema.TypeString,
 							Required: true,
-						},
-
-						"default_backend_http_settings_id": {
-							Type:     schema.TypeString,
-							Computed: true,
 						},
 
 						"path_rule": {
@@ -625,11 +609,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Required: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-
 									"name": {
 										Type:     schema.TypeString,
 										Required: true,
@@ -648,22 +627,42 @@ func resourceArmApplicationGateway() *schema.Resource {
 										Required: true,
 									},
 
-									"backend_address_pool_id": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-
 									"backend_http_settings_name": {
 										Type:     schema.TypeString,
 										Required: true,
+									},
+
+									"backend_address_pool_id": {
+										Type:     schema.TypeString,
+										Computed: true,
 									},
 
 									"backend_http_settings_id": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
+
+									"id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
 								},
 							},
+						},
+
+						"default_backend_address_pool_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"default_backend_http_settings_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 					},
 				},
@@ -818,8 +817,6 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 	if location := applicationGateway.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
-
-	// TODO: set errors
 
 	if props := applicationGateway.ApplicationGatewayPropertiesFormat; props != nil {
 		flattenedCerts := flattenApplicationGatewayAuthenticationCertificates(props.AuthenticationCertificates)
