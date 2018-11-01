@@ -15,7 +15,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
@@ -35,7 +35,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_basicCorrelationFilter(t *testing.
 	ri := acctest.RandInt()
 	config := testAccAzureRMServiceBusSubscriptionRule_basicCorrelationFilter(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
@@ -55,7 +55,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_sqlFilterWithAction(t *testing.T) 
 	ri := acctest.RandInt()
 	config := testAccAzureRMServiceBusSubscriptionRule_sqlFilterWithAction(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
@@ -75,7 +75,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_correlationFilterWithAction(t *tes
 	ri := acctest.RandInt()
 	config := testAccAzureRMServiceBusSubscriptionRule_correlationFilterWithAction(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
@@ -97,7 +97,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_sqlFilterUpdated(t *testing.T) {
 	config := testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(ri, location)
 	updatedConfig := testAccAzureRMServiceBusSubscriptionRule_basicSqlFilterUpdated(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
@@ -127,7 +127,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_correlationFilterUpdated(t *testin
 	config := testAccAzureRMServiceBusSubscriptionRule_correlationFilter(ri, location)
 	updatedConfig := testAccAzureRMServiceBusSubscriptionRule_correlationFilterUpdated(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
@@ -159,7 +159,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_updateSqlFilterToCorrelationFilter
 	config := testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(ri, location)
 	updatedConfig := testAccAzureRMServiceBusSubscriptionRule_basicCorrelationFilter(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,

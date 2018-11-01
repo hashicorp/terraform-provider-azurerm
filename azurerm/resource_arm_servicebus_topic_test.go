@@ -16,7 +16,7 @@ func TestAccAzureRMServiceBusTopic_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMServiceBusTopic_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
@@ -36,7 +36,7 @@ func TestAccAzureRMServiceBusTopic_basicDisabled(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMServiceBusTopic_basicDisabled(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
@@ -58,7 +58,7 @@ func TestAccAzureRMServiceBusTopic_basicDisableEnable(t *testing.T) {
 	enabledConfig := testAccAzureRMServiceBusTopic_basic(ri, location)
 	disabledConfig := testAccAzureRMServiceBusTopic_basicDisabled(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
@@ -92,7 +92,7 @@ func TestAccAzureRMServiceBusTopic_update(t *testing.T) {
 	preConfig := testAccAzureRMServiceBusTopic_basic(ri, location)
 	postConfig := testAccAzureRMServiceBusTopic_update(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
@@ -121,7 +121,7 @@ func TestAccAzureRMServiceBusTopic_enablePartitioningStandard(t *testing.T) {
 	preConfig := testAccAzureRMServiceBusTopic_basic(ri, location)
 	postConfig := testAccAzureRMServiceBusTopic_enablePartitioningStandard(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
@@ -151,7 +151,7 @@ func TestAccAzureRMServiceBusTopic_enablePartitioningPremium(t *testing.T) {
 	preConfig := testAccAzureRMServiceBusTopic_basicPremium(ri, location)
 	postConfig := testAccAzureRMServiceBusTopic_enablePartitioningPremium(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
@@ -180,7 +180,7 @@ func TestAccAzureRMServiceBusTopic_enableDuplicateDetection(t *testing.T) {
 	preConfig := testAccAzureRMServiceBusTopic_basic(ri, location)
 	postConfig := testAccAzureRMServiceBusTopic_enableDuplicateDetection(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
@@ -206,7 +206,7 @@ func TestAccAzureRMServiceBusTopic_isoTimeSpanAttributes(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMServiceBusTopic_isoTimeSpanAttributes(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,

@@ -17,7 +17,7 @@ func TestAccAzureRMVirtualNetworkPeering_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMVirtualNetworkPeering_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
@@ -42,7 +42,7 @@ func TestAccAzureRMVirtualNetworkPeering_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMVirtualNetworkPeering_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
@@ -70,7 +70,7 @@ func TestAccAzureRMVirtualNetworkPeering_update(t *testing.T) {
 	preConfig := testAccAzureRMVirtualNetworkPeering_basic(ri, testLocation())
 	postConfig := testAccAzureRMVirtualNetworkPeering_basicUpdate(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,

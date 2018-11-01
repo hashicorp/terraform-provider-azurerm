@@ -16,7 +16,7 @@ func testAccAzureRMRoleAssignment_importBasic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMRoleAssignment_customConfig(roleDefinitionId, roleAssignmentId, ri)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
@@ -41,7 +41,7 @@ func testAccAzureRMRoleAssignment_importCustom(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMRoleAssignment_customConfig(roleDefinitionId, roleAssignmentId, ri)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,

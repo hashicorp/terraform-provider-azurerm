@@ -15,7 +15,7 @@ func TestAccAzureRMMySQLServer_basicFiveSix(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMMySQLServer_basicFiveSix(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
@@ -35,7 +35,7 @@ func TestAccAzureRMMySQLServer_basicFiveSeven(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMMySQLServer_basicFiveSeven(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
@@ -55,7 +55,7 @@ func TestAccAzureRMMySqlServer_generalPurpose(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMMySQLServer_generalPurpose(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
@@ -75,7 +75,7 @@ func TestAccAzureRMMySqlServer_memoryOptimized(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMMySQLServer_memoryOptimizedGeoRedundant(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
@@ -97,7 +97,7 @@ func TestAccAzureRMMySQLServer_basicFiveSevenUpdated(t *testing.T) {
 	config := testAccAzureRMMySQLServer_basicFiveSeven(ri, location)
 	updatedConfig := testAccAzureRMMySQLServer_basicFiveSevenUpdated(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
@@ -133,7 +133,7 @@ func TestAccAzureRMMySQLServer_updateSKU(t *testing.T) {
 	config := testAccAzureRMMySQLServer_generalPurpose(ri, location)
 	updatedConfig := testAccAzureRMMySQLServer_memoryOptimized(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,

@@ -14,7 +14,7 @@ func TestAccAzureRMNotificationHubNamespace_importFree(t *testing.T) {
 	location := testLocation()
 	config := testAzureRMNotificationHubNamespace_free(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubNamespaceDestroy,

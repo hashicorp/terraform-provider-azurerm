@@ -11,7 +11,7 @@ func TestAccAzureRMLocalNetworkGateway_importBasic(t *testing.T) {
 	resourceName := "azurerm_local_network_gateway.test"
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
@@ -33,7 +33,7 @@ func TestAccAzureRMLocalNetworkGateway_importBGPSettingsComplete(t *testing.T) {
 	resourceName := "azurerm_local_network_gateway.test"
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,

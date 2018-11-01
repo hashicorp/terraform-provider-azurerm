@@ -15,7 +15,7 @@ func TestAccDataSourceArmVirtualNetwork_basic(t *testing.T) {
 	name := fmt.Sprintf("acctestvnet-%d", ri)
 	config := testAccDataSourceArmVirtualNetwork_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -39,7 +39,7 @@ func TestAccDataSourceArmVirtualNetwork_peering(t *testing.T) {
 	virtualNetworkName := fmt.Sprintf("acctestvnet-1-%d", ri)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{

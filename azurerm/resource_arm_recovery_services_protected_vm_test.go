@@ -16,7 +16,7 @@ func TestAccAzureRMRecoveryServicesProtectedVm_basic(t *testing.T) {
 	resourceName := "azurerm_recovery_services_protected_vm.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRecoveryServicesProtectedVmDestroy,

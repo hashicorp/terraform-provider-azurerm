@@ -14,7 +14,7 @@ import (
 func TestAccAzureRMManagementGroup_basic(t *testing.T) {
 	resourceName := "azurerm_management_group.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
@@ -35,7 +35,7 @@ func TestAccAzureRMManagementGroup_basic(t *testing.T) {
 }
 
 func TestAccAzureRMManagementGroup_nested(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
@@ -57,7 +57,7 @@ func TestAccAzureRMManagementGroup_nested(t *testing.T) {
 }
 
 func TestAccAzureRMManagementGroup_multiLevel(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
@@ -80,7 +80,7 @@ func TestAccAzureRMManagementGroup_multiLevel(t *testing.T) {
 }
 
 func TestAccAzureRMManagementGroup_multiLevelUpdated(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
@@ -108,7 +108,7 @@ func TestAccAzureRMManagementGroup_withName(t *testing.T) {
 	resourceName := "azurerm_management_group.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
@@ -127,7 +127,7 @@ func TestAccAzureRMManagementGroup_updateName(t *testing.T) {
 	resourceName := "azurerm_management_group.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
@@ -153,7 +153,7 @@ func TestAccAzureRMManagementGroup_withSubscriptions(t *testing.T) {
 	resourceName := "azurerm_management_group.test"
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagementGroupDestroy,

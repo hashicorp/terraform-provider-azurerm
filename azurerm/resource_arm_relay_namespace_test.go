@@ -16,7 +16,7 @@ func TestAccAzureRMRelayNamespace_basic(t *testing.T) {
 	location := testLocation()
 	config := testAccAzureRMRelayNamespace_basic(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRelayNamespaceDestroy,
@@ -42,7 +42,7 @@ func TestAccAzureRMRelayNamespace_complete(t *testing.T) {
 	location := testLocation()
 	config := testAccAzureRMRelayNamespace_complete(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRelayNamespaceDestroy,

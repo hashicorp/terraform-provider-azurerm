@@ -13,7 +13,7 @@ func TestAccAzureRMSubnet_importBasic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSubnet_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
@@ -36,7 +36,7 @@ func TestAccAzureRMSubnet_importWithRouteTable(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSubnet_routeTable(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
@@ -59,7 +59,7 @@ func TestAccAzureRMSubnet_importWithNetworkSecurityGroup(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSubnet_networkSecurityGroup(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSubnetDestroy,

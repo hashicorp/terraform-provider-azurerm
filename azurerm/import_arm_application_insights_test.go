@@ -13,7 +13,7 @@ func TestAccAzureRMApplicationInsights_importBasicWeb(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "web")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
@@ -37,7 +37,7 @@ func TestAccAzureRMApplicationInsights_importBasicOther(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "web")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,

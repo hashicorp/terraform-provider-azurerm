@@ -16,7 +16,7 @@ func TestAccAzureRMAutomationSchedule_oneTime_basic(t *testing.T) {
 	resourceName := "azurerm_automation_schedule.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
@@ -43,7 +43,7 @@ func TestAccAzureRMAutomationSchedule_oneTime_complete(t *testing.T) {
 	loc, _ := time.LoadLocation("CET")
 	startTime := time.Now().UTC().Add(time.Hour * 7).In(loc).Format("2006-01-02T15:04:00Z07:00")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
@@ -70,7 +70,7 @@ func TestAccAzureRMAutomationSchedule_oneTime_update(t *testing.T) {
 	loc, _ := time.LoadLocation("CET")
 	startTime := time.Now().UTC().Add(time.Hour * 7).In(loc).Format("2006-01-02T15:04:00Z07:00")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
@@ -91,7 +91,7 @@ func TestAccAzureRMAutomationSchedule_hourly(t *testing.T) {
 	resourceName := "azurerm_automation_schedule.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
@@ -113,7 +113,7 @@ func TestAccAzureRMAutomationSchedule_daily(t *testing.T) {
 	resourceName := "azurerm_automation_schedule.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
@@ -135,7 +135,7 @@ func TestAccAzureRMAutomationSchedule_weekly(t *testing.T) {
 	resourceName := "azurerm_automation_schedule.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
@@ -157,7 +157,7 @@ func TestAccAzureRMAutomationSchedule_monthly(t *testing.T) {
 	resourceName := "azurerm_automation_schedule.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
@@ -179,7 +179,7 @@ func TestAccAzureRMAutomationSchedule_weekly_advanced(t *testing.T) {
 	resourceName := "azurerm_automation_schedule.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
@@ -201,7 +201,7 @@ func TestAccAzureRMAutomationSchedule_monthly_advanced_by_day(t *testing.T) {
 	resourceName := "azurerm_automation_schedule.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
@@ -223,7 +223,7 @@ func TestAccAzureRMAutomationSchedule_monthly_advanced_by_week_day(t *testing.T)
 	resourceName := "azurerm_automation_schedule.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,

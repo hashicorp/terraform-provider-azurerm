@@ -15,7 +15,7 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMVirtualNetworkGatewayConnection_sitetosite(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
@@ -44,7 +44,7 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_vnettonet(t *testing.T) {
 	sharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 	config := testAccAzureRMVirtualNetworkGatewayConnection_vnettovnet(ri, ri2, sharedKey, testLocation(), testAltLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
@@ -66,7 +66,7 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_ipsecpolicy(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMVirtualNetworkGatewayConnection_ipsecpolicy(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
@@ -93,7 +93,7 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_updatingSharedKey(t *testing.
 	firstSharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 	secondSharedKey := "4-r33ly-53cr37-1p53c-5h4r3d-k3y"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,

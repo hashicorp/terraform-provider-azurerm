@@ -13,7 +13,7 @@ func TestAccAzureRMLogAnalyticsWorkspace_importRequiredOnly(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMLogAnalyticsWorkspace_requiredOnly(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
@@ -37,7 +37,7 @@ func TestAccAzureRMLogAnalyticsWorkspace_importRetentionInDaysComplete(t *testin
 	ri := acctest.RandInt()
 	config := testAccAzureRMLogAnalyticsWorkspace_retentionInDaysComplete(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,

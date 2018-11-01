@@ -13,7 +13,7 @@ func TestAccAzureRMPostgreSQLServer_importBasicNinePointFive(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMPostgreSQLServer_basicNinePointFive(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
@@ -39,7 +39,7 @@ func TestAccAzureRMPostgreSQLServer_importBasicNinePointSix(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMPostgreSQLServer_basicNinePointSix(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
@@ -65,7 +65,7 @@ func TestAccAzureRMPostgreSQLServer_importGeneralPurpose(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMPostgreSQLServer_generalPurpose(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
@@ -91,7 +91,7 @@ func TestAccAzureRMPostgreSQLServer_importMemoryOptimized(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMPostgreSQLServer_memoryOptimized(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,

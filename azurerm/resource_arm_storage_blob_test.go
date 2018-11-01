@@ -149,7 +149,7 @@ func TestAccAzureRMStorageBlob_basic(t *testing.T) {
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageBlob_basic(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
@@ -176,7 +176,7 @@ func TestAccAzureRMStorageBlob_disappears(t *testing.T) {
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageBlob_basic(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
@@ -213,7 +213,7 @@ func TestAccAzureRMStorageBlobBlock_source(t *testing.T) {
 
 	config := testAccAzureRMStorageBlobBlock_source(ri, rs1, sourceBlob.Name(), testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
@@ -273,7 +273,7 @@ func TestAccAzureRMStorageBlobPage_source(t *testing.T) {
 
 	config := testAccAzureRMStorageBlobPage_source(ri, rs, sourceBlob.Name(), testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
@@ -309,7 +309,7 @@ func TestAccAzureRMStorageBlob_source_uri(t *testing.T) {
 
 	config := testAccAzureRMStorageBlob_source_uri(ri, rs, sourceBlob.Name(), testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
@@ -352,7 +352,7 @@ func TestAccAzureRMStorageBlobBlock_blockContentType(t *testing.T) {
 	config := testAccAzureRMStorageBlobPage_blockContentType(ri, rs1, testLocation(), sourceBlob.Name(), "text/plain")
 	updateConfig := testAccAzureRMStorageBlobPage_blockContentType(ri, rs1, testLocation(), sourceBlob.Name(), "text/vnd.terraform.acctest.tmpfile")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,

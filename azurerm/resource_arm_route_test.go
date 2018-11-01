@@ -15,7 +15,7 @@ func TestAccAzureRMRoute_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMRoute_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRouteDestroy,
@@ -39,7 +39,7 @@ func TestAccAzureRMRoute_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMRoute_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRouteDestroy,
@@ -62,7 +62,7 @@ func TestAccAzureRMRoute_multipleRoutes(t *testing.T) {
 	preConfig := testAccAzureRMRoute_basic(ri, location)
 	postConfig := testAccAzureRMRoute_multipleRoutes(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRouteDestroy,

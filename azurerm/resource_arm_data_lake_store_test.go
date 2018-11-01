@@ -15,7 +15,7 @@ func TestAccAzureRMDataLakeStore_basic(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
@@ -42,7 +42,7 @@ func TestAccAzureRMDataLakeStore_tier(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
@@ -67,7 +67,7 @@ func TestAccAzureRMDataLakeStore_encryptionDisabled(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
@@ -94,7 +94,7 @@ func TestAccAzureRMDataLakeStore_firewallUpdate(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
@@ -139,7 +139,7 @@ func TestAccAzureRMDataLakeStore_withTags(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,

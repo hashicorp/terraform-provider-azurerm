@@ -13,7 +13,7 @@ func TestAccAzureRMKeyVaultCertificate_importPFX(t *testing.T) {
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultCertificate_basicImportPFX(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
@@ -37,7 +37,7 @@ func TestAccAzureRMKeyVaultCertificate_importGenerated(t *testing.T) {
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultCertificate_basicGenerate(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,

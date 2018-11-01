@@ -65,7 +65,7 @@ func TestAccAzureRMSqlServer_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSqlServer_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlServerDestroy,
@@ -85,7 +85,7 @@ func TestAccAzureRMSqlServer_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSqlServer_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlServerDestroy,
@@ -109,7 +109,7 @@ func TestAccAzureRMSqlServer_withTags(t *testing.T) {
 	preConfig := testAccAzureRMSqlServer_withTags(ri, location)
 	postConfig := testAccAzureRMSqlServer_withTagsUpdated(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlServerDestroy,

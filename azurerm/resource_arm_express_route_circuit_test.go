@@ -64,7 +64,7 @@ func testAccAzureRMExpressRouteCircuit_basicMetered(t *testing.T) {
 	var erc network.ExpressRouteCircuit
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
@@ -83,7 +83,7 @@ func testAccAzureRMExpressRouteCircuit_basicUnlimited(t *testing.T) {
 	var erc network.ExpressRouteCircuit
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
@@ -103,7 +103,7 @@ func testAccAzureRMExpressRouteCircuit_update(t *testing.T) {
 	var erc network.ExpressRouteCircuit
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
@@ -131,7 +131,7 @@ func testAccAzureRMExpressRouteCircuit_tierUpdate(t *testing.T) {
 	var erc network.ExpressRouteCircuit
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
@@ -159,7 +159,7 @@ func testAccAzureRMExpressRouteCircuit_premiumMetered(t *testing.T) {
 	var erc network.ExpressRouteCircuit
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
@@ -181,7 +181,7 @@ func testAccAzureRMExpressRouteCircuit_premiumUnlimited(t *testing.T) {
 	var erc network.ExpressRouteCircuit
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
@@ -203,7 +203,7 @@ func testAccAzureRMExpressRouteCircuit_allowClassicOperationsUpdate(t *testing.T
 	var erc network.ExpressRouteCircuit
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,

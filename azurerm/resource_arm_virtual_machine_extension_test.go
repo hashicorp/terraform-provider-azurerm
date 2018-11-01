@@ -18,7 +18,7 @@ func TestAccAzureRMVirtualMachineExtension_basic(t *testing.T) {
 	preConfig := testAccAzureRMVirtualMachineExtension_basic(ri, location)
 	postConfig := testAccAzureRMVirtualMachineExtension_basicUpdate(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineExtensionDestroy,
@@ -47,7 +47,7 @@ func TestAccAzureRMVirtualMachineExtension_concurrent(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMVirtualMachineExtension_concurrent(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineExtensionDestroy,
@@ -69,7 +69,7 @@ func TestAccAzureRMVirtualMachineExtension_linuxDiagnostics(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMVirtualMachineExtension_linuxDiagnostics(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineExtensionDestroy,

@@ -13,7 +13,7 @@ func TestAccAzureRMDnsAAAARecord_importBasic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMDnsAAAARecord_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsAaaaRecordDestroy,
@@ -36,7 +36,7 @@ func TestAccAzureRMDnsAAAARecord_importWithTags(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMDnsAAAARecord_withTags(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsAaaaRecordDestroy,

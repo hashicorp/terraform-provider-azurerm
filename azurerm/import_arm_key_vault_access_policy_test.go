@@ -13,7 +13,7 @@ func TestAccAzureRMKeyVaultAccessPolicy_importBasic(t *testing.T) {
 	rs := acctest.RandString(5)
 	config := testAccAzureRMKeyVaultAccessPolicy_basic(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
@@ -34,7 +34,7 @@ func TestAccAzureRMKeyVaultAccessPolicy_importMultiple(t *testing.T) {
 	rs := acctest.RandString(5)
 	config := testAccAzureRMKeyVaultAccessPolicy_multiple(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,

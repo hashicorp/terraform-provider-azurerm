@@ -15,7 +15,7 @@ func TestAccAzureRMUserAssignedIdentity_importBasic(t *testing.T) {
 	rs := acctest.RandString(14)
 	config := testAccAzureRMUserAssignedIdentity_basic(ri, location, rs)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMUserAssignedIdentityDestroy,

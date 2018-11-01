@@ -12,7 +12,7 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_basic(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_http_request.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
@@ -32,7 +32,7 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_fullSchema(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_http_request.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
@@ -52,7 +52,7 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_method(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_http_request.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
@@ -72,7 +72,7 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_relativePath(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_http_request.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
@@ -92,7 +92,7 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_relativePath(t *testing.T) {
 func TestAccAzureRMLogicAppTriggerHttpRequest_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,

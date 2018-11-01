@@ -13,7 +13,7 @@ func TestAccAzureRMRedisCache_importBasic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMRedisCache_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
@@ -36,7 +36,7 @@ func TestAccAzureRMRedisCache_importStandard(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMRedisCache_standard(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
@@ -59,7 +59,7 @@ func TestAccAzureRMRedisCache_importPremium(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMRedisCache_premium(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
@@ -82,7 +82,7 @@ func TestAccAzureRMRedisCache_importPremiumSharded(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMRedisCache_premiumSharded(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
@@ -105,7 +105,7 @@ func TestAccAzureRMRedisCache_importNonStandardCasing(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMRedisCacheNonStandardCasing(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
@@ -129,7 +129,7 @@ func TestAccAzureRMRedisCache_importBackupEnabled(t *testing.T) {
 	rs := acctest.RandString(4)
 	config := testAccAzureRMRedisCacheBackupEnabled(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
@@ -158,7 +158,7 @@ func TestAccAzureRMRedisCache_importPatchSchedule(t *testing.T) {
 	location := testLocation()
 	config := testAccAzureRMRedisCachePatchSchedule(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
@@ -179,7 +179,7 @@ func TestAccAzureRMRedisCache_importInternalSubnet(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMRedisCache_internalSubnet(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
@@ -201,7 +201,7 @@ func TestAccAzureRMRedisCache_importInternalSubnetStaticIP(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMRedisCache_internalSubnetStaticIP(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,

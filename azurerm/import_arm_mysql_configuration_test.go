@@ -13,7 +13,7 @@ func TestAccAzureRMMySQLConfiguration_importCharacterSetServer(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMMySQLConfiguration_characterSetServer(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,
@@ -36,7 +36,7 @@ func TestAccAzureRMPostgreSQLConfiguration_importInteractiveTimeout(t *testing.T
 	ri := acctest.RandInt()
 	config := testAccAzureRMMySQLConfiguration_interactiveTimeout(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,
@@ -59,7 +59,7 @@ func TestAccAzureRMPostgreSQLConfiguration_importLogSlowAdminStatements(t *testi
 	ri := acctest.RandInt()
 	config := testAccAzureRMMySQLConfiguration_logSlowAdminStatements(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,

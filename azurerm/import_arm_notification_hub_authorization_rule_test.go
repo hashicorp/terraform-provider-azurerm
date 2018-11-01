@@ -14,7 +14,7 @@ func TestAccAzureRMNotificationHubAuthorizationRule_importListen(t *testing.T) {
 	location := testLocation()
 	config := testAzureRMNotificationHubAuthorizationRule_listen(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubAuthorizationRuleDestroy,
@@ -38,7 +38,7 @@ func TestAccAzureRMNotificationHubAuthorizationRule_importManage(t *testing.T) {
 	location := testLocation()
 	config := testAzureRMNotificationHubAuthorizationRule_manage(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubAuthorizationRuleDestroy,
@@ -62,7 +62,7 @@ func TestAccAzureRMNotificationHubAuthorizationRule_importSend(t *testing.T) {
 	location := testLocation()
 	config := testAzureRMNotificationHubAuthorizationRule_send(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubAuthorizationRuleDestroy,

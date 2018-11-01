@@ -13,7 +13,7 @@ func TestAccAzureRMMetricAlertRule_importVirtualMachineCpu(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMMetricAlertRule_virtualMachineCpu(ri, testLocation(), true)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMetricAlertRuleDestroy,

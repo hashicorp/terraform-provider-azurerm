@@ -13,7 +13,7 @@ func TestAccAzureRMAvailabilitySet_importBasic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAvailabilitySet_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
@@ -37,7 +37,7 @@ func TestAccAzureRMAvailabilitySet_importWithTags(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAvailabilitySet_withTags(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
@@ -61,7 +61,7 @@ func TestAccAzureRMAvailabilitySet_importWithDomainCounts(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAvailabilitySet_withDomainCounts(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
@@ -85,7 +85,7 @@ func TestAccAzureRMAvailabilitySet_importManaged(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAvailabilitySet_managed(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,

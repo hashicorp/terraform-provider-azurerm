@@ -13,7 +13,7 @@ func TestAccAzureRMAppServiceSlot_importBasic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServiceSlot_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -36,7 +36,7 @@ func TestAccAzureRMAppServiceSlot_importMinTls(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServiceSlot_minTls(ri, testLocation(), "1.1")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,

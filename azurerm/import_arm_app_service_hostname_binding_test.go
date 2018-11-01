@@ -51,7 +51,7 @@ func testAccAzureRMAppServiceCustomHostnameBinding_import(t *testing.T) {
 	location := testLocation()
 	config := testAccAzureRMAppServiceCustomHostnameBinding_basicConfig(ri, location, appServiceEnv, domainEnv)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceCustomHostnameBindingDestroy,

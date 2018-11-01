@@ -12,7 +12,7 @@ func TestAccAzureRMPolicyAssignment_importComplete(t *testing.T) {
 	location := testLocation()
 	resourceName := "azurerm_policy_assignment.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPolicyAssignmentDestroy,

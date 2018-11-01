@@ -18,7 +18,7 @@ func TestAccAzureRMSubnet_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSubnet_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
@@ -39,7 +39,7 @@ func TestAccAzureRMSubnet_routeTableUpdate(t *testing.T) {
 	initConfig := testAccAzureRMSubnet_routeTable(ri, location)
 	updatedConfig := testAccAzureRMSubnet_updatedRouteTable(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
@@ -68,7 +68,7 @@ func TestAccAzureRMSubnet_routeTableRemove(t *testing.T) {
 	initConfig := testAccAzureRMSubnet_routeTable(ri, location)
 	updatedConfig := testAccAzureRMSubnet_routeTableUnlinked(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
@@ -99,7 +99,7 @@ func TestAccAzureRMSubnet_removeNetworkSecurityGroup(t *testing.T) {
 	initConfig := testAccAzureRMSubnet_networkSecurityGroup(ri, location)
 	updatedConfig := testAccAzureRMSubnet_networkSecurityGroupDetached(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
@@ -127,7 +127,7 @@ func TestAccAzureRMSubnet_bug7986(t *testing.T) {
 	ri := acctest.RandInt()
 	initConfig := testAccAzureRMSubnet_bug7986(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
@@ -147,7 +147,7 @@ func TestAccAzureRMSubnet_bug15204(t *testing.T) {
 	ri := acctest.RandInt()
 	initConfig := testAccAzureRMSubnet_bug15204(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
@@ -166,7 +166,7 @@ func TestAccAzureRMSubnet_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSubnet_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
@@ -330,7 +330,7 @@ func TestAccAzureRMSubnet_serviceEndpoints(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSubnet_serviceEndpoints(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSubnetDestroy,

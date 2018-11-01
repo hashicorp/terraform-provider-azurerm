@@ -13,7 +13,7 @@ func TestAccAzureRMVirtualMachine_importBasic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMVirtualMachine_basicLinuxMachine(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
@@ -41,7 +41,7 @@ func TestAccAzureRMVirtualMachine_importBasic_withZone(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_implicit_withZone(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
@@ -69,7 +69,7 @@ func TestAccAzureRMVirtualMachine_importBasic_managedDisk(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_explicit(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,

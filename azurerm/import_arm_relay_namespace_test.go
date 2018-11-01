@@ -13,7 +13,7 @@ func TestAccAzureRMRelayNamespace_importBasic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMRelayNamespace_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRelayNamespaceDestroy,
@@ -36,7 +36,7 @@ func TestAccAzureRMRelayNamespace_importComplete(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMRelayNamespace_complete(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRelayNamespaceDestroy,

@@ -15,7 +15,7 @@ func testAccAzureRMPacketCapture_importBasic(t *testing.T) {
 	resourceName := "azurerm_packet_capture.test"
 	config := testAzureRMPacketCapture_storageAccountAndLocalDiskConfig(rInt, rString, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPacketCaptureDestroy,

@@ -11,7 +11,7 @@ func TestAccAzureRMLogicAppTriggerRecurrence_importMonth(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMLogicAppTriggerRecurrence_basic(ri, testLocation(), "Month", 1)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
@@ -32,7 +32,7 @@ func TestAccAzureRMLogicAppTriggerRecurrence_importWeek(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMLogicAppTriggerRecurrence_basic(ri, testLocation(), "Week", 3)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
@@ -53,7 +53,7 @@ func TestAccAzureRMLogicAppTriggerRecurrence_importDay(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMLogicAppTriggerRecurrence_basic(ri, testLocation(), "Day", 5)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
@@ -74,7 +74,7 @@ func TestAccAzureRMLogicAppTriggerRecurrence_importHour(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMLogicAppTriggerRecurrence_basic(ri, testLocation(), "Hour", 3)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
@@ -95,7 +95,7 @@ func TestAccAzureRMLogicAppTriggerRecurrence_importMinute(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMLogicAppTriggerRecurrence_basic(ri, testLocation(), "Minute", 5)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
@@ -116,7 +116,7 @@ func TestAccAzureRMLogicAppTriggerRecurrence_importSecond(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMLogicAppTriggerRecurrence_basic(ri, testLocation(), "Second", 30)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,

@@ -15,7 +15,7 @@ func TestAccAzureRMRoleDefinition_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMRoleDefinition_basic(uuid.New().String(), ri)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRoleDefinitionDestroy,
@@ -34,7 +34,7 @@ func TestAccAzureRMRoleDefinition_complete(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMRoleDefinition_complete(uuid.New().String(), ri)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRoleDefinitionDestroy,
@@ -57,7 +57,7 @@ func TestAccAzureRMRoleDefinition_update(t *testing.T) {
 	config := testAccAzureRMRoleDefinition_basic(id, ri)
 	updatedConfig := testAccAzureRMRoleDefinition_updated(id, ri)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRoleDefinitionDestroy,
@@ -92,7 +92,7 @@ func TestAccAzureRMRoleDefinition_emptyName(t *testing.T) {
 
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRoleDefinitionDestroy,

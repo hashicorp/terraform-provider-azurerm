@@ -16,7 +16,7 @@ func TestAccAzureRMServiceFabricCluster_basic(t *testing.T) {
 	location := testLocation()
 	config := testAccAzureRMServiceFabricCluster_basic(ri, location, 3)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
@@ -49,7 +49,7 @@ func TestAccAzureRMServiceFabricCluster_manualClusterCodeVersion(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
@@ -84,7 +84,7 @@ func TestAccAzureRMServiceFabricCluster_manualLatest(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
@@ -112,7 +112,7 @@ func TestAccAzureRMServiceFabricCluster_addOnFeatures(t *testing.T) {
 	location := testLocation()
 	config := testAccAzureRMServiceFabricCluster_addOnFeatures(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
@@ -138,7 +138,7 @@ func TestAccAzureRMServiceFabricCluster_certificate(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
@@ -169,7 +169,7 @@ func TestAccAzureRMServiceFabricCluster_clientCertificateThumbprint(t *testing.T
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
@@ -203,7 +203,7 @@ func TestAccAzureRMServiceFabricCluster_readerAdminClientCertificateThumbprint(t
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
@@ -241,7 +241,7 @@ func TestAccAzureRMServiceFabricCluster_diagnosticsConfig(t *testing.T) {
 	location := testLocation()
 	config := testAccAzureRMServiceFabricCluster_diagnosticsConfig(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
@@ -273,7 +273,7 @@ func TestAccAzureRMServiceFabricCluster_fabricSettings(t *testing.T) {
 	location := testLocation()
 	config := testAccAzureRMServiceFabricCluster_fabricSettings(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
@@ -302,7 +302,7 @@ func TestAccAzureRMServiceFabricCluster_fabricSettingsRemove(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
@@ -331,7 +331,7 @@ func TestAccAzureRMServiceFabricCluster_nodeTypeCustomPorts(t *testing.T) {
 	location := testLocation()
 	config := testAccAzureRMServiceFabricCluster_nodeTypeCustomPorts(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
@@ -364,7 +364,7 @@ func TestAccAzureRMServiceFabricCluster_nodeTypesMultiple(t *testing.T) {
 	location := testLocation()
 	config := testAccAzureRMServiceFabricCluster_nodeTypeMultiple(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
@@ -396,7 +396,7 @@ func TestAccAzureRMServiceFabricCluster_nodeTypesUpdate(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
@@ -425,7 +425,7 @@ func TestAccAzureRMServiceFabricCluster_tags(t *testing.T) {
 	location := testLocation()
 	config := testAccAzureRMServiceFabricCluster_tags(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,

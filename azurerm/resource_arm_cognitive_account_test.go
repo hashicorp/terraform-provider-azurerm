@@ -16,7 +16,7 @@ func TestAccAzureRMCognitiveAccount_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMCognitiveAccount_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppCognitiveAccountDestroy,
@@ -43,7 +43,7 @@ func TestAccAzureRMCognitiveAccount_complete(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMCognitiveAccount_complete(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppCognitiveAccountDestroy,
@@ -71,7 +71,7 @@ func TestAccAzureRMCognitiveAccount_update(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppCognitiveAccountDestroy,

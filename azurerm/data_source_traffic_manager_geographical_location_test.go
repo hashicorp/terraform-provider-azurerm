@@ -12,7 +12,7 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_europe(t *testin
 	dataSourceName := "data.azurerm_traffic_manager_geographical_location.test"
 	config := testAccAzureRMDataSourceTrafficManagerGeographicalLocation_europe()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		CheckDestroy: func(*terraform.State) error {
@@ -35,7 +35,7 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_germany(t *testi
 	dataSourceName := "data.azurerm_traffic_manager_geographical_location.test"
 	config := testAccAzureRMDataSourceTrafficManagerGeographicalLocation_germany()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		CheckDestroy: func(*terraform.State) error {
@@ -58,7 +58,7 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_unitedKingdom(t 
 	dataSourceName := "data.azurerm_traffic_manager_geographical_location.test"
 	config := testAccAzureRMDataSourceTrafficManagerGeographicalLocation_unitedKingdom()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		CheckDestroy: func(*terraform.State) error {
@@ -81,7 +81,7 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_world(t *testing
 	dataSourceName := "data.azurerm_traffic_manager_geographical_location.test"
 	config := testAccAzureRMDataSourceTrafficManagerGeographicalLocation_world()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		CheckDestroy: func(*terraform.State) error {

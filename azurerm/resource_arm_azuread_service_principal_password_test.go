@@ -24,7 +24,7 @@ func TestAccAzureRMActiveDirectoryServicePrincipalPassword_basic(t *testing.T) {
 
 	config := testAccAzureRMActiveDirectoryServicePrincipalPassword_basic(applicationId, value)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryServicePrincipalDestroy,
@@ -59,7 +59,7 @@ func TestAccAzureRMActiveDirectoryServicePrincipalPassword_customKeyId(t *testin
 	}
 	config := testAccAzureRMActiveDirectoryServicePrincipalPassword_customKeyId(applicationId, keyId, value)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryServicePrincipalDestroy,

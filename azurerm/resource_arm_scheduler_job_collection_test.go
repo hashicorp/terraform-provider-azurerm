@@ -18,7 +18,7 @@ func TestAccAzureRMSchedulerJobCollection_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_scheduler_job_collection.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobCollectionDestroy,
@@ -40,7 +40,7 @@ func TestAccAzureRMSchedulerJobCollection_complete(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_scheduler_job_collection.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobCollectionDestroy,

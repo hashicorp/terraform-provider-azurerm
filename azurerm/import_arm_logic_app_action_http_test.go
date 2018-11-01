@@ -11,7 +11,7 @@ func TestAccAzureRMLogicAppActionHttp_importBasic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMLogicAppActionHttp_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
@@ -32,7 +32,7 @@ func TestAccAzureRMLogicAppActionHttp_importHeaders(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMLogicAppActionHttp_headers(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,

@@ -13,7 +13,7 @@ func TestAccAzureRMKeyVault_importBasic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMKeyVault_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
@@ -36,7 +36,7 @@ func TestAccAzureRMKeyVault_importComplete(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMKeyVault_complete(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,

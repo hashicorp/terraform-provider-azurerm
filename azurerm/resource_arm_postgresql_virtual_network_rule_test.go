@@ -18,7 +18,7 @@ func TestAccAzureRMPostgreSQLVirtualNetworkRule_basic(t *testing.T) {
 
 	config := testAccAzureRMPostgreSQLVirtualNetworkRule_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLVirtualNetworkRuleDestroy,
@@ -49,7 +49,7 @@ func TestAccAzureRMPostgreSQLVirtualNetworkRule_switchSubnets(t *testing.T) {
 	preConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet1%d)$|(subnet[^2]%d)$", ri, ri))  //subnet 1 but not 2
 	postConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet2%d)$|(subnet[^1]%d)$", ri, ri)) //subnet 2 but not 1
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLVirtualNetworkRuleDestroy,
@@ -77,7 +77,7 @@ func TestAccAzureRMPostgreSQLVirtualNetworkRule_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMPostgreSQLVirtualNetworkRule_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLVirtualNetworkRuleDestroy,
@@ -101,7 +101,7 @@ func TestAccAzureRMPostgreSQLVirtualNetworkRule_multipleSubnets(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMPostgreSQLVirtualNetworkRule_multipleSubnets(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLVirtualNetworkRuleDestroy,
@@ -123,7 +123,7 @@ func TestAccAzureRMPostgreSQLVirtualNetworkRule_IgnoreEndpointValid(t *testing.T
 	ri := acctest.RandInt()
 	config := testAccAzureRMPostgreSQLVirtualNetworkRule_ignoreEndpointValid(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLVirtualNetworkRuleDestroy,

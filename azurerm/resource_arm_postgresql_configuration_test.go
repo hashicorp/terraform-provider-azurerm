@@ -17,7 +17,7 @@ func TestAccAzureRMPostgreSQLConfiguration_backslashQuote(t *testing.T) {
 	config := testAccAzureRMPostgreSQLConfiguration_backslashQuote(ri, location)
 	serverOnlyConfig := testAccAzureRMPostgreSQLConfiguration_empty(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLConfigurationDestroy,
@@ -45,7 +45,7 @@ func TestAccAzureRMPostgreSQLConfiguration_clientMinMessages(t *testing.T) {
 	config := testAccAzureRMPostgreSQLConfiguration_clientMinMessages(ri, location)
 	serverOnlyConfig := testAccAzureRMPostgreSQLConfiguration_empty(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLConfigurationDestroy,
@@ -73,7 +73,7 @@ func TestAccAzureRMPostgreSQLConfiguration_deadlockTimeout(t *testing.T) {
 	config := testAccAzureRMPostgreSQLConfiguration_deadlockTimeout(ri, location)
 	serverOnlyConfig := testAccAzureRMPostgreSQLConfiguration_empty(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLConfigurationDestroy,

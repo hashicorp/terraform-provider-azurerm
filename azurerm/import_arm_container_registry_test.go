@@ -14,7 +14,7 @@ func TestAccAzureRMContainerRegistry_importBasicClassic(t *testing.T) {
 	rs := acctest.RandString(4)
 	config := testAccAzureRMContainerRegistry_basicUnmanaged(ri, rs, testLocation(), "Classic")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
@@ -39,7 +39,7 @@ func TestAccAzureRMContainerRegistry_importBasicBasic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Basic")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
@@ -64,7 +64,7 @@ func TestAccAzureRMContainerRegistry_importBasicManagedStandard(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Standard")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
@@ -89,7 +89,7 @@ func TestAccAzureRMContainerRegistry_importBasicManagedPremium(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Premium")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
@@ -115,7 +115,7 @@ func TestAccAzureRMContainerRegistry_importComplete(t *testing.T) {
 	rs := acctest.RandString(4)
 	config := testAccAzureRMContainerRegistry_complete(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,

@@ -19,7 +19,7 @@ func TestAccAzureRMImage_importStandalone(t *testing.T) {
 	preConfig := testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName, location)
 	postConfig := testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMImageDestroy,

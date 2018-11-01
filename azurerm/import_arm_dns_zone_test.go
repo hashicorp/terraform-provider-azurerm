@@ -13,7 +13,7 @@ func TestAccAzureRMDnsZone_importBasic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMDnsZone_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
@@ -36,7 +36,7 @@ func TestAccAzureRMDnsZone_importBasicWithVNets(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMDnsZone_withVNets(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
@@ -59,7 +59,7 @@ func TestAccAzureRMDnsZone_importBasicWithTags(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMDnsZone_withTags(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,

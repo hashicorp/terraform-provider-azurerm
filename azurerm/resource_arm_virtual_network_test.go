@@ -83,7 +83,7 @@ func TestAccAzureRMVirtualNetwork_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMVirtualNetwork_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkDestroy,
@@ -105,7 +105,7 @@ func TestAccAzureRMVirtualNetwork_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMVirtualNetwork_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkDestroy,
@@ -129,7 +129,7 @@ func TestAccAzureRMVirtualNetwork_withTags(t *testing.T) {
 	preConfig := testAccAzureRMVirtualNetwork_withTags(ri, location)
 	postConfig := testAccAzureRMVirtualNetwork_withTagsUpdated(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkDestroy,
@@ -164,7 +164,7 @@ func TestAccAzureRMVirtualNetwork_bug373(t *testing.T) {
 	rs := acctest.RandString(6)
 	config := testAccAzureRMVirtualNetwork_bug373(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkDestroy,

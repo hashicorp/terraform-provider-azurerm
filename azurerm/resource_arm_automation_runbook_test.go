@@ -14,7 +14,7 @@ func TestAccAzureRMAutomationRunbook_PSWorkflow(t *testing.T) {
 	resourceName := "azurerm_automation_runbook.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationRunbookDestroy,
@@ -40,7 +40,7 @@ func TestAccAzureRMAutomationRunbook_PSWorkflowWithHash(t *testing.T) {
 	resourceName := "azurerm_automation_runbook.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationRunbookDestroy,
@@ -66,7 +66,7 @@ func TestAccAzureRMAutomationRunbook_PSWithContent(t *testing.T) {
 	resourceName := "azurerm_automation_runbook.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationRunbookDestroy,

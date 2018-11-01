@@ -12,7 +12,7 @@ func testAccAzureRMExpressRouteCircuitPeering_importAzurePrivatePeering(t *testi
 	location := testLocation()
 	resourceName := "azurerm_express_route_circuit_peering.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
@@ -35,7 +35,7 @@ func testAccAzureRMExpressRouteCircuitPeering_importMicrosoftPeering(t *testing.
 	location := testLocation()
 	resourceName := "azurerm_express_route_circuit_peering.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,

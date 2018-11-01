@@ -14,7 +14,7 @@ func TestAccAzureRMAutomationDscNodeConfiguration_basic(t *testing.T) {
 	resourceName := "azurerm_automation_dsc_nodeconfiguration.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationDscNodeConfigurationDestroy,

@@ -11,7 +11,7 @@ func TestAccAzureRMManagementLock_importResourceGroupReadOnlyBasic(t *testing.T)
 	ri := acctest.RandInt()
 	config := testAccAzureRMManagementLock_resourceGroupReadOnlyBasic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagementLockDestroy,
@@ -32,7 +32,7 @@ func TestAccAzureRMManagementLock_importResourceGroupReadOnlyComplete(t *testing
 	ri := acctest.RandInt()
 	config := testAccAzureRMManagementLock_resourceGroupReadOnlyComplete(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagementLockDestroy,
@@ -53,7 +53,7 @@ func TestAccAzureRMManagementLock_importResourceGroupCanNotDeleteBasic(t *testin
 	ri := acctest.RandInt()
 	config := testAccAzureRMManagementLock_resourceGroupCanNotDeleteBasic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagementLockDestroy,
@@ -74,7 +74,7 @@ func TestAccAzureRMManagementLock_importResourceGroupCanNotDeleteComplete(t *tes
 	ri := acctest.RandInt()
 	config := testAccAzureRMManagementLock_resourceGroupCanNotDeleteComplete(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagementLockDestroy,
@@ -95,7 +95,7 @@ func TestAccAzureRMManagementLock_importPublicIPCanNotDeleteBasic(t *testing.T) 
 	ri := acctest.RandInt()
 	config := testAccAzureRMManagementLock_publicIPCanNotDeleteBasic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagementLockDestroy,
@@ -116,7 +116,7 @@ func TestAccAzureRMManagementLock_importPublicIPReadOnlyBasic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMManagementLock_publicIPReadOnlyBasic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagementLockDestroy,

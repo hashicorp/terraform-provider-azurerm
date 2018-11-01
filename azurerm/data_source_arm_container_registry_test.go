@@ -14,7 +14,7 @@ func TestAccDataSourceAzureRMContainerRegistry_basic(t *testing.T) {
 
 	dataSourceName := "data.azurerm_container_registry.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,

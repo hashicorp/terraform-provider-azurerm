@@ -20,7 +20,7 @@ func TestAccAzureRMStorageContainer_basic(t *testing.T) {
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageContainer_basic(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
@@ -51,7 +51,7 @@ func TestAccAzureRMStorageContainer_update(t *testing.T) {
 	initconfig := testAccAzureRMStorageContainer_update(ri, rs, testLocation(), at1)
 	updateconfig := testAccAzureRMStorageContainer_update(ri, rs, testLocation(), at2)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
@@ -86,7 +86,7 @@ func TestAccAzureRMStorageContainer_disappears(t *testing.T) {
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageContainer_basic(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
@@ -111,7 +111,7 @@ func TestAccAzureRMStorageContainer_root(t *testing.T) {
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageContainer_root(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,

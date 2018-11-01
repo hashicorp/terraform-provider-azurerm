@@ -67,7 +67,7 @@ func TestAccAzureRMDatabricksWorkspace_basic(t *testing.T) {
 	resourceName := "azurerm_databricks_workspace.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDatabricksWorkspaceDestroy,
@@ -93,7 +93,7 @@ func TestAccAzureRMDatabricksWorkspace_withTags(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDatabricksWorkspaceDestroy,

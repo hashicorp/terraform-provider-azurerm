@@ -12,7 +12,7 @@ func TestAccAzureRMLogicAppTriggerCustom_basic(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_custom.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMLogicAppTriggerCustom_basic(ri, testLocation())
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,

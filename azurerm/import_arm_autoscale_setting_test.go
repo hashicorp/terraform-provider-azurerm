@@ -15,7 +15,7 @@ func TestAccAzureRMAutoScaleSetting_importBasic(t *testing.T) {
 	location := testLocation()
 	config := testAccAzureRMAutoScaleSetting_basic(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
@@ -40,7 +40,7 @@ func TestAccAzureRMAutoScaleSetting_importRecurrence(t *testing.T) {
 	location := testLocation()
 	config := testAccAzureRMAutoScaleSetting_recurrence(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
@@ -65,7 +65,7 @@ func TestAccAzureRMAutoScaleSetting_importFixedDate(t *testing.T) {
 	location := testLocation()
 	config := testAccAzureRMAutoScaleSetting_fixedDate(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,

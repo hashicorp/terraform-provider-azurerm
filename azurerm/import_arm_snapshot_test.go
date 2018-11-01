@@ -12,7 +12,7 @@ func TestAccAzureRMSnapshot_import(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSnapshot_fromManagedDisk(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSnapshotDestroy,
@@ -36,7 +36,7 @@ func TestAccAzureRMSnapshot_importEncryption(t *testing.T) {
 	rs := acctest.RandString(4)
 	config := testAccAzureRMSnapshot_encryption(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSnapshotDestroy,

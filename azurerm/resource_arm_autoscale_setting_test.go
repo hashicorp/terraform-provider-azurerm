@@ -17,7 +17,7 @@ func TestAccAzureRMAutoScaleSetting_basic(t *testing.T) {
 	location := testLocation()
 	config := testAccAzureRMAutoScaleSetting_basic(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
@@ -45,7 +45,7 @@ func TestAccAzureRMAutoScaleSetting_multipleProfiles(t *testing.T) {
 	location := testLocation()
 	config := testAccAzureRMAutoScaleSetting_multipleProfiles(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
@@ -70,7 +70,7 @@ func TestAccAzureRMAutoScaleSetting_multipleRules(t *testing.T) {
 	rs := acctest.RandString(6)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
@@ -110,7 +110,7 @@ func TestAccAzureRMAutoScaleSetting_customEmails(t *testing.T) {
 	rs := acctest.RandString(6)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
@@ -147,7 +147,7 @@ func TestAccAzureRMAutoScaleSetting_recurrence(t *testing.T) {
 	location := testLocation()
 	config := testAccAzureRMAutoScaleSetting_recurrence(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
@@ -173,7 +173,7 @@ func TestAccAzureRMAutoScaleSetting_recurrenceUpdate(t *testing.T) {
 	rs := acctest.RandString(6)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
@@ -215,7 +215,7 @@ func TestAccAzureRMAutoScaleSetting_fixedDate(t *testing.T) {
 	location := testLocation()
 	config := testAccAzureRMAutoScaleSetting_fixedDate(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,

@@ -65,7 +65,7 @@ func TestAccAzureRMCdnProfile_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMCdnProfile_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
@@ -87,7 +87,7 @@ func TestAccAzureRMCdnProfile_withTags(t *testing.T) {
 	preConfig := testAccAzureRMCdnProfile_withTags(ri, location)
 	postConfig := testAccAzureRMCdnProfile_withTagsUpdate(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
@@ -118,7 +118,7 @@ func TestAccAzureRMCdnProfile_NonStandardCasing(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMCdnProfileNonStandardCasing(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
@@ -144,7 +144,7 @@ func TestAccAzureRMCdnProfile_basicToStandardAkamai(t *testing.T) {
 	preConfig := testAccAzureRMCdnProfile_basic(ri, testLocation())
 	postConfig := testAccAzureRMCdnProfile_standardAkamai(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
@@ -172,7 +172,7 @@ func TestAccAzureRMCdnProfile_standardAkamai(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMCdnProfile_standardAkamai(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
@@ -193,7 +193,7 @@ func TestAccAzureRMCdnProfile_standardMicrosoft(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMCdnProfile_standardMicrosoft(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,

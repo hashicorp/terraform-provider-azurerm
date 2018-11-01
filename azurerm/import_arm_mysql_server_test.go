@@ -13,7 +13,7 @@ func TestAccAzureRMMySQLServer_importBasicFiveSix(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMMySQLServer_basicFiveSix(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
@@ -39,7 +39,7 @@ func TestAccAzureRMMySQLServer_importBasicFiveSeven(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMMySQLServer_basicFiveSeven(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
@@ -65,7 +65,7 @@ func TestAccAzureRMMySQLServer_importGeneralPurpose(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMMySQLServer_generalPurpose(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
@@ -91,7 +91,7 @@ func TestAccAzureRMMySqlServer_importMemoryOptimized(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMMySQLServer_memoryOptimized(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,

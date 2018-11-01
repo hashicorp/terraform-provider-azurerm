@@ -13,7 +13,7 @@ func TestAccAzureRMAppService_importBasic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
@@ -36,7 +36,7 @@ func TestAccAzureRMAppService_import32Bit(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_32Bit(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
@@ -59,7 +59,7 @@ func TestAccAzureRMAppService_importAlwaysOn(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_alwaysOn(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
@@ -82,7 +82,7 @@ func TestAccAzureRMAppService_importAppSettings(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_appSettings(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
@@ -105,7 +105,7 @@ func TestAccAzureRMAppService_importClientAffinityEnabled(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_clientAffinityEnabled(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
@@ -128,7 +128,7 @@ func TestAccAzureRMAppService_importConnectionStrings(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_connectionStrings(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
@@ -151,7 +151,7 @@ func TestAccAzureRMAppService_importIpRestriction(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_oneIpRestriction(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
@@ -174,7 +174,7 @@ func TestAccAzureRMAppService_importDefaultDocuments(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_defaultDocuments(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
@@ -197,7 +197,7 @@ func TestAccAzureRMAppService_importEnabled(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_enabled(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
@@ -220,7 +220,7 @@ func TestAccAzureRMAppService_importLocalMySql(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_localMySql(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
@@ -243,7 +243,7 @@ func TestAccAzureRMAppService_importManagedPipelineMode(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_managedPipelineMode(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
@@ -266,7 +266,7 @@ func TestAccAzureRMAppService_importRemoteDebugging(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_remoteDebugging(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
@@ -289,7 +289,7 @@ func TestAccAzureRMAppService_importWindowsDotNet2(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_windowsDotNet(ri, testLocation(), "v2.0")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
@@ -312,7 +312,7 @@ func TestAccAzureRMAppService_importWindowsDotNet4(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_windowsDotNet(ri, testLocation(), "v4.0")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
@@ -335,7 +335,7 @@ func TestAccAzureRMAppService_importWindowsJava7Jetty(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_windowsJava(ri, testLocation(), "1.7", "JETTY", "9.3")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
@@ -358,7 +358,7 @@ func TestAccAzureRMAppService_importWindowsJava8Jetty(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_windowsJava(ri, testLocation(), "1.8", "JETTY", "9.3")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
@@ -381,7 +381,7 @@ func TestAccAzureRMAppService_importWindowsJava7Tomcat(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_windowsJava(ri, testLocation(), "1.7", "TOMCAT", "9.0")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
@@ -404,7 +404,7 @@ func TestAccAzureRMAppService_importWindowsJava8Tomcat(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_windowsJava(ri, testLocation(), "1.8", "TOMCAT", "9.0")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
@@ -427,7 +427,7 @@ func TestAccAzureRMAppService_importWindowsPHP7(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_windowsPHP(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
@@ -450,7 +450,7 @@ func TestAccAzureRMAppService_importWindowsPython(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_windowsPython(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
@@ -473,7 +473,7 @@ func TestAccAzureRMAppService_importWebSockets(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_webSockets(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
@@ -496,7 +496,7 @@ func TestAccAzureRMAppService_importMinTls(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_minTls(ri, testLocation(), "1.1")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,

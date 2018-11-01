@@ -15,7 +15,7 @@ func TestAccAzureRMMySQLDatabase_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMMySQLDatabase_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLDatabaseDestroy,
@@ -35,7 +35,7 @@ func TestAccAzureRMMySQLDatabase_charsetUppercase(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMMySQLDatabase_charsetUppercase(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLDatabaseDestroy,
@@ -56,7 +56,7 @@ func TestAccAzureRMMySQLDatabase_charsetMixedcase(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMMySQLDatabase_charsetMixedcase(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLDatabaseDestroy,

@@ -12,7 +12,7 @@ import (
 func testAccAzureRMSecurityCenterSubscriptionPricing_update(t *testing.T) {
 	resourceName := "azurerm_security_center_subscription_pricing.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{

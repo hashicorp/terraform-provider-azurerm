@@ -17,7 +17,7 @@ func TestAccAzureRMVirtualMachine_winTimeZone(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := acctest.RandInt()
 	config := testAccAzureRMVirtualMachine_winTimeZone(ri, testLocation())
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
@@ -38,7 +38,7 @@ func TestAccAzureRMVirtualMachine_SystemAssignedIdentity(t *testing.T) {
 	resourceName := "azurerm_virtual_machine.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMVirtualMachineSystemAssignedIdentity(ri, testLocation())
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
@@ -62,7 +62,7 @@ func TestAccAzureRMVirtualMachine_UserAssignedIdentity(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := acctest.RandString(14)
 	config := testAccAzureRMVirtualMachineUserAssignedIdentity(ri, testLocation(), rs)
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,

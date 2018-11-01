@@ -15,7 +15,7 @@ func TestAccAzureRMKeyVaultCertificate_basicImportPFX(t *testing.T) {
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultCertificate_basicImportPFX(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
@@ -36,7 +36,7 @@ func TestAccAzureRMKeyVaultCertificate_disappears(t *testing.T) {
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultCertificate_basicGenerate(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
@@ -57,7 +57,7 @@ func TestAccAzureRMKeyVaultCertificate_disappearsWhenParentKeyVaultDeleted(t *te
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultCertificate_basicGenerate(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
@@ -79,7 +79,7 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerate(t *testing.T) {
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultCertificate_basicGenerate(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
@@ -101,7 +101,7 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerateSans(t *testing.T) {
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultCertificate_basicGenerateSans(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
@@ -125,7 +125,7 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerateTags(t *testing.T) {
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultCertificate_basicGenerateTags(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
@@ -148,7 +148,7 @@ func TestAccAzureRMKeyVaultCertificate_basicExtendedKeyUsage(t *testing.T) {
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultCertificate_basicExtendedKeyUsage(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,

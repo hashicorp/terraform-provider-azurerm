@@ -20,7 +20,7 @@ func TestAccAzureRMStorageShare_basic(t *testing.T) {
 	config := testAccAzureRMStorageShare_basic(ri, rs, testLocation())
 	resourceName := "azurerm_storage_share.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageShareDestroy,
@@ -48,7 +48,7 @@ func TestAccAzureRMStorageShare_disappears(t *testing.T) {
 	config := testAccAzureRMStorageShare_basic(ri, rs, testLocation())
 	resourceName := "azurerm_storage_share.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageShareDestroy,
@@ -74,7 +74,7 @@ func TestAccAzureRMStorageShare_updateQuota(t *testing.T) {
 	config2 := testAccAzureRMStorageShare_updateQuota(ri, rs, testLocation())
 	resourceName := "azurerm_storage_share.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageShareDestroy,

@@ -16,7 +16,7 @@ func TestAccAzureRMManagedDisk_empty(t *testing.T) {
 	ri := acctest.RandInt()
 	var d compute.Disk
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
@@ -41,7 +41,7 @@ func TestAccAzureRMManagedDisk_zeroGbFromPlatformImage(t *testing.T) {
 	ri := acctest.RandInt()
 	var d compute.Disk
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
@@ -63,7 +63,7 @@ func TestAccAzureRMManagedDisk_import(t *testing.T) {
 	var vm compute.VirtualMachine
 	var d compute.Disk
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
@@ -93,7 +93,7 @@ func TestAccAzureRMManagedDisk_copy(t *testing.T) {
 	ri := acctest.RandInt()
 	var d compute.Disk
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
@@ -113,7 +113,7 @@ func TestAccAzureRMManagedDisk_fromPlatformImage(t *testing.T) {
 	ri := acctest.RandInt()
 	var d compute.Disk
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
@@ -133,7 +133,7 @@ func TestAccAzureRMManagedDisk_update(t *testing.T) {
 	ri := acctest.RandInt()
 	var d compute.Disk
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
@@ -169,7 +169,7 @@ func TestAccAzureRMManagedDisk_encryption(t *testing.T) {
 	rs := acctest.RandString(4)
 	var d compute.Disk
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
@@ -198,7 +198,7 @@ func TestAccAzureRMManagedDisk_NonStandardCasing(t *testing.T) {
 	var d compute.Disk
 
 	config := testAccAzureRMManagedDiskNonStandardCasing(ri, testLocation())
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
@@ -223,7 +223,7 @@ func TestAccAzureRMManagedDisk_importEmpty_withZone(t *testing.T) {
 	ri := acctest.RandInt()
 	var d compute.Disk
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,

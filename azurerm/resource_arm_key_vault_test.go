@@ -74,7 +74,7 @@ func TestAccAzureRMKeyVault_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMKeyVault_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
@@ -95,7 +95,7 @@ func TestAccAzureRMKeyVault_networkAcls(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
@@ -131,7 +131,7 @@ func TestAccAzureRMKeyVault_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMKeyVault_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
@@ -153,7 +153,7 @@ func TestAccAzureRMKeyVault_complete(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMKeyVault_complete(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
@@ -175,7 +175,7 @@ func TestAccAzureRMKeyVault_update(t *testing.T) {
 	preConfig := testAccAzureRMKeyVault_basic(ri, testLocation())
 	postConfig := testAccAzureRMKeyVault_update(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,

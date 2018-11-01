@@ -15,7 +15,7 @@ func TestAccAzureRMKeyVaultSecret_basic(t *testing.T) {
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultSecret_basic(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
@@ -36,7 +36,7 @@ func TestAccAzureRMKeyVaultSecret_disappears(t *testing.T) {
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultSecret_basic(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
@@ -57,7 +57,7 @@ func TestAccAzureRMKeyVaultSecret_disappearsWhenParentKeyVaultDeleted(t *testing
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultSecret_basic(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
@@ -79,7 +79,7 @@ func TestAccAzureRMKeyVaultSecret_complete(t *testing.T) {
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultSecret_complete(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
@@ -102,7 +102,7 @@ func TestAccAzureRMKeyVaultSecret_update(t *testing.T) {
 	config := testAccAzureRMKeyVaultSecret_basic(rs, testLocation())
 	updatedConfig := testAccAzureRMKeyVaultSecret_basicUpdated(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,

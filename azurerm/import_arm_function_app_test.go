@@ -14,7 +14,7 @@ func TestAccAzureRMFunctionApp_importBasic(t *testing.T) {
 	rs := acctest.RandString(5)
 	config := testAccAzureRMFunctionApp_basic(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
@@ -38,7 +38,7 @@ func TestAccAzureRMFunctionApp_importTags(t *testing.T) {
 	rs := acctest.RandString(5)
 	config := testAccAzureRMFunctionApp_tags(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
@@ -62,7 +62,7 @@ func TestAccAzureRMFunctionApp_importAppSettings(t *testing.T) {
 	rs := acctest.RandString(5)
 	config := testAccAzureRMFunctionApp_appSettings(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,

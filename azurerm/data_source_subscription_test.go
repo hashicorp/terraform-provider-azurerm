@@ -12,7 +12,7 @@ import (
 func TestAccDataSourceAzureRMSubscription_current(t *testing.T) {
 	resourceName := "data.azurerm_subscription.current"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -32,7 +32,7 @@ func TestAccDataSourceAzureRMSubscription_current(t *testing.T) {
 func TestAccDataSourceAzureRMSubscription_specific(t *testing.T) {
 	resourceName := "data.azurerm_subscription.specific"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{

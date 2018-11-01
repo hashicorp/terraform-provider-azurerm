@@ -13,7 +13,7 @@ func testAccAzureRMExpressRouteCircuit_importMetered(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMExpressRouteCircuit_basicMeteredConfig(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
@@ -36,7 +36,7 @@ func testAccAzureRMExpressRouteCircuit_importUnlimited(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMExpressRouteCircuit_basicUnlimitedConfig(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,

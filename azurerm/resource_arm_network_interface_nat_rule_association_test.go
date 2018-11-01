@@ -14,7 +14,7 @@ import (
 func TestAccAzureRMNetworkInterfaceNATRuleAssociation_basic(t *testing.T) {
 	resourceName := "azurerm_network_interface_nat_rule_association.test"
 	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		// intentional as this is a Virtual Resource
@@ -35,7 +35,7 @@ func TestAccAzureRMNetworkInterfaceNATRuleAssociation_deleted(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		// intentional as this is a Virtual Resource

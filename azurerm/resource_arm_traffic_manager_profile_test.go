@@ -25,7 +25,7 @@ func TestAccAzureRMTrafficManagerProfile_geographic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMTrafficManagerProfile_geographic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
@@ -51,7 +51,7 @@ func TestAccAzureRMTrafficManagerProfile_weighted(t *testing.T) {
 		t.Fatalf("Error obtaining Azure Region: %+v", err)
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
@@ -78,7 +78,7 @@ func TestAccAzureRMTrafficManagerProfile_weightedTCP(t *testing.T) {
 		t.Fatalf("Error obtaining Azure Region: %+v", err)
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
@@ -105,7 +105,7 @@ func TestAccAzureRMTrafficManagerProfile_performance(t *testing.T) {
 		t.Fatalf("Error obtaining Azure Region: %+v", err)
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
@@ -132,7 +132,7 @@ func TestAccAzureRMTrafficManagerProfile_priority(t *testing.T) {
 		t.Fatalf("Error obtaining Azure Region: %+v", err)
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
@@ -155,7 +155,7 @@ func TestAccAzureRMTrafficManagerProfile_withTags(t *testing.T) {
 	preConfig := testAccAzureRMTrafficManagerProfile_withTags(ri, testLocation())
 	postConfig := testAccAzureRMTrafficManagerProfile_withTagsUpdated(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
@@ -192,7 +192,7 @@ func TestAccAzureRMTrafficManagerProfile_performanceToGeographic(t *testing.T) {
 		t.Fatalf("Error obtaining Azure Region: %+v", err)
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
@@ -228,7 +228,7 @@ func TestAccAzureRMTrafficManagerProfile_priorityToWeighted(t *testing.T) {
 		t.Fatalf("Error obtaining Azure Region: %+v", err)
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,

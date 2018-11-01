@@ -13,7 +13,7 @@ func TestAccAzureRMIotHub_importBasic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMIotHub_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMIotHubDestroy,
@@ -36,7 +36,7 @@ func TestAccAzureRMIotHub_importStandard(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMIotHub_standard(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMIotHubDestroy,

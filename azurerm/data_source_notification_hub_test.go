@@ -14,7 +14,7 @@ func TestAccDataSourceAzureRMNotificationHub_basic(t *testing.T) {
 	location := testLocation()
 	config := testAccDataSourceAzureRMNotificationHubBasic(rInt, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubDestroy,

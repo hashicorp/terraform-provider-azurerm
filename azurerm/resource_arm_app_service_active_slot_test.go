@@ -13,7 +13,7 @@ func TestAccAzureRMAppServiceActiveSlot_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServiceActiveSlot_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		// Destroy actually does nothing so we just return nil
@@ -35,7 +35,7 @@ func TestAccAzureRMAppServiceActiveSlot_update(t *testing.T) {
 	config := testAccAzureRMAppServiceActiveSlot_update(ri, testLocation())
 	config2 := testAccAzureRMAppServiceActiveSlot_updated(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		// Destroy actually does nothing so we just return nil

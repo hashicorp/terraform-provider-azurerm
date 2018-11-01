@@ -12,7 +12,7 @@ func TestAccAzureRMLogicAppTriggerRecurrence_month(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_recurrence.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
@@ -33,7 +33,7 @@ func TestAccAzureRMLogicAppTriggerRecurrence_week(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_recurrence.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
@@ -54,7 +54,7 @@ func TestAccAzureRMLogicAppTriggerRecurrence_day(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_recurrence.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
@@ -75,7 +75,7 @@ func TestAccAzureRMLogicAppTriggerRecurrence_minute(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_recurrence.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
@@ -96,7 +96,7 @@ func TestAccAzureRMLogicAppTriggerRecurrence_second(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_recurrence.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
@@ -117,7 +117,7 @@ func TestAccAzureRMLogicAppTriggerRecurrence_hour(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_recurrence.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
@@ -138,7 +138,7 @@ func TestAccAzureRMLogicAppTriggerRecurrence_update(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_recurrence.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,

@@ -13,7 +13,7 @@ func TestAccAzureRMVirtualMachineExtension_importBasic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMVirtualMachineExtension_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineExtensionDestroy,
