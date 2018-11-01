@@ -66,6 +66,8 @@ The following arguments are supported:
 
 * `content_type` - (Optional) The content type of the storage blob. Cannot be defined if `source_uri` is defined. Defaults to `application/octet-stream`.
 
+* `content_md5` - (Optional) Used to trigger updates. The only meaningful value is ${md5(file("path/to/file"))}. Cannot be defined if `source_uri` is defined.
+
 * `source` - (Optional) An absolute path to a file on the local system. Cannot be defined if `source_uri` is defined.
 
 * `source_uri` - (Optional) The URI of an existing blob, or a file in the Azure File service, to use as the source contents

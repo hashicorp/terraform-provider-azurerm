@@ -68,6 +68,13 @@ func resourceArmStorageBlob() *schema.Resource {
 				Default:       "application/octet-stream",
 				ConflictsWith: []string{"source_uri"},
 			},
+			"content_md5": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				Computed:      true,
+				ConflictsWith: []string{"source_uri"},
+			},
 			"source": {
 				Type:          schema.TypeString,
 				Optional:      true,
