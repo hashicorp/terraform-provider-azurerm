@@ -41,8 +41,8 @@ resource "azurerm_subnet" "backend" {
 
 resource "azurerm_public_ip" "test" {
   name                         = "example-pip"
-  location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
   public_ip_address_allocation = "dynamic"
 }
 
@@ -235,7 +235,7 @@ A `http_listener` block supports the following:
 
 * `frontend_port_name` - (Required) The Name of the Frontend Port use for this HTTP Listener.
 
-* `hostname` - (Optional) The Hostname which should be use for this
+* `hostname` - (Optional) The Hostname which should be used for this HTTP Listener.
 
 * `protocol` - (Required) The Protocol to use for this HTTP Listener. Possible values are `Http` and `Https`.
 
