@@ -19,6 +19,11 @@ type Builder struct {
 	SupportsManagedServiceIdentity bool
 	MsiEndpoint                    string
 
+	// Service Principal (Client Cert) Auth
+	SupportsClientCertAuth bool
+	ClientCertPath         string
+	ClientCertPassword     string
+
 	// Service Principal (Client Secret) Auth
 	SupportsClientSecretAuth bool
 	ClientSecret             string
@@ -30,6 +35,14 @@ func (b Builder) Build() (*Config, error) {
 		SubscriptionID: b.SubscriptionID,
 		TenantID:       b.TenantID,
 		Environment:    b.Environment,
+	}
+
+	if b.SupportsClientCertAuth && b.ClientCertPath != "" {
+		log.Printf("[DEBUG] Using Service Principal / Client Certificate for Authentication")
+		config.AuthenticatedAsAServicePrincipal = true
+
+		config.authMethod = newServicePrincipalClientCertificateAuth(b)
+		return config.validate()
 	}
 
 	if b.SupportsClientSecretAuth && b.ClientSecret != "" {
