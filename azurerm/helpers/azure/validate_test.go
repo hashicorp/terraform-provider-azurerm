@@ -90,3 +90,61 @@ func TestAzureResourceIDOrEmpty(t *testing.T) {
 		})
 	}
 }
+
+func TestAzureValidateServiceName(t *testing.T) {
+	cases := []struct {
+		ServiceName string
+		Errors      int
+	}{
+		{
+			ServiceName: "as",
+			Errors:      3,
+		},
+		{
+			ServiceName: "Asd",
+			Errors:      3,
+		},
+		{
+			ServiceName: "asd",
+			Errors:      0,
+		},
+		{
+			ServiceName: "-asd",
+			Errors:      3,
+		},
+		{
+			ServiceName: "asd-",
+			Errors:      3,
+		},
+		{
+			ServiceName: "asd-1",
+			Errors:      0,
+		},
+		{
+			ServiceName: "asd--1",
+			Errors:      1,
+		},
+		{
+			ServiceName: "asd--1-",
+			Errors:      4,
+		},
+		{
+			ServiceName: "asdfghjklzasdfghjklzasdfghjklzasdfghjklzasdfghjklz",
+			Errors:      0,
+		},
+		{
+			ServiceName: "asdfghjklzasdfghjklzasdfghjklzasdfghjklzasdfghjklz1",
+			Errors:      3,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.ID, func(t *testing.T) {
+			_, errors := ValidateServiceName(tc.ServiceName, "name")
+
+			if len(errors) < tc.Errors {
+				t.Fatalf("Expected TestAzureValidateServiceName to have %d not %d errors for %q", tc.Errors, len(errors), tc.ServiceName)
+			}
+		})
+	}
+}
