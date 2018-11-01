@@ -1976,11 +1976,11 @@ func flattenApplicationGatewayWafConfig(input *network.ApplicationGatewayWebAppl
 	output["firewall_mode"] = string(input.FirewallMode)
 
 	if input.RuleSetType != nil {
-		output["rule_set_type"] = input.RuleSetType
+		output["rule_set_type"] = *input.RuleSetType
 	}
 
 	if input.RuleSetVersion != nil {
-		output["rule_set_version"] = input.RuleSetVersion
+		output["rule_set_version"] = *input.RuleSetVersion
 	}
 
 	results = append(results, output)
