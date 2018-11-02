@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -31,19 +32,20 @@ func resourceArmMonitorDiagnostics() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				// TODO: validation
 			},
 
 			"target_resource_id": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"storage_account_id": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"event_hub_name": {
@@ -52,8 +54,9 @@ func resourceArmMonitorDiagnostics() *schema.Resource {
 			},
 
 			"event_hub_authorization_rule_id": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"workspace_id": {
@@ -107,29 +110,24 @@ func resourceArmMonitorDiagnosticsCreateUpdate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("You can not disable all settings, rather delete diagnostic logging")
 	}
 
+	metrics := expandMetricsConfiguration(*allMetricSettings, disabledSettings, retentionDays)
+	logs := expandLogConfiguration(*allLogSettings, disabledSettings, retentionDays)
+
 	// TODO: fix the schema
-	diagnosticSettings := &insights.DiagnosticSettings{}
-	diagnosticSettings.Metrics = expandMetricsConfiguration(*allMetricSettings, disabledSettings, retentionDays)
-	diagnosticSettings.Logs = expandLogConfiguration(*allLogSettings, disabledSettings, retentionDays)
-
-	if len(storageAccountId) > 0 {
-		diagnosticSettings.StorageAccountID = &storageAccountId
+	properties := insights.DiagnosticSettingsResource{
+		DiagnosticSettings: &insights.DiagnosticSettings{
+			StorageAccountID:            utils.String(storageAccountId),
+			WorkspaceID:                 utils.String(workspaceId),
+			EventHubAuthorizationRuleID: utils.String(eventHubAuthorizationRuleId),
+			EventHubName:                utils.String(eventHubName),
+			Metrics:                     metrics,
+			Logs:                        logs,
+			// TODO: add to the schema
+			//ServiceBusRuleID: utils.String(serviceBusRuleId),
+		},
 	}
 
-	if len(workspaceId) > 0 {
-		diagnosticSettings.WorkspaceID = &workspaceId
-	}
-
-	if len(eventHubAuthorizationRuleId) > 0 && len(eventHubName) > 0 {
-		diagnosticSettings.EventHubAuthorizationRuleID = &eventHubAuthorizationRuleId
-		diagnosticSettings.EventHubName = &eventHubName
-	}
-
-	resource := insights.DiagnosticSettingsResource{
-		DiagnosticSettings: diagnosticSettings,
-	}
-
-	_, err = client.CreateOrUpdate(ctx, targetResourceId, resource, name)
+	_, err = client.CreateOrUpdate(ctx, targetResourceId, properties, name)
 	if err != nil {
 		return fmt.Errorf("Error creating Diagnostics Setting %q (Resource ID %q): %+v", name, targetResourceId, err)
 	}
@@ -210,15 +208,13 @@ func expandMetricsConfiguration(allMetricSettings, disabledSettings []interface{
 		}
 		retentionDays := int32(retentionDays)
 
-		retentionPolicy := insights.RetentionPolicy{
-			Days:    &retentionDays,
-			Enabled: &enabled,
-		}
-
 		metricSetting := insights.MetricSettings{
-			Category:        &settingAsString,
-			Enabled:         &enabled,
-			RetentionPolicy: &retentionPolicy,
+			Category: &settingAsString,
+			Enabled:  &enabled,
+			RetentionPolicy: &insights.RetentionPolicy{
+				Days:    &retentionDays,
+				Enabled: &enabled,
+			},
 		}
 		returnMetricsSettings = append(returnMetricsSettings, metricSetting)
 	}
@@ -236,15 +232,13 @@ func expandLogConfiguration(allLogSettings, disabledSettings []interface{}, rete
 		}
 		retentionDays := int32(retentionDays)
 
-		retentionPolicy := insights.RetentionPolicy{
-			Days:    &retentionDays,
-			Enabled: &enabled,
-		}
-
 		logSetting := insights.LogSettings{
-			Category:        &settingAsString,
-			Enabled:         &enabled,
-			RetentionPolicy: &retentionPolicy,
+			Category: &settingAsString,
+			Enabled:  &enabled,
+			RetentionPolicy: &insights.RetentionPolicy{
+				Days:    &retentionDays,
+				Enabled: &enabled,
+			},
 		}
 		returnLogSettings = append(returnLogSettings, logSetting)
 	}
