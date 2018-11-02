@@ -66,7 +66,7 @@ func TestAzureValidateBearerAuth(t *testing.T) {
 	}
 
 	for _, v := range cases {
-		err := v.Config.ValidateBearerAuth()
+		err := v.Config.validateAzureCliBearerAuth()
 
 		if v.ExpectError && err == nil {
 			t.Fatalf("Expected an error for %q: didn't get one", v.Description)
@@ -153,7 +153,7 @@ func TestAzureValidateServicePrincipal(t *testing.T) {
 	}
 
 	for _, v := range cases {
-		err := v.Config.ValidateServicePrincipal()
+		err := v.Config.validateServicePrincipal()
 
 		if v.ExpectError && err == nil {
 			t.Fatalf("Expected an error for %q: didn't get one", v.Description)
@@ -225,7 +225,7 @@ func TestAzureValidateMsi(t *testing.T) {
 	}
 
 	for _, v := range cases {
-		err := v.Config.ValidateMsi()
+		err := v.Config.validateMsi()
 
 		if v.ExpectError && err == nil {
 			t.Fatalf("Expected an error for %q: didn't get one", v.Description)
