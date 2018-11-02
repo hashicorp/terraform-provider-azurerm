@@ -99,7 +99,7 @@ func resourceArmRecoveryServicesProtectedVmCreateUpdate(d *schema.ResourceData, 
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, item); err != nil {
+	if _, err = client.CreateOrUpdate(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, item); err != nil {
 		return fmt.Errorf("Error creating/updating Recovery Service Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
 	}
 

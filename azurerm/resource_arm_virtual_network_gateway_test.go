@@ -208,7 +208,7 @@ func TestAccAzureRMVirtualNetworkGateway_vpnClientConfigOpenVPN(t *testing.T) {
 
 func testCheckAzureRMVirtualNetworkGatewayExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		name, resourceGroup, err := getArmResourceNameAndGroup(s, name)
+		gatewayName, resourceGroup, err := getArmResourceNameAndGroup(s, name)
 		if err != nil {
 			return err
 		}
@@ -216,13 +216,13 @@ func testCheckAzureRMVirtualNetworkGatewayExists(name string) resource.TestCheck
 		client := testAccProvider.Meta().(*ArmClient).vnetGatewayClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(ctx, resourceGroup, name)
+		resp, err := client.Get(ctx, resourceGroup, gatewayName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on vnetGatewayClient: %+v", err)
 		}
 
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Virtual Network Gateway %q (resource group: %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: Virtual Network Gateway %q (resource group: %q) does not exist", gatewayName, resourceGroup)
 		}
 
 		return nil

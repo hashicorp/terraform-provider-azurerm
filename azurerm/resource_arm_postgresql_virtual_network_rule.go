@@ -95,7 +95,7 @@ func resourceArmPostgreSQLVirtualNetworkRuleCreateUpdate(d *schema.ResourceData,
 		ContinuousTargetOccurence: 5,
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for PostgreSQL Virtual Network Rule %q (PostgreSQL Server: %q, Resource Group: %q) to be created or updated: %+v", name, serverName, resourceGroup, err)
 	}
 

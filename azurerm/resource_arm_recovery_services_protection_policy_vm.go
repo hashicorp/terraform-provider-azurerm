@@ -302,7 +302,7 @@ func resourceArmRecoveryServicesProtectionPolicyVmCreateUpdate(d *schema.Resourc
 			},
 		},
 	}
-	if _, err := client.CreateOrUpdate(ctx, vaultName, resourceGroup, policyName, policy); err != nil {
+	if _, err = client.CreateOrUpdate(ctx, vaultName, resourceGroup, policyName, policy); err != nil {
 		return fmt.Errorf("Error creating/updating Recovery Service Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
 	}
 

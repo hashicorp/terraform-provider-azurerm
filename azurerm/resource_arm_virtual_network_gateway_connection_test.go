@@ -122,7 +122,7 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_updatingSharedKey(t *testing.
 
 func testCheckAzureRMVirtualNetworkGatewayConnectionExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		name, resourceGroup, err := getArmResourceNameAndGroup(s, name)
+		connectionName, resourceGroup, err := getArmResourceNameAndGroup(s, name)
 		if err != nil {
 			return err
 		}
@@ -130,13 +130,13 @@ func testCheckAzureRMVirtualNetworkGatewayConnectionExists(name string) resource
 		client := testAccProvider.Meta().(*ArmClient).vnetGatewayConnectionsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(ctx, resourceGroup, name)
+		resp, err := client.Get(ctx, resourceGroup, connectionName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on vnetGatewayConnectionsClient: %+v", err)
 		}
 
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Virtual Network Gateway Connection %q (resource group: %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: Virtual Network Gateway Connection %q (resource group: %q) does not exist", connectionName, resourceGroup)
 		}
 
 		return nil
