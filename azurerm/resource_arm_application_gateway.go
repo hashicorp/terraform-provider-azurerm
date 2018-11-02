@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -840,7 +839,11 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `disabled_ssl_protocols`: %+v", err)
 		}
 
-		if err := d.Set("http_listener", flattenApplicationGatewayHTTPListeners(props.HTTPListeners)); err != nil {
+		httpListeners, err := flattenApplicationGatewayHTTPListeners(props.HTTPListeners)
+		if err != nil {
+			return fmt.Errorf("Error flattening `http_listener`: %+v", err)
+		}
+		if err := d.Set("http_listener", httpListeners); err != nil {
 			return fmt.Errorf("Error setting `http_listener`: %+v", err)
 		}
 
@@ -860,7 +863,11 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `probe`: %+v", err)
 		}
 
-		if err := d.Set("request_routing_rule", flattenApplicationGatewayRequestRoutingRules(props.RequestRoutingRules)); err != nil {
+		requestRoutingRules, err := flattenApplicationGatewayRequestRoutingRules(props.RequestRoutingRules)
+		if err != nil {
+			return fmt.Errorf("Error flattening `request_routing_rule`: %+v", err)
+		}
+		if err := d.Set("request_routing_rule", requestRoutingRules); err != nil {
 			return fmt.Errorf("Error setting `request_routing_rule`: %+v", err)
 		}
 
@@ -872,7 +879,11 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `ssl_certificate`: %+v", err)
 		}
 
-		if err := d.Set("url_path_map", flattenApplicationGatewayURLPathMaps(props.URLPathMaps)); err != nil {
+		urlPathMaps, err := flattenApplicationGatewayURLPathMaps(props.URLPathMaps)
+		if err != nil {
+			return fmt.Errorf("Error flattening `url_path_map`: %+v", err)
+		}
+		if err := d.Set("url_path_map", urlPathMaps); err != nil {
 			return fmt.Errorf("Error setting `url_path_map`: %+v", err)
 		}
 
@@ -1123,9 +1134,12 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 						continue
 					}
 
-					certId := *cert.ID
-					// TODO: confirm if there's a better way of doing this
-					name := strings.Split(certId, "/")[len(strings.Split(certId, "/"))-1]
+					certId, err := parseAzureResourceID(*cert.ID)
+					if err != nil {
+						return nil, err
+					}
+
+					name := certId.Path["authenticationCertificates"]
 					certificate := map[string]interface{}{
 						"id":   certId,
 						"name": name,
@@ -1227,10 +1241,10 @@ func expandApplicationGatewayHTTPListeners(d *schema.ResourceData, gatewayID str
 	return &results
 }
 
-func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayHTTPListener) []interface{} {
+func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayHTTPListener) ([]interface{}, error) {
 	results := make([]interface{}, 0)
 	if input == nil {
-		return results
+		return results, nil
 	}
 
 	for _, v := range *input {
@@ -1247,8 +1261,11 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 		if props := v.ApplicationGatewayHTTPListenerPropertiesFormat; props != nil {
 			if port := props.FrontendPort; port != nil {
 				if port.ID != nil {
-					portId := *port.ID
-					portName := strings.Split(portId, "/")[len(strings.Split(portId, "/"))-1]
+					portId, err := parseAzureResourceID(*port.ID)
+					if err != nil {
+						return nil, err
+					}
+					portName := portId.Path["frontendPorts"]
 					output["frontend_port_name"] = portName
 					output["frontend_port_id"] = portId
 				}
@@ -1256,8 +1273,11 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 
 			if feConfig := props.FrontendIPConfiguration; feConfig != nil {
 				if feConfig.ID != nil {
-					feConfigId := *feConfig.ID
-					frontendName := strings.Split(feConfigId, "/")[len(strings.Split(feConfigId, "/"))-1]
+					feConfigId, err := parseAzureResourceID(*feConfig.ID)
+					if err != nil {
+						return nil, err
+					}
+					frontendName := feConfigId.Path["frontendIPConfigurations"]
 					output["frontend_ip_configuration_name"] = frontendName
 					output["frontend_ip_configuration_id"] = feConfigId
 				}
@@ -1271,8 +1291,11 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 
 			if cert := props.SslCertificate; cert != nil {
 				if cert.ID != nil {
-					certId := *cert.ID
-					sslCertName := strings.Split(certId, "/")[len(strings.Split(certId, "/"))-1]
+					certId, err := parseAzureResourceID(*cert.ID)
+					if err != nil {
+						return nil, err
+					}
+					sslCertName := certId.Path["sslCertificates"]
 
 					output["ssl_certificate_name"] = sslCertName
 					output["ssl_certificate_id"] = certId
@@ -1287,7 +1310,7 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 		results = append(results, output)
 	}
 
-	return results
+	return results, nil
 }
 
 func expandApplicationGatewayIPConfigurations(d *schema.ResourceData) *[]network.ApplicationGatewayIPConfiguration {
@@ -1644,10 +1667,10 @@ func expandApplicationGatewayRequestRoutingRules(d *schema.ResourceData, gateway
 	return &results
 }
 
-func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGatewayRequestRoutingRule) []interface{} {
+func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGatewayRequestRoutingRule) ([]interface{}, error) {
 	results := make([]interface{}, 0)
 	if input == nil {
-		return results
+		return results, nil
 	}
 
 	for _, config := range *input {
@@ -1667,8 +1690,11 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 
 			if pool := props.BackendAddressPool; pool != nil {
 				if pool.ID != nil {
-					poolId := *pool.ID
-					backendAddressPoolName := strings.Split(poolId, "/")[len(strings.Split(poolId, "/"))-1]
+					poolId, err := parseAzureResourceID(*pool.ID)
+					if err != nil {
+						return nil, err
+					}
+					backendAddressPoolName := poolId.Path["backendAddressPools"]
 					output["backend_address_pool_name"] = backendAddressPoolName
 					output["backend_address_pool_id"] = poolId
 				}
@@ -1676,8 +1702,11 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 
 			if settings := props.BackendHTTPSettings; settings != nil {
 				if settings.ID != nil {
-					settingsId := *settings.ID
-					backendHTTPSettingsName := strings.Split(settingsId, "/")[len(strings.Split(settingsId, "/"))-1]
+					settingsId, err := parseAzureResourceID(*settings.ID)
+					if err != nil {
+						return nil, err
+					}
+					backendHTTPSettingsName := settingsId.Path["backendHttpSettingsCollection"]
 					output["backend_http_settings_name"] = backendHTTPSettingsName
 					output["backend_http_settings_id"] = settingsId
 				}
@@ -1685,8 +1714,11 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 
 			if listener := props.HTTPListener; listener != nil {
 				if listener.ID != nil {
-					listenerId := *listener.ID
-					httpListenerName := strings.Split(listenerId, "/")[len(strings.Split(listenerId, "/"))-1]
+					listenerId, err := parseAzureResourceID(*listener.ID)
+					if err != nil {
+						return nil, err
+					}
+					httpListenerName := listenerId.Path["httpListeners"]
 					output["http_listener_id"] = listenerId
 					output["http_listener_name"] = httpListenerName
 				}
@@ -1694,8 +1726,11 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 
 			if pathMap := props.URLPathMap; pathMap != nil {
 				if pathMap.ID != nil {
-					pathMapId := *pathMap.ID
-					urlPathMapName := strings.Split(pathMapId, "/")[len(strings.Split(pathMapId, "/"))-1]
+					pathMapId, err := parseAzureResourceID(*pathMap.ID)
+					if err != nil {
+						return nil, err
+					}
+					urlPathMapName := pathMapId.Path["urlPathMaps"]
 					output["url_path_map_name"] = urlPathMapName
 					output["url_path_map_id"] = pathMapId
 				}
@@ -1705,7 +1740,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 		}
 	}
 
-	return results
+	return results, nil
 }
 
 func expandApplicationGatewaySku(d *schema.ResourceData) *network.ApplicationGatewaySku {
@@ -1860,10 +1895,10 @@ func expandApplicationGatewayURLPathMaps(d *schema.ResourceData, gatewayID strin
 	return &results
 }
 
-func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURLPathMap) []interface{} {
+func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURLPathMap) ([]interface{}, error) {
 	results := make([]interface{}, 0)
 	if input == nil {
-		return results
+		return results, nil
 	}
 
 	for _, v := range *input {
@@ -1879,15 +1914,21 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 
 		if props := v.ApplicationGatewayURLPathMapPropertiesFormat; props != nil {
 			if backendPool := props.DefaultBackendAddressPool; backendPool != nil && backendPool.ID != nil {
-				poolId := *backendPool.ID
-				backendAddressPoolName := strings.Split(poolId, "/")[len(strings.Split(poolId, "/"))-1]
+				poolId, err := parseAzureResourceID(*backendPool.ID)
+				if err != nil {
+					return nil, err
+				}
+				backendAddressPoolName := poolId.Path["backendAddressPools"]
 				output["default_backend_address_pool_name"] = backendAddressPoolName
 				output["default_backend_address_pool_id"] = poolId
 			}
 
 			if settings := props.DefaultBackendHTTPSettings; settings != nil && settings.ID != nil {
-				settingsId := *settings.ID
-				backendHTTPSettingsName := strings.Split(settingsId, "/")[len(strings.Split(settingsId, "/"))-1]
+				settingsId, err := parseAzureResourceID(*settings.ID)
+				if err != nil {
+					return nil, err
+				}
+				backendHTTPSettingsName := settingsId.Path["backendHttpSettingsCollection"]
 				output["default_backend_http_settings_name"] = backendHTTPSettingsName
 				output["default_backend_http_settings_id"] = settingsId
 			}
@@ -1907,15 +1948,21 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 
 					if ruleProps := rule.ApplicationGatewayPathRulePropertiesFormat; props != nil {
 						if pool := ruleProps.BackendAddressPool; pool != nil && pool.ID != nil {
-							poolId := *pool.ID
-							backendAddressPoolName2 := strings.Split(poolId, "/")[len(strings.Split(poolId, "/"))-1]
+							poolId, err := parseAzureResourceID(*pool.ID)
+							if err != nil {
+								return nil, err
+							}
+							backendAddressPoolName2 := poolId.Path["backendAddressPools"]
 							ruleOutput["backend_address_pool_name"] = backendAddressPoolName2
 							ruleOutput["backend_address_pool_id"] = poolId
 						}
 
 						if backend := ruleProps.BackendHTTPSettings; backend != nil && backend.ID != nil {
-							backendId := *backend.ID
-							backendHTTPSettingsName2 := strings.Split(backendId, "/")[len(strings.Split(backendId, "/"))-1]
+							backendId, err := parseAzureResourceID(*backend.ID)
+							if err != nil {
+								return nil, err
+							}
+							backendHTTPSettingsName2 := backendId.Path["backendHttpSettingsCollection"]
 							ruleOutput["backend_http_settings_name"] = backendHTTPSettingsName2
 							ruleOutput["backend_http_settings_id"] = backendId
 						}
@@ -1938,7 +1985,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 		results = append(results, output)
 	}
 
-	return results
+	return results, nil
 }
 
 func expandApplicationGatewayWafConfig(d *schema.ResourceData) *network.ApplicationGatewayWebApplicationFirewallConfiguration {
