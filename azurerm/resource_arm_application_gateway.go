@@ -1146,7 +1146,7 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 
 					name := certId.Path["authenticationCertificates"]
 					certificate := map[string]interface{}{
-						"id":   certId,
+						"id":   *cert.ID,
 						"name": name,
 					}
 					authenticationCertificates = append(authenticationCertificates, certificate)
@@ -1272,7 +1272,7 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 					}
 					portName := portId.Path["frontendPorts"]
 					output["frontend_port_name"] = portName
-					output["frontend_port_id"] = portId
+					output["frontend_port_id"] = *port.ID
 				}
 			}
 
@@ -1284,7 +1284,7 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 					}
 					frontendName := feConfigId.Path["frontendIPConfigurations"]
 					output["frontend_ip_configuration_name"] = frontendName
-					output["frontend_ip_configuration_id"] = feConfigId
+					output["frontend_ip_configuration_id"] = *feConfig.ID
 				}
 			}
 
@@ -1303,7 +1303,7 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 					sslCertName := certId.Path["sslCertificates"]
 
 					output["ssl_certificate_name"] = sslCertName
-					output["ssl_certificate_id"] = certId
+					output["ssl_certificate_id"] = *cert.ID
 				}
 			}
 
@@ -1701,7 +1701,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 					}
 					backendAddressPoolName := poolId.Path["backendAddressPools"]
 					output["backend_address_pool_name"] = backendAddressPoolName
-					output["backend_address_pool_id"] = poolId
+					output["backend_address_pool_id"] = *pool.ID
 				}
 			}
 
@@ -1713,7 +1713,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 					}
 					backendHTTPSettingsName := settingsId.Path["backendHttpSettingsCollection"]
 					output["backend_http_settings_name"] = backendHTTPSettingsName
-					output["backend_http_settings_id"] = settingsId
+					output["backend_http_settings_id"] = *settings.ID
 				}
 			}
 
@@ -1724,7 +1724,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 						return nil, err
 					}
 					httpListenerName := listenerId.Path["httpListeners"]
-					output["http_listener_id"] = listenerId
+					output["http_listener_id"] = *listener.ID
 					output["http_listener_name"] = httpListenerName
 				}
 			}
@@ -1737,7 +1737,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 					}
 					urlPathMapName := pathMapId.Path["urlPathMaps"]
 					output["url_path_map_name"] = urlPathMapName
-					output["url_path_map_id"] = pathMapId
+					output["url_path_map_id"] = *pathMap.ID
 				}
 			}
 
@@ -1925,7 +1925,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 				}
 				backendAddressPoolName := poolId.Path["backendAddressPools"]
 				output["default_backend_address_pool_name"] = backendAddressPoolName
-				output["default_backend_address_pool_id"] = poolId
+				output["default_backend_address_pool_id"] = *backendPool.ID
 			}
 
 			if settings := props.DefaultBackendHTTPSettings; settings != nil && settings.ID != nil {
@@ -1935,7 +1935,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 				}
 				backendHTTPSettingsName := settingsId.Path["backendHttpSettingsCollection"]
 				output["default_backend_http_settings_name"] = backendHTTPSettingsName
-				output["default_backend_http_settings_id"] = settingsId
+				output["default_backend_http_settings_id"] = *settings.ID
 			}
 
 			pathRules := make([]interface{}, 0)
@@ -1959,7 +1959,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 							}
 							backendAddressPoolName2 := poolId.Path["backendAddressPools"]
 							ruleOutput["backend_address_pool_name"] = backendAddressPoolName2
-							ruleOutput["backend_address_pool_id"] = poolId
+							ruleOutput["backend_address_pool_id"] = *pool.ID
 						}
 
 						if backend := ruleProps.BackendHTTPSettings; backend != nil && backend.ID != nil {
@@ -1969,7 +1969,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 							}
 							backendHTTPSettingsName2 := backendId.Path["backendHttpSettingsCollection"]
 							ruleOutput["backend_http_settings_name"] = backendHTTPSettingsName2
-							ruleOutput["backend_http_settings_id"] = backendId
+							ruleOutput["backend_http_settings_id"] = *backend.ID
 						}
 
 						pathOutputs := make([]interface{}, 0)
