@@ -187,7 +187,7 @@ func validateDatabricksWorkspaceName(v interface{}, k string) (ws []string, erro
 	}
 
 	// Cannot be more than 128 characters
-	if len(value) > 30 {
+	if len(value) > 128 {
 		errors = append(errors, fmt.Errorf(
 			"%q cannot be longer than 128 characters: %q", k, value))
 	}
