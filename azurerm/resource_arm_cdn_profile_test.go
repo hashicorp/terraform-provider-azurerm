@@ -62,6 +62,7 @@ func testSweepCDNProfiles(region string) error {
 }
 
 func TestAccAzureRMCdnProfile_basic(t *testing.T) {
+	resourceName := "azurerm_cdn_profile.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMCdnProfile_basic(ri, testLocation())
 
@@ -73,8 +74,13 @@ func TestAccAzureRMCdnProfile_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnProfileExists("azurerm_cdn_profile.test"),
+					testCheckAzureRMCdnProfileExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -101,7 +107,11 @@ func TestAccAzureRMCdnProfile_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.cost_center", "MSFT"),
 				),
 			},
-
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
@@ -109,6 +119,11 @@ func TestAccAzureRMCdnProfile_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "staging"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -184,6 +199,11 @@ func TestAccAzureRMCdnProfile_standardAkamai(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "sku", "Standard_Akamai"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -204,6 +224,11 @@ func TestAccAzureRMCdnProfile_standardMicrosoft(t *testing.T) {
 					testCheckAzureRMCdnProfileExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku", "Standard_Microsoft"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
