@@ -7,7 +7,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -63,7 +65,8 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Optional: true,
 							MinItems: 1,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:         schema.TypeString,
+								ValidateFunc: validate.IPv4Address,
 							},
 						},
 
@@ -87,8 +90,9 @@ func resourceArmApplicationGateway() *schema.Resource {
 						},
 
 						"port": {
-							Type:     schema.TypeInt,
-							Required: true,
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validate.PortNumber,
 						},
 
 						"protocol": {
@@ -112,9 +116,9 @@ func resourceArmApplicationGateway() *schema.Resource {
 						},
 
 						"request_timeout": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							// TODO: validation 1-86400 seconds
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 86400),
 						},
 
 						"authentication_certificate": {
@@ -212,8 +216,9 @@ func resourceArmApplicationGateway() *schema.Resource {
 						},
 
 						"port": {
-							Type:     schema.TypeInt,
-							Required: true,
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validate.PortNumber,
 						},
 
 						"id": {
@@ -235,8 +240,9 @@ func resourceArmApplicationGateway() *schema.Resource {
 						},
 
 						"subnet_id": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 
 						"id": {
