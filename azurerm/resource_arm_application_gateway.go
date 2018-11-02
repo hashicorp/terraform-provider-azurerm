@@ -716,7 +716,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	client := armClient.applicationGatewayClient
 	ctx := armClient.StopContext
 
-	log.Printf("[INFO] preparing arguments for AzureRM ApplicationGateway creation.")
+	log.Printf("[INFO] preparing arguments for Application Gateway creation.")
 
 	name := d.Get("name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
@@ -742,7 +742,6 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	urlPathMaps := expandApplicationGatewayURLPathMaps(d, gatewayID)
 
 	gateway := network.ApplicationGateway{
-		Name:     utils.String(name),
 		Location: utils.String(location),
 		Tags:     expandTags(tags),
 		ApplicationGatewayPropertiesFormat: &network.ApplicationGatewayPropertiesFormat{
