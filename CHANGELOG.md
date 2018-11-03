@@ -1,4 +1,9 @@
 ## 1.19.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_cosmosdb_account` - the `ip_range_filter` range filter now allows /32 ip addresses  [GH-2222]
+
 ## 1.18.0 (November 02, 2018)
 
 FEATURES:
