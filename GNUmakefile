@@ -35,11 +35,11 @@ fmtcheck:
 
 goimport:
 	@echo "==> Fixing imports code with goimports..."
-	goimports -w azurerm/
+	goimports -w $(PKG_NAME)/
 
 lint:
 	@echo "==> Checking source code against linters..."
-	@gometalinter ./$(PKG_NAME)/...
+	@gometalinter ./...
 
 tools:
 	@echo "==> installing required tooling..."
