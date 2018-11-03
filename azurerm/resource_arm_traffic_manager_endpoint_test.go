@@ -31,6 +31,11 @@ func TestAccAzureRMTrafficManagerEndpoint_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(externalResourceName, "endpoint_status", "Enabled"),
 				),
 			},
+			{
+				ResourceName:      externalResourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

@@ -29,6 +29,11 @@ func TestAccAzureRMKeyVaultAccessPolicy_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "secret_permissions.1", "set"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -63,6 +68,16 @@ func TestAccAzureRMKeyVaultAccessPolicy_multiple(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName2, "certificate_permissions.0", "list"),
 					resource.TestCheckResourceAttr(resourceName2, "certificate_permissions.1", "delete"),
 				),
+			},
+			{
+				ResourceName:      resourceName1,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      resourceName2,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

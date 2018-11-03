@@ -31,6 +31,12 @@ func TestAccAzureRMVirtualMachineExtension_basic(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"protected_settings"},
+			},
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExtensionExists(resourceName),

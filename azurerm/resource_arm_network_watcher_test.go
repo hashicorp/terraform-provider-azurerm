@@ -17,15 +17,12 @@ func TestAccAzureRMNetworkWatcher(t *testing.T) {
 	// (which our test suite can't easily workaround)
 	testCases := map[string]map[string]func(t *testing.T){
 		"basic": {
-			"basic":          testAccAzureRMNetworkWatcher_basic,
-			"complete":       testAccAzureRMNetworkWatcher_complete,
-			"update":         testAccAzureRMNetworkWatcher_update,
-			"disappears":     testAccAzureRMNetworkWatcher_disappears,
-			"importBasic":    testAccAzureRMNetworkWatcher_importBasic,
-			"importComplete": testAccAzureRMNetworkWatcher_importComplete,
+			"basic":      testAccAzureRMNetworkWatcher_basic,
+			"complete":   testAccAzureRMNetworkWatcher_complete,
+			"update":     testAccAzureRMNetworkWatcher_update,
+			"disappears": testAccAzureRMNetworkWatcher_disappears,
 		},
 		"PacketCapture": {
-			"import":                     testAccAzureRMPacketCapture_importBasic,
 			"localDisk":                  testAccAzureRMPacketCapture_localDisk,
 			"storageAccount":             testAccAzureRMPacketCapture_storageAccount,
 			"storageAccountAndLocalDisk": testAccAzureRMPacketCapture_storageAccountAndLocalDisk,
@@ -47,7 +44,7 @@ func TestAccAzureRMNetworkWatcher(t *testing.T) {
 }
 
 func testAccAzureRMNetworkWatcher_basic(t *testing.T) {
-	resourceGroup := "azurerm_network_watcher.test"
+	resourceName := "azurerm_network_watcher.test"
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -57,15 +54,20 @@ func testAccAzureRMNetworkWatcher_basic(t *testing.T) {
 			{
 				Config: testAccAzureRMNetworkWatcher_basicConfig(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherExists(resourceGroup),
+					testCheckAzureRMNetworkWatcherExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func testAccAzureRMNetworkWatcher_complete(t *testing.T) {
-	resourceGroup := "azurerm_network_watcher.test"
+	resourceName := "azurerm_network_watcher.test"
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -75,15 +77,20 @@ func testAccAzureRMNetworkWatcher_complete(t *testing.T) {
 			{
 				Config: testAccAzureRMNetworkWatcher_completeConfig(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherExists(resourceGroup),
+					testCheckAzureRMNetworkWatcherExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func testAccAzureRMNetworkWatcher_update(t *testing.T) {
-	resourceGroup := "azurerm_network_watcher.test"
+	resourceName := "azurerm_network_watcher.test"
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -93,13 +100,13 @@ func testAccAzureRMNetworkWatcher_update(t *testing.T) {
 			{
 				Config: testAccAzureRMNetworkWatcher_basicConfig(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherExists(resourceGroup),
+					testCheckAzureRMNetworkWatcherExists(resourceName),
 				),
 			},
 			{
 				Config: testAccAzureRMNetworkWatcher_completeConfig(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherExists(resourceGroup),
+					testCheckAzureRMNetworkWatcherExists(resourceName),
 				),
 			},
 		},
@@ -107,7 +114,7 @@ func testAccAzureRMNetworkWatcher_update(t *testing.T) {
 }
 
 func testAccAzureRMNetworkWatcher_disappears(t *testing.T) {
-	resourceGroup := "azurerm_network_watcher.test"
+	resourceName := "azurerm_network_watcher.test"
 	rInt := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
@@ -118,8 +125,8 @@ func testAccAzureRMNetworkWatcher_disappears(t *testing.T) {
 			{
 				Config: testAccAzureRMNetworkWatcher_basicConfig(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherExists(resourceGroup),
-					testCheckAzureRMNetworkWatcherDisappears(resourceGroup),
+					testCheckAzureRMNetworkWatcherExists(resourceName),
+					testCheckAzureRMNetworkWatcherDisappears(resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},

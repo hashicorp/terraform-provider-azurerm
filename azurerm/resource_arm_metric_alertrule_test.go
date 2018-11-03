@@ -92,6 +92,15 @@ func TestAccAzureRMMetricAlertRule_virtualMachineCpu(t *testing.T) {
 					resource.TestCheckNoResourceAttr(resourceName, "tags.$type"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMetricAlertRuleExists(resourceName),
+					resource.TestCheckNoResourceAttr(resourceName, "tags.$type"),
+				),
+			},
 		},
 	})
 }

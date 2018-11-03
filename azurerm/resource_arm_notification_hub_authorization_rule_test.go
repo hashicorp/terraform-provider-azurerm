@@ -32,6 +32,11 @@ func TestAccAzureRMNotificationHubAuthorizationRule_listen(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -58,6 +63,11 @@ func TestAccAzureRMNotificationHubAuthorizationRule_manage(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -83,6 +93,11 @@ func TestAccAzureRMNotificationHubAuthorizationRule_send(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "primary_access_key"),
 					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

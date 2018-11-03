@@ -27,6 +27,11 @@ func TestAccAzureRMPolicyAssignment_basic(t *testing.T) {
 					testCheckAzureRMPolicyAssignmentExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -47,6 +52,11 @@ func TestAccAzureRMPolicyAssignment_complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPolicyAssignmentExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

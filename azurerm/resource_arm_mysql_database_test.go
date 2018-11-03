@@ -26,6 +26,11 @@ func TestAccAzureRMMySQLDatabase_basic(t *testing.T) {
 					testCheckAzureRMMySQLDatabaseExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -47,6 +52,11 @@ func TestAccAzureRMMySQLDatabase_charsetUppercase(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "charset", "utf8"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -67,6 +77,11 @@ func TestAccAzureRMMySQLDatabase_charsetMixedcase(t *testing.T) {
 					testCheckAzureRMMySQLDatabaseExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "charset", "utf8"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

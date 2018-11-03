@@ -27,6 +27,11 @@ func TestAccAzureRMLogicAppWorkflow_empty(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -49,6 +54,11 @@ func TestAccAzureRMLogicAppWorkflow_tags(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: testAccAzureRMLogicAppWorkflow_tags(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogicAppWorkflowExists(resourceName),
@@ -56,6 +66,11 @@ func TestAccAzureRMLogicAppWorkflow_tags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Source", "AcceptanceTests"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

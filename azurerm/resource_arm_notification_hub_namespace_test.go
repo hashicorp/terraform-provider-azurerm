@@ -27,6 +27,11 @@ func TestAccAzureRMNotificationHubNamespace_free(t *testing.T) {
 					testCheckAzureRMNotificationHubNamespaceExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

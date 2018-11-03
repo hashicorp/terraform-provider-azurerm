@@ -96,6 +96,11 @@ func TestAccAzureRMVirtualNetwork_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "subnet.1472110187.id"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
