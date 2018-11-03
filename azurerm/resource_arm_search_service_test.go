@@ -27,6 +27,11 @@ func TestAccAzureRMSearchService_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -50,6 +55,11 @@ func TestAccAzureRMSearchService_complete(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "primary_key"),
 					resource.TestCheckResourceAttrSet(resourceName, "secondary_key"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

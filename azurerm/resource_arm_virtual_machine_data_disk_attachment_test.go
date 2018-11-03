@@ -31,6 +31,11 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "caching", "None"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -61,6 +66,16 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(t *testing.T) 
 					resource.TestCheckResourceAttr(secondResourceName, "lun", "20"),
 					resource.TestCheckResourceAttr(secondResourceName, "caching", "ReadOnly"),
 				),
+			},
+			{
+				ResourceName:      firstResourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      secondResourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

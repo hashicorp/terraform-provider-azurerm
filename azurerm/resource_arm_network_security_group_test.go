@@ -25,6 +25,11 @@ func TestAccAzureRMNetworkSecurityGroup_basic(t *testing.T) {
 					testCheckAzureRMNetworkSecurityGroupExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -42,6 +47,11 @@ func TestAccAzureRMNetworkSecurityGroup_singleRule(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkSecurityGroupExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -109,7 +119,11 @@ func TestAccAzureRMNetworkSecurityGroup_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.cost_center", "MSFT"),
 				),
 			},
-
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 			{
 				Config: testAccAzureRMNetworkSecurityGroup_withTagsUpdate(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
@@ -117,6 +131,11 @@ func TestAccAzureRMNetworkSecurityGroup_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "staging"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -164,6 +183,11 @@ func TestAccAzureRMNetworkSecurityGroup_augmented(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "security_rule.#", "1"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -182,6 +206,11 @@ func TestAccAzureRMNetworkSecurityGroup_applicationSecurityGroup(t *testing.T) {
 					testCheckAzureRMNetworkSecurityGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "security_rule.#", "1"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

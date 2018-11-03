@@ -31,6 +31,11 @@ func TestAccAzureRMUserAssignedIdentity_basic(t *testing.T) {
 					resource.TestMatchResourceAttr(resourceName, "client_id", regexp.MustCompile(generatedUuidRegex)),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

@@ -31,6 +31,11 @@ func TestAccAzureRMVirtualNetworkPeering_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(secondResourceName, "allow_virtual_network_access", "true"),
 				),
 			},
+			{
+				ResourceName:      firstResourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

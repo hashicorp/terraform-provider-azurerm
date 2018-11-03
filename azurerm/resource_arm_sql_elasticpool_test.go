@@ -11,6 +11,7 @@ import (
 )
 
 func TestAccAzureRMSqlElasticPool_basic(t *testing.T) {
+	resourceName := "azurerm_sql_elasticpool.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMSqlElasticPool_basic(ri, testLocation())
 
@@ -22,8 +23,13 @@ func TestAccAzureRMSqlElasticPool_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlElasticPoolExists("azurerm_sql_elasticpool.test"),
+					testCheckAzureRMSqlElasticPoolExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

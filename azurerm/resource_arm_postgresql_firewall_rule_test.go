@@ -28,6 +28,11 @@ func TestAccAzureRMPostgreSQLFirewallRule_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "end_ip_address", "255.255.255.255"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

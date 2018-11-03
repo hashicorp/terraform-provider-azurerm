@@ -37,6 +37,11 @@ func TestAccAzureRMTrafficManagerProfile_geographic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "traffic_routing_method", "Geographic"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -63,6 +68,11 @@ func TestAccAzureRMTrafficManagerProfile_weighted(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "traffic_routing_method", "Weighted"),
 					resource.TestCheckResourceAttr(resourceName, "fqdn", fqdn),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -91,6 +101,11 @@ func TestAccAzureRMTrafficManagerProfile_weightedTCP(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "fqdn", fqdn),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -118,6 +133,11 @@ func TestAccAzureRMTrafficManagerProfile_performance(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "fqdn", fqdn),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -144,6 +164,11 @@ func TestAccAzureRMTrafficManagerProfile_priority(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "traffic_routing_method", "Priority"),
 					resource.TestCheckResourceAttr(resourceName, "fqdn", fqdn),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -176,6 +201,11 @@ func TestAccAzureRMTrafficManagerProfile_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "staging"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

@@ -11,6 +11,7 @@ import (
 )
 
 func TestAccAzureRMMySQLConfiguration_characterSetServer(t *testing.T) {
+	resourceName := "azurerm_mysql_configuration.test"
 	ri := acctest.RandInt()
 	location := testLocation()
 	config := testAccAzureRMMySQLConfiguration_characterSetServer(ri, location)
@@ -24,8 +25,13 @@ func TestAccAzureRMMySQLConfiguration_characterSetServer(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLConfigurationValue("azurerm_mysql_configuration.test", "hebrew"),
+					testCheckAzureRMMySQLConfigurationValue(resourceName, "hebrew"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: serverOnlyConfig,
@@ -39,6 +45,7 @@ func TestAccAzureRMMySQLConfiguration_characterSetServer(t *testing.T) {
 }
 
 func TestAccAzureRMMySQLConfiguration_interactiveTimeout(t *testing.T) {
+	resourceName := "azurerm_mysql_configuration.test"
 	ri := acctest.RandInt()
 	location := testLocation()
 	config := testAccAzureRMMySQLConfiguration_interactiveTimeout(ri, location)
@@ -52,8 +59,13 @@ func TestAccAzureRMMySQLConfiguration_interactiveTimeout(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLConfigurationValue("azurerm_mysql_configuration.test", "30"),
+					testCheckAzureRMMySQLConfigurationValue(resourceName, "30"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: serverOnlyConfig,
@@ -83,6 +95,11 @@ func TestAccAzureRMMySQLConfiguration_logSlowAdminStatements(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLConfigurationValue(resourceName, "on"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: serverOnlyConfig,

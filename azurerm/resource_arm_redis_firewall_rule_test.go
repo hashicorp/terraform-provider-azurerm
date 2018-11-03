@@ -67,6 +67,11 @@ func TestAccAzureRMRedisFirewallRule_basic(t *testing.T) {
 					testCheckAzureRMRedisFirewallRuleExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

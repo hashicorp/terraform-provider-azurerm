@@ -26,6 +26,12 @@ func TestAccAzureRMKeyVaultKey_basicEC(t *testing.T) {
 					testCheckAzureRMKeyVaultKeyExists(resourceName),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"key_size"},
+			},
 		},
 	})
 }
@@ -46,6 +52,12 @@ func TestAccAzureRMKeyVaultKey_basicRSA(t *testing.T) {
 					testCheckAzureRMKeyVaultKeyExists(resourceName),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"key_size"},
+			},
 		},
 	})
 }
@@ -65,6 +77,12 @@ func TestAccAzureRMKeyVaultKey_basicRSAHSM(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultKeyExists(resourceName),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"key_size"},
 			},
 		},
 	})
@@ -87,6 +105,12 @@ func TestAccAzureRMKeyVaultKey_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.hello", "world"),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"key_size"},
 			},
 		},
 	})
