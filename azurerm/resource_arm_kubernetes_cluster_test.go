@@ -94,6 +94,11 @@ func TestAccAzureRMKubernetesCluster_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "agent_pool_profile.0.max_pods"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -123,6 +128,11 @@ func TestAccAzureRMKubernetesCluster_linuxProfile(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "agent_pool_profile.0.max_pods"),
 					resource.TestCheckResourceAttrSet(resourceName, "linux_profile.0.admin_username"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

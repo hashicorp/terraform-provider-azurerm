@@ -27,6 +27,11 @@ func TestAccAzureRMDnsCaaRecord_basic(t *testing.T) {
 					testCheckAzureRMDnsCaaRecordExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -86,6 +91,11 @@ func TestAccAzureRMDnsCaaRecord_withTags(t *testing.T) {
 					testCheckAzureRMDnsCaaRecordExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

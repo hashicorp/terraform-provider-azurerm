@@ -12,6 +12,7 @@ import (
 )
 
 func TestAccAzureRMDnsPtrRecord_basic(t *testing.T) {
+	resourceName := "azurerm_dns_ptr_record.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMDnsPtrRecord_basic(ri, testLocation())
 
@@ -23,8 +24,13 @@ func TestAccAzureRMDnsPtrRecord_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsPtrRecordExists("azurerm_dns_ptr_record.test"),
+					testCheckAzureRMDnsPtrRecordExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -61,6 +67,7 @@ func TestAccAzureRMDnsPtrRecord_updateRecords(t *testing.T) {
 }
 
 func TestAccAzureRMDnsPtrRecord_withTags(t *testing.T) {
+	resourceName := "azurerm_dns_ptr_record.test"
 	ri := acctest.RandInt()
 	location := testLocation()
 	preConfig := testAccAzureRMDnsPtrRecord_withTags(ri, location)
@@ -74,18 +81,22 @@ func TestAccAzureRMDnsPtrRecord_withTags(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsPtrRecordExists("azurerm_dns_ptr_record.test"),
-					resource.TestCheckResourceAttr("azurerm_dns_ptr_record.test", "tags.%", "2"),
+					testCheckAzureRMDnsPtrRecordExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 				),
 			},
 
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsPtrRecordExists("azurerm_dns_ptr_record.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_dns_ptr_record.test", "tags.%", "1"),
+					testCheckAzureRMDnsPtrRecordExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

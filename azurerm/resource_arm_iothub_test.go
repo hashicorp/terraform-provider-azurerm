@@ -11,6 +11,7 @@ import (
 )
 
 func TestAccAzureRMIotHub_basic(t *testing.T) {
+	resourceName := "azurerm_iothub.test"
 	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -21,14 +22,19 @@ func TestAccAzureRMIotHub_basic(t *testing.T) {
 			{
 				Config: testAccAzureRMIotHub_basic(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubExists("azurerm_iothub.test"),
+					testCheckAzureRMIotHubExists(resourceName),
 				),
+			}, {
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func TestAccAzureRMIotHub_standard(t *testing.T) {
+	resourceName := "azurerm_iothub.test"
 	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -39,14 +45,20 @@ func TestAccAzureRMIotHub_standard(t *testing.T) {
 			{
 				Config: testAccAzureRMIotHub_standard(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubExists("azurerm_iothub.test"),
+					testCheckAzureRMIotHubExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func TestAccAzureRMIotHub_customRoutes(t *testing.T) {
+	resourceName := "azurerm_iothub.test"
 	rInt := acctest.RandInt()
 	rStr := acctest.RandString(5)
 
@@ -58,8 +70,13 @@ func TestAccAzureRMIotHub_customRoutes(t *testing.T) {
 			{
 				Config: testAccAzureRMIotHub_customRoutes(rInt, rStr, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubExists("azurerm_iothub.test"),
+					testCheckAzureRMIotHubExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

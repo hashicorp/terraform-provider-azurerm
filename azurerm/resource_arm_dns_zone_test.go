@@ -26,6 +26,11 @@ func TestAccAzureRMDnsZone_basic(t *testing.T) {
 					testCheckAzureRMDnsZoneExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -45,6 +50,11 @@ func TestAccAzureRMDnsZone_withVNets(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsZoneExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -75,6 +85,11 @@ func TestAccAzureRMDnsZone_withTags(t *testing.T) {
 					testCheckAzureRMDnsZoneExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

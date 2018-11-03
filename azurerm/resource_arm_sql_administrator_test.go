@@ -29,6 +29,11 @@ func TestAccAzureRMSqlAdministrator_basic(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlAdministratorExists(resourceName),

@@ -27,6 +27,11 @@ func TestAccAzureRMServiceBusTopic_basic(t *testing.T) {
 					testCheckAzureRMServiceBusTopicExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -46,6 +51,11 @@ func TestAccAzureRMServiceBusTopic_basicDisabled(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusTopicExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -140,6 +150,11 @@ func TestAccAzureRMServiceBusTopic_enablePartitioningStandard(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "max_size_in_megabytes", "5120"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -169,6 +184,11 @@ func TestAccAzureRMServiceBusTopic_enablePartitioningPremium(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "max_size_in_megabytes", "81920"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -197,6 +217,11 @@ func TestAccAzureRMServiceBusTopic_enableDuplicateDetection(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "requires_duplicate_detection", "true"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -220,6 +245,11 @@ func TestAccAzureRMServiceBusTopic_isoTimeSpanAttributes(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "requires_duplicate_detection", "true"),
 					resource.TestCheckResourceAttr(resourceName, "duplicate_detection_history_time_window", "PT15M"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

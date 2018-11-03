@@ -29,6 +29,14 @@ func TestAccAzureRMPostgreSQLServer_basicNinePointFive(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "ssl_enforcement", "Enabled"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"administrator_login_password", // not returned as sensitive
+				},
+			},
 		},
 	})
 }
@@ -52,6 +60,14 @@ func TestAccAzureRMPostgreSQLServer_basicNinePointSix(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "ssl_enforcement", "Enabled"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"administrator_login_password", // not returned as sensitive
+				},
+			},
 		},
 	})
 }
@@ -73,6 +89,14 @@ func TestAccAzureRMPostgreSQLServer_basicTenPointZero(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "version", "10.0"),
 					resource.TestCheckResourceAttr(resourceName, "ssl_enforcement", "Enabled"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"administrator_login_password", // not returned as sensitive
+				},
 			},
 		},
 	})
@@ -97,6 +121,14 @@ func TestAccAzureRMPostgreSQLServer_basicMaxStorage(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "ssl_enforcement", "Enabled"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"administrator_login_password", // not returned as sensitive
+				},
+			},
 		},
 	})
 }
@@ -117,6 +149,14 @@ func TestAccAzureRMPostgreSQLServer_generalPurpose(t *testing.T) {
 					testCheckAzureRMPostgreSQLServerExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"administrator_login_password", // not returned as sensitive
+				},
+			},
 		},
 	})
 }
@@ -136,6 +176,14 @@ func TestAccAzureRMPostgreSQLServer_memoryOptimized(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLServerExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"administrator_login_password", // not returned as sensitive
+				},
 			},
 		},
 	})

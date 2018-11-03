@@ -27,6 +27,12 @@ func TestAccAzureRMKeyVaultCertificate_basicImportPFX(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "certificate_data"),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"certificate"},
+			},
 		},
 	})
 }
@@ -92,6 +98,11 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerate(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "certificate_data"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -138,6 +149,11 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerateTags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.hello", "world"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

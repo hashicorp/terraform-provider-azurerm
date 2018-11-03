@@ -23,6 +23,11 @@ func TestAccAzureRMLogicAppActionCustom_basic(t *testing.T) {
 					testCheckAzureRMLogicAppActionExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

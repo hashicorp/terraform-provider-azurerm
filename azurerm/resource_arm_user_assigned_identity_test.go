@@ -31,6 +31,11 @@ func TestAccAzureRMUserAssignedIdentity_basic(t *testing.T) {
 					resource.TestMatchResourceAttr(resourceName, "client_id", regexp.MustCompile(generatedUuidRegex)),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -96,14 +101,14 @@ func testCheckAzureRMUserAssignedIdentityDestroy(s *terraform.State) error {
 func testAccAzureRMUserAssignedIdentity_basic(rInt int, location string, rString string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_user_assigned_identity" "test" {
-  name = "acctest%s"
+  name                = "acctest%s"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location = "${azurerm_resource_group.test.location}"
+  location            = "${azurerm_resource_group.test.location}"
 }
 `, rInt, location, rString)
 }

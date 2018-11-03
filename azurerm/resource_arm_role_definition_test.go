@@ -12,6 +12,7 @@ import (
 )
 
 func TestAccAzureRMRoleDefinition_basic(t *testing.T) {
+	resourceName := "azurerm_role_definition.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMRoleDefinition_basic(uuid.New().String(), ri)
 
@@ -23,14 +24,21 @@ func TestAccAzureRMRoleDefinition_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRoleDefinitionExists("azurerm_role_definition.test"),
+					testCheckAzureRMRoleDefinitionExists(resourceName),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"role_definition_id", "scope"},
 			},
 		},
 	})
 }
 
 func TestAccAzureRMRoleDefinition_complete(t *testing.T) {
+	resourceName := "azurerm_role_definition.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMRoleDefinition_complete(uuid.New().String(), ri)
 
@@ -42,8 +50,14 @@ func TestAccAzureRMRoleDefinition_complete(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRoleDefinitionExists("azurerm_role_definition.test"),
+					testCheckAzureRMRoleDefinitionExists(resourceName),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"role_definition_id", "scope"},
 			},
 		},
 	})

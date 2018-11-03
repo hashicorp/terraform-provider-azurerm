@@ -23,6 +23,11 @@ func TestAccAzureRMLogicAppActionHttp_basic(t *testing.T) {
 					testCheckAzureRMLogicAppActionExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -41,6 +46,11 @@ func TestAccAzureRMLogicAppActionHttp_headers(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogicAppActionExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

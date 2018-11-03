@@ -26,6 +26,11 @@ func TestAccAzureRMCdnEndpoint_basic(t *testing.T) {
 					testCheckAzureRMCdnEndpointExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -103,7 +108,11 @@ func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.cost_center", "MSFT"),
 				),
 			},
-
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
@@ -111,6 +120,10 @@ func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "staging"),
 				),
+			}, {
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

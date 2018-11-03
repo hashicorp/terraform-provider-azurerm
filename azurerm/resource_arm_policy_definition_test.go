@@ -26,6 +26,11 @@ func TestAccAzureRMPolicyDefinition_basic(t *testing.T) {
 					testCheckAzureRMPolicyDefinitionExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

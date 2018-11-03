@@ -26,6 +26,11 @@ func TestAccAzureRMMySQLFirewallRule_basic(t *testing.T) {
 					testCheckAzureRMMySQLFirewallRuleExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

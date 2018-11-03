@@ -24,6 +24,11 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "schema", "{}"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -43,6 +48,11 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_fullSchema(t *testing.T) {
 					testCheckAzureRMLogicAppTriggerExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "schema"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -64,6 +74,11 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_method(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "method", "PUT"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -84,6 +99,11 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_relativePath(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "method", "POST"),
 					resource.TestCheckResourceAttr(resourceName, "relative_path", "customers/{id}"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

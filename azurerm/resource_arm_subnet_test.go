@@ -14,7 +14,7 @@ import (
 )
 
 func TestAccAzureRMSubnet_basic(t *testing.T) {
-
+	resourceName := "azurerm_subnet.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMSubnet_basic(ri, testLocation())
 
@@ -26,8 +26,13 @@ func TestAccAzureRMSubnet_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSubnetExists("azurerm_subnet.test"),
+					testCheckAzureRMSubnetExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -80,13 +85,17 @@ func TestAccAzureRMSubnet_routeTableRemove(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "route_table_id"),
 				),
 			},
-
 			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSubnetExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "route_table_id", ""),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -111,13 +120,17 @@ func TestAccAzureRMSubnet_removeNetworkSecurityGroup(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "network_security_group_id"),
 				),
 			},
-
 			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSubnetExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "network_security_group_id", ""),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

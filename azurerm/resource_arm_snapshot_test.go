@@ -75,6 +75,12 @@ func TestAccAzureRMSnapshot_fromManagedDisk(t *testing.T) {
 					testCheckAzureRMSnapshotExists(resourceName),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"source_uri"},
+			},
 		},
 	})
 }
@@ -95,6 +101,12 @@ func TestAccAzureRMSnapshot_encryption(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSnapshotExists(resourceName),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"source_uri"},
 			},
 		},
 	})

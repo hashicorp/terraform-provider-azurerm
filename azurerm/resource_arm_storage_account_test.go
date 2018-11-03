@@ -74,7 +74,11 @@ func TestAccAzureRMStorageAccount_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "production"),
 				),
 			},
-
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
@@ -111,6 +115,11 @@ func TestAccAzureRMStorageAccount_premium(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "production"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -143,6 +152,7 @@ func TestAccAzureRMStorageAccount_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMStorageAccount_blobConnectionString(t *testing.T) {
+	resourceName := "azurerm_storage_account.testsa"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
 	preConfig := testAccAzureRMStorageAccount_basic(ri, rs, testLocation())
@@ -154,8 +164,7 @@ func TestAccAzureRMStorageAccount_blobConnectionString(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: preConfig,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
+				Check: resource.ComposeTestCheckFunc(testCheckAzureRMStorageAccountExists(resourceName),
 					resource.TestCheckResourceAttrSet("azurerm_storage_account.testsa", "primary_blob_connection_string"),
 				),
 			},
@@ -164,6 +173,7 @@ func TestAccAzureRMStorageAccount_blobConnectionString(t *testing.T) {
 }
 
 func TestAccAzureRMStorageAccount_blobEncryption(t *testing.T) {
+	resourceName := "azurerm_storage_account.testsa"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
@@ -178,15 +188,19 @@ func TestAccAzureRMStorageAccount_blobEncryption(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
+					testCheckAzureRMStorageAccountExists(resourceName),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "enable_blob_encryption", "true"),
 				),
 			},
-
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
+					testCheckAzureRMStorageAccountExists(resourceName),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "enable_blob_encryption", "false"),
 				),
 			},
@@ -195,6 +209,7 @@ func TestAccAzureRMStorageAccount_blobEncryption(t *testing.T) {
 }
 
 func TestAccAzureRMStorageAccount_fileEncryption(t *testing.T) {
+	resourceName := "azurerm_storage_account.testsa"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
@@ -209,15 +224,19 @@ func TestAccAzureRMStorageAccount_fileEncryption(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
+					testCheckAzureRMStorageAccountExists(resourceName),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "enable_file_encryption", "true"),
 				),
 			},
-
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
+					testCheckAzureRMStorageAccountExists(resourceName),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "enable_file_encryption", "false"),
 				),
 			},
@@ -226,6 +245,7 @@ func TestAccAzureRMStorageAccount_fileEncryption(t *testing.T) {
 }
 
 func TestAccAzureRMStorageAccount_enableHttpsTrafficOnly(t *testing.T) {
+	resourceName := "azurerm_storage_account.testsa"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
@@ -240,15 +260,19 @@ func TestAccAzureRMStorageAccount_enableHttpsTrafficOnly(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
+					testCheckAzureRMStorageAccountExists(resourceName),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "enable_https_traffic_only", "true"),
 				),
 			},
-
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
+					testCheckAzureRMStorageAccountExists(resourceName),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "enable_https_traffic_only", "false"),
 				),
 			},
@@ -257,6 +281,7 @@ func TestAccAzureRMStorageAccount_enableHttpsTrafficOnly(t *testing.T) {
 }
 
 func TestAccAzureRMStorageAccount_blobStorageWithUpdate(t *testing.T) {
+	resourceName := "azurerm_storage_account.testsa"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
@@ -271,16 +296,20 @@ func TestAccAzureRMStorageAccount_blobStorageWithUpdate(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
+					testCheckAzureRMStorageAccountExists(resourceName),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "account_kind", "BlobStorage"),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "access_tier", "Hot"),
 				),
 			},
-
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
+					testCheckAzureRMStorageAccountExists(resourceName),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "access_tier", "Cool"),
 				),
 			},
@@ -289,6 +318,7 @@ func TestAccAzureRMStorageAccount_blobStorageWithUpdate(t *testing.T) {
 }
 
 func TestAccAzureRMStorageAccount_storageV2WithUpdate(t *testing.T) {
+	resourceName := "azurerm_storage_account.testsa"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
@@ -303,16 +333,20 @@ func TestAccAzureRMStorageAccount_storageV2WithUpdate(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
+					testCheckAzureRMStorageAccountExists(resourceName),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "account_kind", "StorageV2"),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "access_tier", "Hot"),
 				),
 			},
-
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
+					testCheckAzureRMStorageAccountExists(resourceName),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "access_tier", "Cool"),
 				),
 			},
@@ -321,6 +355,7 @@ func TestAccAzureRMStorageAccount_storageV2WithUpdate(t *testing.T) {
 }
 
 func TestAccAzureRMStorageAccount_NonStandardCasing(t *testing.T) {
+	resourceName := "azurerm_storage_account.testsa"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
 	preConfig := testAccAzureRMStorageAccount_nonStandardCasing(ri, rs, testLocation())
@@ -333,10 +368,14 @@ func TestAccAzureRMStorageAccount_NonStandardCasing(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
+					testCheckAzureRMStorageAccountExists(resourceName),
 				),
 			},
-
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 			{
 				Config:             preConfig,
 				PlanOnly:           true,
@@ -429,6 +468,11 @@ func TestAccAzureRMStorageAccount_networkRules(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "network_rules.0.ip_rules.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "network_rules.0.virtual_network_subnet_ids.#", "1"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: postConfig,

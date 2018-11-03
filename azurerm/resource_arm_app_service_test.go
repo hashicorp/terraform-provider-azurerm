@@ -67,6 +67,11 @@ func TestAccAzureRMAppService_basic(t *testing.T) {
 					testCheckAzureRMAppServiceExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -87,6 +92,11 @@ func TestAccAzureRMAppService_freeTier(t *testing.T) {
 					testCheckAzureRMAppServiceExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -106,6 +116,11 @@ func TestAccAzureRMAppService_sharedTier(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -128,6 +143,11 @@ func TestAccAzureRMAppService_32Bit(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.use_32_bit_worker_process", "true"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -148,6 +168,11 @@ func TestAccAzureRMAppService_http2Enabled(t *testing.T) {
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.http2_enabled", "true"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -170,6 +195,11 @@ func TestAccAzureRMAppService_alwaysOn(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.always_on", "true"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -190,6 +220,11 @@ func TestAccAzureRMAppService_httpsOnly(t *testing.T) {
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "https_only", "true"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -212,6 +247,11 @@ func TestAccAzureRMAppService_appSettings(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "app_settings.foo", "bar"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -233,6 +273,11 @@ func TestAccAzureRMAppService_clientAffinityEnabled(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "client_affinity_enabled", "true"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -253,6 +298,11 @@ func TestAccAzureRMAppService_clientAffinityDisabled(t *testing.T) {
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "client_affinity_enabled", "false"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -281,6 +331,11 @@ func TestAccAzureRMAppService_virtualNetwork(t *testing.T) {
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.virtual_network_name", fmt.Sprintf("acctestvn2-%d", ri)),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -366,11 +421,21 @@ func TestAccAzureRMAppService_clientAffinityUpdate(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "client_affinity_enabled", "false"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -395,6 +460,11 @@ func TestAccAzureRMAppService_connectionStrings(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "connection_string.0.type", "PostgreSQL"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -416,6 +486,11 @@ func TestAccAzureRMAppService_oneIpRestriction(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10"),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.0.subnet_mask", "255.255.255.255"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -445,6 +520,11 @@ func TestAccAzureRMAppService_manyIpRestrictions(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.3.subnet_mask", "255.255.255.0"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -468,6 +548,11 @@ func TestAccAzureRMAppService_defaultDocuments(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.default_documents.2", "third.aspx"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -488,6 +573,11 @@ func TestAccAzureRMAppService_enabled(t *testing.T) {
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -510,6 +600,11 @@ func TestAccAzureRMAppService_localMySql(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.local_mysql_enabled", "true"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -530,6 +625,11 @@ func TestAccAzureRMAppService_managedPipelineMode(t *testing.T) {
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.managed_pipeline_mode", "Classic"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -585,6 +685,11 @@ func TestAccAzureRMAppService_remoteDebugging(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.remote_debugging_version", "VS2015"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -606,6 +711,11 @@ func TestAccAzureRMAppService_windowsDotNet2(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.dotnet_framework_version", "v2.0"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -626,6 +736,11 @@ func TestAccAzureRMAppService_windowsDotNet4(t *testing.T) {
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.dotnet_framework_version", "v4.0"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -679,6 +794,11 @@ func TestAccAzureRMAppService_windowsJava7Jetty(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.3"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -702,6 +822,11 @@ func TestAccAzureRMAppService_windowsJava8Jetty(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.3"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -723,6 +848,11 @@ func TestAccAzureRMAppService_windowsJava7Tomcat(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "TOMCAT"),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.0"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -747,6 +877,11 @@ func TestAccAzureRMAppService_windowsJava8Tomcat(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.0"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -767,6 +902,11 @@ func TestAccAzureRMAppService_windowsPHP7(t *testing.T) {
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.php_version", "7.1"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -789,6 +929,11 @@ func TestAccAzureRMAppService_windowsPython(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.python_version", "3.4"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -809,6 +954,11 @@ func TestAccAzureRMAppService_webSockets(t *testing.T) {
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.websockets_enabled", "true"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -833,6 +983,11 @@ func TestAccAzureRMAppService_scmType(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "site_credential.#", "1"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -852,6 +1007,11 @@ func TestAccAzureRMAppService_ftpsState(t *testing.T) {
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.ftps_state", "AllAllowed"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -899,11 +1059,21 @@ func TestAccAzureRMAppService_minTls(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.min_tls_version", "1.1"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

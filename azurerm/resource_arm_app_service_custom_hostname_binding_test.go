@@ -12,6 +12,29 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+func TestAccAzureRMAppServiceCustomHostnameBinding(t *testing.T) {
+	// NOTE: this is a combined test rather than separate split out tests due to
+	// the app service name being shared (so the tests don't conflict with each other)
+	testCases := map[string]map[string]func(t *testing.T){
+		"basic": {
+			"basic":    testAccAzureRMAppServiceCustomHostnameBinding_basic,
+			"multiple": testAccAzureRMAppServiceCustomHostnameBinding_multiple,
+		},
+	}
+
+	for group, m := range testCases {
+		m := m
+		t.Run(group, func(t *testing.T) {
+			for name, tc := range m {
+				tc := tc
+				t.Run(name, func(t *testing.T) {
+					tc(t)
+				})
+			}
+		})
+	}
+}
+
 func testAccAzureRMAppServiceCustomHostnameBinding_basic(t *testing.T) {
 	appServiceEnvVariable := "ARM_TEST_APP_SERVICE"
 	appServiceEnv := os.Getenv(appServiceEnvVariable)
@@ -40,6 +63,11 @@ func testAccAzureRMAppServiceCustomHostnameBinding_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceCustomHostnameBindingExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

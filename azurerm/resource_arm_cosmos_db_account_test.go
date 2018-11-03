@@ -465,7 +465,7 @@ func TestAccAzureRMCosmosDBAccount_complete(t *testing.T) {
 				Config: testAccAzureRMCosmosDBAccount_complete(ri, testLocation(), testAltLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 2),
-					resource.TestCheckResourceAttr(resourceName, "ip_range_filter", "104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45,52.187.184.26,10.20.0.0/16"),
+					resource.TestCheckResourceAttr(resourceName, "ip_range_filter", "104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45/32,52.187.184.26,10.20.0.0/16"),
 					resource.TestCheckResourceAttr(resourceName, "enable_automatic_failover", "true"),
 				),
 			},
@@ -657,7 +657,7 @@ func testAccAzureRMCosmosDBAccount_geoReplicated_customId(rInt int, location str
 
 func testAccAzureRMCosmosDBAccount_complete(rInt int, location string, altLocation string) string {
 	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", fmt.Sprintf(`
-		ip_range_filter				= "104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45,52.187.184.26,10.20.0.0/16"
+		ip_range_filter				= "104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45/32,52.187.184.26,10.20.0.0/16"
 		enable_automatic_failover	= true
 
         geo_location {

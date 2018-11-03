@@ -36,6 +36,11 @@ func TestAccAzureRMSqlVirtualNetworkRule_basic(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlVirtualNetworkRuleExists(resourceName),

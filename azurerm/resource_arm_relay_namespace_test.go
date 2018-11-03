@@ -32,6 +32,11 @@ func TestAccAzureRMRelayNamespace_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "secondary_key"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -57,6 +62,11 @@ func TestAccAzureRMRelayNamespace_complete(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "primary_key"),
 					resource.TestCheckResourceAttrSet(resourceName, "secondary_key"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

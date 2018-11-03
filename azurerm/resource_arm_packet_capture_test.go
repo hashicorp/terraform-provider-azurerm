@@ -27,6 +27,11 @@ func testAccAzureRMPacketCapture_localDisk(t *testing.T) {
 					testCheckAzureRMPacketCaptureExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -48,6 +53,11 @@ func testAccAzureRMPacketCapture_storageAccount(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPacketCaptureExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -71,6 +81,11 @@ func testAccAzureRMPacketCapture_storageAccountAndLocalDisk(t *testing.T) {
 					testCheckAzureRMPacketCaptureExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -91,6 +106,11 @@ func testAccAzureRMPacketCapture_withFilters(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPacketCaptureExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

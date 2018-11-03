@@ -78,6 +78,11 @@ func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
 					testCheckAzureRMServiceBusNamespaceExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -132,6 +137,11 @@ func TestAccAzureRMServiceBusNamespace_NonStandardCasing(t *testing.T) {
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -151,6 +161,11 @@ func TestAccAzureRMServiceBusNamespace_premium(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusNamespaceExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

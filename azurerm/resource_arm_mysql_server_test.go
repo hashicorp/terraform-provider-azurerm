@@ -26,6 +26,14 @@ func TestAccAzureRMMySQLServer_basicFiveSix(t *testing.T) {
 					testCheckAzureRMMySQLServerExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"administrator_login_password", // not returned as sensitive
+				},
+			},
 		},
 	})
 }
@@ -45,6 +53,14 @@ func TestAccAzureRMMySQLServer_basicFiveSeven(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"administrator_login_password", // not returned as sensitive
+				},
 			},
 		},
 	})
@@ -66,6 +82,14 @@ func TestAccAzureRMMySqlServer_generalPurpose(t *testing.T) {
 					testCheckAzureRMMySQLServerExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"administrator_login_password", // not returned as sensitive
+				},
+			},
 		},
 	})
 }
@@ -85,6 +109,13 @@ func TestAccAzureRMMySqlServer_memoryOptimized(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(resourceName),
 				),
+			}, {
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"administrator_login_password", // not returned as sensitive
+				},
 			},
 		},
 	})
@@ -121,6 +152,14 @@ func TestAccAzureRMMySQLServer_basicFiveSevenUpdated(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "640000"),
 					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"administrator_login_password", // not returned as sensitive
+				},
 			},
 		},
 	})

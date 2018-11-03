@@ -11,6 +11,7 @@ import (
 )
 
 func TestAccAzureRMLogAnalyticsSolution_basicContainerMonitoring(t *testing.T) {
+	resourceName := "azurerm_log_analytics_solution.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMLogAnalyticsSolution_containerMonitoring(ri, testLocation())
 
@@ -21,14 +22,20 @@ func TestAccAzureRMLogAnalyticsSolution_basicContainerMonitoring(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsSolutionExists("azurerm_log_analytics_solution.test"),
+					testCheckAzureRMLogAnalyticsSolutionExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func TestAccAzureRMLogAnalyticsSolution_basicSecurity(t *testing.T) {
+	resourceName := "azurerm_log_analytics_solution.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMLogAnalyticsSolution_security(ri, testLocation())
 
@@ -39,8 +46,13 @@ func TestAccAzureRMLogAnalyticsSolution_basicSecurity(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsSolutionExists("azurerm_log_analytics_solution.test"),
+					testCheckAzureRMLogAnalyticsSolutionExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

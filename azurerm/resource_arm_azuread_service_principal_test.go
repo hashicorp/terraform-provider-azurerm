@@ -28,6 +28,11 @@ func TestAccAzureRMActiveDirectoryServicePrincipal_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "application_id"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

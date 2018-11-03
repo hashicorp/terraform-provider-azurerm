@@ -34,6 +34,11 @@ func TestAccAzureRMAutoScaleSetting_basic(t *testing.T) {
 					resource.TestCheckNoResourceAttr(resourceName, "tags.$type"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -163,6 +168,11 @@ func TestAccAzureRMAutoScaleSetting_recurrence(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "1"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -230,6 +240,11 @@ func TestAccAzureRMAutoScaleSetting_fixedDate(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "profile.0.fixed_date.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "0"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

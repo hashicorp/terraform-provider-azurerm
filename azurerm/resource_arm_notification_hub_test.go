@@ -29,6 +29,11 @@ func TestAccAzureRMNotificationHub_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "gcm_credential.#", "0"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

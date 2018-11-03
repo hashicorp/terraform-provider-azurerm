@@ -13,6 +13,7 @@ import (
 )
 
 func TestAccAzureRMNetworkSecurityRule_basic(t *testing.T) {
+	resourceName := "azurerm_network_security_rule.test"
 	rInt := acctest.RandInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -22,8 +23,13 @@ func TestAccAzureRMNetworkSecurityRule_basic(t *testing.T) {
 			{
 				Config: testAccAzureRMNetworkSecurityRule_basic(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityRuleExists("azurerm_network_security_rule.test"),
+					testCheckAzureRMNetworkSecurityRuleExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -76,6 +82,7 @@ func TestAccAzureRMNetworkSecurityRule_addingRules(t *testing.T) {
 }
 
 func TestAccAzureRMNetworkSecurityRule_augmented(t *testing.T) {
+	resourceName := "azurerm_network_security_rule.test1"
 	rInt := acctest.RandInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -85,14 +92,20 @@ func TestAccAzureRMNetworkSecurityRule_augmented(t *testing.T) {
 			{
 				Config: testAccAzureRMNetworkSecurityRule_augmented(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityRuleExists("azurerm_network_security_rule.test1"),
+					testCheckAzureRMNetworkSecurityRuleExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func TestAccAzureRMNetworkSecurityRule_applicationSecurityGroups(t *testing.T) {
+	resourceName := "azurerm_network_security_rule.test1"
 	rInt := acctest.RandInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -102,8 +115,13 @@ func TestAccAzureRMNetworkSecurityRule_applicationSecurityGroups(t *testing.T) {
 			{
 				Config: testAccAzureRMNetworkSecurityRule_applicationSecurityGroups(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityRuleExists("azurerm_network_security_rule.test1"),
+					testCheckAzureRMNetworkSecurityRuleExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

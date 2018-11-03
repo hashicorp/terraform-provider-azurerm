@@ -27,6 +27,11 @@ func testAccAzureRMExpressRouteCircuitAuthorization_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "authorization_key"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

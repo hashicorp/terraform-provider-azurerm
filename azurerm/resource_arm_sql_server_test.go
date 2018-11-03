@@ -62,6 +62,7 @@ func testSweepSQLServer(region string) error {
 }
 
 func TestAccAzureRMSqlServer_basic(t *testing.T) {
+	resourceName := "azurerm_sql_server.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMSqlServer_basic(ri, testLocation())
 
@@ -73,8 +74,13 @@ func TestAccAzureRMSqlServer_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlServerExists("azurerm_sql_server.test"),
+					testCheckAzureRMSqlServerExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -127,6 +133,11 @@ func TestAccAzureRMSqlServer_withTags(t *testing.T) {
 					testCheckAzureRMSqlServerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

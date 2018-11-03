@@ -29,6 +29,11 @@ func TestAccAzureRMAvailabilitySet_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "platform_fault_domain_count", "3"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -86,6 +91,11 @@ func TestAccAzureRMAvailabilitySet_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "staging"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -108,6 +118,11 @@ func TestAccAzureRMAvailabilitySet_withDomainCounts(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "platform_fault_domain_count", "3"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -128,6 +143,11 @@ func TestAccAzureRMAvailabilitySet_managed(t *testing.T) {
 					testCheckAzureRMAvailabilitySetExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "managed", "true"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

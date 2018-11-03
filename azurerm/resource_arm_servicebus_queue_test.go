@@ -29,6 +29,11 @@ func TestAccAzureRMServiceBusQueue_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "enable_partitioning", "false"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -117,6 +122,11 @@ func TestAccAzureRMServiceBusQueue_defaultEnablePartitioningPremium(t *testing.T
 					resource.TestCheckResourceAttr(resourceName, "enable_express", "false"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -146,6 +156,11 @@ func TestAccAzureRMServiceBusQueue_enableDuplicateDetection(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "requires_duplicate_detection", "true"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -173,6 +188,11 @@ func TestAccAzureRMServiceBusQueue_enableRequiresSession(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "requires_session", "true"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -199,6 +219,11 @@ func TestAccAzureRMServiceBusQueue_enableDeadLetteringOnMessageExpiration(t *tes
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "dead_lettering_on_message_expiration", "true"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -231,6 +256,11 @@ func TestAccAzureRMServiceBusQueue_lockDuration(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "lock_duration", "PT2M"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -254,6 +284,11 @@ func TestAccAzureRMServiceBusQueue_isoTimeSpanAttributes(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "requires_duplicate_detection", "true"),
 					resource.TestCheckResourceAttr(resourceName, "duplicate_detection_history_time_window", "PT15M"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -281,6 +316,11 @@ func TestAccAzureRMServiceBusQueue_maxDeliveryCount(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "max_delivery_count", "20"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

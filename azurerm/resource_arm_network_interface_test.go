@@ -77,6 +77,7 @@ func testSweepNetworkInterfaces(region string) error {
 }
 
 func TestAccAzureRMNetworkInterface_basic(t *testing.T) {
+	resourceName := "azurerm_network_interface.test"
 	rInt := acctest.RandInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -86,8 +87,13 @@ func TestAccAzureRMNetworkInterface_basic(t *testing.T) {
 			{
 				Config: testAccAzureRMNetworkInterface_basic(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists("azurerm_network_interface.test"),
+					testCheckAzureRMNetworkInterfaceExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -412,6 +418,27 @@ func TestAccAzureRMNetworkInterface_internalFQDN(t *testing.T) {
 					testCheckAzureRMNetworkInterfaceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "internal_fqdn", fmt.Sprintf("acctestnic-%d.example.com", rInt)),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMNetworkInterface_importPublicIP(t *testing.T) {
+	resourceName := "azurerm_network_interface.test"
+	rInt := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkInterface_publicIP(rInt, testLocation()),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

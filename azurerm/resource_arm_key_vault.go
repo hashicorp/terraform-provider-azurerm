@@ -209,9 +209,9 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 	virtualNetworkNames := make([]string, 0)
 	for _, v := range subnetIds {
-		id, err := parseAzureResourceID(v)
-		if err != nil {
-			return err
+		id, err2 := parseAzureResourceID(v)
+		if err2 != nil {
+			return err2
 		}
 
 		virtualNetworkName := id.Path["virtualNetworks"]
@@ -345,9 +345,9 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 						continue
 					}
 
-					id, err := parseAzureResourceID(*v.ID)
-					if err != nil {
-						return err
+					id, err2 := parseAzureResourceID(*v.ID)
+					if err2 != nil {
+						return err2
 					}
 
 					networkName := id.Path["virtualNetworks"]
