@@ -163,7 +163,7 @@ func TestAzureFindValidAccessTokenForTenant_ValidFromCloudShell(t *testing.T) {
 		t.Fatalf("Expected the Client ID to be %q but got %q", expectedToken.ClientID, token.ClientID)
 	}
 
-	if token.IsCloudShell {
+	if !token.IsCloudShell {
 		t.Fatalf("Expected `IsCloudShell` to be true but got false")
 	}
 }
