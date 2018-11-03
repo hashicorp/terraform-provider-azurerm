@@ -28,6 +28,11 @@ func TestAccAzureRMAppServiceSlot_basic(t *testing.T) {
 					testCheckAzureRMAppServiceSlotExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -48,6 +53,11 @@ func TestAccAzureRMAppServiceSlot_32Bit(t *testing.T) {
 					testCheckAzureRMAppServiceSlotExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.use_32_bit_worker_process", "true"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -70,6 +80,11 @@ func TestAccAzureRMAppServiceSlot_alwaysOn(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.always_on", "true"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -90,6 +105,11 @@ func TestAccAzureRMAppServiceSlot_appSettings(t *testing.T) {
 					testCheckAzureRMAppServiceSlotExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "app_settings.foo", "bar"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -760,6 +780,11 @@ func TestAccAzureRMAppServiceSlot_minTls(t *testing.T) {
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.min_tls_version", "1.1"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

@@ -27,6 +27,11 @@ func TestAccAzureRMDnsCNameRecord_basic(t *testing.T) {
 					testCheckAzureRMDnsCNameRecordExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -47,6 +52,11 @@ func TestAccAzureRMDnsCNameRecord_subdomain(t *testing.T) {
 					testCheckAzureRMDnsCNameRecordExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "record", "test.contoso.com"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -105,6 +115,11 @@ func TestAccAzureRMDnsCNameRecord_withTags(t *testing.T) {
 					testCheckAzureRMDnsCNameRecordExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

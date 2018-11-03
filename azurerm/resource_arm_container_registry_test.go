@@ -68,6 +68,7 @@ func TestAccAzureRMContainerRegistryName_validation(t *testing.T) {
 }
 
 func TestAccAzureRMContainerRegistry_basicClassic(t *testing.T) {
+	resourceName := "azurerm_container_registry.test"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
 	config := testAccAzureRMContainerRegistry_basicUnmanaged(ri, rs, testLocation(), "Classic")
@@ -80,14 +81,20 @@ func TestAccAzureRMContainerRegistry_basicClassic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryExists("azurerm_container_registry.test"),
+					testCheckAzureRMContainerRegistryExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func TestAccAzureRMContainerRegistry_basicBasic(t *testing.T) {
+	resourceName := "azurerm_container_registry.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Basic")
 
@@ -99,14 +106,20 @@ func TestAccAzureRMContainerRegistry_basicBasic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryExists("azurerm_container_registry.test"),
+					testCheckAzureRMContainerRegistryExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func TestAccAzureRMContainerRegistry_basicStandard(t *testing.T) {
+	resourceName := "azurerm_container_registry.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Standard")
 
@@ -118,14 +131,20 @@ func TestAccAzureRMContainerRegistry_basicStandard(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryExists("azurerm_container_registry.test"),
+					testCheckAzureRMContainerRegistryExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func TestAccAzureRMContainerRegistry_basicPremium(t *testing.T) {
+	resourceName := "azurerm_container_registry.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Premium")
 
@@ -137,8 +156,13 @@ func TestAccAzureRMContainerRegistry_basicPremium(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryExists("azurerm_container_registry.test"),
+					testCheckAzureRMContainerRegistryExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -174,6 +198,7 @@ func TestAccAzureRMContainerRegistry_basicBasicUpgradePremium(t *testing.T) {
 }
 
 func TestAccAzureRMContainerRegistry_complete(t *testing.T) {
+	resourceName := "azurerm_container_registry.test"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
 	config := testAccAzureRMContainerRegistry_complete(ri, rs, testLocation())
@@ -186,14 +211,20 @@ func TestAccAzureRMContainerRegistry_complete(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryExists("azurerm_container_registry.test"),
+					testCheckAzureRMContainerRegistryExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func TestAccAzureRMContainerRegistry_update(t *testing.T) {
+	resourceName := "azurerm_container_registry.test"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
@@ -208,13 +239,13 @@ func TestAccAzureRMContainerRegistry_update(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryExists("azurerm_container_registry.test"),
+					testCheckAzureRMContainerRegistryExists(resourceName),
 				),
 			},
 			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryExists("azurerm_container_registry.test"),
+					testCheckAzureRMContainerRegistryExists(resourceName),
 				),
 			},
 		},
