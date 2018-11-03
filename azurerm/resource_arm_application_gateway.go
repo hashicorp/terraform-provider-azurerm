@@ -824,7 +824,7 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 	}
 
 	if props := applicationGateway.ApplicationGatewayPropertiesFormat; props != nil {
-		flattenedCerts := flattenApplicationGatewayAuthenticationCertificates(props.AuthenticationCertificates)
+		flattenedCerts := flattenApplicationGatewayAuthenticationCertificates(props.AuthenticationCertificates, d)
 		if err := d.Set("authentication_certificate", flattenedCerts); err != nil {
 			return fmt.Errorf("Error setting `authentication_certificate`: %+v", err)
 		}
@@ -881,7 +881,7 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `sku`: %+v", err)
 		}
 
-		if err := d.Set("ssl_certificate", flattenApplicationGatewaySslCertificates(props.SslCertificates)); err != nil {
+		if err := d.Set("ssl_certificate", flattenApplicationGatewaySslCertificates(props.SslCertificates, d)); err != nil {
 			return fmt.Errorf("Error setting `ssl_certificate`: %+v", err)
 		}
 
@@ -953,13 +953,13 @@ func expandApplicationGatewayAuthenticationCertificates(d *schema.ResourceData) 
 	return &results
 }
 
-func flattenApplicationGatewayAuthenticationCertificates(input *[]network.ApplicationGatewayAuthenticationCertificate) []interface{} {
+func flattenApplicationGatewayAuthenticationCertificates(input *[]network.ApplicationGatewayAuthenticationCertificate, d *schema.ResourceData) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
-	for _, v := range *input {
+	for i, v := range *input {
 		output := map[string]interface{}{}
 
 		if v.ID != nil {
@@ -968,6 +968,17 @@ func flattenApplicationGatewayAuthenticationCertificates(input *[]network.Applic
 
 		if v.Name != nil {
 			output["name"] = *v.Name
+		}
+
+		// since the certificate data isn't returned we have to load it from the same index
+		if existing, ok := d.GetOk("authentication_certificate"); ok && existing != nil {
+			existingVals := existing.([]interface{})
+			if len(existingVals) >= i {
+				existingCerts := existingVals[i].(map[string]interface{})
+				if data := existingCerts["data"]; data != nil {
+					output["data"] = data.(string)
+				}
+			}
 		}
 
 		results = append(results, output)
@@ -1804,13 +1815,13 @@ func expandApplicationGatewaySslCertificates(d *schema.ResourceData) *[]network.
 	return &results
 }
 
-func flattenApplicationGatewaySslCertificates(input *[]network.ApplicationGatewaySslCertificate) []interface{} {
+func flattenApplicationGatewaySslCertificates(input *[]network.ApplicationGatewaySslCertificate, d *schema.ResourceData) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
-	for _, v := range *input {
+	for i, v := range *input {
 		output := map[string]interface{}{}
 
 		if v.ID != nil {
@@ -1824,6 +1835,21 @@ func flattenApplicationGatewaySslCertificates(input *[]network.ApplicationGatewa
 		if props := v.ApplicationGatewaySslCertificatePropertiesFormat; props != nil {
 			if data := props.PublicCertData; data != nil {
 				output["public_cert_data"] = *data
+			}
+		}
+
+		// since the certificate data isn't returned we have to load it from the same index
+		if existing, ok := d.GetOk("ssl_certificate"); ok && existing != nil {
+			existingVals := existing.([]interface{})
+			if len(existingVals) >= i {
+				existingCerts := existingVals[i].(map[string]interface{})
+				if data := existingCerts["data"]; data != nil {
+					output["data"] = data.(string)
+				}
+
+				if password := existingCerts["password"]; password != nil {
+					output["password"] = password.(string)
+				}
 			}
 		}
 
