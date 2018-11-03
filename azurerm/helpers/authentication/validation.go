@@ -22,20 +22,12 @@ func (c *Config) Validate() error {
 			c.MsiEndpoint = msiEndpoint
 		}
 		log.Printf("[DEBUG] Using MSI endpoint %s", c.MsiEndpoint)
-		if err := c.validateMsi(); err != nil {
-			return err
-		}
-
-		return nil
+		return c.validateMsi()
 	}
 
 	if c.ClientSecret != "" {
 		log.Printf("[DEBUG] Client Secret specified - using Service Principal for Authentication")
-		if err := c.validateServicePrincipal(); err != nil {
-			return err
-		}
-
-		return nil
+		return c.validateServicePrincipal()
 	}
 
 	// Azure CLI / CloudShell
