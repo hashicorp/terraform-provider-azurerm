@@ -31,6 +31,11 @@ func TestAccAzureRMFunctionApp_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "version", "~1"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -53,6 +58,11 @@ func TestAccAzureRMFunctionApp_tags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "production"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -126,6 +136,11 @@ func TestAccAzureRMFunctionApp_appSettings(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "app_settings.%", "0"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -147,6 +162,11 @@ func TestAccAzureRMFunctionApp_siteConfig(t *testing.T) {
 					testCheckAzureRMFunctionAppExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.always_on", "true"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -171,6 +191,11 @@ func TestAccAzureRMFunctionApp_connectionStrings(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "connection_string.0.value", "some-postgresql-connection-string"),
 					resource.TestCheckResourceAttr(resourceName, "connection_string.0.type", "PostgreSQL"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
