@@ -306,7 +306,7 @@ func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interf
 		Name:                      &name,
 		Location:                  &location,
 		InterfacePropertiesFormat: &properties,
-		Tags: expandTags(tags),
+		Tags:                      expandTags(tags),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, iface)
@@ -664,7 +664,7 @@ func expandAzureRmNetworkInterfaceIpConfigurations(d *schema.ResourceData) ([]ne
 
 		name := data["name"].(string)
 		ipConfig := network.InterfaceIPConfiguration{
-			Name: &name,
+			Name:                                     &name,
 			InterfaceIPConfigurationPropertiesFormat: &properties,
 		}
 
