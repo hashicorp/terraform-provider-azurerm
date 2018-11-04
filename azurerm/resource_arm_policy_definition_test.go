@@ -92,7 +92,8 @@ resource "azurerm_policy_definition" "test" {
   policy_type  = "Custom"
   mode         = "All"
   display_name = "acctestpol-%d"
-  policy_rule  = <<POLICY_RULE
+
+  policy_rule = <<POLICY_RULE
 	{
     "if": {
       "not": {
