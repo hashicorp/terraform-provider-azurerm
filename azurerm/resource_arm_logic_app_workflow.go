@@ -83,8 +83,8 @@ func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{})
 			Definition: &map[string]interface{}{
 				"$schema":        workflowSchema,
 				"contentVersion": workflowVersion,
-				"actions":        make(map[string]interface{}, 0),
-				"triggers":       make(map[string]interface{}, 0),
+				"actions":        make(map[string]interface{}),
+				"triggers":       make(map[string]interface{}),
 			},
 			Parameters: parameters,
 		},
@@ -239,7 +239,7 @@ func resourceArmLogicAppWorkflowDelete(d *schema.ResourceData, meta interface{})
 }
 
 func expandLogicAppWorkflowParameters(input map[string]interface{}) map[string]*logic.WorkflowParameter {
-	output := make(map[string]*logic.WorkflowParameter, 0)
+	output := make(map[string]*logic.WorkflowParameter)
 
 	for k, v := range input {
 		output[k] = &logic.WorkflowParameter{
@@ -252,7 +252,7 @@ func expandLogicAppWorkflowParameters(input map[string]interface{}) map[string]*
 }
 
 func flattenLogicAppWorkflowParameters(input map[string]*logic.WorkflowParameter) map[string]interface{} {
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 
 	for k, v := range input {
 		if v != nil {

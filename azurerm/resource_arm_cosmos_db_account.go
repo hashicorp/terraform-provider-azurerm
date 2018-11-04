@@ -74,7 +74,7 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`^(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\/[1-2][0-9])?\b[,]?){1,}$`),
+					regexp.MustCompile(`^(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\/([1-2][0-9]|3[0-2]))?\b[,]?){1,}$`),
 					"Cosmos DB ip_range_filter must be a set of CIDR IP addresses separated by commas with no spaces: '10.0.0.1,10.0.0.2,10.20.0.0/16'",
 				),
 			},
@@ -439,7 +439,7 @@ func resourceArmCosmosDBAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		Tags: expandTags(tags),
 	}
 
-	if _, err := resourceArmCosmosDBAccountApiUpsert(client, ctx, resourceGroup, name, account); err != nil {
+	if _, err = resourceArmCosmosDBAccountApiUpsert(client, ctx, resourceGroup, name, account); err != nil {
 		return fmt.Errorf("Error updating CosmosDB Account %q properties (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -476,7 +476,7 @@ func resourceArmCosmosDBAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 
 		account.DatabaseAccountCreateUpdateProperties.Locations = &locationsUnchanged
-		if _, err := resourceArmCosmosDBAccountApiUpsert(client, ctx, resourceGroup, name, account); err != nil {
+		if _, err = resourceArmCosmosDBAccountApiUpsert(client, ctx, resourceGroup, name, account); err != nil {
 			return fmt.Errorf("Error removing CosmosDB Account %q renamed locations (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
@@ -544,25 +544,25 @@ func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("enable_multiple_write_locations", resp.EnableMultipleWriteLocations)
 	}
 
-	if err := d.Set("consistency_policy", flattenAzureRmCosmosDBAccountConsistencyPolicy(resp.ConsistencyPolicy)); err != nil {
+	if err = d.Set("consistency_policy", flattenAzureRmCosmosDBAccountConsistencyPolicy(resp.ConsistencyPolicy)); err != nil {
 		return fmt.Errorf("Error setting CosmosDB Account %q `consistency_policy` (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if _, ok := d.GetOk("failover_policy"); ok {
-		if err := d.Set("failover_policy", flattenAzureRmCosmosDBAccountFailoverPolicy(resp.FailoverPolicies)); err != nil {
+		if err = d.Set("failover_policy", flattenAzureRmCosmosDBAccountFailoverPolicy(resp.FailoverPolicies)); err != nil {
 			return fmt.Errorf("Error setting `failover_policy`: %+v", err)
 		}
 	} else {
 		//if failover policy isn't default to using geo_location
-		if err := d.Set("geo_location", flattenAzureRmCosmosDBAccountGeoLocations(d, resp)); err != nil {
+		if err = d.Set("geo_location", flattenAzureRmCosmosDBAccountGeoLocations(d, resp)); err != nil {
 			return fmt.Errorf("Error setting `geo_location`: %+v", err)
 		}
 	}
 
-	if err := d.Set("capabilities", flattenAzureRmCosmosDBAccountCapabilities(resp.Capabilities)); err != nil {
+	if err = d.Set("capabilities", flattenAzureRmCosmosDBAccountCapabilities(resp.Capabilities)); err != nil {
 		return fmt.Errorf("Error setting `capabilities`: %+v", err)
 	}
 
-	if err := d.Set("virtual_network_rule", flattenAzureRmCosmosDBAccountVirtualNetworkRules(resp.VirtualNetworkRules)); err != nil {
+	if err = d.Set("virtual_network_rule", flattenAzureRmCosmosDBAccountVirtualNetworkRules(resp.VirtualNetworkRules)); err != nil {
 		return fmt.Errorf("Error setting `virtual_network_rule`: %+v", err)
 	}
 
@@ -643,19 +643,19 @@ func resourceArmCosmosDBAccountDelete(d *schema.ResourceData, meta interface{}) 
 		MinTimeout: 30 * time.Second,
 		Refresh: func() (interface{}, string, error) {
 
-			resp, err := client.Get(ctx, resourceGroup, name)
-			if err != nil {
+			resp, err2 := client.Get(ctx, resourceGroup, name)
+			if err2 != nil {
 
 				if utils.ResponseWasNotFound(resp.Response) {
 					return resp, "NotFound", nil
 				}
-				return nil, "", fmt.Errorf("Error reading CosmosDB Account %q after delete (Resource Group %q): %+v", name, resourceGroup, err)
+				return nil, "", fmt.Errorf("Error reading CosmosDB Account %q after delete (Resource Group %q): %+v", name, resourceGroup, err2)
 			}
 
 			return resp, "Deleting", nil
 		},
 	}
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Waiting forCosmosDB Account %q to delete (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -682,9 +682,9 @@ func resourceArmCosmosDBAccountApiUpsert(client documentdb.DatabaseAccountsClien
 		Delay:      30 * time.Second, // required because it takes some time before the 'creating' location shows up
 		Refresh: func() (interface{}, string, error) {
 
-			resp, err := client.Get(ctx, resourceGroup, name)
-			if err != nil {
-				return nil, "", fmt.Errorf("Error reading CosmosDB Account %q after create/update (Resource Group %q): %+v", name, resourceGroup, err)
+			resp, err2 := client.Get(ctx, resourceGroup, name)
+			if err2 != nil {
+				return nil, "", fmt.Errorf("Error reading CosmosDB Account %q after create/update (Resource Group %q): %+v", name, resourceGroup, err2)
 			}
 
 			status := "Succeeded"
@@ -831,7 +831,7 @@ func expandAzureRmCosmosDBAccountFailoverPolicy(databaseName string, d *schema.R
 func expandAzureRmCosmosDBAccountCapabilities(d *schema.ResourceData) *[]documentdb.Capability {
 
 	capabilities := d.Get("capabilities").(*schema.Set).List()
-	s := make([]documentdb.Capability, 0, 0)
+	s := make([]documentdb.Capability, 0)
 
 	for _, c := range capabilities {
 		m := c.(map[string]interface{})

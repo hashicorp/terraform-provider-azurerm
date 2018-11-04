@@ -1,17 +1,12 @@
 package azurerm
 
 import (
-	"context"
 	"crypto/sha1"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"log"
 	"strings"
-	"sync"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
-	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/hashicorp/terraform/helper/mutexkv"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
@@ -21,8 +16,7 @@ import (
 
 // Provider returns a terraform.ResourceProvider.
 func Provider() terraform.ResourceProvider {
-	var p *schema.Provider
-	p = &schema.Provider{
+	p := &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"subscription_id": {
 				Type:        schema.TypeString,
@@ -327,34 +321,9 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			SkipProviderRegistration:  d.Get("skip_provider_registration").(bool),
 		}
 
-		if config.UseMsi {
-			log.Printf("[DEBUG] use_msi specified - using MSI Authentication")
-			if config.MsiEndpoint == "" {
-				msiEndpoint, err := adal.GetMSIVMEndpoint()
-				if err != nil {
-					return nil, fmt.Errorf("Could not retrieve MSI endpoint from VM settings."+
-						"Ensure the VM has MSI enabled, or try setting msi_endpoint. Error: %s", err)
-				}
-				config.MsiEndpoint = msiEndpoint
-			}
-			log.Printf("[DEBUG] Using MSI endpoint %s", config.MsiEndpoint)
-			if err := config.ValidateMsi(); err != nil {
-				return nil, err
-			}
-		} else if config.ClientSecret != "" {
-			log.Printf("[DEBUG] Client Secret specified - using Service Principal for Authentication")
-			if err := config.ValidateServicePrincipal(); err != nil {
-				return nil, err
-			}
-		} else {
-			log.Printf("[DEBUG] No Client Secret specified - loading credentials from Azure CLI")
-			if err := config.LoadTokensFromAzureCLI(); err != nil {
-				return nil, err
-			}
-
-			if err := config.ValidateBearerAuth(); err != nil {
-				return nil, fmt.Errorf("Please specify either a Service Principal, or log in with the Azure CLI (using `az login`)")
-			}
+		err := config.Validate()
+		if err != nil {
+			return nil, fmt.Errorf("Error validating provider: %s", err)
 		}
 
 		client, err := getArmClient(config)
@@ -382,103 +351,18 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			}
 
 			if !config.SkipProviderRegistration {
-				err = registerAzureResourceProvidersWithSubscription(ctx, providerList.Values(), client.providersClient)
+				availableResourceProviders := providerList.Values()
+				requiredResourceProviders := requiredResourceProviders()
+
+				err := ensureResourceProvidersAreRegistered(ctx, client.providersClient, availableResourceProviders, requiredResourceProviders)
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("Error ensuring Resource Providers are registered: %s", err)
 				}
 			}
 		}
 
 		return client, nil
 	}
-}
-
-func registerProviderWithSubscription(ctx context.Context, providerName string, client resources.ProvidersClient) error {
-	_, err := client.Register(ctx, providerName)
-	if err != nil {
-		return fmt.Errorf("Cannot register provider %s with Azure Resource Manager: %s.", providerName, err)
-	}
-
-	return nil
-}
-
-func determineAzureResourceProvidersToRegister(providerList []resources.Provider) map[string]struct{} {
-	providers := map[string]struct{}{
-		"Microsoft.ApiManagement":       {},
-		"Microsoft.Authorization":       {},
-		"Microsoft.Automation":          {},
-		"Microsoft.Cache":               {},
-		"Microsoft.Cdn":                 {},
-		"Microsoft.CognitiveServices":   {},
-		"Microsoft.Compute":             {},
-		"Microsoft.ContainerInstance":   {},
-		"Microsoft.ContainerRegistry":   {},
-		"Microsoft.ContainerService":    {},
-		"Microsoft.Databricks":          {},
-		"Microsoft.DataLakeStore":       {},
-		"Microsoft.DBforMySQL":          {},
-		"Microsoft.DBforPostgreSQL":     {},
-		"Microsoft.Devices":             {},
-		"Microsoft.DevTestLab":          {},
-		"Microsoft.DocumentDB":          {},
-		"Microsoft.EventGrid":           {},
-		"Microsoft.EventHub":            {},
-		"Microsoft.KeyVault":            {},
-		"microsoft.insights":            {},
-		"Microsoft.Logic":               {},
-		"Microsoft.ManagedIdentity":     {},
-		"Microsoft.Management":          {},
-		"Microsoft.Network":             {},
-		"Microsoft.NotificationHubs":    {},
-		"Microsoft.OperationalInsights": {},
-		"Microsoft.Relay":               {},
-		"Microsoft.Resources":           {},
-		"Microsoft.Search":              {},
-		"Microsoft.ServiceBus":          {},
-		"Microsoft.ServiceFabric":       {},
-		"Microsoft.Sql":                 {},
-		"Microsoft.Storage":             {},
-	}
-
-	// filter out any providers already registered
-	for _, p := range providerList {
-		if _, ok := providers[*p.Namespace]; !ok {
-			continue
-		}
-
-		if strings.ToLower(*p.RegistrationState) == "registered" {
-			log.Printf("[DEBUG] Skipping provider registration for namespace %s\n", *p.Namespace)
-			delete(providers, *p.Namespace)
-		}
-	}
-
-	return providers
-}
-
-// registerAzureResourceProvidersWithSubscription uses the providers client to register
-// all Azure resource providers which the Terraform provider may require (regardless of
-// whether they are actually used by the configuration or not). It was confirmed by Microsoft
-// that this is the approach their own internal tools also take.
-func registerAzureResourceProvidersWithSubscription(ctx context.Context, providerList []resources.Provider, client resources.ProvidersClient) error {
-	providers := determineAzureResourceProvidersToRegister(providerList)
-
-	var err error
-	var wg sync.WaitGroup
-	wg.Add(len(providers))
-
-	for providerName := range providers {
-		go func(p string) {
-			defer wg.Done()
-			log.Printf("[DEBUG] Registering provider with namespace %s\n", p)
-			if innerErr := registerProviderWithSubscription(ctx, p, client); err != nil {
-				err = innerErr
-			}
-		}(providerName)
-	}
-
-	wg.Wait()
-
-	return err
 }
 
 // armMutexKV is the instance of MutexKV for ARM resources

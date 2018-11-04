@@ -126,39 +126,17 @@ func dataSourceArmAzureADApplicationRead(d *schema.ResourceData, meta interface{
 	d.Set("available_to_other_tenants", application.AvailableToOtherTenants)
 	d.Set("oauth2_allow_implicit_flow", application.Oauth2AllowImplicitFlow)
 
-	identifierUris := flattenAzureADDataSourceApplicationIdentifierUris(application.IdentifierUris)
-	if err := d.Set("identifier_uris", identifierUris); err != nil {
-		return fmt.Errorf("Error setting `identifier_uris`: %+v", err)
+	if s := application.IdentifierUris; s != nil {
+		if err := d.Set("identifier_uris", *s); err != nil {
+			return fmt.Errorf("Error setting `identifier_uris`: %+v", err)
+		}
 	}
 
-	replyUrls := flattenAzureADDataSourceApplicationReplyUrls(application.ReplyUrls)
-	if err := d.Set("reply_urls", replyUrls); err != nil {
-		return fmt.Errorf("Error setting `reply_urls`: %+v", err)
+	if s := application.ReplyUrls; s != nil {
+		if err := d.Set("reply_urls", *s); err != nil {
+			return fmt.Errorf("Error setting `reply_urls`: %+v", err)
+		}
 	}
 
 	return nil
-}
-
-func flattenAzureADDataSourceApplicationIdentifierUris(input *[]string) []string {
-	output := make([]string, 0)
-
-	if input != nil {
-		for _, v := range *input {
-			output = append(output, v)
-		}
-	}
-
-	return output
-}
-
-func flattenAzureADDataSourceApplicationReplyUrls(input *[]string) []string {
-	output := make([]string, 0)
-
-	if input != nil {
-		for _, v := range *input {
-			output = append(output, v)
-		}
-	}
-
-	return output
 }

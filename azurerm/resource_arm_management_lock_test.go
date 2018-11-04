@@ -56,6 +56,11 @@ func TestAccAzureRMManagementLock_resourceGroupReadOnlyBasic(t *testing.T) {
 					testCheckAzureRMManagementLockExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -76,6 +81,11 @@ func TestAccAzureRMManagementLock_resourceGroupReadOnlyComplete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagementLockExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -98,6 +108,11 @@ func TestAccAzureRMManagementLock_resourceGroupCanNotDeleteBasic(t *testing.T) {
 					testCheckAzureRMManagementLockExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -118,6 +133,11 @@ func TestAccAzureRMManagementLock_resourceGroupCanNotDeleteComplete(t *testing.T
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagementLockExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -140,6 +160,11 @@ func TestAccAzureRMManagementLock_publicIPReadOnlyBasic(t *testing.T) {
 					testCheckAzureRMManagementLockExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -160,6 +185,11 @@ func TestAccAzureRMManagementLock_publicIPCanNotDeleteBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagementLockExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -186,6 +216,11 @@ func TestAccAzureRMManagementLock_subscriptionReadOnlyBasic(t *testing.T) {
 					testCheckAzureRMManagementLockExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -210,6 +245,11 @@ func TestAccAzureRMManagementLock_subscriptionCanNotDeleteBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagementLockExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -338,11 +378,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name = "acctestpublicip-%d"
-  location = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                         = "acctestpublicip-%d"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
   public_ip_address_allocation = "static"
-  idle_timeout_in_minutes = 30
+  idle_timeout_in_minutes      = 30
 }
 
 resource "azurerm_management_lock" "test" {
@@ -361,11 +401,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name = "acctestpublicip-%d"
-  location = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                         = "acctestpublicip-%d"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
   public_ip_address_allocation = "static"
-  idle_timeout_in_minutes = 30
+  idle_timeout_in_minutes      = 30
 }
 
 resource "azurerm_management_lock" "test" {

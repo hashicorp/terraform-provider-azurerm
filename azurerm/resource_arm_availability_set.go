@@ -84,7 +84,7 @@ func resourceArmAvailabilitySetCreate(d *schema.ResourceData, meta interface{}) 
 		Tags: expandTags(tags),
 	}
 
-	if managed == true {
+	if managed {
 		n := "Aligned"
 		availSet.Sku = &compute.Sku{
 			Name: &n,

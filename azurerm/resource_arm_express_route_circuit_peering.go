@@ -261,12 +261,10 @@ func flattenExpressRouteCircuitPeeringMicrosoftConfig(input *network.ExpressRout
 		return []interface{}{}
 	}
 
-	config := make(map[string]interface{}, 0)
+	config := make(map[string]interface{})
 	prefixes := make([]string, 0)
 	if ps := input.AdvertisedPublicPrefixes; ps != nil {
-		for _, p := range *ps {
-			prefixes = append(prefixes, p)
-		}
+		prefixes = *ps
 	}
 
 	config["advertised_public_prefixes"] = prefixes

@@ -72,7 +72,7 @@ func testCheckAzureRMSecurityCenterSubscriptionPricingExists(name string) resour
 func testAccAzureRMSecurityCenterSubscriptionPricing_tier(tier string) string {
 	return fmt.Sprintf(`
 resource "azurerm_security_center_subscription_pricing" "test" {
-    tier = "%s"
+  tier = "%s"
 }
 `, tier)
 }

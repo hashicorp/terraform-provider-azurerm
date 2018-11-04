@@ -332,7 +332,7 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error creating/updating API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for creation/update of API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -516,7 +516,7 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 	scmResults := make([]interface{}, 0)
 
 	for _, config := range *input {
-		output := make(map[string]interface{}, 0)
+		output := make(map[string]interface{})
 
 		if config.HostName != nil {
 			output["host_name"] = *config.HostName
@@ -557,19 +557,15 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 				output["default_ssl_binding"] = *config.DefaultSslBinding
 			}
 			proxyResults = append(proxyResults, output)
-			break
 
 		case strings.ToLower(string(apimanagement.Management)):
 			managementResults = append(managementResults, output)
-			break
 
 		case strings.ToLower(string(apimanagement.Portal)):
 			portalResults = append(portalResults, output)
-			break
 
 		case strings.ToLower(string(apimanagement.Scm)):
 			scmResults = append(scmResults, output)
-			break
 		}
 	}
 
@@ -634,7 +630,7 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 	}
 
 	for _, prop := range *input {
-		output := make(map[string]interface{}, 0)
+		output := make(map[string]interface{})
 
 		if prop.Location != nil {
 			output["location"] = azureRMNormalizeLocation(*prop.Location)
@@ -710,7 +706,7 @@ func flattenApiManagementServiceSku(input *apimanagement.ServiceSkuProperties) [
 		return []interface{}{}
 	}
 
-	sku := make(map[string]interface{}, 0)
+	sku := make(map[string]interface{})
 
 	sku["name"] = string(input.Name)
 
@@ -755,7 +751,7 @@ func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*str
 }
 
 func flattenApiManagementCustomProperties(input map[string]*string) []interface{} {
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 
 	output["disable_backend_ssl30"] = parseApiManagementNilableDictionary(input, apimBackendProtocolSsl3)
 	output["disable_backend_tls10"] = parseApiManagementNilableDictionary(input, apimBackendProtocolTls10)
@@ -779,7 +775,7 @@ func apiManagementResourceHostnameSchema(schemaName string) map[string]*schema.S
 		"key_vault_id": {
 			Type:         schema.TypeString,
 			Optional:     true,
-			ValidateFunc: azure.ValidateResourceID,
+			ValidateFunc: azure.ValidateKeyVaultChildId,
 			ConflictsWith: []string{
 				fmt.Sprintf("hostname_configuration.0.%s.0.certificate", schemaName),
 				fmt.Sprintf("hostname_configuration.0.%s.0.certificate_password", schemaName),

@@ -27,6 +27,11 @@ func TestAccAzureRMKeyVaultSecret_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "value", "rick-and-morty"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -91,6 +96,11 @@ func TestAccAzureRMKeyVaultSecret_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.hello", "world"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -295,6 +305,7 @@ resource "azurerm_key_vault_secret" "test" {
   value        = "<rick><morty /></rick>"
   vault_uri    = "${azurerm_key_vault.test.vault_uri}"
   content_type = "application/xml"
+
   tags {
     "hello" = "world"
   }

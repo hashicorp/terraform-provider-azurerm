@@ -261,7 +261,7 @@ func flattenDevTestVirtualNetworkSubnets(input *[]dtl.SubnetOverride) []interfac
 	}
 
 	for _, v := range *input {
-		output := make(map[string]interface{}, 0)
+		output := make(map[string]interface{})
 		if v.LabSubnetName != nil {
 			output["name"] = *v.LabSubnetName
 		}

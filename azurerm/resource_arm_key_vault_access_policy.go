@@ -99,9 +99,9 @@ func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta 
 
 	applicationIdRaw := d.Get("application_id").(string)
 	if applicationIdRaw != "" {
-		applicationId, err := uuid.FromString(applicationIdRaw)
-		if err != nil {
-			return fmt.Errorf("Error parsing Appliciation ID %q as a UUID: %+v", applicationIdRaw, err)
+		applicationId, err2 := uuid.FromString(applicationIdRaw)
+		if err2 != nil {
+			return fmt.Errorf("Error parsing Appliciation ID %q as a UUID: %+v", applicationIdRaw, err2)
 		}
 
 		accessPolicy.ApplicationID = &applicationId

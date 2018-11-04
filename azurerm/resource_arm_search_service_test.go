@@ -27,6 +27,11 @@ func TestAccAzureRMSearchService_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -50,6 +55,11 @@ func TestAccAzureRMSearchService_complete(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "primary_key"),
 					resource.TestCheckResourceAttrSet(resourceName, "secondary_key"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -112,19 +122,19 @@ func testCheckAzureRMSearchServiceDestroy(s *terraform.State) error {
 func testAccAzureRMSearchService_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_search_service" "test" {
-    name = "acctestsearchservice%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    sku = "standard"
+  name                = "acctestsearchservice%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  sku                 = "standard"
 
-    tags {
-    	environment = "staging"
-    }
+  tags {
+    environment = "staging"
+  }
 }
 `, rInt, location, rInt)
 }
@@ -132,19 +142,20 @@ resource "azurerm_search_service" "test" {
 func testAccAzureRMSearchService_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
-resource "azurerm_search_service" "test" {
-    name = "acctestsearchservice%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    sku = "standard"
-    replica_count = 2
 
-    tags {
-    	environment = "production"
-    }
+resource "azurerm_search_service" "test" {
+  name                = "acctestsearchservice%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  sku                 = "standard"
+  replica_count       = 2
+
+  tags {
+    environment = "production"
+  }
 }
 `, rInt, location, rInt)
 }

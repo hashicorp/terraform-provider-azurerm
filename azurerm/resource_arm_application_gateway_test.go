@@ -89,6 +89,11 @@ func TestAccAzureRMApplicationGateway_basic_base(t *testing.T) {
 					testCheckAzureRMApplicationGatewaySslCertificateAssigned(resourceName, "ssl-1"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

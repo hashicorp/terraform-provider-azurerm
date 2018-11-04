@@ -199,5 +199,5 @@ func validateDatabricksWorkspaceName(v interface{}, k string) (ws []string, erro
 			k, value))
 	}
 
-	return
+	return ws, errors
 }

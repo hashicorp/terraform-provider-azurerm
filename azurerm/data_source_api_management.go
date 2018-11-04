@@ -215,7 +215,7 @@ func flattenDataSourceApiManagementHostnameConfigurations(input *[]apimanagement
 	scmResults := make([]interface{}, 0)
 
 	for _, config := range *input {
-		output := make(map[string]interface{}, 0)
+		output := make(map[string]interface{})
 
 		if config.HostName != nil {
 			output["host_name"] = *config.HostName
@@ -236,19 +236,15 @@ func flattenDataSourceApiManagementHostnameConfigurations(input *[]apimanagement
 				output["default_ssl_binding"] = *config.DefaultSslBinding
 			}
 			proxyResults = append(proxyResults, output)
-			break
 
 		case strings.ToLower(string(apimanagement.Management)):
 			managementResults = append(managementResults, output)
-			break
 
 		case strings.ToLower(string(apimanagement.Portal)):
 			portalResults = append(portalResults, output)
-			break
 
 		case strings.ToLower(string(apimanagement.Scm)):
 			scmResults = append(scmResults, output)
-			break
 		}
 	}
 
@@ -269,7 +265,7 @@ func flattenDataSourceApiManagementAdditionalLocations(input *[]apimanagement.Ad
 	}
 
 	for _, prop := range *input {
-		output := make(map[string]interface{}, 0)
+		output := make(map[string]interface{})
 
 		if prop.Location != nil {
 			output["location"] = azureRMNormalizeLocation(*prop.Location)
@@ -294,7 +290,7 @@ func flattenDataSourceApiManagementServiceSku(profile *apimanagement.ServiceSkuP
 		return []interface{}{}
 	}
 
-	sku := make(map[string]interface{}, 0)
+	sku := make(map[string]interface{})
 
 	sku["name"] = string(profile.Name)
 

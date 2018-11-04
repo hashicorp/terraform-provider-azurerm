@@ -27,6 +27,11 @@ func TestAccAzureRMLogicAppWorkflow_empty(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -49,6 +54,11 @@ func TestAccAzureRMLogicAppWorkflow_tags(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: testAccAzureRMLogicAppWorkflow_tags(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogicAppWorkflowExists(resourceName),
@@ -56,6 +66,11 @@ func TestAccAzureRMLogicAppWorkflow_tags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Source", "AcceptanceTests"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -119,13 +134,13 @@ func testCheckAzureRMLogicAppWorkflowDestroy(s *terraform.State) error {
 func testAccAzureRMLogicAppWorkflow_empty(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_logic_app_workflow" "test" {
-  name = "acctestlaw-%d"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctestlaw-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt)
@@ -134,13 +149,13 @@ resource "azurerm_logic_app_workflow" "test" {
 func testAccAzureRMLogicAppWorkflow_tags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_logic_app_workflow" "test" {
-  name = "acctestlaw-%d"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctestlaw-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   tags {

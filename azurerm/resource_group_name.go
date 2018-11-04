@@ -50,7 +50,7 @@ func validateArmResourceGroupName(v interface{}, k string) (ws []string, es []er
 		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters, dash, underscores, parentheses and periods", k))
 	}
 
-	return
+	return ws, es
 }
 
 // Resource group names can be capitalised, but we store them in lowercase.

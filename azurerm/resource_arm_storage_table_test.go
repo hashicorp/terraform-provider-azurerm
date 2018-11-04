@@ -142,12 +142,7 @@ func testAccARMStorageTableDisappears(name string, t *storage.Table) resource.Te
 		table := tableClient.GetTableReference(t.Name)
 		timeout := uint(60)
 		options := &storage.TableOptions{}
-		err = table.Delete(timeout, options)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return table.Delete(timeout, options)
 	}
 }
 
@@ -177,7 +172,6 @@ func testCheckAzureRMStorageTableDestroy(s *terraform.State) error {
 
 		options := &storage.QueryTablesOptions{}
 		tables, err := tableClient.QueryTables(storage.NoMetadata, options)
-
 		if err != nil {
 			return nil
 		}
@@ -232,26 +226,26 @@ func TestValidateArmStorageTableName(t *testing.T) {
 func testAccAzureRMStorageTable_basic(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
-    name                     = "acctestacc%s"
-    resource_group_name      = "${azurerm_resource_group.test.name}"
-    location                 = "${azurerm_resource_group.test.location}"
-    account_tier             = "Standard"
-    account_replication_type = "LRS"
+  name                     = "acctestacc%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 
-    tags {
-        environment = "staging"
-    }
+  tags {
+    environment = "staging"
+  }
 }
 
 resource "azurerm_storage_table" "test" {
-    name = "acctestst%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    storage_account_name = "${azurerm_storage_account.test.name}"
+  name                 = "acctestst%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.test.name}"
 }
 `, rInt, location, rString, rInt)
 }

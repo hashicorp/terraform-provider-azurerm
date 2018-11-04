@@ -80,7 +80,7 @@ func resourceArmDevSpaceController() *schema.Resource {
 				Required:     true,
 				ForceNew:     true,
 				Sensitive:    true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.Base64String(),
 			},
 
 			"tags": tagsSchema(),
@@ -162,7 +162,7 @@ func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{})
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on DevSpace Controller Lab %q (Resource Group %q): %+v", name, resGroupName, err)
+		return fmt.Errorf("Error making Read request on DevSpace Controller %q (Resource Group %q): %+v", name, resGroupName, err)
 	}
 
 	d.Set("name", result.Name)
@@ -171,20 +171,14 @@ func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{})
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	d.Set("sku", flattenDevSpaceControllerSku(result.Sku))
+	if err := d.Set("sku", flattenDevSpaceControllerSku(result.Sku)); err != nil {
+		return fmt.Errorf("Error flattenning `sku`: %+v", err)
+	}
 
 	if props := result.ControllerProperties; props != nil {
-		if props.HostSuffix != nil {
-			d.Set("host_suffix", props.HostSuffix)
-		}
-
-		if props.DataPlaneFqdn != nil {
-			d.Set("data_plane_fqdn", props.DataPlaneFqdn)
-		}
-
-		if props.TargetContainerHostResourceID != nil {
-			d.Set("target_container_host_resource_id", props.TargetContainerHostResourceID)
-		}
+		d.Set("host_suffix", props.HostSuffix)
+		d.Set("data_plane_fqdn", props.DataPlaneFqdn)
+		d.Set("target_container_host_resource_id", props.TargetContainerHostResourceID)
 	}
 
 	flattenAndSetTags(d, result.Tags)
@@ -263,8 +257,11 @@ func flattenDevSpaceControllerSku(skuObj *devspaces.Sku) []interface{} {
 		return []interface{}{}
 	}
 
-	skuConfig := make(map[string]interface{}, 0)
-	skuConfig["name"] = *skuObj.Name
+	skuConfig := make(map[string]interface{})
+	if skuObj.Name != nil {
+		skuConfig["name"] = *skuObj.Name
+	}
+
 	skuConfig["tier"] = skuObj.Tier
 
 	return []interface{}{skuConfig}

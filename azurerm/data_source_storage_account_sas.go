@@ -316,8 +316,8 @@ func computeAzureStorageAccountSas(accountName string,
 	start string,
 	expiry string,
 	signedProtocol string,
-	signedIp string, //nolint: unparam
-	signedVersion string, //nolint: unparam
+	signedIp string, // nolint: unparam
+	signedVersion string, // nolint: unparam
 ) (string, error) {
 
 	// UTF-8 by default...
