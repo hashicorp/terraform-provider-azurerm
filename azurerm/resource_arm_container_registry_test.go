@@ -343,7 +343,7 @@ resource "azurerm_container_registry" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   sku                 = "%s"
-  storage_account_id = "${azurerm_storage_account.test.id}"
+  storage_account_id  = "${azurerm_storage_account.test.id}"
 }
 `, rInt, location, rStr, rInt, sku)
 }
@@ -369,7 +369,7 @@ resource "azurerm_container_registry" "test" {
   location            = "${azurerm_resource_group.test.location}"
   admin_enabled       = false
   sku                 = "Classic"
-  storage_account_id = "${azurerm_storage_account.test.id}"
+  storage_account_id  = "${azurerm_storage_account.test.id}"
 
   tags {
     environment = "production"
@@ -399,7 +399,7 @@ resource "azurerm_container_registry" "test" {
   location            = "${azurerm_resource_group.test.location}"
   admin_enabled       = true
   sku                 = "Classic"
-  storage_account_id = "${azurerm_storage_account.test.id}"
+  storage_account_id  = "${azurerm_storage_account.test.id}"
 
   tags {
     environment = "production"

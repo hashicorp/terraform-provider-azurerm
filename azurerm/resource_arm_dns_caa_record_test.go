@@ -182,8 +182,8 @@ resource "azurerm_dns_caa_record" "test" {
     flags = 0
     tag   = "issue"
     value = "example.com"
-	}
-	
+  }
+
   record {
     flags = 0
     tag   = "issue"
@@ -194,13 +194,13 @@ resource "azurerm_dns_caa_record" "test" {
     flags = 1
     tag   = "issuewild"
     value = ";"
-	}
-	
+  }
+
   record {
     flags = 0
     tag   = "iodef"
     value = "mailto:terraform@nonexist.tld"
-	}
+  }
 }
 `, rInt, location, rInt, rInt)
 }
@@ -227,8 +227,8 @@ resource "azurerm_dns_caa_record" "test" {
     flags = 0
     tag   = "issue"
     value = "example.com"
-	}
-	
+  }
+
   record {
     flags = 0
     tag   = "issue"
@@ -239,19 +239,19 @@ resource "azurerm_dns_caa_record" "test" {
     flags = 1
     tag   = "issuewild"
     value = ";"
-	}
-	
+  }
+
   record {
     flags = 0
     tag   = "iodef"
     value = "mailto:terraform@nonexist.tld"
-	}
-		
-	record {
+  }
+
+  record {
     flags = 0
     tag   = "issue"
     value = "letsencrypt.org"
-	}
+  }
 }
 `, rInt, location, rInt, rInt)
 }
@@ -284,7 +284,7 @@ resource "azurerm_dns_caa_record" "test" {
     flags = 1
     tag   = "issuewild"
     value = ";"
-	}
+  }
 
   tags {
     environment = "Production"
@@ -322,7 +322,7 @@ resource "azurerm_dns_caa_record" "test" {
     flags = 1
     tag   = "issuewild"
     value = ";"
-	}
+  }
 
   tags {
     environment = "staging"
