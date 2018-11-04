@@ -120,14 +120,14 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
-  
+
 resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctest-dep-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "PerGB2018"
 }
-  
+
 resource "azurerm_log_analytics_solution" "test" {
   solution_name         = "ContainerInsights"
   location              = "${azurerm_resource_group.test.location}"
@@ -136,8 +136,8 @@ resource "azurerm_log_analytics_solution" "test" {
   workspace_name        = "${azurerm_log_analytics_workspace.test.name}"
 
   plan {
-    publisher      = "Microsoft"
-    product        = "OMSGallery/ContainerInsights"
+    publisher = "Microsoft"
+    product   = "OMSGallery/ContainerInsights"
   }
 }
 `, rInt, location, rInt)
@@ -165,8 +165,8 @@ resource "azurerm_log_analytics_solution" "test" {
   workspace_name        = "${azurerm_log_analytics_workspace.test.name}"
 
   plan {
-    publisher      = "Microsoft"
-    product        = "OMSGallery/Security"
+    publisher = "Microsoft"
+    product   = "OMSGallery/Security"
   }
 }
 `, rInt, location, rInt)

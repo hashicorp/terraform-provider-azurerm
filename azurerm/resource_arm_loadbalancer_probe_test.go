@@ -396,7 +396,6 @@ resource "azurerm_lb_probe" "test2" {
   name                = "%s"
   port                = 8080
 }
-
 `, rInt, location, rInt, rInt, rInt, probeName, probe2Name)
 }
 

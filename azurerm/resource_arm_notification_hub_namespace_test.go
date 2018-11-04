@@ -90,7 +90,7 @@ func testCheckAzureRMNotificationHubNamespaceDestroy(s *terraform.State) error {
 func testAzureRMNotificationHubNamespace_free(ri int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
