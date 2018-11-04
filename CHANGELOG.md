@@ -1,5 +1,9 @@
 ## 1.19.0 (Unreleased)
 
+IMPROVEMENTS:
+
+* `azurerm_virtual_machine_scale_set` - support for setting `eviction_policy` [GH-2226]
+
 BUG FIXES:
 
 * `azurerm_cosmosdb_account` - the `ip_range_filter` range filter now allows /32 ip addresses  [GH-2222]
@@ -894,10 +898,3 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * `azurerm_virtual_machine_scale_set` - fix panic with `additional_unattend_config` block ([#266](https://github.com/terraform-providers/terraform-provider-azurerm/issues/266))
-
-## 0.2.0 (September 15, 2017)
-
-FEATURES:
-
-* **Support for authenticating using the Azure CLI** ([#316](https://github.com/terraform-providers/terraform-provider-azurerm/issues/316))
-* **New Resource:** `azurerm_container_group` ([#333](https://github.com/terraform-providers/terraform-provider-azurerm/issues/333)] [[#31
