@@ -188,6 +188,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_function_app":                           resourceArmFunctionApp(),
 			"azurerm_image":                                  resourceArmImage(),
 			"azurerm_iothub":                                 resourceArmIotHub(),
+			"azurerm_iothub_consumer_group":                  resourceArmIotHubConsumerGroup(),
 			"azurerm_key_vault":                              resourceArmKeyVault(),
 			"azurerm_key_vault_access_policy":                resourceArmKeyVaultAccessPolicy(),
 			"azurerm_key_vault_certificate":                  resourceArmKeyVaultCertificate(),
