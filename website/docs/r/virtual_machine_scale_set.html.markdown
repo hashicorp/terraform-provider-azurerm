@@ -264,33 +264,64 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the virtual machine scale set resource. Changing this forces a new resource to be created.
+
 * `resource_group_name` - (Required) The name of the resource group in which to create the virtual machine scale set. Changing this forces a new resource to be created.
+
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
-* `sku` - (Required) A sku block as documented below.
-* `upgrade_policy_mode` - (Required) Specifies the mode of an upgrade to virtual machines in the scale set. Possible values, `Rolling`, `Manual`, or `Automatic`. When choosing `Rolling`, you will need to set a health probe.
-* `automatic_os_upgrade` - (Optional) Automatic OS patches can be applied by Azure to your scaleset. This is particularly useful when `upgrade_policy_mode` is set to `Rolling`. Defaults to `false`.
-* `rolling_upgrade_policy` - (Optional) A `rolling_upgrade_policy` block as defined below. This is only applicable when the `upgrade_policy_mode` is `Rolling`.
-* `health_probe_id` - (Optional) Specifies the identifier for the load balancer health probe. Required when using `Rolling` as your `upgrade_policy_mode`.
-* `overprovision` - (Optional) Specifies whether the virtual machine scale set should be overprovisioned.
-* `single_placement_group` - (Optional) Specifies whether the scale set is limited to a single placement group with a maximum size of 100 virtual machines. If set to false, managed disks must be used. Default is true. Changing this forces a
-  new resource to be created. See [documentation](http://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-placement-groups) for more information.
-* `license_type` - (Optional, when a Windows machine) Specifies the Windows OS license type. If supplied, the only allowed values are `Windows_Client` and `Windows_Server`.
-* `os_profile` - (Required) A Virtual Machine OS Profile block as documented below.
-* `os_profile_secrets` - (Optional) A collection of Secret blocks as documented below.
-* `os_profile_windows_config` - (Required, when a windows machine) A Windows config block as documented below.
-* `os_profile_linux_config` - (Required, when a linux machine) A Linux config block as documented below.
+
 * `network_profile` - (Required) A collection of network profile block as documented below.
+
+* `os_profile` - (Required) A Virtual Machine OS Profile block as documented below.
+
+* `os_profile_windows_config` - (Required, when a windows machine) A Windows config block as documented below.
+
+* `os_profile_linux_config` - (Required, when a linux machine) A Linux config block as documented below.
+
+* `sku` - (Required) A sku block as documented below.
+
 * `storage_profile_os_disk` - (Required) A storage profile os disk block as documented below
-* `storage_profile_data_disk` - (Optional) A storage profile data disk block as documented below
-* `storage_profile_image_reference` - (Optional) A storage profile image reference block as documented below.
-* `extension` - (Optional) Can be specified multiple times to add extension profiles to the scale set. Each `extension` block supports the fields documented below.
+
+* `upgrade_policy_mode` - (Required) Specifies the mode of an upgrade to virtual machines in the scale set. Possible values, `Rolling`, `Manual`, or `Automatic`. When choosing `Rolling`, you will need to set a health probe.
+
+---
+
+* `automatic_os_upgrade` - (Optional) Automatic OS patches can be applied by Azure to your scaleset. This is particularly useful when `upgrade_policy_mode` is set to `Rolling`. Defaults to `false`.
+
 * `boot_diagnostics` - (Optional) A boot diagnostics profile block as referenced below.
+
+* `extension` - (Optional) Can be specified multiple times to add extension profiles to the scale set. Each `extension` block supports the fields documented below.
+
+* `eviction_policy` - (Optional) Specifies the eviction policy for Virtual Machines in this Scale Set. Possible values are `Deallocate` and `Delete`.
+
+-> **NOTE:** `eviction_policy` can only be set when `priority` is set to `Low`.
+
+* `health_probe_id` - (Optional) Specifies the identifier for the load balancer health probe. Required when using `Rolling` as your `upgrade_policy_mode`.
+
+* `license_type` - (Optional, when a Windows machine) Specifies the Windows OS license type. If supplied, the only allowed values are `Windows_Client` and `Windows_Server`.
+
+* `os_profile_secrets` - (Optional) A collection of Secret blocks as documented below.
+
+* `overprovision` - (Optional) Specifies whether the virtual machine scale set should be overprovisioned.
+
 * `plan` - (Optional) A plan block as documented below.
-* `priority` - (Optional) Specifies the priority for the virtual machines in the scale set, defaults to `Regular`. Possible values are `Low` and `Regular`.
+
+* `priority` - (Optional) Specifies the priority for the Virtual Machines in the Scale Set. Defaults to `Regular`. Possible values are `Low` and `Regular`.
+
+* `rolling_upgrade_policy` - (Optional) A `rolling_upgrade_policy` block as defined below. This is only applicable when the `upgrade_policy_mode` is `Rolling`.
+
+* `single_placement_group` - (Optional) Specifies whether the scale set is limited to a single placement group with a maximum size of 100 virtual machines. If set to false, managed disks must be used. Default is true. Changing this forces a new resource to be created. See [documentation](http://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-placement-groups) for more information.
+
+* `storage_profile_data_disk` - (Optional) A storage profile data disk block as documented below
+
+* `storage_profile_image_reference` - (Optional) A storage profile image reference block as documented below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
 * `zones` - (Optional) A collection of availability zones to spread the Virtual Machines over.
 
 -> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).
+
+---
 
 `sku` supports the following:
 
