@@ -2,6 +2,7 @@
 
 IMPROVEMENTS:
 
+* dependencies: switching to Go 1.11 [GH-2229]
 * `azurerm_virtual_machine_scale_set` - support for setting `eviction_policy` [GH-2226]
 
 BUG FIXES:
