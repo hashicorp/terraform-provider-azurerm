@@ -422,32 +422,9 @@ func testCheckAzureRMApplicationGatewayDestroy(s *terraform.State) error {
 }
 
 func testAccAzureRMApplicationGateway_basic(rInt int, location string) string {
+	template := testAccAzureRMApplicationGateway_template(rInt, location)
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  address_space       = ["10.254.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "subnet-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.254.0.0/24"
-}
-
-resource "azurerm_public_ip" "test" {
-  name                         = "acctest-pubip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "dynamic"
-}
+%s
 
 resource "azurerm_application_gateway" "test" {
   name                = "acctestgw-%d"
@@ -601,36 +578,13 @@ resource "azurerm_application_gateway" "test" {
     environment = "tf01"
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt)
+`, template, rInt)
 }
 
 func testAccAzureRMApplicationGateway_basic_changeSslCert(rInt int, location string) string {
+	template := testAccAzureRMApplicationGateway_template(rInt, location)
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  address_space       = ["10.254.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "subnet-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.254.0.0/24"
-}
-
-resource "azurerm_public_ip" "test" {
-  name                         = "acctest-pubip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "dynamic"
-}
+%s
 
 resource "azurerm_application_gateway" "test" {
   name                = "acctestgw-%d"
@@ -784,36 +738,13 @@ resource "azurerm_application_gateway" "test" {
     environment = "tf01"
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt)
+`, template, rInt)
 }
 
 func testAccAzureRMApplicationGateway_basic_authCert(rInt int, location string) string {
+	template := testAccAzureRMApplicationGateway_template(rInt, location)
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  address_space       = ["10.254.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "subnet-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.254.0.0/24"
-}
-
-resource "azurerm_public_ip" "test" {
-  name                         = "acctest-pubip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "dynamic"
-}
+%s
 
 resource "azurerm_application_gateway" "test" {
   name                = "acctestgw-%d"
@@ -985,36 +916,13 @@ resource "azurerm_application_gateway" "test" {
     environment = "tf01"
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt)
+`, template, rInt)
 }
 
 func testAccAzureRMApplicationGateway_basic_changeAuthCert(rInt int, location string) string {
+	template := testAccAzureRMApplicationGateway_template(rInt, location)
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  address_space       = ["10.254.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "subnet-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.254.0.0/24"
-}
-
-resource "azurerm_public_ip" "test" {
-  name                         = "acctest-pubip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "dynamic"
-}
+%s
 
 resource "azurerm_application_gateway" "test" {
   name                = "acctestgw-%d"
@@ -1186,36 +1094,13 @@ resource "azurerm_application_gateway" "test" {
     environment = "tf01"
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt)
+`, template, rInt)
 }
 
 func testAccAzureRMApplicationGateway_waf(rInt int, location string) string {
+	template := testAccAzureRMApplicationGateway_template(rInt, location)
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  address_space       = ["10.254.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "subnet-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.254.0.0/24"
-}
-
-resource "azurerm_public_ip" "test" {
-  name                         = "acctest-pubip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "dynamic"
-}
+%s
 
 resource "azurerm_application_gateway" "test" {
   name                = "acctestgw-%d"
@@ -1376,36 +1261,13 @@ resource "azurerm_application_gateway" "test" {
     environment = "tf01"
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt)
+`, template, rInt)
 }
 
 func testAccAzureRMApplicationGateway_probeResponseMatch(rInt int, location string) string {
+	template := testAccAzureRMApplicationGateway_template(rInt, location)
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  address_space       = ["10.254.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "subnet-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.254.0.0/24"
-}
-
-resource "azurerm_public_ip" "test" {
-  name                         = "acctest-pubip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "dynamic"
-}
+%s
 
 resource "azurerm_application_gateway" "test" {
   name                = "acctestgw-%d"
@@ -1570,5 +1432,35 @@ resource "azurerm_application_gateway" "test" {
     environment = "tf01"
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt)
+`, template, rInt)
+}
+
+func testAccAzureRMApplicationGateway_template(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-vnet-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  address_space       = ["10.254.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "subnet-%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.254.0.0/24"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                         = "acctest-pubip-%d"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "dynamic"
+}
+`, rInt, location, rInt, rInt, rInt)
 }
