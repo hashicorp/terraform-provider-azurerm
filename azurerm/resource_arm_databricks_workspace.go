@@ -175,28 +175,29 @@ func resourceArmDatabricksWorkspaceDelete(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func validateDatabricksWorkspaceName(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(string)
-
-	// Only alphanumeric characters, underscores, and hyphens are allowed, and the name must be 1-30 characters long.
-
-	// Cannot be empty
-	if len(value) == 0 {
-		errors = append(errors, fmt.Errorf(
-			"%q cannot be an empty string: %q", k, value))
+func validateDatabricksWorkspaceName(i interface{}, k string) (ws []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %q type to be string", k))
+		return ws, errors
 	}
 
-	// Cannot be more than 128 characters
-	if len(value) > 128 {
-		errors = append(errors, fmt.Errorf(
-			"%q cannot be longer than 128 characters: %q", k, value))
+ 	// Cannot be empty
+ 	if len(v) == 0 {
+ 		errors = append(errors, fmt.Errorf("%q cannot be an empty string: %q", k, v))
+		return ws, errors
 	}
 
-	// Must only contain alphanumeric characters or hyphens
-	if !regexp.MustCompile(`^[A-Za-z0-9-]*$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"%q can only contain alphanumeric characters and hyphens: %q",
-			k, value))
+	// First, second, and last characters must be a letter or number with a total length between 3 to 64 characters
+	if !regexp.MustCompile("^[a-zA-Z0-9]{2}[-a-zA-Z0-9]{0,61}[a-zA-Z0-9]{1}$").MatchString(v) {
+		errors = append(errors, fmt.Errorf("%q must be 3 - 64 characters in length", k))
+		errors = append(errors, fmt.Errorf("%q first, second, and last characters must be a letter or number", k))
+		errors = append(errors, fmt.Errorf("%q can only contain letters, numbers, and hyphens", k))
+	}
+
+	// No consecutive hyphens
+	if regexp.MustCompile("(--)").MatchString(v) {
+		errors = append(errors, fmt.Errorf("%q must not contain any consecutive hyphens", k))
 	}
 
 	return ws, errors
