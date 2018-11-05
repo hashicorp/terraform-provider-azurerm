@@ -48,10 +48,10 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
-resource "azurerm_network_security_group" "test" { 
-  name                 = "acctest-nsg-%d"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+resource "azurerm_network_security_group" "test" {
+  name                = "acctest-nsg-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
@@ -77,7 +77,6 @@ resource "azurerm_network_interface" "test" {
     environment = "staging"
   }
 }
-
 `, rInt, location, rInt, rInt, rInt)
 }
 
@@ -95,10 +94,10 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
-resource "azurerm_network_security_group" "test" { 
-  name                 = "acctest-nsg-%d"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+resource "azurerm_network_security_group" "test" {
+  name                = "acctest-nsg-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
@@ -126,10 +125,8 @@ resource "azurerm_network_interface" "test" {
 }
 
 data "azurerm_network_interface" "test" {
-  name = "acctest-nic-%d"
+  name                = "acctest-nic-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
-
-
 `, rInt, location, rInt, rInt, rInt, rInt)
 }

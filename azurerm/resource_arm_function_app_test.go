@@ -649,38 +649,40 @@ resource "azurerm_function_app" "test" {
 func testAccAzureRMFunctionApp_tagsUpdated(rInt int, storage string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%[1]d"
-	location = "%[2]s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-	name                     = "acctestsa%[3]s"
-	resource_group_name      = "${azurerm_resource_group.test.name}"
-	location                 = "${azurerm_resource_group.test.location}"
-	account_tier             = "Standard"
-	account_replication_type = "LRS"
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_app_service_plan" "test" {
-	name                = "acctestASP-%[1]d"
-	location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	sku {
-		tier = "Standard"
-		size = "S1"
-	}
+  name                = "acctestASP-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
 }
 
 resource "azurerm_function_app" "test" {
-	name                      = "acctest-%[1]d-func"
-	location                  = "${azurerm_resource_group.test.location}"
-	resource_group_name       = "${azurerm_resource_group.test.name}"
-	app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
-	storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
-	tags {
-		environment = "production"
-		hello       = "Berlin"
-	}
+  name                      = "acctest-%[1]d-func"
+  location                  = "${azurerm_resource_group.test.location}"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
+  app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
+  storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+
+  tags {
+    environment = "production"
+    hello       = "Berlin"
+  }
 }
 `, rInt, location, storage)
 }
@@ -761,37 +763,39 @@ resource "azurerm_function_app" "test" {
 func testAccAzureRMFunctionApp_alwaysOn(rInt int, rString, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%[1]d"
-	location = "%[2]s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-	name                     = "acctestsa%[3]s"
-	resource_group_name      = "${azurerm_resource_group.test.name}"
-	location                 = "${azurerm_resource_group.test.location}"
-	account_tier             = "Standard"
-	account_replication_type = "LRS"
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_app_service_plan" "test" {
-	name                = "acctestASP-%[1]d"
-	location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	sku {
-		tier = "Standard"
-		size = "S1"
-	}
+  name                = "acctestASP-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
 }
 
 resource "azurerm_function_app" "test" {
-	name                      = "acctest-%[1]d-func"
-	location                  = "${azurerm_resource_group.test.location}"
-	resource_group_name       = "${azurerm_resource_group.test.name}"
-	app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
-	storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
-	site_config {
-		always_on = true
-	}
+  name                      = "acctest-%[1]d-func"
+  location                  = "${azurerm_resource_group.test.location}"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
+  app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
+  storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+
+  site_config {
+    always_on = true
+  }
 }
 `, rInt, location, rString)
 }
@@ -799,39 +803,40 @@ resource "azurerm_function_app" "test" {
 func testAccAzureRMFunctionApp_connectionStrings(rInt int, rString, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%[1]d"
-	location = "%[2]s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-	name                     = "acctestsa%[3]s"
-	resource_group_name      = "${azurerm_resource_group.test.name}"
-	location                 = "${azurerm_resource_group.test.location}"
-	account_tier             = "Standard"
-	account_replication_type = "LRS"
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_app_service_plan" "test" {
-	name                = "acctestASP-%[1]d"
-	location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	sku {
-		tier = "Standard"
-		size = "S1"
-	}
+  name                = "acctestASP-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
 }
 
 resource "azurerm_function_app" "test" {
   name                      = "acctest-%[1]d-func"
-	location                  = "${azurerm_resource_group.test.location}"
-	resource_group_name       = "${azurerm_resource_group.test.name}"
-	app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
-	storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+  location                  = "${azurerm_resource_group.test.location}"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
+  app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
+  storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
 
   connection_string {
-  	name  = "Example"
-  	value = "some-postgresql-connection-string"
-  	type  = "PostgreSQL"
+    name  = "Example"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
   }
 }
 `, rInt, location, rString)
@@ -840,40 +845,43 @@ resource "azurerm_function_app" "test" {
 func testAccAzureRMFunctionApp_appSettingsAlwaysOn(rInt int, rString, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%[1]d"
-	location = "%[2]s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-	name                     = "acctestsa%[3]s"
-	resource_group_name      = "${azurerm_resource_group.test.name}"
-	location                 = "${azurerm_resource_group.test.location}"
-	account_tier             = "Standard"
-	account_replication_type = "LRS"
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_app_service_plan" "test" {
-	name                = "acctestASP-%[1]d"
-	location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	sku {
-		tier = "Standard"
-		size = "S1"
-	}
+  name                = "acctestASP-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
 }
 
 resource "azurerm_function_app" "test" {
-	name                      = "acctest-%[1]d-func"
-	location                  = "${azurerm_resource_group.test.location}"
-	resource_group_name       = "${azurerm_resource_group.test.name}"
-	app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
-	storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
-	app_settings {
-		"hello" = "world"
-	}
-	site_config {
-		always_on = true
-	}
+  name                      = "acctest-%[1]d-func"
+  location                  = "${azurerm_resource_group.test.location}"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
+  app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
+  storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+
+  app_settings {
+    "hello" = "world"
+  }
+
+  site_config {
+    always_on = true
+  }
 }
 `, rInt, location, rString)
 }
@@ -881,44 +889,48 @@ resource "azurerm_function_app" "test" {
 func testAccAzureRMFunctionApp_appSettingsAlwaysOnConnectionStrings(rInt int, rString, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%[1]d"
-	location = "%[2]s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-	name                     = "acctestsa%[3]s"
-	resource_group_name      = "${azurerm_resource_group.test.name}"
-	location                 = "${azurerm_resource_group.test.location}"
-	account_tier             = "Standard"
-	account_replication_type = "LRS"
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_app_service_plan" "test" {
-	name                = "acctestASP-%[1]d"
-	location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	sku {
-		tier = "Standard"
-		size = "S1"
-	}
+  name                = "acctestASP-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
 }
 
 resource "azurerm_function_app" "test" {
-	name                      = "acctest-%[1]d-func"
-	location                  = "${azurerm_resource_group.test.location}"
-	resource_group_name       = "${azurerm_resource_group.test.name}"
-	app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
-	storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
-	app_settings {
-		"hello" = "world"
-	}
-	site_config {
-		always_on = true
-	}
-	connection_string {
-  	name  = "Example"
-  	value = "some-postgresql-connection-string"
-  	type  = "PostgreSQL"
+  name                      = "acctest-%[1]d-func"
+  location                  = "${azurerm_resource_group.test.location}"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
+  app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
+  storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+
+  app_settings {
+    "hello" = "world"
+  }
+
+  site_config {
+    always_on = true
+  }
+
+  connection_string {
+    name  = "Example"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
   }
 }
 `, rInt, location, rString)
@@ -932,17 +944,18 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-	name                     = "acctestsa%s"
-	resource_group_name      = "${azurerm_resource_group.test.name}"
-	location                 = "${azurerm_resource_group.test.location}"
-	account_tier             = "Standard"
-	account_replication_type = "LRS"
+  name                     = "acctestsa%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
   sku {
     tier = "Standard"
     size = "S1"
@@ -971,17 +984,18 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-	name                     = "acctestsa%s"
-	resource_group_name      = "${azurerm_resource_group.test.name}"
-	location                 = "${azurerm_resource_group.test.location}"
-	account_tier             = "Standard"
-	account_replication_type = "LRS"
+  name                     = "acctestsa%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
   sku {
     tier = "Standard"
     size = "S1"
