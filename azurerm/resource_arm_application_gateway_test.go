@@ -442,63 +442,47 @@ resource "azurerm_application_gateway" "test" {
   ]
 
   gateway_ip_configuration {
-    # id = computed
     name      = "gw-ip-config1"
     subnet_id = "${azurerm_subnet.test.id}"
   }
 
   frontend_ip_configuration {
-    # id = computed
     name                 = "ip-config-public"
     public_ip_address_id = "${azurerm_public_ip.test.id}"
   }
 
   frontend_ip_configuration {
-    # id = computed
-    name      = "ip-config-private"
-    subnet_id = "${azurerm_subnet.test.id}"
-
-    # private_ip_address = computed
+    name                          = "ip-config-private"
+    subnet_id                     = "${azurerm_subnet.test.id}"
     private_ip_address_allocation = "Dynamic"
   }
 
   frontend_port {
-    # id = computed
     name = "port-8080"
     port = 8080
   }
 
   backend_address_pool {
-    # id = computed
     name = "pool-1"
-
     fqdn_list = [
       "terraform.io",
     ]
   }
 
   backend_http_settings {
-    # id = computed
     name                  = "backend-http-1"
     port                  = 8010
     protocol              = "Https"
     cookie_based_affinity = "Enabled"
     request_timeout       = 30
-
-    # probe_id = computed
-    probe_name = "probe-1"
+    probe_name            = "probe-1"
   }
 
   http_listener {
-    # id = computed
-    name = "listener-1"
-
-    # frontend_ip_configuration_id = computed
+    name                           = "listener-1"
     frontend_ip_configuration_name = "ip-config-public"
-
-    # frontend_ip_port_id = computed
-    frontend_port_name = "port-8080"
-    protocol           = "Http"
+    frontend_port_name             = "port-8080"
+    protocol                       = "Http"
   }
 
   http_listener {
@@ -506,15 +490,12 @@ resource "azurerm_application_gateway" "test" {
     frontend_ip_configuration_name = "ip-config-public"
     frontend_port_name             = "port-8080"
     protocol                       = "Https"
-
-    # ssl_certificate_id = computed
-    ssl_certificate_name = "ssl-1"
-    host_name            = "terraform.io"
-    require_sni          = true
+    ssl_certificate_name           = "ssl-1"
+    host_name                      = "terraform.io"
+    require_sni                    = true
   }
 
   probe {
-    # id = computed
     name                = "probe-1"
     protocol            = "Https"
     path                = "/test"
@@ -525,17 +506,14 @@ resource "azurerm_application_gateway" "test" {
   }
 
   url_path_map {
-    # id = computed
     name                               = "path-map-1"
     default_backend_address_pool_name  = "pool-1"
     default_backend_http_settings_name = "backend-http-1"
 
     path_rule {
-      # id = computed
       name                       = "path-rule-1"
       backend_address_pool_name  = "pool-1"
       backend_http_settings_name = "backend-http-1"
-
       paths = [
         "/test",
       ]
@@ -543,32 +521,21 @@ resource "azurerm_application_gateway" "test" {
   }
 
   request_routing_rule {
-    # id = computed
-    name      = "rule-basic-1"
-    rule_type = "Basic"
-
-    # http_listener_id = computed
-    http_listener_name = "listener-1"
-
-    # backend_address_pool_id = computed
-    backend_address_pool_name = "pool-1"
-
-    # backend_http_settings_id = computed
+    name                       = "rule-basic-1"
+    rule_type                  = "Basic"
+    http_listener_name         = "listener-1"
+    backend_address_pool_name  = "pool-1"
     backend_http_settings_name = "backend-http-1"
   }
 
   request_routing_rule {
-    # id = computed
-    name              = "rule-path-1"
-    rule_type         = "PathBasedRouting"
-    url_path_map_name = "path-map-1"
-
-    # http_listener_id = computed
+    name               = "rule-path-1"
+    rule_type          = "PathBasedRouting"
+    url_path_map_name  = "path-map-1"
     http_listener_name = "listener-2"
   }
 
   ssl_certificate {
-    # id = computed
     name     = "ssl-1"
     data     = "${file("testdata/application_gateway_test.pfx")}"
     password = "terraform"
@@ -602,63 +569,47 @@ resource "azurerm_application_gateway" "test" {
   ]
 
   gateway_ip_configuration {
-    # id = computed
     name      = "gw-ip-config1"
     subnet_id = "${azurerm_subnet.test.id}"
   }
 
   frontend_ip_configuration {
-    # id = computed
     name                 = "ip-config-public"
     public_ip_address_id = "${azurerm_public_ip.test.id}"
   }
 
   frontend_ip_configuration {
-    # id = computed
-    name      = "ip-config-private"
-    subnet_id = "${azurerm_subnet.test.id}"
-
-    # private_ip_address = computed
+    name                          = "ip-config-private"
+    subnet_id                     = "${azurerm_subnet.test.id}"
     private_ip_address_allocation = "Dynamic"
   }
 
   frontend_port {
-    # id = computed
     name = "port-8080"
     port = 8080
   }
 
   backend_address_pool {
-    # id = computed
-    name = "pool-1"
-
+    name      = "pool-1"
     fqdn_list = [
       "terraform.io",
     ]
   }
 
   backend_http_settings {
-    # id = computed
     name                  = "backend-http-1"
     port                  = 8010
     protocol              = "Https"
     cookie_based_affinity = "Enabled"
     request_timeout       = 30
-
-    # probe_id = computed
-    probe_name = "probe-1"
+    probe_name            = "probe-1"
   }
 
   http_listener {
-    # id = computed
-    name = "listener-1"
-
-    # frontend_ip_configuration_id = computed
+    name                           = "listener-1"
     frontend_ip_configuration_name = "ip-config-public"
-
-    # frontend_ip_port_id = computed
-    frontend_port_name = "port-8080"
-    protocol           = "Http"
+    frontend_port_name             = "port-8080"
+    protocol                       = "Http"
   }
 
   http_listener {
@@ -666,15 +617,12 @@ resource "azurerm_application_gateway" "test" {
     frontend_ip_configuration_name = "ip-config-public"
     frontend_port_name             = "port-8080"
     protocol                       = "Https"
-
-    # ssl_certificate_id = computed
-    ssl_certificate_name = "ssl-2"
-    host_name            = "terraform.io"
-    require_sni          = true
+    ssl_certificate_name           = "ssl-2"
+    host_name                      = "terraform.io"
+    require_sni                    = true
   }
 
   probe {
-    # id = computed
     name                = "probe-1"
     protocol            = "Https"
     path                = "/test"
@@ -685,17 +633,14 @@ resource "azurerm_application_gateway" "test" {
   }
 
   url_path_map {
-    # id = computed
     name                               = "path-map-1"
     default_backend_address_pool_name  = "pool-1"
     default_backend_http_settings_name = "backend-http-1"
 
     path_rule {
-      # id = computed
       name                       = "path-rule-1"
       backend_address_pool_name  = "pool-1"
       backend_http_settings_name = "backend-http-1"
-
       paths = [
         "/test",
       ]
@@ -703,32 +648,21 @@ resource "azurerm_application_gateway" "test" {
   }
 
   request_routing_rule {
-    # id = computed
-    name      = "rule-basic-1"
-    rule_type = "Basic"
-
-    # http_listener_id = computed
-    http_listener_name = "listener-1"
-
-    # backend_address_pool_id = computed
-    backend_address_pool_name = "pool-1"
-
-    # backend_http_settings_id = computed
+    name                       = "rule-basic-1"
+    rule_type                  = "Basic"
+    http_listener_name         = "listener-1"
+    backend_address_pool_name  = "pool-1"
     backend_http_settings_name = "backend-http-1"
   }
 
   request_routing_rule {
-    # id = computed
-    name              = "rule-path-1"
-    rule_type         = "PathBasedRouting"
-    url_path_map_name = "path-map-1"
-
-    # http_listener_id = computed
+    name               = "rule-path-1"
+    rule_type          = "PathBasedRouting"
+    url_path_map_name  = "path-map-1"
     http_listener_name = "listener-2"
   }
 
   ssl_certificate {
-    # id = computed
     name     = "ssl-2"
     data     = "${file("testdata/application_gateway_test.pfx")}"
     password = "terraform"
@@ -762,43 +696,34 @@ resource "azurerm_application_gateway" "test" {
   ]
 
   gateway_ip_configuration {
-    # id = computed
     name      = "gw-ip-config1"
     subnet_id = "${azurerm_subnet.test.id}"
   }
 
   frontend_ip_configuration {
-    # id = computed
     name                 = "ip-config-public"
     public_ip_address_id = "${azurerm_public_ip.test.id}"
   }
 
   frontend_ip_configuration {
-    # id = computed
-    name      = "ip-config-private"
-    subnet_id = "${azurerm_subnet.test.id}"
-
-    # private_ip_address = computed
+    name                          = "ip-config-private"
+    subnet_id                     = "${azurerm_subnet.test.id}"
     private_ip_address_allocation = "Dynamic"
   }
 
   frontend_port {
-    # id = computed
     name = "port-8080"
     port = 8080
   }
 
   backend_address_pool {
-    # id = computed
-    name = "pool-1"
-
+    name      = "pool-1"
     fqdn_list = [
       "terraform.io",
     ]
   }
 
   backend_http_settings {
-    # id = computed
     name                  = "backend-http-1"
     port                  = 8010
     protocol              = "Http"
@@ -807,31 +732,23 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    # id = computed
     name                  = "backend-http-2"
     port                  = 8011
     protocol              = "Https"
     cookie_based_affinity = "Enabled"
     request_timeout       = 30
+    probe_name            = "probe-1"
 
     authentication_certificate {
       name = "auth-1"
     }
-
-    # probe_id = computed
-    probe_name = "probe-1"
   }
 
   http_listener {
-    # id = computed
-    name = "listener-1"
-
-    # frontend_ip_configuration_id = computed
+    name                           = "listener-1"
     frontend_ip_configuration_name = "ip-config-public"
-
-    # frontend_ip_port_id = computed
-    frontend_port_name = "port-8080"
-    protocol           = "Http"
+    frontend_port_name             = "port-8080"
+    protocol                       = "Http"
   }
 
   http_listener {
@@ -839,15 +756,12 @@ resource "azurerm_application_gateway" "test" {
     frontend_ip_configuration_name = "ip-config-public"
     frontend_port_name             = "port-8080"
     protocol                       = "Https"
-
-    # ssl_certificate_id = computed
-    ssl_certificate_name = "ssl-1"
-    host_name            = "terraform.io"
-    require_sni          = true
+    ssl_certificate_name           = "ssl-1"
+    host_name                      = "terraform.io"
+    require_sni                    = true
   }
 
   probe {
-    # id = computed
     name                = "probe-1"
     protocol            = "Https"
     path                = "/test"
@@ -858,13 +772,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   url_path_map {
-    # id = computed
     name                               = "path-map-1"
     default_backend_address_pool_name  = "pool-1"
     default_backend_http_settings_name = "backend-http-1"
 
     path_rule {
-      # id = computed
       name                       = "path-rule-1"
       backend_address_pool_name  = "pool-1"
       backend_http_settings_name = "backend-http-1"
@@ -876,27 +788,17 @@ resource "azurerm_application_gateway" "test" {
   }
 
   request_routing_rule {
-    # id = computed
-    name      = "rule-basic-1"
-    rule_type = "Basic"
-
-    # http_listener_id = computed
-    http_listener_name = "listener-1"
-
-    # backend_address_pool_id = computed
-    backend_address_pool_name = "pool-1"
-
-    # backend_http_settings_id = computed
+    name                       = "rule-basic-1"
+    rule_type                  = "Basic"
+    http_listener_name         = "listener-1"
+    backend_address_pool_name  = "pool-1"
     backend_http_settings_name = "backend-http-1"
   }
 
   request_routing_rule {
-    # id = computed
-    name              = "rule-path-1"
-    rule_type         = "PathBasedRouting"
-    url_path_map_name = "path-map-1"
-
-    # http_listener_id = computed
+    name               = "rule-path-1"
+    rule_type          = "PathBasedRouting"
+    url_path_map_name  = "path-map-1"
     http_listener_name = "listener-2"
   }
 
@@ -906,7 +808,6 @@ resource "azurerm_application_gateway" "test" {
   }
 
   ssl_certificate {
-    # id = computed
     name     = "ssl-1"
     data     = "${file("testdata/application_gateway_test.pfx")}"
     password = "terraform"
@@ -940,34 +841,27 @@ resource "azurerm_application_gateway" "test" {
   ]
 
   gateway_ip_configuration {
-    # id = computed
     name      = "gw-ip-config1"
     subnet_id = "${azurerm_subnet.test.id}"
   }
 
   frontend_ip_configuration {
-    # id = computed
     name                 = "ip-config-public"
     public_ip_address_id = "${azurerm_public_ip.test.id}"
   }
 
   frontend_ip_configuration {
-    # id = computed
-    name      = "ip-config-private"
-    subnet_id = "${azurerm_subnet.test.id}"
-
-    # private_ip_address = computed
+    name                          = "ip-config-private"
+    subnet_id                     = "${azurerm_subnet.test.id}"
     private_ip_address_allocation = "Dynamic"
   }
 
   frontend_port {
-    # id = computed
     name = "port-8080"
     port = 8080
   }
 
   backend_address_pool {
-    # id = computed
     name = "pool-1"
 
     fqdn_list = [
@@ -976,7 +870,6 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    # id = computed
     name                  = "backend-http-1"
     port                  = 8010
     protocol              = "Http"
@@ -985,31 +878,23 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    # id = computed
     name                  = "backend-http-2"
     port                  = 8011
     protocol              = "Https"
     cookie_based_affinity = "Enabled"
+    probe_name = "probe-1"
     request_timeout       = 30
 
     authentication_certificate {
       name = "auth-2"
     }
-
-    # probe_id = computed
-    probe_name = "probe-1"
   }
 
   http_listener {
-    # id = computed
-    name = "listener-1"
-
-    # frontend_ip_configuration_id = computed
+    name                           = "listener-1"
     frontend_ip_configuration_name = "ip-config-public"
-
-    # frontend_ip_port_id = computed
-    frontend_port_name = "port-8080"
-    protocol           = "Http"
+    frontend_port_name             = "port-8080"
+    protocol                       = "Http"
   }
 
   http_listener {
@@ -1017,15 +902,12 @@ resource "azurerm_application_gateway" "test" {
     frontend_ip_configuration_name = "ip-config-public"
     frontend_port_name             = "port-8080"
     protocol                       = "Https"
-
-    # ssl_certificate_id = computed
-    ssl_certificate_name = "ssl-1"
-    host_name            = "terraform.io"
-    require_sni          = true
+    ssl_certificate_name           = "ssl-1"
+    host_name                      = "terraform.io"
+    require_sni                    = true
   }
 
   probe {
-    # id = computed
     name                = "probe-1"
     protocol            = "Https"
     path                = "/test"
@@ -1036,13 +918,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   url_path_map {
-    # id = computed
     name                               = "path-map-1"
     default_backend_address_pool_name  = "pool-1"
     default_backend_http_settings_name = "backend-http-1"
 
     path_rule {
-      # id = computed
       name                       = "path-rule-1"
       backend_address_pool_name  = "pool-1"
       backend_http_settings_name = "backend-http-1"
@@ -1054,27 +934,17 @@ resource "azurerm_application_gateway" "test" {
   }
 
   request_routing_rule {
-    # id = computed
-    name      = "rule-basic-1"
-    rule_type = "Basic"
-
-    # http_listener_id = computed
-    http_listener_name = "listener-1"
-
-    # backend_address_pool_id = computed
-    backend_address_pool_name = "pool-1"
-
-    # backend_http_settings_id = computed
+    name                       = "rule-basic-1"
+    rule_type                  = "Basic"
+    http_listener_name         = "listener-1"
+    backend_address_pool_name  = "pool-1"
     backend_http_settings_name = "backend-http-1"
   }
 
   request_routing_rule {
-    # id = computed
-    name              = "rule-path-1"
-    rule_type         = "PathBasedRouting"
-    url_path_map_name = "path-map-1"
-
-    # http_listener_id = computed
+    name               = "rule-path-1"
+    rule_type          = "PathBasedRouting"
+    url_path_map_name  = "path-map-1"
     http_listener_name = "listener-2"
   }
 
@@ -1084,7 +954,6 @@ resource "azurerm_application_gateway" "test" {
   }
 
   ssl_certificate {
-    # id = computed
     name     = "ssl-1"
     data     = "${file("testdata/application_gateway_test.pfx")}"
     password = "terraform"
@@ -1125,63 +994,47 @@ resource "azurerm_application_gateway" "test" {
   }
 
   gateway_ip_configuration {
-    # id = computed
     name      = "gw-ip-config1"
     subnet_id = "${azurerm_subnet.test.id}"
   }
 
   frontend_ip_configuration {
-    # id = computed
     name                 = "ip-config-public"
     public_ip_address_id = "${azurerm_public_ip.test.id}"
   }
 
   frontend_ip_configuration {
-    # id = computed
-    name      = "ip-config-private"
-    subnet_id = "${azurerm_subnet.test.id}"
-
-    # private_ip_address = computed
+    name                          = "ip-config-private"
+    subnet_id                     = "${azurerm_subnet.test.id}"
     private_ip_address_allocation = "Dynamic"
   }
 
   frontend_port {
-    # id = computed
     name = "port-8080"
     port = 8080
   }
 
   backend_address_pool {
-    # id = computed
-    name = "pool-1"
-
+    name      = "pool-1"
     fqdn_list = [
       "terraform.io",
     ]
   }
 
   backend_http_settings {
-    # id = computed
     name                  = "backend-http-1"
     port                  = 8010
     protocol              = "Https"
     cookie_based_affinity = "Enabled"
     request_timeout       = 30
-
-    # probe_id = computed
-    probe_name = "probe-1"
+    probe_name            = "probe-1"
   }
 
   http_listener {
-    # id = computed
-    name = "listener-1"
-
-    # frontend_ip_configuration_id = computed
+    name                           = "listener-1"
     frontend_ip_configuration_name = "ip-config-public"
-
-    # frontend_ip_port_id = computed
-    frontend_port_name = "port-8080"
-    protocol           = "Http"
+    frontend_port_name             = "port-8080"
+    protocol                       = "Http"
   }
 
   http_listener {
@@ -1189,15 +1042,12 @@ resource "azurerm_application_gateway" "test" {
     frontend_ip_configuration_name = "ip-config-public"
     frontend_port_name             = "port-8080"
     protocol                       = "Https"
-
-    # ssl_certificate_id = computed
-    ssl_certificate_name = "ssl-1"
-    host_name            = "terraform.io"
-    require_sni          = true
+    ssl_certificate_name           = "ssl-1"
+    host_name                      = "terraform.io"
+    require_sni                    = true
   }
 
   probe {
-    # id = computed
     name                = "probe-1"
     protocol            = "Https"
     path                = "/test"
@@ -1208,13 +1058,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   url_path_map {
-    # id = computed
     name                               = "path-map-1"
     default_backend_address_pool_name  = "pool-1"
     default_backend_http_settings_name = "backend-http-1"
 
     path_rule {
-      # id = computed
       name                       = "path-rule-1"
       backend_address_pool_name  = "pool-1"
       backend_http_settings_name = "backend-http-1"
@@ -1226,32 +1074,21 @@ resource "azurerm_application_gateway" "test" {
   }
 
   request_routing_rule {
-    # id = computed
-    name      = "rule-basic-1"
-    rule_type = "Basic"
-
-    # http_listener_id = computed
-    http_listener_name = "listener-1"
-
-    # backend_address_pool_id = computed
-    backend_address_pool_name = "pool-1"
-
-    # backend_http_settings_id = computed
+    name                       = "rule-basic-1"
+    rule_type                  = "Basic"
+    http_listener_name         = "listener-1"
+    backend_address_pool_name  = "pool-1"
     backend_http_settings_name = "backend-http-1"
   }
 
   request_routing_rule {
-    # id = computed
-    name              = "rule-path-1"
-    rule_type         = "PathBasedRouting"
-    url_path_map_name = "path-map-1"
-
-    # http_listener_id = computed
+    name               = "rule-path-1"
+    rule_type          = "PathBasedRouting"
+    url_path_map_name  = "path-map-1"
     http_listener_name = "listener-2"
   }
 
   ssl_certificate {
-    # id = computed
     name     = "ssl-1"
     data     = "${file("testdata/application_gateway_test.pfx")}"
     password = "terraform"
@@ -1285,34 +1122,27 @@ resource "azurerm_application_gateway" "test" {
   ]
 
   gateway_ip_configuration {
-    # id = computed
     name      = "gw-ip-config1"
     subnet_id = "${azurerm_subnet.test.id}"
   }
 
   frontend_ip_configuration {
-    # id = computed
     name                 = "ip-config-public"
     public_ip_address_id = "${azurerm_public_ip.test.id}"
   }
 
   frontend_ip_configuration {
-    # id = computed
-    name      = "ip-config-private"
-    subnet_id = "${azurerm_subnet.test.id}"
-
-    # private_ip_address = computed
+    name                          = "ip-config-private"
+    subnet_id                     = "${azurerm_subnet.test.id}"
     private_ip_address_allocation = "Dynamic"
   }
 
   frontend_port {
-    # id = computed
     name = "port-8080"
     port = 8080
   }
 
   backend_address_pool {
-    # id = computed
     name = "pool-1"
 
     fqdn_list = [
@@ -1321,27 +1151,19 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    # id = computed
     name                  = "backend-http-1"
     port                  = 8010
     protocol              = "Https"
     cookie_based_affinity = "Enabled"
     request_timeout       = 30
-
-    # probe_id = computed
-    probe_name = "probe-1"
+    probe_name            = "probe-1"
   }
 
   http_listener {
-    # id = computed
-    name = "listener-1"
-
-    # frontend_ip_configuration_id = computed
+    name                           = "listener-1"
     frontend_ip_configuration_name = "ip-config-public"
-
-    # frontend_ip_port_id = computed
-    frontend_port_name = "port-8080"
-    protocol           = "Http"
+    frontend_port_name             = "port-8080"
+    protocol                       = "Http"
   }
 
   http_listener {
@@ -1349,15 +1171,12 @@ resource "azurerm_application_gateway" "test" {
     frontend_ip_configuration_name = "ip-config-public"
     frontend_port_name             = "port-8080"
     protocol                       = "Https"
-
-    # ssl_certificate_id = computed
-    ssl_certificate_name = "ssl-1"
-    host_name            = "terraform.io"
-    require_sni          = true
+    ssl_certificate_name           = "ssl-1"
+    host_name                      = "terraform.io"
+    require_sni                    = true
   }
 
   probe {
-    # id = computed
     name                = "probe-1"
     protocol            = "Https"
     path                = "/test"
@@ -1379,13 +1198,11 @@ resource "azurerm_application_gateway" "test" {
   }
 
   url_path_map {
-    # id = computed
     name                               = "path-map-1"
     default_backend_address_pool_name  = "pool-1"
     default_backend_http_settings_name = "backend-http-1"
 
     path_rule {
-      # id = computed
       name                       = "path-rule-1"
       backend_address_pool_name  = "pool-1"
       backend_http_settings_name = "backend-http-1"
@@ -1397,32 +1214,21 @@ resource "azurerm_application_gateway" "test" {
   }
 
   request_routing_rule {
-    # id = computed
-    name      = "rule-basic-1"
-    rule_type = "Basic"
-
-    # http_listener_id = computed
-    http_listener_name = "listener-1"
-
-    # backend_address_pool_id = computed
-    backend_address_pool_name = "pool-1"
-
-    # backend_http_settings_id = computed
+    name                       = "rule-basic-1"
+    rule_type                  = "Basic"
+    http_listener_name         = "listener-1"
+    backend_address_pool_name  = "pool-1"
     backend_http_settings_name = "backend-http-1"
   }
 
   request_routing_rule {
-    # id = computed
-    name              = "rule-path-1"
-    rule_type         = "PathBasedRouting"
-    url_path_map_name = "path-map-1"
-
-    # http_listener_id = computed
+    name               = "rule-path-1"
+    rule_type          = "PathBasedRouting"
+    url_path_map_name  = "path-map-1"
     http_listener_name = "listener-2"
   }
 
   ssl_certificate {
-    # id = computed
     name     = "ssl-1"
     data     = "${file("testdata/application_gateway_test.pfx")}"
     password = "terraform"
