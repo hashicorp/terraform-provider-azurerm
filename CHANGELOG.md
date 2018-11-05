@@ -1,5 +1,9 @@
 ## 1.19.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_key_vault_key` [GH-2231]
+
 IMPROVEMENTS:
 
 * dependencies: switching to Go 1.11 [GH-2229]
