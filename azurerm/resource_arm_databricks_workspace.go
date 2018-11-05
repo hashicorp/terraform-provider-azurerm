@@ -182,9 +182,9 @@ func validateDatabricksWorkspaceName(i interface{}, k string) (ws []string, erro
 		return ws, errors
 	}
 
- 	// Cannot be empty
- 	if len(v) == 0 {
- 		errors = append(errors, fmt.Errorf("%q cannot be an empty string: %q", k, v))
+	// Cannot be empty
+	if len(v) == 0 {
+		errors = append(errors, fmt.Errorf("%q cannot be an empty string: %q", k, v))
 		return ws, errors
 	}
 
