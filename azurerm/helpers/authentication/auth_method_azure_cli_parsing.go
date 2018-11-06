@@ -13,7 +13,7 @@ type azureCliParsingAuth struct {
 	profile *azureCLIProfile
 }
 
-func newAzureCliParsingAuth(b Builder) (*azureCliParsingAuth, error) {
+func newAzureCliParsingAuth(b Builder) (authMethod, error) {
 	auth := azureCliParsingAuth{
 		profile: &azureCLIProfile{
 			clientId:       b.ClientID,
@@ -44,7 +44,7 @@ func newAzureCliParsingAuth(b Builder) (*azureCliParsingAuth, error) {
 		return nil, fmt.Errorf("Error populating Access Tokens from the Azure CLI: %+v", err)
 	}
 
-	return &auth, nil
+	return auth, nil
 }
 
 func (a azureCliParsingAuth) getAuthorizationToken(oauthConfig *adal.OAuthConfig, endpoint string) (*autorest.BearerAuthorizer, error) {

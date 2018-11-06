@@ -30,10 +30,6 @@ func TestServicePrincipalClientCertAuth_builder(t *testing.T) {
 		t.Fatalf("Expected Client Certificate Password to be %q but got %q", builder.ClientCertPassword, servicePrincipal.clientCertPassword)
 	}
 
-	if builder.Environment != servicePrincipal.environment {
-		t.Fatalf("Expected Environment to be %q but got %q", builder.Environment, servicePrincipal.environment)
-	}
-
 	if builder.SubscriptionID != servicePrincipal.subscriptionId {
 		t.Fatalf("Expected Subscription ID to be %q but got %q", builder.SubscriptionID, servicePrincipal.subscriptionId)
 	}
@@ -68,7 +64,6 @@ func TestServicePrincipalClientCertAuth_validate(t *testing.T) {
 				subscriptionId: "8e8b5e02-5c13-4822-b7dc-4232afb7e8c2",
 				clientCertPath: filePath,
 				tenantId:       "9834f8d0-24b3-41b7-8b8d-c611c461a129",
-				environment:    "public",
 			},
 			ExpectError: true,
 		},
@@ -78,7 +73,6 @@ func TestServicePrincipalClientCertAuth_validate(t *testing.T) {
 				clientId:       "62e73395-5017-43b6-8ebf-d6c30a514cf1",
 				clientCertPath: filePath,
 				tenantId:       "9834f8d0-24b3-41b7-8b8d-c611c461a129",
-				environment:    "public",
 			},
 			ExpectError: true,
 		},
@@ -88,7 +82,6 @@ func TestServicePrincipalClientCertAuth_validate(t *testing.T) {
 				clientId:       "62e73395-5017-43b6-8ebf-d6c30a514cf1",
 				subscriptionId: "8e8b5e02-5c13-4822-b7dc-4232afb7e8c2",
 				tenantId:       "9834f8d0-24b3-41b7-8b8d-c611c461a129",
-				environment:    "public",
 			},
 			ExpectError: true,
 		},
@@ -98,7 +91,6 @@ func TestServicePrincipalClientCertAuth_validate(t *testing.T) {
 				clientId:       "62e73395-5017-43b6-8ebf-d6c30a514cf1",
 				subscriptionId: "8e8b5e02-5c13-4822-b7dc-4232afb7e8c2",
 				clientCertPath: filePath,
-				environment:    "public",
 			},
 			ExpectError: true,
 		},
@@ -119,7 +111,6 @@ func TestServicePrincipalClientCertAuth_validate(t *testing.T) {
 				subscriptionId: "8e8b5e02-5c13-4822-b7dc-4232afb7e8c2",
 				clientCertPath: "not-valid.txt",
 				tenantId:       "9834f8d0-24b3-41b7-8b8d-c611c461a129",
-				environment:    "public",
 			},
 			ExpectError: true,
 		},
@@ -130,7 +121,6 @@ func TestServicePrincipalClientCertAuth_validate(t *testing.T) {
 				subscriptionId: "8e8b5e02-5c13-4822-b7dc-4232afb7e8c2",
 				clientCertPath: "does-not-exist.pfx",
 				tenantId:       "9834f8d0-24b3-41b7-8b8d-c611c461a129",
-				environment:    "public",
 			},
 			ExpectError: true,
 		},
@@ -141,7 +131,6 @@ func TestServicePrincipalClientCertAuth_validate(t *testing.T) {
 				subscriptionId: "8e8b5e02-5c13-4822-b7dc-4232afb7e8c2",
 				clientCertPath: filePath,
 				tenantId:       "9834f8d0-24b3-41b7-8b8d-c611c461a129",
-				environment:    "public",
 			},
 			ExpectError: false,
 		},
@@ -153,7 +142,6 @@ func TestServicePrincipalClientCertAuth_validate(t *testing.T) {
 				clientCertPath:     filePath,
 				clientCertPassword: "Password1234!",
 				tenantId:           "9834f8d0-24b3-41b7-8b8d-c611c461a129",
-				environment:        "public",
 			},
 			ExpectError: false,
 		},

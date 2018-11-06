@@ -13,17 +13,16 @@ type servicePrincipalClientSecretAuth struct {
 	clientSecret   string
 	subscriptionId string
 	tenantId       string
-	environment    string
 }
 
-func newServicePrincipalClientSecretAuth(b Builder) authMethod {
-	return servicePrincipalClientSecretAuth{
+func newServicePrincipalClientSecretAuth(b Builder) (authMethod, error) {
+	method := servicePrincipalClientSecretAuth{
 		clientId:       b.ClientID,
 		clientSecret:   b.ClientSecret,
-		environment:    b.Environment,
 		subscriptionId: b.SubscriptionID,
 		tenantId:       b.TenantID,
 	}
+	return method, nil
 }
 
 func (a servicePrincipalClientSecretAuth) getAuthorizationToken(oauthConfig *adal.OAuthConfig, endpoint string) (*autorest.BearerAuthorizer, error) {
@@ -52,9 +51,6 @@ func (a servicePrincipalClientSecretAuth) validate() error {
 	}
 	if a.tenantId == "" {
 		err = multierror.Append(err, fmt.Errorf(fmtErrorMessage, "Tenant ID"))
-	}
-	if a.environment == "" {
-		err = multierror.Append(err, fmt.Errorf(fmtErrorMessage, "Environment"))
 	}
 
 	return err.ErrorOrNil()

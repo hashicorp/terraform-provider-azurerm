@@ -45,7 +45,12 @@ func (b Builder) Build() (*Config, error) {
 		log.Printf("[DEBUG] Using Service Principal / Client Certificate for Authentication")
 		config.AuthenticatedAsAServicePrincipal = true
 
-		config.authMethod = newServicePrincipalClientCertificateAuth(b)
+		method, err := newServicePrincipalClientCertificateAuth(b)
+		if err != nil {
+			return nil, err
+		}
+
+		config.authMethod = method
 		return config.validate()
 	}
 
@@ -53,7 +58,12 @@ func (b Builder) Build() (*Config, error) {
 		log.Printf("[DEBUG] Using Service Principal / Client Secret for Authentication")
 		config.AuthenticatedAsAServicePrincipal = true
 
-		config.authMethod = newServicePrincipalClientSecretAuth(b)
+		method, err := newServicePrincipalClientSecretAuth(b)
+		if err != nil {
+			return nil, err
+		}
+
+		config.authMethod = method
 		return config.validate()
 	}
 
@@ -77,10 +87,12 @@ func (b Builder) Build() (*Config, error) {
 
 		// as credentials are parsed from the Azure CLI's Profile we actually need to
 		// obtain the ClientId, Environment, Subscription ID & TenantID here
-		config.ClientID = method.profile.clientId
-		config.Environment = method.profile.environment
-		config.SubscriptionID = method.profile.subscriptionId
-		config.TenantID = method.profile.tenantId
+		if cliAuth, ok := method.(azureCliParsingAuth); ok && method != nil {
+			config.ClientID = cliAuth.profile.clientId
+			config.Environment = cliAuth.profile.environment
+			config.SubscriptionID = cliAuth.profile.subscriptionId
+			config.TenantID = cliAuth.profile.tenantId
+		}
 
 		config.authMethod = method
 		return config.validate()

@@ -18,20 +18,19 @@ type servicePrincipalClientCertificateAuth struct {
 	clientId           string
 	clientCertPath     string
 	clientCertPassword string
-	environment        string
 	subscriptionId     string
 	tenantId           string
 }
 
-func newServicePrincipalClientCertificateAuth(b Builder) authMethod {
-	return servicePrincipalClientCertificateAuth{
+func newServicePrincipalClientCertificateAuth(b Builder) (authMethod, error) {
+	method := servicePrincipalClientCertificateAuth{
 		clientId:           b.ClientID,
 		clientCertPath:     b.ClientCertPath,
 		clientCertPassword: b.ClientCertPassword,
-		environment:        b.Environment,
 		subscriptionId:     b.SubscriptionID,
 		tenantId:           b.TenantID,
 	}
+	return method, nil
 }
 
 func (a servicePrincipalClientCertificateAuth) getAuthorizationToken(oauthConfig *adal.OAuthConfig, endpoint string) (*autorest.BearerAuthorizer, error) {
@@ -91,10 +90,6 @@ func (a servicePrincipalClientCertificateAuth) validate() error {
 
 	if a.tenantId == "" {
 		err = multierror.Append(err, fmt.Errorf(fmtErrorMessage, "Tenant ID"))
-	}
-
-	if a.environment == "" {
-		err = multierror.Append(err, fmt.Errorf(fmtErrorMessage, "Environment"))
 	}
 
 	return err.ErrorOrNil()
