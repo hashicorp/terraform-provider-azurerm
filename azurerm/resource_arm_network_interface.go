@@ -184,10 +184,10 @@ func resourceArmNetworkInterface() *schema.Resource {
 			},
 
 			"internal_fqdn": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.NoZeroValues,
+				Type:       schema.TypeString,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: "This field has been removed by Azure",
 			},
 
 			/**
