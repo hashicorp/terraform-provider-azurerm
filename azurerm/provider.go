@@ -311,24 +311,27 @@ func Provider() terraform.ResourceProvider {
 
 func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 	return func(d *schema.ResourceData) (interface{}, error) {
-		config := &authentication.Config{
-			SubscriptionID:            d.Get("subscription_id").(string),
-			ClientID:                  d.Get("client_id").(string),
-			ClientSecret:              d.Get("client_secret").(string),
-			TenantID:                  d.Get("tenant_id").(string),
-			Environment:               d.Get("environment").(string),
-			UseMsi:                    d.Get("use_msi").(bool),
-			MsiEndpoint:               d.Get("msi_endpoint").(string),
-			SkipCredentialsValidation: d.Get("skip_credentials_validation").(bool),
-			SkipProviderRegistration:  d.Get("skip_provider_registration").(bool),
+		builder := &authentication.Builder{
+			SubscriptionID: d.Get("subscription_id").(string),
+			ClientID:       d.Get("client_id").(string),
+			ClientSecret:   d.Get("client_secret").(string),
+			TenantID:       d.Get("tenant_id").(string),
+			Environment:    d.Get("environment").(string),
+			MsiEndpoint:    d.Get("msi_endpoint").(string),
+
+			// Feature Toggles
+			SupportsClientSecretAuth:          true,
+			SupportsManagedServiceIdentity:    d.Get("use_msi").(bool),
+			SupportsAzureCliCloudShellParsing: true,
 		}
 
-		err := config.Validate()
+		config, err := builder.Build()
 		if err != nil {
-			return nil, fmt.Errorf("Error validating provider: %s", err)
+			return nil, fmt.Errorf("Error building AzureRM Client: %s", err)
 		}
 
-		client, err := getArmClient(config)
+		skipProviderRegistration := d.Get("skip_provider_registration").(bool)
+		client, err := getArmClient(config, skipProviderRegistration)
 		if err != nil {
 			return nil, err
 		}
@@ -341,7 +344,8 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			return nil
 		}
 
-		if !config.SkipCredentialsValidation {
+		skipCredentialsValidation := d.Get("skip_credentials_validation").(bool)
+		if !skipCredentialsValidation {
 			// List all the available providers and their registration state to avoid unnecessary
 			// requests. This also lets us check if the provider credentials are correct.
 			ctx := client.StopContext
@@ -352,7 +356,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 					"error: %s", err)
 			}
 
-			if !config.SkipProviderRegistration {
+			if !skipProviderRegistration {
 				availableResourceProviders := providerList.Values()
 				requiredResourceProviders := requiredResourceProviders()
 
