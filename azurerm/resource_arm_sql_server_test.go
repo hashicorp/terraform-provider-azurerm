@@ -78,9 +78,10 @@ func TestAccAzureRMSqlServer_basic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"administrator_login_password"},
 			},
 		},
 	})
@@ -135,9 +136,10 @@ func TestAccAzureRMSqlServer_withTags(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"administrator_login_password"},
 			},
 		},
 	})
