@@ -497,16 +497,16 @@ func testCheckAzureRMPublicIpDestroy(s *terraform.State) error {
 func testAccAzureRMPublicIPStatic_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name     = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_public_ip" "test" {
-    name                = "acctestpublicip-%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestpublicip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    public_ip_address_allocation = "static"
+  public_ip_address_allocation = "static"
 }
 `, rInt, location, rInt)
 }
@@ -514,17 +514,17 @@ resource "azurerm_public_ip" "test" {
 func testAccAzureRMPublicIPStatic_withZone(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name     = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_public_ip" "test" {
-    name                         = "acctestpublicip-%d"
-    location                     = "${azurerm_resource_group.test.location}"
-    resource_group_name          = "${azurerm_resource_group.test.name}"
-    public_ip_address_allocation = "static"
+  name                         = "acctestpublicip-%d"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "static"
 
-    zones = ["1"]
+  zones = ["1"]
 }
 `, rInt, location, rInt)
 }
@@ -532,17 +532,17 @@ resource "azurerm_public_ip" "test" {
 func testAccAzureRMPublicIPStatic_basic_withDNSLabel(rInt int, location, dnsNameLabel string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name        = "acctestRG-%d"
-    location    = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_public_ip" "test" {
-    name                            = "acctestpublicip-%d"
-    location                        = "${azurerm_resource_group.test.location}"
-    resource_group_name             = "${azurerm_resource_group.test.name}"
-    public_ip_address_allocation    = "static"
+  name                         = "acctestpublicip-%d"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "static"
 
-    domain_name_label = "%s"
+  domain_name_label = "%s"
 }
 `, rInt, location, rInt, dnsNameLabel)
 }
@@ -550,17 +550,17 @@ resource "azurerm_public_ip" "test" {
 func testAccAzureRMPublicIPStatic_basic_withIPVersion(rInt int, location string, ipVersion string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name     = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_public_ip" "test" {
-    name                         = "acctestpublicip-%d"
-    location                     = "${azurerm_resource_group.test.location}"
-    resource_group_name          = "${azurerm_resource_group.test.name}"
-    public_ip_address_allocation = "static"
+  name                         = "acctestpublicip-%d"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "static"
 
-    ip_version                   = "%s"
+  ip_version = "%s"
 }
 `, rInt, location, rInt, ipVersion)
 }
@@ -568,16 +568,16 @@ resource "azurerm_public_ip" "test" {
 func testAccAzureRMPublicIPStatic_standard(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_public_ip" "test" {
-    name = "acctestpublicip-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    public_ip_address_allocation = "static"
-    sku = "standard"
+  name                         = "acctestpublicip-%d"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "static"
+  sku                          = "standard"
 }
 `, rInt, location, rInt)
 }
@@ -585,17 +585,17 @@ resource "azurerm_public_ip" "test" {
 func testAccAzureRMPublicIPStatic_standard_withIPVersion(rInt int, location string, ipVersion string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_public_ip" "test" {
-    name = "acctestpublicip-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    public_ip_address_allocation = "static"
-    ip_version = "%s"
-    sku = "standard"
+  name                         = "acctestpublicip-%d"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "static"
+  ip_version                   = "%s"
+  sku                          = "standard"
 }
 `, rInt, location, rInt, ipVersion)
 }
@@ -603,16 +603,16 @@ resource "azurerm_public_ip" "test" {
 func testAccAzureRMPublicIPStatic_update(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_public_ip" "test" {
-    name = "acctestpublicip-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    public_ip_address_allocation = "static"
-    domain_name_label = "acctest-%d"
+  name                         = "acctestpublicip-%d"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "static"
+  domain_name_label            = "acctest-%d"
 }
 `, rInt, location, rInt, rInt)
 }
@@ -620,16 +620,16 @@ resource "azurerm_public_ip" "test" {
 func testAccAzureRMPublicIPStatic_idleTimeout(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_public_ip" "test" {
-    name = "acctestpublicip-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    public_ip_address_allocation = "static"
-    idle_timeout_in_minutes = 30
+  name                         = "acctestpublicip-%d"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "static"
+  idle_timeout_in_minutes      = 30
 }
 `, rInt, location, rInt)
 }
@@ -637,15 +637,15 @@ resource "azurerm_public_ip" "test" {
 func testAccAzureRMPublicIPDynamic_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_public_ip" "test" {
-    name = "acctestpublicip-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    public_ip_address_allocation = "dynamic"
+  name                         = "acctestpublicip-%d"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "dynamic"
 }
 `, rInt, location, rInt)
 }
@@ -653,17 +653,17 @@ resource "azurerm_public_ip" "test" {
 func testAccAzureRMPublicIPDynamic_basic_withIPVersion(rInt int, location string, ipVersion string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_public_ip" "test" {
-    name = "acctestpublicip-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    public_ip_address_allocation = "dynamic"
+  name                         = "acctestpublicip-%d"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "dynamic"
 
-    ip_version = "%s"
+  ip_version = "%s"
 }
 `, rInt, location, rInt, ipVersion)
 }
@@ -671,20 +671,20 @@ resource "azurerm_public_ip" "test" {
 func testAccAzureRMPublicIPStatic_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_public_ip" "test" {
-    name = "acctestpublicip-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    public_ip_address_allocation = "static"
+  name                         = "acctestpublicip-%d"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "static"
 
-    tags {
-	environment = "Production"
-	cost_center = "MSFT"
-    }
+  tags {
+    environment = "Production"
+    cost_center = "MSFT"
+  }
 }
 `, rInt, location, rInt)
 }
@@ -692,19 +692,19 @@ resource "azurerm_public_ip" "test" {
 func testAccAzureRMPublicIPStatic_withTagsUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_public_ip" "test" {
-    name = "acctestpublicip-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    public_ip_address_allocation = "static"
+  name                         = "acctestpublicip-%d"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "static"
 
-    tags {
-	environment = "staging"
-    }
+  tags {
+    environment = "staging"
+  }
 }
 `, rInt, location, rInt)
 }
@@ -712,17 +712,17 @@ resource "azurerm_public_ip" "test" {
 func testAccAzureRMPublicIPStatic_canLabelBe63(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name     = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_public_ip" "test" {
-    name                = "acctestpublicip-%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestpublicip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    public_ip_address_allocation = "static"
-    domain_name_label = "k2345678-1-2345678-2-2345678-3-2345678-4-2345678-5-2345678-6-23"
+  public_ip_address_allocation = "static"
+  domain_name_label            = "k2345678-1-2345678-2-2345678-3-2345678-4-2345678-5-2345678-6-23"
 }
 `, rInt, location, rInt)
 }

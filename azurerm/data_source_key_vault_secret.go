@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -62,7 +63,7 @@ func dataSourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	// the version may have changed, so parse the updated id
-	respID, err := parseKeyVaultChildID(*resp.ID)
+	respID, err := azure.ParseKeyVaultChildID(*resp.ID)
 	if err != nil {
 		return err
 	}

@@ -440,9 +440,9 @@ func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{})
 
 	if v, ok := d.GetOk("network_security_group_id"); ok {
 		networkSecurityGroupId := v.(string)
-		networkSecurityGroupName, err := parseNetworkSecurityGroupName(networkSecurityGroupId)
-		if err != nil {
-			return err
+		networkSecurityGroupName, err2 := parseNetworkSecurityGroupName(networkSecurityGroupId)
+		if err2 != nil {
+			return err2
 		}
 
 		azureRMLockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
@@ -457,9 +457,9 @@ func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{})
 		data := configRaw.(map[string]interface{})
 
 		subnet_id := data["subnet_id"].(string)
-		subnetId, err := parseAzureResourceID(subnet_id)
-		if err != nil {
-			return err
+		subnetId, err2 := parseAzureResourceID(subnet_id)
+		if err2 != nil {
+			return err2
 		}
 		subnetName := subnetId.Path["subnets"]
 		if !sliceContainsValue(subnetNamesToLock, subnetName) {

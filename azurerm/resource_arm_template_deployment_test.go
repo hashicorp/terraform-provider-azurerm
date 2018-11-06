@@ -217,14 +217,15 @@ func testCheckAzureRMTemplateDeploymentDestroy(s *terraform.State) error {
 func testAccAzureRMTemplateDeployment_basicSingle(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
-  }
+  name     = "acctestRG-%d"
+  location = "%s"
+}
 
-  resource "azurerm_template_deployment" "test" {
-    name = "acctesttemplate-%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    template_body = <<DEPLOY
+resource "azurerm_template_deployment" "test" {
+  name                = "acctesttemplate-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  template_body = <<DEPLOY
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
@@ -250,22 +251,24 @@ resource "azurerm_resource_group" "test" {
   ]
 }
 DEPLOY
-    deployment_mode = "Complete"
-  }
+
+  deployment_mode = "Complete"
+}
 `, rInt, location, rInt, rInt)
 }
 
 func testAccAzureRMTemplateDeployment_basicMultiple(rInt int, location string) string {
 	return fmt.Sprintf(`
-  resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
-  }
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
 
-  resource "azurerm_template_deployment" "test" {
-    name = "acctesttemplate-%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    template_body = <<DEPLOY
+resource "azurerm_template_deployment" "test" {
+  name                = "acctesttemplate-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  template_body = <<DEPLOY
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
@@ -316,15 +319,16 @@ func testAccAzureRMTemplateDeployment_basicMultiple(rInt int, location string) s
   ]
 }
 DEPLOY
-    deployment_mode = "Complete"
-  }
+
+  deployment_mode = "Complete"
+}
 `, rInt, location, rInt)
 }
 
 func testaccAzureRMTemplateDeployment_withParamsBody(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -333,41 +337,49 @@ output "test" {
 }
 
 resource "azurerm_storage_container" "using-outputs" {
-  name = "vhds"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  storage_account_name = "${azurerm_template_deployment.test.outputs["accountName"]}"
+  name                  = "vhds"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_template_deployment.test.outputs["accountName"]}"
   container_access_type = "private"
 }
 
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test-kv" {
-  location = "%s"
-  name = "vault%d"
+  location            = "%s"
+  name                = "vault%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
   "sku" {
     name = "standard"
   }
-  tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+
+  tenant_id                       = "${data.azurerm_client_config.current.tenant_id}"
   enabled_for_template_deployment = true
 
   access_policy {
     key_permissions = []
-    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+    object_id       = "${data.azurerm_client_config.current.service_principal_object_id}"
+
     secret_permissions = [
-      "get","list","set","purge"]
+      "get",
+      "list",
+      "set",
+      "purge",
+    ]
+
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
   }
 }
 
 resource "azurerm_key_vault_secret" "test-secret" {
-  name = "acctestsecret-%d"
-  value = "terraform-test-%d"
+  name      = "acctestsecret-%d"
+  value     = "terraform-test-%d"
   vault_uri = "${azurerm_key_vault.test-kv.vault_uri}"
 }
 
 locals {
-	"templated-file" = <<TPL
+  "templated-file" = <<TPL
 {
 "dnsLabelPrefix": {
     "reference": {
@@ -385,8 +397,9 @@ TPL
 }
 
 resource "azurerm_template_deployment" "test" {
-  name = "acctesttemplate-%d"
+  name                = "acctesttemplate-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
   template_body = <<DEPLOY
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
@@ -456,7 +469,7 @@ DEPLOY
 
   parameters_body = "${local.templated-file}"
   deployment_mode = "Complete"
-  depends_on = ["azurerm_key_vault_secret.test-secret"]
+  depends_on      = ["azurerm_key_vault_secret.test-secret"]
 }
 `, rInt, location, location, rInt, rInt, rInt, rInt)
 
@@ -464,26 +477,27 @@ DEPLOY
 
 func testAccAzureRMTemplateDeployment_withParams(rInt int, location string) string {
 	return fmt.Sprintf(`
-  resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
-  }
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
 
-  output "test" {
-    value = "${azurerm_template_deployment.test.outputs["testOutput"]}"
-  }
+output "test" {
+  value = "${azurerm_template_deployment.test.outputs["testOutput"]}"
+}
 
-  resource "azurerm_storage_container" "using-outputs" {
-    name = "vhds"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    storage_account_name = "${azurerm_template_deployment.test.outputs["accountName"]}"
-    container_access_type = "private"
-  }
+resource "azurerm_storage_container" "using-outputs" {
+  name                  = "vhds"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_template_deployment.test.outputs["accountName"]}"
+  container_access_type = "private"
+}
 
-  resource "azurerm_template_deployment" "test" {
-    name = "acctesttemplate-%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    template_body = <<DEPLOY
+resource "azurerm_template_deployment" "test" {
+  name                = "acctesttemplate-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  template_body = <<DEPLOY
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
@@ -549,42 +563,45 @@ func testAccAzureRMTemplateDeployment_withParams(rInt int, location string) stri
   }
 }
 DEPLOY
-    parameters {
-	dnsLabelPrefix = "terraform-test-%d"
-	storageAccountType = "Standard_GRS"
-    }
-    deployment_mode = "Complete"
+
+  parameters {
+    dnsLabelPrefix     = "terraform-test-%d"
+    storageAccountType = "Standard_GRS"
   }
+
+  deployment_mode = "Complete"
+}
 `, rInt, location, rInt, rInt)
 }
 
 func testAccAzureRMTemplateDeployment_withOutputs(rInt int, location string) string {
 	return fmt.Sprintf(`
-  resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
-  }
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
 
-  output "tfStringOutput" {
-    value = "${lookup(azurerm_template_deployment.test.outputs, "stringOutput")}"
-  }
+output "tfStringOutput" {
+  value = "${lookup(azurerm_template_deployment.test.outputs, "stringOutput")}"
+}
 
-  output "tfIntOutput" {
-    value = "${lookup(azurerm_template_deployment.test.outputs, "intOutput")}"
-  }
+output "tfIntOutput" {
+  value = "${lookup(azurerm_template_deployment.test.outputs, "intOutput")}"
+}
 
-  output "tfFalseOutput" {
-    value = "${lookup(azurerm_template_deployment.test.outputs, "falseOutput")}"
-  }
+output "tfFalseOutput" {
+  value = "${lookup(azurerm_template_deployment.test.outputs, "falseOutput")}"
+}
 
-  output "tfTrueOutput" {
-    value = "${lookup(azurerm_template_deployment.test.outputs, "trueOutput")}"
-  }
+output "tfTrueOutput" {
+  value = "${lookup(azurerm_template_deployment.test.outputs, "trueOutput")}"
+}
 
-  resource "azurerm_template_deployment" "test" {
-    name = "acctesttemplate-%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    template_body = <<DEPLOY
+resource "azurerm_template_deployment" "test" {
+  name                = "acctesttemplate-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  template_body = <<DEPLOY
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
@@ -670,12 +687,14 @@ func testAccAzureRMTemplateDeployment_withOutputs(rInt int, location string) str
   }
 }
 DEPLOY
-    parameters {
-      dnsLabelPrefix = "terraform-test-%d"
-      storageAccountType = "Standard_GRS"
-    }
-    deployment_mode = "Incremental"
+
+  parameters {
+    dnsLabelPrefix     = "terraform-test-%d"
+    storageAccountType = "Standard_GRS"
   }
+
+  deployment_mode = "Incremental"
+}
 `, rInt, location, rInt, rInt)
 }
 
@@ -683,18 +702,19 @@ DEPLOY
 func testAccAzureRMTemplateDeployment_withError(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
-  }
+  name     = "acctestRG-%d"
+  location = "%s"
+}
 
-  output "test" {
-    value = "${lookup(azurerm_template_deployment.test.outputs, "testOutput")}"
-  }
+output "test" {
+  value = "${lookup(azurerm_template_deployment.test.outputs, "testOutput")}"
+}
 
-  resource "azurerm_template_deployment" "test" {
-    name = "acctesttemplate-%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    template_body = <<DEPLOY
+resource "azurerm_template_deployment" "test" {
+  name                = "acctesttemplate-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  template_body = <<DEPLOY
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
@@ -736,10 +756,12 @@ resource "azurerm_resource_group" "test" {
   }
 }
 DEPLOY
-    parameters {
-        storageAccountType = "Standard_GRS"
-    }
-    deployment_mode = "Complete"
+
+  parameters {
+    storageAccountType = "Standard_GRS"
   }
+
+  deployment_mode = "Complete"
+}
 `, rInt, location, rInt)
 }

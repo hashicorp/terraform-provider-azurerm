@@ -74,12 +74,12 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 	}
 
 	if d.IsNewResource() {
-		_, err := client.Create(ctx, name, contact)
+		_, err = client.Create(ctx, name, contact)
 		if err != nil {
 			return fmt.Errorf("Error creating Security Center Workspace: %+v", err)
 		}
 	} else {
-		_, err := client.Update(ctx, name, contact)
+		_, err = client.Update(ctx, name, contact)
 		if err != nil {
 			return fmt.Errorf("Error updating Security Center Workspace: %+v", err)
 		}
@@ -93,9 +93,9 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 		MinTimeout: 30 * time.Second,
 		Refresh: func() (interface{}, string, error) {
 
-			resp, err := client.Get(ctx, name)
-			if err != nil {
-				return resp, "Error", fmt.Errorf("Error reading Security Center Workspace: %+v", err)
+			resp, err2 := client.Get(ctx, name)
+			if err2 != nil {
+				return resp, "Error", fmt.Errorf("Error reading Security Center Workspace: %+v", err2)
 			}
 
 			if properties := resp.WorkspaceSettingProperties; properties != nil {

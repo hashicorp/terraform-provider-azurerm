@@ -336,22 +336,22 @@ func testDeleteAzureRMVirtualMachine(name string) resource.TestCheckFunc {
 func testAccAzureRMManagedDisk_empty(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_managed_disk" "test" {
-    name = "acctestd-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    storage_account_type = "Standard_LRS"
-    create_option = "Empty"
-    disk_size_gb = "1"
+  name                 = "acctestd-%d"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = "1"
 
-    tags {
-        environment = "acctest"
-        cost-center = "ops"
-    }
+  tags {
+    environment = "acctest"
+    cost-center = "ops"
+  }
 }
 `, rInt, location, rInt)
 }
@@ -359,23 +359,23 @@ resource "azurerm_managed_disk" "test" {
 func testAccAzureRMManagedDisk_empty_withZone(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_managed_disk" "test" {
-    name = "acctestd-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    storage_account_type = "Standard_LRS"
-    create_option = "Empty"
-    disk_size_gb = "1"
-    zones = ["1"]
+  name                 = "acctestd-%d"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = "1"
+  zones                = ["1"]
 
-    tags {
-        environment = "acctest"
-        cost-center = "ops"
-    }
+  tags {
+    environment = "acctest"
+    cost-center = "ops"
+  }
 }
 `, rInt, location, rInt)
 }
@@ -383,41 +383,41 @@ resource "azurerm_managed_disk" "test" {
 func testAccAzureRMManagedDisk_import(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
-    name                     = "accsa%d"
-    resource_group_name      = "${azurerm_resource_group.test.name}"
-    location                 = "${azurerm_resource_group.test.location}"
-    account_tier             = "Standard"
-    account_replication_type = "LRS"
+  name                     = "accsa%d"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 
-    tags {
-        environment = "staging"
-    }
+  tags {
+    environment = "staging"
+  }
 }
 
 resource "azurerm_storage_container" "test" {
-    name = "vhds"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    storage_account_name = "${azurerm_storage_account.test.name}"
-    container_access_type = "private"
+  name                  = "vhds"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
 }
 
 resource "azurerm_managed_disk" "test" {
-    name = "acctestd-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    storage_account_type = "Standard_LRS"
-    create_option = "Import"
-    source_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    disk_size_gb = "45"
+  name                 = "acctestd-%d"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_type = "Standard_LRS"
+  create_option        = "Import"
+  source_uri           = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+  disk_size_gb         = "45"
 
-    tags {
-        environment = "acctest"
-    }
+  tags {
+    environment = "acctest"
+  }
 }
 `, rInt, location, rInt, rInt)
 }
@@ -425,37 +425,37 @@ resource "azurerm_managed_disk" "test" {
 func testAccAzureRMManagedDisk_copy(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_managed_disk" "source" {
-    name = "acctestd1-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    storage_account_type = "Standard_LRS"
-    create_option = "Empty"
-    disk_size_gb = "1"
+  name                 = "acctestd1-%d"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = "1"
 
-    tags {
-        environment = "acctest"
-        cost-center = "ops"
-    }
+  tags {
+    environment = "acctest"
+    cost-center = "ops"
+  }
 }
 
 resource "azurerm_managed_disk" "test" {
-    name = "acctestd2-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    storage_account_type = "Standard_LRS"
-    create_option = "Copy"
-    source_resource_id = "${azurerm_managed_disk.source.id}"
-    disk_size_gb = "1"
+  name                 = "acctestd2-%d"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_type = "Standard_LRS"
+  create_option        = "Copy"
+  source_resource_id   = "${azurerm_managed_disk.source.id}"
+  disk_size_gb         = "1"
 
-    tags {
-        environment = "acctest"
-        cost-center = "ops"
-    }
+  tags {
+    environment = "acctest"
+    cost-center = "ops"
+  }
 }
 `, rInt, location, rInt, rInt)
 }
@@ -463,21 +463,21 @@ resource "azurerm_managed_disk" "test" {
 func testAccAzureRMManagedDisk_empty_updated(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_managed_disk" "test" {
-    name = "acctestd-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    storage_account_type = "Premium_LRS"
-    create_option = "Empty"
-    disk_size_gb = "2"
+  name                 = "acctestd-%d"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_type = "Premium_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = "2"
 
-    tags {
-        environment = "acctest"
-    }
+  tags {
+    environment = "acctest"
+  }
 }
 `, rInt, location, rInt)
 }
@@ -537,17 +537,18 @@ data "azurerm_platform_image" "test" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
+
 resource "azurerm_managed_disk" "test" {
-  name = "acctestd-%d"
-  location = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  os_type = "Linux"
-  create_option = "FromImage"
-  disk_size_gb = "0" 
-  image_reference_id = "${data.azurerm_platform_image.test.id}"
+  name                 = "acctestd-%d"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  os_type              = "Linux"
+  create_option        = "FromImage"
+  disk_size_gb         = "0"
+  image_reference_id   = "${data.azurerm_platform_image.test.id}"
   storage_account_type = "Standard_LRS"
 }
 `, location, rInt, location, rInt)
@@ -558,8 +559,8 @@ func testAccAzureRMManagedDisk_encryption(rInt int, rString string, location str
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_key_vault" "test" {
@@ -615,29 +616,31 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_managed_disk" "test" {
-    name = "acctestd-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    storage_account_type = "Standard_LRS"
-    create_option = "Empty"
-    disk_size_gb = "1"
+  name                 = "acctestd-%d"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = "1"
 
-    encryption_settings {
-      enabled = true
-      disk_encryption_key {
-	    secret_url      = "${azurerm_key_vault_secret.test.id}"
-	    source_vault_id = "${azurerm_key_vault.test.id}"
-      }
-      key_encryption_key {
-        key_url         = "${azurerm_key_vault_key.test.id}"
-        source_vault_id = "${azurerm_key_vault.test.id}"
-      }
+  encryption_settings {
+    enabled = true
+
+    disk_encryption_key {
+      secret_url      = "${azurerm_key_vault_secret.test.id}"
+      source_vault_id = "${azurerm_key_vault.test.id}"
     }
 
-    tags {
-        environment = "acctest"
-        cost-center = "ops"
+    key_encryption_key {
+      key_url         = "${azurerm_key_vault_key.test.id}"
+      source_vault_id = "${azurerm_key_vault.test.id}"
     }
+  }
+
+  tags {
+    environment = "acctest"
+    cost-center = "ops"
+  }
 }
 `, rInt, location, rString, rString, rString, rInt)
 }

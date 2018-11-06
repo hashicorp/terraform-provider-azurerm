@@ -25,6 +25,11 @@ func TestAccAzureRMLogicAppTriggerRecurrence_month(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "interval", "1"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -45,6 +50,11 @@ func TestAccAzureRMLogicAppTriggerRecurrence_week(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "frequency", "Week"),
 					resource.TestCheckResourceAttr(resourceName, "interval", "2"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -67,6 +77,11 @@ func TestAccAzureRMLogicAppTriggerRecurrence_day(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "interval", "3"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -87,6 +102,11 @@ func TestAccAzureRMLogicAppTriggerRecurrence_minute(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "frequency", "Minute"),
 					resource.TestCheckResourceAttr(resourceName, "interval", "4"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -109,6 +129,11 @@ func TestAccAzureRMLogicAppTriggerRecurrence_second(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "interval", "30"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -129,6 +154,11 @@ func TestAccAzureRMLogicAppTriggerRecurrence_hour(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "frequency", "Hour"),
 					resource.TestCheckResourceAttr(resourceName, "interval", "4"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
