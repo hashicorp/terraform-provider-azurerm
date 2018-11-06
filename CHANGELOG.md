@@ -10,6 +10,7 @@ IMPROVEMENTS:
 * dependencies: switching to Go 1.11 [GH-2229]
 * authentication: refactoring to allow authentication modes to be feature-toggled [GH-2199]
 * `azurerm_databricks_workspace` - fixing validation on the `name` field [GH-2221]
+* `azurerm_network_interface` - deprecating `internal_fqdn` since it's no longer setable/returned by Azure [GH-2253]
 * `azurerm_virtual_machine` - support for assigning both a system and a user managed identity [GH-2188]
 * `azurerm_virtual_machine_scale_set` - support for assigning both a system and a user managed identity [GH-2188]
 * `azurerm_virtual_machine_scale_set` - support for setting `eviction_policy` [GH-2226]
