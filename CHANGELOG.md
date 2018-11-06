@@ -7,6 +7,7 @@ FEATURES:
 IMPROVEMENTS:
 
 * dependencies: switching to Go 1.11 [GH-2229]
+* `azurerm_databricks_workspace` - fixing validation on the `name` field [GH-2221]
 * `azurerm_virtual_machine_scale_set` - support for setting `eviction_policy` [GH-2226]
 
 BUG FIXES:
