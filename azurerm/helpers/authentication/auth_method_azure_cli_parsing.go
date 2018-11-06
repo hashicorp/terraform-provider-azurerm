@@ -13,7 +13,7 @@ type azureCliParsingAuth struct {
 	profile *azureCLIProfile
 }
 
-func newAzureCliParsingAuth(b Builder) (authMethod, error) {
+func (a azureCliParsingAuth) build(b Builder) (authMethod, error) {
 	auth := azureCliParsingAuth{
 		profile: &azureCLIProfile{
 			clientId:       b.ClientID,
@@ -47,6 +47,10 @@ func newAzureCliParsingAuth(b Builder) (authMethod, error) {
 	return auth, nil
 }
 
+func (a azureCliParsingAuth) isApplicable(b Builder) bool {
+	return b.SupportsAzureCliCloudShellParsing
+}
+
 func (a azureCliParsingAuth) getAuthorizationToken(oauthConfig *adal.OAuthConfig, endpoint string) (*autorest.BearerAuthorizer, error) {
 	if a.profile.usingCloudShell {
 		// load the refreshed tokens from the CloudShell Azure CLI credentials
@@ -69,6 +73,18 @@ func (a azureCliParsingAuth) getAuthorizationToken(oauthConfig *adal.OAuthConfig
 
 	auth := autorest.NewBearerAuthorizer(spt)
 	return auth, nil
+}
+
+func (a azureCliParsingAuth) name() string {
+	return "Parsing credentials from the Azure CLI"
+}
+
+func (a azureCliParsingAuth) populateConfig(c *Config) error {
+	c.ClientID = a.profile.clientId
+	c.Environment = a.profile.environment
+	c.SubscriptionID = a.profile.subscriptionId
+	c.TenantID = a.profile.tenantId
+	return nil
 }
 
 func (a azureCliParsingAuth) validate() error {

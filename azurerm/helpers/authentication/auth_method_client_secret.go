@@ -15,7 +15,7 @@ type servicePrincipalClientSecretAuth struct {
 	tenantId       string
 }
 
-func newServicePrincipalClientSecretAuth(b Builder) (authMethod, error) {
+func (a servicePrincipalClientSecretAuth) build(b Builder) (authMethod, error) {
 	method := servicePrincipalClientSecretAuth{
 		clientId:       b.ClientID,
 		clientSecret:   b.ClientSecret,
@@ -23,6 +23,14 @@ func newServicePrincipalClientSecretAuth(b Builder) (authMethod, error) {
 		tenantId:       b.TenantID,
 	}
 	return method, nil
+}
+
+func (a servicePrincipalClientSecretAuth) isApplicable(b Builder) bool {
+	return b.SupportsClientSecretAuth && b.ClientSecret != ""
+}
+
+func (a servicePrincipalClientSecretAuth) name() string {
+	return "Service Principal / Client Secret"
 }
 
 func (a servicePrincipalClientSecretAuth) getAuthorizationToken(oauthConfig *adal.OAuthConfig, endpoint string) (*autorest.BearerAuthorizer, error) {
@@ -33,6 +41,11 @@ func (a servicePrincipalClientSecretAuth) getAuthorizationToken(oauthConfig *ada
 
 	auth := autorest.NewBearerAuthorizer(spt)
 	return auth, nil
+}
+
+func (a servicePrincipalClientSecretAuth) populateConfig(c *Config) error {
+	c.AuthenticatedAsAServicePrincipal = true
+	return nil
 }
 
 func (a servicePrincipalClientSecretAuth) validate() error {

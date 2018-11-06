@@ -22,7 +22,7 @@ type servicePrincipalClientCertificateAuth struct {
 	tenantId           string
 }
 
-func newServicePrincipalClientCertificateAuth(b Builder) (authMethod, error) {
+func (a servicePrincipalClientCertificateAuth) build(b Builder) (authMethod, error) {
 	method := servicePrincipalClientCertificateAuth{
 		clientId:           b.ClientID,
 		clientCertPath:     b.ClientCertPath,
@@ -31,6 +31,14 @@ func newServicePrincipalClientCertificateAuth(b Builder) (authMethod, error) {
 		tenantId:           b.TenantID,
 	}
 	return method, nil
+}
+
+func (a servicePrincipalClientCertificateAuth) isApplicable(b Builder) bool {
+	return b.SupportsClientCertAuth && b.ClientCertPath != ""
+}
+
+func (a servicePrincipalClientCertificateAuth) name() string {
+	return "Service Principal / Client Certificate"
 }
 
 func (a servicePrincipalClientCertificateAuth) getAuthorizationToken(oauthConfig *adal.OAuthConfig, endpoint string) (*autorest.BearerAuthorizer, error) {
@@ -57,6 +65,11 @@ func (a servicePrincipalClientCertificateAuth) getAuthorizationToken(oauthConfig
 
 	auth := autorest.NewBearerAuthorizer(spt)
 	return auth, nil
+}
+
+func (a servicePrincipalClientCertificateAuth) populateConfig(c *Config) error {
+	c.AuthenticatedAsAServicePrincipal = true
+	return nil
 }
 
 func (a servicePrincipalClientCertificateAuth) validate() error {

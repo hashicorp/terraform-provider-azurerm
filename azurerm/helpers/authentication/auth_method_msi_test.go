@@ -7,7 +7,7 @@ func TestManagedServiceIdentity_builder(t *testing.T) {
 		MsiEndpoint: "https://hello-world",
 	}
 
-	method, err := newManagedServiceIdentityAuth(builder)
+	method, err := managedServiceIdentityAuth{}.build(builder)
 	if err != nil {
 		t.Fatalf("Error building MSI Identity Auth: %+v", err)
 	}
@@ -16,6 +16,51 @@ func TestManagedServiceIdentity_builder(t *testing.T) {
 	if builder.MsiEndpoint != authMethod.endpoint {
 		t.Fatalf("Expected MSI Endpoint to be %q but got %q", builder.MsiEndpoint, authMethod.endpoint)
 	}
+}
+
+func TestManagedServiceIdentity_isApplicable(t *testing.T) {
+	cases := []struct {
+		Description string
+		Builder     Builder
+		Valid       bool
+	}{
+		{
+			Description: "Empty Configuration",
+			Builder:     Builder{},
+			Valid:       false,
+		},
+		{
+			Description: "Feature Toggled off",
+			Builder: Builder{
+				SupportsManagedServiceIdentity: false,
+			},
+			Valid: false,
+		},
+		{
+			Description: "Feature Toggled on",
+			Builder: Builder{
+				SupportsManagedServiceIdentity: true,
+			},
+			Valid: false,
+		},
+	}
+
+	for _, v := range cases {
+		applicable := servicePrincipalClientSecretAuth{}.isApplicable(v.Builder)
+		if v.Valid != applicable {
+			t.Fatalf("Expected %q to be %t but got %t", v.Description, v.Valid, applicable)
+		}
+	}
+}
+
+func TestManagedServiceIdentity_populateConfig(t *testing.T) {
+	config := &Config{}
+	err := servicePrincipalClientSecretAuth{}.populateConfig(config)
+	if err != nil {
+		t.Fatalf("Error populating config: %s", err)
+	}
+
+	// nothing to check since it's not doing anything
 }
 
 func TestManagedServiceIdentity_validate(t *testing.T) {

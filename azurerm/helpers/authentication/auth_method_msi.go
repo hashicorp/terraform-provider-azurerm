@@ -13,7 +13,7 @@ type managedServiceIdentityAuth struct {
 	endpoint string
 }
 
-func newManagedServiceIdentityAuth(b Builder) (authMethod, error) {
+func (a managedServiceIdentityAuth) build(b Builder) (authMethod, error) {
 	endpoint := b.MsiEndpoint
 	if endpoint == "" {
 		msiEndpoint, err := adal.GetMSIVMEndpoint()
@@ -31,6 +31,14 @@ func newManagedServiceIdentityAuth(b Builder) (authMethod, error) {
 	return auth, nil
 }
 
+func (a managedServiceIdentityAuth) isApplicable(b Builder) bool {
+	return b.SupportsManagedServiceIdentity
+}
+
+func (a managedServiceIdentityAuth) name() string {
+	return "Managed Service Identity"
+}
+
 func (a managedServiceIdentityAuth) getAuthorizationToken(oauthConfig *adal.OAuthConfig, endpoint string) (*autorest.BearerAuthorizer, error) {
 	spt, err := adal.NewServicePrincipalTokenFromMSI(a.endpoint, endpoint)
 	if err != nil {
@@ -38,6 +46,11 @@ func (a managedServiceIdentityAuth) getAuthorizationToken(oauthConfig *adal.OAut
 	}
 	auth := autorest.NewBearerAuthorizer(spt)
 	return auth, nil
+}
+
+func (a managedServiceIdentityAuth) populateConfig(c *Config) error {
+	// nothing to populate back
+	return nil
 }
 
 func (a managedServiceIdentityAuth) validate() error {

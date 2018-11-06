@@ -6,6 +6,74 @@ import (
 	"github.com/Azure/go-autorest/autorest/adal"
 )
 
+func TestAzureCLIParsingAuth_isApplicable(t *testing.T) {
+	cases := []struct {
+		Description string
+		Builder     Builder
+		Valid       bool
+	}{
+		{
+			Description: "Empty Configuration",
+			Builder:     Builder{},
+			Valid:       false,
+		},
+		{
+			Description: "Feature Toggled off",
+			Builder: Builder{
+				SupportsAzureCliCloudShellParsing: false,
+			},
+			Valid: false,
+		},
+		{
+			Description: "Feature Toggled on",
+			Builder: Builder{
+				SupportsAzureCliCloudShellParsing: true,
+			},
+			Valid: true,
+		},
+	}
+
+	for _, v := range cases {
+		applicable := azureCliParsingAuth{}.isApplicable(v.Builder)
+		if v.Valid != applicable {
+			t.Fatalf("Expected %q to be %t but got %t", v.Description, v.Valid, applicable)
+		}
+	}
+}
+
+func TestAzureCLIParsingAuth_populateConfig(t *testing.T) {
+	config := &Config{}
+	auth := azureCliParsingAuth{
+		profile: &azureCLIProfile{
+			clientId:       "some-subscription-id",
+			environment:    "dimension-c137",
+			subscriptionId: "some-subscription-id",
+			tenantId:       "some-tenant-id",
+		},
+	}
+
+	err := auth.populateConfig(config)
+	if err != nil {
+		t.Fatalf("Error populating config: %s", err)
+	}
+
+	if auth.profile.clientId != config.ClientID {
+		t.Fatalf("Expected Client ID to be %q but got %q", auth.profile.tenantId, config.TenantID)
+	}
+
+	if auth.profile.environment != config.Environment {
+		t.Fatalf("Expected Environment to be %q but got %q", auth.profile.tenantId, config.TenantID)
+	}
+
+	if auth.profile.subscriptionId != config.SubscriptionID {
+		t.Fatalf("Expected Subscription ID to be %q but got %q", auth.profile.tenantId, config.TenantID)
+	}
+
+	if auth.profile.tenantId != config.TenantID {
+		t.Fatalf("Expected Tenant ID to be %q but got %q", auth.profile.tenantId, config.TenantID)
+	}
+}
+
 func TestAzureCLIParsingAuth_validate(t *testing.T) {
 	cases := []struct {
 		Description string

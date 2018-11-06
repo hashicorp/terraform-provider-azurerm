@@ -9,7 +9,10 @@ func TestServicePrincipalClientSecretAuth_builder(t *testing.T) {
 		SubscriptionID: "some-subscription-id",
 		TenantID:       "some-tenant-id",
 	}
-	config := newServicePrincipalClientSecretAuth(builder)
+	config, err := servicePrincipalClientSecretAuth{}.build(builder)
+	if err != nil {
+		t.Fatalf("Error building client secret auth: %s", err)
+	}
 	servicePrincipal := config.(servicePrincipalClientSecretAuth)
 
 	if builder.ClientID != servicePrincipal.clientId {
@@ -26,6 +29,68 @@ func TestServicePrincipalClientSecretAuth_builder(t *testing.T) {
 
 	if builder.TenantID != servicePrincipal.tenantId {
 		t.Fatalf("Expected Tenant ID to be %q but got %q", builder.TenantID, servicePrincipal.tenantId)
+	}
+}
+
+func TestServicePrincipalClientSecretAuth_isApplicable(t *testing.T) {
+	cases := []struct {
+		Description string
+		Builder     Builder
+		Valid       bool
+	}{
+		{
+			Description: "Empty Configuration",
+			Builder:     Builder{},
+			Valid:       false,
+		},
+		{
+			Description: "Feature Toggled off",
+			Builder: Builder{
+				SupportsClientSecretAuth: false,
+			},
+			Valid: false,
+		},
+		{
+			Description: "Feature Toggled on but no secret specified",
+			Builder: Builder{
+				SupportsClientSecretAuth: true,
+			},
+			Valid: false,
+		},
+		{
+			Description: "Secret specified but feature toggled off",
+			Builder: Builder{
+				ClientSecret: "I turned myself into a pickle morty!",
+			},
+			Valid: false,
+		},
+		{
+			Description: "Valid configuration",
+			Builder: Builder{
+				SupportsClientSecretAuth: true,
+				ClientSecret:             "I turned myself into a pickle morty!",
+			},
+			Valid: true,
+		},
+	}
+
+	for _, v := range cases {
+		applicable := servicePrincipalClientSecretAuth{}.isApplicable(v.Builder)
+		if v.Valid != applicable {
+			t.Fatalf("Expected %q to be %t but got %t", v.Description, v.Valid, applicable)
+		}
+	}
+}
+
+func TestServicePrincipalClientSecretAuth_populateConfig(t *testing.T) {
+	config := &Config{}
+	err := servicePrincipalClientSecretAuth{}.populateConfig(config)
+	if err != nil {
+		t.Fatalf("Error populating config: %s", err)
+	}
+
+	if config.AuthenticatedAsAServicePrincipal != true {
+		t.Fatalf("Expected `AuthenticatedAsAServicePrincipal` to be true but it wasn't")
 	}
 }
 
@@ -73,16 +138,6 @@ func TestServicePrincipalClientSecretAuth_validate(t *testing.T) {
 				clientId:       "62e73395-5017-43b6-8ebf-d6c30a514cf1",
 				subscriptionId: "8e8b5e02-5c13-4822-b7dc-4232afb7e8c2",
 				clientSecret:   "Does Hammer Time have Daylight Savings Time?",
-			},
-			ExpectError: true,
-		},
-		{
-			Description: "Missing Environment",
-			Config: servicePrincipalClientSecretAuth{
-				clientId:       "62e73395-5017-43b6-8ebf-d6c30a514cf1",
-				subscriptionId: "8e8b5e02-5c13-4822-b7dc-4232afb7e8c2",
-				clientSecret:   "Does Hammer Time have Daylight Savings Time?",
-				tenantId:       "9834f8d0-24b3-41b7-8b8d-c611c461a129",
 			},
 			ExpectError: true,
 		},

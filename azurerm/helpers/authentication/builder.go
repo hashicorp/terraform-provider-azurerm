@@ -41,61 +41,35 @@ func (b Builder) Build() (*Config, error) {
 		Environment:    b.Environment,
 	}
 
-	if b.SupportsClientCertAuth && b.ClientCertPath != "" {
-		log.Printf("[DEBUG] Using Service Principal / Client Certificate for Authentication")
-		config.AuthenticatedAsAServicePrincipal = true
-
-		method, err := newServicePrincipalClientCertificateAuth(b)
-		if err != nil {
-			return nil, err
-		}
-
-		config.authMethod = method
-		return config.validate()
+	// NOTE: the ordering here is important
+	// since the Azure CLI Parsing should always be the last thing checked
+	supportedAuthenticationMethods := []authMethod{
+		servicePrincipalClientCertificateAuth{},
+		servicePrincipalClientSecretAuth{},
+		managedServiceIdentityAuth{},
+		azureCliParsingAuth{},
 	}
 
-	if b.SupportsClientSecretAuth && b.ClientSecret != "" {
-		log.Printf("[DEBUG] Using Service Principal / Client Secret for Authentication")
-		config.AuthenticatedAsAServicePrincipal = true
+	for _, method := range supportedAuthenticationMethods {
+		name := method.name()
+		log.Printf("Testing if %s is applicable for Authentication..", name)
+		if method.isApplicable(b) {
+			log.Printf("Using %s for Authentication", name)
+			auth, err := method.build(b)
+			if err != nil {
+				return nil, err
+			}
 
-		method, err := newServicePrincipalClientSecretAuth(b)
-		if err != nil {
-			return nil, err
+			// populate authentication specific fields on the Config
+			// (e.g. is service principal, fields parsed from the azure cli)
+			err = auth.populateConfig(&config)
+			if err != nil {
+				return nil, err
+			}
+
+			config.authMethod = auth
+			return config.validate()
 		}
-
-		config.authMethod = method
-		return config.validate()
-	}
-
-	if b.SupportsManagedServiceIdentity {
-		log.Printf("[DEBUG] Using Managed Service Identity for Authentication")
-		method, err := newManagedServiceIdentityAuth(b)
-		if err != nil {
-			return nil, err
-		}
-		config.authMethod = method
-		return config.validate()
-	}
-
-	if b.SupportsAzureCliCloudShellParsing {
-		log.Printf("[DEBUG] Parsing credentials from the Azure CLI for Authentication")
-
-		method, err := newAzureCliParsingAuth(b)
-		if err != nil {
-			return nil, err
-		}
-
-		// as credentials are parsed from the Azure CLI's Profile we actually need to
-		// obtain the ClientId, Environment, Subscription ID & TenantID here
-		if cliAuth, ok := method.(azureCliParsingAuth); ok && method != nil {
-			config.ClientID = cliAuth.profile.clientId
-			config.Environment = cliAuth.profile.environment
-			config.SubscriptionID = cliAuth.profile.subscriptionId
-			config.TenantID = cliAuth.profile.tenantId
-		}
-
-		config.authMethod = method
-		return config.validate()
 	}
 
 	return nil, fmt.Errorf("No supported authentication methods were found!")

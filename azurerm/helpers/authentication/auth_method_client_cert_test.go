@@ -15,7 +15,11 @@ func TestServicePrincipalClientCertAuth_builder(t *testing.T) {
 		SubscriptionID:     "some-subscription-id",
 		TenantID:           "some-tenant-id",
 	}
-	config := newServicePrincipalClientCertificateAuth(builder)
+	config, err := servicePrincipalClientCertificateAuth{}.build(builder)
+	if err != nil {
+		t.Fatalf("Error building client cert auth: %s", err)
+	}
+
 	servicePrincipal := config.(servicePrincipalClientCertificateAuth)
 
 	if builder.ClientID != servicePrincipal.clientId {
@@ -36,6 +40,68 @@ func TestServicePrincipalClientCertAuth_builder(t *testing.T) {
 
 	if builder.TenantID != servicePrincipal.tenantId {
 		t.Fatalf("Expected Tenant ID to be %q but got %q", builder.TenantID, servicePrincipal.tenantId)
+	}
+}
+
+func TestServicePrincipalClientCertAuth_isApplicable(t *testing.T) {
+	cases := []struct {
+		Description string
+		Builder     Builder
+		Valid       bool
+	}{
+		{
+			Description: "Empty Configuration",
+			Builder:     Builder{},
+			Valid:       false,
+		},
+		{
+			Description: "Feature Toggled off",
+			Builder: Builder{
+				SupportsClientCertAuth: false,
+			},
+			Valid: false,
+		},
+		{
+			Description: "Feature Toggled on but no cert specified",
+			Builder: Builder{
+				SupportsClientCertAuth: true,
+			},
+			Valid: false,
+		},
+		{
+			Description: "Cert specified but feature toggled off",
+			Builder: Builder{
+				ClientCertPath: "./path/to/file",
+			},
+			Valid: false,
+		},
+		{
+			Description: "Valid configuration",
+			Builder: Builder{
+				SupportsClientCertAuth: true,
+				ClientCertPath:         "./path/to/file",
+			},
+			Valid: true,
+		},
+	}
+
+	for _, v := range cases {
+		applicable := servicePrincipalClientCertificateAuth{}.isApplicable(v.Builder)
+		if v.Valid != applicable {
+			t.Fatalf("Expected %q to be %t but got %t", v.Description, v.Valid, applicable)
+		}
+	}
+}
+
+func TestServicePrincipalClientCertAuth_populateConfig(t *testing.T) {
+	config := &Config{}
+	err := servicePrincipalClientCertificateAuth{}.populateConfig(config)
+	if err != nil {
+		t.Fatalf("Error populating config: %s", err)
+	}
+
+	if config.AuthenticatedAsAServicePrincipal != true {
+		t.Fatalf("Expected `AuthenticatedAsAServicePrincipal` to be true but it wasn't")
 	}
 }
 
@@ -91,16 +157,6 @@ func TestServicePrincipalClientCertAuth_validate(t *testing.T) {
 				clientId:       "62e73395-5017-43b6-8ebf-d6c30a514cf1",
 				subscriptionId: "8e8b5e02-5c13-4822-b7dc-4232afb7e8c2",
 				clientCertPath: filePath,
-			},
-			ExpectError: true,
-		},
-		{
-			Description: "Missing Environment",
-			Config: servicePrincipalClientCertificateAuth{
-				clientId:       "62e73395-5017-43b6-8ebf-d6c30a514cf1",
-				subscriptionId: "8e8b5e02-5c13-4822-b7dc-4232afb7e8c2",
-				clientCertPath: filePath,
-				tenantId:       "9834f8d0-24b3-41b7-8b8d-c611c461a129",
 			},
 			ExpectError: true,
 		},
