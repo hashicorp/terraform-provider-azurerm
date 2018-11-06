@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_key_vault_key` [GH-2231]
+* **New Resource:** `azurerm_iothub_consumer_group` [GH-2243]
 
 IMPROVEMENTS:
 
