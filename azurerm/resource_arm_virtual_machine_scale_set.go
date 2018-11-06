@@ -56,6 +56,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.ResourceIdentityTypeSystemAssigned),
 								string(compute.ResourceIdentityTypeUserAssigned),
+								string(compute.ResourceIdentityTypeSystemAssignedUserAssigned),
 							}, false),
 						},
 						"identity_ids": {
@@ -1830,7 +1831,7 @@ func expandAzureRmVirtualMachineScaleSetIdentity(d *schema.ResourceData) *comput
 		Type: identityType,
 	}
 
-	if vmssIdentity.Type == compute.ResourceIdentityTypeUserAssigned {
+	if vmssIdentity.Type == compute.ResourceIdentityTypeUserAssigned || vmssIdentity.Type == compute.ResourceIdentityTypeSystemAssignedUserAssigned {
 		vmssIdentity.UserAssignedIdentities = identityIds
 	}
 
