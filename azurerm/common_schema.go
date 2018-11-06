@@ -40,3 +40,19 @@ func resourceGroupNameDiffSuppressSchema() *schema.Schema {
 func resourceGroupNameForDataSourceSchema() *schema.Schema {
 	return azure.SchemaResourceGroupNameForDataSource()
 }
+
+func zonesSchema() *schema.Schema {
+	return azure.SchemaZones()
+}
+
+func singleZonesSchema() *schema.Schema {
+	return azure.SchemaSingleZone()
+}
+
+func zonesSchemaComputed() *schema.Schema {
+	return azure.SchemaZonesComputed()
+}
+
+func expandZones(v []interface{}) *[]string {
+	return azure.ExpandZones(v)
+}
