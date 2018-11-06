@@ -661,7 +661,7 @@ func TestAccAzureRMVirtualMachineScaleSet_UserAssignedMSI(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSet_MultipleAssignedMSI(t *testing.T) {
+func TestAccAzureRMVirtualMachineScaleSet_multipleAssignedMSI(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(14)
@@ -4880,10 +4880,9 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_user_assigned_identity" "test" {
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	location = "${azurerm_resource_group.test.location}"
-
-	name = "acctest%[3]s"
+  name                = "acctest%[3]s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -4899,10 +4898,10 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     capacity = 1
   }
 
-	identity {
-		type     = "SystemAssigned, UserAssigned"
-		identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
-	}
+  identity {
+    type     = "SystemAssigned, UserAssigned"
+    identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
+  }
 
   os_profile {
     computer_name_prefix = "testvm-%[1]d"
