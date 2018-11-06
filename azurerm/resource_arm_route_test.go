@@ -64,6 +64,7 @@ func TestAccAzureRMRoute_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "next_hop_type", "VnetLocal"),
+					resource.TestCheckResourceAttr(resourceName, "next_hop_in_ip_address", ""),
 				),
 			},
 		},
