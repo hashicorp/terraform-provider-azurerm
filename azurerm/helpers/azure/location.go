@@ -1,4 +1,4 @@
-package azurerm
+package azure
 
 import (
 	"strings"
@@ -6,30 +6,30 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-func locationSchema() *schema.Schema {
+func SchemaLocation() *schema.Schema {
 	return &schema.Schema{
 		Type:             schema.TypeString,
 		Required:         true,
 		ForceNew:         true,
-		StateFunc:        azureRMNormalizeLocation,
-		DiffSuppressFunc: azureRMSuppressLocationDiff,
+		StateFunc:        NormalizeLocation,
+		DiffSuppressFunc: SuppressLocationDiff,
 	}
 }
 
-func locationForDataSourceSchema() *schema.Schema {
+func SchemaLocationForDataSource() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeString,
 		Computed: true,
 	}
 }
 
-func deprecatedLocationSchema() *schema.Schema {
+func SchemaLocationDeprecated() *schema.Schema {
 	return &schema.Schema{
 		Type:             schema.TypeString,
 		ForceNew:         true,
 		Optional:         true,
-		StateFunc:        azureRMNormalizeLocation,
-		DiffSuppressFunc: azureRMSuppressLocationDiff,
+		StateFunc:        NormalizeLocation,
+		DiffSuppressFunc: SuppressLocationDiff,
 		Deprecated:       "location is no longer used",
 	}
 }
@@ -38,11 +38,11 @@ func deprecatedLocationSchema() *schema.Schema {
 // names (e.g. "West US") to the values used and returned by the Azure API (e.g. "westus").
 // In state we track the API internal version as it is easier to go from the human form
 // to the canonical form than the other way around.
-func azureRMNormalizeLocation(location interface{}) string {
+func NormalizeLocation(location interface{}) string {
 	input := location.(string)
 	return strings.Replace(strings.ToLower(input), " ", "", -1)
 }
 
-func azureRMSuppressLocationDiff(k, old, new string, d *schema.ResourceData) bool {
-	return azureRMNormalizeLocation(old) == azureRMNormalizeLocation(new)
+func SuppressLocationDiff(k, old, new string, d *schema.ResourceData) bool {
+	return NormalizeLocation(old) == NormalizeLocation(new)
 }

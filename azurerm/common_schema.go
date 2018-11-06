@@ -9,6 +9,26 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
+func locationSchema() *schema.Schema {
+	return azure.SchemaLocation()
+}
+
+func locationForDataSourceSchema() *schema.Schema {
+	return azure.SchemaLocationForDataSource()
+}
+
+func deprecatedLocationSchema() *schema.Schema {
+	return azure.SchemaLocationDeprecated()
+}
+
+func azureRMNormalizeLocation(location interface{}) string {
+	return azure.NormalizeLocation(location)
+}
+
+func azureRMSuppressLocationDiff(k, old, new string, d *schema.ResourceData) bool {
+	return azure.SuppressLocationDiff(k, old, new, d)
+}
+
 func resourceGroupNameSchema() *schema.Schema {
 	return azure.SchemaResourceGroupName()
 }
