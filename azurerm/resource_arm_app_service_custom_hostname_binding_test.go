@@ -170,7 +170,7 @@ func testCheckAzureRMAppServiceCustomHostnameBindingExists(name string) resource
 func testAccAzureRMAppServiceCustomHostnameBinding_basicConfig(rInt int, location string, appServiceName string, domain string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

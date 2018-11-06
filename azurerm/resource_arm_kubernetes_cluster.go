@@ -875,7 +875,7 @@ func flattenAzureRmKubernetesClusterAddonProfiles(profile map[string]*containers
 		}
 
 		output := map[string]interface{}{
-			"enabled": enabled,
+			"enabled":                            enabled,
 			"http_application_routing_zone_name": zoneName,
 		}
 		routes = append(routes, output)

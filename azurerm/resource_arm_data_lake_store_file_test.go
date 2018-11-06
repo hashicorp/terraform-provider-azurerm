@@ -107,9 +107,9 @@ resource "azurerm_data_lake_store" "test" {
 }
 
 resource "azurerm_data_lake_store_file" "test" {
-  remote_file_path    = "/test/application_gateway_test.cer"
-  account_name        = "${azurerm_data_lake_store.test.name}"
-  local_file_path     = "./testdata/application_gateway_test.cer"
+  remote_file_path = "/test/application_gateway_test.cer"
+  account_name     = "${azurerm_data_lake_store.test.name}"
+  local_file_path  = "./testdata/application_gateway_test.cer"
 }
 `, rInt, location, rs, location)
 }

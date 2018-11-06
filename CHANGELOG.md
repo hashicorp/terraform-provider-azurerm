@@ -1,7 +1,14 @@
 ## 1.19.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_key_vault_key` [GH-2231]
+* **New Resource:** `azurerm_iothub_consumer_group` [GH-2243]
+
 IMPROVEMENTS:
 
+* dependencies: switching to Go 1.11 [GH-2229]
+* `azurerm_databricks_workspace` - fixing validation on the `name` field [GH-2221]
 * `azurerm_virtual_machine_scale_set` - support for setting `eviction_policy` [GH-2226]
 
 BUG FIXES:

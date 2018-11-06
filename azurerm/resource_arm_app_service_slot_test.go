@@ -850,7 +850,7 @@ func testCheckAzureRMAppServiceSlotExists(slot string) resource.TestCheckFunc {
 func testAccAzureRMAppServiceSlot_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -885,7 +885,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_32Bit(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -924,7 +924,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_alwaysOn(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -963,7 +963,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_appSettings(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1038,7 +1038,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_connectionStrings(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1079,7 +1079,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_defaultDocuments(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1194,7 +1194,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_http2Enabled(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1233,7 +1233,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_oneIpRestriction(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1274,7 +1274,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_manyIpRestrictions(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1319,7 +1319,7 @@ resource "azurerm_app_service_slot" "test" {
     }
 
     ip_restriction {
-      ip_address = "192.168.1.2"
+      ip_address  = "192.168.1.2"
       subnet_mask = "255.255.255.0"
     }
   }
@@ -1330,7 +1330,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_localMySql(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1369,7 +1369,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_managedPipelineMode(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1408,7 +1408,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_tags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1447,7 +1447,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_tagsUpdated(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1487,7 +1487,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_remoteDebugging(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1531,7 +1531,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_virtualNetwork(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1582,7 +1582,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_virtualNetworkUpdated(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1645,7 +1645,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_windowsDotNet(rInt int, location, version string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1684,7 +1684,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_windowsJava(rInt int, location, javaVersion, container, containerVersion string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1725,7 +1725,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_windowsPHP(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1764,7 +1764,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_windowsPython(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1803,7 +1803,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_webSockets(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1842,7 +1842,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_enableManageServiceIdentity(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1865,11 +1865,12 @@ resource "azurerm_app_service" "test" {
 }
 
 resource "azurerm_app_service_slot" "test" {
-  name                    = "acctestASSlot-%d"
-  location                = "${azurerm_resource_group.test.location}"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
-  app_service_plan_id     = "${azurerm_app_service_plan.test.id}"
-  app_service_name        = "${azurerm_app_service.test.name}"
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
   identity = {
     type = "SystemAssigned"
   }
@@ -1880,7 +1881,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_minTls(rInt int, location string, tlsVersion string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1911,7 +1912,7 @@ resource "azurerm_app_service_slot" "test" {
 
   site_config {
     min_tls_version = "%s"
-	}
+  }
 }
 `, rInt, location, rInt, rInt, rInt, tlsVersion)
 }
