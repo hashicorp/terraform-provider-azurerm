@@ -22,6 +22,9 @@ func TestAccAzureRMRoleAssignment(t *testing.T) {
 			"builtin":     testAccAzureRMRoleAssignment_builtin,
 			"custom":      testAccAzureRMRoleAssignment_custom,
 		},
+		"assingment": {
+			"sp": testAccAzureRMActiveDirectoryServicePrincipal_roleAssignment,
+		},
 		"import": {
 			"basic":  testAccAzureRMRoleAssignment_importBasic,
 			"custom": testAccAzureRMRoleAssignment_importCustom,
@@ -195,6 +198,31 @@ func testCheckAzureRMRoleAssignmentDestroy(s *terraform.State) error {
 	return nil
 }
 
+func testAccAzureRMActiveDirectoryServicePrincipal_roleAssignment(t *testing.T) {
+	resourceName := "azurerm_azuread_service_principal.test"
+
+	ri := acctest.RandInt()
+	id := uuid.New().String()
+	config := testAccAzureRMActiveDirectoryServicePrincipal_roleAssignment(ri, id)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMActiveDirectoryServicePrincipalDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMActiveDirectoryServicePrincipalExists(resourceName),
+					testCheckAzureRMRoleAssignmentExists("azurerm_role_assignment.test"),
+					resource.TestCheckResourceAttrSet(resourceName, "display_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "application_id"),
+				),
+			},
+		},
+	})
+}
+
 func testAccAzureRMRoleAssignment_emptyNameConfig() string {
 	return `
 data "azurerm_subscription" "primary" {}
@@ -291,4 +319,25 @@ resource "azurerm_role_assignment" "test" {
   principal_id       = "${data.azurerm_client_config.test.service_principal_object_id}"
 }
 `, roleDefinitionId, rInt, roleAssignmentId)
+}
+
+func testAccAzureRMActiveDirectoryServicePrincipal_roleAssignment(rInt int, roleAssignmentID string) string {
+	return fmt.Sprintf(`
+data "azurerm_subscription" "current" {}
+
+resource "azurerm_azuread_application" "test" {
+  name     = "acctestspa-%d"
+}
+
+resource "azurerm_azuread_service_principal" "test" {
+  application_id = "${azurerm_azuread_application.test.application_id}"
+}
+
+resource "azurerm_role_assignment" "test" {
+  name                 = "%s"
+  scope                = "${data.azurerm_subscription.current.id}"
+  role_definition_name = "Reader"
+  principal_id         = "${azurerm_azuread_service_principal.test.id}"
+}
+`, rInt, roleAssignmentID)
 }
