@@ -1,4 +1,4 @@
-package azurerm
+package azure
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 )
 
-func TestValidateArmResourceGroupName(t *testing.T) {
+func TestValidateResourceGroupName(t *testing.T) {
 	cases := []struct {
 		Value    string
 		ErrCount int
@@ -58,10 +58,10 @@ func TestValidateArmResourceGroupName(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := validateArmResourceGroupName(tc.Value, "azurerm_resource_group")
+		_, errors := validateResourceGroupName(tc.Value, "azurerm_resource_group")
 
 		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected validateArmResourceGroupName to trigger '%d' errors for '%s' - got '%d'", tc.ErrCount, tc.Value, len(errors))
+			t.Fatalf("Expected validateResourceGroupName to trigger '%d' errors for '%s' - got '%d'", tc.ErrCount, tc.Value, len(errors))
 		}
 	}
 }
