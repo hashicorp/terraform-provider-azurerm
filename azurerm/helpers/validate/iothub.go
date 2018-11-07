@@ -13,7 +13,7 @@ func IoTHubName(v interface{}, k string) (ws []string, es []error) {
 		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters and dashes", k))
 	}
 
-	return
+	return ws, es
 }
 
 func IoTHubConsumerGroupName(v interface{}, k string) (ws []string, es []error) {
@@ -24,5 +24,5 @@ func IoTHubConsumerGroupName(v interface{}, k string) (ws []string, es []error) 
 		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters and dashes, periods and underscores", k))
 	}
 
-	return
+	return ws, es
 }

@@ -100,7 +100,7 @@ func TestServicePrincipalClientCertAuth_populateConfig(t *testing.T) {
 		t.Fatalf("Error populating config: %s", err)
 	}
 
-	if config.AuthenticatedAsAServicePrincipal != true {
+	if !config.AuthenticatedAsAServicePrincipal {
 		t.Fatalf("Expected `AuthenticatedAsAServicePrincipal` to be true but it wasn't")
 	}
 }

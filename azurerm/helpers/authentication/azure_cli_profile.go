@@ -40,10 +40,5 @@ func (a *azureCLIProfile) populateFields() error {
 	}
 
 	// always pull the environment from the Azure CLI, since the Access Token's associated with it
-	err = a.populateEnvironment()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return a.populateEnvironment()
 }
