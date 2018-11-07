@@ -11,6 +11,7 @@ import (
 )
 
 func TestAccAzureRMLogAnalyticsSolution_basicContainerMonitoring(t *testing.T) {
+	resourceName := "azurerm_log_analytics_solution.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMLogAnalyticsSolution_containerMonitoring(ri, testLocation())
 
@@ -21,14 +22,20 @@ func TestAccAzureRMLogAnalyticsSolution_basicContainerMonitoring(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsSolutionExists("azurerm_log_analytics_solution.test"),
+					testCheckAzureRMLogAnalyticsSolutionExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func TestAccAzureRMLogAnalyticsSolution_basicSecurity(t *testing.T) {
+	resourceName := "azurerm_log_analytics_solution.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMLogAnalyticsSolution_security(ri, testLocation())
 
@@ -39,8 +46,13 @@ func TestAccAzureRMLogAnalyticsSolution_basicSecurity(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsSolutionExists("azurerm_log_analytics_solution.test"),
+					testCheckAzureRMLogAnalyticsSolutionExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -108,14 +120,14 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
-  
+
 resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctest-dep-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "PerGB2018"
 }
-  
+
 resource "azurerm_log_analytics_solution" "test" {
   solution_name         = "ContainerInsights"
   location              = "${azurerm_resource_group.test.location}"
@@ -124,8 +136,8 @@ resource "azurerm_log_analytics_solution" "test" {
   workspace_name        = "${azurerm_log_analytics_workspace.test.name}"
 
   plan {
-    publisher      = "Microsoft"
-    product        = "OMSGallery/ContainerInsights"
+    publisher = "Microsoft"
+    product   = "OMSGallery/ContainerInsights"
   }
 }
 `, rInt, location, rInt)
@@ -153,8 +165,8 @@ resource "azurerm_log_analytics_solution" "test" {
   workspace_name        = "${azurerm_log_analytics_workspace.test.name}"
 
   plan {
-    publisher      = "Microsoft"
-    product        = "OMSGallery/Security"
+    publisher = "Microsoft"
+    product   = "OMSGallery/Security"
   }
 }
 `, rInt, location, rInt)

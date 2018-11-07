@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -36,9 +37,10 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 			},
 
 			"vault_uri": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.URLIsHTTPS,
 			},
 
 			"certificate": {
@@ -536,10 +538,10 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 		}
 
 		policy.X509CertificateProperties = &keyvault.X509CertificateProperties{
-			ValidityInMonths: utils.Int32(int32(cert["validity_in_months"].(int))),
-			Subject:          utils.String(cert["subject"].(string)),
-			KeyUsage:         &keyUsage,
-			Ekus:             extendedKeyUsage,
+			ValidityInMonths:        utils.Int32(int32(cert["validity_in_months"].(int))),
+			Subject:                 utils.String(cert["subject"].(string)),
+			KeyUsage:                &keyUsage,
+			Ekus:                    extendedKeyUsage,
 			SubjectAlternativeNames: subjectAlternativeNames,
 		}
 	}

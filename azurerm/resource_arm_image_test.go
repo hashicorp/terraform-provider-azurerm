@@ -45,6 +45,11 @@ func TestAccAzureRMImage_standaloneImage(t *testing.T) {
 					testCheckAzureRMImageExists("azurerm_image.test", true),
 				),
 			},
+			{
+				ResourceName:      "azurerm_image.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

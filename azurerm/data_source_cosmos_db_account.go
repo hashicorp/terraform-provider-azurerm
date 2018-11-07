@@ -209,7 +209,7 @@ func dataSourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("is_virtual_network_filter_enabled", resp.IsVirtualNetworkFilterEnabled)
 		d.Set("enable_automatic_failover", resp.EnableAutomaticFailover)
 
-		if err := d.Set("consistency_policy", flattenAzureRmCosmosDBAccountConsistencyPolicy(resp.ConsistencyPolicy)); err != nil {
+		if err = d.Set("consistency_policy", flattenAzureRmCosmosDBAccountConsistencyPolicy(resp.ConsistencyPolicy)); err != nil {
 			return fmt.Errorf("Error setting `consistency_policy`: %+v", err)
 		}
 
@@ -222,15 +222,15 @@ func dataSourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) 
 				"failover_priority": int(*l.FailoverPriority),
 			}
 		}
-		if err := d.Set("geo_location", locations); err != nil {
+		if err = d.Set("geo_location", locations); err != nil {
 			return fmt.Errorf("Error setting `geo_location`: %+v", err)
 		}
 
-		if err := d.Set("capabilities", flattenAzureRmCosmosDBAccountCapabilitiesAsList(resp.Capabilities)); err != nil {
+		if err = d.Set("capabilities", flattenAzureRmCosmosDBAccountCapabilitiesAsList(resp.Capabilities)); err != nil {
 			return fmt.Errorf("Error setting `capabilities`: %+v", err)
 		}
 
-		if err := d.Set("virtual_network_rule", flattenAzureRmCosmosDBAccountVirtualNetworkRulesAsList(props.VirtualNetworkRules)); err != nil {
+		if err = d.Set("virtual_network_rule", flattenAzureRmCosmosDBAccountVirtualNetworkRulesAsList(props.VirtualNetworkRules)); err != nil {
 			return fmt.Errorf("Error setting `virtual_network_rule`: %+v", err)
 		}
 

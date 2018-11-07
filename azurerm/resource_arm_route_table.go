@@ -111,7 +111,7 @@ func resourceArmRouteTableCreateUpdate(d *schema.ResourceData, meta interface{})
 		Name:     &name,
 		Location: &location,
 		RouteTablePropertiesFormat: &network.RouteTablePropertiesFormat{
-			Routes: expandRouteTableRoutes(d),
+			Routes:                     expandRouteTableRoutes(d),
 			DisableBgpRoutePropagation: utils.Bool(d.Get("disable_bgp_route_propagation").(bool)),
 		},
 		Tags: expandTags(tags),
@@ -199,7 +199,7 @@ func resourceArmRouteTableDelete(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for deletion of Route Table %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 

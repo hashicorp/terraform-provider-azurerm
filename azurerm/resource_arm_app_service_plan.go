@@ -126,9 +126,9 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 	appServicePlan := web.AppServicePlan{
 		Location:                 &location,
 		AppServicePlanProperties: properties,
-		Kind: &kind,
-		Tags: expandTags(tags),
-		Sku:  &sku,
+		Kind:                     &kind,
+		Tags:                     expandTags(tags),
+		Sku:                      &sku,
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, appServicePlan)

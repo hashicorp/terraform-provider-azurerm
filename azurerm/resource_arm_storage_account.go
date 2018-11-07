@@ -752,9 +752,9 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 						continue
 					}
 
-					id, err := parseAzureResourceID(*v.VirtualNetworkResourceID)
-					if err != nil {
-						return err
+					id, err2 := parseAzureResourceID(*v.VirtualNetworkResourceID)
+					if err2 != nil {
+						return err2
 					}
 
 					networkName := id.Path["virtualNetworks"]
@@ -848,7 +848,7 @@ func expandStorageAccountVirtualNetworks(networkRule map[string]interface{}) *[]
 		attrs := virtualNetworkConfig.(string)
 		virtualNetwork := storage.VirtualNetworkRule{
 			VirtualNetworkResourceID: utils.String(attrs),
-			Action: storage.Allow,
+			Action:                   storage.Allow,
 		}
 		virtualNetworks[i] = virtualNetwork
 	}

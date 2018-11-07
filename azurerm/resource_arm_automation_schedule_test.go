@@ -308,20 +308,20 @@ func testCheckAzureRMAutomationScheduleExists(name string) resource.TestCheckFun
 
 func testAccAzureRMAutomationSchedule_prerequisites(rInt int, location string) string {
 	return fmt.Sprintf(` 
-resource "azurerm_resource_group" "test" { 
-  name     = "acctestRG-%d" 
-  location = "%s" 
-} 
- 
-resource "azurerm_automation_account" "test" { 
-  name                = "acctestAA-%d" 
-  location            = "${azurerm_resource_group.test.location}" 
-  resource_group_name = "${azurerm_resource_group.test.name}" 
-  sku { 
-    name = "Basic" 
-  } 
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
+resource "azurerm_automation_account" "test" {
+  name                = "acctestAA-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name = "Basic"
+  }
+}
 `, rInt, location, rInt)
 }
 

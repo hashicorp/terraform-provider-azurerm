@@ -1,33 +1,49 @@
 package authentication
 
 import (
-	"strings"
-
-	"fmt"
-
+	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure/cli"
 )
 
-type AzureCLIProfile struct {
-	cli.Profile
+type azureCLIProfile struct {
+	profile cli.Profile
+
+	clientId        string
+	environment     string
+	subscriptionId  string
+	tenantId        string
+	accessToken     *adal.Token
+	usingCloudShell bool
 }
 
-func (a AzureCLIProfile) FindDefaultSubscriptionId() (string, error) {
-	for _, subscription := range a.Subscriptions {
-		if subscription.IsDefault {
-			return subscription.ID, nil
+func (a *azureCLIProfile) populateFields() error {
+	// ensure we know the Subscription ID - since it's needed for everything else
+	if a.subscriptionId == "" {
+		err := a.populateSubscriptionID()
+		if err != nil {
+			return err
 		}
 	}
 
-	return "", fmt.Errorf("No Subscription was Marked as Default in the Azure Profile.")
-}
-
-func (a AzureCLIProfile) FindSubscription(subscriptionId string) (*cli.Subscription, error) {
-	for _, subscription := range a.Subscriptions {
-		if strings.EqualFold(subscription.ID, subscriptionId) {
-			return &subscription, nil
+	if a.tenantId == "" {
+		// now we know the subscription ID, find the associated Tenant ID
+		err := a.populateTenantID()
+		if err != nil {
+			return err
 		}
 	}
 
-	return nil, fmt.Errorf("Subscription %q was not found in your Azure CLI credentials. Please verify it exists in `az account list`.", subscriptionId)
+	// now we know the Subscription ID & Tenant ID we can find the associated Client ID/Access Token
+	err := a.populateClientIdAndAccessToken()
+	if err != nil {
+		return err
+	}
+
+	// always pull the environment from the Azure CLI, since the Access Token's associated with it
+	err = a.populateEnvironment()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -22,12 +22,8 @@ func TestAccAzureRMRoleAssignment(t *testing.T) {
 			"builtin":     testAccAzureRMRoleAssignment_builtin,
 			"custom":      testAccAzureRMRoleAssignment_custom,
 		},
-		"assingment": {
+		"assignment": {
 			"sp": testAccAzureRMActiveDirectoryServicePrincipal_roleAssignment,
-		},
-		"import": {
-			"basic":  testAccAzureRMRoleAssignment_importBasic,
-			"custom": testAccAzureRMRoleAssignment_importCustom,
 		},
 	}
 
@@ -60,13 +56,18 @@ func testAccAzureRMRoleAssignment_emptyName(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
 func testAccAzureRMRoleAssignment_roleName(t *testing.T) {
-	id := uuid.New().String()
 	resourceName := "azurerm_role_assignment.test"
+	id := uuid.New().String()
 	config := testAccAzureRMRoleAssignment_roleNameConfig(id)
 
 	resource.Test(t, resource.TestCase{
@@ -80,6 +81,11 @@ func testAccAzureRMRoleAssignment_roleName(t *testing.T) {
 					testCheckAzureRMRoleAssignmentExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "role_definition_id"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -102,11 +108,17 @@ func testAccAzureRMRoleAssignment_dataActions(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "role_definition_id"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
 func testAccAzureRMRoleAssignment_builtin(t *testing.T) {
+	resourceName := "azurerm_role_assignment.test"
 	id := uuid.New().String()
 	config := testAccAzureRMRoleAssignment_builtinConfig(id)
 
@@ -118,14 +130,20 @@ func testAccAzureRMRoleAssignment_builtin(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRoleAssignmentExists("azurerm_role_assignment.test"),
+					testCheckAzureRMRoleAssignmentExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func testAccAzureRMRoleAssignment_custom(t *testing.T) {
+	resourceName := "azurerm_role_assignment.test"
 	roleDefinitionId := uuid.New().String()
 	roleAssignmentId := uuid.New().String()
 	rInt := acctest.RandInt()
@@ -139,8 +157,13 @@ func testAccAzureRMRoleAssignment_custom(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRoleAssignmentExists("azurerm_role_assignment.test"),
+					testCheckAzureRMRoleAssignmentExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -203,7 +226,7 @@ func testAccAzureRMActiveDirectoryServicePrincipal_roleAssignment(t *testing.T) 
 
 	ri := acctest.RandInt()
 	id := uuid.New().String()
-	config := testAccAzureRMActiveDirectoryServicePrincipal_roleAssignment(ri, id)
+	config := testAccAzureRMActiveDirectoryServicePrincipal_roleAssignmentConfig(ri, id)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -321,7 +344,7 @@ resource "azurerm_role_assignment" "test" {
 `, roleDefinitionId, rInt, roleAssignmentId)
 }
 
-func testAccAzureRMActiveDirectoryServicePrincipal_roleAssignment(rInt int, roleAssignmentID string) string {
+func testAccAzureRMActiveDirectoryServicePrincipal_roleAssignmentConfig(rInt int, roleAssignmentID string) string {
 	return fmt.Sprintf(`
 data "azurerm_subscription" "current" {}
 

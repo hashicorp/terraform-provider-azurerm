@@ -26,6 +26,11 @@ func TestAccAzureRMMySQLDatabase_basic(t *testing.T) {
 					testCheckAzureRMMySQLDatabaseExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -47,6 +52,11 @@ func TestAccAzureRMMySQLDatabase_charsetUppercase(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "charset", "utf8"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -67,6 +77,11 @@ func TestAccAzureRMMySQLDatabase_charsetMixedcase(t *testing.T) {
 					testCheckAzureRMMySQLDatabaseExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "charset", "utf8"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -148,9 +163,9 @@ resource "azurerm_mysql_server" "test" {
   }
 
   storage_profile {
-    storage_mb = 51200
+    storage_mb            = 51200
     backup_retention_days = 7
-    geo_redundant_backup = "Disabled"
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"
@@ -189,9 +204,9 @@ resource "azurerm_mysql_server" "test" {
   }
 
   storage_profile {
-    storage_mb = 51200
+    storage_mb            = 51200
     backup_retention_days = 7
-    geo_redundant_backup = "Disabled"
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"
@@ -230,9 +245,9 @@ resource "azurerm_mysql_server" "test" {
   }
 
   storage_profile {
-    storage_mb = 51200
+    storage_mb            = 51200
     backup_retention_days = 7
-    geo_redundant_backup = "Disabled"
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"
