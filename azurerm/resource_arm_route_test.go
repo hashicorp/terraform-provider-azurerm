@@ -176,23 +176,23 @@ func testCheckAzureRMRouteDestroy(s *terraform.State) error {
 func testAccAzureRMRoute_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name     = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_route_table" "test" {
-    name                = "acctestrt%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestrt%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_route" "test" {
-    name                = "acctestroute%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    route_table_name    = "${azurerm_route_table.test.name}"
+  name                = "acctestroute%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  route_table_name    = "${azurerm_route_table.test.name}"
 
-    address_prefix = "10.1.0.0/16"
-    next_hop_type  = "vnetlocal"
+  address_prefix = "10.1.0.0/16"
+  next_hop_type  = "vnetlocal"
 }
 `, rInt, location, rInt, rInt)
 }
@@ -200,23 +200,23 @@ resource "azurerm_route" "test" {
 func testAccAzureRMRoute_multipleRoutes(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name     = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_route_table" "test" {
-    name                = "acctestrt%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestrt%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_route" "test1" {
-    name                = "acctestroute%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    route_table_name    = "${azurerm_route_table.test.name}"
+  name                = "acctestroute%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  route_table_name    = "${azurerm_route_table.test.name}"
 
-    address_prefix = "10.2.0.0/16"
-    next_hop_type  = "none"
+  address_prefix = "10.2.0.0/16"
+  next_hop_type  = "none"
 }
 `, rInt, location, rInt, rInt)
 }

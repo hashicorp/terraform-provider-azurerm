@@ -1,4 +1,24 @@
 ## 1.19.0 (Unreleased)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_key_vault_key` [GH-2231]
+* **New Resource:** `azurerm_iothub_consumer_group` [GH-2243]
+
+IMPROVEMENTS:
+
+* dependencies: switching to Go 1.11 [GH-2229]
+* authentication: refactoring to allow authentication modes to be feature-toggled [GH-2199]
+* `azurerm_databricks_workspace` - fixing validation on the `name` field [GH-2221]
+* `azurerm_network_interface` - deprecating `internal_fqdn` since it's no longer setable/returned by Azure [GH-2253]
+* `azurerm_virtual_machine` - support for assigning both a system and a user managed identity [GH-2188]
+* `azurerm_virtual_machine_scale_set` - support for assigning both a system and a user managed identity [GH-2188]
+* `azurerm_virtual_machine_scale_set` - support for setting `eviction_policy` [GH-2226]
+
+BUG FIXES:
+
+* `azurerm_cosmosdb_account` - the `ip_range_filter` range filter now allows /32 ip addresses  [GH-2222]
+
 ## 1.18.0 (November 02, 2018)
 
 FEATURES:
@@ -889,10 +909,3 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * `azurerm_virtual_machine_scale_set` - fix panic with `additional_unattend_config` block ([#266](https://github.com/terraform-providers/terraform-provider-azurerm/issues/266))
-
-## 0.2.0 (September 15, 2017)
-
-FEATURES:
-
-* **Support for authenticating using the Azure CLI** ([#316](https://github.com/terraform-providers/terraform-provider-azurerm/issues/316))
-* **New Resource:** `azurerm_container_group` ([#333](https://github.com/terraform-providers/terraform-provider-azurerm/issues/333)] [[#31
