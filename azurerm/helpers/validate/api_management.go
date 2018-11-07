@@ -12,7 +12,7 @@ func ApiManagementServiceName(v interface{}, k string) (ws []string, es []error)
 		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters and dashes up to 50 characters in length", k))
 	}
 
-	return
+	return ws, es
 }
 
 func ApiManagementServicePublisherName(v interface{}, k string) (ws []string, es []error) {
@@ -22,7 +22,7 @@ func ApiManagementServicePublisherName(v interface{}, k string) (ws []string, es
 		es = append(es, fmt.Errorf("%q may only be up to 100 characters in length", k))
 	}
 
-	return
+	return ws, es
 }
 
 func ApiManagementServicePublisherEmail(v interface{}, k string) (ws []string, es []error) {
@@ -32,5 +32,5 @@ func ApiManagementServicePublisherEmail(v interface{}, k string) (ws []string, e
 		es = append(es, fmt.Errorf("%q may only be up to 100 characters in length", k))
 	}
 
-	return
+	return ws, es
 }

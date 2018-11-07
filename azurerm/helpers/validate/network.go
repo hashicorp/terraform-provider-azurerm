@@ -5,11 +5,11 @@ import (
 	"net"
 )
 
-func IPv6Address(i interface{}, k string) (_ []string, errors []error) {
+func IPv6Address(i interface{}, k string) (warnings []string, errors []error) {
 	return validateIpv6Address(i, k, false)
 }
 
-func validateIpv6Address(i interface{}, k string, allowEmpty bool) (_ []string, errors []error) {
+func validateIpv6Address(i interface{}, k string, allowEmpty bool) (ws []string, errors []error) { // nolint: unparam
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
@@ -25,19 +25,19 @@ func validateIpv6Address(i interface{}, k string, allowEmpty bool) (_ []string, 
 		errors = append(errors, fmt.Errorf("%q is not a valid IPv6 address: %q", k, v))
 	}
 
-	return
+	return ws, errors
 
 }
 
-func IPv4Address(i interface{}, k string) (_ []string, errors []error) {
+func IPv4Address(i interface{}, k string) (warnings []string, errors []error) {
 	return validateIpv4Address(i, k, false)
 }
 
-func IPv4AddressOrEmpty(i interface{}, k string) (_ []string, errors []error) {
+func IPv4AddressOrEmpty(i interface{}, k string) (warnings []string, errors []error) {
 	return validateIpv4Address(i, k, true)
 }
 
-func validateIpv4Address(i interface{}, k string, allowEmpty bool) (_ []string, errors []error) {
+func validateIpv4Address(i interface{}, k string, allowEmpty bool) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
@@ -53,10 +53,10 @@ func validateIpv4Address(i interface{}, k string, allowEmpty bool) (_ []string, 
 		errors = append(errors, fmt.Errorf("%q is not a valid IPv4 address: %q", k, v))
 	}
 
-	return
+	return warnings, errors
 }
 
-func MACAddress(i interface{}, k string) (_ []string, errors []error) {
+func MACAddress(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
@@ -67,18 +67,18 @@ func MACAddress(i interface{}, k string) (_ []string, errors []error) {
 		errors = append(errors, fmt.Errorf("%q is not a valid MAC address: %q (%v)", k, i, err))
 	}
 
-	return
+	return warnings, errors
 }
 
-func PortNumber(i interface{}, k string) (_ []string, errors []error) {
+func PortNumber(i interface{}, k string) (warnings []string, errors []error) {
 	return validatePortNumber(i, k, false)
 }
 
-func PortNumberOrZero(i interface{}, k string) (_ []string, errors []error) {
+func PortNumberOrZero(i interface{}, k string) (warnings []string, errors []error) {
 	return validatePortNumber(i, k, true)
 }
 
-func validatePortNumber(i interface{}, k string, allowZero bool) (_ []string, errors []error) {
+func validatePortNumber(i interface{}, k string, allowZero bool) (warnings []string, errors []error) {
 	v, ok := i.(int)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be int", k))
@@ -93,5 +93,5 @@ func validatePortNumber(i interface{}, k string, allowZero bool) (_ []string, er
 		errors = append(errors, fmt.Errorf("%q is not a valid port number: %d", k, v))
 	}
 
-	return
+	return warnings, errors
 }

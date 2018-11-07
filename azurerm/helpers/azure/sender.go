@@ -42,7 +42,7 @@ func withRequestLogging() autorest.SendDecorator {
 			resp, err := s.Do(r)
 			if resp != nil {
 				// dump response to wire format
-				if dump, err := httputil.DumpResponse(resp, true); err == nil {
+				if dump, err2 := httputil.DumpResponse(resp, true); err2 == nil {
 					log.Printf("[DEBUG] AzureRM Response for %s: \n%s\n", r.URL, dump)
 				} else {
 					// fallback to basic message

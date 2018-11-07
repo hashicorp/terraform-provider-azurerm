@@ -26,7 +26,7 @@ func ResponseErrorIsRetryable(err error) bool {
 	return false
 }
 
-func responseWasStatusCode(resp autorest.Response, statusCode int) bool {
+func responseWasStatusCode(resp autorest.Response, statusCode int) bool { // nolint: unparam
 	if r := resp.Response; r != nil {
 		if r.StatusCode == statusCode {
 			return true
