@@ -14,6 +14,7 @@ IMPROVEMENTS:
 * `azurerm_virtual_machine` - support for assigning both a system and a user managed identity [GH-2188]
 * `azurerm_virtual_machine_scale_set` - support for assigning both a system and a user managed identity [GH-2188]
 * `azurerm_virtual_machine_scale_set` - support for setting `eviction_policy` [GH-2226]
+* `azurerm_virtual_network_gateway` - support for Zone Redundant Gateways [GH-2260]
 
 BUG FIXES:
 
