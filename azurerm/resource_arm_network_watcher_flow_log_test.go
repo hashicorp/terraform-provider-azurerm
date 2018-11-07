@@ -10,33 +10,6 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccAzureRMNetworkWatcherFlowLog(t *testing.T) {
-	// NOTE: this is a combined test rather than separate split out tests due to
-	// Azure only being happy about provisioning one per region at once
-	// (which our test suite can't easily workaround)
-	testCases := map[string]map[string]func(t *testing.T){
-		"basic": {
-			"basic":                testAccAzureRMNetworkWatcherFlowLog_basic,
-			"disabled":             testAccAzureRMNetworkWatcherFlowLog_disabled,
-			"reenabled":            testAccAzureRMNetworkWatcherFlowLog_reenabled,
-			"retentionPolicy":      testAccAzureRMNetworkWatcherFlowLog_retentionPolicy,
-			"updateStorageAccount": testAccAzureRMNetworkWatcherFlowLog_updateStorageAccount,
-		},
-	}
-
-	for group, m := range testCases {
-		m := m
-		t.Run(group, func(t *testing.T) {
-			for name, tc := range m {
-				tc := tc
-				t.Run(name, func(t *testing.T) {
-					tc(t)
-				})
-			}
-		})
-	}
-}
-
 func testAccAzureRMNetworkWatcherFlowLog_basic(t *testing.T) {
 	resourceName := "azurerm_network_watcher_flow_log.test"
 	ri := acctest.RandInt()
@@ -225,6 +198,73 @@ func testAccAzureRMNetworkWatcherFlowLog_updateStorageAccount(t *testing.T) {
 	})
 }
 
+func testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
+	resourceName := "azurerm_network_watcher_flow_log.test"
+	ri := acctest.RandInt()
+	rs := acctest.RandString(8)
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkWatcherFlowLog_basicConfig(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkWatcherFlowLogExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "network_watcher_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "network_security_group_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "storage_account_id"),
+					resource.TestCheckResourceAttr(resourceName, "retention_policy.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "retention_policy.0.enabled"),
+					resource.TestCheckResourceAttrSet(resourceName, "retention_policy.0.days"),
+					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+				),
+			},
+			{
+				Config: testAccAzureRMNetworkWatcherFlowLog_TrafficAnalyticsDisabledConfig(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkWatcherFlowLogExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "network_watcher_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "network_security_group_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "storage_account_id"),
+					resource.TestCheckResourceAttr(resourceName, "retention_policy.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "retention_policy.0.enabled"),
+					resource.TestCheckResourceAttrSet(resourceName, "retention_policy.0.days"),
+					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "traffic_analytics.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "traffic_analytics.0.enabled", "false"),
+					resource.TestCheckResourceAttrSet(resourceName, "traffic_analytics.0.workspace_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "traffic_analytics.0.workspace_region"),
+					resource.TestCheckResourceAttrSet(resourceName, "traffic_analytics.0.workspace_resource_id"),
+				),
+			},
+			{
+				Config: testAccAzureRMNetworkWatcherFlowLog_TrafficAnalyticsEnabledConfig(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkWatcherFlowLogExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "network_watcher_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "network_security_group_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "storage_account_id"),
+					resource.TestCheckResourceAttr(resourceName, "retention_policy.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "retention_policy.0.enabled"),
+					resource.TestCheckResourceAttrSet(resourceName, "retention_policy.0.days"),
+					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "traffic_analytics.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "traffic_analytics.0.enabled", "true"),
+					resource.TestCheckResourceAttrSet(resourceName, "traffic_analytics.0.workspace_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "traffic_analytics.0.workspace_region"),
+					resource.TestCheckResourceAttrSet(resourceName, "traffic_analytics.0.workspace_resource_id"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMNetworkWatcherFlowLogExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -399,4 +439,122 @@ resource "azurerm_network_watcher_flow_log" "test" {
     }
 }
 `, rInt, location, rInt, rInt, rString)
+}
+
+func testAccAzureRMNetworkWatcherFlowLog_TrafficAnalyticsEnabledConfig(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name     = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_network_security_group" "test" {
+    name                = "acctestnsg%d"
+    location            = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_network_watcher" "test" {
+    name                = "acctestnw-%d"
+    location            = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_storage_account" "test" {
+    name                = "acctestsa%s"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    location            = "${azurerm_resource_group.test.location}"
+
+    account_tier              = "Standard"
+    account_replication_type  = "LRS"
+    enable_https_traffic_only = true
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+    name                = "acctestlaw-%d"
+    location            = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    sku                 = "PerGB2018"
+}
+
+resource "azurerm_network_watcher_flow_log" "test" {
+    network_watcher_name = "${azurerm_network_watcher.test.name}"
+    resource_group_name  = "${azurerm_resource_group.test.name}"
+
+    network_security_group_id = "${azurerm_network_security_group.test.id}"
+    storage_account_id        = "${azurerm_storage_account.test.id}"
+    enabled                   = true
+    
+    retention_policy {
+        days    = 7
+        enabled = true
+    }
+
+    traffic_analytics {
+        enabled               = true
+        workspace_id          = "${azurerm_log_analytics_workspace.test.workspace_id}"
+        workspace_region      = "${azurerm_log_analytics_workspace.test.location}"
+        workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
+    }
+}
+`, rInt, location, rInt, rInt, rString, rInt)
+}
+
+func testAccAzureRMNetworkWatcherFlowLog_TrafficAnalyticsDisabledConfig(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name     = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_network_security_group" "test" {
+    name                = "acctestnsg%d"
+    location            = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_network_watcher" "test" {
+    name                = "acctestnw-%d"
+    location            = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_storage_account" "test" {
+    name                = "acctestsa%s"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    location            = "${azurerm_resource_group.test.location}"
+
+    account_tier              = "Standard"
+    account_replication_type  = "LRS"
+    enable_https_traffic_only = true
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+    name                = "acctestlaw-%d"
+    location            = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    sku                 = "PerGB2018"
+}
+
+resource "azurerm_network_watcher_flow_log" "test" {
+    network_watcher_name = "${azurerm_network_watcher.test.name}"
+    resource_group_name  = "${azurerm_resource_group.test.name}"
+
+    network_security_group_id = "${azurerm_network_security_group.test.id}"
+    storage_account_id        = "${azurerm_storage_account.test.id}"
+    enabled                   = true
+    
+    retention_policy {
+        days    = 7
+        enabled = true
+    }
+
+    traffic_analytics {
+        enabled               = false
+        workspace_id          = "${azurerm_log_analytics_workspace.test.workspace_id}"
+        workspace_region      = "${azurerm_log_analytics_workspace.test.location}"
+        workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
+    }
+}
+`, rInt, location, rInt, rInt, rString, rInt)
 }

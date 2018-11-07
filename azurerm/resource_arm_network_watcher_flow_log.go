@@ -65,6 +65,35 @@ func resourceArmNetworkWatcherFlowLog() *schema.Resource {
 					},
 				},
 			},
+
+			"traffic_analytics": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+						"workspace_id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"workspace_region": {
+							Type:             schema.TypeString,
+							Required:         true,
+							StateFunc:        azureRMNormalizeLocation,
+							DiffSuppressFunc: azureRMSuppressLocationDiff,
+						},
+						"workspace_resource_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceIDOrEmpty,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -98,6 +127,10 @@ func resourceArmNetworkWatcherFlowLogCreateUpdate(d *schema.ResourceData, meta i
 			Enabled:         &enabled,
 			RetentionPolicy: expandAzureRmNetworkWatcherFlowLogRetentionPolicy(d),
 		},
+	}
+
+	if _, ok := d.GetOk("traffic_analytics"); ok {
+		parameters.FlowAnalyticsConfiguration = expandAzureRmNetworkWatcherFlowLogTrafficAnalytics(d)
 	}
 
 	future, err := client.SetFlowLogConfiguration(ctx, resourceGroupName, networkWatcherName, parameters)
@@ -166,6 +199,10 @@ func resourceArmNetworkWatcherFlowLogRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error flattening `retention_policy`: %+v", err)
 	}
 
+	if err := d.Set("traffic_analytics", flattenAzureRmNetworkWatcherFlowLogTrafficAnalytics(fli.FlowAnalyticsConfiguration)); err != nil {
+		return fmt.Errorf("Error flattening `traffic_analytics`: %+v", err)
+	}
+
 	return nil
 }
 
@@ -200,10 +237,13 @@ func resourceArmNetworkWatcherFlowLogDelete(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error retrieving of Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", networkSecurityGroupID, networkWatcherName, resourceGroupName, err)
 	}
 
-	// Disable flow log
+	// There is no delete in Azure API. Disabling flow log is effectively a delete in Terraform.
 	if *fli.FlowLogProperties.Enabled {
 		fli.FlowLogProperties.Enabled = utils.Bool(false)
-		fli.FlowAnalyticsConfiguration = nil
+
+		if isDefaultDisabledFlowLogTrafficAnalytics(fli.FlowAnalyticsConfiguration) {
+			fli.FlowAnalyticsConfiguration = nil
+		}
 
 		setFuture, err := client.SetFlowLogConfiguration(ctx, resourceGroupName, networkWatcherName, fli)
 		if err != nil {
@@ -247,4 +287,55 @@ func flattenAzureRmNetworkWatcherFlowLogRetentionPolicy(input *network.Retention
 	}
 
 	return []interface{}{result}
+}
+
+func flattenAzureRmNetworkWatcherFlowLogTrafficAnalytics(input *network.TrafficAnalyticsProperties) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	} else if isDefaultDisabledFlowLogTrafficAnalytics(input) {
+		return []interface{}{}
+	}
+
+	result := make(map[string]interface{})
+	if input != nil {
+		if input.NetworkWatcherFlowAnalyticsConfiguration.Enabled != nil {
+			result["enabled"] = *input.NetworkWatcherFlowAnalyticsConfiguration.Enabled
+		}
+		if input.NetworkWatcherFlowAnalyticsConfiguration.WorkspaceID != nil {
+			result["workspace_id"] = *input.NetworkWatcherFlowAnalyticsConfiguration.WorkspaceID
+		}
+		if input.NetworkWatcherFlowAnalyticsConfiguration.WorkspaceRegion != nil {
+			result["workspace_region"] = *input.NetworkWatcherFlowAnalyticsConfiguration.WorkspaceRegion
+		}
+		if input.NetworkWatcherFlowAnalyticsConfiguration.WorkspaceResourceID != nil {
+			result["workspace_resource_id"] = *input.NetworkWatcherFlowAnalyticsConfiguration.WorkspaceResourceID
+		}
+	}
+
+	return []interface{}{result}
+}
+
+func expandAzureRmNetworkWatcherFlowLogTrafficAnalytics(d *schema.ResourceData) *network.TrafficAnalyticsProperties {
+	vs := d.Get("traffic_analytics").([]interface{})
+
+	v := vs[0].(map[string]interface{})
+	enabled := v["enabled"].(bool)
+	workspaceID := v["workspace_id"].(string)
+	workspaceRegion := v["workspace_region"].(string)
+	workspaceResourceID := v["workspace_resource_id"].(string)
+
+	return &network.TrafficAnalyticsProperties{
+		NetworkWatcherFlowAnalyticsConfiguration: &network.TrafficAnalyticsConfigurationProperties{
+			Enabled:             utils.Bool(enabled),
+			WorkspaceID:         utils.String(workspaceID),
+			WorkspaceRegion:     utils.String(workspaceRegion),
+			WorkspaceResourceID: utils.String(workspaceResourceID),
+		},
+	}
+}
+
+func isDefaultDisabledFlowLogTrafficAnalytics(input *network.TrafficAnalyticsProperties) bool {
+	// Azure returns `/subscriptions//resourcegroups//providers/microsoft.operationalinsights/workspaces/` by default when traffic analytics is not set
+	// along with empty strings for the rest of the values
+	return *input.NetworkWatcherFlowAnalyticsConfiguration.Enabled == false && *input.NetworkWatcherFlowAnalyticsConfiguration.WorkspaceID == "" && *input.NetworkWatcherFlowAnalyticsConfiguration.WorkspaceRegion == "" && *input.NetworkWatcherFlowAnalyticsConfiguration.WorkspaceResourceID == "/subscriptions//resourcegroups//providers/microsoft.operationalinsights/workspaces/"
 }
