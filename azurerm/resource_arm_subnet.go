@@ -162,7 +162,7 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 	properties.Delegations = &delegations
 
 	subnet := network.Subnet{
-		Name: &name,
+		Name:                   &name,
 		SubnetPropertiesFormat: &properties,
 	}
 
@@ -218,9 +218,11 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	if props := resp.SubnetPropertiesFormat; props != nil {
 		d.Set("address_prefix", props.AddressPrefix)
 
+		var securityGroupId *string
 		if props.NetworkSecurityGroup != nil {
-			d.Set("network_security_group_id", props.NetworkSecurityGroup.ID)
+			securityGroupId = props.NetworkSecurityGroup.ID
 		}
+		d.Set("network_security_group_id", securityGroupId)
 
 		var routeTableId string
 		if props.RouteTable != nil && props.RouteTable.ID != nil {
