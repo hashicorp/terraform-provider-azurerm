@@ -20,6 +20,8 @@ BUG FIXES:
 
 * `azurerm_cosmosdb_account` - the `ip_range_filter` range filter now allows /32 ip addresses  [GH-2222]
 * `azurerm_role_assignment` - will now wait after a Service Principal is created [GH-2204]
+* `azurerm_route` - allowing setting `next_hop_in_ip_address` to an empty value [GH-2184]
+* `azurerm_route_table` - allowing setting `next_hop_in_ip_address` to an empty value [GH-2184]
 
 ## 1.18.0 (November 02, 2018)
 
