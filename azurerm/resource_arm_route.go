@@ -141,10 +141,7 @@ func resourceArmRouteRead(d *schema.ResourceData, meta interface{}) error {
 	if props := resp.RoutePropertiesFormat; props != nil {
 		d.Set("address_prefix", props.AddressPrefix)
 		d.Set("next_hop_type", string(props.NextHopType))
-
-		if ip := props.NextHopIPAddress; ip != nil {
-			d.Set("next_hop_in_ip_address", props.NextHopIPAddress)
-		}
+		d.Set("next_hop_in_ip_address", props.NextHopIPAddress)
 	}
 
 	return nil
