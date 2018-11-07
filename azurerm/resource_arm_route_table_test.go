@@ -71,6 +71,14 @@ func TestAccAzureRMRouteTable_update(t *testing.T) {
 				),
 			},
 			{
+				Config: testAccAzureRMRouteTable_basicAppliance(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRouteTableExists("azurerm_route_table.test"),
+					resource.TestCheckResourceAttr(resourceName, "disable_bgp_route_propagation", "false"),
+					resource.TestCheckResourceAttr(resourceName, "route.#", "1"),
+				),
+			},
+			{
 				Config: testAccAzureRMRouteTable_complete(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteTableExists("azurerm_route_table.test"),
@@ -363,6 +371,28 @@ resource "azurerm_route_table" "test" {
   name                = "acctestrt%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMRouteTable_basicAppliance(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name     = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_route_table" "test" {
+    name                = "acctestrt%d"
+    location            = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+
+    route {
+        name                   = "route1"
+        address_prefix         = "10.1.0.0/16"
+        next_hop_type          = "VirtualAppliance"
+        next_hop_in_ip_address = "192.168.0.1"
+    }
 }
 `, rInt, location, rInt)
 }

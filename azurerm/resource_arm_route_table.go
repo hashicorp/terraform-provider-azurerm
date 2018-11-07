@@ -71,7 +71,6 @@ func resourceArmRouteTable() *schema.Resource {
 						"next_hop_in_ip_address": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							Computed:     true,
 							ValidateFunc: validation.NoZeroValues,
 						},
 					},
