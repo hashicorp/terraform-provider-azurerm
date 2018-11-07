@@ -34,6 +34,11 @@ func TestAccAzureRMRecoveryServicesVault_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "sku", string(recoveryservices.Standard)),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -51,7 +56,6 @@ func testCheckAzureRMRecoveryServicesVaultDestroy(s *terraform.State) error {
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
@@ -82,8 +86,8 @@ func testCheckAzureRMRecoveryServicesVaultExists(name string) resource.TestCheck
 
 		client := testAccProvider.Meta().(*ArmClient).recoveryServicesVaultsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		resp, err := client.Get(ctx, resourceGroup, name)
 
+		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Recovery Services Vault %q (resource group: %q) was not found: %+v", name, resourceGroup, err)
@@ -98,17 +102,16 @@ func testCheckAzureRMRecoveryServicesVaultExists(name string) resource.TestCheck
 
 func testAccAzureRMRecoveryServicesVault_basic(rInt int, location string) string {
 	return fmt.Sprintf(` 
-resource "azurerm_resource_group" "test" { 
-  name     = "acctestRG-%d" 
-  location = "%s" 
-} 
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
 
 resource "azurerm_recovery_services_vault" "test" {
-    name                = "acctest-%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku                 = "Standard"
+  name                = "acctest-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
 }
- 
 `, rInt, location, rInt)
 }

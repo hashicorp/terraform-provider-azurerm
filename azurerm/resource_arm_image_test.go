@@ -45,6 +45,11 @@ func TestAccAzureRMImage_standaloneImage(t *testing.T) {
 					testCheckAzureRMImageExists("azurerm_image.test", true),
 				),
 			},
+			{
+				ResourceName:      "azurerm_image.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -1300,6 +1305,7 @@ resource "azurerm_virtual_machine_scale_set" "testdestination" {
     ip_configuration {
       name      = "TestIPConfiguration"
       subnet_id = "${azurerm_subnet.test.id}"
+      primary   = true
     }
   }
 

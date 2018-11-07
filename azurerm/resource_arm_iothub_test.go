@@ -11,6 +11,7 @@ import (
 )
 
 func TestAccAzureRMIotHub_basic(t *testing.T) {
+	resourceName := "azurerm_iothub.test"
 	rInt := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
@@ -21,14 +22,19 @@ func TestAccAzureRMIotHub_basic(t *testing.T) {
 			{
 				Config: testAccAzureRMIotHub_basic(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubExists("azurerm_iothub.test"),
+					testCheckAzureRMIotHubExists(resourceName),
 				),
+			}, {
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func TestAccAzureRMIotHub_standard(t *testing.T) {
+	resourceName := "azurerm_iothub.test"
 	rInt := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
@@ -39,14 +45,20 @@ func TestAccAzureRMIotHub_standard(t *testing.T) {
 			{
 				Config: testAccAzureRMIotHub_standard(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubExists("azurerm_iothub.test"),
+					testCheckAzureRMIotHubExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func TestAccAzureRMIotHub_customRoutes(t *testing.T) {
+	resourceName := "azurerm_iothub.test"
 	rInt := acctest.RandInt()
 	rStr := acctest.RandString(5)
 
@@ -58,8 +70,13 @@ func TestAccAzureRMIotHub_customRoutes(t *testing.T) {
 			{
 				Config: testAccAzureRMIotHub_customRoutes(rInt, rStr, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubExists("azurerm_iothub.test"),
+					testCheckAzureRMIotHubExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -122,7 +139,7 @@ func testCheckAzureRMIotHubExists(name string) resource.TestCheckFunc {
 func testAccAzureRMIotHub_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "foo" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -130,9 +147,10 @@ resource "azurerm_iothub" "test" {
   name                = "acctestIoTHub-%d"
   resource_group_name = "${azurerm_resource_group.foo.name}"
   location            = "${azurerm_resource_group.foo.location}"
+
   sku {
-    name = "B1"
-    tier = "Basic"
+    name     = "B1"
+    tier     = "Basic"
     capacity = "1"
   }
 
@@ -146,7 +164,7 @@ resource "azurerm_iothub" "test" {
 func testAccAzureRMIotHub_standard(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "foo" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -154,9 +172,10 @@ resource "azurerm_iothub" "test" {
   name                = "acctestIoTHub-%d"
   resource_group_name = "${azurerm_resource_group.foo.name}"
   location            = "${azurerm_resource_group.foo.location}"
+
   sku {
-    name = "S1"
-    tier = "Standard"
+    name     = "S1"
+    tier     = "Standard"
     capacity = "1"
   }
 
@@ -170,52 +189,53 @@ resource "azurerm_iothub" "test" {
 func testAccAzureRMIotHub_customRoutes(rInt int, rStr string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "foo" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                      = "acctestsa%s"
-  resource_group_name       = "${azurerm_resource_group.foo.name}"
-  location                  = "${azurerm_resource_group.foo.location}"
-  account_tier              = "Standard"
-  account_replication_type  = "LRS"
+  name                     = "acctestsa%s"
+  resource_group_name      = "${azurerm_resource_group.foo.name}"
+  location                 = "${azurerm_resource_group.foo.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "test" {
-  name                      = "test"
-  resource_group_name       = "${azurerm_resource_group.foo.name}"
-  storage_account_name      = "${azurerm_storage_account.test.name}"
-  container_access_type     = "private"
+  name                  = "test"
+  resource_group_name   = "${azurerm_resource_group.foo.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
 }
 
 resource "azurerm_iothub" "test" {
   name                = "acctestIoTHub-%d"
   resource_group_name = "${azurerm_resource_group.foo.name}"
   location            = "${azurerm_resource_group.foo.location}"
+
   sku {
-    name = "S1"
-    tier = "Standard"
+    name     = "S1"
+    tier     = "Standard"
     capacity = "1"
   }
 
   endpoint {
-    type                        = "AzureIotHub.StorageContainer"
-    connection_string           = "${azurerm_storage_account.test.primary_blob_connection_string}"
-    name                        = "export"
-    batch_frequency_in_seconds  = 60
-    max_chunk_size_in_bytes     = 10485760
-    container_name              = "test"
-    encoding                    = "Avro"
-    file_name_format            = "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"
+    type                       = "AzureIotHub.StorageContainer"
+    connection_string          = "${azurerm_storage_account.test.primary_blob_connection_string}"
+    name                       = "export"
+    batch_frequency_in_seconds = 60
+    max_chunk_size_in_bytes    = 10485760
+    container_name             = "test"
+    encoding                   = "Avro"
+    file_name_format           = "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"
   }
 
   route {
-    name            = "export"
-    source          = "DeviceMessages"
-    condition       = "true"
-    endpoint_names  = ["export"]
-    enabled      = true
+    name           = "export"
+    source         = "DeviceMessages"
+    condition      = "true"
+    endpoint_names = ["export"]
+    enabled        = true
   }
 
   tags {

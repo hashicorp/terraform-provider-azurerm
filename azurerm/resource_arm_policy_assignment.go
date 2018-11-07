@@ -114,7 +114,7 @@ func resourceArmPolicyAssignmentCreate(d *schema.ResourceData, meta interface{})
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 10,
 	}
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Policy Assignment %q to become available: %s", name, err)
 	}
 

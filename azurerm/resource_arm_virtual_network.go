@@ -103,7 +103,7 @@ func resourceArmVirtualNetworkCreate(d *schema.ResourceData, meta interface{}) e
 		Name:                           &name,
 		Location:                       &location,
 		VirtualNetworkPropertiesFormat: vnetProperties,
-		Tags: expandTags(tags),
+		Tags:                           expandTags(tags),
 	}
 
 	networkSecurityGroupNames := make([]string, 0)
@@ -333,9 +333,7 @@ func flattenVirtualNetworkDNSServers(input *network.DhcpOptions) []string {
 
 	if input != nil {
 		if servers := input.DNSServers; servers != nil {
-			for _, dns := range *servers {
-				results = append(results, dns)
-			}
+			results = *servers
 		}
 	}
 
@@ -346,8 +344,8 @@ func resourceAzureSubnetHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s", m["name"].(string)))
-		buf.WriteString(fmt.Sprintf("%s", m["address_prefix"].(string)))
+		buf.WriteString(m["name"].(string))
+		buf.WriteString(m["address_prefix"].(string))
 
 		if v, ok := m["security_group"]; ok {
 			buf.WriteString(v.(string))
@@ -384,11 +382,6 @@ func getExistingSubnet(ctx context.Context, resGroup string, vnetName string, su
 	}
 
 	if resp.SubnetPropertiesFormat.IPConfigurations != nil {
-		ips := make([]string, 0)
-		for _, ip := range *resp.SubnetPropertiesFormat.IPConfigurations {
-			ips = append(ips, *ip.ID)
-		}
-
 		existingSubnet.SubnetPropertiesFormat.IPConfigurations = resp.SubnetPropertiesFormat.IPConfigurations
 	}
 

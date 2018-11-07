@@ -75,7 +75,7 @@ func TestAccAzureRMLoadBalancerProbe_removal(t *testing.T) {
 	})
 }
 
-func maProbe_update(t *testing.T) {
+func TestAccAzureRMLoadBalancerProbe_update(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := acctest.RandInt()
 	probeName := fmt.Sprintf("probe-%d", ri)
@@ -396,7 +396,6 @@ resource "azurerm_lb_probe" "test2" {
   name                = "%s"
   port                = 8080
 }
-
 `, rInt, location, rInt, rInt, rInt, probeName, probe2Name)
 }
 

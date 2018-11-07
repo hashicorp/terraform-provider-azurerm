@@ -29,6 +29,11 @@ func TestAccAzureRMKeyVaultAccessPolicy_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "secret_permissions.1", "set"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -63,6 +68,16 @@ func TestAccAzureRMKeyVaultAccessPolicy_multiple(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName2, "certificate_permissions.0", "list"),
 					resource.TestCheckResourceAttr(resourceName2, "certificate_permissions.1", "delete"),
 				),
+			},
+			{
+				ResourceName:      resourceName1,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      resourceName2,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -126,6 +141,9 @@ func testCheckAzureRMKeyVaultAccessPolicyExists(name string) resource.TestCheckF
 		}
 
 		policy, err := findKeyVaultAccessPolicy(resp.Properties.AccessPolicies, objectId, applicationId)
+		if err != nil {
+			return fmt.Errorf("Error finding Key Vault Access Policy %q : %+v", vaultName, err)
+		}
 		if policy == nil {
 			return fmt.Errorf("Bad: Key Vault Policy %q (resource group: %q, object_id: %s) does not exist", vaultName, resGroup, objectId)
 		}

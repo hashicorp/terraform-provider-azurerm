@@ -161,7 +161,7 @@ func resourceArmRelayNamespaceRead(d *schema.ResourceData, meta interface{}) err
 
 	if sku := resp.Sku; sku != nil {
 		flattenedSku := flattenRelayNamespaceSku(sku)
-		if err := d.Set("sku", flattenedSku); err != nil {
+		if err = d.Set("sku", flattenedSku); err != nil {
 			return fmt.Errorf("Error setting `sku`: %+v", err)
 		}
 	}
@@ -253,7 +253,7 @@ func flattenRelayNamespaceSku(input *relay.Sku) []interface{} {
 		return []interface{}{}
 	}
 
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 	if name := input.Name; name != nil {
 		output["name"] = *name
 	}

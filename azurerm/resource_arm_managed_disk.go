@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -18,6 +19,7 @@ func resourceArmManagedDisk() *schema.Resource {
 		Read:   resourceArmManagedDiskRead,
 		Update: resourceArmManagedDiskCreate,
 		Delete: resourceArmManagedDiskDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -42,8 +44,9 @@ func resourceArmManagedDisk() *schema.Resource {
 					string(compute.StandardLRS),
 					string(compute.PremiumLRS),
 					string(compute.StandardSSDLRS),
+					string(compute.UltraSSDLRS),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"create_option": {
@@ -100,13 +103,13 @@ func resourceArmManagedDisk() *schema.Resource {
 	}
 }
 
-func validateDiskSizeGB(v interface{}, k string) (ws []string, errors []error) {
+func validateDiskSizeGB(v interface{}, _ string) (ws []string, errors []error) {
 	value := v.(int)
 	if value < 0 || value > 4095 {
 		errors = append(errors, fmt.Errorf(
 			"The `disk_size_gb` can only be between 0 and 4095"))
 	}
-	return
+	return ws, errors
 }
 
 func resourceArmManagedDiskCreate(d *schema.ResourceData, meta interface{}) error {

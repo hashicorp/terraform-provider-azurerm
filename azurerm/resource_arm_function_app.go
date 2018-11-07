@@ -402,6 +402,11 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 
 	appSettingsResp, err := client.ListApplicationSettings(ctx, resGroup, name)
 	if err != nil {
+		if utils.ResponseWasNotFound(appSettingsResp.Response) {
+			log.Printf("[DEBUG] Application Settings of Function App %q (resource group %q) were not found", name, resGroup)
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("Error making Read request on AzureRM Function App AppSettings %q: %+v", name, err)
 	}
 
@@ -438,7 +443,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 	}
 
-	if err := d.Set("identity", flattenFunctionAppIdentity(resp.Identity)); err != nil {
+	if err = d.Set("identity", flattenFunctionAppIdentity(resp.Identity)); err != nil {
 		return err
 	}
 
@@ -453,10 +458,10 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 	delete(appSettings, "WEBSITE_CONTENTSHARE")
 	delete(appSettings, "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")
 
-	if err := d.Set("app_settings", appSettings); err != nil {
+	if err = d.Set("app_settings", appSettings); err != nil {
 		return err
 	}
-	if err := d.Set("connection_string", flattenFunctionAppConnectionStrings(connectionStringsResp.Properties)); err != nil {
+	if err = d.Set("connection_string", flattenFunctionAppConnectionStrings(connectionStringsResp.Properties)); err != nil {
 		return err
 	}
 
@@ -466,12 +471,12 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	siteConfig := flattenFunctionAppSiteConfig(configResp.SiteConfig)
-	if err := d.Set("site_config", siteConfig); err != nil {
+	if err = d.Set("site_config", siteConfig); err != nil {
 		return err
 	}
 
 	siteCred := flattenFunctionAppSiteCredential(siteCredResp.UserProperties)
-	if err := d.Set("site_credential", siteCred); err != nil {
+	if err = d.Set("site_credential", siteCred); err != nil {
 		return err
 	}
 
@@ -596,7 +601,7 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) web.SiteConfig {
 
 func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 	results := make([]interface{}, 0)
-	result := make(map[string]interface{}, 0)
+	result := make(map[string]interface{})
 
 	if input == nil {
 		log.Printf("[DEBUG] SiteConfig is nil")
@@ -643,7 +648,7 @@ func flattenFunctionAppConnectionStrings(input map[string]*web.ConnStringValueTy
 	results := make([]interface{}, 0)
 
 	for k, v := range input {
-		result := make(map[string]interface{}, 0)
+		result := make(map[string]interface{})
 		result["name"] = k
 		result["type"] = string(v.Type)
 		result["value"] = *v.Value
@@ -673,7 +678,7 @@ func flattenFunctionAppIdentity(identity *web.ManagedServiceIdentity) interface{
 
 func flattenFunctionAppSiteCredential(input *web.UserProperties) []interface{} {
 	results := make([]interface{}, 0)
-	result := make(map[string]interface{}, 0)
+	result := make(map[string]interface{})
 
 	if input == nil {
 		log.Printf("[DEBUG] UserProperties is nil")

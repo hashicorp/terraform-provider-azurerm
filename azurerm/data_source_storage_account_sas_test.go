@@ -2,10 +2,11 @@ package azurerm
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
 	"testing"
 	"time"
+
+	"github.com/hashicorp/terraform/helper/acctest"
+	"github.com/hashicorp/terraform/helper/resource"
 )
 
 func TestAccDataSourceArmStorageAccountSas_basic(t *testing.T) {
@@ -37,16 +38,16 @@ func TestAccDataSourceArmStorageAccountSas_basic(t *testing.T) {
 func testAccDataSourceAzureRMStorageAccountSas_basic(rInt int, rString string, location string, startDate string, endDate string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestsa-%d"
+  name     = "acctestsa-%d"
   location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name = "acctestsads%s"
+  name                = "acctestsads%s"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  location = "${azurerm_resource_group.test.location}"
-  account_tier = "Standard"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
   account_replication_type = "LRS"
 
   tags {
@@ -57,19 +58,23 @@ resource "azurerm_storage_account" "test" {
 data "azurerm_storage_account_sas" "test" {
   connection_string = "${azurerm_storage_account.test.primary_connection_string}"
   https_only        = true
+
   resource_types {
     service   = true
     container = false
     object    = false
   }
+
   services {
     blob  = true
     queue = false
     table = false
     file  = false
   }
-  start   = "%s"
-  expiry  = "%s"
+
+  start  = "%s"
+  expiry = "%s"
+
   permissions {
     read    = true
     write   = true

@@ -28,7 +28,6 @@ resource "azurerm_dev_test_lab" "test" {
   }
 }
 
-
 resource "azurerm_dev_test_policy" "test" {
   name                = "LabVmCount"
   policy_set_name     = "default"

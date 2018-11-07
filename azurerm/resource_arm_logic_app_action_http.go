@@ -180,7 +180,7 @@ func resourceArmLogicAppActionHTTPDelete(d *schema.ResourceData, meta interface{
 }
 
 func expandLogicAppActionHttpHeaders(headersRaw map[string]interface{}) (*map[string]string, error) {
-	headers := make(map[string]string, 0)
+	headers := make(map[string]string)
 
 	for i, v := range headersRaw {
 		value, err := tagValueToString(v)

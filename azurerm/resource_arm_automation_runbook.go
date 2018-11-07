@@ -159,7 +159,7 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 		content := v.(string)
 		reader := ioutil.NopCloser(bytes.NewBufferString(content))
 		draftClient := meta.(*ArmClient).automationRunbookDraftClient
-		_, err := draftClient.ReplaceContent(ctx, resGroup, accName, name, reader)
+		_, err = draftClient.ReplaceContent(ctx, resGroup, accName, name, reader)
 		if err != nil {
 			return fmt.Errorf("Error setting the draft Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
 		}
@@ -232,7 +232,9 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 	if v := response.Value; v != nil {
 		if contentBytes := *response.Value; contentBytes != nil {
 			buf := new(bytes.Buffer)
-			buf.ReadFrom(contentBytes)
+			if _, err := buf.ReadFrom(contentBytes); err != nil {
+				return fmt.Errorf("Error reading from Automation Runbook buffer %q: %+v", name, err)
+			}
 			content := buf.String()
 			d.Set("content", content)
 		}

@@ -323,7 +323,7 @@ func resourceArmMonitorMetricAlertDelete(d *schema.ResourceData, meta interface{
 }
 
 func expandMonitorMetricAlertCriteria(input []interface{}) *insights.MetricAlertSingleResourceMultipleMetricCriteria {
-	criterias := make([]insights.MetricCriteria, 0)
+	criteria := make([]insights.MetricCriteria, 0)
 	for i, item := range input {
 		v := item.(map[string]interface{})
 
@@ -337,7 +337,7 @@ func expandMonitorMetricAlertCriteria(input []interface{}) *insights.MetricAlert
 			})
 		}
 
-		criterias = append(criterias, insights.MetricCriteria{
+		criteria = append(criteria, insights.MetricCriteria{
 			Name:            utils.String(fmt.Sprintf("Metric%d", i+1)),
 			MetricNamespace: utils.String(v["metric_namespace"].(string)),
 			MetricName:      utils.String(v["metric_name"].(string)),
@@ -348,7 +348,7 @@ func expandMonitorMetricAlertCriteria(input []interface{}) *insights.MetricAlert
 		})
 	}
 	return &insights.MetricAlertSingleResourceMultipleMetricCriteria{
-		AllOf:     &criterias,
+		AllOf:     &criteria,
 		OdataType: insights.OdataTypeMicrosoftAzureMonitorSingleResourceMultipleMetricCriteria,
 	}
 }
@@ -419,7 +419,8 @@ func flattenMonitorMetricAlertCriteria(input insights.BasicMetricAlertCriteria) 
 
 		result = append(result, v)
 	}
-	return
+
+	return result
 }
 
 func flattenMonitorMetricAlertAction(input *[]insights.MetricAlertAction) (result []interface{}) {
@@ -428,7 +429,7 @@ func flattenMonitorMetricAlertAction(input *[]insights.MetricAlertAction) (resul
 		return
 	}
 	for _, action := range *input {
-		v := make(map[string]interface{}, 0)
+		v := make(map[string]interface{})
 
 		if action.ActionGroupID != nil {
 			v["action_group_id"] = *action.ActionGroupID
@@ -444,7 +445,8 @@ func flattenMonitorMetricAlertAction(input *[]insights.MetricAlertAction) (resul
 
 		result = append(result, v)
 	}
-	return
+
+	return result
 }
 
 func resourceArmMonitorMetricAlertActionHash(input interface{}) int {

@@ -75,6 +75,12 @@ func TestAccAzureRMSnapshot_fromManagedDisk(t *testing.T) {
 					testCheckAzureRMSnapshotExists(resourceName),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"source_uri"},
+			},
 		},
 	})
 }
@@ -95,6 +101,12 @@ func TestAccAzureRMSnapshot_encryption(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSnapshotExists(resourceName),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"source_uri"},
 			},
 		},
 	})
@@ -334,7 +346,7 @@ resource "azurerm_key_vault" "test" {
     key_permissions = [
       "create",
       "delete",
-      "get"
+      "get",
     ]
 
     secret_permissions = [
@@ -344,7 +356,7 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-   enabled_for_disk_encryption = true
+  enabled_for_disk_encryption = true
 }
 
 resource "azurerm_key_vault_key" "test" {
@@ -375,7 +387,7 @@ resource "azurerm_snapshot" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   create_option       = "Copy"
   source_uri          = "${azurerm_managed_disk.test.id}"
-  disk_size_gb  	  = "20"
+  disk_size_gb        = "20"
 
   encryption_settings {
     enabled = true
@@ -416,7 +428,7 @@ resource "azurerm_snapshot" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   create_option       = "Copy"
   source_uri          = "${azurerm_managed_disk.test.id}"
-  disk_size_gb  	  = "20"
+  disk_size_gb        = "20"
 }
 `, rInt, location, rInt, rInt)
 }
@@ -508,11 +520,11 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_virtual_machine" "test" {
-  name                  = "acctestvm-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
-  vm_size               = "Standard_F2"
+  name                          = "acctestvm-%d"
+  location                      = "${azurerm_resource_group.test.location}"
+  resource_group_name           = "${azurerm_resource_group.test.name}"
+  network_interface_ids         = ["${azurerm_network_interface.test.id}"]
+  vm_size                       = "Standard_F2"
   delete_os_disk_on_termination = true
 
   storage_image_reference {

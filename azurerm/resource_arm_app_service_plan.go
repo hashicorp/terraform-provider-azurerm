@@ -126,9 +126,9 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 	appServicePlan := web.AppServicePlan{
 		Location:                 &location,
 		AppServicePlanProperties: properties,
-		Kind: &kind,
-		Tags: expandTags(tags),
-		Sku:  &sku,
+		Kind:                     &kind,
+		Tags:                     expandTags(tags),
+		Sku:                      &sku,
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, appServicePlan)
@@ -300,7 +300,7 @@ func expandAppServicePlanProperties(d *schema.ResourceData) *web.AppServicePlanP
 
 func flattenAppServiceProperties(props *web.AppServicePlanProperties) []interface{} {
 	result := make([]interface{}, 0, 1)
-	properties := make(map[string]interface{}, 0)
+	properties := make(map[string]interface{})
 
 	if props.HostingEnvironmentProfile != nil && props.HostingEnvironmentProfile.ID != nil {
 		properties["app_service_environment_id"] = *props.HostingEnvironmentProfile.ID
@@ -325,5 +325,5 @@ func validateAppServicePlanName(v interface{}, k string) (ws []string, es []erro
 		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters, dashes and underscores up to 60 characters in length", k))
 	}
 
-	return
+	return ws, es
 }

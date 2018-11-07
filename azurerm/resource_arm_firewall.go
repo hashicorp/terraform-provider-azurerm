@@ -197,9 +197,9 @@ func resourceArmFirewallDelete(d *schema.ResourceData, meta interface{}) error {
 					continue
 				}
 
-				parsedSubnetId, err := parseAzureResourceID(*config.Subnet.ID)
-				if err != nil {
-					return err
+				parsedSubnetId, err2 := parseAzureResourceID(*config.Subnet.ID)
+				if err2 != nil {
+					return err2
 				}
 				subnetName := parsedSubnetId.Path["subnets"]
 
@@ -328,5 +328,5 @@ func validateAzureFirewallName(v interface{}, k string) (ws []string, es []error
 		es = append(es, fmt.Errorf("%q must begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, underscores, periods, or hyphens.", k))
 	}
 
-	return
+	return ws, es
 }

@@ -14,7 +14,7 @@ Use this data source to access information about an existing Logic App Workflow.
 
 ```hcl
 data "azurerm_logic_app_workflow" "test" {
-  name = "workflow1"
+  name                = "workflow1"
   resource_group_name = "my-resource-group"
 }
 

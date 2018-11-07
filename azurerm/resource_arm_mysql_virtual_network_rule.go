@@ -66,6 +66,9 @@ func resourceArmMySqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta
 	// BUG: https://github.com/Azure/azure-rest-api-specs/issues/3719
 	subnetsClient := meta.(*ArmClient).subnetClient
 	subnetParsedId, err := parseAzureResourceID(subnetId)
+	if err != nil {
+		return err
+	}
 
 	subnetResourceGroup := subnetParsedId.ResourceGroup
 	virtualNetwork := subnetParsedId.Path["virtualNetworks"]
@@ -122,7 +125,7 @@ func resourceArmMySqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta
 		ContinuousTargetOccurence: 5,
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for MySQL Virtual Network Rule %q (MySQL Server: %q, Resource Group: %q) to be created or updated: %+v", name, serverName, resourceGroup, err)
 	}
 
@@ -218,7 +221,7 @@ func mySQLVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client m
 
 		if props := resp.VirtualNetworkRuleProperties; props != nil {
 			log.Printf("[DEBUG] Retrieving MySQL Virtual Network Rule %q (MySQL Server: %q, Resource Group: %q) returned Status %s", resourceGroup, serverName, name, props.State)
-			return resp, fmt.Sprintf("%s", props.State), nil
+			return resp, string(props.State), nil
 		}
 
 		//Valid response was returned but VirtualNetworkRuleProperties was nil. Basically the rule exists, but with no properties for some reason. Assume Unknown instead of returning error.

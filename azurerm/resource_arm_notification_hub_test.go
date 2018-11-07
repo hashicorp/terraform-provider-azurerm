@@ -29,6 +29,11 @@ func TestAccAzureRMNotificationHub_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "gcm_credential.#", "0"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -90,7 +95,7 @@ func testCheckAzureRMNotificationHubDestroy(s *terraform.State) error {
 func testAzureRMNotificationHub_basic(ri int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestrgpol-%d"
+  name     = "acctestRGpol-%d"
   location = "%s"
 }
 
@@ -98,15 +103,16 @@ resource "azurerm_notification_hub_namespace" "test" {
   name                = "acctestnhn-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  namespace_type      = "NotificationHub" 
+  namespace_type      = "NotificationHub"
+
   sku {
-   name = "Free"
+    name = "Free"
   }
 }
 
 resource "azurerm_notification_hub" "test" {
   name                = "acctestnh-%d"
-  namespace_name      = "${azurerm_notification_hub_namespace.test.name}" 
+  namespace_name      = "${azurerm_notification_hub_namespace.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
 }

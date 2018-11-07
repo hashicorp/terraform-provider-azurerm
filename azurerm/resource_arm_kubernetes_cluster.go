@@ -204,9 +204,11 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						},
 
 						"os_disk_size_gb": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							ForceNew: true,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ForceNew:     true,
+							Computed:     true,
+							ValidateFunc: validation.IntAtLeast(1),
 						},
 
 						"vnet_subnet_id": {
@@ -546,7 +548,7 @@ func flattenAzureRmKubernetesClusterLinuxProfile(profile *containerservice.Linux
 	if ssh := profile.SSH; ssh != nil {
 		if keys := ssh.PublicKeys; keys != nil {
 			for _, sshKey := range *keys {
-				outputs := make(map[string]interface{}, 0)
+				outputs := make(map[string]interface{})
 				if keyData := sshKey.KeyData; keyData != nil {
 					outputs["key_data"] = *keyData
 				}
@@ -858,7 +860,7 @@ func expandAzureRmKubernetesClusterAddonProfiles(d *schema.ResourceData) map[str
 }
 
 func flattenAzureRmKubernetesClusterAddonProfiles(profile map[string]*containerservice.ManagedClusterAddonProfile) []interface{} {
-	values := make(map[string]interface{}, 0)
+	values := make(map[string]interface{})
 
 	routes := make([]interface{}, 0)
 	if httpApplicationRouting := profile["httpApplicationRouting"]; httpApplicationRouting != nil {
@@ -873,7 +875,7 @@ func flattenAzureRmKubernetesClusterAddonProfiles(profile map[string]*containers
 		}
 
 		output := map[string]interface{}{
-			"enabled": enabled,
+			"enabled":                            enabled,
 			"http_application_routing_zone_name": zoneName,
 		}
 		routes = append(routes, output)

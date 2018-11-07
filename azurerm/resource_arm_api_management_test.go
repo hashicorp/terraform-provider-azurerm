@@ -82,7 +82,7 @@ func TestAccAzureRMApiManagement_complete(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
-					"certificate",                                            // not returned from API, sensitive
+					"certificate", // not returned from API, sensitive
 					"hostname_configuration.0.portal.0.certificate",          // not returned from API, sensitive
 					"hostname_configuration.0.portal.0.certificate_password", // not returned from API, sensitive
 					"hostname_configuration.0.proxy.0.certificate",           // not returned from API, sensitive
@@ -154,7 +154,7 @@ func testCheckAzureRMApiManagementExists(name string) resource.TestCheckFunc {
 func testAccAzureRMApiManagement_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -176,7 +176,7 @@ resource "azurerm_api_management" "test" {
 func testAccAzureRMApiManagement_customProps(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -203,12 +203,12 @@ resource "azurerm_api_management" "test" {
 func testAccAzureRMApiManagement_complete(rInt int, location string, altLocation string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test1" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_resource_group" "test2" {
-  name     = "acctestrg2-%d"
+  name     = "acctestRG2-%d"
   location = "%s"
 }
 

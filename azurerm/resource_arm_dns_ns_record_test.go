@@ -48,6 +48,11 @@ func TestAccAzureRMDnsNsRecord_basic(t *testing.T) {
 					testCheckAzureRMDnsNsRecordExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -201,6 +206,11 @@ func TestAccAzureRMDnsNsRecord_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -306,11 +316,11 @@ resource "azurerm_dns_ns_record" "test" {
   ttl                 = 300
 
   record {
-	  nsdname = "ns1.contoso.com"
+    nsdname = "ns1.contoso.com"
   }
 
   record {
-	  nsdname = "ns2.contoso.com"
+    nsdname = "ns2.contoso.com"
   }
 }
 `, rInt, location, rInt, rInt)
@@ -445,8 +455,8 @@ resource "azurerm_dns_ns_record" "test" {
   ttl                 = 300
 
   record {
-		nsdname = "ns1.contoso.com"
-	}
+    nsdname = "ns1.contoso.com"
+  }
 
   record {
     nsdname = "ns2.contoso.com"

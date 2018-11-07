@@ -13,6 +13,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+
 	"github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -100,37 +102,37 @@ func resourceArmStorageBlob() *schema.Resource {
 	}
 }
 
-func validateArmStorageBlobParallelism(v interface{}, k string) (ws []string, errors []error) {
+func validateArmStorageBlobParallelism(v interface{}, _ string) (ws []string, errors []error) {
 	value := v.(int)
 
 	if value <= 0 {
 		errors = append(errors, fmt.Errorf("Blob Parallelism %q is invalid, must be greater than 0", value))
 	}
 
-	return
+	return ws, errors
 }
 
-func validateArmStorageBlobAttempts(v interface{}, k string) (ws []string, errors []error) {
+func validateArmStorageBlobAttempts(v interface{}, _ string) (ws []string, errors []error) {
 	value := v.(int)
 
 	if value <= 0 {
 		errors = append(errors, fmt.Errorf("Blob Attempts %q is invalid, must be greater than 0", value))
 	}
 
-	return
+	return ws, errors
 }
 
-func validateArmStorageBlobSize(v interface{}, k string) (ws []string, errors []error) {
+func validateArmStorageBlobSize(v interface{}, _ string) (ws []string, errors []error) {
 	value := v.(int)
 
 	if value%512 != 0 {
 		errors = append(errors, fmt.Errorf("Blob Size %q is invalid, must be a multiple of 512", value))
 	}
 
-	return
+	return ws, errors
 }
 
-func validateArmStorageBlobType(v interface{}, k string) (ws []string, errors []error) {
+func validateArmStorageBlobType(v interface{}, _ string) (ws []string, errors []error) {
 	value := strings.ToLower(v.(string))
 	validTypes := map[string]struct{}{
 		"block": {},
@@ -140,7 +142,7 @@ func validateArmStorageBlobType(v interface{}, k string) (ws []string, errors []
 	if _, ok := validTypes[value]; !ok {
 		errors = append(errors, fmt.Errorf("Blob type %q is invalid, must be %q or %q", value, "block", "page"))
 	}
-	return
+	return ws, errors
 }
 
 func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) error {
@@ -234,7 +236,7 @@ func resourceArmStorageBlobPageUploadFromSource(container, name, source, content
 	if err != nil {
 		return fmt.Errorf("Error opening source file for upload %q: %s", source, err)
 	}
-	defer file.Close()
+	defer utils.IoCloseAndLogError(file, fmt.Sprintf("Error closing Storage Blob `%s` file `%s` after upload", name, source))
 
 	blobSize, pageList, err := resourceArmStorageBlobPageSplit(file)
 	if err != nil {
@@ -412,7 +414,7 @@ func resourceArmStorageBlobBlockUploadFromSource(container, name, source, conten
 	if err != nil {
 		return fmt.Errorf("Error opening source file for upload %q: %s", source, err)
 	}
-	defer file.Close()
+	defer utils.IoCloseAndLogError(file, fmt.Sprintf("Error closing Storage Blob `%s` file `%s` after upload", name, source))
 
 	blockList, parts, err := resourceArmStorageBlobBlockSplit(file)
 	if err != nil {

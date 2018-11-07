@@ -752,9 +752,9 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 						continue
 					}
 
-					id, err := parseAzureResourceID(*v.VirtualNetworkResourceID)
-					if err != nil {
-						return err
+					id, err2 := parseAzureResourceID(*v.VirtualNetworkResourceID)
+					if err2 != nil {
+						return err2
 					}
 
 					networkName := id.Path["virtualNetworks"]
@@ -779,7 +779,7 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 
 func expandStorageAccountCustomDomain(d *schema.ResourceData) *storage.CustomDomain {
 	domains := d.Get("custom_domain").([]interface{})
-	if domains == nil || len(domains) == 0 {
+	if len(domains) == 0 {
 		return &storage.CustomDomain{
 			Name: utils.String(""),
 		}
@@ -795,17 +795,19 @@ func expandStorageAccountCustomDomain(d *schema.ResourceData) *storage.CustomDom
 }
 
 func flattenStorageAccountCustomDomain(input *storage.CustomDomain) []interface{} {
-	domain := make(map[string]interface{}, 0)
+	domain := make(map[string]interface{})
 
-	domain["name"] = *input.Name
+	if v := input.Name; v != nil {
+		domain["name"] = *v
+	}
+
 	// use_subdomain isn't returned
-
 	return []interface{}{domain}
 }
 
 func expandStorageAccountNetworkRules(d *schema.ResourceData) *storage.NetworkRuleSet {
 	networkRules := d.Get("network_rules").([]interface{})
-	if networkRules == nil || len(networkRules) == 0 {
+	if len(networkRules) == 0 {
 		// Default access is enabled when no network rules are set.
 		return &storage.NetworkRuleSet{DefaultAction: storage.DefaultActionAllow}
 	}
@@ -846,7 +848,7 @@ func expandStorageAccountVirtualNetworks(networkRule map[string]interface{}) *[]
 		attrs := virtualNetworkConfig.(string)
 		virtualNetwork := storage.VirtualNetworkRule{
 			VirtualNetworkResourceID: utils.String(attrs),
-			Action: storage.Allow,
+			Action:                   storage.Allow,
 		}
 		virtualNetworks[i] = virtualNetwork
 	}
@@ -869,7 +871,7 @@ func flattenStorageAccountNetworkRules(input *storage.NetworkRuleSet) []interfac
 	if len(*input.IPRules) == 0 && len(*input.VirtualNetworkRules) == 0 {
 		return []interface{}{}
 	}
-	networkRules := make(map[string]interface{}, 0)
+	networkRules := make(map[string]interface{})
 
 	networkRules["ip_rules"] = schema.NewSet(schema.HashString, flattenStorageAccountIPRules(input.IPRules))
 	networkRules["virtual_network_subnet_ids"] = schema.NewSet(schema.HashString, flattenStorageAccountVirtualNetworks(input.VirtualNetworkRules))
@@ -919,7 +921,7 @@ func validateArmStorageAccountName(v interface{}, k string) (ws []string, es []e
 		es = append(es, fmt.Errorf("name can only consist of lowercase letters and numbers, and must be between 3 and 24 characters long"))
 	}
 
-	return
+	return ws, es
 }
 
 func validateArmStorageAccountType(v interface{}, k string) (ws []string, es []error) {
@@ -935,7 +937,7 @@ func validateArmStorageAccountType(v interface{}, k string) (ws []string, es []e
 	}
 
 	es = append(es, fmt.Errorf("Invalid storage account type %q", input))
-	return
+	return ws, es
 }
 
 func expandAzureRmStorageAccountIdentity(d *schema.ResourceData) *storage.Identity {

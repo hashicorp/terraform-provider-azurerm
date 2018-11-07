@@ -66,9 +66,8 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 							}, false),
 						},
 						"operation_name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 						"caller": {
 							Type:     schema.TypeString,
@@ -84,6 +83,18 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 								"Error",
 								"Critical",
 							}, false),
+						},
+						"resource_provider": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"resource_type": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"resource_group": {
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 						"resource_id": {
 							Type:         schema.TypeString,
@@ -273,6 +284,24 @@ func expandMonitorActivityLogAlertCriteria(input []interface{}) *insights.Activi
 			Equals: utils.String(level),
 		})
 	}
+	if resourceProvider := v["resource_provider"].(string); resourceProvider != "" {
+		conditions = append(conditions, insights.ActivityLogAlertLeafCondition{
+			Field:  utils.String("resourceProvider"),
+			Equals: utils.String(resourceProvider),
+		})
+	}
+	if resourceType := v["resource_type"].(string); resourceType != "" {
+		conditions = append(conditions, insights.ActivityLogAlertLeafCondition{
+			Field:  utils.String("resourceType"),
+			Equals: utils.String(resourceType),
+		})
+	}
+	if resourceGroup := v["resource_group"].(string); resourceGroup != "" {
+		conditions = append(conditions, insights.ActivityLogAlertLeafCondition{
+			Field:  utils.String("resourceGroup"),
+			Equals: utils.String(resourceGroup),
+		})
+	}
 	if id := v["resource_id"].(string); id != "" {
 		conditions = append(conditions, insights.ActivityLogAlertLeafCondition{
 			Field:  utils.String("resourceId"),
@@ -330,6 +359,12 @@ func flattenMonitorActivityLogAlertCriteria(input *insights.ActivityLogAlertAllO
 			switch strings.ToLower(*condition.Field) {
 			case "operationname":
 				result["operation_name"] = *condition.Equals
+			case "resourceprovider":
+				result["resource_provider"] = *condition.Equals
+			case "resourcetype":
+				result["resource_type"] = *condition.Equals
+			case "resourcegroup":
+				result["resource_group"] = *condition.Equals
 			case "resourceid":
 				result["resource_id"] = *condition.Equals
 			case "substatus":
@@ -348,7 +383,7 @@ func flattenMonitorActivityLogAlertAction(input *insights.ActivityLogAlertAction
 		return
 	}
 	for _, action := range *input.ActionGroups {
-		v := make(map[string]interface{}, 0)
+		v := make(map[string]interface{})
 
 		if action.ActionGroupID != nil {
 			v["action_group_id"] = *action.ActionGroupID
@@ -364,7 +399,7 @@ func flattenMonitorActivityLogAlertAction(input *insights.ActivityLogAlertAction
 
 		result = append(result, v)
 	}
-	return
+	return result
 }
 
 func resourceArmMonitorActivityLogAlertActionHash(input interface{}) int {
