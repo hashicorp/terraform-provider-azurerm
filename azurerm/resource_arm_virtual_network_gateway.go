@@ -87,6 +87,9 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 					string(network.VirtualNetworkGatewaySkuNameVpnGw1),
 					string(network.VirtualNetworkGatewaySkuNameVpnGw2),
 					string(network.VirtualNetworkGatewaySkuNameVpnGw3),
+					string(network.VirtualNetworkGatewaySkuNameErGw1AZ),
+					string(network.VirtualNetworkGatewaySkuNameErGw2AZ),
+					string(network.VirtualNetworkGatewaySkuNameErGw3AZ),
 				}, true),
 			},
 
@@ -758,6 +761,9 @@ func validateArmVirtualNetworkGatewayExpressRouteSku() schema.SchemaValidateFunc
 		string(network.VirtualNetworkGatewaySkuTierStandard),
 		string(network.VirtualNetworkGatewaySkuTierHighPerformance),
 		string(network.VirtualNetworkGatewaySkuTierUltraPerformance),
+		string(network.VirtualNetworkGatewaySkuNameErGw1AZ),
+		string(network.VirtualNetworkGatewaySkuNameErGw2AZ),
+		string(network.VirtualNetworkGatewaySkuNameErGw3AZ),
 	}, true)
 }
 
