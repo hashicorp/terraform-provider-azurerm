@@ -22,7 +22,7 @@ func TestAccAzureRMNotificationHub_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNotificationHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMNotificationHub_basic(ri, location),
+				Config: testAccAzureRMNotificationHub_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNotificationHubExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "apns_credential.#", "0"),
@@ -92,7 +92,7 @@ func testCheckAzureRMNotificationHubDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAzureRMNotificationHub_basic(ri int, location string) string {
+func testAccAzureRMNotificationHub_basic(ri int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRGpol-%d"

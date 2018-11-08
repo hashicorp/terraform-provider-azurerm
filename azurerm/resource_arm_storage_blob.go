@@ -647,11 +647,11 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 	blobType := strings.ToLower(strings.Replace(string(blob.Properties.BlobType), "Blob", "", 1))
 	d.Set("type", blobType)
 
-	url := blob.GetURL()
-	if url == "" {
+	u := blob.GetURL()
+	if u == "" {
 		log.Printf("[INFO] URL for %q is empty", id.blobName)
 	}
-	d.Set("url", url)
+	d.Set("url", u)
 
 	return nil
 }

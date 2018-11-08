@@ -46,8 +46,7 @@ func buildConfigForSweepers() (*ArmClient, error) {
 		return nil, fmt.Errorf("Error building ARM Client: %+v", err)
 	}
 
-	skipProviderRegistration := false
-	return getArmClient(config, skipProviderRegistration)
+	return getArmClient(config, false)
 }
 
 func shouldSweepAcceptanceTestResource(name string, resourceLocation string, region string) bool {

@@ -269,7 +269,7 @@ func resourceArmSchedulerJobActionWebSchema(propertyName string) *schema.Resourc
 				Type:             schema.TypeString,
 				Required:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     validate.UrlIsHttpOrHttps(),
+				ValidateFunc:     validate.URLIsHTTPOrHTTPS,
 			},
 
 			"method": {

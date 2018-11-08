@@ -31,7 +31,6 @@ func TestAccDataSourceAzureRMKeyVaultKey_complete(t *testing.T) {
 }
 
 func testAccDataSourceKeyVaultKey_complete(rString string, location string) string {
-	resource := testAccAzureRMKeyVaultKey_complete(rString, location)
 	return fmt.Sprintf(`
 %s
 
@@ -39,5 +38,5 @@ data "azurerm_key_vault_key" "test" {
   name 		= "${azurerm_key_vault_key.test.name}"
   vault_uri = "${azurerm_key_vault_key.test.vault_uri}"
 }
-`, resource)
+`, testAccAzureRMKeyVaultKey_complete(rString, location))
 }
