@@ -170,6 +170,8 @@ $ az vm extension image list --location westus -o table
 
 ~> **Please Note:** Certain VM Extensions require that the keys in the `protected_settings` block are case sensitive. If you're seeing unhelpful errors, please ensure the keys are consistent with how Azure is expecting them (for instance, for the `JsonADDomainExtension` extension, the keys are expected to be in `TitleCase`.)
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 ## Attributes Reference
 
 The following attributes are exported:
