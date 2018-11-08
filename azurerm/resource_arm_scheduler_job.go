@@ -30,6 +30,8 @@ func resourceArmSchedulerJob() *schema.Resource {
 		Update: resourceArmSchedulerJobCreateUpdate,
 		Delete: resourceArmSchedulerJobDelete,
 
+		DeprecationMessage: "Scheduler Job's have been deprecated in favour of Logic Apps - more information can be found at https://docs.microsoft.com/en-us/azure/scheduler/migrate-from-scheduler-to-logic-apps",
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
