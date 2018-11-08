@@ -2,6 +2,8 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -170,6 +172,13 @@ func resourceArmNetworkWatcherFlowLogRead(d *schema.ResourceData, meta interface
 	}
 	future, err := client.GetFlowLogStatus(ctx, resourceGroupName, networkWatcherName, statusParameters)
 	if err != nil {
+		if strings.Contains(err.Error(), "StatusCode=0 -- Original Error: Code=\"NotFound\"") {
+			// One of storage account, NSG, or flow log is missing
+			log.Printf("[INFO] Error getting Flow Log Configuration %q for target %q - removing from state", d.Id(), networkSecurityGroupID)
+			d.SetId("")
+			return nil
+		}
+
 		return fmt.Errorf("Error retrieving Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", networkSecurityGroupID, networkWatcherName, resourceGroupName, err)
 	}
 
@@ -180,7 +189,7 @@ func resourceArmNetworkWatcherFlowLogRead(d *schema.ResourceData, meta interface
 
 	fli, err := future.Result(client)
 	if err != nil {
-		return fmt.Errorf("Error retrieving of Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", networkSecurityGroupID, networkWatcherName, resourceGroupName, err)
+		return fmt.Errorf("Error retrieving Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", networkSecurityGroupID, networkWatcherName, resourceGroupName, err)
 	}
 
 	d.Set("network_watcher_name", networkWatcherName)
@@ -224,7 +233,7 @@ func resourceArmNetworkWatcherFlowLogDelete(d *schema.ResourceData, meta interfa
 	}
 	future, err := client.GetFlowLogStatus(ctx, resourceGroupName, networkWatcherName, statusParameters)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", networkSecurityGroupID, networkWatcherName, resourceGroupName, err)
+		return fmt.Errorf("Error getting Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", networkSecurityGroupID, networkWatcherName, resourceGroupName, err)
 	}
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
@@ -234,7 +243,7 @@ func resourceArmNetworkWatcherFlowLogDelete(d *schema.ResourceData, meta interfa
 
 	fli, err := future.Result(client)
 	if err != nil {
-		return fmt.Errorf("Error retrieving of Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", networkSecurityGroupID, networkWatcherName, resourceGroupName, err)
+		return fmt.Errorf("Error retrieving Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", networkSecurityGroupID, networkWatcherName, resourceGroupName, err)
 	}
 
 	// There is no delete in Azure API. Disabling flow log is effectively a delete in Terraform.
