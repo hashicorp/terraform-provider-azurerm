@@ -571,8 +571,7 @@ func flattenArmRecoveryServicesProtectionPolicySchedule(schedule *backup.SimpleS
 	block["frequency"] = string(schedule.ScheduleRunFrequency)
 
 	if times := schedule.ScheduleRunTimes; times != nil && len(*times) > 0 {
-		time := (*times)[0]
-		block["time"] = time.Format("15:04")
+		block["time"] = (*times)[0].Format("15:04")
 	}
 
 	if days := schedule.ScheduleRunDays; days != nil {

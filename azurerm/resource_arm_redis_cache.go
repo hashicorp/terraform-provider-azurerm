@@ -653,7 +653,7 @@ func flattenRedisPatchSchedules(schedule redis.PatchSchedule) []interface{} {
 	return outputs
 }
 
-func validateRedisFamily(v interface{}, k string) (ws []string, errors []error) {
+func validateRedisFamily(v interface{}, _ string) (ws []string, errors []error) {
 	value := strings.ToLower(v.(string))
 	families := map[string]bool{
 		"c": true,
@@ -666,7 +666,7 @@ func validateRedisFamily(v interface{}, k string) (ws []string, errors []error) 
 	return ws, errors
 }
 
-func validateRedisMaxMemoryPolicy(v interface{}, k string) (ws []string, errors []error) {
+func validateRedisMaxMemoryPolicy(v interface{}, _ string) (ws []string, errors []error) {
 	value := strings.ToLower(v.(string))
 	families := map[string]bool{
 		"noeviction":      true,
@@ -684,7 +684,7 @@ func validateRedisMaxMemoryPolicy(v interface{}, k string) (ws []string, errors 
 	return ws, errors
 }
 
-func validateRedisBackupFrequency(v interface{}, k string) (ws []string, errors []error) {
+func validateRedisBackupFrequency(v interface{}, _ string) (ws []string, errors []error) {
 	value := v.(int)
 	families := map[int]bool{
 		15:   true,

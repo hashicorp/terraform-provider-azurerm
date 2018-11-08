@@ -914,7 +914,7 @@ func flattenStorageAccountBypass(input storage.Bypass) []interface{} {
 	return bypass
 }
 
-func validateArmStorageAccountName(v interface{}, k string) (ws []string, es []error) {
+func validateArmStorageAccountName(v interface{}, _ string) (ws []string, es []error) {
 	input := v.(string)
 
 	if !regexp.MustCompile(`\A([a-z0-9]{3,24})\z`).MatchString(input) {
@@ -924,7 +924,7 @@ func validateArmStorageAccountName(v interface{}, k string) (ws []string, es []e
 	return ws, es
 }
 
-func validateArmStorageAccountType(v interface{}, k string) (ws []string, es []error) {
+func validateArmStorageAccountType(v interface{}, _ string) (ws []string, es []error) {
 	validAccountTypes := []string{"standard_lrs", "standard_zrs",
 		"standard_grs", "standard_ragrs", "premium_lrs"}
 

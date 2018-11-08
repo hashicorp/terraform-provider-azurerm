@@ -269,7 +269,7 @@ func resourceArmSchedulerJobActionWebSchema(propertyName string) *schema.Resourc
 				Type:             schema.TypeString,
 				Required:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     validate.UrlIsHttpOrHttps(),
+				ValidateFunc:     validate.URLIsHTTPOrHTTPS,
 			},
 
 			"method": {
@@ -434,7 +434,7 @@ func resourceArmSchedulerJobActionStorageSchema() *schema.Resource {
 	}
 }
 
-func resourceArmSchedulerJobCustomizeDiff(diff *schema.ResourceDiff, v interface{}) error {
+func resourceArmSchedulerJobCustomizeDiff(diff *schema.ResourceDiff, _ interface{}) error {
 
 	_, hasWeb := diff.GetOk("action_web")
 	_, hasStorage := diff.GetOk("action_storage_queue")
@@ -957,18 +957,18 @@ func flattenAzureArmSchedulerJobSchedule(recurrence *scheduler.JobRecurrence) []
 		}
 
 		if v := schedule.WeekDays; v != nil {
-			set := &schema.Set{F: schema.HashString}
+			s := &schema.Set{F: schema.HashString}
 			for _, v := range *v {
-				set.Add(string(v))
+				s.Add(string(v))
 			}
-			block["week_days"] = set
+			block["week_days"] = s
 		}
 		if v := schedule.MonthDays; v != nil {
 			block["month_days"] = set.FromInt32Slice(*v)
 		}
 
 		if monthly := schedule.MonthlyOccurrences; monthly != nil {
-			set := &schema.Set{F: resourceAzureRMSchedulerJobMonthlyOccurrenceHash}
+			s := &schema.Set{F: resourceAzureRMSchedulerJobMonthlyOccurrenceHash}
 			for _, e := range *monthly {
 
 				m := map[string]interface{}{
@@ -979,9 +979,9 @@ func flattenAzureArmSchedulerJobSchedule(recurrence *scheduler.JobRecurrence) []
 					m["occurrence"] = int(*v)
 				}
 
-				set.Add(m)
+				s.Add(m)
 			}
-			block["monthly_occurrences"] = set
+			block["monthly_occurrences"] = s
 		}
 	}
 

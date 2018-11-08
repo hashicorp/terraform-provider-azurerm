@@ -48,7 +48,7 @@ func ValidateServiceBusAuthorizationRuleName() schema.SchemaValidateFunc {
 }
 
 func ExpandServiceBusAuthorizationRuleRights(d *schema.ResourceData) *[]servicebus.AccessRights {
-	rights := []servicebus.AccessRights{}
+	rights := make([]servicebus.AccessRights, 0)
 
 	if d.Get("listen").(bool) {
 		rights = append(rights, servicebus.Listen)

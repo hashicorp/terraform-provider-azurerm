@@ -934,7 +934,7 @@ func expandApplicationGatewayWafConfig(d *schema.ResourceData) *network.Applicat
 
 func expandApplicationGatewaySslPolicy(d *schema.ResourceData) *network.ApplicationGatewaySslPolicy {
 	disabledProtoList := d.Get("disabled_ssl_protocols").([]interface{})
-	disabled := []network.ApplicationGatewaySslProtocol{}
+	disabled := make([]network.ApplicationGatewaySslProtocol, 0)
 
 	for _, proto := range disabledProtoList {
 		disabled = append(disabled, network.ApplicationGatewaySslProtocol(proto.(string)))
@@ -1039,7 +1039,7 @@ func expandApplicationGatewayBackendAddressPools(d *schema.ResourceData) *[]netw
 	for _, configRaw := range configs {
 		data := configRaw.(map[string]interface{})
 
-		backendAddresses := []network.ApplicationGatewayBackendAddress{}
+		backendAddresses := make([]network.ApplicationGatewayBackendAddress, 0)
 
 		for _, rawIP := range data["ip_address_list"].([]interface{}) {
 			ip := rawIP.(string)
@@ -1280,13 +1280,13 @@ func expandApplicationGatewayURLPathMaps(d *schema.ResourceData, gatewayID strin
 		defaultBackendHTTPSettingsName := data["default_backend_http_settings_name"].(string)
 		defaultBackendHTTPSettingsID := fmt.Sprintf("%s/backendHttpSettingsCollection/%s", gatewayID, defaultBackendHTTPSettingsName)
 
-		pathRules := []network.ApplicationGatewayPathRule{}
+		pathRules := make([]network.ApplicationGatewayPathRule, 0)
 		for _, ruleConfig := range data["path_rule"].([]interface{}) {
 			ruleConfigMap := ruleConfig.(map[string]interface{})
 
 			ruleName := ruleConfigMap["name"].(string)
 
-			rulePaths := []string{}
+			rulePaths := make([]string, 0)
 			for _, rulePath := range ruleConfigMap["paths"].([]interface{}) {
 				rulePaths = append(rulePaths, rulePath.(string))
 			}

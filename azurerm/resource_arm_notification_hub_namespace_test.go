@@ -22,7 +22,7 @@ func TestAccAzureRMNotificationHubNamespace_free(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNotificationHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMNotificationHubNamespace_free(ri, location),
+				Config: testAccAzureRMNotificationHubNamespace_free(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNotificationHubNamespaceExists(resourceName),
 				),
@@ -87,7 +87,7 @@ func testCheckAzureRMNotificationHubNamespaceDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAzureRMNotificationHubNamespace_free(ri int, location string) string {
+func testAccAzureRMNotificationHubNamespace_free(ri int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"

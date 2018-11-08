@@ -79,10 +79,8 @@ func dataSourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{})
 
 		if definition := props.Definition; definition != nil {
 			if v, ok := definition.(map[string]interface{}); ok {
-				schema := v["$schema"].(string)
-				version := v["contentVersion"].(string)
-				d.Set("workflow_schema", schema)
-				d.Set("workflow_version", version)
+				d.Set("workflow_schema", v["$schema"].(string))
+				d.Set("workflow_version", v["contentVersion"].(string))
 			}
 		}
 	}

@@ -727,7 +727,7 @@ func flattenIoTHubRoute(input *devices.RoutingProperties) []interface{} {
 	return results
 }
 
-func validateIoTHubEndpointName(v interface{}, k string) (ws []string, errors []error) {
+func validateIoTHubEndpointName(v interface{}, _ string) (ws []string, errors []error) {
 	value := v.(string)
 
 	reservedNames := []string{

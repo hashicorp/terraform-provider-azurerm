@@ -2186,7 +2186,7 @@ func flattenAzureRmVirtualMachineScaleSetPlan(plan *compute.Plan) []interface{} 
 }
 
 // When upgrade_policy_mode is not Rolling, we will just ignore rolling_upgrade_policy (returns true).
-func azureRmVirtualMachineScaleSetSuppressRollingUpgradePolicyDiff(k, old, new string, d *schema.ResourceData) bool {
+func azureRmVirtualMachineScaleSetSuppressRollingUpgradePolicyDiff(k, _, new string, d *schema.ResourceData) bool {
 	if k == "rolling_upgrade_policy.#" && new == "0" {
 		return strings.ToLower(d.Get("upgrade_policy_mode").(string)) != "rolling"
 	}

@@ -144,9 +144,9 @@ func resourceArmDnsTxtRecordDelete(d *schema.ResourceData, meta interface{}) err
 	name := id.Path["TXT"]
 	zoneName := id.Path["dnszones"]
 
-	resp, error := client.Delete(ctx, resGroup, zoneName, name, dns.TXT, "")
+	resp, err := client.Delete(ctx, resGroup, zoneName, name, dns.TXT, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS TXT Record %s: %+v", name, error)
+		return fmt.Errorf("Error deleting DNS TXT Record %s: %+v", name, err)
 	}
 
 	return nil
