@@ -337,5 +337,5 @@ func expandAzureRmNetworkWatcherFlowLogTrafficAnalytics(d *schema.ResourceData) 
 func isDefaultDisabledFlowLogTrafficAnalytics(input *network.TrafficAnalyticsProperties) bool {
 	// Azure returns `/subscriptions//resourcegroups//providers/microsoft.operationalinsights/workspaces/` by default when traffic analytics is not set
 	// along with empty strings for the rest of the values
-	return *input.NetworkWatcherFlowAnalyticsConfiguration.Enabled == false && *input.NetworkWatcherFlowAnalyticsConfiguration.WorkspaceID == "" && *input.NetworkWatcherFlowAnalyticsConfiguration.WorkspaceRegion == "" && *input.NetworkWatcherFlowAnalyticsConfiguration.WorkspaceResourceID == "/subscriptions//resourcegroups//providers/microsoft.operationalinsights/workspaces/"
+	return !*input.NetworkWatcherFlowAnalyticsConfiguration.Enabled && *input.NetworkWatcherFlowAnalyticsConfiguration.WorkspaceID == "" && *input.NetworkWatcherFlowAnalyticsConfiguration.WorkspaceRegion == "" && *input.NetworkWatcherFlowAnalyticsConfiguration.WorkspaceResourceID == "/subscriptions//resourcegroups//providers/microsoft.operationalinsights/workspaces/"
 }
