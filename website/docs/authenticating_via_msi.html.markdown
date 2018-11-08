@@ -9,13 +9,13 @@ description: |-
 
 # Azure Provider: Authenticating using Managed Service Identity
 
-Terraform supports authenticating to Azure through Managed Service Identity, a Service Principal, or the Azure CLI.
+Terraform supports authenticating to Azure using Managed Service Identity, a Service Principal, or the Azure CLI.
 
-Instead of specifying a Service Principal or Azure CLI credentials, Managed Service Identity can be used to access other Azure Services from within an Azure VM. 
+Instead of specifying a Service Principal or Azure CLI credentials, Managed Service Identity can be used to interact with other Azure Services from within a Virtual Machine in Azure. 
 
 ## Configuring Managed Service Identity
 
-Managed Service Identity allows an Azure virtual machine to retrieve a token to access the Azure API without needing to pass in credentials. This is accomplished by creating a service principal in Azure Active Directory that is associated to a virtual machine. The resulting service principal can then be granted permissions to Azure resources.
+Managed Service Identity allows an Azure virtual machine to retrieve a token to access the Azure API without needing to pass in credentials. This is accomplished by creating a service principal in Azure Active Directory that is associated to a virtual machine. The resulting service principal can then be granted permissions to Azure resources and API's.
 
 There are various ways to configure managed service identities. For more on this subject and the benefits of using managed identities, see the Microsoft article [What is managed identities for Azure resources?](https://docs.microsoft.com/en-us/azure/active-directory/msi-overview). You can then run Terraform from the MSI-enabled virtual machine by setting the `use_msi` provider option to `true`.
 
