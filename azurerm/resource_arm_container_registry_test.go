@@ -224,11 +224,16 @@ func TestAccAzureRMContainerRegistry_update(t *testing.T) {
 }
 
 func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
+	dataSourceName := "azurerm_container_registry.test"
+	skuPremium := "Premium"
+	skuBasic := "Basic"
 	ri := acctest.RandInt()
+	containerRegistryName := fmt.Sprintf("testacccr%d", ri)
+	resourceGroupName := fmt.Sprintf("testAccRg-%d", ri)
 	georeplicationLocations := []string{"\"eastus\"", "\"westus\""}
-	config := testAccAzureRMContainerRegistry_geoReplication(ri, testLocation(), "Premium", strings.Join(georeplicationLocations[:], ","))
-	updatedConfig := testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation(ri, testLocation(), "Premium")
-	updatedBasicSkuConfig := testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation(ri, testLocation(), "Basic")
+	config := testAccAzureRMContainerRegistry_geoReplication(ri, testLocation(), skuPremium, strings.Join(georeplicationLocations[:], ","))
+	updatedConfig := testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation(ri, testLocation(), skuPremium)
+	updatedBasicSkuConfig := testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation(ri, testLocation(), skuBasic)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -239,32 +244,44 @@ func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryExists("azurerm_container_registry.test"),
-					testCheckAzureRMContainerRegistryGeoreplications("azurerm_container_registry.test", "Premium", georeplicationLocations),
+					resource.TestCheckResourceAttr(dataSourceName, "name", containerRegistryName),
+					resource.TestCheckResourceAttr(dataSourceName, "resource_group_name", resourceGroupName),
+					resource.TestCheckResourceAttr(dataSourceName, "sku", skuPremium),
+					testCheckAzureRMContainerRegistryExists(dataSourceName),
+					testCheckAzureRMContainerRegistryGeoreplications(dataSourceName, skuPremium, georeplicationLocations),
 				),
 			},
 			// second config udpates the ACR with no replicas
 			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryExists("azurerm_container_registry.test"),
-					testCheckAzureRMContainerRegistryGeoreplications("azurerm_container_registry.test", "Premium", nil),
+					resource.TestCheckResourceAttr(dataSourceName, "name", containerRegistryName),
+					resource.TestCheckResourceAttr(dataSourceName, "resource_group_name", resourceGroupName),
+					resource.TestCheckResourceAttr(dataSourceName, "sku", skuPremium),
+					testCheckAzureRMContainerRegistryExists(dataSourceName),
+					testCheckAzureRMContainerRegistryGeoreplications(dataSourceName, skuPremium, nil),
 				),
 			},
 			// third config updates an ACR with replicas
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryExists("azurerm_container_registry.test"),
-					testCheckAzureRMContainerRegistryGeoreplications("azurerm_container_registry.test", "Premium", georeplicationLocations),
+					resource.TestCheckResourceAttr(dataSourceName, "name", containerRegistryName),
+					resource.TestCheckResourceAttr(dataSourceName, "resource_group_name", resourceGroupName),
+					resource.TestCheckResourceAttr(dataSourceName, "sku", skuPremium),
+					testCheckAzureRMContainerRegistryExists(dataSourceName),
+					testCheckAzureRMContainerRegistryGeoreplications(dataSourceName, skuPremium, georeplicationLocations),
 				),
 			},
 			// fourth config updates the SKU to basic and no replicas (should remove the existing replicas if any)
 			{
 				Config: updatedBasicSkuConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryExists("azurerm_container_registry.test"),
-					testCheckAzureRMContainerRegistryGeoreplications("azurerm_container_registry.test", "Basic", nil),
+					resource.TestCheckResourceAttr(dataSourceName, "name", containerRegistryName),
+					resource.TestCheckResourceAttr(dataSourceName, "resource_group_name", resourceGroupName),
+					resource.TestCheckResourceAttr(dataSourceName, "sku", skuBasic),
+					testCheckAzureRMContainerRegistryExists(dataSourceName),
+					testCheckAzureRMContainerRegistryGeoreplications(dataSourceName, skuBasic, nil),
 				),
 			},
 		},

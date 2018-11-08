@@ -58,13 +58,15 @@ func resourceArmContainerRegistry() *schema.Resource {
 			},
 
 			"georeplication_locations": {
-				Type:             schema.TypeList,
-				Optional:         true,
-				StateFunc:        azureRMNormalizeLocation,
-				DiffSuppressFunc: azureRMSuppressLocationDiff,
+				Type:     schema.TypeSet,
+				MinItems: 1,
+				Optional: true,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:             schema.TypeString,
+					StateFunc:        azureRMNormalizeLocation,
+					DiffSuppressFunc: azureRMSuppressLocationDiff,
 				},
+				Set: schema.HashString,
 			},
 
 			"storage_account_id": {
@@ -111,6 +113,27 @@ func resourceArmContainerRegistry() *schema.Resource {
 
 			"tags": tagsSchema(),
 		},
+
+		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
+			sku := d.Get("sku").(string)
+			if _, ok := d.GetOk("storage_account_id"); ok {
+				if strings.ToLower(sku) != strings.ToLower(string(containerregistry.Classic)) {
+					return fmt.Errorf("`storage_account_id` can only be specified for a Classic (unmanaged) Sku.")
+				}
+			} else {
+				if strings.ToLower(sku) == strings.ToLower(string(containerregistry.Classic)) {
+					return fmt.Errorf("`storage_account_id` must be specified for a Classic (unmanaged) Sku.")
+				}
+			}
+
+			geoReplicationLocations := d.Get("georeplication_locations").(*schema.Set)
+			// if locations have been specified for geo-replication then, the SKU has to be Premium
+			if geoReplicationLocations != nil && geoReplicationLocations.Len() > 0 && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+				return fmt.Errorf("ACR geo-replication can only be applied when using the Premium Sku.")
+			}
+
+			return nil
+		},
 	}
 }
 
@@ -125,7 +148,7 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 	sku := d.Get("sku").(string)
 	adminUserEnabled := d.Get("admin_enabled").(bool)
 	tags := d.Get("tags").(map[string]interface{})
-	geoReplicationLocations := d.Get("georeplication_locations").([]interface{})
+	geoReplicationLocations := d.Get("georeplication_locations").(*schema.Set)
 
 	parameters := containerregistry.Registry{
 		Location: &location,
@@ -140,22 +163,9 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 	}
 
 	if v, ok := d.GetOk("storage_account_id"); ok {
-		if strings.ToLower(sku) != strings.ToLower(string(containerregistry.Classic)) {
-			return fmt.Errorf("`storage_account_id` can only be specified for a Classic (unmanaged) Sku.")
-		}
-
 		parameters.StorageAccount = &containerregistry.StorageAccountProperties{
 			ID: utils.String(v.(string)),
 		}
-	} else {
-		if strings.ToLower(sku) == strings.ToLower(string(containerregistry.Classic)) {
-			return fmt.Errorf("`storage_account_id` must be specified for a Classic (unmanaged) Sku.")
-		}
-	}
-
-	// if locations have been specified for geo-replication then, the SKU has to be Premium
-	if len(geoReplicationLocations) > 0 && !strings.EqualFold(sku, string(containerregistry.Premium)) {
-		return fmt.Errorf("ACR geo-replication can only be applied when using the Premium Sku.")
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, parameters)
@@ -169,10 +179,10 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 	}
 
 	// locations have been specified for geo-replication
-	if len(geoReplicationLocations) > 0 {
+	if geoReplicationLocations != nil && geoReplicationLocations.Len() > 0 {
 		// the ACR is beeing created so no previous geo-replication locations
 		oldGeoReplicationLocations := []interface{}{}
-		err = applyGeoReplicationLocations(meta, resourceGroup, name, oldGeoReplicationLocations, geoReplicationLocations)
+		err = applyGeoReplicationLocations(meta, resourceGroup, name, oldGeoReplicationLocations, geoReplicationLocations.List())
 		if err != nil {
 			return fmt.Errorf("Error applying geo replications for Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
@@ -204,8 +214,8 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 	adminUserEnabled := d.Get("admin_enabled").(bool)
 	tags := d.Get("tags").(map[string]interface{})
 	old, new := d.GetChange("georeplication_locations")
-	oldGeoReplicationLocations := old.([]interface{})
-	newGeoReplicationLocations := new.([]interface{})
+	oldGeoReplicationLocations := old.(*schema.Set)
+	newGeoReplicationLocations := new.(*schema.Set)
 
 	parameters := containerregistry.RegistryUpdateParameters{
 		RegistryPropertiesUpdateParameters: &containerregistry.RegistryPropertiesUpdateParameters{
@@ -233,13 +243,13 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 	}
 
 	// geo replication is only supported by Premium Sku
-	if len(newGeoReplicationLocations) > 0 && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+	if newGeoReplicationLocations != nil && newGeoReplicationLocations.Len() > 0 && !strings.EqualFold(sku, string(containerregistry.Premium)) {
 		return fmt.Errorf("ACR geo-replication can only be applied when using the Premium Sku.")
 	}
 
 	// if the registry had replications and is updated to another Sku than premium - remove old locations
-	if !strings.EqualFold(sku, string(containerregistry.Premium)) && len(oldGeoReplicationLocations) > 0 {
-		err := applyGeoReplicationLocations(meta, resourceGroup, name, oldGeoReplicationLocations, newGeoReplicationLocations)
+	if !strings.EqualFold(sku, string(containerregistry.Premium)) && oldGeoReplicationLocations != nil && oldGeoReplicationLocations.Len() > 0 {
+		err := applyGeoReplicationLocations(meta, resourceGroup, name, oldGeoReplicationLocations.List(), newGeoReplicationLocations.List())
 		if err != nil {
 			return fmt.Errorf("Error applying geo replications for Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
@@ -256,7 +266,7 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 	}
 
 	if strings.EqualFold(sku, string(containerregistry.Premium)) {
-		err = applyGeoReplicationLocations(meta, resourceGroup, name, oldGeoReplicationLocations, newGeoReplicationLocations)
+		err = applyGeoReplicationLocations(meta, resourceGroup, name, oldGeoReplicationLocations.List(), newGeoReplicationLocations.List())
 		if err != nil {
 			return fmt.Errorf("Error applying geo replications for Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
@@ -296,8 +306,7 @@ func applyGeoReplicationLocations(meta interface{}, resourceGroup string, name s
 			return fmt.Errorf("Error creating Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, locationToCreate, err)
 		}
 
-		err = future.WaitForCompletionRef(ctx, replicationClient.Client)
-		if err != nil {
+		if err = future.WaitForCompletionRef(ctx, replicationClient.Client); err != nil {
 			return fmt.Errorf("Error waiting for creation of Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, locationToCreate, err)
 		}
 	}
@@ -309,8 +318,7 @@ func applyGeoReplicationLocations(meta interface{}, resourceGroup string, name s
 			return fmt.Errorf("Error deleting Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, locationToDelete, err)
 		}
 
-		err = future.WaitForCompletionRef(ctx, replicationClient.Client)
-		if err != nil {
+		if err = future.WaitForCompletionRef(ctx, replicationClient.Client); err != nil {
 			return fmt.Errorf("Error waiting for deletion of Container Registry Replication %q (Resource Group %q, Location %q): %+v", name, resourceGroup, locationToDelete, err)
 		}
 	}
@@ -428,12 +436,14 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 
 	// if there is more than one location (the main one and the replicas)
 	if replicationValues != nil || len(replicationValues) > 1 {
-		georeplication_locations := make(map[int]interface{}, len(replicationValues))
+		georeplication_locations := &schema.Set{F: schema.HashString}
 
-		for i, value := range replicationValues {
-			valueLocation := azureRMNormalizeLocation(*value.Location)
-			if valueLocation != azureRMNormalizeLocation(*location) {
-				georeplication_locations[i] = valueLocation
+		for _, value := range replicationValues {
+			if value.Location != nil {
+				valueLocation := azureRMNormalizeLocation(*value.Location)
+				if location != nil && valueLocation != azureRMNormalizeLocation(*location) {
+					georeplication_locations.Add(valueLocation)
+				}
 			}
 		}
 
