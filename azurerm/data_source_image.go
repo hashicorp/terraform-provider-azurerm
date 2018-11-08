@@ -143,7 +143,7 @@ func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		for resp.NotDone() {
-			img := resp.Value()
+			img = resp.Value()
 			if r.Match(([]byte)(*img.Name)) {
 				list = append(list, img)
 			}

@@ -25,6 +25,11 @@ func TestAccAzureRMNetworkSecurityGroup_basic(t *testing.T) {
 					testCheckAzureRMNetworkSecurityGroupExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -42,6 +47,11 @@ func TestAccAzureRMNetworkSecurityGroup_singleRule(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkSecurityGroupExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -109,7 +119,11 @@ func TestAccAzureRMNetworkSecurityGroup_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.cost_center", "MSFT"),
 				),
 			},
-
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 			{
 				Config: testAccAzureRMNetworkSecurityGroup_withTagsUpdate(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
@@ -117,6 +131,11 @@ func TestAccAzureRMNetworkSecurityGroup_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "staging"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -164,6 +183,11 @@ func TestAccAzureRMNetworkSecurityGroup_augmented(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "security_rule.#", "1"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -182,6 +206,11 @@ func TestAccAzureRMNetworkSecurityGroup_applicationSecurityGroup(t *testing.T) {
 					testCheckAzureRMNetworkSecurityGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "security_rule.#", "1"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -309,7 +338,6 @@ resource "azurerm_network_security_group" "test" {
     destination_address_prefix = "*"
   }
 }
-
 `, rInt, location)
 }
 
@@ -412,7 +440,6 @@ resource "azurerm_network_security_group" "test" {
     environment = "staging"
   }
 }
-
 `, rInt, location)
 }
 
@@ -434,10 +461,10 @@ resource "azurerm_network_security_group" "test" {
     direction                    = "Inbound"
     access                       = "Allow"
     protocol                     = "Tcp"
-    source_port_ranges           = [ "10000-40000" ]
-    destination_port_ranges      = [ "80", "443", "8080", "8190" ]
-    source_address_prefixes      = [ "10.0.0.0/8", "192.168.0.0/16" ]
-    destination_address_prefixes = [ "172.16.0.0/20", "8.8.8.8" ]
+    source_port_ranges           = ["10000-40000"]
+    destination_port_ranges      = ["80", "443", "8080", "8190"]
+    source_address_prefixes      = ["10.0.0.0/8", "192.168.0.0/16"]
+    destination_address_prefixes = ["172.16.0.0/20", "8.8.8.8"]
   }
 }
 `, rInt, location)
@@ -475,8 +502,8 @@ resource "azurerm_network_security_group" "test" {
     protocol                                   = "Tcp"
     source_application_security_group_ids      = ["${azurerm_application_security_group.first.id}"]
     destination_application_security_group_ids = ["${azurerm_application_security_group.second.id}"]
-    source_port_ranges                         = [ "10000-40000" ]
-    destination_port_ranges                    = [ "80", "443", "8080", "8190" ]
+    source_port_ranges                         = ["10000-40000"]
+    destination_port_ranges                    = ["80", "443", "8080", "8190"]
   }
 }
 `, rInt, location, rInt, rInt, rInt)

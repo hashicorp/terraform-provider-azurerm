@@ -332,7 +332,7 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error creating/updating API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for creation/update of API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -775,7 +775,7 @@ func apiManagementResourceHostnameSchema(schemaName string) map[string]*schema.S
 		"key_vault_id": {
 			Type:         schema.TypeString,
 			Optional:     true,
-			ValidateFunc: azure.ValidateResourceID,
+			ValidateFunc: azure.ValidateKeyVaultChildId,
 			ConflictsWith: []string{
 				fmt.Sprintf("hostname_configuration.0.%s.0.certificate", schemaName),
 				fmt.Sprintf("hostname_configuration.0.%s.0.certificate_password", schemaName),

@@ -29,6 +29,11 @@ func TestAccAzureRMSqlAdministrator_basic(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlAdministratorExists(resourceName),
@@ -133,25 +138,25 @@ func testAccAzureRMSqlAdministrator_basic(rInt int, location string) string {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_sql_server" "test" {
-  name = "acctestsqlserver%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location = "${azurerm_resource_group.test.location}"
-  version = "12.0"
-  administrator_login = "mradministrator"
+  name                         = "acctestsqlserver%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
 }
 
 resource "azurerm_sql_active_directory_administrator" "test" {
-    server_name = "${azurerm_sql_server.test.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    login = "sqladmin"
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.client_id}"
+  server_name         = "${azurerm_sql_server.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  login               = "sqladmin"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  object_id           = "${data.azurerm_client_config.current.client_id}"
 }
 `, rInt, location, rInt)
 }
@@ -161,25 +166,25 @@ func testAccAzureRMSqlAdministrator_withUpdates(rInt int, location string) strin
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_sql_server" "test" {
-  name = "acctestsqlserver%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location = "${azurerm_resource_group.test.location}"
-  version = "12.0"
-  administrator_login = "mradministrator"
+  name                         = "acctestsqlserver%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
 }
 
 resource "azurerm_sql_active_directory_administrator" "test" {
-  server_name = "${azurerm_sql_server.test.name}"
+  server_name         = "${azurerm_sql_server.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  login = "sqladmin2"
-  tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-  object_id = "${data.azurerm_client_config.current.client_id}"
+  login               = "sqladmin2"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  object_id           = "${data.azurerm_client_config.current.client_id}"
 }
 `, rInt, location, rInt)
 }

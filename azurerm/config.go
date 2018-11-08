@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
-	"net/http/httputil"
 	"os"
 	"strings"
 	"sync"
@@ -66,10 +64,11 @@ import (
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
-	"github.com/Azure/go-autorest/autorest/azure"
+	az "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform/httpclient"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/authentication"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/terraform-providers/terraform-provider-azurerm/version"
 )
@@ -81,7 +80,7 @@ type ArmClient struct {
 	tenantId                 string
 	subscriptionId           string
 	usingServicePrincipal    bool
-	environment              azure.Environment
+	environment              az.Environment
 	skipProviderRegistration bool
 
 	StopContext context.Context
@@ -332,57 +331,9 @@ func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Autho
 	setUserAgent(client)
 	client.Authorizer = auth
 	//client.RequestInspector = azure.WithClientID(clientRequestID())
-	client.Sender = buildSender()
+	client.Sender = azure.BuildSender()
 	client.SkipResourceProviderRegistration = c.skipProviderRegistration
 	client.PollingDuration = 60 * time.Minute
-}
-
-func buildSender() autorest.Sender {
-	return autorest.DecorateSender(&http.Client{
-		Transport: &http.Transport{
-			Proxy: http.ProxyFromEnvironment,
-		},
-	}, withRequestLogging())
-}
-
-func withRequestLogging() autorest.SendDecorator {
-	return func(s autorest.Sender) autorest.Sender {
-		return autorest.SenderFunc(func(r *http.Request) (*http.Response, error) {
-			// strip the authorization header prior to printing
-			authHeaderName := "Authorization"
-			auth := r.Header.Get(authHeaderName)
-			if auth != "" {
-				r.Header.Del(authHeaderName)
-			}
-
-			// dump request to wire format
-			if dump, err := httputil.DumpRequestOut(r, true); err == nil {
-				log.Printf("[DEBUG] AzureRM Request: \n%s\n", dump)
-			} else {
-				// fallback to basic message
-				log.Printf("[DEBUG] AzureRM Request: %s to %s\n", r.Method, r.URL)
-			}
-
-			// add the auth header back
-			if auth != "" {
-				r.Header.Add(authHeaderName, auth)
-			}
-
-			resp, err := s.Do(r)
-			if resp != nil {
-				// dump response to wire format
-				if dump, err := httputil.DumpResponse(resp, true); err == nil {
-					log.Printf("[DEBUG] AzureRM Response for %s: \n%s\n", r.URL, dump)
-				} else {
-					// fallback to basic message
-					log.Printf("[DEBUG] AzureRM Response: %s for %s\n", resp.Status, r.URL)
-				}
-			} else {
-				log.Printf("[DEBUG] Request to %s completed with no response", r.URL)
-			}
-			return resp, err
-		})
-	}
 }
 
 func setUserAgent(client *autorest.Client) {
@@ -401,63 +352,12 @@ func setUserAgent(client *autorest.Client) {
 	log.Printf("[DEBUG] AzureRM Client User Agent: %s\n", client.UserAgent)
 }
 
-func getAuthorizationToken(c *authentication.Config, oauthConfig *adal.OAuthConfig, endpoint string) (*autorest.BearerAuthorizer, error) {
-	useServicePrincipal := c.ClientSecret != ""
-
-	if useServicePrincipal {
-		spt, err := adal.NewServicePrincipalToken(*oauthConfig, c.ClientID, c.ClientSecret, endpoint)
-		if err != nil {
-			return nil, err
-		}
-
-		auth := autorest.NewBearerAuthorizer(spt)
-		return auth, nil
-	}
-
-	if c.UseMsi {
-		spt, err := adal.NewServicePrincipalTokenFromMSI(c.MsiEndpoint, endpoint)
-		if err != nil {
-			return nil, err
-		}
-		auth := autorest.NewBearerAuthorizer(spt)
-		return auth, nil
-	}
-
-	if c.IsCloudShell {
-		// load the refreshed tokens from the Azure CLI
-		err := c.LoadTokensFromAzureCLI()
-		if err != nil {
-			return nil, fmt.Errorf("Error loading the refreshed CloudShell tokens: %+v", err)
-		}
-	}
-
-	spt, err := adal.NewServicePrincipalTokenFromManualToken(*oauthConfig, c.ClientID, endpoint, *c.AccessToken)
-	if err != nil {
-		return nil, err
-	}
-
-	err = spt.Refresh()
-
-	if err != nil {
-		return nil, fmt.Errorf("Error refreshing Service Principal Token: %+v", err)
-	}
-
-	auth := autorest.NewBearerAuthorizer(spt)
-	return auth, nil
-}
-
 // getArmClient is a helper method which returns a fully instantiated
 // *ArmClient based on the Config's current settings.
-func getArmClient(c *authentication.Config) (*ArmClient, error) {
-	// detect cloud from environment
-	env, envErr := azure.EnvironmentFromName(c.Environment)
-	if envErr != nil {
-		// try again with wrapped value to support readable values like german instead of AZUREGERMANCLOUD
-		wrapped := fmt.Sprintf("AZURE%sCLOUD", c.Environment)
-		var innerErr error
-		if env, innerErr = azure.EnvironmentFromName(wrapped); innerErr != nil {
-			return nil, envErr
-		}
+func getArmClient(c *authentication.Config, skipProviderRegistration bool) (*ArmClient, error) {
+	env, err := authentication.DetermineEnvironment(c.Environment)
+	if err != nil {
+		return nil, err
 	}
 
 	// client declarations:
@@ -465,9 +365,9 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 		clientId:                 c.ClientID,
 		tenantId:                 c.TenantID,
 		subscriptionId:           c.SubscriptionID,
-		environment:              env,
-		usingServicePrincipal:    c.ClientSecret != "",
-		skipProviderRegistration: c.SkipProviderRegistration,
+		environment:              *env,
+		usingServicePrincipal:    c.AuthenticatedAsAServicePrincipal,
+		skipProviderRegistration: skipProviderRegistration,
 	}
 
 	oauthConfig, err := adal.NewOAuthConfig(env.ActiveDirectoryEndpoint, c.TenantID)
@@ -480,25 +380,24 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 		return nil, fmt.Errorf("Unable to configure OAuthConfig for tenant %s", c.TenantID)
 	}
 
-	sender := buildSender()
-
 	// Resource Manager endpoints
 	endpoint := env.ResourceManagerEndpoint
-	auth, err := getAuthorizationToken(c, oauthConfig, endpoint)
+	auth, err := c.GetAuthorizationToken(oauthConfig, endpoint)
 	if err != nil {
 		return nil, err
 	}
 
 	// Graph Endpoints
 	graphEndpoint := env.GraphEndpoint
-	graphAuth, err := getAuthorizationToken(c, oauthConfig, graphEndpoint)
+	graphAuth, err := c.GetAuthorizationToken(oauthConfig, graphEndpoint)
 	if err != nil {
 		return nil, err
 	}
 
 	// Key Vault Endpoints
+	sender := azure.BuildSender()
 	keyVaultAuth := autorest.NewBearerAuthorizerCallback(sender, func(tenantID, resource string) (*autorest.BearerAuthorizer, error) {
-		keyVaultSpt, err := getAuthorizationToken(c, oauthConfig, resource)
+		keyVaultSpt, err := c.GetAuthorizationToken(oauthConfig, resource)
 		if err != nil {
 			return nil, err
 		}

@@ -197,9 +197,9 @@ func resourceArmFirewallDelete(d *schema.ResourceData, meta interface{}) error {
 					continue
 				}
 
-				parsedSubnetId, err := parseAzureResourceID(*config.Subnet.ID)
-				if err != nil {
-					return err
+				parsedSubnetId, err2 := parseAzureResourceID(*config.Subnet.ID)
+				if err2 != nil {
+					return err2
 				}
 				subnetName := parsedSubnetId.Path["subnets"]
 

@@ -89,6 +89,11 @@ func TestAccAzureRMApplicationGateway_basic_base(t *testing.T) {
 					testCheckAzureRMApplicationGatewaySslCertificateAssigned(resourceName, "ssl-1"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -1228,9 +1233,9 @@ resource "azurerm_application_gateway" "test" {
   ]
 
   waf_configuration {
-    enabled = "true"
-    firewall_mode = "Detection"
-    rule_set_type = "OWASP"
+    enabled          = "true"
+    firewall_mode    = "Detection"
+    rule_set_type    = "OWASP"
     rule_set_version = "3.0"
   }
 
@@ -1499,9 +1504,11 @@ resource "azurerm_application_gateway" "test" {
     interval            = 300
     unhealthy_threshold = 8
     minimum_servers     = 2
-    match               = {
-      body              = "*"
-      status_code       = [
+
+    match = {
+      body = "*"
+
+      status_code = [
         "200",
         "201",
         "205-210",

@@ -32,6 +32,11 @@ func TestAccAzureRMRelayNamespace_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "secondary_key"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -57,6 +62,11 @@ func TestAccAzureRMRelayNamespace_complete(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "primary_key"),
 					resource.TestCheckResourceAttrSet(resourceName, "secondary_key"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -118,13 +128,13 @@ func testCheckAzureRMRelayNamespaceDestroy(s *terraform.State) error {
 func testAccAzureRMRelayNamespace_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_relay_namespace" "test" {
-  name =  "acctestrn-%d"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctestrn-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
@@ -137,13 +147,13 @@ resource "azurerm_relay_namespace" "test" {
 func testAccAzureRMRelayNamespace_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_relay_namespace" "test" {
-  name =  "acctestrn-%d"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctestrn-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {

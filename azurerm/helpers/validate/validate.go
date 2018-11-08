@@ -3,7 +3,6 @@ package validate
 import (
 	"fmt"
 	"net/url"
-
 	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"

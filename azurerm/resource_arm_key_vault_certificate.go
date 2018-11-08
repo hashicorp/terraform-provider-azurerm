@@ -13,6 +13,8 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -31,13 +33,14 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateKeyVaultChildName,
+				ValidateFunc: azure.ValidateKeyVaultChildName,
 			},
 
 			"vault_uri": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.URLIsHTTPS,
 			},
 
 			"certificate": {
@@ -369,7 +372,7 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 	client := meta.(*ArmClient).keyVaultManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseKeyVaultChildID(d.Id())
+	id, err := azure.ParseKeyVaultChildID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -419,7 +422,7 @@ func resourceArmKeyVaultCertificateDelete(d *schema.ResourceData, meta interface
 	client := meta.(*ArmClient).keyVaultManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseKeyVaultChildID(d.Id())
+	id, err := azure.ParseKeyVaultChildID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -535,10 +538,10 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 		}
 
 		policy.X509CertificateProperties = &keyvault.X509CertificateProperties{
-			ValidityInMonths: utils.Int32(int32(cert["validity_in_months"].(int))),
-			Subject:          utils.String(cert["subject"].(string)),
-			KeyUsage:         &keyUsage,
-			Ekus:             extendedKeyUsage,
+			ValidityInMonths:        utils.Int32(int32(cert["validity_in_months"].(int))),
+			Subject:                 utils.String(cert["subject"].(string)),
+			KeyUsage:                &keyUsage,
+			Ekus:                    extendedKeyUsage,
 			SubjectAlternativeNames: subjectAlternativeNames,
 		}
 	}

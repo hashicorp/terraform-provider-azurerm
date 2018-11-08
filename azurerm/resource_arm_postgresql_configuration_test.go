@@ -29,6 +29,11 @@ func TestAccAzureRMPostgreSQLConfiguration_backslashQuote(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: serverOnlyConfig,
 				Check: resource.ComposeTestCheckFunc(
 					// "delete" resets back to the default value
@@ -40,6 +45,7 @@ func TestAccAzureRMPostgreSQLConfiguration_backslashQuote(t *testing.T) {
 }
 
 func TestAccAzureRMPostgreSQLConfiguration_clientMinMessages(t *testing.T) {
+	resourceName := "azurerm_postgresql_configuration.test"
 	ri := acctest.RandInt()
 	location := testLocation()
 	config := testAccAzureRMPostgreSQLConfiguration_clientMinMessages(ri, location)
@@ -53,8 +59,13 @@ func TestAccAzureRMPostgreSQLConfiguration_clientMinMessages(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLConfigurationValue("azurerm_postgresql_configuration.test", "DEBUG5"),
+					testCheckAzureRMPostgreSQLConfigurationValue(resourceName, "DEBUG5"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: serverOnlyConfig,
@@ -68,6 +79,7 @@ func TestAccAzureRMPostgreSQLConfiguration_clientMinMessages(t *testing.T) {
 }
 
 func TestAccAzureRMPostgreSQLConfiguration_deadlockTimeout(t *testing.T) {
+	resourceName := "azurerm_postgresql_configuration.test"
 	ri := acctest.RandInt()
 	location := testLocation()
 	config := testAccAzureRMPostgreSQLConfiguration_deadlockTimeout(ri, location)
@@ -81,8 +93,13 @@ func TestAccAzureRMPostgreSQLConfiguration_deadlockTimeout(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLConfigurationValue("azurerm_postgresql_configuration.test", "5000"),
+					testCheckAzureRMPostgreSQLConfigurationValue(resourceName, "5000"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: serverOnlyConfig,
@@ -230,9 +247,9 @@ resource "azurerm_postgresql_server" "test" {
   }
 
   storage_profile {
-    storage_mb = 51200
+    storage_mb            = 51200
     backup_retention_days = 7
-    geo_redundant_backup = "Disabled"
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"

@@ -91,6 +91,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.ResourceIdentityTypeSystemAssigned),
 								string(compute.ResourceIdentityTypeUserAssigned),
+								string(compute.ResourceIdentityTypeSystemAssignedUserAssigned),
 							}, false),
 						},
 						"principal_id": {
@@ -574,17 +575,17 @@ func resourceArmVirtualMachineCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if _, ok := d.GetOk("storage_image_reference"); ok {
-		imageRef, err := expandAzureRmVirtualMachineImageReference(d)
-		if err != nil {
-			return err
+		imageRef, err2 := expandAzureRmVirtualMachineImageReference(d)
+		if err2 != nil {
+			return err2
 		}
 		storageProfile.ImageReference = imageRef
 	}
 
 	if _, ok := d.GetOk("storage_data_disk"); ok {
-		dataDisks, err := expandAzureRmVirtualMachineDataDisk(d)
-		if err != nil {
-			return err
+		dataDisks, err2 := expandAzureRmVirtualMachineDataDisk(d)
+		if err2 != nil {
+			return err2
 		}
 		storageProfile.DataDisks = &dataDisks
 	}
@@ -612,9 +613,9 @@ func resourceArmVirtualMachineCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if _, ok := d.GetOk("os_profile"); ok {
-		osProfile, err := expandAzureRmVirtualMachineOsProfile(d)
-		if err != nil {
-			return err
+		osProfile, err2 := expandAzureRmVirtualMachineOsProfile(d)
+		if err2 != nil {
+			return err2
 		}
 		properties.OsProfile = osProfile
 	}
@@ -632,8 +633,8 @@ func resourceArmVirtualMachineCreate(d *schema.ResourceData, meta interface{}) e
 		Name:                     &name,
 		Location:                 &location,
 		VirtualMachineProperties: &properties,
-		Tags:  expandedTags,
-		Zones: zones,
+		Tags:                     expandedTags,
+		Zones:                    zones,
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -642,9 +643,9 @@ func resourceArmVirtualMachineCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if _, ok := d.GetOk("plan"); ok {
-		plan, err := expandAzureRmVirtualMachinePlan(d)
-		if err != nil {
-			return err
+		plan, err2 := expandAzureRmVirtualMachinePlan(d)
+		if err2 != nil {
+			return err2
 		}
 
 		vm.Plan = plan
@@ -658,8 +659,7 @@ func resourceArmVirtualMachineCreate(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 
@@ -1265,7 +1265,7 @@ func expandAzureRmVirtualMachineIdentity(d *schema.ResourceData) *compute.Virtua
 		Type: identityType,
 	}
 
-	if vmIdentity.Type == compute.ResourceIdentityTypeUserAssigned {
+	if vmIdentity.Type == compute.ResourceIdentityTypeUserAssigned || vmIdentity.Type == compute.ResourceIdentityTypeSystemAssignedUserAssigned {
 		vmIdentity.UserAssignedIdentities = identityIds
 	}
 

@@ -379,7 +379,6 @@ resource "azurerm_lb" "test" {
     public_ip_address_id = "${azurerm_public_ip.test.id}"
   }
 }
-
 `, rInt, location, rInt, rInt, rInt)
 }
 
@@ -435,7 +434,6 @@ resource "azurerm_lb_rule" "test" {
   backend_port                   = 3389
   frontend_ip_configuration_name = "one-%d"
 }
-
 `, rInt, location, rInt, rInt, rInt, backendPoolName, probeName, lbRuleName, rInt)
 }
 
@@ -485,7 +483,6 @@ resource "azurerm_lb_rule" "test2" {
   backend_port                   = 3390
   frontend_ip_configuration_name = "one-%d"
 }
-
 `, rInt, location, rInt, rInt, rInt, lbRuleName, rInt, lbRule2Name, rInt)
 }
 

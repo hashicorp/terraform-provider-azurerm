@@ -15,7 +15,8 @@
     "unconvert",
     "unused",
     "varcheck",
-    "vet"
+    "vet",
+    "vetshadow"
   ],
   "EnableGC": true,
   "Linters": {
@@ -31,5 +32,5 @@
     "line"
   ],
   "Vendor": true,
-  "WarnUnmatchedDirective": true
+  "WarnUnmatchedDirective": false
 }
