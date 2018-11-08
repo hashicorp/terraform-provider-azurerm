@@ -2,6 +2,7 @@ package validate
 
 import (
 	"fmt"
+
 	"github.com/hashicorp/terraform/helper/schema"
 )
 

@@ -14,10 +14,14 @@ IMPROVEMENTS:
 * `azurerm_virtual_machine` - support for assigning both a system and a user managed identity [GH-2188]
 * `azurerm_virtual_machine_scale_set` - support for assigning both a system and a user managed identity [GH-2188]
 * `azurerm_virtual_machine_scale_set` - support for setting `eviction_policy` [GH-2226]
+* `azurerm_virtual_network_gateway` - support for Zone Redundant Gateways [GH-2260]
 
 BUG FIXES:
 
 * `azurerm_cosmosdb_account` - the `ip_range_filter` range filter now allows /32 ip addresses  [GH-2222]
+* `azurerm_role_assignment` - will now wait after a Service Principal is created [GH-2204]
+* `azurerm_route` - allowing setting `next_hop_in_ip_address` to an empty value [GH-2184]
+* `azurerm_route_table` - allowing setting `next_hop_in_ip_address` to an empty value [GH-2184]
 
 ## 1.18.0 (November 02, 2018)
 

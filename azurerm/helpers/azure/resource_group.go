@@ -1,4 +1,4 @@
-package azurerm
+package azure
 
 import (
 	"fmt"
@@ -6,35 +6,36 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 )
 
-func resourceGroupNameSchema() *schema.Schema {
+func SchemaResourceGroupName() *schema.Schema {
 	return &schema.Schema{
 		Type:         schema.TypeString,
 		Required:     true,
 		ForceNew:     true,
-		ValidateFunc: validateArmResourceGroupName,
+		ValidateFunc: validateResourceGroupName,
 	}
 }
 
-func resourceGroupNameDiffSuppressSchema() *schema.Schema {
+func SchemaResourceGroupNameDiffSuppress() *schema.Schema {
 	return &schema.Schema{
 		Type:             schema.TypeString,
 		Required:         true,
 		ForceNew:         true,
-		DiffSuppressFunc: resourceAzurermResourceGroupNameDiffSuppress,
-		ValidateFunc:     validateArmResourceGroupName,
+		DiffSuppressFunc: suppress.CaseDifference,
+		ValidateFunc:     validateResourceGroupName,
 	}
 }
 
-func resourceGroupNameForDataSourceSchema() *schema.Schema {
+func SchemaResourceGroupNameForDataSource() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeString,
 		Required: true,
 	}
 }
 
-func validateArmResourceGroupName(v interface{}, k string) (ws []string, es []error) {
+func validateResourceGroupName(v interface{}, k string) (ws []string, es []error) {
 	value := v.(string)
 
 	if len(value) > 80 {
@@ -51,10 +52,4 @@ func validateArmResourceGroupName(v interface{}, k string) (ws []string, es []er
 	}
 
 	return ws, es
-}
-
-// Resource group names can be capitalised, but we store them in lowercase.
-// Use a custom diff function to avoid creation of new resources.
-func resourceAzurermResourceGroupNameDiffSuppress(_, old, new string, _ *schema.ResourceData) bool {
-	return strings.ToLower(old) == strings.ToLower(new)
 }

@@ -1,10 +1,8 @@
-package azurerm
+package azure
 
-import (
-	"github.com/hashicorp/terraform/helper/schema"
-)
+import "github.com/hashicorp/terraform/helper/schema"
 
-func zonesSchema() *schema.Schema {
+func SchemaZones() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -16,7 +14,7 @@ func zonesSchema() *schema.Schema {
 	}
 }
 
-func singleZonesSchema() *schema.Schema {
+func SchemaSingleZone() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -28,7 +26,7 @@ func singleZonesSchema() *schema.Schema {
 	}
 }
 
-func zonesSchemaComputed() *schema.Schema {
+func SchemaZonesComputed() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -39,7 +37,7 @@ func zonesSchemaComputed() *schema.Schema {
 	}
 }
 
-func expandZones(v []interface{}) *[]string {
+func ExpandZones(v []interface{}) *[]string {
 	zones := make([]string, 0)
 	for _, zone := range v {
 		zones = append(zones, zone.(string))

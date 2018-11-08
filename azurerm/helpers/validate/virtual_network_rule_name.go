@@ -39,5 +39,5 @@ func VirtualNetworkRuleName(v interface{}, k string) (ws []string, errors []erro
 			"%q cannot start with a number or hyphen: %q", k, value))
 	}
 
-	return
+	return ws, errors
 }

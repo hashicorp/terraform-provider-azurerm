@@ -30,14 +30,8 @@ func ParseAzureResourceID(id string) (*ResourceID, error) {
 
 	path := idURL.Path
 
-	path = strings.TrimSpace(path)
-	if strings.HasPrefix(path, "/") {
-		path = path[1:]
-	}
-
-	if strings.HasSuffix(path, "/") {
-		path = path[:len(path)-1]
-	}
+	path = strings.TrimPrefix(path, "/")
+	path = strings.TrimSuffix(path, "/")
 
 	components := strings.Split(path, "/")
 
@@ -132,5 +126,5 @@ func composeAzureResourceID(idObj *ResourceID) (id string, err error) {
 		}
 	}
 
-	return
+	return id, err
 }

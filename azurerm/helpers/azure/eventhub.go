@@ -59,7 +59,7 @@ func ExpandEventHubAuthorizationRuleRights(d *schema.ResourceData) *[]eventhub.A
 	return &rights
 }
 
-func FlattenEventHubAuthorizationRuleRights(rights *[]eventhub.AccessRights) (listen bool, send bool, manage bool) {
+func FlattenEventHubAuthorizationRuleRights(rights *[]eventhub.AccessRights) (listen, send, manage bool) {
 	//zero (initial) value for a bool in go is false
 
 	if rights != nil {
@@ -77,7 +77,7 @@ func FlattenEventHubAuthorizationRuleRights(rights *[]eventhub.AccessRights) (li
 		}
 	}
 
-	return
+	return listen, send, manage
 }
 
 func EventHubAuthorizationRuleSchemaFrom(s map[string]*schema.Schema) map[string]*schema.Schema {
