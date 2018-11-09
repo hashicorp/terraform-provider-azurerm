@@ -207,9 +207,6 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 			// Addutional checks based of SKU type...
 			if strings.HasPrefix(strings.ToLower(name.(string)), "gp_") || strings.HasPrefix(strings.ToLower(name.(string)), "bc_") {
 				// vCore based
-				capacity, _ := diff.GetOk("sku.0.capacity")
-				minCapacity, _ := diff.GetOk("per_database_settings.0.min_capacity")
-				maxCapacity, _ := diff.GetOk("per_database_settings.0.max_capacity")
 
 				if maxCapacity.(float64) > float64(capacity.(int)) {
 					return fmt.Errorf("BusinessCritical pricing tier must have a capacity of 2, 4, 8, 16, 24, 32, 40, or 80 vCores")
