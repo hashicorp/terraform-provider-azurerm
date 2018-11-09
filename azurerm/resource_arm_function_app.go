@@ -66,6 +66,12 @@ func resourceArmFunctionApp() *schema.Resource {
 				Optional: true,
 			},
 
+			"enable_builtin_logging": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"connection_string": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -452,6 +458,9 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("storage_connection_string", appSettings["AzureWebJobsStorage"])
 	d.Set("version", appSettings["FUNCTIONS_EXTENSION_VERSION"])
 
+	dashboard, ok := appSettings["AzureWebJobsDashboard"]
+	d.Set("enable_builtin_logging", ok && dashboard != "")
+
 	delete(appSettings, "AzureWebJobsDashboard")
 	delete(appSettings, "AzureWebJobsStorage")
 	delete(appSettings, "FUNCTIONS_EXTENSION_VERSION")
@@ -524,9 +533,15 @@ func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier strin
 	contentShare := strings.ToLower(d.Get("name").(string)) + "-content"
 
 	basicSettings := []web.NameValuePair{
-		{Name: &dashboardPropName, Value: &storageConnection},
 		{Name: &storagePropName, Value: &storageConnection},
 		{Name: &functionVersionPropName, Value: &functionVersion},
+	}
+
+	if d.Get("enable_builtin_logging").(bool) {
+		basicSettings = append(basicSettings, web.NameValuePair{
+			Name:  &dashboardPropName,
+			Value: &storageConnection,
+		})
 	}
 
 	consumptionSettings := []web.NameValuePair{
