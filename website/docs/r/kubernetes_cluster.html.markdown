@@ -119,6 +119,23 @@ resource "azurerm_subnet" "test_subnet" {
   virtual_network_name      = "${azurerm_virtual_network.test_advanced_network.name}"
 }
 
+resource "azurerm_route_table" "test" {
+  name                = "akc-routetable-1"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  route {
+    name                   = "akc-routetable"
+    address_prefix         = "10.100.0.0/14"
+    next_hop_type          = "VirtualAppliance"
+    next_hop_in_ip_address = "10.10.1.1"
+  }
+}
+
+resource "azurerm_subnet_route_table_association" "test" {
+  subnet_id      = "${azurerm_subnet.test.id}"
+  route_table_id = "${azurerm_route_table.test.id}"
+}
 
 resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctest-01"
