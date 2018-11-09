@@ -636,7 +636,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 
 		if customDomain := props.CustomDomain; customDomain != nil {
 			if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(customDomain)); err != nil {
-				return fmt.Errorf("Error flattening `custom_domain`: %+v", err)
+				return fmt.Errorf("Error setting `custom_domain`: %+v", err)
 			}
 		}
 
@@ -704,7 +704,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		networkRules := props.NetworkRuleSet
 		if networkRules != nil {
 			if err := d.Set("network_rules", flattenStorageAccountNetworkRules(networkRules)); err != nil {
-				return fmt.Errorf("Error flattening `network_rules`: %+v", err)
+				return fmt.Errorf("Error setting `network_rules`: %+v", err)
 			}
 		}
 	}

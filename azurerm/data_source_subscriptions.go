@@ -68,7 +68,7 @@ func dataSourceArmSubscriptionsRead(d *schema.ResourceData, meta interface{}) er
 
 	d.SetId("subscriptions-" + armClient.tenantId)
 	if err = d.Set("subscriptions", subscriptions); err != nil {
-		return fmt.Errorf("Error flattening `subscriptions`: %+v", err)
+		return fmt.Errorf("Error setting `subscriptions`: %+v", err)
 	}
 
 	return nil

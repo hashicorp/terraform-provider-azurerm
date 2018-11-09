@@ -366,17 +366,17 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 
 		contentTypes := flattenAzureRMCdnEndpointContentTypes(props.ContentTypesToCompress)
 		if err := d.Set("content_types_to_compress", contentTypes); err != nil {
-			return fmt.Errorf("Error flattening `content_types_to_compress`: %+v", err)
+			return fmt.Errorf("Error setting `content_types_to_compress`: %+v", err)
 		}
 
 		geoFilters := flattenCdnEndpointGeoFilters(props.GeoFilters)
 		if err := d.Set("geo_filter", geoFilters); err != nil {
-			return fmt.Errorf("Error flattening `geo_filter`: %+v", err)
+			return fmt.Errorf("Error setting `geo_filter`: %+v", err)
 		}
 
 		origins := flattenAzureRMCdnEndpointOrigin(props.Origins)
 		if err := d.Set("origin", origins); err != nil {
-			return fmt.Errorf("Error flattening `origin`: %+v", err)
+			return fmt.Errorf("Error setting `origin`: %+v", err)
 		}
 	}
 

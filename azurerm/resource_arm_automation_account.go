@@ -156,7 +156,7 @@ func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if err := d.Set("sku", flattenAutomationAccountSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Error flattening `sku`: %+v", err)
+		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
 	d.Set("dsc_server_endpoint", keysResp.Endpoint)

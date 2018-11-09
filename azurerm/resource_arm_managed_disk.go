@@ -258,7 +258,7 @@ func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error 
 	if settings := resp.EncryptionSettings; settings != nil {
 		flattened := flattenManagedDiskEncryptionSettings(settings)
 		if err := d.Set("encryption_settings", flattened); err != nil {
-			return fmt.Errorf("Error flattening encryption settings: %+v", err)
+			return fmt.Errorf("Error setting encryption settings: %+v", err)
 		}
 	}
 

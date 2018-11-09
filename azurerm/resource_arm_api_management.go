@@ -382,7 +382,7 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 
 	identity := flattenAzureRmApiManagementMachineIdentity(resp.Identity)
 	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("Error flattening `identity`: %+v", err)
+		return fmt.Errorf("Error setting `identity`: %+v", err)
 	}
 
 	if props := resp.ServiceProperties; props != nil {
