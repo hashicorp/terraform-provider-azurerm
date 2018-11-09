@@ -56,6 +56,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.ResourceIdentityTypeSystemAssigned),
 								string(compute.ResourceIdentityTypeUserAssigned),
+								string(compute.ResourceIdentityTypeSystemAssignedUserAssigned),
 							}, false),
 						},
 						"identity_ids": {
@@ -194,6 +195,16 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 					string(compute.Low),
 					string(compute.Regular),
 				}, true),
+			},
+
+			"eviction_policy": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.Deallocate),
+					string(compute.Delete),
+				}, false),
 			},
 
 			"os_profile": {
@@ -782,6 +793,7 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 	overprovision := d.Get("overprovision").(bool)
 	singlePlacementGroup := d.Get("single_placement_group").(bool)
 	priority := d.Get("priority").(string)
+	evictionPolicy := d.Get("eviction_policy").(string)
 
 	scaleSetProps := compute.VirtualMachineScaleSetProperties{
 		UpgradePolicy: &compute.UpgradePolicy{
@@ -800,6 +812,10 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 		SinglePlacementGroup: &singlePlacementGroup,
 	}
 
+	if strings.EqualFold(priority, string(compute.Low)) {
+		scaleSetProps.VirtualMachineProfile.EvictionPolicy = compute.VirtualMachineEvictionPolicyTypes(evictionPolicy)
+	}
+
 	if _, ok := d.GetOk("boot_diagnostics"); ok {
 		diagnosticProfile := expandAzureRMVirtualMachineScaleSetsDiagnosticProfile(d)
 		scaleSetProps.VirtualMachineProfile.DiagnosticsProfile = &diagnosticProfile
@@ -812,12 +828,12 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 	}
 
 	properties := compute.VirtualMachineScaleSet{
-		Name:     &name,
-		Location: &location,
-		Tags:     expandTags(tags),
-		Sku:      sku,
+		Name:                             &name,
+		Location:                         &location,
+		Tags:                             expandTags(tags),
+		Sku:                              sku,
 		VirtualMachineScaleSetProperties: &scaleSetProps,
-		Zones: zones,
+		Zones:                            zones,
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -912,7 +928,8 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 
 		if profile := properties.VirtualMachineProfile; profile != nil {
 			d.Set("license_type", profile.LicenseType)
-			d.Set("priority", profile.Priority)
+			d.Set("priority", string(profile.Priority))
+			d.Set("eviction_policy", string(profile.EvictionPolicy))
 
 			osProfile := flattenAzureRMVirtualMachineScaleSetOsProfile(d, profile.OsProfile)
 			if err := d.Set("os_profile", osProfile); err != nil {
@@ -1814,7 +1831,7 @@ func expandAzureRmVirtualMachineScaleSetIdentity(d *schema.ResourceData) *comput
 		Type: identityType,
 	}
 
-	if vmssIdentity.Type == compute.ResourceIdentityTypeUserAssigned {
+	if vmssIdentity.Type == compute.ResourceIdentityTypeUserAssigned || vmssIdentity.Type == compute.ResourceIdentityTypeSystemAssignedUserAssigned {
 		vmssIdentity.UserAssignedIdentities = identityIds
 	}
 
@@ -2169,7 +2186,7 @@ func flattenAzureRmVirtualMachineScaleSetPlan(plan *compute.Plan) []interface{} 
 }
 
 // When upgrade_policy_mode is not Rolling, we will just ignore rolling_upgrade_policy (returns true).
-func azureRmVirtualMachineScaleSetSuppressRollingUpgradePolicyDiff(k, old, new string, d *schema.ResourceData) bool {
+func azureRmVirtualMachineScaleSetSuppressRollingUpgradePolicyDiff(k, _, new string, d *schema.ResourceData) bool {
 	if k == "rolling_upgrade_policy.#" && new == "0" {
 		return strings.ToLower(d.Get("upgrade_policy_mode").(string)) != "rolling"
 	}

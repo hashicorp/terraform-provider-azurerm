@@ -164,9 +164,9 @@ func resourceArmDnsCaaRecordDelete(d *schema.ResourceData, meta interface{}) err
 	name := id.Path["CAA"]
 	zoneName := id.Path["dnszones"]
 
-	resp, error := client.Delete(ctx, resGroup, zoneName, name, dns.CAA, "")
+	resp, err := client.Delete(ctx, resGroup, zoneName, name, dns.CAA, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS CAA Record %s: %+v", name, error)
+		return fmt.Errorf("Error deleting DNS CAA Record %s: %+v", name, err)
 	}
 
 	return nil

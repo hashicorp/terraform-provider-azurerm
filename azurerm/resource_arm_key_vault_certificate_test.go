@@ -358,7 +358,7 @@ resource "azurerm_key_vault" "test" {
       "create",
       "delete",
       "get",
-      "update"
+      "update",
     ]
 
     key_permissions = [
@@ -416,7 +416,6 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 }
-
 `, rString, location, rString, rString)
 }
 
@@ -447,7 +446,7 @@ resource "azurerm_key_vault" "test" {
       "create",
       "delete",
       "get",
-      "update"
+      "update",
     ]
 
     key_permissions = [
@@ -500,17 +499,18 @@ resource "azurerm_key_vault_certificate" "test" {
         "keyEncipherment",
       ]
 
-      subject            = "CN=hello-world"
+      subject = "CN=hello-world"
+
       subject_alternative_names {
-        emails = ["mary@stu.co.uk"]
+        emails    = ["mary@stu.co.uk"]
         dns_names = ["internal.contoso.com"]
         upns      = ["john@doe.com"]
       }
+
       validity_in_months = 12
     }
   }
 }
-
 `, rString, location, rString, rString)
 }
 
@@ -541,7 +541,7 @@ resource "azurerm_key_vault" "test" {
       "create",
       "delete",
       "get",
-      "update"
+      "update",
     ]
 
     key_permissions = [
@@ -603,7 +603,6 @@ resource "azurerm_key_vault_certificate" "test" {
     "hello" = "world"
   }
 }
-
 `, rString, location, rString, rString)
 }
 
@@ -634,7 +633,7 @@ resource "azurerm_key_vault" "test" {
       "create",
       "delete",
       "get",
-      "update"
+      "update",
     ]
 
     key_permissions = [
@@ -679,9 +678,9 @@ resource "azurerm_key_vault_certificate" "test" {
 
     x509_certificate_properties {
       extended_key_usage = [
-        "1.3.6.1.5.5.7.3.1",      # Server Authentication
-        "1.3.6.1.5.5.7.3.2",      # Client Authentication
-        "1.3.6.1.4.1.311.21.10",  # Application Policies
+        "1.3.6.1.5.5.7.3.1",     # Server Authentication
+        "1.3.6.1.5.5.7.3.2",     # Client Authentication
+        "1.3.6.1.4.1.311.21.10", # Application Policies
       ]
 
       key_usage = [
@@ -698,6 +697,5 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 }
-
 `, rString, location, rString, rString)
 }

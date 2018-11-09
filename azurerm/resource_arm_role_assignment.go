@@ -186,17 +186,19 @@ func retryRoleAssignmentsClient(scope string, name string, properties authorizat
 		roleAssignmentsClient := meta.(*ArmClient).roleAssignmentsClient
 		ctx := meta.(*ArmClient).StopContext
 
-		_, err := roleAssignmentsClient.Create(ctx, scope, name, properties)
-
+		resp, err := roleAssignmentsClient.Create(ctx, scope, name, properties)
 		if err != nil {
 			if utils.ResponseErrorIsRetryable(err) {
 				return resource.RetryableError(err)
-			} else {
-				return resource.NonRetryableError(err)
+			} else if resp.Response.StatusCode == 400 && strings.Contains(err.Error(), "PrincipalNotFound") {
+				// When waiting for service principal to become available
+				return resource.RetryableError(err)
 			}
-		}
-		return nil
 
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
 	}
 }
 

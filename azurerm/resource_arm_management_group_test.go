@@ -280,7 +280,7 @@ func testAzureRMManagementGroup_withSubscriptions(subscriptionID string) string 
 	return fmt.Sprintf(`
 resource "azurerm_management_group" "test" {
   subscription_ids = [
-    "%s"
+    "%s",
   ]
 }
 `, subscriptionID)

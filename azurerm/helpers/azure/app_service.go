@@ -347,10 +347,8 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	}
 
 	documents := make([]string, 0)
-	if input.DefaultDocuments != nil {
-		for _, document := range *input.DefaultDocuments {
-			documents = append(documents, document)
-		}
+	if s := input.DefaultDocuments; s != nil {
+		documents = *s
 	}
 	result["default_documents"] = documents
 
@@ -381,22 +379,22 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	restrictions := make([]interface{}, 0)
 	if vs := input.IPSecurityRestrictions; vs != nil {
 		for _, v := range *vs {
-			result := make(map[string]interface{})
+			block := make(map[string]interface{})
 			if ip := v.IPAddress; ip != nil {
 				// the 2018-02-01 API uses CIDR format (a.b.c.d/x), so translate that back to IP and mask
 				if strings.Contains(*ip, "/") {
 					ipAddr, ipNet, _ := net.ParseCIDR(*ip)
-					result["ip_address"] = ipAddr.String()
+					block["ip_address"] = ipAddr.String()
 					mask := net.IP(ipNet.Mask)
-					result["subnet_mask"] = mask.String()
+					block["subnet_mask"] = mask.String()
 				} else {
-					result["ip_address"] = *ip
+					block["ip_address"] = *ip
 				}
 			}
 			if subnet := v.SubnetMask; subnet != nil {
-				result["subnet_mask"] = *subnet
+				block["subnet_mask"] = *subnet
 			}
-			restrictions = append(restrictions, result)
+			restrictions = append(restrictions, block)
 		}
 	}
 	result["ip_restriction"] = restrictions

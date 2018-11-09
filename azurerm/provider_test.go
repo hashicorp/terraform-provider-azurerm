@@ -29,7 +29,7 @@ func TestProvider(t *testing.T) {
 }
 
 func TestProvider_impl(t *testing.T) {
-	var _ terraform.ResourceProvider = Provider()
+	var _ = Provider()
 }
 
 func testAccPreCheck(t *testing.T) {
@@ -80,14 +80,21 @@ func testGetAzureConfig(t *testing.T) *authentication.Config {
 
 	environment := testArmEnvironmentName()
 
-	// we deliberately don't use the main config - since we care about
-	config := authentication.Config{
-		SubscriptionID:           os.Getenv("ARM_SUBSCRIPTION_ID"),
-		ClientID:                 os.Getenv("ARM_CLIENT_ID"),
-		TenantID:                 os.Getenv("ARM_TENANT_ID"),
-		ClientSecret:             os.Getenv("ARM_CLIENT_SECRET"),
-		Environment:              environment,
-		SkipProviderRegistration: false,
+	builder := authentication.Builder{
+		SubscriptionID: os.Getenv("ARM_SUBSCRIPTION_ID"),
+		ClientID:       os.Getenv("ARM_CLIENT_ID"),
+		TenantID:       os.Getenv("ARM_TENANT_ID"),
+		ClientSecret:   os.Getenv("ARM_CLIENT_SECRET"),
+		Environment:    environment,
+
+		// we intentionally only support Client Secret auth for tests (since those variables are used all over)
+		SupportsClientSecretAuth: true,
 	}
-	return &config
+	config, err := builder.Build()
+	if err != nil {
+		t.Fatalf("Error building ARM Client: %+v", err)
+		return nil
+	}
+
+	return config
 }

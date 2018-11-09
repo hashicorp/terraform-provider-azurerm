@@ -285,7 +285,6 @@ resource "azurerm_postgresql_virtual_network_rule" "test" {
   server_name         = "${azurerm_postgresql_server.test.name}"
   subnet_id           = "${azurerm_subnet.test.id}"
 }
-
 `, rInt, location, rInt, rInt, rInt, rInt)
 }
 
@@ -482,26 +481,26 @@ resource "azurerm_postgresql_server" "test" {
 }
 
 resource "azurerm_postgresql_virtual_network_rule" "rule1" {
-  name                = "acctestpostgresqlvnetrule1%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_postgresql_server.test.name}"
-  subnet_id           = "${azurerm_subnet.vnet1_subnet1.id}"
+  name                                 = "acctestpostgresqlvnetrule1%d"
+  resource_group_name                  = "${azurerm_resource_group.test.name}"
+  server_name                          = "${azurerm_postgresql_server.test.name}"
+  subnet_id                            = "${azurerm_subnet.vnet1_subnet1.id}"
   ignore_missing_vnet_service_endpoint = false
 }
 
 resource "azurerm_postgresql_virtual_network_rule" "rule2" {
-  name                = "acctestpostgresqlvnetrule2%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_postgresql_server.test.name}"
-  subnet_id           = "${azurerm_subnet.vnet1_subnet2.id}"
+  name                                 = "acctestpostgresqlvnetrule2%d"
+  resource_group_name                  = "${azurerm_resource_group.test.name}"
+  server_name                          = "${azurerm_postgresql_server.test.name}"
+  subnet_id                            = "${azurerm_subnet.vnet1_subnet2.id}"
   ignore_missing_vnet_service_endpoint = false
 }
 
 resource "azurerm_postgresql_virtual_network_rule" "rule3" {
-  name                = "acctestpostgresqlvnetrule3%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_postgresql_server.test.name}"
-  subnet_id           = "${azurerm_subnet.vnet2_subnet1.id}"
+  name                                 = "acctestpostgresqlvnetrule3%d"
+  resource_group_name                  = "${azurerm_resource_group.test.name}"
+  server_name                          = "${azurerm_postgresql_server.test.name}"
+  subnet_id                            = "${azurerm_subnet.vnet2_subnet1.id}"
   ignore_missing_vnet_service_endpoint = false
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
@@ -509,56 +508,56 @@ resource "azurerm_postgresql_virtual_network_rule" "rule3" {
 
 func testAccAzureRMPostgreSQLVirtualNetworkRule_ignoreEndpointValid(rInt int, location string) string {
 	return fmt.Sprintf(` 
-resource "azurerm_resource_group" "test" { 
-  name = "acctestRG-%d" 
-  location = "%s" 
-} 
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
 
-resource "azurerm_virtual_network" "test" { 
-  name                = "acctestvnet%d" 
-  address_space       = ["10.7.29.0/29"] 
-  location            = "${azurerm_resource_group.test.location}" 
-  resource_group_name = "${azurerm_resource_group.test.name}" 
-} 
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvnet%d"
+  address_space       = ["10.7.29.0/29"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
 
-resource "azurerm_subnet" "test" { 
-  name = "acctestsubnet%d" 
-  resource_group_name = "${azurerm_resource_group.test.name}" 
-  virtual_network_name = "${azurerm_virtual_network.test.name}" 
-  address_prefix = "10.7.29.0/29" 
-  service_endpoints = ["Microsoft.Storage"] 
-} 
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.7.29.0/29"
+  service_endpoints    = ["Microsoft.Storage"]
+}
 
-resource "azurerm_postgresql_server" "test" { 
-  name                = "acctestpostgresqlsvr-%d" 
-  location            = "${azurerm_resource_group.test.location}" 
-  resource_group_name = "${azurerm_resource_group.test.name}" 
+resource "azurerm_postgresql_server" "test" {
+  name                = "acctestpostgresqlsvr-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku { 
-    name     = "GP_Gen5_2" 
-    capacity = 2 
-    tier     = "GeneralPurpose" 
-    family   = "Gen5" 
-  } 
+  sku {
+    name     = "GP_Gen5_2"
+    capacity = 2
+    tier     = "GeneralPurpose"
+    family   = "Gen5"
+  }
 
-  storage_profile { 
-    storage_mb            = 51200 
-    backup_retention_days = 7 
-    geo_redundant_backup  = "Disabled" 
-  } 
+  storage_profile {
+    storage_mb            = 51200
+    backup_retention_days = 7
+    geo_redundant_backup  = "Disabled"
+  }
 
-  administrator_login          = "acctestun" 
-  administrator_login_password = "H@Sh1CoR3!" 
-  version                      = "9.5" 
-  ssl_enforcement              = "Enabled" 
-} 
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+  version                      = "9.5"
+  ssl_enforcement              = "Enabled"
+}
 
-resource "azurerm_postgresql_virtual_network_rule" "test" { 
-  name = "acctestpostgresqlvnetrule%d" 
-  resource_group_name = "${azurerm_resource_group.test.name}" 
-  server_name = "${azurerm_postgresql_server.test.name}" 
-  subnet_id = "${azurerm_subnet.test.id}" 
-  ignore_missing_vnet_service_endpoint = true 
-} 
+resource "azurerm_postgresql_virtual_network_rule" "test" {
+  name                                 = "acctestpostgresqlvnetrule%d"
+  resource_group_name                  = "${azurerm_resource_group.test.name}"
+  server_name                          = "${azurerm_postgresql_server.test.name}"
+  subnet_id                            = "${azurerm_subnet.test.id}"
+  ignore_missing_vnet_service_endpoint = true
+}
 `, rInt, location, rInt, rInt, rInt, rInt)
 }

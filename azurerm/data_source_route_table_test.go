@@ -84,7 +84,7 @@ func TestAccDataSourceAzureRMRouteTable_multipleRoutes(t *testing.T) {
 }
 
 func testAccDataSourceAzureRMRouteTable_basic(rInt int, location string) string {
-	resource := testAccAzureRMRouteTable_basic(rInt, location)
+	r := testAccAzureRMRouteTable_basic(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -92,11 +92,11 @@ data "azurerm_route_table" "test" {
   name                = "${azurerm_route_table.test.name}"
   resource_group_name = "${azurerm_route_table.test.resource_group_name}"
 }
-`, resource)
+`, r)
 }
 
 func testAccDataSourceAzureRMRouteTable_singleRoute(rInt int, location string) string {
-	resource := testAccAzureRMRouteTable_singleRoute(rInt, location)
+	r := testAccAzureRMRouteTable_singleRoute(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -104,11 +104,11 @@ data "azurerm_route_table" "test" {
   name                = "${azurerm_route_table.test.name}"
   resource_group_name = "${azurerm_route_table.test.resource_group_name}"
 }
-`, resource)
+`, r)
 }
 
 func testAccDataSourceAzureRMRouteTable_multipleRoutes(rInt int, location string) string {
-	resource := testAccAzureRMRouteTable_multipleRoutes(rInt, location)
+	r := testAccAzureRMRouteTable_multipleRoutes(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -116,5 +116,5 @@ data "azurerm_route_table" "test" {
   name                = "${azurerm_route_table.test.name}"
   resource_group_name = "${azurerm_route_table.test.resource_group_name}"
 }
-`, resource)
+`, r)
 }

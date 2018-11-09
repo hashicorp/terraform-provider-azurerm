@@ -316,11 +316,11 @@ resource "azurerm_dns_ns_record" "test" {
   ttl                 = 300
 
   record {
-	  nsdname = "ns1.contoso.com"
+    nsdname = "ns1.contoso.com"
   }
 
   record {
-	  nsdname = "ns2.contoso.com"
+    nsdname = "ns2.contoso.com"
   }
 }
 `, rInt, location, rInt, rInt)
@@ -455,8 +455,8 @@ resource "azurerm_dns_ns_record" "test" {
   ttl                 = 300
 
   record {
-		nsdname = "ns1.contoso.com"
-	}
+    nsdname = "ns1.contoso.com"
+  }
 
   record {
     nsdname = "ns2.contoso.com"

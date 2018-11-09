@@ -1138,7 +1138,7 @@ func testCheckAzureRMAppServiceExists(name string) resource.TestCheckFunc {
 func testAccAzureRMAppService_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1165,7 +1165,7 @@ resource "azurerm_app_service" "test" {
 func testAccAzureRMAppService_freeTier(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1185,6 +1185,7 @@ resource "azurerm_app_service" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+
   site_config {
     use_32_bit_worker_process = true
   }
@@ -1195,7 +1196,7 @@ resource "azurerm_app_service" "test" {
 func testAccAzureRMAppService_sharedTier(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1215,6 +1216,7 @@ resource "azurerm_app_service" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+
   site_config {
     use_32_bit_worker_process = true
   }
@@ -1225,7 +1227,7 @@ resource "azurerm_app_service" "test" {
 func testAccAzureRMAppService_alwaysOn(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1256,7 +1258,7 @@ resource "azurerm_app_service" "test" {
 func testAccAzureRMAppService_httpsOnly(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1284,7 +1286,7 @@ resource "azurerm_app_service" "test" {
 func testAccAzureRMAppService_32Bit(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1315,7 +1317,7 @@ resource "azurerm_app_service" "test" {
 func testAccAzureRMAppService_http2Enabled(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1346,7 +1348,7 @@ resource "azurerm_app_service" "test" {
 func testAccAzureRMAppService_appSettings(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1413,7 +1415,7 @@ resource "azurerm_app_service" "test" {
 func testAccAzureRMAppService_virtualNetwork(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1456,7 +1458,7 @@ resource "azurerm_app_service" "test" {
 func testAccAzureRMAppService_virtualNetworkUpdated(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1511,7 +1513,7 @@ resource "azurerm_app_service" "test" {
 func testAccAzureRMAppService_mangedServiceIdentity(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1527,10 +1529,11 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 resource "azurerm_app_service" "test" {
-  name                    = "acctestAS-%d"
-  location                = "${azurerm_resource_group.test.location}"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
-  app_service_plan_id     = "${azurerm_app_service_plan.test.id}"
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+
   identity = {
     type = "SystemAssigned"
   }
@@ -1541,7 +1544,7 @@ resource "azurerm_app_service" "test" {
 func testAccAzureRMAppService_connectionStrings(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1574,7 +1577,7 @@ resource "azurerm_app_service" "test" {
 func testAccAzureRMAppService_oneIpRestriction(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1607,7 +1610,7 @@ resource "azurerm_app_service" "test" {
 func testAccAzureRMAppService_manyIpRestrictions(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1644,7 +1647,7 @@ resource "azurerm_app_service" "test" {
     }
 
     ip_restriction {
-      ip_address = "192.168.1.2"
+      ip_address  = "192.168.1.2"
       subnet_mask = "255.255.255.0"
     }
   }
@@ -1655,7 +1658,7 @@ resource "azurerm_app_service" "test" {
 func testAccAzureRMAppService_defaultDocuments(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1690,7 +1693,7 @@ resource "azurerm_app_service" "test" {
 func testAccAzureRMAppService_enabled(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1710,7 +1713,7 @@ resource "azurerm_app_service" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  enabled = false
+  enabled             = false
 }
 `, rInt, location, rInt, rInt)
 }
@@ -1718,7 +1721,7 @@ resource "azurerm_app_service" "test" {
 func testAccAzureRMAppService_localMySql(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1749,7 +1752,7 @@ resource "azurerm_app_service" "test" {
 func testAccAzureRMAppService_managedPipelineMode(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1780,7 +1783,7 @@ resource "azurerm_app_service" "test" {
 func testAccAzureRMAppService_remoteDebugging(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1816,7 +1819,7 @@ resource "azurerm_app_service" "test" {
 func testAccAzureRMAppService_tags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1847,7 +1850,7 @@ resource "azurerm_app_service" "test" {
 func testAccAzureRMAppService_tagsUpdated(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1879,7 +1882,7 @@ resource "azurerm_app_service" "test" {
 func testAccAzureRMAppService_windowsDotNet(rInt int, location, version string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1910,7 +1913,7 @@ resource "azurerm_app_service" "test" {
 func testAccAzureRMAppService_windowsJava(rInt int, location, javaVersion, container, containerVersion string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1943,7 +1946,7 @@ resource "azurerm_app_service" "test" {
 func testAccAzureRMAppService_windowsPHP(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1974,7 +1977,7 @@ resource "azurerm_app_service" "test" {
 func testAccAzureRMAppService_windowsPython(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -2005,7 +2008,7 @@ resource "azurerm_app_service" "test" {
 func testAccAzureRMAppService_webSockets(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -2089,7 +2092,7 @@ resource "azurerm_app_service" "test" {
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
 
   site_config {
-  	ftps_state = "AllAllowed"
+    ftps_state = "AllAllowed"
   }
 }
 `, rInt, location, rInt, rInt)
@@ -2120,7 +2123,7 @@ resource "azurerm_app_service" "test" {
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
 
   site_config {
-	always_on = true
+    always_on        = true
     linux_fx_version = "DOCKER|(golang:latest)"
   }
 
@@ -2134,7 +2137,7 @@ resource "azurerm_app_service" "test" {
 func testAccAzureRMAppService_minTls(rInt int, location string, tlsVersion string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

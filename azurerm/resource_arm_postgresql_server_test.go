@@ -482,7 +482,6 @@ resource "azurerm_postgresql_server" "test" {
   version                      = "9.6"
   ssl_enforcement              = "Disabled"
 }
-
 `, rInt, location, rInt)
 }
 

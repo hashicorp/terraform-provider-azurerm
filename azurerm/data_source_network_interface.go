@@ -118,8 +118,9 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 			},
 
 			"internal_fqdn": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:       schema.TypeString,
+				Deprecated: "This field has been removed by Azure",
+				Computed:   true,
 			},
 
 			/**

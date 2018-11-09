@@ -95,13 +95,13 @@ func testCheckAzureRMMySQLFirewallRuleDestroy(s *terraform.State) error {
 func testAccAzureRMMySQLFirewallRule_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_mysql_server" "test" {
-  name = "acctestmysqlsvr-%d"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctestmysqlsvr-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
@@ -112,15 +112,15 @@ resource "azurerm_mysql_server" "test" {
   }
 
   storage_profile {
-    storage_mb = 51200
+    storage_mb            = 51200
     backup_retention_days = 7
-    geo_redundant_backup = "Disabled"
+    geo_redundant_backup  = "Disabled"
   }
 
-  administrator_login = "acctestun"
+  administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
-  version = "5.6"
-  ssl_enforcement = "Enabled"
+  version                      = "5.6"
+  ssl_enforcement              = "Enabled"
 }
 
 resource "azurerm_mysql_firewall_rule" "test" {

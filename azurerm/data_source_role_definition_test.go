@@ -49,11 +49,12 @@ resource "azurerm_role_definition" "test" {
   description        = "Created by the Data Source Role Definition Acceptance Test"
 
   permissions {
-    actions     = ["*"]
+    actions = ["*"]
+
     not_actions = [
-    	"Microsoft.Authorization/*/Delete",
-    	"Microsoft.Authorization/*/Write",
-    	"Microsoft.Authorization/elevateAccess/Action"
+      "Microsoft.Authorization/*/Delete",
+      "Microsoft.Authorization/*/Write",
+      "Microsoft.Authorization/elevateAccess/Action",
     ]
   }
 

@@ -122,10 +122,13 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_updatingSharedKey(t *testing.
 
 func testCheckAzureRMVirtualNetworkGatewayConnectionExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		connectionName, resourceGroup, err := getArmResourceNameAndGroup(s, name)
-		if err != nil {
-			return err
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return fmt.Errorf("Not found: %s", name)
 		}
+
+		connectionName := rs.Primary.Attributes["name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		client := testAccProvider.Meta().(*ArmClient).vnetGatewayConnectionsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext

@@ -119,10 +119,10 @@ func testCheckAzureRMRecoveryServicesProtectedVmExists(resourceName string) reso
 
 func testAccAzureRMRecoveryServicesProtectedVm_base(rInt int, location string) string {
 	return fmt.Sprintf(` 
-resource "azurerm_resource_group" "test" { 
-  name     = "acctestRG-%[1]d" 
-  location = "%[2]s" 
-} 
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
 
 resource "azurerm_virtual_network" "test" {
   name                = "vnet"
@@ -223,27 +223,26 @@ resource "azurerm_virtual_machine" "test" {
 }
 
 resource "azurerm_recovery_services_vault" "test" {
-    name                = "acctest-%[1]d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku                 = "Standard"
+  name                = "acctest-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
 }
 
 resource "azurerm_recovery_services_protection_policy_vm" "test" {
   name                = "acctest-%[1]d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
-  
+
   backup = {
     frequency = "Daily"
     time      = "23:00"
-  } 
+  }
 
   retention_daily = {
     count = 10
   }
 }
-
 `, rInt, location, strconv.Itoa(rInt)[0:5])
 }
 

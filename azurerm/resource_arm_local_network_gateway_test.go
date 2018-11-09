@@ -331,7 +331,6 @@ resource "azurerm_local_network_gateway" "test" {
   gateway_address     = "127.0.0.1"
   address_space       = ["127.0.0.0/8"]
 }
-
 `, rInt, location, rInt)
 }
 
@@ -353,7 +352,6 @@ resource "azurerm_local_network_gateway" "test" {
     environment = "acctest"
   }
 }
-
 `, rInt, location, rInt)
 }
 
@@ -376,7 +374,6 @@ resource "azurerm_local_network_gateway" "test" {
     bgp_peering_address = "10.104.1.1"
   }
 }
-
 `, rInt, location, rInt)
 }
 
@@ -400,6 +397,5 @@ resource "azurerm_local_network_gateway" "test" {
     peer_weight         = 15
   }
 }
-
 `, rInt, location, rInt)
 }

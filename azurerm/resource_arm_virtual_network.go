@@ -103,7 +103,7 @@ func resourceArmVirtualNetworkCreate(d *schema.ResourceData, meta interface{}) e
 		Name:                           &name,
 		Location:                       &location,
 		VirtualNetworkPropertiesFormat: vnetProperties,
-		Tags: expandTags(tags),
+		Tags:                           expandTags(tags),
 	}
 
 	networkSecurityGroupNames := make([]string, 0)
@@ -228,19 +228,19 @@ func resourceArmVirtualNetworkDelete(d *schema.ResourceData, meta interface{}) e
 
 func expandVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData, meta interface{}) (*network.VirtualNetworkPropertiesFormat, error) {
 	// first; get address space prefixes:
-	prefixes := []string{}
+	prefixes := make([]string, 0)
 	for _, prefix := range d.Get("address_space").([]interface{}) {
 		prefixes = append(prefixes, prefix.(string))
 	}
 
 	// then; the dns servers:
-	dnses := []string{}
+	dnses := make([]string, 0)
 	for _, dns := range d.Get("dns_servers").([]interface{}) {
 		dnses = append(dnses, dns.(string))
 	}
 
 	// then; the subnets:
-	subnets := []network.Subnet{}
+	subnets := make([]network.Subnet, 0)
 	if subs := d.Get("subnet").(*schema.Set); subs.Len() > 0 {
 		for _, subnet := range subs.List() {
 			subnet := subnet.(map[string]interface{})

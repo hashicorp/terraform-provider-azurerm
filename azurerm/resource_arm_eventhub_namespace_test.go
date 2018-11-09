@@ -375,7 +375,6 @@ resource "azurerm_eventhub_namespace" "test" {
   sku                 = "Standard"
   capacity            = "2"
 }
-
 `, rInt, location, rInt)
 }
 
@@ -397,7 +396,6 @@ resource "azurerm_eventhub_namespace" "test" {
 
 func testAccAzureRMEventHubNamespace_maximumThroughputUnits(rInt int, location string) string {
 	return fmt.Sprintf(`
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -427,8 +425,9 @@ resource "azurerm_eventhub_namespace" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Basic"
+
   tags {
-	environment = "Production"
+    environment = "Production"
   }
 }
 `, rInt, location, rInt)
@@ -454,7 +453,6 @@ resource "azurerm_eventhub_namespace" "test" {
 
 func testAccAzureRMEventHubNamespace_maximumThroughputUnitsUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -474,7 +472,6 @@ resource "azurerm_eventhub_namespace" "test" {
 
 func testAccAzureRMEventHubNamespace_autoInfalteDisabledWithAutoInflateUnits(rInt int, location string) string {
 	return fmt.Sprintf(`
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

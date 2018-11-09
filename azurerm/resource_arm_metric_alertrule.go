@@ -251,7 +251,7 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 					email_action["send_to_service_owners"] = *sendToOwners
 				}
 
-				custom_emails := []string{}
+				custom_emails := make([]string, 0)
 				if s := emailAction.CustomEmails; s != nil {
 					custom_emails = *s
 				}

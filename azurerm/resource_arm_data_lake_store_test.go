@@ -291,7 +291,7 @@ resource "azurerm_data_lake_store" "test" {
 func testAccAzureRMDataLakeStore_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-name     = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -311,7 +311,7 @@ resource "azurerm_data_lake_store" "test" {
 func testAccAzureRMDataLakeStore_withTagsUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-name     = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

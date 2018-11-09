@@ -406,8 +406,8 @@ resource "azurerm_app_service_plan" "test" {
   }
 
   properties {
-    per_site_scaling          = true
-    reserved                  = false
+    per_site_scaling = true
+    reserved         = false
   }
 
   tags {

@@ -240,35 +240,35 @@ func testCheckAzureRMLogProfileDisappears(name string) resource.TestCheckFunc {
 func testAccAzureRMMonitorLogProfile_basicConfig(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name     = "acctestrg-%d"
-    location = "%s"
+  name     = "acctestrg-%d"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
-    name                     = "acctestsa%s"
-    resource_group_name      = "${azurerm_resource_group.test.name}"
-    location                 = "${azurerm_resource_group.test.location}"
-    account_tier             = "Standard"
-    account_replication_type = "GRS"
+  name                     = "acctestsa%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
 }
-    
+
 resource "azurerm_monitor_log_profile" "test" {
-    name = "acctestlp-%d"
+  name = "acctestlp-%d"
 
-    categories = [
-        "Action",
-    ]
-    
-    locations = [
-        "%s"
-    ]
-    
-    storage_account_id  = "${azurerm_storage_account.test.id}"
+  categories = [
+    "Action",
+  ]
 
-    retention_policy {
-        enabled = true
-        days = 7
-    }
+  locations = [
+    "%s",
+  ]
+
+  storage_account_id = "${azurerm_storage_account.test.id}"
+
+  retention_policy {
+    enabled = true
+    days    = 7
+  }
 }
 `, rInt, location, rString, rInt, location)
 }
@@ -276,10 +276,10 @@ resource "azurerm_monitor_log_profile" "test" {
 func testAccAzureRMMonitorLogProfile_servicebusConfig(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name     = "acctestrg-%d"
-    location = "%s"
+  name     = "acctestrg-%d"
+  location = "%s"
 }
-    
+
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestsbns-%s"
   location            = "${azurerm_resource_group.test.location}"
@@ -298,21 +298,21 @@ resource "azurerm_servicebus_namespace_authorization_rule" "test" {
 }
 
 resource "azurerm_monitor_log_profile" "test" {
-    name = "acctestlp-%d"
+  name = "acctestlp-%d"
 
-    categories = [
-        "Action"
-    ]
-    
-    locations = [
-        "%s",
-    ]
-    
-    servicebus_rule_id = "${azurerm_servicebus_namespace_authorization_rule.test.id}"
-    
-    retention_policy {
-        enabled = false
-    } 
+  categories = [
+    "Action",
+  ]
+
+  locations = [
+    "%s",
+  ]
+
+  servicebus_rule_id = "${azurerm_servicebus_namespace_authorization_rule.test.id}"
+
+  retention_policy {
+    enabled = false
+  }
 }
 `, rInt, location, rString, rString, rInt, location)
 }
@@ -320,8 +320,8 @@ resource "azurerm_monitor_log_profile" "test" {
 func testAccAzureRMMonitorLogProfile_completeConfig(rInt int, rString string, location string, altLocation string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name     = "acctestrg-%d"
-    location = "%s"
+  name     = "acctestrg-%d"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
@@ -331,7 +331,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "GRS"
 }
-    
+
 resource "azurerm_eventhub_namespace" "test" {
   name                = "acctestehns-%s"
   location            = "${azurerm_resource_group.test.location}"
@@ -341,27 +341,27 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_monitor_log_profile" "test" {
-    name = "acctestlp-%d"
+  name = "acctestlp-%d"
 
-    categories = [
-        "Action",
-        "Delete",
-        "Write",
-    ]
-    
-    locations = [
-        "%s",
-        "%s",
-    ]
-    
-    # RootManageSharedAccessKey is created by default with listen, send, manage permissions
-    servicebus_rule_id = "${azurerm_eventhub_namespace.test.id}/authorizationrules/RootManageSharedAccessKey"
-    storage_account_id  = "${azurerm_storage_account.test.id}"
+  categories = [
+    "Action",
+    "Delete",
+    "Write",
+  ]
 
-    retention_policy {
-        enabled = true
-        days = 7
-    }
+  locations = [
+    "%s",
+    "%s",
+  ]
+
+  # RootManageSharedAccessKey is created by default with listen, send, manage permissions
+  servicebus_rule_id = "${azurerm_eventhub_namespace.test.id}/authorizationrules/RootManageSharedAccessKey"
+  storage_account_id = "${azurerm_storage_account.test.id}"
+
+  retention_policy {
+    enabled = true
+    days    = 7
+  }
 }
 `, rInt, location, rString, rString, rInt, location, altLocation)
 }

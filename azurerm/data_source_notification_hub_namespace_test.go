@@ -31,7 +31,7 @@ func TestAccDataSourceAzureRMNotificationHubNamespace_free(t *testing.T) {
 }
 
 func testAccDataSourceAzureRMNotificationHubNamespaceFree(rInt int, location string) string {
-	resource := testAzureRMNotificationHubNamespace_free(rInt, location)
+	r := testAccAzureRMNotificationHubNamespace_free(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -39,5 +39,5 @@ data "azurerm_notification_hub_namespace" "test" {
   name                = "${azurerm_notification_hub_namespace.test.name}"
   resource_group_name = "${azurerm_notification_hub_namespace.test.resource_group_name}"
 }
-`, resource)
+`, r)
 }

@@ -56,7 +56,7 @@ func TestAccDataSourceAzureRMLogicAppWorkflow_tags(t *testing.T) {
 }
 
 func testAccDataSourceAzureRMLogicAppWorkflow_basic(rInt int, location string) string {
-	resource := testAccAzureRMLogicAppWorkflow_empty(rInt, location)
+	r := testAccAzureRMLogicAppWorkflow_empty(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -64,11 +64,11 @@ data "azurerm_logic_app_workflow" "test" {
   name                = "${azurerm_logic_app_workflow.test.name}"
   resource_group_name = "${azurerm_logic_app_workflow.test.resource_group_name}"
 }
-`, resource)
+`, r)
 }
 
 func testAccDataSourceAzureRMLogicAppWorkflow_tags(rInt int, location string) string {
-	resource := testAccAzureRMLogicAppWorkflow_tags(rInt, location)
+	r := testAccAzureRMLogicAppWorkflow_tags(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -76,5 +76,5 @@ data "azurerm_logic_app_workflow" "test" {
   name                = "${azurerm_logic_app_workflow.test.name}"
   resource_group_name = "${azurerm_logic_app_workflow.test.resource_group_name}"
 }
-`, resource)
+`, r)
 }

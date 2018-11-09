@@ -34,7 +34,6 @@ func TestAccDataSourceAzureRMContainerRegistry_basic(t *testing.T) {
 }
 
 func testAccDataSourceAzureRMContainerRegistry_basic(rInt int) string {
-	resource := testAccAzureRMContainerRegistry_basicManaged(rInt, testLocation(), "Basic")
 	return fmt.Sprintf(`
 %s
 
@@ -42,5 +41,5 @@ data "azurerm_container_registry" "test" {
   name                = "${azurerm_container_registry.test.name}"
   resource_group_name = "${azurerm_container_registry.test.resource_group_name}"
 }
-`, resource)
+`, testAccAzureRMContainerRegistry_basicManaged(rInt, testLocation(), "Basic"))
 }

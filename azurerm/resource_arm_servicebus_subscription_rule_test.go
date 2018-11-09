@@ -359,29 +359,29 @@ resource "azurerm_servicebus_subscription_rule" "test" {
 func testAccAzureRMServiceBusSubscriptionRule_template(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name     = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-    name                = "acctestservicebusnamespace-%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku                 = "standard"
+  name                = "acctestservicebusnamespace-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {
-    name                = "acctestservicebustopic-%d"
-    namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestservicebustopic-%d"
+  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_servicebus_subscription" "test" {
-    name                = "acctestservicebussubscription-%d"
-    namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-    topic_name          = "${azurerm_servicebus_topic.test.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    max_delivery_count  = 10
+  name                = "acctestservicebussubscription-%d"
+  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+  topic_name          = "${azurerm_servicebus_topic.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  max_delivery_count  = 10
 }
 `, rInt, location, rInt, rInt, rInt)
 }

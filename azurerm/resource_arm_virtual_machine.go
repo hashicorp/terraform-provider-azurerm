@@ -91,6 +91,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.ResourceIdentityTypeSystemAssigned),
 								string(compute.ResourceIdentityTypeUserAssigned),
+								string(compute.ResourceIdentityTypeSystemAssignedUserAssigned),
 							}, false),
 						},
 						"principal_id": {
@@ -632,8 +633,8 @@ func resourceArmVirtualMachineCreate(d *schema.ResourceData, meta interface{}) e
 		Name:                     &name,
 		Location:                 &location,
 		VirtualMachineProperties: &properties,
-		Tags:  expandedTags,
-		Zones: zones,
+		Tags:                     expandedTags,
+		Zones:                    zones,
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -1264,7 +1265,7 @@ func expandAzureRmVirtualMachineIdentity(d *schema.ResourceData) *compute.Virtua
 		Type: identityType,
 	}
 
-	if vmIdentity.Type == compute.ResourceIdentityTypeUserAssigned {
+	if vmIdentity.Type == compute.ResourceIdentityTypeUserAssigned || vmIdentity.Type == compute.ResourceIdentityTypeSystemAssignedUserAssigned {
 		vmIdentity.UserAssignedIdentities = identityIds
 	}
 
@@ -1378,7 +1379,7 @@ func expandAzureRmVirtualMachineOsProfileLinuxConfig(d *schema.ResourceData) (*c
 	}
 
 	linuxKeys := linuxConfig["ssh_keys"].([]interface{})
-	sshPublicKeys := []compute.SSHPublicKey{}
+	sshPublicKeys := make([]compute.SSHPublicKey, 0)
 	for _, key := range linuxKeys {
 
 		sshKey, ok := key.(map[string]interface{})

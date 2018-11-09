@@ -276,6 +276,7 @@ resource "azurerm_monitor_metric_alert" "test" {
       "operator" = "Include"
       "values"   = ["*"]
     }
+
     dimension {
       "name"     = "ApiName"
       "operator" = "Include"

@@ -76,8 +76,8 @@ data "azurerm_subscription" "current" {}
 
 func testAccDataSourceAzureRMSubscription_specificConfig(subscriptionId string) string {
 	return fmt.Sprintf(`
-	data "azurerm_subscription" "specific" {
-		subscription_id = "%s"
-	}
-	`, subscriptionId)
+data "azurerm_subscription" "specific" {
+  subscription_id = "%s"
+}
+`, subscriptionId)
 }

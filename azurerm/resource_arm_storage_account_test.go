@@ -599,21 +599,21 @@ func testCheckAzureRMStorageAccountDestroy(s *terraform.State) error {
 func testAccAzureRMStorageAccount_basic(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "acctestAzureRMSA-%d"
-    location = "%s"
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "testsa" {
-    name = "unlikely23exst2acct%s"
-    resource_group_name = "${azurerm_resource_group.testrg.name}"
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
 
-    location = "${azurerm_resource_group.testrg.location}"
-    account_tier = "Standard"
-    account_replication_type = "LRS"
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 
-    tags {
-        environment = "production"
-    }
+  tags {
+    environment = "production"
+  }
 }
 `, rInt, location, rString)
 }
@@ -621,21 +621,21 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_premium(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "acctestAzureRMSA-%d"
-    location = "%s"
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "testsa" {
-    name = "unlikely23exst2acct%s"
-    resource_group_name = "${azurerm_resource_group.testrg.name}"
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
 
-    location = "${azurerm_resource_group.testrg.location}"
-    account_tier = "Premium"
-    account_replication_type = "LRS"
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_tier             = "Premium"
+  account_replication_type = "LRS"
 
-    tags {
-        environment = "production"
-    }
+  tags {
+    environment = "production"
+  }
 }
 `, rInt, location, rString)
 }
@@ -643,21 +643,21 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_update(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "acctestAzureRMSA-%d"
-    location = "%s"
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "testsa" {
-    name = "unlikely23exst2acct%s"
-    resource_group_name = "${azurerm_resource_group.testrg.name}"
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
 
-    location = "${azurerm_resource_group.testrg.location}"
-    account_tier = "Standard"
-    account_replication_type = "GRS"
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
 
-    tags {
-        environment = "staging"
-    }
+  tags {
+    environment = "staging"
+  }
 }
 `, rInt, location, rString)
 }
@@ -665,22 +665,22 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_blobEncryption(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "acctestAzureRMSA-%d"
-    location = "%s"
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "testsa" {
-    name = "unlikely23exst2acct%s"
-    resource_group_name = "${azurerm_resource_group.testrg.name}"
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
 
-    location = "${azurerm_resource_group.testrg.location}"
-    account_tier = "Standard"
-    account_replication_type = "LRS"
-    enable_blob_encryption = true
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  enable_blob_encryption   = true
 
-    tags {
-        environment = "production"
-    }
+  tags {
+    environment = "production"
+  }
 }
 `, rInt, location, rString)
 }
@@ -688,22 +688,22 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_blobEncryptionDisabled(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "acctestAzureRMSA-%d"
-    location = "%s"
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "testsa" {
-    name = "unlikely23exst2acct%s"
-    resource_group_name = "${azurerm_resource_group.testrg.name}"
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
 
-    location = "${azurerm_resource_group.testrg.location}"
-    account_tier = "Standard"
-    account_replication_type = "LRS"
-    enable_blob_encryption = false
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  enable_blob_encryption   = false
 
-    tags {
-        environment = "production"
-    }
+  tags {
+    environment = "production"
+  }
 }
 `, rInt, location, rString)
 }
@@ -711,22 +711,22 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_fileEncryption(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "acctestAzureRMSA-%d"
-    location = "%s"
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "testsa" {
-    name = "unlikely23exst2acct%s"
-    resource_group_name = "${azurerm_resource_group.testrg.name}"
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
 
-    location = "${azurerm_resource_group.testrg.location}"
-    account_tier = "Standard"
-    account_replication_type = "LRS"
-    enable_file_encryption = true
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  enable_file_encryption   = true
 
-    tags {
-        environment = "production"
-    }
+  tags {
+    environment = "production"
+  }
 }
 `, rInt, location, rString)
 }
@@ -734,22 +734,22 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_fileEncryptionDisabled(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "acctestAzureRMSA-%d"
-    location = "%s"
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "testsa" {
-    name = "unlikely23exst2acct%s"
-    resource_group_name = "${azurerm_resource_group.testrg.name}"
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
 
-    location = "${azurerm_resource_group.testrg.location}"
-    account_tier = "Standard"
-    account_replication_type = "LRS"
-    enable_file_encryption = false
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  enable_file_encryption   = false
 
-    tags {
-        environment = "production"
-    }
+  tags {
+    environment = "production"
+  }
 }
 `, rInt, location, rString)
 }
@@ -757,22 +757,22 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_enableHttpsTrafficOnly(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "acctestAzureRMSA-%d"
-    location = "%s"
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "testsa" {
-    name = "unlikely23exst2acct%s"
-    resource_group_name = "${azurerm_resource_group.testrg.name}"
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
 
-    location = "${azurerm_resource_group.testrg.location}"
-    account_tier = "Standard"
-    account_replication_type = "LRS"
-    enable_https_traffic_only = true
+  location                  = "${azurerm_resource_group.testrg.location}"
+  account_tier              = "Standard"
+  account_replication_type  = "LRS"
+  enable_https_traffic_only = true
 
-    tags {
-        environment = "production"
-    }
+  tags {
+    environment = "production"
+  }
 }
 `, rInt, location, rString)
 }
@@ -780,22 +780,22 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_enableHttpsTrafficOnlyDisabled(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "acctestAzureRMSA-%d"
-    location = "%s"
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "testsa" {
-    name = "unlikely23exst2acct%s"
-    resource_group_name = "${azurerm_resource_group.testrg.name}"
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
 
-    location = "${azurerm_resource_group.testrg.location}"
-    account_tier = "Standard"
-    account_replication_type = "LRS"
-    enable_https_traffic_only = false
+  location                  = "${azurerm_resource_group.testrg.location}"
+  account_tier              = "Standard"
+  account_replication_type  = "LRS"
+  enable_https_traffic_only = false
 
-    tags {
-        environment = "production"
-    }
+  tags {
+    environment = "production"
+  }
 }
 `, rInt, location, rString)
 }
@@ -803,22 +803,22 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_blobStorage(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "acctestAzureRMSA-%d"
-    location = "%s"
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "testsa" {
-    name = "unlikely23exst2acct%s"
-    resource_group_name = "${azurerm_resource_group.testrg.name}"
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
 
-    location = "${azurerm_resource_group.testrg.location}"
-    account_kind = "BlobStorage"
-    account_tier = "Standard"
-    account_replication_type = "LRS"
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_kind             = "BlobStorage"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 
-    tags {
-        environment = "production"
-    }
+  tags {
+    environment = "production"
+  }
 }
 `, rInt, location, rString)
 }
@@ -826,23 +826,23 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_blobStorageUpdate(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "acctestAzureRMSA-%d"
-    location = "%s"
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "testsa" {
-    name = "unlikely23exst2acct%s"
-    resource_group_name = "${azurerm_resource_group.testrg.name}"
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
 
-    location = "${azurerm_resource_group.testrg.location}"
-    account_kind = "BlobStorage"
-    account_tier = "Standard"
-    account_replication_type = "LRS"
-    access_tier = "Cool"
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_kind             = "BlobStorage"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  access_tier              = "Cool"
 
-    tags {
-        environment = "production"
-    }
+  tags {
+    environment = "production"
+  }
 }
 `, rInt, location, rString)
 }
@@ -850,22 +850,22 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_storageV2(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "acctestAzureRMSA-%d"
-    location = "%s"
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "testsa" {
-    name = "unlikely23exst2acct%s"
-    resource_group_name = "${azurerm_resource_group.testrg.name}"
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
 
-    location = "${azurerm_resource_group.testrg.location}"
-    account_kind = "StorageV2"
-    account_tier = "Standard"
-    account_replication_type = "LRS"
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_kind             = "StorageV2"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 
-    tags {
-        environment = "production"
-    }
+  tags {
+    environment = "production"
+  }
 }
 `, rInt, location, rString)
 }
@@ -873,23 +873,23 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_storageV2Update(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "acctestAzureRMSA-%d"
-    location = "%s"
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "testsa" {
-    name = "unlikely23exst2acct%s"
-    resource_group_name = "${azurerm_resource_group.testrg.name}"
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
 
-    location = "${azurerm_resource_group.testrg.location}"
-    account_kind = "StorageV2"
-    account_tier = "Standard"
-    account_replication_type = "LRS"
-    access_tier = "Cool"
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_kind             = "StorageV2"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  access_tier              = "Cool"
 
-    tags {
-        environment = "production"
-    }
+  tags {
+    environment = "production"
+  }
 }
 `, rInt, location, rString)
 }
@@ -897,18 +897,20 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_nonStandardCasing(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "acctestAzureRMSA-%d"
-    location = "%s"
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
 }
+
 resource "azurerm_storage_account" "testsa" {
-    name = "unlikely23exst2acct%s"
-    resource_group_name = "${azurerm_resource_group.testrg.name}"
-    location = "${azurerm_resource_group.testrg.location}"
-    account_tier = "standard"
-    account_replication_type = "lrs"
-    tags {
-        environment = "production"
-    }
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = "${azurerm_resource_group.testrg.name}"
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_tier             = "standard"
+  account_replication_type = "lrs"
+
+  tags {
+    environment = "production"
+  }
 }
 `, rInt, location, rString)
 }
@@ -916,25 +918,25 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_identity(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "acctestAzureRMSA-%d"
-    location = "%s"
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "testsa" {
-    name = "unlikely23exst2acct%s"
-    resource_group_name = "${azurerm_resource_group.testrg.name}"
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
 
-    location = "${azurerm_resource_group.testrg.location}"
-    account_tier = "Standard"
-    account_replication_type = "LRS"
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 
-		identity {
-			type = "SystemAssigned"
-		}
+  identity {
+    type = "SystemAssigned"
+  }
 
-    tags {
-        environment = "production"
-    }
+  tags {
+    environment = "production"
+  }
 }
 `, rInt, location, rString)
 }
@@ -942,36 +944,40 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_networkRules(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "acctestAzureRMSA-%d"
-    location = "%s"
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
 }
+
 resource "azurerm_virtual_network" "test" {
-    name = "acctestvirtnet%d"
-    address_space = ["10.0.0.0/16"]
-    location = "${azurerm_resource_group.testrg.location}"
-    resource_group_name = "${azurerm_resource_group.testrg.name}"
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.testrg.location}"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
 }
+
 resource "azurerm_subnet" "test" {
-	name                 = "acctestsubnet%d"
-	resource_group_name  = "${azurerm_resource_group.testrg.name}"
-	virtual_network_name = "${azurerm_virtual_network.test.name}"
-	address_prefix       = "10.0.2.0/24"
-	service_endpoints    = ["Microsoft.Storage"]
-  }
+  name                 = "acctestsubnet%d"
+  resource_group_name  = "${azurerm_resource_group.testrg.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+  service_endpoints    = ["Microsoft.Storage"]
+}
+
 resource "azurerm_storage_account" "testsa" {
-    name = "unlikely23exst2acct%s"
-    resource_group_name = "${azurerm_resource_group.testrg.name}"
-    location = "${azurerm_resource_group.testrg.location}"
-    account_tier = "Standard"
-    account_replication_type = "LRS"
-	
-    network_rules {
-        ip_rules = ["127.0.0.1"]
-        virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
-    }
-    tags {
-        environment = "production"
-    }
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = "${azurerm_resource_group.testrg.name}"
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  network_rules {
+    ip_rules                   = ["127.0.0.1"]
+    virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
+  }
+
+  tags {
+    environment = "production"
+  }
 }
 `, rInt, location, rInt, rInt, rString)
 }
@@ -979,36 +985,40 @@ resource "azurerm_storage_account" "testsa" {
 func testAccAzureRMStorageAccount_networkRulesUpdate(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-    name = "acctestAzureRMSA-%d"
-    location = "%s"
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
 }
+
 resource "azurerm_virtual_network" "test" {
-    name = "acctestvirtnet%d"
-    address_space = ["10.0.0.0/16"]
-    location = "${azurerm_resource_group.testrg.location}"
-    resource_group_name = "${azurerm_resource_group.testrg.name}"
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.testrg.location}"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
 }
+
 resource "azurerm_subnet" "test" {
-	name                 = "acctestsubnet%d"
-	resource_group_name  = "${azurerm_resource_group.testrg.name}"
-	virtual_network_name = "${azurerm_virtual_network.test.name}"
-	address_prefix       = "10.0.2.0/24"
-	service_endpoints    = ["Microsoft.Storage"]
-  }
+  name                 = "acctestsubnet%d"
+  resource_group_name  = "${azurerm_resource_group.testrg.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+  service_endpoints    = ["Microsoft.Storage"]
+}
+
 resource "azurerm_storage_account" "testsa" {
-    name = "unlikely23exst2acct%s"
-    resource_group_name = "${azurerm_resource_group.testrg.name}"
-    location = "${azurerm_resource_group.testrg.location}"
-    account_tier = "Standard"
-    account_replication_type = "LRS"
-	
-    network_rules {
-        ip_rules = ["127.0.0.1", "127.0.0.2"]
-        bypass = ["Logging", "Metrics"]
-    }
-    tags {
-        environment = "production"
-    }
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = "${azurerm_resource_group.testrg.name}"
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  network_rules {
+    ip_rules = ["127.0.0.1", "127.0.0.2"]
+    bypass   = ["Logging", "Metrics"]
+  }
+
+  tags {
+    environment = "production"
+  }
 }
 `, rInt, location, rInt, rInt, rString)
 }

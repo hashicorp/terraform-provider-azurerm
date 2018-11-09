@@ -305,6 +305,7 @@ resource "azurerm_key_vault_secret" "test" {
   value        = "<rick><morty /></rick>"
   vault_uri    = "${azurerm_key_vault.test.vault_uri}"
   content_type = "application/xml"
+
   tags {
     "hello" = "world"
   }

@@ -154,12 +154,12 @@ func testCheckAzureRMDnsZoneDestroy(s *terraform.State) error {
 func testAccAzureRMDnsZone_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_dns_zone" "test" {
-  name = "acctestzone%d.com"
+  name                = "acctestzone%d.com"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt)
@@ -168,7 +168,7 @@ resource "azurerm_dns_zone" "test" {
 func testAccAzureRMDnsZone_withVNets(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG_%d"
+  name     = "acctestRG_%d"
   location = "%s"
 }
 
@@ -181,9 +181,9 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_dns_zone" "test" {
-  name = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_type = "Private"
+  name                             = "acctestzone%d.com"
+  resource_group_name              = "${azurerm_resource_group.test.name}"
+  zone_type                        = "Private"
   registration_virtual_network_ids = ["${azurerm_virtual_network.test.id}"]
 }
 `, rInt, location, rInt, location, rInt)
@@ -192,13 +192,14 @@ resource "azurerm_dns_zone" "test" {
 func testAccAzureRMDnsZone_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_dns_zone" "test" {
-  name = "acctestzone%d.com"
+  name                = "acctestzone%d.com"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
   tags {
     environment = "Production"
     cost_center = "MSFT"
@@ -210,13 +211,14 @@ resource "azurerm_dns_zone" "test" {
 func testAccAzureRMDnsZone_withTagsUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_dns_zone" "test" {
-  name = "acctestzone%d.com"
+  name                = "acctestzone%d.com"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
   tags {
     environment = "staging"
   }

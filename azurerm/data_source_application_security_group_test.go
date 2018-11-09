@@ -52,8 +52,8 @@ func TestAccDataSourceAzureRMApplicationSecurityGroup_complete(t *testing.T) {
 func testAccDataSourceApplicationSecurityGroup_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
- name = "acctestRG-%d"
- location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_application_security_group" "test" {
@@ -63,7 +63,7 @@ resource "azurerm_application_security_group" "test" {
 }
 
 data "azurerm_application_security_group" "test" {
-  name = "${azurerm_application_security_group.test.name}"
+  name                = "${azurerm_application_security_group.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt)
@@ -72,21 +72,22 @@ data "azurerm_application_security_group" "test" {
 func testAccDataSourceApplicationSecurityGroup_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
- name = "acctestRG-%d"
- location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_application_security_group" "test" {
   name                = "acctest-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
   tags {
-	"Hello" = "World"
+    "Hello" = "World"
   }
 }
 
 data "azurerm_application_security_group" "test" {
-  name = "${azurerm_application_security_group.test.name}"
+  name                = "${azurerm_application_security_group.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt)

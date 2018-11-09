@@ -186,7 +186,7 @@ func TestAccAzureRMAutomationSchedule_weekly_advanced(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationSchedule_recurring_advanced_week(ri, testLocation(), "Monday"),
-				Check:  checkAccAzureRMAutomationSchedule_recurring_advanced_week(resourceName, "Monday"),
+				Check:  checkAccAzureRMAutomationSchedule_recurring_advanced_week(resourceName),
 			},
 			{
 				ResourceName:      resourceName,
@@ -208,7 +208,7 @@ func TestAccAzureRMAutomationSchedule_monthly_advanced_by_day(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationSchedule_recurring_advanced_month(ri, testLocation(), 2),
-				Check:  checkAccAzureRMAutomationSchedule_recurring_advanced_month(resourceName, 2),
+				Check:  checkAccAzureRMAutomationSchedule_recurring_advanced_month(resourceName),
 			},
 			{
 				ResourceName:      resourceName,
@@ -308,20 +308,20 @@ func testCheckAzureRMAutomationScheduleExists(name string) resource.TestCheckFun
 
 func testAccAzureRMAutomationSchedule_prerequisites(rInt int, location string) string {
 	return fmt.Sprintf(` 
-resource "azurerm_resource_group" "test" { 
-  name     = "acctestRG-%d" 
-  location = "%s" 
-} 
- 
-resource "azurerm_automation_account" "test" { 
-  name                = "acctestAA-%d" 
-  location            = "${azurerm_resource_group.test.location}" 
-  resource_group_name = "${azurerm_resource_group.test.name}" 
-  sku { 
-    name = "Basic" 
-  } 
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
+resource "azurerm_automation_account" "test" {
+  name                = "acctestAA-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name = "Basic"
+  }
+}
 `, rInt, location, rInt)
 }
 
@@ -421,7 +421,7 @@ resource "azurerm_automation_schedule" "test" {
 `, testAccAzureRMAutomationSchedule_prerequisites(rInt, location), rInt, weekDay)
 }
 
-func checkAccAzureRMAutomationSchedule_recurring_advanced_week(resourceName string, weekDay string) resource.TestCheckFunc {
+func checkAccAzureRMAutomationSchedule_recurring_advanced_week(resourceName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
 		testCheckAzureRMAutomationScheduleExists("azurerm_automation_schedule.test"),
 		resource.TestCheckResourceAttrSet(resourceName, "name"),
@@ -450,7 +450,7 @@ resource "azurerm_automation_schedule" "test" {
 `, testAccAzureRMAutomationSchedule_prerequisites(rInt, location), rInt, monthDay)
 }
 
-func checkAccAzureRMAutomationSchedule_recurring_advanced_month(resourceName string, monthDay int) resource.TestCheckFunc {
+func checkAccAzureRMAutomationSchedule_recurring_advanced_month(resourceName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
 		testCheckAzureRMAutomationScheduleExists("azurerm_automation_schedule.test"),
 		resource.TestCheckResourceAttrSet(resourceName, "name"),

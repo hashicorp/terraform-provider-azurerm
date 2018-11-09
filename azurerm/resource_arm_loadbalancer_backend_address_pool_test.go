@@ -211,7 +211,6 @@ resource "azurerm_lb_backend_address_pool" "test" {
   loadbalancer_id     = "${azurerm_lb.test.id}"
   name                = "%s"
 }
-
 `, rInt, location, rInt, rInt, rInt, addressPoolName)
 }
 

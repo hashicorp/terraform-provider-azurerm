@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	response "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -338,7 +338,6 @@ resource "azurerm_network_security_group" "test" {
     destination_address_prefix = "*"
   }
 }
-
 `, rInt, location)
 }
 
@@ -441,7 +440,6 @@ resource "azurerm_network_security_group" "test" {
     environment = "staging"
   }
 }
-
 `, rInt, location)
 }
 
@@ -463,10 +461,10 @@ resource "azurerm_network_security_group" "test" {
     direction                    = "Inbound"
     access                       = "Allow"
     protocol                     = "Tcp"
-    source_port_ranges           = [ "10000-40000" ]
-    destination_port_ranges      = [ "80", "443", "8080", "8190" ]
-    source_address_prefixes      = [ "10.0.0.0/8", "192.168.0.0/16" ]
-    destination_address_prefixes = [ "172.16.0.0/20", "8.8.8.8" ]
+    source_port_ranges           = ["10000-40000"]
+    destination_port_ranges      = ["80", "443", "8080", "8190"]
+    source_address_prefixes      = ["10.0.0.0/8", "192.168.0.0/16"]
+    destination_address_prefixes = ["172.16.0.0/20", "8.8.8.8"]
   }
 }
 `, rInt, location)
@@ -504,8 +502,8 @@ resource "azurerm_network_security_group" "test" {
     protocol                                   = "Tcp"
     source_application_security_group_ids      = ["${azurerm_application_security_group.first.id}"]
     destination_application_security_group_ids = ["${azurerm_application_security_group.second.id}"]
-    source_port_ranges                         = [ "10000-40000" ]
-    destination_port_ranges                    = [ "80", "443", "8080", "8190" ]
+    source_port_ranges                         = ["10000-40000"]
+    destination_port_ranges                    = ["80", "443", "8080", "8190"]
   }
 }
 `, rInt, location, rInt, rInt, rInt)

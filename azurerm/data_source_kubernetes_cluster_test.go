@@ -233,7 +233,7 @@ func TestAccDataSourceAzureRMKubernetesCluster_addOnProfileRouting(t *testing.T)
 }
 
 func testAccDataSourceAzureRMKubernetesCluster_basic(rInt int, clientId string, clientSecret string, location string) string {
-	resource := testAccAzureRMKubernetesCluster_basic(rInt, clientId, clientSecret, location)
+	r := testAccAzureRMKubernetesCluster_basic(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
 %s
 
@@ -241,11 +241,11 @@ data "azurerm_kubernetes_cluster" "test" {
   name                = "${azurerm_kubernetes_cluster.test.name}"
   resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
 }
-`, resource)
+`, r)
 }
 
 func testAccDataSourceAzureRMKubernetesCluster_internalNetwork(rInt int, clientId string, clientSecret string, location string) string {
-	resource := testAccAzureRMKubernetesCluster_internalNetwork(rInt, clientId, clientSecret, location)
+	r := testAccAzureRMKubernetesCluster_internalNetwork(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
 %s
 
@@ -253,11 +253,11 @@ data "azurerm_kubernetes_cluster" "test" {
   name                = "${azurerm_kubernetes_cluster.test.name}"
   resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
 }
-`, resource)
+`, r)
 }
 
 func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzure(rInt int, clientId string, clientSecret string, location string) string {
-	resource := testAccAzureRMKubernetesCluster_advancedNetworking(rInt, clientId, clientSecret, location, "azure")
+	r := testAccAzureRMKubernetesCluster_advancedNetworking(rInt, clientId, clientSecret, location, "azure")
 	return fmt.Sprintf(`
 %s
 
@@ -265,11 +265,11 @@ data "azurerm_kubernetes_cluster" "test" {
   name                = "${azurerm_kubernetes_cluster.test.name}"
   resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
 }
-`, resource)
+`, r)
 }
 
 func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureComplete(rInt int, clientId string, clientSecret string, location string) string {
-	resource := testAccAzureRMKubernetesCluster_advancedNetworkingComplete(rInt, clientId, clientSecret, location, "azure")
+	r := testAccAzureRMKubernetesCluster_advancedNetworkingComplete(rInt, clientId, clientSecret, location, "azure")
 	return fmt.Sprintf(`
 %s
 
@@ -277,11 +277,11 @@ data "azurerm_kubernetes_cluster" "test" {
   name                = "${azurerm_kubernetes_cluster.test.name}"
   resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
 }
-`, resource)
+`, r)
 }
 
 func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenet(rInt int, clientId string, clientSecret string, location string) string {
-	resource := testAccAzureRMKubernetesCluster_advancedNetworking(rInt, clientId, clientSecret, location, "kubenet")
+	r := testAccAzureRMKubernetesCluster_advancedNetworking(rInt, clientId, clientSecret, location, "kubenet")
 	return fmt.Sprintf(`
 %s
 
@@ -289,11 +289,11 @@ data "azurerm_kubernetes_cluster" "test" {
   name                = "${azurerm_kubernetes_cluster.test.name}"
   resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
 }
-`, resource)
+`, r)
 }
 
 func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenetComplete(rInt int, clientId string, clientSecret string, location string) string {
-	resource := testAccAzureRMKubernetesCluster_advancedNetworkingComplete(rInt, clientId, clientSecret, location, "kubenet")
+	r := testAccAzureRMKubernetesCluster_advancedNetworkingComplete(rInt, clientId, clientSecret, location, "kubenet")
 	return fmt.Sprintf(`
 %s
 
@@ -301,11 +301,11 @@ data "azurerm_kubernetes_cluster" "test" {
   name                = "${azurerm_kubernetes_cluster.test.name}"
   resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
 }
-`, resource)
+`, r)
 }
 
 func testAccDataSourceAzureRMKubernetesCluster_addOnProfileOMS(rInt int, clientId string, clientSecret string, location string) string {
-	resource := testAccAzureRMKubernetesCluster_addonProfileOMS(rInt, clientId, clientSecret, location)
+	r := testAccAzureRMKubernetesCluster_addonProfileOMS(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
 %s
 
@@ -313,11 +313,11 @@ data "azurerm_kubernetes_cluster" "test" {
   name                = "${azurerm_kubernetes_cluster.test.name}"
   resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
 }
-`, resource)
+`, r)
 }
 
 func testAccDataSourceAzureRMKubernetesCluster_addOnProfileRouting(rInt int, clientId string, clientSecret string, location string) string {
-	resource := testAccAzureRMKubernetesCluster_addonProfileRouting(rInt, clientId, clientSecret, location)
+	r := testAccAzureRMKubernetesCluster_addonProfileRouting(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
 %s
 
@@ -325,5 +325,5 @@ data "azurerm_kubernetes_cluster" "test" {
   name                = "${azurerm_kubernetes_cluster.test.name}"
   resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
 }
-`, resource)
+`, r)
 }

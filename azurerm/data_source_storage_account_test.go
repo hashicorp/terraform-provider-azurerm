@@ -40,16 +40,16 @@ func TestAccDataSourceAzureRMStorageAccount_basic(t *testing.T) {
 func testAccDataSourceAzureRMStorageAccount_basic(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestsa-%d"
+  name     = "acctestsa-%d"
   location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name = "acctestsads%s"
+  name                = "acctestsads%s"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  location = "${azurerm_resource_group.test.location}"
-  account_tier = "Standard"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
   account_replication_type = "LRS"
 
   tags {

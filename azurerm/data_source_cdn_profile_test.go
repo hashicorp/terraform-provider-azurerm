@@ -67,7 +67,7 @@ resource "azurerm_cdn_profile" "test" {
 }
 
 data "azurerm_cdn_profile" "test" {
-  name = "${azurerm_cdn_profile.test.name}"
+  name                = "${azurerm_cdn_profile.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt)
@@ -93,7 +93,7 @@ resource "azurerm_cdn_profile" "test" {
 }
 
 data "azurerm_cdn_profile" "test" {
-  name = "${azurerm_cdn_profile.test.name}"
+  name                = "${azurerm_cdn_profile.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt)

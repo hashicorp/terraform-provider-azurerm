@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 )
 
+// DetermineResourceProvidersRequiringRegistration determines which Resource Providers require registration to be able to be used
 func DetermineResourceProvidersRequiringRegistration(availableResourceProviders []resources.Provider, requiredResourceProviders map[string]struct{}) map[string]struct{} {
 	providers := requiredResourceProviders
 
@@ -28,6 +29,7 @@ func DetermineResourceProvidersRequiringRegistration(availableResourceProviders 
 	return providers
 }
 
+// RegisterForSubscription registers the specified Resource Providers in the current Subscription
 func RegisterForSubscription(ctx context.Context, client resources.ProvidersClient, providersToRegister map[string]struct{}) error {
 	var err error
 	var wg sync.WaitGroup

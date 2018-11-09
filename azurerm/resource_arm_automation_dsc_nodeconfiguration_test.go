@@ -108,7 +108,7 @@ func testCheckAzureRMAutomationDscNodeConfigurationExists(name string) resource.
 func testAccAzureRMAutomationDscNodeConfiguration_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -116,6 +116,7 @@ resource "azurerm_automation_account" "test" {
   name                = "acctest-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
   sku {
     name = "Basic"
   }
@@ -134,7 +135,8 @@ resource "azurerm_automation_dsc_nodeconfiguration" "test" {
   resource_group_name     = "${azurerm_resource_group.test.name}"
   automation_account_name = "${azurerm_automation_account.test.name}"
   depends_on              = ["azurerm_automation_dsc_configuration.test"]
-  content_embedded        = <<mofcontent
+
+  content_embedded = <<mofcontent
 instance of MSFT_FileDirectoryConfiguration as $MSFT_FileDirectoryConfiguration1ref
 {
   ResourceID = "[File]bla";
