@@ -13,12 +13,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSql2017ElasticPool() *schema.Resource {
+func resourceArmMsSqlElasticPool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSql2017ElasticPoolCreate,
-		Read:   resourceArmSql2017ElasticPoolRead,
-		Update: resourceArmSql2017ElasticPoolCreate,
-		Delete: resourceArmSql2017ElasticPoolDelete,
+		Create: resourceArmMsSqlElasticPoolCreate,
+		Read:   resourceArmMsSqlElasticPoolRead,
+		Update: resourceArmMsSqlElasticPoolCreate,
+		Delete: resourceArmMsSqlElasticPoolDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -242,18 +242,18 @@ func resourceArmSql2017ElasticPool() *schema.Resource {
 	}
 }
 
-func resourceArmSql2017ElasticPoolCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sql2017ElasticPoolsClient
+func resourceArmMsSqlElasticPoolCreate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).MsSqlElasticPoolsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	log.Printf("[INFO] preparing arguments for SQL2017 ElasticPool creation.")
+	log.Printf("[INFO] preparing arguments for MsSQL ElasticPool creation.")
 
 	elasticPoolName := d.Get("name").(string)
 	serverName := d.Get("server_name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
-	sku := expandAzureRmSql2017ElasticPoolSku(d)
-	properties := expandAzureRmSql2017ElasticPoolProperties(d)
+	sku := expandAzureRmMsSqlElasticPoolSku(d)
+	properties := expandAzureRmMsSqlElasticPoolProperties(d)
 	tags := d.Get("tags").(map[string]interface{})
 
 	elasticPool := sql.ElasticPool{
@@ -279,19 +279,19 @@ func resourceArmSql2017ElasticPoolCreate(d *schema.ResourceData, meta interface{
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read SQL2017 ElasticPool %q (resource group %q) ID", elasticPoolName, resGroup)
+		return fmt.Errorf("Cannot read MsSQL ElasticPool %q (resource group %q) ID", elasticPoolName, resGroup)
 	}
 
 	d.SetId(*read.ID)
 
-	return resourceArmSql2017ElasticPoolRead(d, meta)
+	return resourceArmMsSqlElasticPoolRead(d, meta)
 }
 
-func resourceArmSql2017ElasticPoolRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sql2017ElasticPoolsClient
+func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).MsSqlElasticPoolsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	resGroup, serverName, name, err := parseArmSql2017ElasticPoolId(d.Id())
+	resGroup, serverName, name, err := parseArmMsSqlElasticPoolId(d.Id())
 	if err != nil {
 		return err
 	}
@@ -302,7 +302,7 @@ func resourceArmSql2017ElasticPoolRead(d *schema.ResourceData, meta interface{})
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Sql2017 Elastic Pool %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on MsSql Elastic Pool %s: %s", name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -314,15 +314,15 @@ func resourceArmSql2017ElasticPoolRead(d *schema.ResourceData, meta interface{})
 
 	d.Set("server_name", serverName)
 
-	if err := d.Set("sku", flattenAzureRmSql2017ElasticPoolSku(resp.Sku)); err != nil {
+	if err := d.Set("sku", flattenAzureRmMsSqlElasticPoolSku(resp.Sku)); err != nil {
 		return fmt.Errorf("Error flattening `sku`: %+v", err)
 	}
 
-	if err := d.Set("elastic_pool_properties", flattenAzureRmSql2017ElasticPoolProperties(resp.ElasticPoolProperties)); err != nil {
+	if err := d.Set("elastic_pool_properties", flattenAzureRmMsSqlElasticPoolProperties(resp.ElasticPoolProperties)); err != nil {
 		return fmt.Errorf("Error flattening `elastic_pool_properties`: %+v", err)
 	}
 
-	if err := d.Set("per_database_settings", flattenAzureRmSql2017ElasticPoolPerDatabaseSettings(resp.ElasticPoolProperties.PerDatabaseSettings)); err != nil {
+	if err := d.Set("per_database_settings", flattenAzureRmMsSqlElasticPoolPerDatabaseSettings(resp.ElasticPoolProperties.PerDatabaseSettings)); err != nil {
 		return fmt.Errorf("Error flattening `per_database_settings`: %+v", err)
 	}
 
@@ -331,8 +331,8 @@ func resourceArmSql2017ElasticPoolRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceArmSql2017ElasticPoolDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sql2017ElasticPoolsClient
+func resourceArmMsSqlElasticPoolDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).MsSqlElasticPoolsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup, serverName, name, err := parseArmSqlElasticPoolId(d.Id())
@@ -345,16 +345,16 @@ func resourceArmSql2017ElasticPoolDelete(d *schema.ResourceData, meta interface{
 	return err
 }
 
-func parseArmSql2017ElasticPoolId(sqlElasticPoolId string) (string, string, string, error) {
+func parseArmMsSqlElasticPoolId(sqlElasticPoolId string) (string, string, string, error) {
 	id, err := parseAzureResourceID(sqlElasticPoolId)
 	if err != nil {
-		return "", "", "", fmt.Errorf("[ERROR] Unable to parse SQL2017 ElasticPool ID %q: %+v", sqlElasticPoolId, err)
+		return "", "", "", fmt.Errorf("[ERROR] Unable to parse MsSQL ElasticPool ID %q: %+v", sqlElasticPoolId, err)
 	}
 
 	return id.ResourceGroup, id.Path["servers"], id.Path["elasticPools"], nil
 }
 
-func expandAzureRmSql2017ElasticPoolProperties(d *schema.ResourceData) *sql.ElasticPoolProperties {
+func expandAzureRmMsSqlElasticPoolProperties(d *schema.ResourceData) *sql.ElasticPoolProperties {
 	perDatabaseSettings := d.Get("per_database_settings").([]interface{})
 	perDatabaseSetting := perDatabaseSettings[0].(map[string]interface{})
 
@@ -373,7 +373,7 @@ func expandAzureRmSql2017ElasticPoolProperties(d *schema.ResourceData) *sql.Elas
 	return props
 }
 
-func expandAzureRmSql2017ElasticPoolSku(d *schema.ResourceData) *sql.Sku {
+func expandAzureRmMsSqlElasticPoolSku(d *schema.ResourceData) *sql.Sku {
 	skus := d.Get("sku").([]interface{})
 	sku := skus[0].(map[string]interface{})
 
@@ -390,7 +390,7 @@ func expandAzureRmSql2017ElasticPoolSku(d *schema.ResourceData) *sql.Sku {
 	}
 }
 
-func flattenAzureRmSql2017ElasticPoolSku(resp *sql.Sku) []interface{} {
+func flattenAzureRmMsSqlElasticPoolSku(resp *sql.Sku) []interface{} {
 	values := map[string]interface{}{}
 
 	if name := resp.Name; name != nil {
@@ -410,7 +410,7 @@ func flattenAzureRmSql2017ElasticPoolSku(resp *sql.Sku) []interface{} {
 	return []interface{}{values}
 }
 
-func flattenAzureRmSql2017ElasticPoolProperties(resp *sql.ElasticPoolProperties) []interface{} {
+func flattenAzureRmMsSqlElasticPoolProperties(resp *sql.ElasticPoolProperties) []interface{} {
 	elasticPoolProperty := map[string]interface{}{}
 
 	if maxSizeBytes := resp.MaxSizeBytes; maxSizeBytes != nil {
@@ -432,7 +432,7 @@ func flattenAzureRmSql2017ElasticPoolProperties(resp *sql.ElasticPoolProperties)
 	return []interface{}{elasticPoolProperty}
 }
 
-func flattenAzureRmSql2017ElasticPoolPerDatabaseSettings(resp *sql.ElasticPoolPerDatabaseSettings) []interface{} {
+func flattenAzureRmMsSqlElasticPoolPerDatabaseSettings(resp *sql.ElasticPoolPerDatabaseSettings) []interface{} {
 	perDatabaseSettings := map[string]interface{}{}
 
 	if minCapacity := resp.MinCapacity; minCapacity != nil {

@@ -1,14 +1,14 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_sql2017_elasticpool"
-sidebar_current: "docs-azurerm-resource-database-sql2017-elasticpool"
+page_title: "Azure Resource Manager: azurerm_mssql_elasticpool"
+sidebar_current: "docs-azurerm-resource-database-mssql-elasticpool"
 description: |-
-  Manages a SQL2017 Elastic Pool.
+  Manages a SQL Elastic Pool.
 ---
 
-# azurerm_sql2017_elasticpool
+# azurerm_mssql_elasticpool
 
-Allows you to manage an Azure SQL2017 Elastic Pool.
+Allows you to manage an Azure SQL Elastic Pool via the `2017-10-01-preview` API which allows for `vCore` and `DTU` based configurations.
 
 ## Example Usage
 
@@ -27,7 +27,7 @@ resource "azurerm_sql_server" "test" {
     administrator_login_password = "4-v3ry-53cr37-p455w0rd"
 }
 
-resource "azurerm_sql2017_elasticpool" "test" {
+resource "azurerm_mssql_elasticpool" "test" {
   name                = "test-epool"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -91,6 +91,6 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The SQL2017 Elastic Pool ID.
+* `id` - The MsSQL Elastic Pool ID.
 
-* `creation_date` - The creation date of the SQL2017 Elastic Pool.
+* `creation_date` - The creation date of the MsSQL Elastic Pool.
