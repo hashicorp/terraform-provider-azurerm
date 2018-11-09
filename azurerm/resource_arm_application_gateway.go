@@ -569,6 +569,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Type:      schema.TypeString,
 							Required:  true,
 							Sensitive: true,
+							StateFunc: base64EncodedStateFunc,
 						},
 
 						"password": {
@@ -938,12 +939,12 @@ func expandApplicationGatewayAuthenticationCertificates(d *schema.ResourceData) 
 		data := v["data"].(string)
 
 		// data must be base64 encoded
-		data = base64Encode(data)
+		encodedData := base64Encode(data)
 
 		output := network.ApplicationGatewayAuthenticationCertificate{
 			Name: utils.String(name),
 			ApplicationGatewayAuthenticationCertificatePropertiesFormat: &network.ApplicationGatewayAuthenticationCertificatePropertiesFormat{
-				Data: utils.String(data),
+				Data: utils.String(encodedData),
 			},
 		}
 
@@ -1821,16 +1822,19 @@ func flattenApplicationGatewaySslCertificates(input *[]network.ApplicationGatewa
 		return results
 	}
 
-	for i, v := range *input {
+	for _, v := range *input {
 		output := map[string]interface{}{}
+		if v.Name == nil {
+			continue
+		}
+
+		name := *v.Name
 
 		if v.ID != nil {
 			output["id"] = *v.ID
 		}
 
-		if v.Name != nil {
-			output["name"] = *v.Name
-		}
+		output["name"] = name
 
 		if props := v.ApplicationGatewaySslCertificatePropertiesFormat; props != nil {
 			if data := props.PublicCertData; data != nil {
@@ -1841,14 +1845,19 @@ func flattenApplicationGatewaySslCertificates(input *[]network.ApplicationGatewa
 		// since the certificate data isn't returned we have to load it from the same index
 		if existing, ok := d.GetOk("ssl_certificate"); ok && existing != nil {
 			existingVals := existing.([]interface{})
-			if len(existingVals) >= i {
-				existingCerts := existingVals[i].(map[string]interface{})
-				if data := existingCerts["data"]; data != nil {
-					output["data"] = data.(string)
-				}
+			for _, existingVal := range existingVals {
+				existingCerts := existingVal.(map[string]interface{})
+				existingName := existingCerts["name"].(string)
 
-				if password := existingCerts["password"]; password != nil {
-					output["password"] = password.(string)
+				if name == existingName {
+					if data := existingCerts["data"]; data != nil {
+						v := base64Encode(data.(string))
+						output["data"] = v
+					}
+
+					if password := existingCerts["password"]; password != nil {
+						output["password"] = password.(string)
+					}
 				}
 			}
 		}
