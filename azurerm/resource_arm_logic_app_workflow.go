@@ -191,7 +191,7 @@ func resourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) e
 	if props := resp.WorkflowProperties; props != nil {
 		parameters := flattenLogicAppWorkflowParameters(props.Parameters)
 		if err := d.Set("parameters", parameters); err != nil {
-			return fmt.Errorf("Error flattening `parameters`: %+v", err)
+			return fmt.Errorf("Error setting `parameters`: %+v", err)
 		}
 
 		d.Set("access_endpoint", props.AccessEndpoint)

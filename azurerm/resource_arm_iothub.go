@@ -349,7 +349,7 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 	keys := flattenIoTHubSharedAccessPolicy(keyList.Value)
 
 	if err := d.Set("shared_access_policy", keys); err != nil {
-		return fmt.Errorf("Error flattening `shared_access_policy` in IoTHub %q: %+v", name, err)
+		return fmt.Errorf("Error setting `shared_access_policy` in IoTHub %q: %+v", name, err)
 	}
 
 	if properties := hub.Properties; properties != nil {
@@ -373,12 +373,12 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 
 		endpoints := flattenIoTHubEndpoint(properties.Routing)
 		if err := d.Set("endpoint", endpoints); err != nil {
-			return fmt.Errorf("Error flattening `endpoint` in IoTHub %q: %+v", name, err)
+			return fmt.Errorf("Error setting `endpoint` in IoTHub %q: %+v", name, err)
 		}
 
 		routes := flattenIoTHubRoute(properties.Routing)
 		if err := d.Set("route", routes); err != nil {
-			return fmt.Errorf("Error flattening `route` in IoTHub %q: %+v", name, err)
+			return fmt.Errorf("Error setting `route` in IoTHub %q: %+v", name, err)
 		}
 	}
 
@@ -389,7 +389,7 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	sku := flattenIoTHubSku(hub.Sku)
 	if err := d.Set("sku", sku); err != nil {
-		return fmt.Errorf("Error flattening `sku`: %+v", err)
+		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 	d.Set("type", hub.Type)
 	flattenAndSetTags(d, hub.Tags)

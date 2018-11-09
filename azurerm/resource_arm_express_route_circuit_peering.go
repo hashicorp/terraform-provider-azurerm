@@ -200,7 +200,7 @@ func resourceArmExpressRouteCircuitPeeringRead(d *schema.ResourceData, meta inte
 
 		config := flattenExpressRouteCircuitPeeringMicrosoftConfig(props.MicrosoftPeeringConfig)
 		if err := d.Set("microsoft_peering_config", config); err != nil {
-			return fmt.Errorf("Error flattening `microsoft_peering_config`: %+v", err)
+			return fmt.Errorf("Error setting `microsoft_peering_config`: %+v", err)
 		}
 	}
 

@@ -97,7 +97,7 @@ func resourceArmLogicAppTriggerCustomRead(d *schema.ResourceData, meta interface
 	}
 
 	if err := d.Set("body", string(body)); err != nil {
-		return fmt.Errorf("Error flattening `body` for Trigger %q: %+v", name, err)
+		return fmt.Errorf("Error setting `body` for Trigger %q: %+v", name, err)
 	}
 
 	return nil

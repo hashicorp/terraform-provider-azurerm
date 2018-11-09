@@ -181,7 +181,7 @@ func resourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}
 	if resp.Sku != nil {
 		sku := flattenExpressRouteCircuitSku(resp.Sku)
 		if err := d.Set("sku", sku); err != nil {
-			return fmt.Errorf("Error flattening `sku`: %+v", err)
+			return fmt.Errorf("Error setting `sku`: %+v", err)
 		}
 	}
 

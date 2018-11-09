@@ -195,7 +195,7 @@ func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if err := d.Set("sku", flattenDataSourceApiManagementServiceSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Error flattening `sku`: %+v", err)
+		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
 	flattenAndSetTags(d, resp.Tags)

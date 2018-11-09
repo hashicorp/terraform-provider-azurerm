@@ -220,12 +220,12 @@ func resourceArmPacketCaptureRead(d *schema.ResourceData, meta interface{}) erro
 
 		location := flattenArmPacketCaptureStorageLocation(props.StorageLocation)
 		if err := d.Set("storage_location", location); err != nil {
-			return fmt.Errorf("Error flattening `storage_location`: %+v", err)
+			return fmt.Errorf("Error setting `storage_location`: %+v", err)
 		}
 
 		filters := flattenArmPacketCaptureFilters(props.Filters)
 		if err := d.Set("filter", filters); err != nil {
-			return fmt.Errorf("Error flattening `filter`: %+v", err)
+			return fmt.Errorf("Error setting `filter`: %+v", err)
 		}
 	}
 

@@ -204,7 +204,7 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 	output["lease_duration"] = container.Properties.LeaseDuration
 
 	if err := d.Set("properties", output); err != nil {
-		return fmt.Errorf("Error flattening `properties`: %+v", err)
+		return fmt.Errorf("Error setting `properties`: %+v", err)
 	}
 
 	return nil

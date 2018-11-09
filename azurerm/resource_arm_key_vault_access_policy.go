@@ -211,17 +211,17 @@ func resourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{
 	if permissions := policy.Permissions; permissions != nil {
 		certificatePermissions := azure.FlattenCertificatePermissions(permissions.Certificates)
 		if err := d.Set("certificate_permissions", certificatePermissions); err != nil {
-			return fmt.Errorf("Error flattening `certificate_permissions`: %+v", err)
+			return fmt.Errorf("Error setting `certificate_permissions`: %+v", err)
 		}
 
 		keyPermissions := azure.FlattenKeyPermissions(permissions.Keys)
 		if err := d.Set("key_permissions", keyPermissions); err != nil {
-			return fmt.Errorf("Error flattening `key_permissions`: %+v", err)
+			return fmt.Errorf("Error setting `key_permissions`: %+v", err)
 		}
 
 		secretPermissions := azure.FlattenSecretPermissions(permissions.Secrets)
 		if err := d.Set("secret_permissions", secretPermissions); err != nil {
-			return fmt.Errorf("Error flattening `secret_permissions`: %+v", err)
+			return fmt.Errorf("Error setting `secret_permissions`: %+v", err)
 		}
 	}
 
