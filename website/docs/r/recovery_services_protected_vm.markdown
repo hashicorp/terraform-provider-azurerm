@@ -26,7 +26,7 @@ resource "azurerm_recovery_services_vault" "example" {
 }
 
 resource "azurerm_recovery_services_protection_policy_vm" "test" {
-  name                = "acctest-%d"
+  name                = "tfex-recovery-vault-policy"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
 
@@ -37,7 +37,6 @@ resource "azurerm_recovery_services_protection_policy_vm" "test" {
 }
 
 resource "azurerm_recovery_services_protected_vm" "example" {
-  location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.example.name}"
   source_vm_id        = "${azurerm_virtual_machine.example.id}"
