@@ -168,7 +168,7 @@ func TestAccAzureRMEventHub_basic(t *testing.T) {
 	resourceName := "azurerm_eventhub.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMEventHubDestroy,
@@ -192,7 +192,7 @@ func TestAccAzureRMEventHub_standard(t *testing.T) {
 	resourceName := "azurerm_eventhub.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMEventHubDestroy,
@@ -217,7 +217,7 @@ func TestAccAzureRMEventHub_captureDescription(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := acctest.RandString(5)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMEventHubDestroy,
@@ -247,7 +247,7 @@ func TestAccAzureRMEventHub_captureDescriptionDisabled(t *testing.T) {
 	config := testAccAzureRMEventHub_captureDescription(ri, rs, location, true)
 	updatedConfig := testAccAzureRMEventHub_captureDescription(ri, rs, location, false)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMEventHubDestroy,
@@ -276,7 +276,7 @@ func TestAccAzureRMEventHub_messageRetentionUpdate(t *testing.T) {
 	preConfig := testAccAzureRMEventHub_standard(ri, testLocation())
 	postConfig := testAccAzureRMEventHub_messageRetentionUpdate(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMEventHubDestroy,

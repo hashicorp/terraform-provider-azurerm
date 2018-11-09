@@ -23,7 +23,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_basic(t *testing.T) {
 	preConfig := testAccAzureRMSqlVirtualNetworkRule_basic(ri, testLocation())
 	postConfig := testAccAzureRMSqlVirtualNetworkRule_withUpdates(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
@@ -67,7 +67,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_switchSubnets(t *testing.T) {
 	preConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet1%d)$|(subnet[^2]%d)$", ri, ri))  //subnet 1 but not 2
 	postConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet2%d)$|(subnet[^1]%d)$", ri, ri)) //subnet 2 but not 1
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
@@ -98,7 +98,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSqlVirtualNetworkRule_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
@@ -125,7 +125,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointValid(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSqlVirtualNetworkRule_ignoreEndpointValid(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
@@ -149,7 +149,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointInvalid(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSqlVirtualNetworkRule_ignoreEndpointInvalid(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
@@ -174,7 +174,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_multipleSubnets(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSqlVirtualNetworkRule_multipleSubnets(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,

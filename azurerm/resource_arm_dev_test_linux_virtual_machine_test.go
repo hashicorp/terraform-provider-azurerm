@@ -15,7 +15,7 @@ func TestAccAzureRMDevTestLinuxVirtualMachine_basic(t *testing.T) {
 	rInt := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDevTestLinuxVirtualMachineDestroy,
@@ -48,7 +48,7 @@ func TestAccAzureRMDevTestLinuxVirtualMachine_basicSSH(t *testing.T) {
 	rInt := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDevTestLinuxVirtualMachineDestroy,
@@ -81,7 +81,7 @@ func TestAccAzureRMDevTestLinuxVirtualMachine_inboundNatRules(t *testing.T) {
 	rInt := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDevTestLinuxVirtualMachineDestroy,
@@ -117,7 +117,7 @@ func TestAccAzureRMDevTestLinuxVirtualMachine_updateStorage(t *testing.T) {
 	rInt := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDevTestLinuxVirtualMachineDestroy,

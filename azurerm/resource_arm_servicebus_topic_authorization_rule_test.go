@@ -30,7 +30,7 @@ func TestAccAzureRMServiceBusTopicAuthorizationRule_manage(t *testing.T) {
 func testAccAzureRMServiceBusTopicAuthorizationRule(t *testing.T, listen, send, manage bool) {
 	resourceName := "azurerm_servicebus_topic_authorization_rule.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicAuthorizationRuleDestroy,
@@ -62,7 +62,7 @@ func testAccAzureRMServiceBusTopicAuthorizationRule(t *testing.T, listen, send, 
 func TestAccAzureRMServiceBusTopicAuthorizationRule_rightsUpdate(t *testing.T) {
 	resourceName := "azurerm_servicebus_topic_authorization_rule.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicAuthorizationRuleDestroy,

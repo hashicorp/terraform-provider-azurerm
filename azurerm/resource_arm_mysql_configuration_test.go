@@ -17,7 +17,7 @@ func TestAccAzureRMMySQLConfiguration_characterSetServer(t *testing.T) {
 	config := testAccAzureRMMySQLConfiguration_characterSetServer(ri, location)
 	serverOnlyConfig := testAccAzureRMMySQLConfiguration_empty(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,
@@ -51,7 +51,7 @@ func TestAccAzureRMMySQLConfiguration_interactiveTimeout(t *testing.T) {
 	config := testAccAzureRMMySQLConfiguration_interactiveTimeout(ri, location)
 	serverOnlyConfig := testAccAzureRMMySQLConfiguration_empty(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,
@@ -85,7 +85,7 @@ func TestAccAzureRMMySQLConfiguration_logSlowAdminStatements(t *testing.T) {
 	config := testAccAzureRMMySQLConfiguration_logSlowAdminStatements(ri, location)
 	serverOnlyConfig := testAccAzureRMMySQLConfiguration_empty(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,

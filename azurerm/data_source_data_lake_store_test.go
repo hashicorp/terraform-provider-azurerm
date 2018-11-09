@@ -14,7 +14,7 @@ func TestAccDataSourceAzureRMDataLakeStore_basic(t *testing.T) {
 	rs := acctest.RandString(4)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -35,7 +35,7 @@ func TestAccDataSourceAzureRMDataLakeStore_tier(t *testing.T) {
 	rs := acctest.RandString(4)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{

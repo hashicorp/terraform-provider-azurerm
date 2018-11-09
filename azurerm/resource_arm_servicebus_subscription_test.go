@@ -16,7 +16,7 @@ func TestAccAzureRMServiceBusSubscription_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMServiceBusSubscription_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
@@ -41,7 +41,7 @@ func TestAccAzureRMServiceBusSubscription_defaultTtl(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMServiceBusSubscription_withDefaultTtl(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
@@ -69,7 +69,7 @@ func TestAccAzureRMServiceBusSubscription_updateEnableBatched(t *testing.T) {
 	preConfig := testAccAzureRMServiceBusSubscription_basic(ri, location)
 	postConfig := testAccAzureRMServiceBusSubscription_updateEnableBatched(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
@@ -102,7 +102,7 @@ func TestAccAzureRMServiceBusSubscription_updateRequiresSession(t *testing.T) {
 	preConfig := testAccAzureRMServiceBusSubscription_basic(ri, location)
 	postConfig := testAccAzureRMServiceBusSubscription_updateRequiresSession(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
@@ -137,7 +137,7 @@ func TestAccAzureRMServiceBusSubscription_updateForwardTo(t *testing.T) {
 
 	expectedValue := fmt.Sprintf("acctestservicebustopic-forward_to-%d", ri)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,

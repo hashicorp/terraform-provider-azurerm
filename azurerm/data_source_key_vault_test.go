@@ -14,7 +14,7 @@ func TestAccDataSourceAzureRMKeyVault_basic(t *testing.T) {
 	location := testLocation()
 	config := testAccDataSourceAzureRMKeyVault_basic(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
@@ -42,7 +42,7 @@ func TestAccDataSourceAzureRMKeyVault_complete(t *testing.T) {
 	location := testLocation()
 	config := testAccDataSourceAzureRMKeyVault_complete(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
@@ -71,7 +71,7 @@ func TestAccDataSourceAzureRMKeyVault_networkAcls(t *testing.T) {
 	location := testLocation()
 	config := testAccDataSourceAzureRMKeyVault_networkAcls(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,

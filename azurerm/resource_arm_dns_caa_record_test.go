@@ -16,7 +16,7 @@ func TestAccAzureRMDnsCaaRecord_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMDnsCaaRecord_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsCaaRecordDestroy,
@@ -43,7 +43,7 @@ func TestAccAzureRMDnsCaaRecord_updateRecords(t *testing.T) {
 	preConfig := testAccAzureRMDnsCaaRecord_basic(ri, location)
 	postConfig := testAccAzureRMDnsCaaRecord_updateRecords(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsCaaRecordDestroy,
@@ -73,7 +73,7 @@ func TestAccAzureRMDnsCaaRecord_withTags(t *testing.T) {
 	preConfig := testAccAzureRMDnsCaaRecord_withTags(ri, location)
 	postConfig := testAccAzureRMDnsCaaRecord_withTagsUpdate(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsCaaRecordDestroy,

@@ -14,7 +14,7 @@ import (
 func TestAccAzureRMTemplateDeployment_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMTemplateDeployment_basicMultiple(ri, testLocation())
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
@@ -32,7 +32,7 @@ func TestAccAzureRMTemplateDeployment_basic(t *testing.T) {
 func TestAccAzureRMTemplateDeployment_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMTemplateDeployment_basicSingle(ri, testLocation())
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
@@ -52,7 +52,7 @@ func TestAccAzureRMTemplateDeployment_disappears(t *testing.T) {
 func TestAccAzureRMTemplateDeployment_withParams(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMTemplateDeployment_withParams(ri, testLocation())
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
@@ -71,7 +71,7 @@ func TestAccAzureRMTemplateDeployment_withParams(t *testing.T) {
 func TestAccAzureRMTemplateDeployment_withParamsBody(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testaccAzureRMTemplateDeployment_withParamsBody(ri, testLocation())
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
@@ -91,7 +91,7 @@ func TestAccAzureRMTemplateDeployment_withParamsBody(t *testing.T) {
 func TestAccAzureRMTemplateDeployment_withOutputs(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMTemplateDeployment_withOutputs(ri, testLocation())
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
@@ -119,7 +119,7 @@ func TestAccAzureRMTemplateDeployment_withOutputs(t *testing.T) {
 func TestAccAzureRMTemplateDeployment_withError(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMTemplateDeployment_withError(ri, testLocation())
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,

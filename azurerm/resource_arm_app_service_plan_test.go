@@ -54,7 +54,7 @@ func TestAccAzureRMAppServicePlan_basicWindows(t *testing.T) {
 	resourceName := "azurerm_app_service_plan.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
@@ -78,7 +78,7 @@ func TestAccAzureRMAppServicePlan_basicLinux(t *testing.T) {
 	resourceName := "azurerm_app_service_plan.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
@@ -102,7 +102,7 @@ func TestAccAzureRMAppServicePlan_standardWindows(t *testing.T) {
 	resourceName := "azurerm_app_service_plan.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
@@ -126,7 +126,7 @@ func TestAccAzureRMAppServicePlan_premiumWindows(t *testing.T) {
 	resourceName := "azurerm_app_service_plan.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
@@ -153,7 +153,7 @@ func TestAccAzureRMAppServicePlan_premiumWindowsUpdated(t *testing.T) {
 	config := testAccAzureRMAppServicePlan_premiumWindows(ri, location)
 	updatedConfig := testAccAzureRMAppServicePlan_premiumWindowsUpdated(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
@@ -181,7 +181,7 @@ func TestAccAzureRMAppServicePlan_completeWindows(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServicePlan_completeWindows(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
@@ -208,7 +208,7 @@ func TestAccAzureRMAppServicePlan_consumptionPlan(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServicePlan_consumptionPlan(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,

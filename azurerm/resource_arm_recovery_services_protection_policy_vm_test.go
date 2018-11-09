@@ -15,7 +15,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_basicDaily(t *testing.T) {
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
@@ -37,7 +37,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_basicWeekly(t *testing.T) 
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
@@ -59,7 +59,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_completeDaily(t *testing.T
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
@@ -81,7 +81,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_completeWeekly(t *testing.
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
@@ -103,7 +103,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateDaily(t *testing.T) 
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
@@ -129,7 +129,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateWeekly(t *testing.T)
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
@@ -154,7 +154,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateWeekly(t *testing.T)
 func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateDailyToWeekly(t *testing.T) {
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
 	ri := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
@@ -179,7 +179,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateDailyToWeekly(t *tes
 func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateWeeklyToDaily(t *testing.T) {
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
 	ri := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
@@ -205,7 +205,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateWeeklyToPartial(t *t
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,

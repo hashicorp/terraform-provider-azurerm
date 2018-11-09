@@ -14,7 +14,7 @@ func TestAccAzureRMAutomationModule_basic(t *testing.T) {
 	resourceName := "azurerm_automation_module.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationModuleDestroy,

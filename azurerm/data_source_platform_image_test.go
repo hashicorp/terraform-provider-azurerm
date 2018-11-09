@@ -11,7 +11,7 @@ func TestAccDataSourceAzureRMPlatformImage_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_platform_image.test"
 	config := testAccDataSourceAzureRMPlatformImageBasic(testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,

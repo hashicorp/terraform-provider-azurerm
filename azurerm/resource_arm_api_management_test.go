@@ -15,7 +15,7 @@ func TestAccAzureRMApiManagement_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMApiManagement_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMApiManagementDestroy,
@@ -40,7 +40,7 @@ func TestAccAzureRMApiManagement_customProps(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMApiManagement_customProps(ri, testAltLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMApiManagementDestroy,
@@ -65,7 +65,7 @@ func TestAccAzureRMApiManagement_complete(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMApiManagement_complete(ri, testLocation(), testAltLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMApiManagementDestroy,

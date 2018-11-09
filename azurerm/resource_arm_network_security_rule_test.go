@@ -15,7 +15,7 @@ import (
 func TestAccAzureRMNetworkSecurityRule_basic(t *testing.T) {
 	resourceName := "azurerm_network_security_rule.test"
 	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
@@ -39,7 +39,7 @@ func TestAccAzureRMNetworkSecurityRule_disappears(t *testing.T) {
 	resourceGroup := "azurerm_network_security_rule.test"
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
@@ -59,7 +59,7 @@ func TestAccAzureRMNetworkSecurityRule_disappears(t *testing.T) {
 func TestAccAzureRMNetworkSecurityRule_addingRules(t *testing.T) {
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
@@ -84,7 +84,7 @@ func TestAccAzureRMNetworkSecurityRule_addingRules(t *testing.T) {
 func TestAccAzureRMNetworkSecurityRule_augmented(t *testing.T) {
 	resourceName := "azurerm_network_security_rule.test1"
 	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
@@ -107,7 +107,7 @@ func TestAccAzureRMNetworkSecurityRule_augmented(t *testing.T) {
 func TestAccAzureRMNetworkSecurityRule_applicationSecurityGroups(t *testing.T) {
 	resourceName := "azurerm_network_security_rule.test1"
 	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,

@@ -67,7 +67,7 @@ func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMServiceBusNamespace_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
@@ -92,7 +92,7 @@ func TestAccAzureRMServiceBusNamespace_readDefaultKeys(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMServiceBusNamespace_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
@@ -121,7 +121,7 @@ func TestAccAzureRMServiceBusNamespace_NonStandardCasing(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMServiceBusNamespaceNonStandardCasing(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
@@ -151,7 +151,7 @@ func TestAccAzureRMServiceBusNamespace_premium(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMServiceBusNamespace_premium(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,

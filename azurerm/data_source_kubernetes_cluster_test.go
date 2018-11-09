@@ -17,7 +17,7 @@ func TestAccDataSourceAzureRMKubernetesCluster_basic(t *testing.T) {
 	location := testLocation()
 	config := testAccDataSourceAzureRMKubernetesCluster_basic(ri, clientId, clientSecret, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -46,7 +46,7 @@ func TestAccDataSourceAzureRMKubernetesCluster_internalNetwork(t *testing.T) {
 	location := testLocation()
 	config := testAccDataSourceAzureRMKubernetesCluster_internalNetwork(ri, clientId, clientSecret, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -70,7 +70,7 @@ func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzure(t *testin
 	location := testLocation()
 	config := testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzure(ri, clientId, clientSecret, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -99,7 +99,7 @@ func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureComplete(t
 	location := testLocation()
 	config := testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureComplete(ri, clientId, clientSecret, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -128,7 +128,7 @@ func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenet(t *test
 	location := testLocation()
 	config := testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenet(ri, clientId, clientSecret, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -157,7 +157,7 @@ func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenetComplete
 	location := testLocation()
 	config := testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenetComplete(ri, clientId, clientSecret, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -186,7 +186,7 @@ func TestAccDataSourceAzureRMKubernetesCluster_addOnProfileOMS(t *testing.T) {
 	location := testLocation()
 	config := testAccDataSourceAzureRMKubernetesCluster_addOnProfileOMS(ri, clientId, clientSecret, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -213,7 +213,7 @@ func TestAccDataSourceAzureRMKubernetesCluster_addOnProfileRouting(t *testing.T)
 	location := testLocation()
 	config := testAccDataSourceAzureRMKubernetesCluster_addOnProfileRouting(ri, clientId, clientSecret, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,

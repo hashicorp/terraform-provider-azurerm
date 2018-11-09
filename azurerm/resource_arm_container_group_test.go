@@ -17,7 +17,7 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentials(t *testing.T) {
 
 	config := testAccAzureRMContainerGroup_imageRegistryCredentials(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
@@ -55,7 +55,7 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 	config := testAccAzureRMContainerGroup_imageRegistryCredentials(ri, testLocation())
 	updated := testAccAzureRMContainerGroup_imageRegistryCredentialsUpdated(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
@@ -93,7 +93,7 @@ func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
 
 	config := testAccAzureRMContainerGroup_linuxBasic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
@@ -126,7 +126,7 @@ func TestAccAzureRMContainerGroup_linuxBasicUpdate(t *testing.T) {
 	config := testAccAzureRMContainerGroup_linuxBasic(ri, testLocation())
 	updatedConfig := testAccAzureRMContainerGroup_linuxBasicUpdated(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
@@ -155,7 +155,7 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 
 	config := testAccAzureRMContainerGroup_linuxComplete(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
@@ -205,7 +205,7 @@ func TestAccAzureRMContainerGroup_windowsBasic(t *testing.T) {
 
 	config := testAccAzureRMContainerGroup_windowsBasic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
@@ -233,7 +233,7 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 
 	config := testAccAzureRMContainerGroup_windowsComplete(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,

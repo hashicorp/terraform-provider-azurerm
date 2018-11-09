@@ -15,7 +15,7 @@ func TestAccAzureRMPostgreSQLDatabase_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMPostgreSQLDatabase_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
@@ -37,7 +37,7 @@ func TestAccAzureRMPostgreSQLDatabase_charsetLowercase(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMPostgreSQLDatabase_charsetLowercase(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
@@ -59,7 +59,7 @@ func TestAccAzureRMPostgreSQLDatabase_charsetMixedcase(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMPostgreSQLDatabase_charsetMixedcase(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,

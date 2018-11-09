@@ -15,7 +15,7 @@ func TestAccDataSourceAzureRMKeyVaultSecret_basic(t *testing.T) {
 	location := testLocation()
 	config := testAccDataSourceKeyVaultSecret_basic(rString, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -37,7 +37,7 @@ func TestAccDataSourceAzureRMKeyVaultSecret_complete(t *testing.T) {
 	location := testLocation()
 	config := testAccDataSourceKeyVaultSecret_complete(rString, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{

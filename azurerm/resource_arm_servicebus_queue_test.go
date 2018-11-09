@@ -16,7 +16,7 @@ func TestAccAzureRMServiceBusQueue_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMServiceBusQueue_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
@@ -45,7 +45,7 @@ func TestAccAzureRMServiceBusQueue_update(t *testing.T) {
 	preConfig := testAccAzureRMServiceBusQueue_basic(ri, location)
 	postConfig := testAccAzureRMServiceBusQueue_update(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
@@ -80,7 +80,7 @@ func TestAccAzureRMServiceBusQueue_enablePartitioningStandard(t *testing.T) {
 	preConfig := testAccAzureRMServiceBusQueue_basic(ri, location)
 	postConfig := testAccAzureRMServiceBusQueue_enablePartitioningStandard(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
@@ -109,7 +109,7 @@ func TestAccAzureRMServiceBusQueue_defaultEnablePartitioningPremium(t *testing.T
 	ri := acctest.RandInt()
 	config := testAccAzureRMServiceBusQueue_Premium(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
@@ -138,7 +138,7 @@ func TestAccAzureRMServiceBusQueue_enableDuplicateDetection(t *testing.T) {
 	preConfig := testAccAzureRMServiceBusQueue_basic(ri, location)
 	postConfig := testAccAzureRMServiceBusQueue_enableDuplicateDetection(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
@@ -170,7 +170,7 @@ func TestAccAzureRMServiceBusQueue_enableRequiresSession(t *testing.T) {
 	location := testLocation()
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
@@ -202,7 +202,7 @@ func TestAccAzureRMServiceBusQueue_enableDeadLetteringOnMessageExpiration(t *tes
 	location := testLocation()
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
@@ -237,7 +237,7 @@ func TestAccAzureRMServiceBusQueue_lockDuration(t *testing.T) {
 	config := testAccAzureRMServiceBusQueue_lockDuration(ri, location)
 	updatedConfig := testAccAzureRMServiceBusQueue_lockDurationUpdated(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
@@ -270,7 +270,7 @@ func TestAccAzureRMServiceBusQueue_isoTimeSpanAttributes(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMServiceBusQueue_isoTimeSpanAttributes(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
@@ -299,7 +299,7 @@ func TestAccAzureRMServiceBusQueue_maxDeliveryCount(t *testing.T) {
 	location := testLocation()
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,

@@ -16,7 +16,7 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 	config := testAccAzureRMVirtualMachineDataDiskAttachment_basic(ri, location)
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
@@ -46,7 +46,7 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(t *testing.T) 
 	ri := acctest.RandInt()
 	location := testLocation()
 	config := testAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(ri, location)
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
@@ -85,7 +85,7 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_updatingCaching(t *testing.T
 	resourceName := "azurerm_virtual_machine_data_disk_attachment.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
@@ -119,7 +119,7 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_updatingWriteAccelerator(t *
 	resourceName := "azurerm_virtual_machine_data_disk_attachment.test"
 	ri := acctest.RandInt()
 	location := testAltLocation()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
@@ -153,7 +153,7 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_virtualMachineExtension(t *t
 	resourceName := "azurerm_virtual_machine_data_disk_attachment.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,

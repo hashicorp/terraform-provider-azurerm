@@ -13,7 +13,7 @@ func TestAccDataSourceAzureRMAzureADServicePrincipal_byApplicationId(t *testing.
 	id := uuid.New().String()
 	config := testAccDataSourceAzureRMAzureADServicePrincipal_byApplicationId(id)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryServicePrincipalDestroy,
@@ -36,7 +36,7 @@ func TestAccDataSourceAzureRMAzureADServicePrincipal_byDisplayName(t *testing.T)
 	id := uuid.New().String()
 	config := testAccDataSourceAzureRMAzureADServicePrincipal_byDisplayName(id)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryServicePrincipalDestroy,
@@ -59,7 +59,7 @@ func TestAccDataSourceAzureRMAzureADServicePrincipal_byObjectId(t *testing.T) {
 	id := uuid.New().String()
 	config := testAccDataSourceAzureRMAzureADServicePrincipal_byObjectId(id)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryServicePrincipalDestroy,

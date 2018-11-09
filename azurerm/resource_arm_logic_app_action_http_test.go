@@ -12,7 +12,7 @@ func TestAccAzureRMLogicAppActionHttp_basic(t *testing.T) {
 	resourceName := "azurerm_logic_app_action_http.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMLogicAppActionHttp_basic(ri, testLocation())
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
@@ -36,7 +36,7 @@ func TestAccAzureRMLogicAppActionHttp_headers(t *testing.T) {
 	resourceName := "azurerm_logic_app_action_http.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMLogicAppActionHttp_headers(ri, testLocation())
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
@@ -59,7 +59,7 @@ func TestAccAzureRMLogicAppActionHttp_headers(t *testing.T) {
 func TestAccAzureRMLogicAppActionHttp_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,

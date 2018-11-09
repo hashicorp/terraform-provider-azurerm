@@ -15,7 +15,7 @@ func TestAccAzureRMEventHubNamespace_basic(t *testing.T) {
 	resourceName := "azurerm_eventhub_namespace.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
@@ -39,7 +39,7 @@ func TestAccAzureRMEventHubNamespace_standard(t *testing.T) {
 	resourceName := "azurerm_eventhub_namespace.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
@@ -63,7 +63,7 @@ func TestAccAzureRMEventHubNamespace_readDefaultKeys(t *testing.T) {
 	resourceName := "azurerm_eventhub_namespace.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
@@ -86,7 +86,7 @@ func TestAccAzureRMEventHubNamespace_maximumThroughputUnits(t *testing.T) {
 	resourceName := "azurerm_eventhub_namespace.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
@@ -111,7 +111,7 @@ func TestAccAzureRMEventHubNamespace_NonStandardCasing(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMEventHubNamespaceNonStandardCasing(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
@@ -137,7 +137,7 @@ func TestAccAzureRMEventHubNamespace_BasicWithTagsUpdate(t *testing.T) {
 	preConfig := testAccAzureRMEventHubNamespace_basic(ri, testLocation())
 	postConfig := testAccAzureRMEventHubNamespace_basicWithTagsUpdate(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
@@ -164,7 +164,7 @@ func TestAccAzureRMEventHubNamespace_BasicWithCapacity(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMEventHubNamespace_capacity(ri, testLocation(), 20)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
@@ -186,7 +186,7 @@ func TestAccAzureRMEventHubNamespace_BasicWithCapacityUpdate(t *testing.T) {
 	preConfig := testAccAzureRMEventHubNamespace_capacity(ri, testLocation(), 20)
 	postConfig := testAccAzureRMEventHubNamespace_capacity(ri, testLocation(), 2)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
@@ -215,7 +215,7 @@ func TestAccAzureRMEventHubNamespace_BasicWithSkuUpdate(t *testing.T) {
 	preConfig := testAccAzureRMEventHubNamespace_basic(ri, testLocation())
 	postConfig := testAccAzureRMEventHubNamespace_standard(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
@@ -245,7 +245,7 @@ func TestAccAzureRMEventHubNamespace_maximumThroughputUnitsUpdate(t *testing.T) 
 	preConfig := testAccAzureRMEventHubNamespace_maximumThroughputUnits(ri, testLocation())
 	postConfig := testAccAzureRMEventHubNamespace_maximumThroughputUnitsUpdate(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
@@ -276,7 +276,7 @@ func TestAccAzureRMEventHubNamespace_autoInfalteDisabledWithAutoInflateUnits(t *
 	resourceName := "azurerm_eventhub_namespace.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,

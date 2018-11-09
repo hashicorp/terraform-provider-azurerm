@@ -13,7 +13,7 @@ func TestAccDataSourceAzureRMCdnProfile_basic(t *testing.T) {
 	location := testLocation()
 	config := testAccDataSourceAzureRMCdnProfile_basic(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
@@ -34,7 +34,7 @@ func TestAccDataSourceAzureRMCdnProfile_withTags(t *testing.T) {
 	location := testLocation()
 	preConfig := testAccDataSourceAzureRMCdnProfile_withTags(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,

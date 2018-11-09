@@ -14,7 +14,7 @@ func TestAccAzureRMIotHub_basic(t *testing.T) {
 	resourceName := "azurerm_iothub.test"
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMIotHubDestroy,
@@ -37,7 +37,7 @@ func TestAccAzureRMIotHub_standard(t *testing.T) {
 	resourceName := "azurerm_iothub.test"
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMIotHubDestroy,
@@ -62,7 +62,7 @@ func TestAccAzureRMIotHub_customRoutes(t *testing.T) {
 	rInt := acctest.RandInt()
 	rStr := acctest.RandString(5)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMIotHubDestroy,

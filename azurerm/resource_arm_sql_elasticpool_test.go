@@ -15,7 +15,7 @@ func TestAccAzureRMSqlElasticPool_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSqlElasticPool_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlElasticPoolDestroy,
@@ -40,7 +40,7 @@ func TestAccAzureRMSqlElasticPool_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSqlElasticPool_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlElasticPoolDestroy,
@@ -64,7 +64,7 @@ func TestAccAzureRMSqlElasticPool_resizeDtu(t *testing.T) {
 	preConfig := testAccAzureRMSqlElasticPool_basic(ri, location)
 	postConfig := testAccAzureRMSqlElasticPool_resizedDtu(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlElasticPoolDestroy,

@@ -17,7 +17,7 @@ func TestAccAzureRMTrafficManagerEndpoint_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMTrafficManagerEndpoint_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
@@ -46,7 +46,7 @@ func TestAccAzureRMTrafficManagerEndpoint_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMTrafficManagerEndpoint_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
@@ -73,7 +73,7 @@ func TestAccAzureRMTrafficManagerEndpoint_basicDisableExternal(t *testing.T) {
 	preConfig := testAccAzureRMTrafficManagerEndpoint_basic(ri, testLocation())
 	postConfig := testAccAzureRMTrafficManagerEndpoint_basicDisableExternal(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
@@ -110,7 +110,7 @@ func TestAccAzureRMTrafficManagerEndpoint_updateWeight(t *testing.T) {
 	preConfig := testAccAzureRMTrafficManagerEndpoint_weight(ri, location)
 	postConfig := testAccAzureRMTrafficManagerEndpoint_updateWeight(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
@@ -147,7 +147,7 @@ func TestAccAzureRMTrafficManagerEndpoint_updatePriority(t *testing.T) {
 	preConfig := testAccAzureRMTrafficManagerEndpoint_priority(ri, location)
 	postConfig := testAccAzureRMTrafficManagerEndpoint_updatePriority(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
@@ -178,7 +178,7 @@ func TestAccAzureRMTrafficManagerEndpoint_nestedEndpoints(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMTrafficManagerEndpoint_nestedEndpoints(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
@@ -201,7 +201,7 @@ func TestAccAzureRMTrafficManagerEndpoint_location(t *testing.T) {
 	first := testAccAzureRMTrafficManagerEndpoint_location(ri, location)
 	second := testAccAzureRMTrafficManagerEndpoint_locationUpdated(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
@@ -229,7 +229,7 @@ func TestAccAzureRMTrafficManagerEndpoint_withGeoMappings(t *testing.T) {
 	first := testAccAzureRMTrafficManagerEndpoint_geoMappings(ri, location)
 	second := testAccAzureRMTrafficManagerEndpoint_geoMappingsUpdated(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,

@@ -64,7 +64,7 @@ func TestAccAzureRMSnapshot_fromManagedDisk(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSnapshot_fromManagedDisk(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSnapshotDestroy,
@@ -91,7 +91,7 @@ func TestAccAzureRMSnapshot_encryption(t *testing.T) {
 	rs := acctest.RandString(4)
 	config := testAccAzureRMSnapshot_encryption(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSnapshotDestroy,
@@ -118,7 +118,7 @@ func TestAccAzureRMSnapshot_update(t *testing.T) {
 	config := testAccAzureRMSnapshot_fromManagedDisk(ri, testLocation())
 	updatedConfig := testAccAzureRMSnapshot_fromManagedDiskUpdated(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSnapshotDestroy,
@@ -144,7 +144,7 @@ func TestAccAzureRMSnapshot_extendingManagedDisk(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSnapshot_extendingManagedDisk(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSnapshotDestroy,
@@ -164,7 +164,7 @@ func TestAccAzureRMSnapshot_fromExistingSnapshot(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSnapshot_fromExistingSnapshot(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSnapshotDestroy,
@@ -185,7 +185,7 @@ func TestAccAzureRMSnapshot_fromUnmanagedDisk(t *testing.T) {
 	rs := acctest.RandString(4)
 	config := testAccAzureRMSnapshot_fromUnmanagedDisk(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSnapshotDestroy,

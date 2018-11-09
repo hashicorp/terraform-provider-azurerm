@@ -13,7 +13,7 @@ func TestAccDataSourceAzureRMCosmosDBAccount_boundedStaleness_complete(t *testin
 	ri := acctest.RandInt()
 	dataSourceName := "data.azurerm_cosmosdb_account.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
@@ -34,7 +34,7 @@ func TestAccDataSourceAzureRMCosmosDBAccount_geoReplicated_customId(t *testing.T
 	ri := acctest.RandInt()
 	dataSourceName := "data.azurerm_cosmosdb_account.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
@@ -57,7 +57,7 @@ func TestAccDataSourceAzureRMCosmosDBAccount_virtualNetworkFilter(t *testing.T) 
 	ri := acctest.RandInt()
 	dataSourceName := "data.azurerm_cosmosdb_account.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
@@ -79,7 +79,7 @@ func TestAccDataSourceAzureRMCosmosDBAccount_complete(t *testing.T) {
 	ri := acctest.RandInt()
 	dataSourceName := "data.azurerm_cosmosdb_account.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,

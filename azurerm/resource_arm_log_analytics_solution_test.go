@@ -15,7 +15,7 @@ func TestAccAzureRMLogAnalyticsSolution_basicContainerMonitoring(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMLogAnalyticsSolution_containerMonitoring(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsSolutionDestroy,
 		Steps: []resource.TestStep{
@@ -39,7 +39,7 @@ func TestAccAzureRMLogAnalyticsSolution_basicSecurity(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMLogAnalyticsSolution_security(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsSolutionDestroy,
 		Steps: []resource.TestStep{

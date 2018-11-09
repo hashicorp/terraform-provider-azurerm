@@ -16,7 +16,7 @@ func TestAccDataSourceAzureRMStorageAccount_basic(t *testing.T) {
 	preConfig := testAccDataSourceAzureRMStorageAccount_basic(ri, rs, location)
 	config := testAccDataSourceAzureRMStorageAccount_basicWithDataSource(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,

@@ -15,7 +15,7 @@ func TestAccAzureRMCdnEndpoint_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMCdnEndpoint_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
@@ -40,7 +40,7 @@ func TestAccAzureRMCdnEndpoint_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMCdnEndpoint_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
@@ -64,7 +64,7 @@ func TestAccAzureRMCdnEndpoint_updateHostHeader(t *testing.T) {
 	config := testAccAzureRMCdnEndpoint_hostHeader(ri, "www.example.com", location)
 	updatedConfig := testAccAzureRMCdnEndpoint_hostHeader(ri, "www.example2.com", location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
@@ -94,7 +94,7 @@ func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
 	preConfig := testAccAzureRMCdnEndpoint_withTags(ri, location)
 	postConfig := testAccAzureRMCdnEndpoint_withTagsUpdate(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
@@ -134,7 +134,7 @@ func TestAccAzureRMCdnEndpoint_optimized(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMCdnEndpoint_optimized(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
@@ -155,7 +155,7 @@ func TestAccAzureRMCdnEndpoint_withGeoFilters(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMCdnEndpoint_geoFilters(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
@@ -175,7 +175,7 @@ func TestAccAzureRMCdnEndpoint_fullFields(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMCdnEndpoint_fullFields(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
@@ -209,7 +209,7 @@ func TestAccAzureRMCdnEndpoint_isHttpAndHttpsAllowedUpdate(t *testing.T) {
 	config := testAccAzureRMCdnEndpoint_isHttpAndHttpsAllowed(ri, location, "true", "false")
 	updatedConfig := testAccAzureRMCdnEndpoint_isHttpAndHttpsAllowed(ri, location, "false", "true")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,

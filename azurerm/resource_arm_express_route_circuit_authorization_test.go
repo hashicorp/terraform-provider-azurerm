@@ -15,7 +15,7 @@ func testAccAzureRMExpressRouteCircuitAuthorization_basic(t *testing.T) {
 	resourceName := "azurerm_express_route_circuit_authorization.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitAuthorizationDestroy,
@@ -41,7 +41,7 @@ func testAccAzureRMExpressRouteCircuitAuthorization_multiple(t *testing.T) {
 	secondResourceName := "azurerm_express_route_circuit_authorization.test2"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitAuthorizationDestroy,

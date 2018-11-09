@@ -15,7 +15,7 @@ func TestAccAzureRMRouteTable_basic(t *testing.T) {
 	resourceName := "azurerm_route_table.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
@@ -36,7 +36,7 @@ func TestAccAzureRMRouteTable_complete(t *testing.T) {
 	resourceName := "azurerm_route_table.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
@@ -57,7 +57,7 @@ func TestAccAzureRMRouteTable_update(t *testing.T) {
 	resourceName := "azurerm_route_table.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
@@ -95,7 +95,7 @@ func TestAccAzureRMRouteTable_singleRoute(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMRouteTable_singleRoute(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
@@ -121,7 +121,7 @@ func TestAccAzureRMRouteTable_removeRoute(t *testing.T) {
 	config := testAccAzureRMRouteTable_singleRoute(ri, testLocation())
 	updatedConfig := testAccAzureRMRouteTable_singleRouteRemoved(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
@@ -149,7 +149,7 @@ func TestAccAzureRMRouteTable_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMRouteTable_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
@@ -172,7 +172,7 @@ func TestAccAzureRMRouteTable_withTags(t *testing.T) {
 	preConfig := testAccAzureRMRouteTable_withTags(ri, testLocation())
 	postConfig := testAccAzureRMRouteTable_withTagsUpdate(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
@@ -204,7 +204,7 @@ func TestAccAzureRMRouteTable_multipleRoutes(t *testing.T) {
 	preConfig := testAccAzureRMRouteTable_singleRoute(ri, testLocation())
 	postConfig := testAccAzureRMRouteTable_multipleRoutes(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
@@ -246,7 +246,7 @@ func TestAccAzureRMRouteTable_withTagsSubnet(t *testing.T) {
 	configSetup := testAccAzureRMRouteTable_withTagsSubnet(ri, testLocation())
 	configTest := testAccAzureRMRouteTable_withAddTagsSubnet(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,

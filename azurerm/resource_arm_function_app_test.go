@@ -18,7 +18,7 @@ func TestAccAzureRMFunctionApp_basic(t *testing.T) {
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMFunctionApp_basic(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
@@ -46,7 +46,7 @@ func TestAccAzureRMFunctionApp_tags(t *testing.T) {
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMFunctionApp_tags(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
@@ -75,7 +75,7 @@ func TestAccAzureRMFunctionApp_tagsUpdate(t *testing.T) {
 	config := testAccAzureRMFunctionApp_tags(ri, rs, testLocation())
 	updatedConfig := testAccAzureRMFunctionApp_tagsUpdated(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
@@ -108,7 +108,7 @@ func TestAccAzureRMFunctionApp_appSettings(t *testing.T) {
 	config := testAccAzureRMFunctionApp_basic(ri, rs, testLocation())
 	updatedConfig := testAccAzureRMFunctionApp_appSettings(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
@@ -151,7 +151,7 @@ func TestAccAzureRMFunctionApp_siteConfig(t *testing.T) {
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMFunctionApp_alwaysOn(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
@@ -178,7 +178,7 @@ func TestAccAzureRMFunctionApp_connectionStrings(t *testing.T) {
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMFunctionApp_connectionStrings(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
@@ -210,7 +210,7 @@ func TestAccAzureRMFunctionApp_siteConfigMulti(t *testing.T) {
 	configUpdate2 := testAccAzureRMFunctionApp_appSettingsAlwaysOn(ri, rs, testLocation())
 	configUpdate3 := testAccAzureRMFunctionApp_appSettingsAlwaysOnConnectionStrings(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
@@ -262,7 +262,7 @@ func TestAccAzureRMFunctionApp_updateVersion(t *testing.T) {
 	preConfig := testAccAzureRMFunctionApp_version(ri, rs, testLocation(), "~1")
 	postConfig := testAccAzureRMFunctionApp_version(ri, rs, testLocation(), "~2")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
@@ -293,7 +293,7 @@ func TestAccAzureRMFunctionApp_3264bit(t *testing.T) {
 	config := testAccAzureRMFunctionApp_basic(ri, rs, location)
 	updatedConfig := testAccAzureRMFunctionApp_64bit(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
@@ -323,7 +323,7 @@ func TestAccAzureRMFunctionApp_httpsOnly(t *testing.T) {
 	location := testLocation()
 	config := testAccAzureRMFunctionApp_httpsOnly(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
@@ -346,7 +346,7 @@ func TestAccAzureRMFunctionApp_consumptionPlan(t *testing.T) {
 	location := testLocation()
 	config := testAccAzureRMFunctionApp_consumptionPlan(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
@@ -370,7 +370,7 @@ func TestAccAzureRMFunctionApp_consumptionPlanUppercaseName(t *testing.T) {
 	location := testLocation()
 	config := testAccAzureRMFunctionApp_consumptionPlanUppercaseName(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
@@ -400,7 +400,7 @@ func TestAccAzureRMFunctionApp_createIdentity(t *testing.T) {
 
 	uuidMatch := regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
@@ -429,7 +429,7 @@ func TestAccAzureRMFunctionApp_updateIdentity(t *testing.T) {
 
 	uuidMatch := regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,

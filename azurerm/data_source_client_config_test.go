@@ -15,7 +15,7 @@ func TestAccDataSourceAzureRMClientConfig_basic(t *testing.T) {
 	tenantId := os.Getenv("ARM_TENANT_ID")
 	subscriptionId := os.Getenv("ARM_SUBSCRIPTION_ID")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{

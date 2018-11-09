@@ -15,7 +15,7 @@ func TestAccAzureRMSearchService_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSearchService_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
@@ -41,7 +41,7 @@ func TestAccAzureRMSearchService_complete(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSearchService_complete(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSearchServiceDestroy,

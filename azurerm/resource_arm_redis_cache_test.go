@@ -108,7 +108,7 @@ func TestAccAzureRMRedisCache_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMRedisCache_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
@@ -133,7 +133,7 @@ func TestAccAzureRMRedisCache_standard(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMRedisCache_standard(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
@@ -158,7 +158,7 @@ func TestAccAzureRMRedisCache_premium(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMRedisCache_premium(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
@@ -183,7 +183,7 @@ func TestAccAzureRMRedisCache_premiumSharded(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMRedisCache_premiumSharded(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
@@ -209,7 +209,7 @@ func TestAccAzureRMRedisCache_premiumShardedScaling(t *testing.T) {
 	config := testAccAzureRMRedisCache_premiumSharded(ri, testLocation())
 	config_scaled := testAccAzureRMRedisCache_premiumShardedScaled(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
@@ -235,7 +235,7 @@ func TestAccAzureRMRedisCache_NonStandardCasing(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMRedisCacheNonStandardCasing(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
@@ -261,7 +261,7 @@ func TestAccAzureRMRedisCache_BackupDisabled(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMRedisCacheBackupDisabled(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
@@ -282,7 +282,7 @@ func TestAccAzureRMRedisCache_BackupEnabled(t *testing.T) {
 	rs := acctest.RandString(4)
 	config := testAccAzureRMRedisCacheBackupEnabled(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
@@ -316,7 +316,7 @@ func TestAccAzureRMRedisCache_BackupEnabledDisabled(t *testing.T) {
 	config := testAccAzureRMRedisCacheBackupEnabled(ri, rs, location)
 	updatedConfig := testAccAzureRMRedisCacheBackupDisabled(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
@@ -353,7 +353,7 @@ func TestAccAzureRMRedisCache_PatchSchedule(t *testing.T) {
 	location := testLocation()
 	config := testAccAzureRMRedisCachePatchSchedule(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
@@ -380,7 +380,7 @@ func TestAccAzureRMRedisCache_PatchScheduleUpdated(t *testing.T) {
 	config := testAccAzureRMRedisCachePatchSchedule(ri, location)
 	updatedConfig := testAccAzureRMRedisCache_premium(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
@@ -406,7 +406,7 @@ func TestAccAzureRMRedisCache_InternalSubnet(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMRedisCache_internalSubnet(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
@@ -431,7 +431,7 @@ func TestAccAzureRMRedisCache_InternalSubnetStaticIP(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMRedisCache_internalSubnetStaticIP(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
@@ -513,7 +513,7 @@ func TestAccAzureRMRedisCache_SubscribeAllEvents(t *testing.T) {
 	rs := acctest.RandString(4)
 	config := testAccAzureRMRedisCacheSubscribeAllEvents(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,

@@ -12,7 +12,7 @@ func TestAccDataSourceAzureRMSnapshot_importBasic(t *testing.T) {
 	dataSourceName := "data.azurerm_snapshot.snapshot"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -32,7 +32,7 @@ func TestAccDataSourceAzureRMSnapshot_importEncryption(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{

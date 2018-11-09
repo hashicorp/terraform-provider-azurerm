@@ -77,7 +77,7 @@ func TestAccAzureRMApplicationGateway_basic_base(t *testing.T) {
 	resourceName := "azurerm_application_gateway.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
@@ -102,7 +102,7 @@ func TestAccAzureRMApplicationGateway_basic_changeSslCert(t *testing.T) {
 	resourceName := "azurerm_application_gateway.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
@@ -130,7 +130,7 @@ func TestAccAzureRMApplicationGateway_basic_authCert(t *testing.T) {
 	resourceName := "azurerm_application_gateway.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
@@ -151,7 +151,7 @@ func TestAccAzureRMApplicationGateway_basic_changeAuthCert(t *testing.T) {
 	resourceName := "azurerm_application_gateway.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
@@ -186,7 +186,7 @@ func TestAccAzureRMApplicationGateway_waf(t *testing.T) {
 		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/applicationGateways/acctestgw-%d",
 		subscriptionID, ri, ri)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
@@ -212,7 +212,7 @@ func TestAccAzureRMApplicationGateway_probeResponseMatch(t *testing.T) {
 		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/applicationGateways/acctestgw-%d",
 		subscriptionID, ri, ri)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,

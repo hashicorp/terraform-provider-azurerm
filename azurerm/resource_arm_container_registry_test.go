@@ -73,7 +73,7 @@ func TestAccAzureRMContainerRegistry_basicClassic(t *testing.T) {
 	rs := acctest.RandString(4)
 	config := testAccAzureRMContainerRegistry_basicUnmanaged(ri, rs, testLocation(), "Classic")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
@@ -98,7 +98,7 @@ func TestAccAzureRMContainerRegistry_basicBasic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Basic")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
@@ -123,7 +123,7 @@ func TestAccAzureRMContainerRegistry_basicStandard(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Standard")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
@@ -148,7 +148,7 @@ func TestAccAzureRMContainerRegistry_basicPremium(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Premium")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
@@ -174,7 +174,7 @@ func TestAccAzureRMContainerRegistry_basicBasicUpgradePremium(t *testing.T) {
 	config := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Basic")
 	configUpdated := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Premium")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
@@ -203,7 +203,7 @@ func TestAccAzureRMContainerRegistry_complete(t *testing.T) {
 	rs := acctest.RandString(4)
 	config := testAccAzureRMContainerRegistry_complete(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
@@ -231,7 +231,7 @@ func TestAccAzureRMContainerRegistry_update(t *testing.T) {
 	config := testAccAzureRMContainerRegistry_complete(ri, rs, location)
 	updatedConfig := testAccAzureRMContainerRegistry_completeUpdated(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,

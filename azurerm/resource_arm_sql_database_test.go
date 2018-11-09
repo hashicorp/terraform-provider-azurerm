@@ -15,7 +15,7 @@ func TestAccAzureRMSqlDatabase_basic(t *testing.T) {
 	resourceName := "azurerm_sql_database.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
@@ -40,7 +40,7 @@ func TestAccAzureRMSqlDatabase_disappears(t *testing.T) {
 	resourceName := "azurerm_sql_database.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
@@ -61,7 +61,7 @@ func TestAccAzureRMSqlDatabase_elasticPool(t *testing.T) {
 	resourceName := "azurerm_sql_database.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
@@ -90,7 +90,7 @@ func TestAccAzureRMSqlDatabase_withTags(t *testing.T) {
 	preConfig := testAccAzureRMSqlDatabase_withTags(ri, location)
 	postConfig := testAccAzureRMSqlDatabase_withTagsUpdate(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
@@ -117,7 +117,7 @@ func TestAccAzureRMSqlDatabase_dataWarehouse(t *testing.T) {
 	resourceName := "azurerm_sql_database.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
@@ -147,7 +147,7 @@ func TestAccAzureRMSqlDatabase_restorePointInTime(t *testing.T) {
 	formattedTime := string(timeToRestore.UTC().Format(time.RFC3339))
 	postCongif := testAccAzureRMSqlDatabase_restorePointInTime(ri, formattedTime, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
@@ -178,7 +178,7 @@ func TestAccAzureRMSqlDatabase_collation(t *testing.T) {
 	preConfig := testAccAzureRMSqlDatabase_basic(ri, location)
 	postConfig := testAccAzureRMSqlDatabase_collationUpdate(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
@@ -208,7 +208,7 @@ func TestAccAzureRMSqlDatabase_requestedServiceObjectiveName(t *testing.T) {
 	preConfig := testAccAzureRMSqlDatabase_requestedServiceObjectiveName(ri, location, "S0")
 	postConfig := testAccAzureRMSqlDatabase_requestedServiceObjectiveName(ri, location, "S1")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
@@ -238,7 +238,7 @@ func TestAccAzureRMSqlDatabase_threatDetectionPolicy(t *testing.T) {
 	preConfig := testAccAzureRMSqlDatabase_threatDetectionPolicy(ri, location, "Enabled")
 	postConfig := testAccAzureRMSqlDatabase_threatDetectionPolicy(ri, location, "Disabled")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
@@ -356,7 +356,7 @@ func TestAccAzureRMSqlDatabase_bacpac(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSqlDatabase_bacpac(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,

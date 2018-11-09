@@ -17,7 +17,7 @@ func TestAccAzureRMAppServiceSlot_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServiceSlot_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -42,7 +42,7 @@ func TestAccAzureRMAppServiceSlot_32Bit(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServiceSlot_32Bit(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -68,7 +68,7 @@ func TestAccAzureRMAppServiceSlot_alwaysOn(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServiceSlot_alwaysOn(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -94,7 +94,7 @@ func TestAccAzureRMAppServiceSlot_appSettings(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServiceSlot_appSettings(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -120,7 +120,7 @@ func TestAccAzureRMAppServiceSlot_clientAffinityEnabled(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServiceSlot_clientAffinityEnabled(ri, testLocation(), true)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -142,7 +142,7 @@ func TestAccAzureRMAppServiceSlot_clientAffinityEnabledUpdate(t *testing.T) {
 	config := testAccAzureRMAppServiceSlot_clientAffinityEnabled(ri, testLocation(), true)
 	updatedConfig := testAccAzureRMAppServiceSlot_clientAffinityEnabled(ri, testLocation(), false)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -170,7 +170,7 @@ func TestAccAzureRMAppServiceSlot_connectionStrings(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServiceSlot_connectionStrings(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -193,7 +193,7 @@ func TestAccAzureRMAppServiceSlot_defaultDocuments(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServiceSlot_defaultDocuments(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -216,7 +216,7 @@ func TestAccAzureRMAppServiceSlot_enabled(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServiceSlot_enabled(ri, testLocation(), false)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -238,7 +238,7 @@ func TestAccAzureRMAppServiceSlot_enabledUpdate(t *testing.T) {
 	config := testAccAzureRMAppServiceSlot_enabled(ri, testLocation(), false)
 	updatedConfig := testAccAzureRMAppServiceSlot_enabled(ri, testLocation(), true)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -266,7 +266,7 @@ func TestAccAzureRMAppServiceSlot_httpsOnly(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServiceSlot_httpsOnly(ri, testLocation(), true)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -288,7 +288,7 @@ func TestAccAzureRMAppServiceSlot_httpsOnlyUpdate(t *testing.T) {
 	config := testAccAzureRMAppServiceSlot_httpsOnly(ri, testLocation(), true)
 	updatedConfig := testAccAzureRMAppServiceSlot_httpsOnly(ri, testLocation(), false)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -316,7 +316,7 @@ func TestAccAzureRMAppServiceSlot_http2Enabled(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServiceSlot_http2Enabled(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -337,7 +337,7 @@ func TestAccAzureRMAppServiceSlot_oneIpRestriction(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServiceSlot_oneIpRestriction(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -359,7 +359,7 @@ func TestAccAzureRMAppServiceSlot_manyIpRestrictions(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServiceSlot_manyIpRestrictions(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -387,7 +387,7 @@ func TestAccAzureRMAppServiceSlot_localMySql(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServiceSlot_localMySql(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -408,7 +408,7 @@ func TestAccAzureRMAppServiceSlot_managedPipelineMode(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServiceSlot_managedPipelineMode(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -430,7 +430,7 @@ func TestAccAzureRMAppServiceSlot_tagsUpdate(t *testing.T) {
 	config := testAccAzureRMAppServiceSlot_tags(ri, testLocation())
 	updatedConfig := testAccAzureRMAppServiceSlot_tagsUpdated(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -461,7 +461,7 @@ func TestAccAzureRMAppServiceSlot_remoteDebugging(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServiceSlot_remoteDebugging(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -483,7 +483,7 @@ func TestAccAzureRMAppServiceSlot_virtualNetwork(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -511,7 +511,7 @@ func TestAccAzureRMAppServiceSlot_windowsDotNet2(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServiceSlot_windowsDotNet(ri, testLocation(), "v2.0")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -532,7 +532,7 @@ func TestAccAzureRMAppServiceSlot_windowsDotNet4(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServiceSlot_windowsDotNet(ri, testLocation(), "v4.0")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -554,7 +554,7 @@ func TestAccAzureRMAppServiceSlot_windowsDotNetUpdate(t *testing.T) {
 	config := testAccAzureRMAppServiceSlot_windowsDotNet(ri, testLocation(), "v2.0")
 	updatedConfig := testAccAzureRMAppServiceSlot_windowsDotNet(ri, testLocation(), "v4.0")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -582,7 +582,7 @@ func TestAccAzureRMAppServiceSlot_windowsJava7Jetty(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServiceSlot_windowsJava(ri, testLocation(), "1.7", "JETTY", "9.3")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -605,7 +605,7 @@ func TestAccAzureRMAppServiceSlot_windowsJava8Jetty(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServiceSlot_windowsJava(ri, testLocation(), "1.8", "JETTY", "9.3")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -627,7 +627,7 @@ func TestAccAzureRMAppServiceSlot_windowsJava7Tomcat(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServiceSlot_windowsJava(ri, testLocation(), "1.7", "TOMCAT", "9.0")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -650,7 +650,7 @@ func TestAccAzureRMAppServiceSlot_windowsJava8Tomcat(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServiceSlot_windowsJava(ri, testLocation(), "1.8", "TOMCAT", "9.0")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -673,7 +673,7 @@ func TestAccAzureRMAppServiceSlot_windowsPHP7(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServiceSlot_windowsPHP(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -694,7 +694,7 @@ func TestAccAzureRMAppServiceSlot_windowsPython(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServiceSlot_windowsPython(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -715,7 +715,7 @@ func TestAccAzureRMAppServiceSlot_webSockets(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServiceSlot_webSockets(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -738,7 +738,7 @@ func TestAccAzureRMAppServiceSlot_enableManageServiceIdentity(t *testing.T) {
 
 	uuidMatch := regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
@@ -762,7 +762,7 @@ func TestAccAzureRMAppServiceSlot_minTls(t *testing.T) {
 	config := testAccAzureRMAppServiceSlot_minTls(ri, testLocation(), "1.0")
 	updatedConfig := testAccAzureRMAppServiceSlot_minTls(ri, testLocation(), "1.1")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,

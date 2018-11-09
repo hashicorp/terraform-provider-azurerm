@@ -44,7 +44,7 @@ func testAccAzureRMRoleAssignment_emptyName(t *testing.T) {
 	resourceName := "azurerm_role_assignment.test"
 	config := testAccAzureRMRoleAssignment_emptyNameConfig()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
@@ -70,7 +70,7 @@ func testAccAzureRMRoleAssignment_roleName(t *testing.T) {
 	id := uuid.New().String()
 	config := testAccAzureRMRoleAssignment_roleNameConfig(id)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
@@ -96,7 +96,7 @@ func testAccAzureRMRoleAssignment_dataActions(t *testing.T) {
 	resourceName := "azurerm_role_assignment.test"
 	config := testAccAzureRMRoleAssignment_dataActionsConfig(id)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
@@ -122,7 +122,7 @@ func testAccAzureRMRoleAssignment_builtin(t *testing.T) {
 	id := uuid.New().String()
 	config := testAccAzureRMRoleAssignment_builtinConfig(id)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
@@ -149,7 +149,7 @@ func testAccAzureRMRoleAssignment_custom(t *testing.T) {
 	rInt := acctest.RandInt()
 	config := testAccAzureRMRoleAssignment_customConfig(roleDefinitionId, roleAssignmentId, rInt)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,

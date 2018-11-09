@@ -16,7 +16,7 @@ func TestAccAzureRMSqlAdministrator_basic(t *testing.T) {
 	preConfig := testAccAzureRMSqlAdministrator_basic(ri, testLocation())
 	postConfig := testAccAzureRMSqlAdministrator_withUpdates(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlAdministratorDestroy,
@@ -49,7 +49,7 @@ func TestAccAzureRMSqlAdministrator_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSqlAdministrator_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlAdministratorDestroy,

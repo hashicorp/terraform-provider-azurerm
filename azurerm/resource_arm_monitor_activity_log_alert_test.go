@@ -16,7 +16,7 @@ func TestAccAzureRMMonitorActivityLogAlert_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMMonitorActivityLogAlert_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMonitorActivityLogAlertDestroy,
@@ -47,7 +47,7 @@ func TestAccAzureRMMonitorActivityLogAlert_singleResource(t *testing.T) {
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMMonitorActivityLogAlert_singleResource(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMonitorActivityLogAlertDestroy,
@@ -80,7 +80,7 @@ func TestAccAzureRMMonitorActivityLogAlert_complete(t *testing.T) {
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMMonitorActivityLogAlert_complete(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMonitorActivityLogAlertDestroy,
@@ -122,7 +122,7 @@ func TestAccAzureRMMonitorActivityLogAlert_basicAndCompleteUpdate(t *testing.T) 
 	basicConfig := testAccAzureRMMonitorActivityLogAlert_basic(ri, location)
 	completeConfig := testAccAzureRMMonitorActivityLogAlert_complete(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,

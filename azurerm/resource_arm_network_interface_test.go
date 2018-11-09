@@ -79,7 +79,7 @@ func testSweepNetworkInterfaces(region string) error {
 func TestAccAzureRMNetworkInterface_basic(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
 	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
@@ -102,7 +102,7 @@ func TestAccAzureRMNetworkInterface_basic(t *testing.T) {
 func TestAccAzureRMNetworkInterface_disappears(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
 	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
@@ -126,7 +126,7 @@ func TestAccAzureRMNetworkInterface_setNetworkSecurityGroupId(t *testing.T) {
 	config := testAccAzureRMNetworkInterface_basic(rInt, location)
 	updatedConfig := testAccAzureRMNetworkInterface_basicWithNetworkSecurityGroup(rInt, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
@@ -155,7 +155,7 @@ func TestAccAzureRMNetworkInterface_removeNetworkSecurityGroupId(t *testing.T) {
 	config := testAccAzureRMNetworkInterface_basicWithNetworkSecurityGroup(rInt, location)
 	updatedConfig := testAccAzureRMNetworkInterface_basic(rInt, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
@@ -183,7 +183,7 @@ func TestAccAzureRMNetworkInterface_multipleSubnets(t *testing.T) {
 	location := testLocation()
 	config := testAccAzureRMNetworkInterface_multipleSubnets(rInt, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
@@ -206,7 +206,7 @@ func TestAccAzureRMNetworkInterface_multipleSubnetsPrimary(t *testing.T) {
 	config := testAccAzureRMNetworkInterface_multipleSubnets(rInt, location)
 	updatedConfig := testAccAzureRMNetworkInterface_multipleSubnetsUpdatedPrimary(rInt, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
@@ -238,7 +238,7 @@ func TestAccAzureRMNetworkInterface_multipleSubnetsPrimary(t *testing.T) {
 func TestAccAzureRMNetworkInterface_enableIPForwarding(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
 	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
@@ -257,7 +257,7 @@ func TestAccAzureRMNetworkInterface_enableIPForwarding(t *testing.T) {
 func TestAccAzureRMNetworkInterface_enableAcceleratedNetworking(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
 	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
@@ -275,7 +275,7 @@ func TestAccAzureRMNetworkInterface_enableAcceleratedNetworking(t *testing.T) {
 
 func TestAccAzureRMNetworkInterface_multipleLoadBalancers(t *testing.T) {
 	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
@@ -294,7 +294,7 @@ func TestAccAzureRMNetworkInterface_multipleLoadBalancers(t *testing.T) {
 func TestAccAzureRMNetworkInterface_applicationGateway(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
 	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
@@ -313,7 +313,7 @@ func TestAccAzureRMNetworkInterface_applicationGateway(t *testing.T) {
 func TestAccAzureRMNetworkInterface_withTags(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
 	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
@@ -342,7 +342,7 @@ func TestAccAzureRMNetworkInterface_withTags(t *testing.T) {
 func TestAccAzureRMNetworkInterface_IPAddressesBug1286(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
 	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
@@ -369,7 +369,7 @@ func TestAccAzureRMNetworkInterface_IPAddressesBug1286(t *testing.T) {
 
 func TestAccAzureRMNetworkInterface_bug7986(t *testing.T) {
 	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
@@ -388,7 +388,7 @@ func TestAccAzureRMNetworkInterface_bug7986(t *testing.T) {
 func TestAccAzureRMNetworkInterface_applicationSecurityGroups(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
 	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
@@ -408,7 +408,7 @@ func TestAccAzureRMNetworkInterface_importPublicIP(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,

@@ -21,7 +21,7 @@ func TestAccAzureRMLoadBalancerNatPool_basic(t *testing.T) {
 		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/inboundNatPools/%s",
 		subscriptionID, ri, ri, natPoolName)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -51,7 +51,7 @@ func TestAccAzureRMLoadBalancerNatPool_removal(t *testing.T) {
 	ri := acctest.RandInt()
 	natPoolName := fmt.Sprintf("NatPool-%d", ri)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -80,7 +80,7 @@ func TestAccAzureRMLoadBalancerNatPool_update(t *testing.T) {
 	natPoolName := fmt.Sprintf("NatPool-%d", ri)
 	natPool2Name := fmt.Sprintf("NatPool-%d", acctest.RandInt())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -116,7 +116,7 @@ func TestAccAzureRMLoadBalancerNatPool_reapply(t *testing.T) {
 		return s.Remove("azurerm_lb_nat_pool.test")
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -146,7 +146,7 @@ func TestAccAzureRMLoadBalancerNatPool_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	natPoolName := fmt.Sprintf("NatPool-%d", ri)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,

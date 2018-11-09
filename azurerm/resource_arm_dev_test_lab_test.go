@@ -15,7 +15,7 @@ func TestAccAzureRMDevTestLab_basic(t *testing.T) {
 	rInt := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDevTestLabDestroy,
@@ -42,7 +42,7 @@ func TestAccAzureRMDevTestLab_complete(t *testing.T) {
 	rInt := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDevTestLabDestroy,

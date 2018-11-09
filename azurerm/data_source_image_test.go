@@ -13,7 +13,7 @@ func TestAccDataSourceAzureRMImage_basic(t *testing.T) {
 
 	config := testAccDataSourceAzureRMImageBasic(acctest.RandInt(), acctest.RandString(4), testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -45,7 +45,7 @@ func TestAccDataSourceAzureRMImage_localFilter(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccDataSourceAzureRMImageLocalFilter(ri, acctest.RandString(4), testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{

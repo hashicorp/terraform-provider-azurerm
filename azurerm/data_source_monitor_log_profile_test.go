@@ -17,7 +17,7 @@ func testAccDataSourceAzureRMMonitorLogProfile_storageaccount(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := acctest.RandString(10)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogProfileDestroy,
@@ -44,7 +44,7 @@ func testAccDataSourceAzureRMMonitorLogProfile_eventhub(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := acctest.RandString(10)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogProfileDestroy,

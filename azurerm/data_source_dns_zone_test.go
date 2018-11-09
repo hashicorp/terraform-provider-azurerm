@@ -13,7 +13,7 @@ func TestAccDataSourceAzureRMDNSZone_basic(t *testing.T) {
 	rInt := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
@@ -33,7 +33,7 @@ func TestAccDataSourceAzureRMDNSZone_tags(t *testing.T) {
 	rInt := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
@@ -55,7 +55,7 @@ func TestAccDataSourceAzureRMDNSZone_withoutResourceGroupName(t *testing.T) {
 	location := testLocation()
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", rInt)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,

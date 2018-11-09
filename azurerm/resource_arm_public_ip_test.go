@@ -17,7 +17,7 @@ func TestAccAzureRMPublicIpStatic_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMPublicIPStatic_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
@@ -43,7 +43,7 @@ func TestAccAzureRMPublicIpStatic_zones(t *testing.T) {
 	resourceName := "azurerm_public_ip.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
@@ -73,7 +73,7 @@ func TestAccAzureRMPublicIpStatic_basic_withDNSLabel(t *testing.T) {
 	dnl := fmt.Sprintf("acctestdnl-%d", ri)
 	config := testAccAzureRMPublicIPStatic_basic_withDNSLabel(ri, testLocation(), dnl)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
@@ -100,7 +100,7 @@ func TestAccAzureRMPublicIpStatic_standard_withIPv6_fails(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMPublicIPStatic_standard_withIPVersion(ri, testLocation(), "IPv6")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
@@ -119,7 +119,7 @@ func TestAccAzureRMPublicIpDynamic_basic_withIPv6(t *testing.T) {
 	ipVersion := "Ipv6"
 	config := testAccAzureRMPublicIPDynamic_basic_withIPVersion(ri, testLocation(), ipVersion)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
@@ -146,7 +146,7 @@ func TestAccAzureRMPublicIpStatic_basic_defaultsToIPv4(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMPublicIPStatic_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
@@ -172,7 +172,7 @@ func TestAccAzureRMPublicIpStatic_basic_withIPv4(t *testing.T) {
 	ipVersion := "IPv4"
 	config := testAccAzureRMPublicIPStatic_basic_withIPVersion(ri, testLocation(), ipVersion)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
@@ -198,7 +198,7 @@ func TestAccAzureRMPublicIpStatic_standard(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMPublicIPStatic_standard(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
@@ -223,7 +223,7 @@ func TestAccAzureRMPublicIpStatic_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMPublicIPStatic_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
@@ -245,7 +245,7 @@ func TestAccAzureRMPublicIpStatic_idleTimeout(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMPublicIPStatic_idleTimeout(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
@@ -273,7 +273,7 @@ func TestAccAzureRMPublicIpStatic_withTags(t *testing.T) {
 	preConfig := testAccAzureRMPublicIPStatic_withTags(ri, location)
 	postConfig := testAccAzureRMPublicIPStatic_withTagsUpdate(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
@@ -306,7 +306,7 @@ func TestAccAzureRMPublicIpStatic_update(t *testing.T) {
 	preConfig := testAccAzureRMPublicIPStatic_basic(ri, location)
 	postConfig := testAccAzureRMPublicIPStatic_update(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
@@ -338,7 +338,7 @@ func TestAccAzureRMPublicIpDynamic_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMPublicIPDynamic_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
@@ -363,7 +363,7 @@ func TestAccAzureRMPublicIpStatic_importIdError(t *testing.T) {
 
 	ri := acctest.RandInt()
 	config := testAccAzureRMPublicIPStatic_basic(ri, testLocation())
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
@@ -386,7 +386,7 @@ func TestAccAzureRMPublicIpStatic_canLabelBe63(t *testing.T) {
 	resourceName := "azurerm_public_ip.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,

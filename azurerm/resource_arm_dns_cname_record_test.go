@@ -16,7 +16,7 @@ func TestAccAzureRMDnsCNameRecord_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMDnsCNameRecord_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsCNameRecordDestroy,
@@ -41,7 +41,7 @@ func TestAccAzureRMDnsCNameRecord_subdomain(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMDnsCNameRecord_subdomain(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsCNameRecordDestroy,
@@ -69,7 +69,7 @@ func TestAccAzureRMDnsCNameRecord_updateRecords(t *testing.T) {
 	preConfig := testAccAzureRMDnsCNameRecord_basic(ri, location)
 	postConfig := testAccAzureRMDnsCNameRecord_updateRecords(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsCNameRecordDestroy,
@@ -97,7 +97,7 @@ func TestAccAzureRMDnsCNameRecord_withTags(t *testing.T) {
 	preConfig := testAccAzureRMDnsCNameRecord_withTags(ri, location)
 	postConfig := testAccAzureRMDnsCNameRecord_withTagsUpdate(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsCNameRecordDestroy,

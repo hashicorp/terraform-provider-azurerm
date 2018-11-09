@@ -15,7 +15,7 @@ func TestAccAzureRMApplicationInsights_basicWeb(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "web")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
@@ -41,7 +41,7 @@ func TestAccAzureRMApplicationInsights_basicJava(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "java")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
@@ -67,7 +67,7 @@ func TestAccAzureRMApplicationInsights_basicMobileCenter(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "MobileCenter")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
@@ -93,7 +93,7 @@ func TestAccAzureRMApplicationInsights_basicOther(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "other")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
@@ -119,7 +119,7 @@ func TestAccAzureRMApplicationInsights_basicPhone(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "phone")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
@@ -145,7 +145,7 @@ func TestAccAzureRMApplicationInsights_basicStore(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "store")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
@@ -171,7 +171,7 @@ func TestAccAzureRMApplicationInsights_basiciOS(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "ios")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,

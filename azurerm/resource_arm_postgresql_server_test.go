@@ -15,7 +15,7 @@ func TestAccAzureRMPostgreSQLServer_basicNinePointFive(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMPostgreSQLServer_basicNinePointFive(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
@@ -46,7 +46,7 @@ func TestAccAzureRMPostgreSQLServer_basicNinePointSix(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMPostgreSQLServer_basicNinePointSix(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
@@ -76,7 +76,7 @@ func TestAccAzureRMPostgreSQLServer_basicTenPointZero(t *testing.T) {
 	resourceName := "azurerm_postgresql_server.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
@@ -107,7 +107,7 @@ func TestAccAzureRMPostgreSQLServer_basicMaxStorage(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMPostgreSQLServer_basicMaxStorage(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
@@ -138,7 +138,7 @@ func TestAccAzureRMPostgreSQLServer_generalPurpose(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMPostgreSQLServer_generalPurpose(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
@@ -166,7 +166,7 @@ func TestAccAzureRMPostgreSQLServer_memoryOptimized(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMPostgreSQLServer_memoryOptimizedGeoRedundant(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
@@ -196,7 +196,7 @@ func TestAccAzureRMPostgreSQLServer_updatePassword(t *testing.T) {
 	config := testAccAzureRMPostgreSQLServer_basicNinePointSix(ri, location)
 	updatedConfig := testAccAzureRMPostgreSQLServer_basicNinePointSixUpdatedPassword(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
@@ -224,7 +224,7 @@ func TestAccAzureRMPostgreSQLServer_updated(t *testing.T) {
 	config := testAccAzureRMPostgreSQLServer_basicNinePointSix(ri, location)
 	updatedConfig := testAccAzureRMPostgreSQLServer_basicNinePointSixUpdated(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
@@ -260,7 +260,7 @@ func TestAccAzureRMPostgreSQLServer_updateSKU(t *testing.T) {
 	config := testAccAzureRMPostgreSQLServer_generalPurpose(ri, location)
 	updatedConfig := testAccAzureRMPostgreSQLServer_memoryOptimized(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,

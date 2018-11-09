@@ -14,7 +14,7 @@ func TestAccAzureRMEventHubConsumerGroup_basic(t *testing.T) {
 	resourceName := "azurerm_eventhub_consumer_group.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMEventHubConsumerGroupDestroy,
@@ -38,7 +38,7 @@ func TestAccAzureRMEventHubConsumerGroup_complete(t *testing.T) {
 	resourceName := "azurerm_eventhub_consumer_group.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMEventHubConsumerGroupDestroy,
@@ -62,7 +62,7 @@ func TestAccAzureRMEventHubConsumerGroup_userMetadataUpdate(t *testing.T) {
 	resourceName := "azurerm_eventhub_consumer_group.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMEventHubConsumerGroupDestroy,

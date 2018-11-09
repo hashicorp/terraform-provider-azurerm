@@ -15,7 +15,7 @@ func TestAccAzureRMApplicationSecurityGroup_basic(t *testing.T) {
 	resourceName := "azurerm_application_security_group.test"
 	config := testAccAzureRMApplicationSecurityGroup_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMApplicationSecurityGroupDestroy,
@@ -36,7 +36,7 @@ func TestAccAzureRMApplicationSecurityGroup_complete(t *testing.T) {
 	resourceName := "azurerm_application_security_group.test"
 	config := testAccAzureRMApplicationSecurityGroup_complete(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMApplicationSecurityGroupDestroy,
@@ -58,7 +58,7 @@ func TestAccAzureRMApplicationSecurityGroup_update(t *testing.T) {
 	location := testLocation()
 	resourceName := "azurerm_application_security_group.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMApplicationSecurityGroupDestroy,

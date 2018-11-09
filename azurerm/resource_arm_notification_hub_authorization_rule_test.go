@@ -16,7 +16,7 @@ func TestAccAzureRMNotificationHubAuthorizationRule_listen(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubAuthorizationRuleDestroy,
@@ -47,7 +47,7 @@ func TestAccAzureRMNotificationHubAuthorizationRule_manage(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubAuthorizationRuleDestroy,
@@ -78,7 +78,7 @@ func TestAccAzureRMNotificationHubAuthorizationRule_send(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubAuthorizationRuleDestroy,
@@ -109,7 +109,7 @@ func TestAccAzureRMNotificationHubAuthorizationRule_updated(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubAuthorizationRuleDestroy,
