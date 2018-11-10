@@ -39,7 +39,7 @@ func ValidateServiceName(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return _, errors
+		return nil, errors
 	}
 
 	//First, second, and last characters must be a letter or number with a total length between 3 to 50 lowercase characters.
@@ -56,5 +56,5 @@ func ValidateServiceName(i interface{}, k string) (_ []string, errors []error) {
 		errors = append(errors, fmt.Errorf("%q must not contain any consecutive hyphens", k))
 	}
 
-	return _, errors
+	return nil, errors
 }
