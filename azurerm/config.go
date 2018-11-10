@@ -183,11 +183,11 @@ type ArmClient struct {
 	sqlDatabaseThreatDetectionPoliciesClient sql.DatabaseThreatDetectionPoliciesClient
 	sqlElasticPoolsClient                    sql.ElasticPoolsClient
 	// Client for the new 2017-10-01-preview SQL API which implements vCore, DTU, and Azure data standards
-	MsSqlElasticPoolsClient                  MsSql.ElasticPoolsClient
-	sqlFirewallRulesClient                   sql.FirewallRulesClient
-	sqlServersClient                         sql.ServersClient
-	sqlServerAzureADAdministratorsClient     sql.ServerAzureADAdministratorsClient
-	sqlVirtualNetworkRulesClient             sql.VirtualNetworkRulesClient
+	MsSqlElasticPoolsClient              MsSql.ElasticPoolsClient
+	sqlFirewallRulesClient               sql.FirewallRulesClient
+	sqlServersClient                     sql.ServersClient
+	sqlServerAzureADAdministratorsClient sql.ServerAzureADAdministratorsClient
+	sqlVirtualNetworkRulesClient         sql.VirtualNetworkRulesClient
 
 	// Data Lake Store
 	dataLakeStoreAccountClient       storeAccount.AccountsClient
