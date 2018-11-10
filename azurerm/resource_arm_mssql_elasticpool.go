@@ -177,7 +177,6 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 				default:
 					return fmt.Errorf("GeneralPurpose pricing tier must have a capacity of 1, 2, 4, 8, 16, or 24 vCores")
 				}
-
 			}
 
 			if strings.HasPrefix(strings.ToLower(name.(string)), "bc_") {
@@ -207,11 +206,6 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 			// Addutional checks based of SKU type...
 			if strings.HasPrefix(strings.ToLower(name.(string)), "gp_") || strings.HasPrefix(strings.ToLower(name.(string)), "bc_") {
 				// vCore based
-
-				if maxCapacity.(float64) > float64(capacity.(int)) {
-					return fmt.Errorf("BusinessCritical pricing tier must have a capacity of 2, 4, 8, 16, 24, 32, 40, or 80 vCores")
-				}
-
 				if maxCapacity.(float64) > float64(capacity.(int)) {
 					return fmt.Errorf("BusinessCritical and GeneralPurpose pricing tiers perDatabaseSettings maxCapacity must not be higher than the SKUs capacity value")
 				}
