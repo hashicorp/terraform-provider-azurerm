@@ -230,15 +230,13 @@ func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	d.Set("public_ip_address_allocation", strings.ToLower(string(resp.PublicIPAddressPropertiesFormat.PublicIPAllocationMethod)))
-
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Name))
 	}
 
 	if props := resp.PublicIPAddressPropertiesFormat; props != nil {
-		d.Set("public_ip_address_allocation", strings.ToLower(string(props.PublicIPAllocationMethod)))
-		d.Set("ip_version", strings.ToLower(string(props.PublicIPAddressVersion)))
+		d.Set("public_ip_address_allocation", string(props.PublicIPAllocationMethod))
+		d.Set("ip_version", string(props.PublicIPAddressVersion))
 
 		if settings := props.DNSSettings; settings != nil {
 			d.Set("fqdn", settings.Fqdn)
