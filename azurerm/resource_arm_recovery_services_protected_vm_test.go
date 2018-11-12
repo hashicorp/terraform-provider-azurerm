@@ -51,7 +51,7 @@ func TestAccAzureRMRecoveryServicesProtectedVm_separateResourceGroups(t *testing
 		CheckDestroy: testCheckAzureRMRecoveryServicesProtectedVmDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAbcAzureRMRecoveryServicesProtectedVm_separateResourceGroups(ri, testLocation()),
+				Config: testAccAzureRMRecoveryServicesProtectedVm_separateResourceGroups(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRecoveryServicesProtectedVmExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
@@ -63,7 +63,7 @@ func TestAccAzureRMRecoveryServicesProtectedVm_separateResourceGroups(t *testing
 				ImportStateVerify: true,
 			},
 			{ //vault cannot be deleted unless we unregister all backups
-				Config: testAbcAzureRMRecoveryServicesProtectedVm_additionalVault(ri, testLocation()),
+				Config: testAccAzureRMRecoveryServicesProtectedVm_additionalVault(ri, testLocation()),
 				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
@@ -298,7 +298,7 @@ resource "azurerm_recovery_services_protected_vm" "test" {
 `, testAccAzureRMRecoveryServicesProtectedVm_base(rInt, location))
 }
 
-func testAbcAzureRMRecoveryServicesProtectedVm_additionalVault(rInt int, location string) string {
+func testAccAzureRMRecoveryServicesProtectedVm_additionalVault(rInt int, location string) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -332,7 +332,7 @@ resource "azurerm_recovery_services_protection_policy_vm" "test2" {
 `, testAccAzureRMRecoveryServicesProtectedVm_base(rInt, location), rInt, location)
 }
 
-func testAbcAzureRMRecoveryServicesProtectedVm_separateResourceGroups(rInt int, location string) string {
+func testAccAzureRMRecoveryServicesProtectedVm_separateResourceGroups(rInt int, location string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -343,5 +343,5 @@ resource "azurerm_recovery_services_protected_vm" "test" {
   source_vm_id        = "${azurerm_virtual_machine.test.id}"
 }
 
-`, testAbcAzureRMRecoveryServicesProtectedVm_additionalVault(rInt, location))
+`, testAccAzureRMRecoveryServicesProtectedVm_additionalVault(rInt, location))
 }
