@@ -26,7 +26,7 @@ resource "azurerm_recovery_services_vault" "example" {
 }
 
 resource "azurerm_recovery_services_protection_policy_vm" "test" {
-  name                = "acctest-%d"
+  name                = "tfex-recovery-vault-policy"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
 
@@ -37,7 +37,6 @@ resource "azurerm_recovery_services_protection_policy_vm" "test" {
 }
 
 resource "azurerm_recovery_services_protected_vm" "example" {
-  location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.example.name}"
   source_vm_id        = "${azurerm_virtual_machine.example.id}"
@@ -48,8 +47,6 @@ resource "azurerm_recovery_services_protected_vm" "example" {
 ## Argument Reference
 
 The following arguments are supported:
-
-* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Recovery Services Protected VM. Changing this forces a new resource to be created.
 

@@ -19,7 +19,10 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_application_gateway` - refactoring to ensure all fields are set [GH-2054]
+* `azurerm_application_gateway` - SSL certificates no longer continually diff [GH-2054]
 * `azurerm_cosmosdb_account` - the `ip_range_filter` range filter now allows /32 ip addresses  [GH-2222]
+* `azurerm_recovery_services_protected_vm` - VM can now be in a different resource group then the vault [GH-2287]
 * `azurerm_role_assignment` - will now wait after a Service Principal is created [GH-2204]
 * `azurerm_route` - allowing setting `next_hop_in_ip_address` to an empty value [GH-2184]
 * `azurerm_route_table` - allowing setting `next_hop_in_ip_address` to an empty value [GH-2184]

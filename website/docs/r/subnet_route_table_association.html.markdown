@@ -59,7 +59,7 @@ resource "azurerm_subnet_route_table_association" "test" {
 
 The following arguments are supported:
 
-* `route_table_id` - (Optional) The ID of the Route Table which should be associated with the Subnet. Changing this forces a new resource to be created.
+* `route_table_id` - (Required) The ID of the Route Table which should be associated with the Subnet. Changing this forces a new resource to be created.
 
 * `subnet_id` - (Required) The ID of the Subnet. Changing this forces a new resource to be created.
 
