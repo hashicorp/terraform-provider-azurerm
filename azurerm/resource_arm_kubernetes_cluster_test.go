@@ -220,12 +220,12 @@ func TestAccAzureRMKubernetesCluster_internalNetwork(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_internalNetworkWithRouteTable(t *testing.T) {
+func TestAccAzureRMKubernetesCluster_internalNetworkRouteTable(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
 	ri := acctest.RandInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_internalNetworkWithRouteTable(ri, clientId, clientSecret, testLocation())
+	config := testAccAzureRMKubernetesCluster_internalNetworkRouteTable(ri, clientId, clientSecret, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -535,7 +535,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, clientId, clientSecret)
 }
 
-func testAccAzureRMKubernetesCluster_internalNetworkWithRouteTable(rInt int, clientId string, clientSecret string, location string) string {
+func testAccAzureRMKubernetesCluster_internalNetworkRouteTable(rInt int, clientId string, clientSecret string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -558,6 +558,7 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "172.0.2.0/24"
+  route_table_id       = "${azurerm_route_table.test.id}"
 }
 
 resource "azurerm_route_table" "test" {
@@ -566,7 +567,7 @@ resource "azurerm_route_table" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   route {
-    name                   = "akc-routetable"
+    name                   = "akc-route-%d"
     address_prefix         = "10.100.0.0/14"
     next_hop_type          = "VirtualAppliance"
     next_hop_in_ip_address = "10.10.1.1"
@@ -605,7 +606,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     client_secret = "%s"
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, clientId, clientSecret)
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt, clientId, clientSecret)
 }
 
 func testAccAzureRMKubernetesCluster_addonProfileOMS(rInt int, clientId string, clientSecret string, location string) string {
@@ -830,6 +831,32 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.1.0.0/24"
 }
 
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "172.0.2.0/24"
+  route_table_id       = "${azurerm_route_table.test.id}"
+}
+
+resource "azurerm_route_table" "test" {
+  name                = "akc-routetable-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  route {
+    name                   = "akc-route-%d"
+    address_prefix         = "10.100.0.0/14"
+    next_hop_type          = "VirtualAppliance"
+    next_hop_in_ip_address = "10.10.1.1"
+  }
+}
+
+resource "azurerm_subnet_route_table_association" "test" {
+  subnet_id      = "${azurerm_subnet.test.id}"
+  route_table_id = "${azurerm_route_table.test.id}"
+}
+
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
   location            = "${azurerm_resource_group.test.location}"
@@ -863,7 +890,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     service_cidr       = "10.10.0.0/16"
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt, rInt, clientId, clientSecret, networkPlugin)
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt, clientId, clientSecret, networkPlugin)
 }
 
 func testCheckAzureRMKubernetesClusterExists(name string) resource.TestCheckFunc {
