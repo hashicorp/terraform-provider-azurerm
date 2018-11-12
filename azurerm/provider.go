@@ -400,6 +400,15 @@ func userDataStateFunc(v interface{}) string {
 	}
 }
 
+func base64EncodedStateFunc(v interface{}) string {
+	switch s := v.(type) {
+	case string:
+		return base64Encode(s)
+	default:
+		return ""
+	}
+}
+
 // base64Encode encodes data if the input isn't already encoded using
 // base64.StdEncoding.EncodeToString. If the input is already base64 encoded,
 // return the original input unchanged.
