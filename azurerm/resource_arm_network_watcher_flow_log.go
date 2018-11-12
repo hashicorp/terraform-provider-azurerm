@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -23,9 +24,10 @@ func resourceArmNetworkWatcherFlowLog() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"network_watcher_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
@@ -33,8 +35,8 @@ func resourceArmNetworkWatcherFlowLog() *schema.Resource {
 			"network_security_group_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateResourceID,
 				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"storage_account_id": {
@@ -140,8 +142,7 @@ func resourceArmNetworkWatcherFlowLogCreateUpdate(d *schema.ResourceData, meta i
 		return fmt.Errorf("Error setting Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", networkSecurityGroupID, networkWatcherName, resourceGroupName, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for completion of setting Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", networkSecurityGroupID, networkWatcherName, resourceGroupName, err)
 	}
 
@@ -182,8 +183,7 @@ func resourceArmNetworkWatcherFlowLogRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error retrieving Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", networkSecurityGroupID, networkWatcherName, resourceGroupName, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for retrieval of Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", networkSecurityGroupID, networkWatcherName, resourceGroupName, err)
 	}
 
@@ -195,21 +195,21 @@ func resourceArmNetworkWatcherFlowLogRead(d *schema.ResourceData, meta interface
 	d.Set("network_watcher_name", networkWatcherName)
 	d.Set("resource_group_name", resourceGroupName)
 
-	d.Set("network_security_group_id", *fli.TargetResourceID)
-	d.Set("enabled", *fli.FlowLogProperties.Enabled)
+	d.Set("network_security_group_id", fli.TargetResourceID)
+	d.Set("enabled", fli.FlowLogProperties.Enabled)
 
 	// Azure API returns "" when flow log is disabled
 	// Don't overwrite to prevent storage account ID diff when that is the case
 	if *fli.FlowLogProperties.StorageID != "" {
-		d.Set("storage_account_id", *fli.FlowLogProperties.StorageID)
+		d.Set("storage_account_id", fli.FlowLogProperties.StorageID)
 	}
 
 	if err := d.Set("retention_policy", flattenAzureRmNetworkWatcherFlowLogRetentionPolicy(fli.FlowLogProperties.RetentionPolicy)); err != nil {
-		return fmt.Errorf("Error flattening `retention_policy`: %+v", err)
+		return fmt.Errorf("Error setting `retention_policy`: %+v", err)
 	}
 
 	if err := d.Set("traffic_analytics", flattenAzureRmNetworkWatcherFlowLogTrafficAnalytics(fli.FlowAnalyticsConfiguration)); err != nil {
-		return fmt.Errorf("Error flattening `traffic_analytics`: %+v", err)
+		return fmt.Errorf("Error setting `traffic_analytics`: %+v", err)
 	}
 
 	return nil
@@ -236,8 +236,7 @@ func resourceArmNetworkWatcherFlowLogDelete(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error getting Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", networkSecurityGroupID, networkWatcherName, resourceGroupName, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for retrieval of Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", networkSecurityGroupID, networkWatcherName, resourceGroupName, err)
 	}
 
@@ -259,8 +258,7 @@ func resourceArmNetworkWatcherFlowLogDelete(d *schema.ResourceData, meta interfa
 			return fmt.Errorf("Error disabling Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", networkSecurityGroupID, networkWatcherName, resourceGroupName, err)
 		}
 
-		err = setFuture.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
+		if err = setFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("Error waiting for completion of disabling Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", networkSecurityGroupID, networkWatcherName, resourceGroupName, err)
 		}
 	}
@@ -307,17 +305,19 @@ func flattenAzureRmNetworkWatcherFlowLogTrafficAnalytics(input *network.TrafficA
 
 	result := make(map[string]interface{})
 	if input != nil {
-		if input.NetworkWatcherFlowAnalyticsConfiguration.Enabled != nil {
-			result["enabled"] = *input.NetworkWatcherFlowAnalyticsConfiguration.Enabled
-		}
-		if input.NetworkWatcherFlowAnalyticsConfiguration.WorkspaceID != nil {
-			result["workspace_id"] = *input.NetworkWatcherFlowAnalyticsConfiguration.WorkspaceID
-		}
-		if input.NetworkWatcherFlowAnalyticsConfiguration.WorkspaceRegion != nil {
-			result["workspace_region"] = *input.NetworkWatcherFlowAnalyticsConfiguration.WorkspaceRegion
-		}
-		if input.NetworkWatcherFlowAnalyticsConfiguration.WorkspaceResourceID != nil {
-			result["workspace_resource_id"] = *input.NetworkWatcherFlowAnalyticsConfiguration.WorkspaceResourceID
+		if cfg := input.NetworkWatcherFlowAnalyticsConfiguration; cfg != nil {
+			if cfg.Enabled != nil {
+				result["enabled"] = *cfg.Enabled
+			}
+			if cfg.WorkspaceID != nil {
+				result["workspace_id"] = *cfg.WorkspaceID
+			}
+			if cfg.WorkspaceRegion != nil {
+				result["workspace_region"] = *cfg.WorkspaceRegion
+			}
+			if cfg.WorkspaceResourceID != nil {
+				result["workspace_resource_id"] = *cfg.WorkspaceResourceID
+			}
 		}
 	}
 

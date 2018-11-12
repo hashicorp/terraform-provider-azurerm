@@ -30,8 +30,8 @@ func testAccAzureRMNetworkWatcherFlowLog_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "network_security_group_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "storage_account_id"),
 					resource.TestCheckResourceAttr(resourceName, "retention_policy.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "retention_policy.0.enabled"),
-					resource.TestCheckResourceAttrSet(resourceName, "retention_policy.0.days"),
+					resource.TestCheckResourceAttr(resourceName, "retention_policy.0.enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "retention_policy.0.days", "0"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 				),
 			},
@@ -102,8 +102,8 @@ func testAccAzureRMNetworkWatcherFlowLog_reenabled(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "network_security_group_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "storage_account_id"),
 					resource.TestCheckResourceAttr(resourceName, "retention_policy.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "retention_policy.0.enabled"),
-					resource.TestCheckResourceAttrSet(resourceName, "retention_policy.0.days"),
+					resource.TestCheckResourceAttr(resourceName, "retention_policy.0.enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "retention_policy.0.days", "0"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 				),
 			},
@@ -131,8 +131,8 @@ func testAccAzureRMNetworkWatcherFlowLog_retentionPolicy(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "network_security_group_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "storage_account_id"),
 					resource.TestCheckResourceAttr(resourceName, "retention_policy.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "retention_policy.0.enabled"),
-					resource.TestCheckResourceAttrSet(resourceName, "retention_policy.0.days"),
+					resource.TestCheckResourceAttr(resourceName, "retention_policy.0.enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "retention_policy.0.days", "0"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 				),
 			},
@@ -146,7 +146,7 @@ func testAccAzureRMNetworkWatcherFlowLog_retentionPolicy(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "storage_account_id"),
 					resource.TestCheckResourceAttr(resourceName, "retention_policy.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "retention_policy.0.enabled", "true"),
-					resource.TestCheckResourceAttrSet(resourceName, "retention_policy.0.days"),
+					resource.TestCheckResourceAttr(resourceName, "retention_policy.0.days", "7"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 				),
 			},
@@ -175,8 +175,8 @@ func testAccAzureRMNetworkWatcherFlowLog_updateStorageAccount(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "network_security_group_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "storage_account_id"),
 					resource.TestCheckResourceAttr(resourceName, "retention_policy.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "retention_policy.0.enabled"),
-					resource.TestCheckResourceAttrSet(resourceName, "retention_policy.0.days"),
+					resource.TestCheckResourceAttr(resourceName, "retention_policy.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "retention_policy.0.days", "7"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 				),
 			},
@@ -190,7 +190,7 @@ func testAccAzureRMNetworkWatcherFlowLog_updateStorageAccount(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "storage_account_id"),
 					resource.TestCheckResourceAttr(resourceName, "retention_policy.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "retention_policy.0.enabled", "true"),
-					resource.TestCheckResourceAttrSet(resourceName, "retention_policy.0.days"),
+					resource.TestCheckResourceAttr(resourceName, "retention_policy.0.days", "7"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 				),
 			},
@@ -218,8 +218,8 @@ func testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "network_security_group_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "storage_account_id"),
 					resource.TestCheckResourceAttr(resourceName, "retention_policy.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "retention_policy.0.enabled"),
-					resource.TestCheckResourceAttrSet(resourceName, "retention_policy.0.days"),
+					resource.TestCheckResourceAttr(resourceName, "retention_policy.0.enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "retention_policy.0.days", "0"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 				),
 			},
@@ -232,8 +232,8 @@ func testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "network_security_group_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "storage_account_id"),
 					resource.TestCheckResourceAttr(resourceName, "retention_policy.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "retention_policy.0.enabled"),
-					resource.TestCheckResourceAttrSet(resourceName, "retention_policy.0.days"),
+					resource.TestCheckResourceAttr(resourceName, "retention_policy.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "retention_policy.0.days", "7"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "traffic_analytics.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "traffic_analytics.0.enabled", "false"),
@@ -251,8 +251,8 @@ func testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "network_security_group_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "storage_account_id"),
 					resource.TestCheckResourceAttr(resourceName, "retention_policy.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "retention_policy.0.enabled"),
-					resource.TestCheckResourceAttrSet(resourceName, "retention_policy.0.days"),
+					resource.TestCheckResourceAttr(resourceName, "retention_policy.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "retention_policy.0.days", "7"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "traffic_analytics.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "traffic_analytics.0.enabled", "true"),
@@ -292,13 +292,11 @@ func testCheckAzureRMNetworkWatcherFlowLogExists(name string) resource.TestCheck
 			return fmt.Errorf("Error retrieving Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", networkSecurityGroupID, networkWatcherName, resourceGroupName, err)
 		}
 
-		err = future.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("Error waiting for retrieval of Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", networkSecurityGroupID, networkWatcherName, resourceGroupName, err)
 		}
 
-		_, err = future.Result(client)
-		if err != nil {
+		if _, err := future.Result(client); err != nil {
 			return fmt.Errorf("Error retrieving of Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", networkSecurityGroupID, networkWatcherName, resourceGroupName, err)
 		}
 
@@ -306,8 +304,8 @@ func testCheckAzureRMNetworkWatcherFlowLogExists(name string) resource.TestCheck
 	}
 }
 
-func testAccAzureRMNetworkWatcherFlowLog_basicConfig(rInt int, rString string, location string) string {
-	return fmt.Sprintf(`
+func testAccAzureRMNetworkWatcherFlowLog_prerequisites(rInt int, rString, location string) string {
+	return fmt.Sprintf(` 
 resource "azurerm_resource_group" "test" {
     name     = "acctestRG-%d"
     location = "%s"
@@ -334,6 +332,12 @@ resource "azurerm_storage_account" "test" {
     account_replication_type  = "LRS"
     enable_https_traffic_only = true
 }
+`, rInt, location, rInt, rInt, rString)
+}
+
+func testAccAzureRMNetworkWatcherFlowLog_basicConfig(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_network_watcher_flow_log" "test" {
     network_watcher_name = "${azurerm_network_watcher.test.name}"
@@ -344,41 +348,16 @@ resource "azurerm_network_watcher_flow_log" "test" {
     enabled                   = true
 
     retention_policy {
-        days    = 0
         enabled = false
+        days    = 0
     }
 }
-`, rInt, location, rInt, rInt, rString)
+`, testAccAzureRMNetworkWatcherFlowLog_prerequisites(rInt, rString, location))
 }
 
 func testAccAzureRMNetworkWatcherFlowLog_retentionPolicyConfig(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-    name     = "acctestRG-%d"
-    location = "%s"
-}
-
-resource "azurerm_network_security_group" "test" {
-    name                = "acctestnsg%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_network_watcher" "test" {
-    name                = "acctestnw-%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_storage_account" "test" {
-    name                = "acctestsa%s"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location            = "${azurerm_resource_group.test.location}"
-
-    account_tier              = "Standard"
-    account_replication_type  = "LRS"
-    enable_https_traffic_only = true
-}
+%s
 
 resource "azurerm_network_watcher_flow_log" "test" {
     network_watcher_name = "${azurerm_network_watcher.test.name}"
@@ -389,41 +368,16 @@ resource "azurerm_network_watcher_flow_log" "test" {
     enabled                   = true
     
     retention_policy {
-        days    = 7
         enabled = true
+        days    = 7
     }
 }
-`, rInt, location, rInt, rInt, rString)
+`, testAccAzureRMNetworkWatcherFlowLog_prerequisites(rInt, rString, location))
 }
 
 func testAccAzureRMNetworkWatcherFlowLog_disabledConfig(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-    name     = "acctestRG-%d"
-    location = "%s"
-}
-
-resource "azurerm_network_security_group" "test" {
-    name                = "acctestnsg%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_network_watcher" "test" {
-    name                = "acctestnw-%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_storage_account" "test" {
-    name                = "acctestsa%s"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location            = "${azurerm_resource_group.test.location}"
-
-    account_tier              = "Standard"
-    account_replication_type  = "LRS"
-    enable_https_traffic_only = true
-}
+%s
 
 resource "azurerm_network_watcher_flow_log" "test" {
     network_watcher_name = "${azurerm_network_watcher.test.name}"
@@ -434,41 +388,16 @@ resource "azurerm_network_watcher_flow_log" "test" {
     enabled                   = false
     
     retention_policy {
-        days    = 7
         enabled = true
+        days    = 7
     }
 }
-`, rInt, location, rInt, rInt, rString)
+`, testAccAzureRMNetworkWatcherFlowLog_prerequisites(rInt, rString, location))
 }
 
 func testAccAzureRMNetworkWatcherFlowLog_TrafficAnalyticsEnabledConfig(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-    name     = "acctestRG-%d"
-    location = "%s"
-}
-
-resource "azurerm_network_security_group" "test" {
-    name                = "acctestnsg%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_network_watcher" "test" {
-    name                = "acctestnw-%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_storage_account" "test" {
-    name                = "acctestsa%s"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location            = "${azurerm_resource_group.test.location}"
-
-    account_tier              = "Standard"
-    account_replication_type  = "LRS"
-    enable_https_traffic_only = true
-}
+%s
 
 resource "azurerm_log_analytics_workspace" "test" {
     name                = "acctestlaw-%d"
@@ -486,8 +415,8 @@ resource "azurerm_network_watcher_flow_log" "test" {
     enabled                   = true
     
     retention_policy {
-        days    = 7
         enabled = true
+        days    = 7
     }
 
     traffic_analytics {
@@ -497,37 +426,12 @@ resource "azurerm_network_watcher_flow_log" "test" {
         workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
     }
 }
-`, rInt, location, rInt, rInt, rString, rInt)
+`, testAccAzureRMNetworkWatcherFlowLog_prerequisites(rInt, rString, location), rInt)
 }
 
 func testAccAzureRMNetworkWatcherFlowLog_TrafficAnalyticsDisabledConfig(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-    name     = "acctestRG-%d"
-    location = "%s"
-}
-
-resource "azurerm_network_security_group" "test" {
-    name                = "acctestnsg%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_network_watcher" "test" {
-    name                = "acctestnw-%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_storage_account" "test" {
-    name                = "acctestsa%s"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location            = "${azurerm_resource_group.test.location}"
-
-    account_tier              = "Standard"
-    account_replication_type  = "LRS"
-    enable_https_traffic_only = true
-}
+%s
 
 resource "azurerm_log_analytics_workspace" "test" {
     name                = "acctestlaw-%d"
@@ -545,8 +449,8 @@ resource "azurerm_network_watcher_flow_log" "test" {
     enabled                   = true
     
     retention_policy {
-        days    = 7
         enabled = true
+        days    = 7
     }
 
     traffic_analytics {
@@ -556,5 +460,5 @@ resource "azurerm_network_watcher_flow_log" "test" {
         workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
     }
 }
-`, rInt, location, rInt, rInt, rString, rInt)
+`, testAccAzureRMNetworkWatcherFlowLog_prerequisites(rInt, rString, location), rInt)
 }
