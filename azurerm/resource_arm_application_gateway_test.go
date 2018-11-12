@@ -526,6 +526,7 @@ resource "azurerm_application_gateway" "test" {
     port                  = 80
     port                  = 443
     protocol              = "Https"
+    request_timeout       = 1
 
     authentication_certificate {
       name = "${local.auth_cert_name}"
@@ -534,8 +535,7 @@ resource "azurerm_application_gateway" "test" {
 
   authentication_certificate {
     name     = "${local.auth_cert_name}"
-    data     = "${file("testdata/application_gateway_test_2.cer")}"
-    password = "hello-world"
+    data     = "${file("testdata/application_gateway_test_2.crt")}"
   }
 
   http_listener {
