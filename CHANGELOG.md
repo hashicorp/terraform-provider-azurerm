@@ -12,6 +12,7 @@ IMPROVEMENTS:
 * `azurerm_databricks_workspace` - fixing validation on the `name` field [GH-2221]
 * `azurerm_function_app` - support for the `enable_builtin_logging` property [GH-2268]
 * `azurerm_network_interface` - deprecating `internal_fqdn` since it's no longer setable/returned by Azure [GH-2253]
+* `azurerm_shared_image_version` - allowing larger numbers for versions [GH-2301]
 * `azurerm_virtual_machine` - support for assigning both a system and a user managed identity [GH-2188]
 * `azurerm_virtual_machine_scale_set` - support for assigning both a system and a user managed identity [GH-2188]
 * `azurerm_virtual_machine_scale_set` - support for setting `eviction_policy` [GH-2226]
