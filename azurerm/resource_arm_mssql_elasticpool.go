@@ -60,7 +60,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 								"BC_Gen4",
 								"BC_Gen5",
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"capacity": {
@@ -78,7 +78,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 								"GeneralPurpose",
 								"BusinessCritical",
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"family": {
@@ -332,7 +332,6 @@ func resourceArmMsSqlElasticPoolDelete(d *schema.ResourceData, meta interface{})
 	}
 
 	_, err = client.Delete(ctx, resGroup, serverName, name)
-
 	return err
 }
 
