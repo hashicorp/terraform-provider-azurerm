@@ -28,7 +28,8 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-				// TODO: validation
+				// NOTE: there's no validation requirements listed for this
+				// so we're intentionally not validating this at this time.
 			},
 
 			"target_resource_id": {
