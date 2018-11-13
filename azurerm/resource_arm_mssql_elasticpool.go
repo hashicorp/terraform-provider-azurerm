@@ -78,7 +78,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 								"GeneralPurpose",
 								"BusinessCritical",
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"family": {
