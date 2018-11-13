@@ -14,13 +14,13 @@ Use this data source to access information about the Monitor Diagnostics Categor
 ## Example Usage
 
 ```hcl
-data "azurerm_dns_zone" "test" {
-  name                = "search-eventhubns"
-  resource_group_name = "search-service"
+data "azurerm_key_vault" "test" {
+  name                = "${azurerm_key_vault.test.name}"
+  resource_group_name = "${azurerm_key_vault.test.resource_group_name}"
 }
 
-output "dns_zone_id" {
-  value = "${data.azurerm_dns_zone.test.id}"
+data "azurerm_monitor_diagnostic_categories" "test" {
+  resource_id = "${azurerm_key_vault.test.id}"
 }
 ```
 

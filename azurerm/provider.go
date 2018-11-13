@@ -219,7 +219,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_metric_alertrule":                       resourceArmMetricAlertRule(),
 			"azurerm_monitor_action_group":                   resourceArmMonitorActionGroup(),
 			"azurerm_monitor_activity_log_alert":             resourceArmMonitorActivityLogAlert(),
-			"azurerm_monitor_diagnostics":                    resourceArmMonitorDiagnostics(),
+			"azurerm_monitor_diagnostic_setting":             resourceArmMonitorDiagnosticSetting(),
 			"azurerm_monitor_log_profile":                    resourceArmMonitorLogProfile(),
 			"azurerm_monitor_metric_alert":                   resourceArmMonitorMetricAlert(),
 			"azurerm_mysql_configuration":                    resourceArmMySQLConfiguration(),
