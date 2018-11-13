@@ -271,16 +271,16 @@ func testAccAzureRMMsSqlElasticPool_resize_vCore(rInt int, location string) stri
 func testAccAzureRMMsSqlElasticPool_vCore_Template(rInt int, location string, skuName string, skuTier string, skuCapacity int, skuFamily string, databaseSettingsMin float64, databaseSettingsMax float64) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%[1]d"
+  name     = "acctestRG-%[1]d"
   location = "%s"
 }
 
 resource "azurerm_sql_server" "test" {
-  name = "acctest%[1]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location = "${azurerm_resource_group.test.location}"
-  version = "12.0"
-  administrator_login = "4dm1n157r470r"
+  name                         = "acctest%[1]d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "4dm1n157r470r"
   administrator_login_password = "4-v3ry-53cr37-p455w0rd"
 }
 
@@ -308,16 +308,16 @@ resource "azurerm_mssql_elasticpool" "test" {
 func testAccAzureRMMsSqlElasticPool_DTU_Template(rInt int, location string, skuName string, skuTier string, skuCapacity int, databaseSettingsMin int, databaseSettingsMax int) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%[1]d"
+  name     = "acctestRG-%[1]d"
   location = "%s"
 }
 
 resource "azurerm_sql_server" "test" {
-  name = "acctest%[1]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location = "${azurerm_resource_group.test.location}"
-  version = "12.0"
-  administrator_login = "4dm1n157r470r"
+  name                         = "acctest%[1]d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "4dm1n157r470r"
   administrator_login_password = "4-v3ry-53cr37-p455w0rd"
 }
 

@@ -35,7 +35,7 @@ func ValidateResourceIDOrEmpty(i interface{}, k string) (_ []string, errors []er
 }
 
 //true for a resource ID or an empty string
-func ValidateServiceName(i interface{}, k string) (_ []string, errors []error) {
+func ValidateMsSqlServiceName(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))

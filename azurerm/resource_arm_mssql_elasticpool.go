@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -28,7 +29,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateServiceName,
+				ValidateFunc: azure.ValidateMsSqlServiceName,
 			},
 
 			"location": locationSchema(),
@@ -39,7 +40,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateServiceName,
+				ValidateFunc: azure.ValidateMsSqlServiceName,
 			},
 
 			"sku": {

@@ -91,7 +91,7 @@ func TestAzureResourceIDOrEmpty(t *testing.T) {
 	}
 }
 
-func TestAzureValidateServiceName(t *testing.T) {
+func TestAzureValidateMsSqlServiceName(t *testing.T) {
 	cases := []struct {
 		ServiceName string
 		Errors      int
@@ -140,10 +140,10 @@ func TestAzureValidateServiceName(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.ServiceName, func(t *testing.T) {
-			_, errors := ValidateServiceName(tc.ServiceName, "name")
+			_, errors := ValidateMsSqlServiceName(tc.ServiceName, "name")
 
 			if len(errors) < tc.Errors {
-				t.Fatalf("Expected TestAzureValidateServiceName to have %d not %d errors for %q", tc.Errors, len(errors), tc.ServiceName)
+				t.Fatalf("Expected TestAzureValidateMsSqlServiceName to have %d not %d errors for %q", tc.Errors, len(errors), tc.ServiceName)
 			}
 		})
 	}
