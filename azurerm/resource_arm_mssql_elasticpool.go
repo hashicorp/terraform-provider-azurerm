@@ -332,7 +332,6 @@ func resourceArmMsSqlElasticPoolDelete(d *schema.ResourceData, meta interface{})
 	}
 
 	_, err = client.Delete(ctx, resGroup, serverName, name)
-
 	return err
 }
 
