@@ -234,7 +234,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 }
 
 func resourceArmMsSqlElasticPoolCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).MsSqlElasticPoolsClient
+	client := meta.(*ArmClient).msSqlElasticPoolsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for MsSQL ElasticPool creation.")
@@ -248,7 +248,7 @@ func resourceArmMsSqlElasticPoolCreate(d *schema.ResourceData, meta interface{})
 	tags := d.Get("tags").(map[string]interface{})
 
 	elasticPool := sql.ElasticPool{
-		Sku:                   sku,
+		Sku: sku,
 		ElasticPoolProperties: properties,
 		Location:              &location,
 		Tags:                  expandTags(tags),
@@ -279,7 +279,7 @@ func resourceArmMsSqlElasticPoolCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).MsSqlElasticPoolsClient
+	client := meta.(*ArmClient).msSqlElasticPoolsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup, serverName, name, err := parseArmMsSqlElasticPoolId(d.Id())
@@ -323,7 +323,7 @@ func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmMsSqlElasticPoolDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).MsSqlElasticPoolsClient
+	client := meta.(*ArmClient).msSqlElasticPoolsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup, serverName, name, err := parseArmSqlElasticPoolId(d.Id())

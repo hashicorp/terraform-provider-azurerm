@@ -183,7 +183,7 @@ type ArmClient struct {
 	sqlDatabaseThreatDetectionPoliciesClient sql.DatabaseThreatDetectionPoliciesClient
 	sqlElasticPoolsClient                    sql.ElasticPoolsClient
 	// Client for the new 2017-10-01-preview SQL API which implements vCore, DTU, and Azure data standards
-	MsSqlElasticPoolsClient              MsSql.ElasticPoolsClient
+	msSqlElasticPoolsClient              MsSql.ElasticPoolsClient
 	sqlFirewallRulesClient               sql.FirewallRulesClient
 	sqlServersClient                     sql.ServersClient
 	sqlServerAzureADAdministratorsClient sql.ServerAzureADAdministratorsClient
@@ -795,7 +795,7 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 
 	MsSqlEPClient := MsSql.NewElasticPoolsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&MsSqlEPClient.Client, auth)
-	c.MsSqlElasticPoolsClient = MsSqlEPClient
+	c.msSqlElasticPoolsClient = MsSqlEPClient
 
 	sqlSrvClient := sql.NewServersClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&sqlSrvClient.Client, auth)
