@@ -65,8 +65,9 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 						},
 
 						"capacity": {
-							Type:     schema.TypeInt,
-							Required: true,
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntAtLeast(0),
 						},
 
 						"tier": {
@@ -89,7 +90,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 								"Gen4",
 								"Gen5",
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
@@ -249,7 +250,7 @@ func resourceArmMsSqlElasticPoolCreate(d *schema.ResourceData, meta interface{})
 	tags := d.Get("tags").(map[string]interface{})
 
 	elasticPool := sql.ElasticPool{
-		Sku: sku,
+		Sku:                   sku,
 		ElasticPoolProperties: properties,
 		Location:              &location,
 		Tags:                  expandTags(tags),
@@ -352,16 +353,12 @@ func expandAzureRmMsSqlElasticPoolProperties(d *schema.ResourceData) *sql.Elasti
 	minCapacity := perDatabaseSetting["min_capacity"].(float64)
 	maxCapacity := perDatabaseSetting["max_capacity"].(float64)
 
-	elasticPoolPerDatabaseSettings := &sql.ElasticPoolPerDatabaseSettings{
-		MinCapacity: utils.Float(minCapacity),
-		MaxCapacity: utils.Float(maxCapacity),
+	return &sql.ElasticPoolProperties{
+		PerDatabaseSettings: &sql.ElasticPoolPerDatabaseSettings{
+			MinCapacity: utils.Float(minCapacity),
+			MaxCapacity: utils.Float(maxCapacity),
+		},
 	}
-
-	props := &sql.ElasticPoolProperties{
-		PerDatabaseSettings: elasticPoolPerDatabaseSettings,
-	}
-
-	return props
 }
 
 func expandAzureRmMsSqlElasticPoolSku(d *schema.ResourceData) *sql.Sku {
@@ -388,7 +385,9 @@ func flattenAzureRmMsSqlElasticPoolSku(resp *sql.Sku) []interface{} {
 		values["name"] = *name
 	}
 
-	values["tier"] = *resp.Tier
+	if tier := resp.Tier; tier != nil {
+		values["tier"] = *tier
+	}
 
 	if family := resp.Family; family != nil {
 		values["family"] = *family
