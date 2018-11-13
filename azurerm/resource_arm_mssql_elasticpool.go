@@ -60,7 +60,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 								"BC_Gen4",
 								"BC_Gen5",
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"capacity": {
