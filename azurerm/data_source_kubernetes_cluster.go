@@ -236,6 +236,37 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"role_based_access_control": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"azure_active_directory": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"client_app_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+
+									"server_app_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+
+									"tenant_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"service_principal": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -265,15 +296,15 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 	resp, err := kubernetesClustersClient.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: AKS Managed Cluster %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("Error: Managed Kubernetes Cluster %q was not found in Resource Group %q", name, resourceGroup)
 		}
 
-		return fmt.Errorf("Error making Read request on AKS Managed Cluster %q (resource group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	profile, err := kubernetesClustersClient.GetAccessProfile(ctx, resourceGroup, name, "clusterUser")
 	if err != nil {
-		return fmt.Errorf("Error getting access profile while making Read request on AKS Managed Cluster %q (resource group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -310,7 +341,10 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 			return fmt.Errorf("Error setting `network_profile`: %+v", err)
 		}
 
-		// TODO: role_based_access_control
+		roleBasedAccessControl := flattenKubernetesClusterDataSourceRoleBasedAccessControl(props.AadProfile)
+		if err := d.Set("role_based_access_control", roleBasedAccessControl); err != nil {
+			return fmt.Errorf("Error setting `role_based_access_control`: %+v", err)
+		}
 
 		servicePrincipal := flattenKubernetesClusterDataSourceServicePrincipalProfile(props.ServicePrincipalProfile)
 		if err := d.Set("service_principal", servicePrincipal); err != nil {
@@ -327,6 +361,34 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil
+}
+
+func flattenKubernetesClusterDataSourceRoleBasedAccessControl(input *containerservice.ManagedClusterAADProfile) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	profile := make(map[string]interface{})
+
+	if input.ClientAppID != nil {
+		profile["client_app_id"] = *input.ClientAppID
+	}
+
+	if input.ServerAppID != nil {
+		profile["server_app_id"] = *input.ServerAppID
+	}
+
+	if input.TenantID != nil {
+		profile["tenant_id"] = *input.TenantID
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"azure_active_directory": []interface{}{
+				profile,
+			},
+		},
+	}
 }
 
 func flattenKubernetesClusterDataSourceAccessProfile(profile containerservice.ManagedClusterAccessProfile) (*string, []interface{}) {

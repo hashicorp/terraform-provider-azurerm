@@ -26,6 +26,7 @@ func TestAccDataSourceAzureRMKubernetesCluster_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(dataSourceName),
+					resource.TestCheckResourceAttr(dataSourceName, "role_based_access_control.#", "0"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "kube_config.0.client_key"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "kube_config.0.client_certificate"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "kube_config.0.cluster_ca_certificate"),
@@ -38,17 +39,13 @@ func TestAccDataSourceAzureRMKubernetesCluster_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMKubernetesCluster_aadProfile(t *testing.T) {
+func TestAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControl(t *testing.T) {
 	dataSourceName := "data.azurerm_kubernetes_cluster.test"
 	ri := acctest.RandInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	serverAppId := os.Getenv("ARM_SERVER_APP_ID")
-	serverAppSecret := os.Getenv("ARM_SERVER_APP_SECRET")
-	clientAppId := os.Getenv("ARM_CLIENT_APP_ID")
 	tenantId := os.Getenv("ARM_TENANT_ID")
 	location := testLocation()
-	config := testAccDataSourceAzureRMKubernetesCluster_rbacAAD(ri, clientId, clientSecret, location, serverAppId, serverAppSecret, clientAppId, tenantId)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -56,14 +53,14 @@ func TestAccDataSourceAzureRMKubernetesCluster_aadProfile(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControl(ri, location, clientId, clientSecret, tenantId),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(dataSourceName),
-					resource.TestCheckResourceAttr(dataSourceName, "aad_profile.#", "1"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "aad_profile.0.server_app_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "aad_profile.0.server_app_secret"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "aad_profile.0.client_app_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "aad_profile.0.tenant_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "role_based_access_control.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "role_based_access_control.0.azure_active_directory.#", "1"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "role_based_access_control.0.azure_active_directory.0.client_app_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "role_based_access_control.0.azure_active_directory.0.server_app_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "role_based_access_control.0.azure_active_directory.0.tenant_id"),
 				),
 			},
 		},
@@ -276,14 +273,14 @@ data "azurerm_kubernetes_cluster" "test" {
 `, r)
 }
 
-func testAccDataSourceAzureRMKubernetesCluster_rbacAAD(rInt int, clientId string, clientSecret string, location string, serverAppId string, serverAppSecret string, clientAppId string, tenantId string) string {
-	resource := testAccAzureRMKubernetesCluster_rbacAAD(rInt, clientId, clientSecret, location, serverAppId, serverAppSecret, clientAppId, tenantId)
+func testAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControl(rInt int, location, clientId, clientSecret, tenantId string) string {
+	resource := testAccAzureRMKubernetesCluster_roleBasedAccessControl(rInt, location, clientId, clientSecret, tenantId)
 	return fmt.Sprintf(`
 %s
 
 data "azurerm_kubernetes_cluster" "test" {
-	name                = "${azurerm_kubernetes_cluster.test.name}"
-	resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+  name                = "${azurerm_kubernetes_cluster.test.name}"
+  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
 }
 `, resource)
 }
