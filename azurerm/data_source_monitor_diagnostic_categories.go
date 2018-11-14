@@ -78,11 +78,11 @@ func dataSourceArmMonitorDiagnosticCategoriesRead(d *schema.ResourceData, meta i
 	}
 
 	if err := d.Set("logs", logs); err != nil {
-		return fmt.Errorf("Error flattening `logs`: %+v", err)
+		return fmt.Errorf("Error setting `logs`: %+v", err)
 	}
 
 	if err := d.Set("metrics", metrics); err != nil {
-		return fmt.Errorf("Error flattening `metrics`: %+v", err)
+		return fmt.Errorf("Error setting `metrics`: %+v", err)
 	}
 
 	return nil

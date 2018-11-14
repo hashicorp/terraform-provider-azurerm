@@ -40,9 +40,10 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 			},
 
 			"eventhub_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateEventHubName(),
 			},
 
 			"eventhub_authorization_rule_id": {
@@ -248,11 +249,11 @@ func resourceArmMonitorDiagnosticSettingRead(d *schema.ResourceData, meta interf
 	d.Set("storage_account_id", resp.StorageAccountID)
 
 	if err := d.Set("log", flattenMonitorDiagnosticLogs(resp.Logs)); err != nil {
-		return fmt.Errorf("Error flattening `log`: %+v", err)
+		return fmt.Errorf("Error setting `log`: %+v", err)
 	}
 
 	if err := d.Set("metric", flattenMonitorDiagnosticMetrics(resp.Metrics)); err != nil {
-		return fmt.Errorf("Error flattening `metric`: %+v", err)
+		return fmt.Errorf("Error setting `metric`: %+v", err)
 	}
 
 	return nil
