@@ -113,6 +113,3 @@ The following Environment Variables must be set to run the acceptance tests:
 * `ARM_ENVIRONMENT` - The Azure Cloud Environment to use, such as `public`, `german` etc. Defaults to `public`.
 * `ARM_TEST_LOCATION` - The primary Azure Region to provision resources in for the Acceptance Tests.
 * `ARM_TEST_LOCATION_ALT` - The secondary Azure Region to provision resources in for the Acceptance Tests. This needs to be a different region to `ARM_TEST_LOCATION`.
-* `ARM_SERVER_APP_ID` - The Azure AD Server App ID for use with Kubernetes RBAC and Azure AD integration Acceptance Tests.
-* `ARM_SERVER_APP_SECRET` - The Azure AD Server App Secret for use with Kubernetes RBAC and Azure AD integration Acceptance Tests.
-* `ARM_CLIENT_APP_ID` - The Azure AD Client App ID for use with Kubernetes RBAC and Azure AD integration Acceptance Tests.
