@@ -361,11 +361,9 @@ func resourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface
 			return fmt.Errorf("Error setting `vpn_client_configuration`: %+v", err)
 		}
 
-		if gw.BgpSettings != nil {
-			bgpSettingsFlat := flattenArmVirtualNetworkGatewayBgpSettings(gw.BgpSettings)
-			if err := d.Set("bgp_settings", bgpSettingsFlat); err != nil {
-				return fmt.Errorf("Error setting `bgp_settings`: %+v", err)
-			}
+		bgpSettingsFlat := flattenArmVirtualNetworkGatewayBgpSettings(gw.BgpSettings)
+		if err := d.Set("bgp_settings", bgpSettingsFlat); err != nil {
+			return fmt.Errorf("Error setting `bgp_settings`: %+v", err)
 		}
 	}
 
