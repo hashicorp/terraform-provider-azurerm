@@ -327,11 +327,11 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("ssl_enforcement", string(resp.SslEnforcement))
 
 	if err := d.Set("sku", flattenMySQLServerSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Error flattening `sku`: %+v", err)
+		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
 	if err := d.Set("storage_profile", flattenMySQLStorageProfile(resp.StorageProfile)); err != nil {
-		return fmt.Errorf("Error flattening `storage_profile`: %+v", err)
+		return fmt.Errorf("Error setting `storage_profile`: %+v", err)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -429,7 +429,7 @@ func flattenMySQLStorageProfile(resp *mysql.StorageProfile) []interface{} {
 		values["backup_retention_days"] = *backupRetentionDays
 	}
 
-	values["geo_redundant_backup"] = mysql.GeoRedundantBackup(resp.GeoRedundantBackup)
+	values["geo_redundant_backup"] = string(resp.GeoRedundantBackup)
 
 	return []interface{}{values}
 }

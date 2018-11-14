@@ -38,7 +38,7 @@ resource "azurerm_public_ip" "test" {
   name                = "test"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  
+
   public_ip_address_allocation = "Dynamic"
 }
 
@@ -62,10 +62,11 @@ resource "azurerm_virtual_network_gateway" "test" {
   }
 
   vpn_client_configuration {
-    address_space = [ "10.2.0.0/24" ]
+    address_space = ["10.2.0.0/24"]
 
     root_certificate {
-      name             = "DigiCert-Federated-ID-Root-CA"
+      name = "DigiCert-Federated-ID-Root-CA"
+
       public_cert_data = <<EOF
 MIIDuzCCAqOgAwIBAgIQCHTZWCM+IlfFIRXIvyKSrjANBgkqhkiG9w0BAQsFADBn
 MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3
@@ -134,7 +135,8 @@ The following arguments are supported:
 
 * `sku` - (Required) Configuration of the size and capacity of the virtual network
     gateway. Valid options are `Basic`, `Standard`, `HighPerformance`, `UltraPerformance`,
-    `VpnGw1`, `VpnGw2` and `VpnGw3` and depend on the `type` and `vpn_type` arguments.
+    `ErGw1AZ`, `ErGw2AZ`, `ErGw3AZ`, `VpnGw1`, `VpnGw2` and `VpnGw3`
+    and depend on the `type` and `vpn_type` arguments.
     A `PolicyBased` gateway only supports the `Basic` sku. Further, the `UltraPerformance`
     sku is only supported by an `ExpressRoute` gateway.
 
@@ -186,7 +188,9 @@ The `vpn_client_configuration` block supports:
     This setting is incompatible with the use of `root_certificate` and `revoked_certificate`.
 
 * `vpn_client_protocols` - (Optional) List of the protocols supported by the vpn client.
-    The supported values are `SSTP` and `IkeV2`.
+    The supported values are `SSTP`, `IkeV2` and `OpenVPN`.
+
+-> **NOTE:** Support for `OpenVPN` as a Client Protocol is currently in Public Preview - [you can register for this Preview using this link](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-howto-openvpn).
 
 The `bgp_settings` block supports:
 

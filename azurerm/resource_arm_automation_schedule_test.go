@@ -16,7 +16,7 @@ func TestAccAzureRMAutomationSchedule_oneTime_basic(t *testing.T) {
 	resourceName := "azurerm_automation_schedule.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
@@ -43,7 +43,7 @@ func TestAccAzureRMAutomationSchedule_oneTime_complete(t *testing.T) {
 	loc, _ := time.LoadLocation("CET")
 	startTime := time.Now().UTC().Add(time.Hour * 7).In(loc).Format("2006-01-02T15:04:00Z07:00")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
@@ -70,7 +70,7 @@ func TestAccAzureRMAutomationSchedule_oneTime_update(t *testing.T) {
 	loc, _ := time.LoadLocation("CET")
 	startTime := time.Now().UTC().Add(time.Hour * 7).In(loc).Format("2006-01-02T15:04:00Z07:00")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
@@ -91,7 +91,7 @@ func TestAccAzureRMAutomationSchedule_hourly(t *testing.T) {
 	resourceName := "azurerm_automation_schedule.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
@@ -113,7 +113,7 @@ func TestAccAzureRMAutomationSchedule_daily(t *testing.T) {
 	resourceName := "azurerm_automation_schedule.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
@@ -135,7 +135,7 @@ func TestAccAzureRMAutomationSchedule_weekly(t *testing.T) {
 	resourceName := "azurerm_automation_schedule.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
@@ -157,7 +157,7 @@ func TestAccAzureRMAutomationSchedule_monthly(t *testing.T) {
 	resourceName := "azurerm_automation_schedule.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
@@ -179,14 +179,14 @@ func TestAccAzureRMAutomationSchedule_weekly_advanced(t *testing.T) {
 	resourceName := "azurerm_automation_schedule.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationSchedule_recurring_advanced_week(ri, testLocation(), "Monday"),
-				Check:  checkAccAzureRMAutomationSchedule_recurring_advanced_week(resourceName, "Monday"),
+				Check:  checkAccAzureRMAutomationSchedule_recurring_advanced_week(resourceName),
 			},
 			{
 				ResourceName:      resourceName,
@@ -201,14 +201,14 @@ func TestAccAzureRMAutomationSchedule_monthly_advanced_by_day(t *testing.T) {
 	resourceName := "azurerm_automation_schedule.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationSchedule_recurring_advanced_month(ri, testLocation(), 2),
-				Check:  checkAccAzureRMAutomationSchedule_recurring_advanced_month(resourceName, 2),
+				Check:  checkAccAzureRMAutomationSchedule_recurring_advanced_month(resourceName),
 			},
 			{
 				ResourceName:      resourceName,
@@ -223,7 +223,7 @@ func TestAccAzureRMAutomationSchedule_monthly_advanced_by_week_day(t *testing.T)
 	resourceName := "azurerm_automation_schedule.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
@@ -308,20 +308,20 @@ func testCheckAzureRMAutomationScheduleExists(name string) resource.TestCheckFun
 
 func testAccAzureRMAutomationSchedule_prerequisites(rInt int, location string) string {
 	return fmt.Sprintf(` 
-resource "azurerm_resource_group" "test" { 
-  name     = "acctestRG-%d" 
-  location = "%s" 
-} 
- 
-resource "azurerm_automation_account" "test" { 
-  name                = "acctestAA-%d" 
-  location            = "${azurerm_resource_group.test.location}" 
-  resource_group_name = "${azurerm_resource_group.test.name}" 
-  sku { 
-    name = "Basic" 
-  } 
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
+resource "azurerm_automation_account" "test" {
+  name                = "acctestAA-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name = "Basic"
+  }
+}
 `, rInt, location, rInt)
 }
 
@@ -340,7 +340,7 @@ resource "azurerm_automation_schedule" "test" {
 
 func checkAccAzureRMAutomationSchedule_oneTime_basic(resourceName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
-		testCheckAzureRMAutomationScheduleExists("azurerm_automation_schedule.test"),
+		testCheckAzureRMAutomationScheduleExists(resourceName),
 		resource.TestCheckResourceAttrSet(resourceName, "name"),
 		resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
 		resource.TestCheckResourceAttrSet(resourceName, "automation_account_name"),
@@ -395,7 +395,7 @@ resource "azurerm_automation_schedule" "test" {
 
 func checkAccAzureRMAutomationSchedule_recurring_basic(resourceName string, frequency string, interval int) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
-		testCheckAzureRMAutomationScheduleExists("azurerm_automation_schedule.test"),
+		testCheckAzureRMAutomationScheduleExists(resourceName),
 		resource.TestCheckResourceAttrSet(resourceName, "name"),
 		resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
 		resource.TestCheckResourceAttrSet(resourceName, "automation_account_name"),
@@ -421,7 +421,7 @@ resource "azurerm_automation_schedule" "test" {
 `, testAccAzureRMAutomationSchedule_prerequisites(rInt, location), rInt, weekDay)
 }
 
-func checkAccAzureRMAutomationSchedule_recurring_advanced_week(resourceName string, weekDay string) resource.TestCheckFunc {
+func checkAccAzureRMAutomationSchedule_recurring_advanced_week(resourceName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
 		testCheckAzureRMAutomationScheduleExists("azurerm_automation_schedule.test"),
 		resource.TestCheckResourceAttrSet(resourceName, "name"),
@@ -450,7 +450,7 @@ resource "azurerm_automation_schedule" "test" {
 `, testAccAzureRMAutomationSchedule_prerequisites(rInt, location), rInt, monthDay)
 }
 
-func checkAccAzureRMAutomationSchedule_recurring_advanced_month(resourceName string, monthDay int) resource.TestCheckFunc {
+func checkAccAzureRMAutomationSchedule_recurring_advanced_month(resourceName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
 		testCheckAzureRMAutomationScheduleExists("azurerm_automation_schedule.test"),
 		resource.TestCheckResourceAttrSet(resourceName, "name"),

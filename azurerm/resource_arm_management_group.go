@@ -111,17 +111,17 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 	if !d.IsNewResource() {
 		log.Printf("[DEBUG] Determine which Subscriptions should be removed from Management Group %q", groupId)
 		if props := resp.Properties; props != nil {
-			subscriptionIdsToRemove, err := determineManagementGroupSubscriptionsIdsToRemove(props.Children, subscriptionIds)
-			if err != nil {
-				return fmt.Errorf("Error determing which subscriptions should be removed from Management Group %q: %+v", groupId, err)
+			subscriptionIdsToRemove, err2 := determineManagementGroupSubscriptionsIdsToRemove(props.Children, subscriptionIds)
+			if err2 != nil {
+				return fmt.Errorf("Error determining which subscriptions should be removed from Management Group %q: %+v", groupId, err2)
 			}
 
 			for _, subscriptionId := range *subscriptionIdsToRemove {
 				log.Printf("[DEBUG] De-associating Subscription ID %q from Management Group %q", subscriptionId, groupId)
-				deleteResp, err := subscriptionsClient.Delete(ctx, groupId, subscriptionId, managementGroupCacheControl)
-				if err != nil {
+				deleteResp, err2 := subscriptionsClient.Delete(ctx, groupId, subscriptionId, managementGroupCacheControl)
+				if err2 != nil {
 					if !response.WasNotFound(deleteResp.Response) {
-						return fmt.Errorf("Error de-associating Subscription %q from Management Group %q: %+v", subscriptionId, groupId, err)
+						return fmt.Errorf("Error de-associating Subscription %q from Management Group %q: %+v", subscriptionId, groupId, err2)
 					}
 				}
 			}
@@ -220,10 +220,10 @@ func resourceArmManagementGroupDelete(d *schema.ResourceData, meta interface{}) 
 				subscriptionId := *v.ID
 				log.Printf("[DEBUG] De-associating Subscription %q from Management Group %q..", subscriptionId, id.groupId)
 				// NOTE: whilst this says `Delete` it's actually `Deassociate` - which is /really/ helpful
-				deleteResp, err := subscriptionsClient.Delete(ctx, id.groupId, subscriptionId, managementGroupCacheControl)
-				if err != nil {
+				deleteResp, err2 := subscriptionsClient.Delete(ctx, id.groupId, subscriptionId, managementGroupCacheControl)
+				if err2 != nil {
 					if !response.WasNotFound(deleteResp.Response) {
-						return fmt.Errorf("Error de-associating Subscription %q from Management Group %q: %+v", subscriptionId, id.groupId, err)
+						return fmt.Errorf("Error de-associating Subscription %q from Management Group %q: %+v", subscriptionId, id.groupId, err2)
 					}
 				}
 			}

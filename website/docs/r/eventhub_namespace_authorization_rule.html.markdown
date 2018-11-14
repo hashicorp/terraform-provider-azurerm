@@ -34,10 +34,10 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
   name                = "navi"
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  
-  listen              = true
-  send                = false
-  manage              = false
+
+  listen = true
+  send   = false
+  manage = false
 }
 ```
 

@@ -17,7 +17,7 @@ func TestAccDataSourceAzureRMSharedImageVersion_basic(t *testing.T) {
 	hostname := fmt.Sprintf("tftestcustomimagesrc%d", rInt)
 	resourceGroup := fmt.Sprintf("acctestRG-%d", rInt)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSharedImageVersionDestroy,

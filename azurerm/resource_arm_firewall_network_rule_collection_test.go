@@ -16,7 +16,7 @@ func TestAccAzureRMFirewallNetworkRuleCollection_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
@@ -45,7 +45,7 @@ func TestAccAzureRMFirewallNetworkRuleCollection_updatedName(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
@@ -82,7 +82,7 @@ func TestAccAzureRMFirewallNetworkRuleCollection_multipleRuleCollections(t *test
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
@@ -133,7 +133,7 @@ func TestAccAzureRMFirewallNetworkRuleCollection_update(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
@@ -177,7 +177,7 @@ func TestAccAzureRMFirewallNetworkRuleCollection_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
@@ -203,7 +203,7 @@ func TestAccAzureRMFirewallNetworkRuleCollection_multipleRules(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,

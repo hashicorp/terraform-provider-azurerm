@@ -95,12 +95,11 @@ resource "azurerm_network_interface" "ext-nic" {
   }
 }
 
-
 # Create the second network interface card for internal - no PIP and no NSG on this one
 resource "azurerm_network_interface" "int-nic" {
-  name                      = "${var.prefix}-int-nic"
-  location                  = "${azurerm_resource_group.main.location}"
-  resource_group_name       = "${azurerm_resource_group.main.name}"
+  name                = "${var.prefix}-int-nic"
+  location            = "${azurerm_resource_group.main.location}"
+  resource_group_name = "${azurerm_resource_group.main.name}"
 
   ip_configuration {
     name                          = "primary"
@@ -110,15 +109,16 @@ resource "azurerm_network_interface" "int-nic" {
 }
 
 resource "azurerm_virtual_machine" "main" {
-  name                  = "${var.prefix}-vm"
-  location              = "${azurerm_resource_group.main.location}"
-  resource_group_name   = "${azurerm_resource_group.main.name}"
+  name                         = "${var.prefix}-vm"
+  location                     = "${azurerm_resource_group.main.location}"
+  resource_group_name          = "${azurerm_resource_group.main.name}"
   primary_network_interface_id = "${azurerm_network_interface.ext-nic.id}"
-  network_interface_ids = ["${azurerm_network_interface.ext-nic.id}","${azurerm_network_interface.int-nic.id}"]
-  vm_size               = "Standard_DS1_v2"
+  network_interface_ids        = ["${azurerm_network_interface.ext-nic.id}", "${azurerm_network_interface.int-nic.id}"]
+  vm_size                      = "Standard_DS1_v2"
 
   # Uncomment this line to delete the OS disk automatically when deleting the VM
   # delete_os_disk_on_termination = true
+
 
   # Uncomment this line to delete the data disks automatically when deleting the VM
   # delete_data_disks_on_termination = true
@@ -129,20 +129,17 @@ resource "azurerm_virtual_machine" "main" {
     sku       = "16.04-LTS"
     version   = "latest"
   }
-
   storage_os_disk {
     name              = "${local.virtual_machine_name}-osdisk"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
-
   os_profile {
     computer_name  = "${local.virtual_machine_name}"
     admin_username = "${var.admin_username}"
     admin_password = "${var.admin_password}"
   }
-
   os_profile_linux_config {
     disable_password_authentication = false
   }

@@ -296,7 +296,7 @@ func expandAzureRmLoadBalancerNatRule(d *schema.ResourceData, lb *network.LoadBa
 	}
 
 	if v := d.Get("frontend_ip_configuration_name").(string); v != "" {
-		rule, _, exists := findLoadBalancerFrontEndIpConfigurationByName(lb, v)
+		rule, exists := findLoadBalancerFrontEndIpConfigurationByName(lb, v)
 		if !exists {
 			return nil, fmt.Errorf("[ERROR] Cannot find FrontEnd IP Configuration with the name %s", v)
 		}
@@ -307,7 +307,7 @@ func expandAzureRmLoadBalancerNatRule(d *schema.ResourceData, lb *network.LoadBa
 	}
 
 	natRule := network.InboundNatRule{
-		Name: utils.String(d.Get("name").(string)),
+		Name:                           utils.String(d.Get("name").(string)),
 		InboundNatRulePropertiesFormat: &properties,
 	}
 

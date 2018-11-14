@@ -1,14 +1,14 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iothub"
-sidebar_current: "docs-azurerm-resource-messaging-iothub"
+sidebar_current: "docs-azurerm-resource-messaging-iothub-x"
 description: |-
-  Manages a IotHub resource
+  Manages an IotHub
 ---
 
 # azurerm_iothub
 
-Manages a IotHub
+Manages an IotHub
 
 ## Example Usage
 
@@ -19,47 +19,48 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                      = "teststa"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  location                  = "${azurerm_resource_group.test.location}"
-  account_tier              = "Standard"
-  account_replication_type  = "LRS"
+  name                     = "teststa"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "test" {
-  name                      = "test"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  storage_account_name      = "${azurerm_storage_account.test.name}"
-  container_access_type     = "private"
+  name                  = "test"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
 }
 
 resource "azurerm_iothub" "test" {
   name                = "test"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
+
   sku {
-    name = "S1"
-    tier = "Standard"
+    name     = "S1"
+    tier     = "Standard"
     capacity = "1"
   }
 
   endpoint {
-    type                        = "AzureIotHub.StorageContainer"
-    connection_string           = "${azurerm_storage_account.test.primary_blob_connection_string}"
-    name                        = "export"
-    batch_frequency_in_seconds  = 60
-    max_chunk_size_in_bytes     = 10485760
-    container_name              = "test"
-    encoding                    = "Avro"
-    file_name_format            = "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"
+    type                       = "AzureIotHub.StorageContainer"
+    connection_string          = "${azurerm_storage_account.test.primary_blob_connection_string}"
+    name                       = "export"
+    batch_frequency_in_seconds = 60
+    max_chunk_size_in_bytes    = 10485760
+    container_name             = "test"
+    encoding                   = "Avro"
+    file_name_format           = "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"
   }
 
   route {
-    name            = "export"
-    source          = "DeviceMessages"
-    condition       = "true"
-    endpoint_names  = ["export"]
-    enabled         = true
+    name           = "export"
+    source         = "DeviceMessages"
+    condition      = "true"
+    endpoint_names = ["export"]
+    enabled        = true
   }
 
   tags {

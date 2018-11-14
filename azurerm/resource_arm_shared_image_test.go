@@ -16,7 +16,7 @@ func TestAccAzureRMSharedImage_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSharedImageDestroy,
@@ -42,7 +42,7 @@ func TestAccAzureRMSharedImage_complete(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSharedImageDestroy,
@@ -130,7 +130,7 @@ func testCheckAzureRMSharedImageExists(name string) resource.TestCheckFunc {
 func testAccAzureRMSharedImage_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -159,7 +159,7 @@ resource "azurerm_shared_image" "test" {
 func testAccAzureRMSharedImage_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

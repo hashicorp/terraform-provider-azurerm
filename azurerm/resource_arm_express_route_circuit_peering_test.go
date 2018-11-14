@@ -16,7 +16,7 @@ func testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering(t *testing.T) 
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
@@ -29,6 +29,11 @@ func testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering(t *testing.T) 
 					resource.TestCheckResourceAttr(resourceName, "microsoft_peering_config.#", "0"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -38,7 +43,7 @@ func testAccAzureRMExpressRouteCircuitPeering_microsoftPeering(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
@@ -50,6 +55,11 @@ func testAccAzureRMExpressRouteCircuitPeering_microsoftPeering(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "peering_type", "MicrosoftPeering"),
 					resource.TestCheckResourceAttr(resourceName, "microsoft_peering_config.#", "1"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

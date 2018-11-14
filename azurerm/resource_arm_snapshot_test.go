@@ -64,7 +64,7 @@ func TestAccAzureRMSnapshot_fromManagedDisk(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSnapshot_fromManagedDisk(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSnapshotDestroy,
@@ -74,6 +74,12 @@ func TestAccAzureRMSnapshot_fromManagedDisk(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSnapshotExists(resourceName),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"source_uri"},
 			},
 		},
 	})
@@ -85,7 +91,7 @@ func TestAccAzureRMSnapshot_encryption(t *testing.T) {
 	rs := acctest.RandString(4)
 	config := testAccAzureRMSnapshot_encryption(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSnapshotDestroy,
@@ -95,6 +101,12 @@ func TestAccAzureRMSnapshot_encryption(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSnapshotExists(resourceName),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"source_uri"},
 			},
 		},
 	})
@@ -106,7 +118,7 @@ func TestAccAzureRMSnapshot_update(t *testing.T) {
 	config := testAccAzureRMSnapshot_fromManagedDisk(ri, testLocation())
 	updatedConfig := testAccAzureRMSnapshot_fromManagedDiskUpdated(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSnapshotDestroy,
@@ -132,7 +144,7 @@ func TestAccAzureRMSnapshot_extendingManagedDisk(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSnapshot_extendingManagedDisk(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSnapshotDestroy,
@@ -152,7 +164,7 @@ func TestAccAzureRMSnapshot_fromExistingSnapshot(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSnapshot_fromExistingSnapshot(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSnapshotDestroy,
@@ -173,7 +185,7 @@ func TestAccAzureRMSnapshot_fromUnmanagedDisk(t *testing.T) {
 	rs := acctest.RandString(4)
 	config := testAccAzureRMSnapshot_fromUnmanagedDisk(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSnapshotDestroy,
@@ -334,7 +346,7 @@ resource "azurerm_key_vault" "test" {
     key_permissions = [
       "create",
       "delete",
-      "get"
+      "get",
     ]
 
     secret_permissions = [
@@ -344,7 +356,7 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-   enabled_for_disk_encryption = true
+  enabled_for_disk_encryption = true
 }
 
 resource "azurerm_key_vault_key" "test" {
@@ -375,7 +387,7 @@ resource "azurerm_snapshot" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   create_option       = "Copy"
   source_uri          = "${azurerm_managed_disk.test.id}"
-  disk_size_gb  	  = "20"
+  disk_size_gb        = "20"
 
   encryption_settings {
     enabled = true
@@ -416,7 +428,7 @@ resource "azurerm_snapshot" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   create_option       = "Copy"
   source_uri          = "${azurerm_managed_disk.test.id}"
-  disk_size_gb  	  = "20"
+  disk_size_gb        = "20"
 }
 `, rInt, location, rInt, rInt)
 }
@@ -508,11 +520,11 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_virtual_machine" "test" {
-  name                  = "acctestvm-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
-  vm_size               = "Standard_F2"
+  name                          = "acctestvm-%d"
+  location                      = "${azurerm_resource_group.test.location}"
+  resource_group_name           = "${azurerm_resource_group.test.name}"
+  network_interface_ids         = ["${azurerm_network_interface.test.id}"]
+  vm_size                       = "Standard_F2"
   delete_os_disk_on_termination = true
 
   storage_image_reference {

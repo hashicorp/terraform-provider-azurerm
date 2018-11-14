@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_interface"
-sidebar_current: "docs-azurerm-resource-network-interface"
+sidebar_current: "docs-azurerm-resource-network-interface-x"
 description: |-
   Manages a Network Interface located in a Virtual Network, usually attached to a Virtual Machine.
 
@@ -88,11 +88,17 @@ The `ip_configuration` block supports:
 
 * `public_ip_address_id` - (Optional) Reference to a Public IP Address to associate with this NIC
 
-* `application_gateway_backend_address_pools_ids` - (Optional) List of Application Gateway Backend Address Pool IDs references to which this NIC belongs
+* `application_gateway_backend_address_pools_ids` - (Optional / **Deprecated**) List of Application Gateway Backend Address Pool IDs references to which this NIC belongs
 
-* `load_balancer_backend_address_pools_ids` - (Optional) List of Load Balancer Backend Address Pool IDs references to which this NIC belongs
+-> **NOTE:** At this time Network Interface <-> Application Gateway Backend Address Pool associations need to be configured both using this field (which is now Deprecated) and/or using the `azurerm_network_interface_application_gateway_backend_address_pool_association` resource. This field is deprecated and will be removed in favour of that resource in the next major version (2.0) of the AzureRM Provider.
 
-* `load_balancer_inbound_nat_rules_ids` - (Optional) List of Load Balancer Inbound Nat Rules IDs involving this NIC
+* `load_balancer_backend_address_pools_ids` - (Optional / **Deprecated**) List of Load Balancer Backend Address Pool IDs references to which this NIC belongs
+
+-> **NOTE:** At this time Network Interface <-> Load Balancer Backend Address Pool associations need to be configured both using this field (which is now Deprecated) and/or using the `azurerm_network_interface_backend_address_pool_association` resource. This field is deprecated and will be removed in favour of that resource in the next major version (2.0) of the AzureRM Provider.
+
+* `load_balancer_inbound_nat_rules_ids` - (Optional / **Deprecated**) List of Load Balancer Inbound Nat Rules IDs involving this NIC
+
+-> **NOTE:** At this time Network Interface <-> Load Balancer Inbound NAT Rule associations need to be configured both using this field (which is now Deprecated) and/or using the `azurerm_network_interface_nat_rule_association` resource. This field is deprecated and will be removed in favour of that resource in the next major version (2.0) of the AzureRM Provider.
 
 * `application_security_group_ids` - (Optional) List of Application Security Group IDs which should be attached to this NIC
 
@@ -107,7 +113,6 @@ The following attributes are exported:
 * `private_ip_address` - The private ip address of the network interface.
 * `virtual_machine_id` - Reference to a VM with which this NIC has been associated.
 * `applied_dns_servers` - If the VM that uses this NIC is part of an Availability Set, then this list will have the union of all DNS servers from all NICs that are part of the Availability Set
-* `internal_fqdn` - Fully qualified DNS name supporting internal communications between VMs in the same VNet
 
 ## Import
 

@@ -205,7 +205,7 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if err := d.Set("sku", flattenCognitiveAccountSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Error flattening `sku`: %+v", err)
+		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
 	if props := resp.AccountProperties; props != nil {

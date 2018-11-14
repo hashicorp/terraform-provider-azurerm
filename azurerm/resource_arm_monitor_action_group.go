@@ -266,7 +266,7 @@ func flattenMonitorActionGroupEmailReceiver(receivers *[]insights.EmailReceiver)
 	result := make([]interface{}, 0)
 	if receivers != nil {
 		for _, receiver := range *receivers {
-			val := make(map[string]interface{}, 0)
+			val := make(map[string]interface{})
 			if receiver.Name != nil {
 				val["name"] = *receiver.Name
 			}
@@ -283,7 +283,7 @@ func flattenMonitorActionGroupSmsReceiver(receivers *[]insights.SmsReceiver) []i
 	result := make([]interface{}, 0)
 	if receivers != nil {
 		for _, receiver := range *receivers {
-			val := make(map[string]interface{}, 0)
+			val := make(map[string]interface{})
 			if receiver.Name != nil {
 				val["name"] = *receiver.Name
 			}
@@ -303,7 +303,7 @@ func flattenMonitorActionGroupWebHookReceiver(receivers *[]insights.WebhookRecei
 	result := make([]interface{}, 0)
 	if receivers != nil {
 		for _, receiver := range *receivers {
-			val := make(map[string]interface{}, 0)
+			val := make(map[string]interface{})
 			if receiver.Name != nil {
 				val["name"] = *receiver.Name
 			}

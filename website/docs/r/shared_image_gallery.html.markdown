@@ -22,7 +22,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_shared_image_gallery" "test" {
-  name                = "example-image-gallery"
+  name                = "example_image_gallery"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   description         = "Shared images and things."

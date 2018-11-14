@@ -215,7 +215,7 @@ func resourceArmSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func validateSnapshotName(v interface{}, k string) (ws []string, errors []error) {
+func validateSnapshotName(v interface{}, _ string) (ws []string, errors []error) {
 	// a-z, A-Z, 0-9, _ and -. The max name length is 80
 	value := v.(string)
 
@@ -229,5 +229,5 @@ func validateSnapshotName(v interface{}, k string) (ws []string, errors []error)
 		errors = append(errors, fmt.Errorf("Snapshot Name can be up to 80 characters, currently %d.", length))
 	}
 
-	return
+	return ws, errors
 }

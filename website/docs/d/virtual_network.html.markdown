@@ -14,8 +14,8 @@ Use this data source to access information about an existing Virtual Network.
 
 ```hcl
 data "azurerm_virtual_network" "test" {
-  name                 = "production"
-  resource_group_name  = "networking"
+  name                = "production"
+  resource_group_name = "networking"
 }
 
 output "virtual_network_id" {

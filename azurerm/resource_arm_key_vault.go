@@ -209,9 +209,9 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 	virtualNetworkNames := make([]string, 0)
 	for _, v := range subnetIds {
-		id, err := parseAzureResourceID(v)
-		if err != nil {
-			return err
+		id, err2 := parseAzureResourceID(v)
+		if err2 != nil {
+			return err2
 		}
 
 		virtualNetworkName := id.Path["virtualNetworks"]
@@ -295,16 +295,16 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("vault_uri", props.VaultURI)
 
 		if err := d.Set("sku", flattenKeyVaultSku(props.Sku)); err != nil {
-			return fmt.Errorf("Error flattening `sku` for KeyVault %q: %+v", *resp.Name, err)
+			return fmt.Errorf("Error setting `sku` for KeyVault %q: %+v", *resp.Name, err)
 		}
 
 		if err := d.Set("network_acls", flattenKeyVaultNetworkAcls(props.NetworkAcls)); err != nil {
-			return fmt.Errorf("Error flattening `network_acls` for KeyVault %q: %+v", *resp.Name, err)
+			return fmt.Errorf("Error setting `network_acls` for KeyVault %q: %+v", *resp.Name, err)
 		}
 
 		flattenedPolicies := azure.FlattenKeyVaultAccessPolicies(props.AccessPolicies)
 		if err := d.Set("access_policy", flattenedPolicies); err != nil {
-			return fmt.Errorf("Error flattening `access_policy` for KeyVault %q: %+v", *resp.Name, err)
+			return fmt.Errorf("Error setting `access_policy` for KeyVault %q: %+v", *resp.Name, err)
 		}
 	}
 
@@ -345,9 +345,9 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 						continue
 					}
 
-					id, err := parseAzureResourceID(*v.ID)
-					if err != nil {
-						return err
+					id, err2 := parseAzureResourceID(*v.ID)
+					if err2 != nil {
+						return err2
 					}
 
 					networkName := id.Path["virtualNetworks"]
@@ -393,7 +393,7 @@ func flattenKeyVaultNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {
 		return []interface{}{}
 	}
 
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 
 	output["bypass"] = string(input.Bypass)
 	output["default_action"] = string(input.DefaultAction)
@@ -431,7 +431,7 @@ func validateKeyVaultName(v interface{}, k string) (ws []string, errors []error)
 		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters and dashes and must be between 3-24 chars", k))
 	}
 
-	return
+	return ws, errors
 }
 
 func keyVaultRefreshFunc(vaultUri string) resource.StateRefreshFunc {

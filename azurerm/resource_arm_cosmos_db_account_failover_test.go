@@ -13,7 +13,7 @@ func TestAccAzureRMCosmosDBAccount_failover_boundedStaleness(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMCosmosDBAccount_failover_boundedStaleness(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
@@ -34,7 +34,7 @@ func TestAccAzureRMCosmosDBAccount_failover_boundedStalenessComplete(t *testing.
 	ri := acctest.RandInt()
 	config := testAccAzureRMCosmosDBAccount_failover_boundedStalenessComplete(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
@@ -53,7 +53,7 @@ func TestAccAzureRMCosmosDBAccount_failover_eventualConsistency(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMCosmosDBAccount_failover_eventualConsistency(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
@@ -73,7 +73,7 @@ func TestAccAzureRMCosmosDBAccount_failover_mongoDB(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMCosmosDBAccount_failover_mongoDB(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
@@ -93,7 +93,7 @@ func TestAccAzureRMCosmosDBAccount_failover_session(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMCosmosDBAccount_failover_session(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
@@ -112,7 +112,7 @@ func TestAccAzureRMCosmosDBAccount_failover_strong(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMCosmosDBAccount_failover_strong(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
@@ -132,7 +132,7 @@ func TestAccAzureRMCosmosDBAccount_failover_geoReplicated(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMCosmosDBAccount_failover_geoReplicated(ri, testLocation(), testAltLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,

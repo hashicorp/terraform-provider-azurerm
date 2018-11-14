@@ -76,12 +76,12 @@ func TestAzureCLIProfileFindDefaultSubscription(t *testing.T) {
 	}
 
 	for _, v := range cases {
-		profile := AzureCLIProfile{
-			Profile: cli.Profile{
+		profile := azureCLIProfile{
+			profile: cli.Profile{
 				Subscriptions: v.Subscriptions,
 			},
 		}
-		actualSubscriptionId, err := profile.FindDefaultSubscriptionId()
+		actualSubscriptionId, err := profile.findDefaultSubscriptionId()
 
 		if v.ExpectError && err == nil {
 			t.Fatalf("Expected an error for %q: didn't get one", v.Description)
@@ -169,13 +169,13 @@ func TestAzureCLIProfileFindSubscription(t *testing.T) {
 	}
 
 	for _, v := range cases {
-		profile := AzureCLIProfile{
-			Profile: cli.Profile{
+		profile := azureCLIProfile{
+			profile: cli.Profile{
 				Subscriptions: v.Subscriptions,
 			},
 		}
 
-		subscription, err := profile.FindSubscription(v.SubscriptionIdToSearchFor)
+		subscription, err := profile.findSubscription(v.SubscriptionIdToSearchFor)
 
 		if v.ExpectError && err == nil {
 			t.Fatalf("Expected an error for %q: didn't get one", v.Description)

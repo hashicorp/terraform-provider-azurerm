@@ -151,5 +151,5 @@ func validateRedisFirewallRuleName(v interface{}, k string) (ws []string, es []e
 		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters", k))
 	}
 
-	return
+	return ws, es
 }

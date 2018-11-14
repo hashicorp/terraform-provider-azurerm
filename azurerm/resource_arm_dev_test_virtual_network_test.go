@@ -43,7 +43,7 @@ func TestAccAzureRMDevTestVirtualNetwork_basic(t *testing.T) {
 	rInt := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDevTestVirtualNetworkDestroy,
@@ -52,6 +52,35 @@ func TestAccAzureRMDevTestVirtualNetwork_basic(t *testing.T) {
 				Config: testAccAzureRMDevTestVirtualNetwork_basic(rInt, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDevTestVirtualNetworkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMDevTestVirtualNetwork_subnet(t *testing.T) {
+	resourceName := "azurerm_dev_test_virtual_network.test"
+	rInt := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDevTestVirtualNetworkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDevTestVirtualNetwork_subnets(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDevTestVirtualNetworkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "subnet.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "subnet.0.use_public_ip_address", "Allow"),
+					resource.TestCheckResourceAttr(resourceName, "subnet.0.use_in_virtual_machine_creation", "Allow"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
@@ -138,6 +167,32 @@ resource "azurerm_dev_test_virtual_network" "test" {
   name                = "acctestdtvn%d"
   lab_name            = "${azurerm_dev_test_lab.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMDevTestVirtualNetwork_subnets(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_dev_test_lab" "test" {
+  name                = "acctestdtl%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_dev_test_virtual_network" "test" {
+  name                = "acctestdtvn%d"
+  lab_name            = "${azurerm_dev_test_lab.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  subnet {
+    use_public_ip_address           = "Allow"
+    use_in_virtual_machine_creation = "Allow"
+  }
 }
 `, rInt, location, rInt, rInt)
 }

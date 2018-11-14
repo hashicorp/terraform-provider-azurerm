@@ -12,7 +12,7 @@ func TestAccDataSourceAzureRMSubnet_basic(t *testing.T) {
 	resourceName := "data.azurerm_subnet.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -35,7 +35,7 @@ func TestAccDataSourceAzureRMSubnet_networkSecurityGroup(t *testing.T) {
 	dataSourceName := "data.azurerm_subnet.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -58,7 +58,7 @@ func TestAccDataSourceAzureRMSubnet_routeTable(t *testing.T) {
 	dataSourceName := "data.azurerm_subnet.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{

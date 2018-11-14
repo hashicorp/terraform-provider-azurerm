@@ -14,8 +14,8 @@ Use this data source to access information about an existing Virtual Network Gat
 
 ```hcl
 data "azurerm_virtual_network_gateway" "test" {
-  name                 = "production"
-  resource_group_name  = "networking"
+  name                = "production"
+  resource_group_name = "networking"
 }
 
 output "virtual_network_gateway_id" {
@@ -91,7 +91,7 @@ The `vpn_client_configuration` block supports:
     This setting is incompatible with the use of `root_certificate` and `revoked_certificate`.
 
 * `vpn_client_protocols` - (Optional) List of the protocols supported by the vpn client.
-    The supported values are `SSTP` and `IkeV2`.
+    The supported values are `SSTP`, `IkeV2` and `OpenVPN`.
 
 The `bgp_settings` block supports:
 
