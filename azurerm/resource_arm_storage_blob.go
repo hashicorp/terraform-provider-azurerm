@@ -103,7 +103,7 @@ func resourceArmStorageBlob() *schema.Resource {
 				Optional:     true,
 				Default:      8,
 				ForceNew:     true,
-				ValidateFunc: validation.IntAtLeast(0),
+				ValidateFunc: validation.IntAtLeast(1),
 			},
 
 			"attempts": {
@@ -111,7 +111,7 @@ func resourceArmStorageBlob() *schema.Resource {
 				Optional:     true,
 				Default:      1,
 				ForceNew:     true,
-				ValidateFunc: validation.IntAtLeast(0),
+				ValidateFunc: validation.IntAtLeast(1),
 			},
 		},
 	}
