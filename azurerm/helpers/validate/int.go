@@ -32,7 +32,7 @@ func IntBetweenAndDivisibleBy(min, max, divisor int) schema.SchemaValidateFunc {
 }
 
 // IntDivisibleBy returns a SchemaValidateFunc which tests if the provided value
-// is of type int and is between min and max (inclusive) and is divisible by a given number
+// is of type int and is divisible by a given number
 func IntDivisibleBy(divisor int) schema.SchemaValidateFunc { // nolint: unparam
 	return func(i interface{}, k string) (s []string, es []error) {
 		v, ok := i.(int)
