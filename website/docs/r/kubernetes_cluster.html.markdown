@@ -107,6 +107,8 @@ A `agent_pool_profile` block supports the following:
 * `os_type` - (Optional) The Operating System used for the Agents. Possible values are `Linux` and `Windows`.  Changing this forces a new resource to be created. Defaults to `Linux`.
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where the Agents in the Pool should be provisioned. Changing this forces a new resource to be created.
 
+~> **NOTE:** A route table should be configured on this Subnet.
+
 ---
 
 A `azure_active_directory` block supports the following:
