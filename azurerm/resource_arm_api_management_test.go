@@ -75,7 +75,7 @@ func TestAccAzureRMApiManagement_complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.Acceptance", "Test"),
-					resource.TestCheckResourceAttrSet(resourceName, "public_ip_addresses"),
+					resource.TestCheckResourceAttrSet(resourceName, "public_ip_addresses.#"),
 				),
 			},
 			{

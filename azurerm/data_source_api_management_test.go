@@ -26,7 +26,7 @@ func TestAccDataSourceAzureRMApiManagement_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "sku.0.capacity", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "sku.0.name", "Developer"),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "0"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "public_ip_addresses"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "public_ip_addresses.#"),
 				),
 			},
 		},
