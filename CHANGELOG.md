@@ -29,6 +29,7 @@ BUG FIXES:
 * `azurerm_route` - allowing setting `next_hop_in_ip_address` to an empty value [GH-2184]
 * `azurerm_route_table` - allowing setting `next_hop_in_ip_address` to an empty value [GH-2184]
 * `azurerm_virtual_network_gateway` - plan is now empty when `bgp_settings` is omitted [GH-2304]
+* `azurerm_virtual_network` - add valdiation to prevent panics [GH-2305]
 
 ## 1.18.0 (November 02, 2018)
 
