@@ -116,33 +116,7 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
-			"aad_profile": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"client_app_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"server_app_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
 			"dns_prefix": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"enable_rbac": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -314,7 +288,6 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 		d.Set("dns_prefix", props.DNSPrefix)
 		d.Set("fqdn", props.Fqdn)
 		d.Set("kubernetes_version", props.KubernetesVersion)
-		d.Set("enable_rbac", props.EnableRBAC)
 		d.Set("node_resource_group", props.NodeResourceGroup)
 
 		addonProfiles := flattenKubernetesClusterDataSourceAddonProfiles(props.AddonProfiles)
@@ -327,11 +300,6 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 			return fmt.Errorf("Error setting `agent_pool_profile`: %+v", err)
 		}
 
-		aadProfile := flattenKubernetesClusterDataSourceAadProfile(resp.ManagedClusterProperties.AadProfile)
-		if err := d.Set("aad_profile", aadProfile); err != nil {
-			return fmt.Errorf("Error setting `aad_profile`: %+v", err)
-		}
-
 		linuxProfile := flattenKubernetesClusterDataSourceLinuxProfile(props.LinuxProfile)
 		if err := d.Set("linux_profile", linuxProfile); err != nil {
 			return fmt.Errorf("Error setting `linux_profile`: %+v", err)
@@ -342,15 +310,16 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 			return fmt.Errorf("Error setting `network_profile`: %+v", err)
 		}
 
+		// TODO: role_based_access_control
+
 		servicePrincipal := flattenKubernetesClusterDataSourceServicePrincipalProfile(props.ServicePrincipalProfile)
 		if err := d.Set("service_principal", servicePrincipal); err != nil {
 			return fmt.Errorf("Error setting `service_principal`: %+v", err)
 		}
 	}
 
-	kubeConfigRaw, kubeConfig := flattenKubernetesClusterDataSourceAccessProfile(&profile)
+	kubeConfigRaw, kubeConfig := flattenKubernetesClusterDataSourceAccessProfile(profile)
 	d.Set("kube_config_raw", kubeConfigRaw)
-
 	if err := d.Set("kube_config", kubeConfig); err != nil {
 		return fmt.Errorf("Error setting `kube_config`: %+v", err)
 	}
@@ -360,29 +329,81 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func flattenKubernetesClusterDataSourceLinuxProfile(input *containerservice.LinuxProfile) []interface{} {
-	values := make(map[string]interface{})
-	sshKeys := make([]interface{}, 0)
-
-	if profile := input; profile != nil {
-		if username := profile.AdminUsername; username != nil {
-			values["admin_username"] = *username
-		}
-
-		if ssh := profile.SSH; ssh != nil {
-			if keys := ssh.PublicKeys; keys != nil {
-				for _, sshKey := range *keys {
-					if keyData := sshKey.KeyData; keyData != nil {
-						outputs := make(map[string]interface{})
-						outputs["key_data"] = *keyData
-						sshKeys = append(sshKeys, outputs)
-					}
-				}
-			}
-		}
+func flattenKubernetesClusterDataSourceAccessProfile(profile containerservice.ManagedClusterAccessProfile) (*string, []interface{}) {
+	if profile.AccessProfile == nil {
+		return nil, []interface{}{}
 	}
 
-	values["ssh_key"] = sshKeys
+	if kubeConfigRaw := profile.AccessProfile.KubeConfig; kubeConfigRaw != nil {
+		rawConfig := string(*kubeConfigRaw)
+		var flattenedKubeConfig []interface{}
+
+		if strings.Contains(rawConfig, "apiserver-id:") {
+			kubeConfigAAD, err := kubernetes.ParseKubeConfigAAD(rawConfig)
+
+			if err != nil {
+				return utils.String(rawConfig), []interface{}{}
+			}
+
+			flattenedKubeConfig = flattenKubernetesClusterDataSourceKubeConfigAAD(*kubeConfigAAD)
+		} else {
+			kubeConfig, err := kubernetes.ParseKubeConfig(rawConfig)
+
+			if err != nil {
+				return utils.String(rawConfig), []interface{}{}
+			}
+
+			flattenedKubeConfig = flattenKubernetesClusterDataSourceKubeConfig(*kubeConfig)
+		}
+
+		return utils.String(rawConfig), flattenedKubeConfig
+	}
+
+	return nil, []interface{}{}
+}
+
+func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*containerservice.ManagedClusterAddonProfile) interface{} {
+	values := make(map[string]interface{})
+
+	routes := make([]interface{}, 0)
+	if httpApplicationRouting := profile["httpApplicationRouting"]; httpApplicationRouting != nil {
+		enabled := false
+		if enabledVal := httpApplicationRouting.Enabled; enabledVal != nil {
+			enabled = *enabledVal
+		}
+
+		zoneName := ""
+		if v := httpApplicationRouting.Config["HTTPApplicationRoutingZoneName"]; v != nil {
+			zoneName = *v
+		}
+
+		output := map[string]interface{}{
+			"enabled":                            enabled,
+			"http_application_routing_zone_name": zoneName,
+		}
+		routes = append(routes, output)
+	}
+	values["http_application_routing"] = routes
+
+	agents := make([]interface{}, 0)
+	if omsAgent := profile["omsAgent"]; omsAgent != nil {
+		enabled := false
+		if enabledVal := omsAgent.Enabled; enabledVal != nil {
+			enabled = *enabledVal
+		}
+
+		workspaceId := ""
+		if workspaceResourceID := omsAgent.Config["logAnalyticsWorkspaceResourceID"]; workspaceResourceID != nil {
+			workspaceId = *workspaceResourceID
+		}
+
+		output := map[string]interface{}{
+			"enabled":                    enabled,
+			"log_analytics_workspace_id": workspaceId,
+		}
+		agents = append(agents, output)
+	}
+	values["oms_agent"] = agents
 
 	return []interface{}{values}
 }
@@ -431,6 +452,57 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 	return agentPoolProfiles
 }
 
+func flattenKubernetesClusterDataSourceLinuxProfile(input *containerservice.LinuxProfile) []interface{} {
+	values := make(map[string]interface{})
+	sshKeys := make([]interface{}, 0)
+
+	if profile := input; profile != nil {
+		if username := profile.AdminUsername; username != nil {
+			values["admin_username"] = *username
+		}
+
+		if ssh := profile.SSH; ssh != nil {
+			if keys := ssh.PublicKeys; keys != nil {
+				for _, sshKey := range *keys {
+					if keyData := sshKey.KeyData; keyData != nil {
+						outputs := make(map[string]interface{})
+						outputs["key_data"] = *keyData
+						sshKeys = append(sshKeys, outputs)
+					}
+				}
+			}
+		}
+	}
+
+	values["ssh_key"] = sshKeys
+
+	return []interface{}{values}
+}
+
+func flattenKubernetesClusterDataSourceNetworkProfile(profile *containerservice.NetworkProfile) []interface{} {
+	values := make(map[string]interface{})
+
+	values["network_plugin"] = profile.NetworkPlugin
+
+	if profile.ServiceCidr != nil {
+		values["service_cidr"] = *profile.ServiceCidr
+	}
+
+	if profile.DNSServiceIP != nil {
+		values["dns_service_ip"] = *profile.DNSServiceIP
+	}
+
+	if profile.DockerBridgeCidr != nil {
+		values["docker_bridge_cidr"] = *profile.DockerBridgeCidr
+	}
+
+	if profile.PodCidr != nil {
+		values["pod_cidr"] = *profile.PodCidr
+	}
+
+	return []interface{}{values}
+}
+
 func flattenKubernetesClusterDataSourceServicePrincipalProfile(profile *containerservice.ManagedClusterServicePrincipalProfile) []interface{} {
 	if profile == nil {
 		return []interface{}{}
@@ -440,61 +512,6 @@ func flattenKubernetesClusterDataSourceServicePrincipalProfile(profile *containe
 
 	if clientId := profile.ClientID; clientId != nil {
 		values["client_id"] = *clientId
-	}
-
-	return []interface{}{values}
-}
-
-func flattenKubernetesClusterDataSourceAccessProfile(profile *containerservice.ManagedClusterAccessProfile) (*string, []interface{}) {
-	if profile == nil || profile.AccessProfile == nil {
-		return nil, []interface{}{}
-	}
-
-	if kubeConfigRaw := profile.AccessProfile.KubeConfig; kubeConfigRaw != nil {
-		rawConfig := string(*kubeConfigRaw)
-		var flattenedKubeConfig []interface{}
-
-		if strings.Contains(rawConfig, "apiserver-id:") {
-			kubeConfigAAD, err := kubernetes.ParseKubeConfigAAD(rawConfig)
-
-			if err != nil {
-				return utils.String(rawConfig), []interface{}{}
-			}
-
-			flattenedKubeConfig = flattenKubernetesClusterDataSourceKubeConfigAAD(*kubeConfigAAD)
-		} else {
-			kubeConfig, err := kubernetes.ParseKubeConfig(rawConfig)
-
-			if err != nil {
-				return utils.String(rawConfig), []interface{}{}
-			}
-
-			flattenedKubeConfig = flattenKubernetesClusterDataSourceKubeConfig(*kubeConfig)
-		}
-
-		return utils.String(rawConfig), flattenedKubeConfig
-	}
-
-	return nil, []interface{}{}
-}
-
-func flattenKubernetesClusterDataSourceAadProfile(profile *containerservice.ManagedClusterAADProfile) []interface{} {
-	if profile == nil {
-		return nil
-	}
-
-	values := make(map[string]interface{})
-
-	if serverAppId := profile.ServerAppID; serverAppId != nil {
-		values["server_app_id"] = *serverAppId
-	}
-
-	if clientAppId := profile.ClientAppID; clientAppId != nil {
-		values["client_app_id"] = *clientAppId
-	}
-
-	if tenantId := profile.TenantID; tenantId != nil {
-		values["tenant_id"] = *tenantId
 	}
 
 	return []interface{}{values}
@@ -531,76 +548,6 @@ func flattenKubernetesClusterDataSourceKubeConfigAAD(config kubernetes.KubeConfi
 	values["client_key"] = ""
 
 	values["cluster_ca_certificate"] = cluster.ClusterAuthorityData
-
-	return []interface{}{values}
-}
-
-func flattenKubernetesClusterDataSourceNetworkProfile(profile *containerservice.NetworkProfile) []interface{} {
-	values := make(map[string]interface{})
-
-	values["network_plugin"] = profile.NetworkPlugin
-
-	if profile.ServiceCidr != nil {
-		values["service_cidr"] = *profile.ServiceCidr
-	}
-
-	if profile.DNSServiceIP != nil {
-		values["dns_service_ip"] = *profile.DNSServiceIP
-	}
-
-	if profile.DockerBridgeCidr != nil {
-		values["docker_bridge_cidr"] = *profile.DockerBridgeCidr
-	}
-
-	if profile.PodCidr != nil {
-		values["pod_cidr"] = *profile.PodCidr
-	}
-
-	return []interface{}{values}
-}
-
-func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*containerservice.ManagedClusterAddonProfile) interface{} {
-	values := make(map[string]interface{})
-
-	routes := make([]interface{}, 0)
-	if httpApplicationRouting := profile["httpApplicationRouting"]; httpApplicationRouting != nil {
-		enabled := false
-		if enabledVal := httpApplicationRouting.Enabled; enabledVal != nil {
-			enabled = *enabledVal
-		}
-
-		zoneName := ""
-		if v := httpApplicationRouting.Config["HTTPApplicationRoutingZoneName"]; v != nil {
-			zoneName = *v
-		}
-
-		output := map[string]interface{}{
-			"enabled":                            enabled,
-			"http_application_routing_zone_name": zoneName,
-		}
-		routes = append(routes, output)
-	}
-	values["http_application_routing"] = routes
-
-	agents := make([]interface{}, 0)
-	if omsAgent := profile["omsAgent"]; omsAgent != nil {
-		enabled := false
-		if enabledVal := omsAgent.Enabled; enabledVal != nil {
-			enabled = *enabledVal
-		}
-
-		workspaceId := ""
-		if workspaceResourceID := omsAgent.Config["logAnalyticsWorkspaceResourceID"]; workspaceResourceID != nil {
-			workspaceId = *workspaceResourceID
-		}
-
-		output := map[string]interface{}{
-			"enabled":                    enabled,
-			"log_analytics_workspace_id": workspaceId,
-		}
-		agents = append(agents, output)
-	}
-	values["oms_agent"] = agents
 
 	return []interface{}{values}
 }
