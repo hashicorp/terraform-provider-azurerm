@@ -3,42 +3,23 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kubernetes_cluster"
 sidebar_current: "docs-azurerm-resource-container-kubernetes-cluster"
 description: |-
-  Manages a managed Kubernetes Cluster (AKS)
+  Manages a managed Kubernetes Cluster (also known as AKS / Azure Kubernetes Service)
 ---
 
 # azurerm_kubernetes_cluster
 
-Manages a managed Kubernetes Cluster (AKS)
+Manages a Managed Kubernetes Cluster (also known as AKS / Azure Kubernetes Service)
 
-~> **Note:** All arguments including the client secret will be stored in the raw state as plain-text.
-[Read more about sensitive data in state](/docs/state/sensitive-data.html).
+~> **Note:** All arguments including the client secret will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
-## Example Usage (Basic)
+## Example Usage
+
+This example provisions a basic Managed Kubernetes Cluster. Other examples of the `azurerm_kubernetes_cluster` resource can be found in [the `./examples/kubernetes` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/kubernetes)
 
 ```hcl
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG1"
   location = "East US"
-}
-
-resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctestLAW1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "PerGB2018"
-}
-
-resource "azurerm_log_analytics_solution" "test" {
-  solution_name         = "ContainerInsights"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
-  workspace_name        = "${azurerm_log_analytics_workspace.test.name}"
-
-  plan {
-    publisher = "Microsoft"
-    product   = "OMSGallery/ContainerInsights"
-  }
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -60,152 +41,17 @@ resource "azurerm_kubernetes_cluster" "test" {
     client_secret = "00000000000000000000000000000000"
   }
 
-  addon_profile {
-    oms_agent {
-      enabled                    = true
-      log_analytics_workspace_id = "${azurerm_log_analytics_workspace.test.id}"
-    }
-  }
-
   tags {
     Environment = "Production"
   }
-}
-
-output "id" {
-    value = "${azurerm_kubernetes_cluster.test.id}"
-}
-
-output "kube_config" {
-  value = "${azurerm_kubernetes_cluster.test.kube_config_raw}"
-}
-
-output "client_key" {
-  value = "${azurerm_kubernetes_cluster.test.kube_config.0.client_key}"
 }
 
 output "client_certificate" {
   value = "${azurerm_kubernetes_cluster.test.kube_config.0.client_certificate}"
 }
 
-output "cluster_ca_certificate" {
-  value = "${azurerm_kubernetes_cluster.test.kube_config.0.cluster_ca_certificate}"
-}
-
-output "host" {
-  value = "${azurerm_kubernetes_cluster.test.kube_config.0.host}"
-}
-```
-
-## Example Usage (Advanced Networking)
-
-```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG1"
-  location = "East US"
-}
-
-resource "azurerm_virtual_network" "test_advanced_network" {
-  name                = "akc-1-vnet"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  address_space       = ["10.1.0.0/16"]
-}
-
-resource "azurerm_subnet" "test_subnet" {
-  name                      = "akc-1-subnet"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  address_prefix            = "10.1.0.0/24"
-  virtual_network_name      = "${azurerm_virtual_network.test_advanced_network.name}"
-}
-
-
-resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctest-01"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "PerGB2018"
-  retention_in_days   = 30
-}
-
-resource "azurerm_log_analytics_solution" "test" {
-  solution_name         = "ContainerInsights"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
-  workspace_name        = "${azurerm_log_analytics_workspace.test.name}"
-
-  plan {
-    publisher = "Microsoft"
-    product   = "OMSGallery/ContainerInsights"
-  }
-}
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "akc-1"
-  location            = "${azurerm_resource_group.test.location}"
-  dns_prefix          = "akc-1"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  kubernetes_version  = "1.11.3"
-
-  linux_profile {
-    admin_username = "acctestuser1"
-
-    ssh_key {
-      key_data = "ssh-rsa ..."
-    }
-  }
-
-  agent_pool_profile {
-    name            = "agentpool"
-    count           = "2"
-    vm_size         = "Standard_DS2_v2"
-    os_type         = "Linux"
-    os_disk_size_gb = 30
-
-    # Required for advanced networking
-    vnet_subnet_id = "${azurerm_subnet.test_subnet.id}"
-  }
-
-  service_principal {
-    client_id     = "00000000-0000-0000-0000-000000000000"
-    client_secret = "00000000000000000000000000000000"
-  }
-
-  addon_profile {
-    oms_agent {
-      enabled                    = true
-      log_analytics_workspace_id = "${azurerm_log_analytics_workspace.test.id}"
-    }
-  }
-
-  network_profile {
-    network_plugin = "azure"
-  }
-}
-
-output "subnet_id" {
-  value = "${azurerm_kubernetes_cluster.test.agent_pool_profile.0.vnet_subnet_id}"
-}
-
-output "network_plugin" {
-  value = "${azurerm_kubernetes_cluster.test.network_profile.0.network_plugin}"
-}
-
-output "service_cidr" {
-  value = "${azurerm_kubernetes_cluster.test.network_profile.0.service_cidr}"
-}
-
-output "dns_service_ip" {
-  value = "${azurerm_kubernetes_cluster.test.network_profile.0.dns_service_ip}"
-}
-
-output "docker_bridge_cidr" {
-  value = "${azurerm_kubernetes_cluster.test.network_profile.0.docker_bridge_cidr}"
-}
-
-output "pod_cidr" {
-  value = "${azurerm_kubernetes_cluster.test.network_profile.0.pod_cidr}"
+output "kube_config" {
+  value = "${azurerm_kubernetes_cluster.test.kube_config_raw}"
 }
 ```
 
@@ -213,17 +59,17 @@ output "pod_cidr" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the AKS Managed Cluster instance to create. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Managed Kubernetes Cluster to create. Changing this forces a new resource to be created.
 
-* `location` - (Required) The location where the AKS Managed Cluster instance should be created. Changing this forces a new resource to be created.
+* `location` - (Required) The location where the Managed Kubernetes Cluster should be created. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) Specifies the Resource Group where the Managed Kubernetes Cluster should exist. Changing this forces a new resource to be created.
 
-* `agent_pool_profile` - (Required) One or more Agent Pool Profile's block as documented below.
+* `agent_pool_profile` - (Required) One or more `agent_pool_profile` blocks as documented below.
 
 * `dns_prefix` - (Required) DNS prefix specified when creating the managed cluster.
 
-* `service_principal` - (Required) A Service Principal block as documented below.
+* `service_principal` - (Required) A `service_principal` block as documented below.
 
 ---
 
@@ -231,13 +77,13 @@ The following arguments are supported:
 
 * `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS managed cluster. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade).
 
-* `linux_profile` - (Optional) A Linux Profile block as documented below.
+* `linux_profile` - (Optional) A `linux_profile` block.
 
-* `network_profile` - (Optional) A Network Profile block as documented below.
+* `network_profile` - (Optional) A `network_profile` block.
 
 -> **NOTE:** If `network_profile` is not defined, `kubenet` profile will be used by default.
 
-* `role_based_access_control` - (Optional) A `role_based_access_control` block as defined below. Changing this forces a new resource to be created.
+* `role_based_access_control` - (Optional) A `role_based_access_control` block. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -260,7 +106,6 @@ A `agent_pool_profile` block supports the following:
 * `os_disk_size_gb` - (Optional) The Agent Operating System disk size in GB. Changing this forces a new resource to be created.
 * `os_type` - (Optional) The Operating System used for the Agents. Possible values are `Linux` and `Windows`.  Changing this forces a new resource to be created. Defaults to `Linux`.
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where the Agents in the Pool should be provisioned. Changing this forces a new resource to be created.
-
 
 ---
 
@@ -306,7 +151,7 @@ A `network_profile` block supports the following:
 
 ~> **NOTE:** This range should not be used by any network element on or connected to this VNet. Service address CIDR must be smaller than /12.
 
--> **NOTE:** Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com/en-us/azure/aks/networking-overview#advanced-networking) can be [found in the `./examples/` directory in the Github repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/kubernetes).
+Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com/en-us/azure/aks/networking-overview#advanced-networking) can be [found in the `./examples/kubernetes/` directory in the Github repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/kubernetes).
 
 ---
 
@@ -345,24 +190,19 @@ The following attributes are exported:
 
 * `fqdn` - The FQDN of the Azure Kubernetes Managed Cluster.
 
-* `node_resource_group` - Auto-generated Resource Group containing AKS Cluster resources.
-
-* `enable_rbac` - Whether Role Based Access Control is currently enabled.
-
-* `kube_config_raw` - Raw Kubernetes config to be used by
-    [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and
-    other compatible tools
+* `kube_config_raw` - Raw Kubernetes config to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools
 
 * `http_application_routing` - A `http_application_routing` block as defined below.
 
 * `kube_config` - A `kube_config` block as defined below.
+
+* `node_resource_group` - The auto-generated Resource Group which contains the resources for this Managed Kubernetes Cluster.
 
 ---
 
 A `http_application_routing` block exports the following:
 
 * `http_application_routing_zone_name` - The Zone Name of the HTTP Application Routing.
-
 
 ---
 
@@ -393,13 +233,11 @@ provider "kubernetes" {
 }
 ```
 
-
 ---
-
 
 ## Import
 
-Kubernetes Clusters can be imported using the `resource id`, e.g.
+Managed Kubernetes Clusters can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_kubernetes_cluster.cluster1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ContainerService/managedClusters/cluster1
