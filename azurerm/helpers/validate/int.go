@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-// intBetweenDivisibleBy returns a SchemaValidateFunc which tests if the provided value
+// IntBetweenAndDivisibleBy returns a SchemaValidateFunc which tests if the provided value
 // is of type int and is between min and max (inclusive) and is divisible by a given number
 func IntBetweenAndDivisibleBy(min, max, divisor int) schema.SchemaValidateFunc { // nolint: unparam
 	return func(i interface{}, k string) (s []string, es []error) {
@@ -31,7 +31,7 @@ func IntBetweenAndDivisibleBy(min, max, divisor int) schema.SchemaValidateFunc {
 	}
 }
 
-// intBetweenDivisibleBy returns a SchemaValidateFunc which tests if the provided value
+// IntDivisibleBy returns a SchemaValidateFunc which tests if the provided value
 // is of type int and is between min and max (inclusive) and is divisible by a given number
 func IntDivisibleBy(divisor int) schema.SchemaValidateFunc { // nolint: unparam
 	return func(i interface{}, k string) (s []string, es []error) {
@@ -50,7 +50,7 @@ func IntDivisibleBy(divisor int) schema.SchemaValidateFunc { // nolint: unparam
 	}
 }
 
-// validateIntInSlice returns a SchemaValidateFunc which tests if the provided value
+// IntInSlice returns a SchemaValidateFunc which tests if the provided value
 // is of type int and matches the value of an element in the valid slice
 func IntInSlice(valid []int) schema.SchemaValidateFunc {
 	return func(i interface{}, k string) (s []string, es []error) {
