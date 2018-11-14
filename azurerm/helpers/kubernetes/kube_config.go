@@ -116,9 +116,9 @@ func ParseKubeConfigAAD(config string) (*KubeConfigAAD, error) {
 		return nil, fmt.Errorf("Config %+v contains no valid clusters or users", kubeConfig)
 	}
 
-	cluster := kubeConfig.Clusters[0].Cluster
-	if cluster.Server == "" {
-		return nil, fmt.Errorf("Config has invalid or non existent server for cluster %+v", cluster)
+	c := kubeConfig.Clusters[0].Cluster
+	if c.Server == "" {
+		return nil, fmt.Errorf("Config has invalid or non existent server for cluster %+v", c)
 	}
 
 	return &kubeConfig, nil
