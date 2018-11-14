@@ -237,10 +237,10 @@ func TestAccAzureRMKubernetesCluster_upgradeConfig(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMKubernetesCluster_upgrade(ri, location, clientId, clientSecret, "1.11.4"),
+				Config: testAccAzureRMKubernetesCluster_upgrade(ri, location, clientId, clientSecret, "1.11.3"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "kubernetes_version", "1.11.4"),
+					resource.TestCheckResourceAttr(resourceName, "kubernetes_version", "1.11.3"),
 				),
 			},
 		},

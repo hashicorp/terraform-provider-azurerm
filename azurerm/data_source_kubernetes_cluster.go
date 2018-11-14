@@ -448,7 +448,7 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 	values["http_application_routing"] = routes
 
 	agents := make([]interface{}, 0)
-	if omsAgent := profile["omsAgent"]; omsAgent != nil {
+	if omsAgent := profile["omsagent"]; omsAgent != nil {
 		enabled := false
 		if enabledVal := omsAgent.Enabled; enabledVal != nil {
 			enabled = *enabledVal
