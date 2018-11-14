@@ -25,6 +25,14 @@ func dataSourceApiManagementService() *schema.Resource {
 
 			"location": locationForDataSourceSchema(),
 
+			"public_ip_addresses": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
 			"publisher_name": {
 				Type:     schema.TypeString,
 				Computed: true,
