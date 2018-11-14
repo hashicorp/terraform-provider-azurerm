@@ -117,6 +117,7 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 						"5.6",
 						"7.0",
 						"7.1",
+						"7.2",
 					}, false),
 				},
 

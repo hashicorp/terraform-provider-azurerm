@@ -900,7 +900,7 @@ func TestAccAzureRMAppService_windowsPHP7(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.php_version", "7.1"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.php_version", "7.2"),
 				),
 			},
 			{
@@ -1968,7 +1968,7 @@ resource "azurerm_app_service" "test" {
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
 
   site_config {
-    php_version = "7.1"
+    php_version = "7.2"
   }
 }
 `, rInt, location, rInt, rInt)
