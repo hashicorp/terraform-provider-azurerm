@@ -13,6 +13,10 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+
+	"github.com/hashicorp/terraform/helper/validation"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
 	"github.com/Azure/azure-sdk-for-go/storage"
@@ -38,111 +42,79 @@ func resourceArmStorageBlob() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+
 			"resource_group_name": resourceGroupNameSchema(),
+
 			"storage_account_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
+
 			"storage_container_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
+
 			"type": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validateArmStorageBlobType,
+				ValidateFunc: validation.StringInSlice([]string{"block", "page"}, true),
 			},
+
 			"size": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ForceNew:     true,
 				Default:      0,
-				ValidateFunc: validateArmStorageBlobSize,
+				ValidateFunc: validate.IntDivisibleBy(512),
 			},
+
 			"content_type": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				Default:       "application/octet-stream",
 				ConflictsWith: []string{"source_uri"},
 			},
+
 			"source": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"source_uri"},
 			},
+
 			"source_uri": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"source"},
 			},
+
 			"url": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"parallelism": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      8,
 				ForceNew:     true,
-				ValidateFunc: validateArmStorageBlobParallelism,
+				ValidateFunc: validation.IntAtLeast(1),
 			},
+
 			"attempts": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      1,
 				ForceNew:     true,
-				ValidateFunc: validateArmStorageBlobAttempts,
+				ValidateFunc: validation.IntAtLeast(1),
 			},
 		},
 	}
-}
-
-func validateArmStorageBlobParallelism(v interface{}, _ string) (ws []string, errors []error) {
-	value := v.(int)
-
-	if value <= 0 {
-		errors = append(errors, fmt.Errorf("Blob Parallelism %q is invalid, must be greater than 0", value))
-	}
-
-	return ws, errors
-}
-
-func validateArmStorageBlobAttempts(v interface{}, _ string) (ws []string, errors []error) {
-	value := v.(int)
-
-	if value <= 0 {
-		errors = append(errors, fmt.Errorf("Blob Attempts %q is invalid, must be greater than 0", value))
-	}
-
-	return ws, errors
-}
-
-func validateArmStorageBlobSize(v interface{}, _ string) (ws []string, errors []error) {
-	value := v.(int)
-
-	if value%512 != 0 {
-		errors = append(errors, fmt.Errorf("Blob Size %q is invalid, must be a multiple of 512", value))
-	}
-
-	return ws, errors
-}
-
-func validateArmStorageBlobType(v interface{}, _ string) (ws []string, errors []error) {
-	value := strings.ToLower(v.(string))
-	validTypes := map[string]struct{}{
-		"block": {},
-		"page":  {},
-	}
-
-	if _, ok := validTypes[value]; !ok {
-		errors = append(errors, fmt.Errorf("Blob type %q is invalid, must be %q or %q", value, "block", "page"))
-	}
-	return ws, errors
 }
 
 func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) error {
