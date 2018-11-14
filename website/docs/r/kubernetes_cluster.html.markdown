@@ -219,15 +219,11 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
 
-* `dns_prefix` - (Required) DNS prefix specified when creating the managed cluster.
-
-* `linux_profile` - (Optional) A Linux Profile block as documented below.
-
 * `agent_pool_profile` - (Required) One or more Agent Pool Profile's block as documented below.
 
-* `service_principal` - (Required) A Service Principal block as documented below.
+* `dns_prefix` - (Required) DNS prefix specified when creating the managed cluster.
 
-* `enable_rbac` - (Optional) True or False. Enables or Disables Kubernetes Role Based Access Control (RBAC). Defaults to True, enabling Kubernetes RBAC without AzureAD integration. Changing this forces a new resource to be created.
+* `service_principal` - (Required) A Service Principal block as documented below.
 
 ---
 
@@ -235,10 +231,13 @@ The following arguments are supported:
 
 * `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS managed cluster. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade).
 
+* `linux_profile` - (Optional) A Linux Profile block as documented below.
+
 * `network_profile` - (Optional) A Network Profile block as documented below.
+
 -> **NOTE:** If `network_profile` is not defined, `kubenet` profile will be used by default.
 
-* `aad_profile` - (Optional) An `aad_profile` block. Used to integrate AzureAD with Kubernetes RBAC. `enable_rbac` must be set to true. Not enabled by default.
+* `role_based_access_control` - (Optional) A `role_based_access_control` block as defined below. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -256,10 +255,24 @@ A `agent_pool_profile` block supports the following:
 * `name` - (Required) Unique name of the Agent Pool Profile in the context of the Subscription and Resource Group. Changing this forces a new resource to be created.
 * `count` - (Required) Number of Agents (VMs) in the Pool. Possible values must be in the range of 1 to 50 (inclusive). Defaults to `1`.
 * `vm_size` - (Required) The size of each VM in the Agent Pool (e.g. `Standard_F1`). Changing this forces a new resource to be created.
+
+* `max_pods` - (Optional) The maximum number of pods that can run on each agent.
 * `os_disk_size_gb` - (Optional) The Agent Operating System disk size in GB. Changing this forces a new resource to be created.
 * `os_type` - (Optional) The Operating System used for the Agents. Possible values are `Linux` and `Windows`.  Changing this forces a new resource to be created. Defaults to `Linux`.
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where the Agents in the Pool should be provisioned. Changing this forces a new resource to be created.
-* `max_pods` - (Optional) The maximum number of pods that can run on each agent.
+
+
+---
+
+A `azure_active_directory` block supports the following:
+
+* `client_app_id` - (Required) The Client ID of an Azure Active Directory Application. Changing this forces a new resource to be created.
+
+* `server_app_id` - (Required) The Server ID of an Azure Active Directory Application. Changing this forces a new resource to be created.
+
+* `server_app_secret` - (Required) The Client Secret of an Azure Active Directory Application. Changing this forces a new resource to be created.
+
+* `tenant_id` - (Optional) The Tenant ID used for Azure Active Directory Application. If this isn't specified the Tenant ID of the current Subscription is used. Changing this forces a new resource to be created.
 
 ---
 
@@ -272,7 +285,28 @@ A `http_application_routing` block supports the following:
 A `linux_profile` block supports the following:
 
 * `admin_username` - (Required) The Admin Username for the Cluster. Changing this forces a new resource to be created.
-* `ssh_key` - (Required) An SSH Key block as documented below.
+
+* `ssh_key` - (Required) One or more `ssh_key` blocks. Changing this forces a new resource to be created.
+
+---
+
+A `network_profile` block supports the following:
+
+* `network_plugin` - (Required) Network plugin to use for networking. Currently supported values are `azure` and `kubenet`. Changing this forces a new resource to be created.
+
+-> **NOTE:** When `network_plugin` is set to `azure` - the `vnet_subnet_id` field in the `agent_pool_profile` block must be set.
+
+* `dns_service_ip` - (Optional) IP address within the Kubernetes service address range that will be used by cluster service discovery (kube-dns). This is required when `network_plugin` is set to `kubenet`. Changing this forces a new resource to be created.
+
+* `docker_bridge_cidr` - (Optional) IP address (in CIDR notation) used as the Docker bridge IP address on nodes. This is required when `network_plugin` is set to `kubenet`. Changing this forces a new resource to be created.
+
+* `pod_cidr` - (Optional) The CIDR to use for pod IP addresses. This field can only be set when `network_plugin` is set to `kubenet`. Changing this forces a new resource to be created.
+
+* `service_cidr` - (Optional) The Network Range used by the Kubernetes service. This is required when `network_plugin` is set to `kubenet`. Changing this forces a new resource to be created.
+
+~> **NOTE:** This range should not be used by any network element on or connected to this VNet. Service address CIDR must be smaller than /12.
+
+-> **NOTE:** Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com/en-us/azure/aks/networking-overview#advanced-networking) can be [found in the `./examples/` directory in the Github repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/kubernetes).
 
 ---
 
@@ -284,92 +318,24 @@ A `oms_agent` block supports the following:
 
 ---
 
-A `ssh_key` block supports the following:
+A `role_based_access_control` block supports the following:
 
-* `key_data` - (Required) The Public SSH Key used to access the cluster. Changing this forces a new resource to be created.
+* `azure_active_directory` - (Required) An `azure_active_directory` block. Changing this forces a new resource to be created.
 
 ---
 
 A `service_principal` block supports the following:
 
-* `client_id` - (Required) The Client ID for the Service Principal.
-* `client_secret` - (Required) The Client Secret for the Service Principal.
+* `client_id` - (Required) The Client ID for the Service Principal. Changing this forces a new resource to be created.
+
+* `client_secret` - (Required) The Client Secret for the Service Principal. Changing this forces a new resource to be created.
 
 ---
 
-A `network_profile` block supports the following:
+A `ssh_key` block supports the following:
 
-* `network_plugin` - (Required) Network plugin to use for networking. Currently supported values are `azure` and `kubenet`. Changing this forces a new resource to be created.
+* `key_data` - (Required) The Public SSH Key used to access the cluster. Changing this forces a new resource to be created.
 
--> **NOTE:** When `network_plugin` is set to `azure` - the `vnet_subnet_id` field in the `agent_pool_profile` block must be set.
-
-* `service_cidr` - (Optional) The Network Range used by the Kubernetes service. This is required when `network_plugin` is set to `kubenet`. Changing this forces a new resource to be created.
-
-~> **NOTE:** This range should not be used by any network element on or connected to this VNet. Service address CIDR must be smaller than /12.
-
-* `dns_service_ip` - (Optional) IP address within the Kubernetes service address range that will be used by cluster service discovery (kube-dns). This is required when `network_plugin` is set to `kubenet`. Changing this forces a new resource to be created.
-
-* `docker_bridge_cidr` - (Optional) IP address (in CIDR notation) used as the Docker bridge IP address on nodes. This is required when `network_plugin` is set to `kubenet`. Changing this forces a new resource to be created.
-
-* `pod_cidr` - (Optional) The CIDR to use for pod IP addresses. This field can only be set when `network_plugin` is set to `kubenet`. Changing this forces a new resource to be created.
-
-Here's an example of configuring the `kubenet` Networking Profile:
-
-```
-resource "azurerm_subnet" "test" {
-  # ...
-}
-
-resource "azurerm_kubernetes_cluster" "test" {
-  # ...
-
-  agent_pool_profile {
-    # ...
-    vnet_subnet_id = "${azurerm_subnet.test.id}"
-  }
-
-  network_profile {
-    network_plugin = "kubenet"
-  }
-}
-```
-
-
-[**Find out more about AKS Advanced Networking**](https://docs.microsoft.com/en-us/azure/aks/networking-overview#advanced-networking)
-
----
-
-A `aad_profile` block supports the following:
-
-* `server_app_id` - (Required) AzureAD Server Application ID.
-
-* `server_app_secret` - (Required) AzureAD Server Application Secret.
-
-* `client_app_id` - (Required) AzureAD Client Application ID.
-
-* `tenant_id` - (Required) AzureAD Tenant ID.
-
-These values are obtained from the Azure Portal, Azure CLI, or Azure PowerShell after creating an AzureAD Application Service.
-
-
-Here's an example of configuring an AzureAD RBAC Handler:
-
-```
-resource "azurerm_kubernetes_cluster" "test" {
-  # ...
-
-  enable_rbac = true
-
-  aad_profile {
-    client_app_id = "..."
-    server_app_id = "..."
-    server_app_secret = "..."
-    tenant_id = "..."
-  }
-}
-```
-
-[**Find out more about AKS RBAC using AzureAD**](https://docs.microsoft.com/en-us/azure/aks/aad-integration)
 
 ## Attributes Reference
 
