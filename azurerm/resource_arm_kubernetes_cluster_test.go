@@ -220,10 +220,9 @@ func TestAccAzureRMKubernetesCluster_addAgent(t *testing.T) {
 func TestAccAzureRMKubernetesCluster_upgradeConfig(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
 	ri := acctest.RandInt()
+	location := testLocation()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	initConfig := testAccAzureRMKubernetesCluster_basic(ri, clientId, clientSecret, testLocation())
-	upgradeConfig := testAccAzureRMKubernetesCluster_upgrade(ri, clientId, clientSecret, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -231,16 +230,17 @@ func TestAccAzureRMKubernetesCluster_upgradeConfig(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: initConfig,
+				Config: testAccAzureRMKubernetesCluster_upgrade(ri, location, clientId, clientSecret, "1.10.9"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "kubernetes_version", "1.10.9"),
 				),
 			},
 			{
-				Config: upgradeConfig,
+				Config: testAccAzureRMKubernetesCluster_upgrade(ri, location, clientId, clientSecret, "1.11.4"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "kubernetes_version", "1.11.2"),
+					resource.TestCheckResourceAttr(resourceName, "kubernetes_version", "1.11.4"),
 				),
 			},
 		},
@@ -426,7 +426,6 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   dns_prefix          = "acctestaks%d"
-  kubernetes_version  = "1.10.7"
 
   agent_pool_profile {
     name    = "default"
@@ -489,7 +488,6 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   dns_prefix          = "acctestaks%d"
-  kubernetes_version  = "1.10.7"
 
   agent_pool_profile {
     name    = "default"
@@ -521,7 +519,6 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   dns_prefix          = "acctestaks%d"
-  kubernetes_version  = "1.11.3"
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -712,7 +709,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, rInt, location, rInt, rInt, rInt, clientId, clientSecret)
 }
 
-func testAccAzureRMKubernetesCluster_upgrade(rInt int, clientId string, clientSecret string, location string) string {
+func testAccAzureRMKubernetesCluster_upgrade(rInt int, location, clientId, clientSecret, version string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -724,7 +721,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   dns_prefix          = "acctestaks%d"
-  kubernetes_version  = "1.11.2"
+  kubernetes_version  = "%s"
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -745,7 +742,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     client_secret = "%s"
   }
 }
-`, rInt, location, rInt, rInt, rInt, clientId, clientSecret)
+`, rInt, location, rInt, rInt, version, rInt, clientId, clientSecret)
 }
 
 func testAccAzureRMKubernetesCluster_advancedNetworking(rInt int, clientId string, clientSecret string, location string, networkPlugin string) string {
