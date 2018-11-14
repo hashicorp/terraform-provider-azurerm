@@ -19,21 +19,3 @@ func Float(input float64) *float64 {
 func String(input string) *string {
 	return &input
 }
-
-func SliceContainsString(haystack []interface{}, needle string) bool {
-	for _, s := range haystack {
-		if s == needle {
-			return true
-		}
-	}
-	return false
-}
-
-func StringSliceContainsStringSlice(leftSide, rightSide []interface{}) bool {
-	for _, s := range leftSide {
-		if !SliceContainsString(rightSide, s.(string)) {
-			return false
-		}
-	}
-	return true
-}
