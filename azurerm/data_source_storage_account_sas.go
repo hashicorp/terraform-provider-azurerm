@@ -1,7 +1,5 @@
 package azurerm
 
-import "github.com/hashicorp/terraform/helper/schema"
-
 import (
 	"encoding/base64"
 	"fmt"
@@ -11,6 +9,8 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+
+	"github.com/hashicorp/terraform/helper/schema"
 )
 
 const (
@@ -316,8 +316,9 @@ func computeAzureStorageAccountSas(accountName string,
 	start string,
 	expiry string,
 	signedProtocol string,
-	signedIp string,
-	signedVersion string) (string, error) {
+	signedIp string, // nolint: unparam
+	signedVersion string, // nolint: unparam
+) (string, error) {
 
 	// UTF-8 by default...
 	stringToSign := accountName + "\n"

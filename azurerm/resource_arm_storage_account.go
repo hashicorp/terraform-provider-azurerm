@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -635,7 +636,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 
 		if customDomain := props.CustomDomain; customDomain != nil {
 			if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(customDomain)); err != nil {
-				return fmt.Errorf("Error flattening `custom_domain`: %+v", err)
+				return fmt.Errorf("Error setting `custom_domain`: %+v", err)
 			}
 		}
 
@@ -703,7 +704,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		networkRules := props.NetworkRuleSet
 		if networkRules != nil {
 			if err := d.Set("network_rules", flattenStorageAccountNetworkRules(networkRules)); err != nil {
-				return fmt.Errorf("Error flattening `network_rules`: %+v", err)
+				return fmt.Errorf("Error setting `network_rules`: %+v", err)
 			}
 		}
 	}
@@ -730,11 +731,47 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 	name := id.Path["storageAccounts"]
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 
-	_, err = client.Delete(ctx, resGroup, name)
+	read, err := client.GetProperties(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error issuing AzureRM delete request for storage account %q: %+v", name, err)
+		if utils.ResponseWasNotFound(read.Response) {
+			return nil
+		}
+
+		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	// the networking api's only allow a single change to be made to a network layout at once, so let's lock to handle that
+	virtualNetworkNames := make([]string, 0)
+	if props := read.AccountProperties; props != nil {
+		if rules := props.NetworkRuleSet; rules != nil {
+			if vnr := rules.VirtualNetworkRules; vnr != nil {
+				for _, v := range *vnr {
+					if v.VirtualNetworkResourceID == nil {
+						continue
+					}
+
+					id, err2 := parseAzureResourceID(*v.VirtualNetworkResourceID)
+					if err2 != nil {
+						return err2
+					}
+
+					networkName := id.Path["virtualNetworks"]
+					virtualNetworkNames = append(virtualNetworkNames, networkName)
+				}
+			}
+		}
+	}
+
+	azureRMLockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
+	defer azureRMUnlockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
+
+	resp, err := client.Delete(ctx, resourceGroup, name)
+	if err != nil {
+		if !response.WasNotFound(resp.Response) {
+			return fmt.Errorf("Error issuing delete request for Storage Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
 	}
 
 	return nil
@@ -742,7 +779,7 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 
 func expandStorageAccountCustomDomain(d *schema.ResourceData) *storage.CustomDomain {
 	domains := d.Get("custom_domain").([]interface{})
-	if domains == nil || len(domains) == 0 {
+	if len(domains) == 0 {
 		return &storage.CustomDomain{
 			Name: utils.String(""),
 		}
@@ -758,17 +795,19 @@ func expandStorageAccountCustomDomain(d *schema.ResourceData) *storage.CustomDom
 }
 
 func flattenStorageAccountCustomDomain(input *storage.CustomDomain) []interface{} {
-	domain := make(map[string]interface{}, 0)
+	domain := make(map[string]interface{})
 
-	domain["name"] = *input.Name
+	if v := input.Name; v != nil {
+		domain["name"] = *v
+	}
+
 	// use_subdomain isn't returned
-
 	return []interface{}{domain}
 }
 
 func expandStorageAccountNetworkRules(d *schema.ResourceData) *storage.NetworkRuleSet {
 	networkRules := d.Get("network_rules").([]interface{})
-	if networkRules == nil || len(networkRules) == 0 {
+	if len(networkRules) == 0 {
 		// Default access is enabled when no network rules are set.
 		return &storage.NetworkRuleSet{DefaultAction: storage.DefaultActionAllow}
 	}
@@ -809,7 +848,7 @@ func expandStorageAccountVirtualNetworks(networkRule map[string]interface{}) *[]
 		attrs := virtualNetworkConfig.(string)
 		virtualNetwork := storage.VirtualNetworkRule{
 			VirtualNetworkResourceID: utils.String(attrs),
-			Action: storage.Allow,
+			Action:                   storage.Allow,
 		}
 		virtualNetworks[i] = virtualNetwork
 	}
@@ -832,7 +871,7 @@ func flattenStorageAccountNetworkRules(input *storage.NetworkRuleSet) []interfac
 	if len(*input.IPRules) == 0 && len(*input.VirtualNetworkRules) == 0 {
 		return []interface{}{}
 	}
-	networkRules := make(map[string]interface{}, 0)
+	networkRules := make(map[string]interface{})
 
 	networkRules["ip_rules"] = schema.NewSet(schema.HashString, flattenStorageAccountIPRules(input.IPRules))
 	networkRules["virtual_network_subnet_ids"] = schema.NewSet(schema.HashString, flattenStorageAccountVirtualNetworks(input.VirtualNetworkRules))
@@ -875,17 +914,17 @@ func flattenStorageAccountBypass(input storage.Bypass) []interface{} {
 	return bypass
 }
 
-func validateArmStorageAccountName(v interface{}, k string) (ws []string, es []error) {
+func validateArmStorageAccountName(v interface{}, _ string) (ws []string, es []error) {
 	input := v.(string)
 
 	if !regexp.MustCompile(`\A([a-z0-9]{3,24})\z`).MatchString(input) {
 		es = append(es, fmt.Errorf("name can only consist of lowercase letters and numbers, and must be between 3 and 24 characters long"))
 	}
 
-	return
+	return ws, es
 }
 
-func validateArmStorageAccountType(v interface{}, k string) (ws []string, es []error) {
+func validateArmStorageAccountType(v interface{}, _ string) (ws []string, es []error) {
 	validAccountTypes := []string{"standard_lrs", "standard_zrs",
 		"standard_grs", "standard_ragrs", "premium_lrs"}
 
@@ -898,7 +937,7 @@ func validateArmStorageAccountType(v interface{}, k string) (ws []string, es []e
 	}
 
 	es = append(es, fmt.Errorf("Invalid storage account type %q", input))
-	return
+	return ws, es
 }
 
 func expandAzureRmStorageAccountIdentity(d *schema.ResourceData) *storage.Identity {

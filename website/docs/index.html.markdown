@@ -27,7 +27,7 @@ We recommend [using a Service Principal when running in a shared environment](au
 
 ```hcl
 # Configure the Azure Provider
-provider "azurerm" { }
+provider "azurerm" {}
 
 # Create a resource group
 resource "azurerm_resource_group" "network" {

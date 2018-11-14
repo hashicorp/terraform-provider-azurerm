@@ -65,7 +65,7 @@ func validateArmStorageQueueName(v interface{}, k string) (ws []string, errors [
 			"%q must be at least 3 characters", k))
 	}
 
-	return
+	return ws, errors
 }
 
 func resourceArmStorageQueueCreate(d *schema.ResourceData, meta interface{}) error {

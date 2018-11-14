@@ -30,7 +30,7 @@ func TestAccAzureRMEventHubAuthorizationRule_manage(t *testing.T) {
 func testAccAzureRMEventHubAuthorizationRule(t *testing.T, listen, send, manage bool) {
 	resourceName := "azurerm_eventhub_authorization_rule.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMEventHubAuthorizationRuleDestroy,
@@ -63,7 +63,7 @@ func testAccAzureRMEventHubAuthorizationRule(t *testing.T, listen, send, manage 
 func TestAccAzureRMEventHubAuthorizationRule_rightsUpdate(t *testing.T) {
 	resourceName := "azurerm_eventhub_authorization_rule.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMEventHubAuthorizationRuleDestroy,

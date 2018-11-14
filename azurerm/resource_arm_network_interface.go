@@ -14,6 +14,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+var networkInterfaceResourceName = "azurerm_network_interface"
+
 func resourceArmNetworkInterface() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmNetworkInterfaceCreateUpdate,
@@ -97,9 +99,10 @@ func resourceArmNetworkInterface() *schema.Resource {
 						},
 
 						"application_gateway_backend_address_pools_ids": {
-							Type:     schema.TypeSet,
-							Optional: true,
-							Computed: true,
+							Type:       schema.TypeSet,
+							Optional:   true,
+							Computed:   true,
+							Deprecated: "This field has been deprecated in favour of the `azurerm_network_interface_application_gateway_backend_address_pool_association` resource.",
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
 								ValidateFunc: azure.ValidateResourceID,
@@ -108,9 +111,10 @@ func resourceArmNetworkInterface() *schema.Resource {
 						},
 
 						"load_balancer_backend_address_pools_ids": {
-							Type:     schema.TypeSet,
-							Optional: true,
-							Computed: true,
+							Type:       schema.TypeSet,
+							Optional:   true,
+							Computed:   true,
+							Deprecated: "This field has been deprecated in favour of the `azurerm_network_interface_backend_address_pool_association` resource.",
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
 								ValidateFunc: azure.ValidateResourceID,
@@ -119,9 +123,10 @@ func resourceArmNetworkInterface() *schema.Resource {
 						},
 
 						"load_balancer_inbound_nat_rules_ids": {
-							Type:     schema.TypeSet,
-							Optional: true,
-							Computed: true,
+							Type:       schema.TypeSet,
+							Optional:   true,
+							Computed:   true,
+							Deprecated: "This field has been deprecated in favour of the `azurerm_network_interface_nat_rule_association` resource.",
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
 								ValidateFunc: azure.ValidateResourceID,
@@ -179,10 +184,10 @@ func resourceArmNetworkInterface() *schema.Resource {
 			},
 
 			"internal_fqdn": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.NoZeroValues,
+				Type:       schema.TypeString,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: "This field has been removed by Azure",
 			},
 
 			/**
@@ -241,6 +246,9 @@ func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interf
 		EnableAcceleratedNetworking: &enableAcceleratedNetworking,
 	}
 
+	azureRMLockByName(name, networkInterfaceResourceName)
+	defer azureRMUnlockByName(name, networkInterfaceResourceName)
+
 	if v, ok := d.GetOk("network_security_group_id"); ok {
 		nsgId := v.(string)
 		properties.NetworkSecurityGroup = &network.SecurityGroup{
@@ -298,7 +306,7 @@ func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interf
 		Name:                      &name,
 		Location:                  &location,
 		InterfacePropertiesFormat: &properties,
-		Tags: expandTags(tags),
+		Tags:                      expandTags(tags),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, iface)
@@ -380,22 +388,19 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 
 	var appliedDNSServers []string
 	var dnsServers []string
-	if dns := props.DNSSettings; dns != nil {
-		if appliedServers := dns.AppliedDNSServers; appliedServers != nil && len(appliedDNSServers) > 0 {
-			for _, applied := range appliedDNSServers {
-				appliedDNSServers = append(appliedDNSServers, applied)
-			}
+	if dnsSettings := props.DNSSettings; dnsSettings != nil {
+		if s := dnsSettings.AppliedDNSServers; s != nil {
+			appliedDNSServers = *s
 		}
 
-		if servers := dns.DNSServers; servers != nil && len(*servers) > 0 {
-			for _, dns := range *servers {
-				dnsServers = append(dnsServers, dns)
-			}
+		if s := dnsSettings.DNSServers; s != nil {
+			dnsServers = *s
 		}
 
-		d.Set("internal_fqdn", props.DNSSettings.InternalFqdn)
-		d.Set("internal_dns_name_label", props.DNSSettings.InternalDNSNameLabel)
+		d.Set("internal_fqdn", dnsSettings.InternalFqdn)
+		d.Set("internal_dns_name_label", dnsSettings.InternalDNSNameLabel)
 	}
+
 	d.Set("applied_dns_servers", appliedDNSServers)
 	d.Set("dns_servers", dnsServers)
 
@@ -430,11 +435,14 @@ func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{})
 	resGroup := id.ResourceGroup
 	name := id.Path["networkInterfaces"]
 
+	azureRMLockByName(name, networkInterfaceResourceName)
+	defer azureRMUnlockByName(name, networkInterfaceResourceName)
+
 	if v, ok := d.GetOk("network_security_group_id"); ok {
 		networkSecurityGroupId := v.(string)
-		networkSecurityGroupName, err := parseNetworkSecurityGroupName(networkSecurityGroupId)
-		if err != nil {
-			return err
+		networkSecurityGroupName, err2 := parseNetworkSecurityGroupName(networkSecurityGroupId)
+		if err2 != nil {
+			return err2
 		}
 
 		azureRMLockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
@@ -449,9 +457,9 @@ func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{})
 		data := configRaw.(map[string]interface{})
 
 		subnet_id := data["subnet_id"].(string)
-		subnetId, err := parseAzureResourceID(subnet_id)
-		if err != nil {
-			return err
+		subnetId, err2 := parseAzureResourceID(subnet_id)
+		if err2 != nil {
+			return err2
 		}
 		subnetName := subnetId.Path["subnets"]
 		if !sliceContainsValue(subnetNamesToLock, subnetName) {
@@ -656,7 +664,7 @@ func expandAzureRmNetworkInterfaceIpConfigurations(d *schema.ResourceData) ([]ne
 
 		name := data["name"].(string)
 		ipConfig := network.InterfaceIPConfiguration{
-			Name: &name,
+			Name:                                     &name,
 			InterfaceIPConfigurationPropertiesFormat: &properties,
 		}
 

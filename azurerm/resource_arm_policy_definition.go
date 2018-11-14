@@ -136,8 +136,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 		DefinitionProperties: &properties,
 	}
 
-	_, err := client.CreateOrUpdate(ctx, name, definition)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, name, definition); err != nil {
 		return err
 	}
 

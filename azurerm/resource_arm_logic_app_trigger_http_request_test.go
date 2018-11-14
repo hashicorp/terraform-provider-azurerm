@@ -12,7 +12,7 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_basic(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_http_request.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
@@ -24,6 +24,11 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "schema", "{}"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -32,7 +37,7 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_fullSchema(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_http_request.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
@@ -44,6 +49,11 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_fullSchema(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "schema"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -52,7 +62,7 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_method(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_http_request.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
@@ -64,6 +74,11 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_method(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "method", "PUT"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -72,7 +87,7 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_relativePath(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_http_request.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
@@ -82,8 +97,13 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_relativePath(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogicAppTriggerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "method", "POST"),
-					resource.TestCheckResourceAttr(resourceName, "relative_path", "hello_there"),
+					resource.TestCheckResourceAttr(resourceName, "relative_path", "customers/{id}"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -92,7 +112,7 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_relativePath(t *testing.T) {
 func TestAccAzureRMLogicAppTriggerHttpRequest_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
@@ -178,7 +198,7 @@ resource "azurerm_logic_app_trigger_http_request" "test" {
   logic_app_id  = "${azurerm_logic_app_workflow.test.id}"
   schema        = "{}"
   method        = "POST"
-  relative_path = "hello_there"
+  relative_path = "customers/{id}"
 }
 `, template)
 }
@@ -186,13 +206,13 @@ resource "azurerm_logic_app_trigger_http_request" "test" {
 func testAccAzureRMLogicAppTriggerHttpRequest_template(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_logic_app_workflow" "test" {
-  name = "acctestlaw-%d"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctestlaw-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt)

@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -17,7 +18,6 @@ func resourceArmAutomationAccount() *schema.Resource {
 		Read:   resourceArmAutomationAccountRead,
 		Update: resourceArmAutomationAccountCreateUpdate,
 		Delete: resourceArmAutomationAccountDelete,
-
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -48,9 +48,10 @@ func resourceArmAutomationAccount() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Default:          string(automation.Basic),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(automation.Basic),
+								string(automation.Free),
 							}, true),
 						},
 					},
@@ -58,6 +59,19 @@ func resourceArmAutomationAccount() *schema.Resource {
 			},
 
 			"tags": tagsSchema(),
+
+			"dsc_server_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"dsc_primary_access_key": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"dsc_secondary_access_key": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -66,36 +80,34 @@ func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta inter
 	client := meta.(*ArmClient).automationAccountClient
 	ctx := meta.(*ArmClient).StopContext
 
-	log.Printf("[INFO] preparing arguments for AzureRM Automation Account creation.")
+	log.Printf("[INFO] preparing arguments for Automation Account create/update.")
 
 	name := d.Get("name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
-
 	sku := expandAutomationAccountSku(d)
 
 	parameters := automation.AccountCreateOrUpdateParameters{
 		AccountCreateOrUpdateProperties: &automation.AccountCreateOrUpdateProperties{
-			Sku: &sku,
+			Sku: sku,
 		},
-
-		Location: &location,
+		Location: utils.String(location),
 		Tags:     expandTags(tags),
 	}
 
 	_, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating/updating Automation Account %q (Resource Group %q) %+v", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving Automation Account %q (Resource Group %q) %+v", name, resGroup, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Automation Account '%s' (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read Automation Account %q (Resource Group %q) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -105,6 +117,7 @@ func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta inter
 
 func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).automationAccountClient
+	registrationClient := meta.(*ArmClient).automationAgentRegistrationInfoClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -117,11 +130,23 @@ func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) 
 	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[DEBUG] Automation Account %q was not found in Resource Group %q - removing from state!", name, resGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM Automation Account '%s': %+v", name, err)
+		return fmt.Errorf("Error making Read request on Automation Account %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	keysResp, err := registrationClient.Get(ctx, resGroup, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[DEBUG] Agent Registration Info for Automation Account %q was not found in Resource Group %q - removing from state!", name, resGroup)
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("Error making Read request for Agent Registration Info for Automation Account %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -130,7 +155,15 @@ func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	flattenAndSetAutomationAccountSku(d, resp.Sku)
+	if err := d.Set("sku", flattenAutomationAccountSku(resp.Sku)); err != nil {
+		return fmt.Errorf("Error setting `sku`: %+v", err)
+	}
+
+	d.Set("dsc_server_endpoint", keysResp.Endpoint)
+	if keys := keysResp.Keys; keys != nil {
+		d.Set("dsc_primary_access_key", keys.Primary)
+		d.Set("dsc_secondary_access_key", keys.Secondary)
+	}
 
 	if tags := resp.Tags; tags != nil {
 		flattenAndSetTags(d, tags)
@@ -163,17 +196,17 @@ func resourceArmAutomationAccountDelete(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func flattenAndSetAutomationAccountSku(d *schema.ResourceData, sku *automation.Sku) {
-	results := make([]interface{}, 1)
+func flattenAutomationAccountSku(sku *automation.Sku) []interface{} {
+	if sku == nil {
+		return []interface{}{}
+	}
 
 	result := map[string]interface{}{}
 	result["name"] = string(sku.Name)
-	results[0] = result
-
-	d.Set("sku", &results)
+	return []interface{}{result}
 }
 
-func expandAutomationAccountSku(d *schema.ResourceData) automation.Sku {
+func expandAutomationAccountSku(d *schema.ResourceData) *automation.Sku {
 	inputs := d.Get("sku").([]interface{})
 	input := inputs[0].(map[string]interface{})
 	name := automation.SkuNameEnum(input["name"].(string))
@@ -182,5 +215,5 @@ func expandAutomationAccountSku(d *schema.ResourceData) automation.Sku {
 		Name: name,
 	}
 
-	return sku
+	return &sku
 }

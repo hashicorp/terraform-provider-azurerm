@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_resource_group"
 sidebar_current: "docs-azurerm-datasource-resource-group"
 description: |-
-  Get information about the specified resource group.
+  Gets information about an existing Resource Group.
 ---
 
 # Data Source: azurerm_resource_group
 
-Use this data source to access the properties of an Azure resource group.
+Use this data source to access information about an existing Resource Group.
 
 ## Example Usage
 

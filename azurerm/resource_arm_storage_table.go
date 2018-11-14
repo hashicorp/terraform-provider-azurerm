@@ -52,7 +52,7 @@ func validateArmStorageTableName(v interface{}, k string) (ws []string, errors [
 			k, value))
 	}
 
-	return
+	return ws, errors
 }
 
 func resourceArmStorageTableCreate(d *schema.ResourceData, meta interface{}) error {
@@ -128,7 +128,7 @@ func resourceArmStorageTableRead(d *schema.ResourceData, meta interface{}) error
 
 	var storageTable *storage.Table
 	for _, table := range tables.Tables {
-		if string(table.Name) == id.tableName {
+		if table.Name == id.tableName {
 			storageTable = &table
 			break
 		}

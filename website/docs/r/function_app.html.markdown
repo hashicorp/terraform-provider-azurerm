@@ -99,6 +99,8 @@ The following arguments are supported:
 
 * `app_settings` - (Optional) A key-value pair of App Settings.
 
+* `enable_builtin_logging` - (Optional) Should the built-in logging of this Function App be enabled? Defaults to `true`.
+
 * `connection_string` - (Optional) An `connection_string` block as defined below.
 
 * `client_affinity_enabled` - (Optional) Should the Function App send session affinity cookies, which route client requests in the same session to the same instance?
@@ -107,7 +109,7 @@ The following arguments are supported:
 
 * `https_only` - (Optional) Can the Function App only be accessed via HTTPS? Defaults to `false`.
 
-* `version` - (Optional) The runtime version associated with the Function App. Possible values are `~1` and `beta`. Defaults to `~1`.
+* `version` - (Optional) The runtime version associated with the Function App. Defaults to `~1`.
 
 * `site_config` - (Optional) A `site_config` object as defined below.
 

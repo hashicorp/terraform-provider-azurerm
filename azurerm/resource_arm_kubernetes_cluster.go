@@ -191,9 +191,11 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							ValidateFunc: validation.IntBetween(1, 50),
 						},
 
+						// TODO: remove this field in the next major version
 						"dns_prefix": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:       schema.TypeString,
+							Computed:   true,
+							Deprecated: "This field has been removed by Azure",
 						},
 
 						"fqdn": {
@@ -210,9 +212,11 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						},
 
 						"os_disk_size_gb": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							ForceNew: true,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ForceNew:     true,
+							Computed:     true,
+							ValidateFunc: validation.IntAtLeast(1),
 						},
 
 						"vnet_subnet_id": {
@@ -381,18 +385,15 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Type:     schema.TypeList,
 							MaxItems: 1,
 							Optional: true,
-							ForceNew: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
 										Type:     schema.TypeBool,
 										Required: true,
-										ForceNew: true,
 									},
 									"log_analytics_workspace_id": {
 										Type:     schema.TypeString,
 										Required: true,
-										ForceNew: true,
 									},
 								},
 							},
@@ -600,7 +601,7 @@ func flattenAzureRmKubernetesClusterLinuxProfile(profile *containerservice.Linux
 	if ssh := profile.SSH; ssh != nil {
 		if keys := ssh.PublicKeys; keys != nil {
 			for _, sshKey := range *keys {
-				outputs := make(map[string]interface{}, 0)
+				outputs := make(map[string]interface{})
 				if keyData := sshKey.KeyData; keyData != nil {
 					outputs["key_data"] = *keyData
 				}
@@ -626,10 +627,6 @@ func flattenAzureRmKubernetesClusterAgentPoolProfiles(profiles *[]containerservi
 
 		if profile.Count != nil {
 			agentPoolProfile["count"] = int(*profile.Count)
-		}
-
-		if profile.DNSPrefix != nil {
-			agentPoolProfile["dns_prefix"] = *profile.DNSPrefix
 		}
 
 		if fqdn != nil {
@@ -667,7 +664,7 @@ func flattenAzureRmKubernetesClusterAgentPoolProfiles(profiles *[]containerservi
 	return agentPoolProfiles
 }
 
-func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerservice.ServicePrincipalProfile) *schema.Set {
+func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerservice.ManagedClusterServicePrincipalProfile) *schema.Set {
 	if profile == nil {
 		return nil
 	}
@@ -849,7 +846,7 @@ func expandAzureRmKubernetesClusterLinuxProfile(d *schema.ResourceData) *contain
 	return &profile
 }
 
-func expandAzureRmKubernetesClusterServicePrincipal(d *schema.ResourceData) *containerservice.ServicePrincipalProfile {
+func expandAzureRmKubernetesClusterServicePrincipal(d *schema.ResourceData) *containerservice.ManagedClusterServicePrincipalProfile {
 	value, exists := d.GetOk("service_principal")
 	if !exists {
 		return nil
@@ -862,7 +859,7 @@ func expandAzureRmKubernetesClusterServicePrincipal(d *schema.ResourceData) *con
 	clientId := config["client_id"].(string)
 	clientSecret := config["client_secret"].(string)
 
-	principal := containerservice.ServicePrincipalProfile{
+	principal := containerservice.ManagedClusterServicePrincipalProfile{
 		ClientID: &clientId,
 		Secret:   &clientSecret,
 	}
@@ -877,7 +874,6 @@ func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []conta
 
 	name := config["name"].(string)
 	count := int32(config["count"].(int))
-	dnsPrefix := config["dns_prefix"].(string)
 	vmSize := config["vm_size"].(string)
 	osDiskSizeGB := int32(config["os_disk_size_gb"].(int))
 	osType := config["os_type"].(string)
@@ -886,7 +882,6 @@ func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []conta
 		Name:           utils.String(name),
 		Count:          utils.Int32(count),
 		VMSize:         containerservice.VMSizeTypes(vmSize),
-		DNSPrefix:      utils.String(dnsPrefix),
 		OsDiskSizeGB:   utils.Int32(osDiskSizeGB),
 		StorageProfile: containerservice.ManagedDisks,
 		OsType:         containerservice.OSType(osType),
@@ -996,7 +991,7 @@ func expandAzureRmKubernetesClusterAddonProfiles(d *schema.ResourceData) map[str
 			config["logAnalyticsWorkspaceResourceID"] = utils.String(workspaceId.(string))
 		}
 
-		addonProfiles["omsAgent"] = &containerservice.ManagedClusterAddonProfile{
+		addonProfiles["omsagent"] = &containerservice.ManagedClusterAddonProfile{
 			Enabled: utils.Bool(enabled),
 			Config:  config,
 		}
@@ -1006,7 +1001,7 @@ func expandAzureRmKubernetesClusterAddonProfiles(d *schema.ResourceData) map[str
 }
 
 func flattenAzureRmKubernetesClusterAddonProfiles(profile map[string]*containerservice.ManagedClusterAddonProfile) []interface{} {
-	values := make(map[string]interface{}, 0)
+	values := make(map[string]interface{})
 
 	routes := make([]interface{}, 0)
 	if httpApplicationRouting := profile["httpApplicationRouting"]; httpApplicationRouting != nil {
@@ -1021,7 +1016,7 @@ func flattenAzureRmKubernetesClusterAddonProfiles(profile map[string]*containers
 		}
 
 		output := map[string]interface{}{
-			"enabled": enabled,
+			"enabled":                            enabled,
 			"http_application_routing_zone_name": zoneName,
 		}
 		routes = append(routes, output)
@@ -1029,7 +1024,7 @@ func flattenAzureRmKubernetesClusterAddonProfiles(profile map[string]*containers
 	values["http_application_routing"] = routes
 
 	agents := make([]interface{}, 0)
-	if omsAgent := profile["omsAgent"]; omsAgent != nil {
+	if omsAgent := profile["omsagent"]; omsAgent != nil {
 		enabled := false
 		if enabledVal := omsAgent.Enabled; enabledVal != nil {
 			enabled = *enabledVal

@@ -34,7 +34,7 @@ resource "azurerm_dns_caa_record" "test" {
     tag   = "issue"
     value = "example.com"
   }
-	
+
   record {
     flags = 0
     tag   = "issue"
@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `zone_name` - (Required) Specifies the DNS Zone where the resource exists. Changing this forces a new resource to be created.
 
-* `ttl` - (Required) The Time To Live (TTL) of the DNS record.
+* `ttl` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
 * `record` - (Required) A list of values that make up the CAA record. Each `record` block supports fields documented below.
 

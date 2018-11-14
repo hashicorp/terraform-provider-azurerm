@@ -14,7 +14,7 @@ func TestAccAzureRMAutomationCredential_basic(t *testing.T) {
 	resourceName := "azurerm_automation_credential.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationCredentialDestroy,
@@ -40,7 +40,7 @@ func TestAccAzureRMAutomationCredential_complete(t *testing.T) {
 	resourceName := "azurerm_automation_credential.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationCredentialDestroy,
@@ -134,16 +134,17 @@ func testCheckAzureRMAutomationCredentialExists(name string) resource.TestCheckF
 func testAccAzureRMAutomationCredential_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
- name = "acctestRG-%d"
- location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_automation_account" "test" {
   name                = "acctest-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
   sku {
-	name = "Basic"
+    name = "Basic"
   }
 }
 
@@ -160,21 +161,22 @@ resource "azurerm_automation_credential" "test" {
 func testAccAzureRMAutomationCredential_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
- name = "acctestRG-%d"
- location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_automation_account" "test" {
   name                = "acctest-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
   sku {
-	name = "Basic"
+    name = "Basic"
   }
 }
 
 resource "azurerm_automation_credential" "test" {
-  name     	          = "acctest-%d"
+  name                = "acctest-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   account_name        = "${azurerm_automation_account.test.name}"
   username            = "test_user"

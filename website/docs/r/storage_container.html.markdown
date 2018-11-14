@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_storage_container
 
-Create an Azure Storage Container.
+Manage an Azure Storage Container.
 
 ## Example Usage
 
@@ -50,7 +50,7 @@ The following arguments are supported:
 * `storage_account_name` - (Required) Specifies the storage account in which to create the storage container.
  Changing this forces a new resource to be created.
 
-* `container_access_type` - (Optional) The 'interface' for access the container provides. Can be either `blob`, `container` or `private`. Defaults to `private`. Changing this forces a new resource to be created.
+* `container_access_type` - (Optional) The 'interface' for access the container provides. Can be either `blob`, `container` or `private`. Defaults to `private`.
 
 ## Attributes Reference
 

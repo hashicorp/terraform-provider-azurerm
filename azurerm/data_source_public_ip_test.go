@@ -17,7 +17,7 @@ func TestAccDataSourceAzureRMPublicIP_basic(t *testing.T) {
 
 	config := testAccDataSourceAzureRMPublicIPBasic(name, resourceGroupName, ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
@@ -31,6 +31,7 @@ func TestAccDataSourceAzureRMPublicIP_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "idle_timeout_in_minutes", "30"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "fqdn"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "ip_address"),
+					resource.TestCheckResourceAttr(dataSourceName, "ip_version", "IPv4"),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.environment", "test"),
 				),

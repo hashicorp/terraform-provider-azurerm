@@ -6,7 +6,7 @@ import (
 
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -99,9 +99,9 @@ func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta 
 
 	applicationIdRaw := d.Get("application_id").(string)
 	if applicationIdRaw != "" {
-		applicationId, err := uuid.FromString(applicationIdRaw)
-		if err != nil {
-			return fmt.Errorf("Error parsing Appliciation ID %q as a UUID: %+v", applicationIdRaw, err)
+		applicationId, err2 := uuid.FromString(applicationIdRaw)
+		if err2 != nil {
+			return fmt.Errorf("Error parsing Appliciation ID %q as a UUID: %+v", applicationIdRaw, err2)
 		}
 
 		accessPolicy.ApplicationID = &applicationId
@@ -211,17 +211,17 @@ func resourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{
 	if permissions := policy.Permissions; permissions != nil {
 		certificatePermissions := azure.FlattenCertificatePermissions(permissions.Certificates)
 		if err := d.Set("certificate_permissions", certificatePermissions); err != nil {
-			return fmt.Errorf("Error flattening `certificate_permissions`: %+v", err)
+			return fmt.Errorf("Error setting `certificate_permissions`: %+v", err)
 		}
 
 		keyPermissions := azure.FlattenKeyPermissions(permissions.Keys)
 		if err := d.Set("key_permissions", keyPermissions); err != nil {
-			return fmt.Errorf("Error flattening `key_permissions`: %+v", err)
+			return fmt.Errorf("Error setting `key_permissions`: %+v", err)
 		}
 
 		secretPermissions := azure.FlattenSecretPermissions(permissions.Secrets)
 		if err := d.Set("secret_permissions", secretPermissions); err != nil {
-			return fmt.Errorf("Error flattening `secret_permissions`: %+v", err)
+			return fmt.Errorf("Error setting `secret_permissions`: %+v", err)
 		}
 	}
 

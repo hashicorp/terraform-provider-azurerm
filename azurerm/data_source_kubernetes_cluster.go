@@ -131,9 +131,11 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							Computed: true,
 						},
 
+						// TODO: remove this in a future version
 						"dns_prefix": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:       schema.TypeString,
+							Computed:   true,
+							Deprecated: "This field is no longer returned from the Azure API",
 						},
 
 						"vm_size": {
@@ -337,7 +339,7 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 			return fmt.Errorf("Error setting `network_profile`: %+v", err)
 		}
 
-		servicePrincipal := flattenKubernetesClusterDataSourceServicePrincipalProfile(resp.ManagedClusterProperties.ServicePrincipalProfile)
+		servicePrincipal := flattenKubernetesClusterDataSourceServicePrincipalProfile(props.ServicePrincipalProfile)
 		if err := d.Set("service_principal", servicePrincipal); err != nil {
 			return fmt.Errorf("Error setting `service_principal`: %+v", err)
 		}
@@ -373,7 +375,7 @@ func flattenKubernetesClusterDataSourceLinuxProfile(input *containerservice.Linu
 			if keys := ssh.PublicKeys; keys != nil {
 				for _, sshKey := range *keys {
 					if keyData := sshKey.KeyData; keyData != nil {
-						outputs := make(map[string]interface{}, 0)
+						outputs := make(map[string]interface{})
 						outputs["key_data"] = *keyData
 						sshKeys = append(sshKeys, outputs)
 					}
@@ -399,10 +401,6 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 
 		if profile.Count != nil {
 			agentPoolProfile["count"] = int(*profile.Count)
-		}
-
-		if profile.DNSPrefix != nil {
-			agentPoolProfile["dns_prefix"] = *profile.DNSPrefix
 		}
 
 		if profile.Name != nil {
@@ -435,7 +433,7 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 	return agentPoolProfiles
 }
 
-func flattenKubernetesClusterDataSourceServicePrincipalProfile(profile *containerservice.ServicePrincipalProfile) []interface{} {
+func flattenKubernetesClusterDataSourceServicePrincipalProfile(profile *containerservice.ManagedClusterServicePrincipalProfile) []interface{} {
 	if profile == nil {
 		return []interface{}{}
 	}
@@ -564,7 +562,7 @@ func flattenKubernetesClusterDataSourceNetworkProfile(profile *containerservice.
 }
 
 func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*containerservice.ManagedClusterAddonProfile) interface{} {
-	values := make(map[string]interface{}, 0)
+	values := make(map[string]interface{})
 
 	routes := make([]interface{}, 0)
 	if httpApplicationRouting := profile["httpApplicationRouting"]; httpApplicationRouting != nil {
@@ -579,7 +577,7 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 		}
 
 		output := map[string]interface{}{
-			"enabled": enabled,
+			"enabled":                            enabled,
 			"http_application_routing_zone_name": zoneName,
 		}
 		routes = append(routes, output)

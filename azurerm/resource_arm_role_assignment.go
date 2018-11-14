@@ -154,10 +154,12 @@ func resourceArmRoleAssignmentDelete(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).roleAssignmentsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	scope := d.Get("scope").(string)
-	name := d.Get("name").(string)
+	id, err := parseRoleAssignmentId(d.Id())
+	if err != nil {
+		return err
+	}
 
-	resp, err := client.Delete(ctx, scope, name)
+	resp, err := client.Delete(ctx, id.scope, id.name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
 			return err
@@ -180,17 +182,41 @@ func validateRoleDefinitionName(i interface{}, k string) ([]string, []error) {
 }
 
 func retryRoleAssignmentsClient(scope string, name string, properties authorization.RoleAssignmentCreateParameters, meta interface{}) func() *resource.RetryError {
-
 	return func() *resource.RetryError {
 		roleAssignmentsClient := meta.(*ArmClient).roleAssignmentsClient
 		ctx := meta.(*ArmClient).StopContext
 
-		_, err := roleAssignmentsClient.Create(ctx, scope, name, properties)
-
+		resp, err := roleAssignmentsClient.Create(ctx, scope, name, properties)
 		if err != nil {
-			return resource.RetryableError(err)
-		}
-		return nil
+			if utils.ResponseErrorIsRetryable(err) {
+				return resource.RetryableError(err)
+			} else if resp.Response.StatusCode == 400 && strings.Contains(err.Error(), "PrincipalNotFound") {
+				// When waiting for service principal to become available
+				return resource.RetryableError(err)
+			}
 
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
 	}
+}
+
+type roleAssignmentId struct {
+	scope string
+	name  string
+}
+
+func parseRoleAssignmentId(input string) (*roleAssignmentId, error) {
+	segments := strings.Split(input, "/providers/Microsoft.Authorization/roleAssignments/")
+	if len(segments) != 2 {
+		return nil, fmt.Errorf("Expected Role Assignment ID to be in the format `{scope}/providers/Microsoft.Authorization/roleAssignments/{name}` but got %q", input)
+	}
+
+	// /{scope}/providers/Microsoft.Authorization/roleAssignments/{roleAssignmentName}
+	id := roleAssignmentId{
+		scope: strings.TrimPrefix(segments[0], "/"),
+		name:  segments[1],
+	}
+	return &id, nil
 }

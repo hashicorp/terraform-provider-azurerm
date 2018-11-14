@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azure_user_assigned_identity"
-sidebar_current: "docs-azurerm-resource-user-assigned-identity"
+sidebar_current: "docs-azurerm-resource-authorization-user-assigned-identity"
 description: |-
   Manages a new user assigned identity.
 ---
@@ -48,6 +48,8 @@ The following attributes are exported:
 * `id` - The user assigned identity ID.
 
 * `principal_id` - Service Principal ID associated with the user assigned identity.
+
+* `client_id` - Client ID associated with the user assigned identity.
 
 ## Import
 

@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"sort"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -133,7 +133,7 @@ func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 	} else {
 		r := regexp.MustCompile(nameRegex.(string))
 
-		list := []compute.Image{}
+		list := make([]compute.Image, 0)
 		resp, err := client.ListByResourceGroupComplete(ctx, resGroup)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response().Response) {
@@ -143,7 +143,7 @@ func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		for resp.NotDone() {
-			img := resp.Value()
+			img = resp.Value()
 			if r.Match(([]byte)(*img.Name)) {
 				list = append(list, img)
 			}

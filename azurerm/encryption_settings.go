@@ -1,7 +1,7 @@
 package azurerm
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -104,7 +104,7 @@ func flattenManagedDiskEncryptionSettings(encryptionSettings *compute.Encryption
 	}
 
 	if key := encryptionSettings.DiskEncryptionKey; key != nil {
-		keys := make(map[string]interface{}, 0)
+		keys := make(map[string]interface{})
 
 		keys["secret_url"] = *key.SecretURL
 		if vault := key.SourceVault; vault != nil {
@@ -115,7 +115,7 @@ func flattenManagedDiskEncryptionSettings(encryptionSettings *compute.Encryption
 	}
 
 	if key := encryptionSettings.KeyEncryptionKey; key != nil {
-		keys := make(map[string]interface{}, 0)
+		keys := make(map[string]interface{})
 
 		keys["key_url"] = *key.KeyURL
 

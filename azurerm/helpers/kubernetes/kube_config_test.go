@@ -176,7 +176,7 @@ func isValidConfig(expected KubeConfig, encodedConfig string) (bool, error) {
 	return true, nil
 }
 
-func isInvalidConfig(expected KubeConfig, encodedConfig string) (bool, error) {
+func isInvalidConfig(_ KubeConfig, encodedConfig string) (bool, error) {
 	_, err := ParseKubeConfig(encodedConfig)
 	if err == nil {
 		return false, fmt.Errorf("expected test to throw error but didn't")

@@ -15,7 +15,7 @@ func TestAccAzureRMActiveDirectoryServicePrincipal_basic(t *testing.T) {
 	id := uuid.New().String()
 	config := testAccAzureRMActiveDirectoryServicePrincipal_basic(id)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryServicePrincipalDestroy,
@@ -27,6 +27,11 @@ func TestAccAzureRMActiveDirectoryServicePrincipal_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "display_name"),
 					resource.TestCheckResourceAttrSet(resourceName, "application_id"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

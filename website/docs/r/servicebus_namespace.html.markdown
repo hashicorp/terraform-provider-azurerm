@@ -8,14 +8,14 @@ description: |-
 
 # azurerm_servicebus_namespace
 
-Create a ServiceBus Namespace.
+Manage a ServiceBus Namespace.
 
 ## Example Usage
 
 ```hcl
 variable "location" {
   description = "Azure datacenter to deploy to."
-  default = "West US"
+  default     = "West US"
 }
 
 variable "servicebus_name" {

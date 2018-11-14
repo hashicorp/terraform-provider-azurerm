@@ -205,7 +205,7 @@ func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) e
 
 		if customDomain := props.CustomDomain; customDomain != nil {
 			if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(customDomain)); err != nil {
-				return fmt.Errorf("Error flattening `custom_domain`: %+v", err)
+				return fmt.Errorf("Error setting `custom_domain`: %+v", err)
 			}
 		}
 

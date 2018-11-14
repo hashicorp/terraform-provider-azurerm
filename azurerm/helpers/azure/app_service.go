@@ -196,6 +196,11 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 						string(web.OneFullStopTwo),
 					}, false),
 				},
+
+				"virtual_network_name": {
+					Type:     schema.TypeString,
+					Optional: true,
+				},
 			},
 		},
 	}
@@ -321,12 +326,16 @@ func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 		siteConfig.MinTLSVersion = web.SupportedTLSVersions(v.(string))
 	}
 
+	if v, ok := config["virtual_network_name"]; ok {
+		siteConfig.VnetName = utils.String(v.(string))
+	}
+
 	return siteConfig
 }
 
 func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	results := make([]interface{}, 0)
-	result := make(map[string]interface{}, 0)
+	result := make(map[string]interface{})
 
 	if input == nil {
 		log.Printf("[DEBUG] SiteConfig is nil")
@@ -337,14 +346,11 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 		result["always_on"] = *input.AlwaysOn
 	}
 
-	if input.DefaultDocuments != nil {
-		documents := make([]string, 0)
-		for _, document := range *input.DefaultDocuments {
-			documents = append(documents, document)
-		}
-
-		result["default_documents"] = documents
+	documents := make([]string, 0)
+	if s := input.DefaultDocuments; s != nil {
+		documents = *s
 	}
+	result["default_documents"] = documents
 
 	if input.NetFrameworkVersion != nil {
 		result["dotnet_framework_version"] = *input.NetFrameworkVersion
@@ -373,22 +379,22 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	restrictions := make([]interface{}, 0)
 	if vs := input.IPSecurityRestrictions; vs != nil {
 		for _, v := range *vs {
-			result := make(map[string]interface{}, 0)
+			block := make(map[string]interface{})
 			if ip := v.IPAddress; ip != nil {
 				// the 2018-02-01 API uses CIDR format (a.b.c.d/x), so translate that back to IP and mask
 				if strings.Contains(*ip, "/") {
 					ipAddr, ipNet, _ := net.ParseCIDR(*ip)
-					result["ip_address"] = ipAddr.String()
+					block["ip_address"] = ipAddr.String()
 					mask := net.IP(ipNet.Mask)
-					result["subnet_mask"] = mask.String()
+					block["subnet_mask"] = mask.String()
 				} else {
-					result["ip_address"] = *ip
+					block["ip_address"] = *ip
 				}
 			}
 			if subnet := v.SubnetMask; subnet != nil {
-				result["subnet_mask"] = *subnet
+				block["subnet_mask"] = *subnet
 			}
-			restrictions = append(restrictions, result)
+			restrictions = append(restrictions, block)
 		}
 	}
 	result["ip_restriction"] = restrictions
@@ -421,6 +427,10 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.LinuxFxVersion != nil {
 		result["linux_fx_version"] = *input.LinuxFxVersion
+	}
+
+	if input.VnetName != nil {
+		result["virtual_network_name"] = *input.VnetName
 	}
 
 	result["scm_type"] = string(input.ScmType)

@@ -17,7 +17,7 @@ func TestAccAzureRMDataLakeStoreFile_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDataLakeStoreFileDestroy,
@@ -28,9 +28,16 @@ func TestAccAzureRMDataLakeStoreFile_basic(t *testing.T) {
 					testCheckAzureRMDataLakeStoreFileExists(resourceName),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"local_file_path"},
+			},
 		},
 	})
 }
+
 func testCheckAzureRMDataLakeStoreFileExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -96,12 +103,13 @@ resource "azurerm_data_lake_store" "test" {
   name                = "unlikely23exst2acct%s"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "%s"
+  firewall_state      = "Disabled"
 }
 
 resource "azurerm_data_lake_store_file" "test" {
-  remote_file_path    = "/test/application_gateway_test.cer"
-  account_name        = "${azurerm_data_lake_store.test.name}"
-  local_file_path     = "./testdata/application_gateway_test.cer"
+  remote_file_path = "/test/application_gateway_test.cer"
+  account_name     = "${azurerm_data_lake_store.test.name}"
+  local_file_path  = "./testdata/application_gateway_test.cer"
 }
 `, rInt, location, rs, location)
 }

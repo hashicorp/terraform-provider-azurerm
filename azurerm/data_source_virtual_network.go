@@ -5,6 +5,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -13,14 +14,12 @@ func dataSourceArmVirtualNetwork() *schema.Resource {
 		Read: dataSourceArmVnetRead,
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
+			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 
 			"address_spaces": {
 				Type:     schema.TypeList,
@@ -121,7 +120,7 @@ func flattenVnetSubnetsNames(input *[]network.Subnet) []interface{} {
 }
 
 func flattenVnetPeerings(input *[]network.VirtualNetworkPeering) map[string]interface{} {
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 
 	if peerings := input; peerings != nil {
 		for _, vnetpeering := range *peerings {

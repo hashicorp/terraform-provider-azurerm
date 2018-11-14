@@ -21,7 +21,7 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_basic(t *testing.T) {
 		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/backendAddressPools/%s",
 		subscriptionID, ri, ri, addressPoolName)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -35,6 +35,13 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_basic(t *testing.T) {
 						"azurerm_lb_backend_address_pool.test", "id", backendAddressPoolId),
 				),
 			},
+			{
+				ResourceName:      "azurerm_lb.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				// location is deprecated and was never actually used
+				ImportStateVerifyIgnore: []string{"location"},
+			},
 		},
 	})
 }
@@ -44,7 +51,7 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_removal(t *testing.T) {
 	ri := acctest.RandInt()
 	addressPoolName := fmt.Sprintf("%d-address-pool", ri)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -69,7 +76,7 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_reapply(t *testing.T) {
 		return s.Remove("azurerm_lb_backend_address_pool.test")
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -99,7 +106,7 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	addressPoolName := fmt.Sprintf("%d-address-pool", ri)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -204,7 +211,6 @@ resource "azurerm_lb_backend_address_pool" "test" {
   loadbalancer_id     = "${azurerm_lb.test.id}"
   name                = "%s"
 }
-
 `, rInt, location, rInt, rInt, rInt, addressPoolName)
 }
 
