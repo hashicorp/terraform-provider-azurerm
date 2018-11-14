@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -105,13 +106,13 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 						"min_capacity": {
 							Type:         schema.TypeFloat,
 							Required:     true,
-							ValidateFunc: azure.FloatAtLeast(0.0),
+							ValidateFunc: validate.FloatAtLeast(0.0),
 						},
 
 						"max_capacity": {
 							Type:         schema.TypeFloat,
 							Required:     true,
-							ValidateFunc: azure.FloatAtLeast(0.0),
+							ValidateFunc: validate.FloatAtLeast(0.0),
 						},
 					},
 				},
