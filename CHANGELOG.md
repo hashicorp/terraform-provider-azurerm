@@ -20,6 +20,8 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* Data Source: `azurerm_api_management` - ensuring the `public_ip_addresses` field is set [GH-2310]
+* `azurerm_api_management` - ensuring the `public_ip_addresses` field is set [GH-2310]
 * `azurerm_application_gateway` - refactoring to ensure all fields are set [GH-2054]
 * `azurerm_application_gateway` - SSL certificates no longer continually diff [GH-2054]
 * `azurerm_cosmosdb_account` - the `ip_range_filter` range filter now allows /32 ip addresses  [GH-2222]
