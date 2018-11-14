@@ -682,7 +682,7 @@ func TestAccAzureRMAppServiceSlot_windowsPHP7(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.php_version", "7.1"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.php_version", "7.2"),
 				),
 			},
 		},
@@ -1755,7 +1755,7 @@ resource "azurerm_app_service_slot" "test" {
   app_service_name    = "${azurerm_app_service.test.name}"
 
   site_config {
-    php_version = "7.1"
+    php_version = "7.2"
   }
 }
 `, rInt, location, rInt, rInt, rInt)
