@@ -317,7 +317,7 @@ func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if err := d.Set("per_database_settings", flattenAzureRmMsSqlElasticPoolPerDatabaseSettings(resp.ElasticPoolProperties.PerDatabaseSettings)); err != nil {
-		return fmt.Errorf("Error flattening `per_database_settings`: %+v", err)
+		return fmt.Errorf("Error setting `per_database_settings`: %+v", err)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
