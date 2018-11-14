@@ -100,7 +100,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							Default:      1,
-							ValidateFunc: validation.IntBetween(1, 50),
+							ValidateFunc: validation.IntBetween(1, 100),
 						},
 
 						// TODO: remove this field in the next major version
