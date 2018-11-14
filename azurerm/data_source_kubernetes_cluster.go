@@ -24,7 +24,125 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 
 			"location": locationForDataSourceSchema(),
 
+			"addon_profile": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"http_application_routing": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enabled": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+									"http_application_routing_zone_name": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+
+						"oms_agent": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enabled": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+									"log_analytics_workspace_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
+			"agent_pool_profile": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"count": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+
+						// TODO: remove this in a future version
+						"dns_prefix": {
+							Type:       schema.TypeString,
+							Computed:   true,
+							Deprecated: "This field is no longer returned from the Azure API",
+						},
+
+						"vm_size": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"os_disk_size_gb": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+
+						"vnet_subnet_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"os_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"max_pods": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"aad_profile": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"client_app_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"server_app_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"dns_prefix": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"enable_rbac": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -35,16 +153,6 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 			},
 
 			"kubernetes_version": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"enable_rbac": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
-
-			"node_resource_group": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -116,92 +224,6 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
-			"agent_pool_profile": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"count": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-
-						// TODO: remove this in a future version
-						"dns_prefix": {
-							Type:       schema.TypeString,
-							Computed:   true,
-							Deprecated: "This field is no longer returned from the Azure API",
-						},
-
-						"vm_size": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"os_disk_size_gb": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-
-						"vnet_subnet_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"os_type": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"max_pods": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-					},
-				},
-			},
-
-			"service_principal": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"client_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
-			"aad_profile": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"server_app_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"client_app_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"tenant_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
 			"network_profile": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -235,43 +257,19 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
-			"addon_profile": {
+			"node_resource_group": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"service_principal": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"http_application_routing": {
-							Type:     schema.TypeList,
+						"client_id": {
+							Type:     schema.TypeString,
 							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"enabled": {
-										Type:     schema.TypeBool,
-										Computed: true,
-									},
-									"http_application_routing_zone_name": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-								},
-							},
-						},
-
-						"oms_agent": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"enabled": {
-										Type:     schema.TypeBool,
-										Computed: true,
-									},
-									"log_analytics_workspace_id": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-								},
-							},
 						},
 					},
 				},
@@ -319,11 +317,6 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 		d.Set("enable_rbac", props.EnableRBAC)
 		d.Set("node_resource_group", props.NodeResourceGroup)
 
-		linuxProfile := flattenKubernetesClusterDataSourceLinuxProfile(props.LinuxProfile)
-		if err := d.Set("linux_profile", linuxProfile); err != nil {
-			return fmt.Errorf("Error setting `linux_profile`: %+v", err)
-		}
-
 		addonProfiles := flattenKubernetesClusterDataSourceAddonProfiles(props.AddonProfiles)
 		if err := d.Set("addon_profile", addonProfiles); err != nil {
 			return fmt.Errorf("Error setting `addon_profile`: %+v", err)
@@ -334,6 +327,16 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 			return fmt.Errorf("Error setting `agent_pool_profile`: %+v", err)
 		}
 
+		aadProfile := flattenKubernetesClusterDataSourceAadProfile(resp.ManagedClusterProperties.AadProfile)
+		if err := d.Set("aad_profile", aadProfile); err != nil {
+			return fmt.Errorf("Error setting `aad_profile`: %+v", err)
+		}
+
+		linuxProfile := flattenKubernetesClusterDataSourceLinuxProfile(props.LinuxProfile)
+		if err := d.Set("linux_profile", linuxProfile); err != nil {
+			return fmt.Errorf("Error setting `linux_profile`: %+v", err)
+		}
+
 		networkProfile := flattenKubernetesClusterDataSourceNetworkProfile(props.NetworkProfile)
 		if err := d.Set("network_profile", networkProfile); err != nil {
 			return fmt.Errorf("Error setting `network_profile`: %+v", err)
@@ -342,11 +345,6 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 		servicePrincipal := flattenKubernetesClusterDataSourceServicePrincipalProfile(props.ServicePrincipalProfile)
 		if err := d.Set("service_principal", servicePrincipal); err != nil {
 			return fmt.Errorf("Error setting `service_principal`: %+v", err)
-		}
-
-		aadProfile := flattenKubernetesClusterDataSourceAadProfile(resp.ManagedClusterProperties.AadProfile)
-		if err := d.Set("aad_profile", aadProfile); err != nil {
-			return fmt.Errorf("Error setting `aad_profile`: %+v", err)
 		}
 	}
 
