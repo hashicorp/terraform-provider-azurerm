@@ -225,9 +225,8 @@ func resourceArmMonitorDiagnosticSettingCreateUpdate(d *schema.ResourceData, met
 
 	// the Azure SDK prefixes the URI with a `/` such this makes a bad request if we don't trim the `/`
 	targetResourceId := strings.TrimPrefix(actualResourceId, "/")
-	_, err := client.CreateOrUpdate(ctx, targetResourceId, properties, name)
-	if err != nil {
-		return fmt.Errorf("Error creating Diagnostics Setting %q for Resource %q: %+v", name, actualResourceId, err)
+	if _, err := client.CreateOrUpdate(ctx, targetResourceId, properties, name); err != nil {
+		return fmt.Errorf("Error creating Monitor Diagnostics Setting %q for Resource %q: %+v", name, actualResourceId, err)
 	}
 
 	read, err := client.Get(ctx, targetResourceId, name)
