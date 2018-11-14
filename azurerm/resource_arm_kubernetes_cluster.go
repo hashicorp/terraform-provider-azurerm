@@ -159,7 +159,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
-			// TODO: should we make this a List to be able to detect changes are required?
+			// TODO: 2.0 - we should be able to make this a List to be able to detect changes in the Client Secret
 			"service_principal": {
 				Type:     schema.TypeSet,
 				Required: true,
