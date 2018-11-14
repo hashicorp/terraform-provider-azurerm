@@ -414,6 +414,62 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureComplete(t *testing.
 	})
 }
 
+func testCheckAzureRMKubernetesClusterExists(name string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return fmt.Errorf("Not found: %s", name)
+		}
+
+		resourceName := rs.Primary.Attributes["name"]
+		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for Managed Kubernetes Cluster: %s", resourceName)
+		}
+
+		client := testAccProvider.Meta().(*ArmClient).kubernetesClustersClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		aks, err := client.Get(ctx, resourceGroup, resourceName)
+		if err != nil {
+			return fmt.Errorf("Bad: Get on kubernetesClustersClient: %+v", err)
+		}
+
+		if aks.StatusCode == http.StatusNotFound {
+			return fmt.Errorf("Bad: Managed Kubernetes Cluster %q (Resource Group: %q) does not exist", resourceName, resourceGroup)
+		}
+
+		return nil
+	}
+}
+
+func testCheckAzureRMKubernetesClusterDestroy(s *terraform.State) error {
+	conn := testAccProvider.Meta().(*ArmClient).kubernetesClustersClient
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "azurerm_kubernetes_cluster" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := conn.Get(ctx, resourceGroup, name)
+
+		if err != nil {
+			return nil
+		}
+
+		if resp.StatusCode != http.StatusNotFound {
+			return fmt.Errorf("Managed Kubernetes Cluster still exists:\n%#v", resp)
+		}
+	}
+
+	return nil
+}
+
 func testAccAzureRMKubernetesCluster_basic(rInt int, clientId string, clientSecret string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -881,60 +937,4 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt, clientId, clientSecret, networkPlugin)
-}
-
-func testCheckAzureRMKubernetesClusterExists(name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
-		if !ok {
-			return fmt.Errorf("Not found: %s", name)
-		}
-
-		resourceName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for AKS managed cluster instance: %s", resourceName)
-		}
-
-		client := testAccProvider.Meta().(*ArmClient).kubernetesClustersClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-
-		aks, err := client.Get(ctx, resourceGroup, resourceName)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on kubernetesClustersClient: %+v", err)
-		}
-
-		if aks.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: AKS managed cluster instance %q (resource group: %q) does not exist", resourceName, resourceGroup)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMKubernetesClusterDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).kubernetesClustersClient
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_kubernetes_cluster" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		resp, err := conn.Get(ctx, resourceGroup, name)
-
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("AKS managed cluster instance still exists:\n%#v", resp)
-		}
-	}
-
-	return nil
 }
