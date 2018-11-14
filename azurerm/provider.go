@@ -276,6 +276,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_scheduler_job_collection":                                               resourceArmSchedulerJobCollection(),
 			"azurerm_sql_database":                                                           resourceArmSqlDatabase(),
 			"azurerm_sql_elasticpool":                                                        resourceArmSqlElasticPool(),
+			"azurerm_mssql_elasticpool":                                                      resourceArmMsSqlElasticPool(),
 			"azurerm_sql_firewall_rule":                                                      resourceArmSqlFirewallRule(),
 			"azurerm_sql_active_directory_administrator":                                     resourceArmSqlAdministrator(),
 			"azurerm_sql_server":                                                             resourceArmSqlServer(),
