@@ -103,13 +103,15 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"min_capacity": {
-							Type:     schema.TypeFloat,
-							Required: true,
+							Type:         schema.TypeFloat,
+							Required:     true,
+							ValidateFunc: azure.FloatAtLeast(0.0),
 						},
 
 						"max_capacity": {
-							Type:     schema.TypeFloat,
-							Required: true,
+							Type:         schema.TypeFloat,
+							Required:     true,
+							ValidateFunc: azure.FloatAtLeast(0.0),
 						},
 					},
 				},
@@ -262,8 +264,7 @@ func resourceArmMsSqlElasticPoolCreate(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 
