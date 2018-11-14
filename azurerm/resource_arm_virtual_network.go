@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -27,9 +28,10 @@ func resourceArmVirtualNetwork() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
@@ -39,8 +41,10 @@ func resourceArmVirtualNetwork() *schema.Resource {
 			"address_space": {
 				Type:     schema.TypeList,
 				Required: true,
+				MinItems: 1,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:         schema.TypeString,
+					ValidateFunc: validation.NoZeroValues,
 				},
 			},
 
@@ -48,7 +52,8 @@ func resourceArmVirtualNetwork() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:         schema.TypeString,
+					ValidateFunc: validation.NoZeroValues,
 				},
 			},
 
@@ -59,12 +64,14 @@ func resourceArmVirtualNetwork() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 						"address_prefix": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 						"security_group": {
 							Type:     schema.TypeString,
@@ -227,19 +234,6 @@ func resourceArmVirtualNetworkDelete(d *schema.ResourceData, meta interface{}) e
 }
 
 func expandVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData, meta interface{}) (*network.VirtualNetworkPropertiesFormat, error) {
-	// first; get address space prefixes:
-	prefixes := make([]string, 0)
-	for _, prefix := range d.Get("address_space").([]interface{}) {
-		prefixes = append(prefixes, prefix.(string))
-	}
-
-	// then; the dns servers:
-	dnses := make([]string, 0)
-	for _, dns := range d.Get("dns_servers").([]interface{}) {
-		dnses = append(dnses, dns.(string))
-	}
-
-	// then; the subnets:
 	subnets := make([]network.Subnet, 0)
 	if subs := d.Get("subnet").(*schema.Set); subs.Len() > 0 {
 		for _, subnet := range subs.List() {
@@ -282,14 +276,13 @@ func expandVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData,
 
 	properties := &network.VirtualNetworkPropertiesFormat{
 		AddressSpace: &network.AddressSpace{
-			AddressPrefixes: &prefixes,
+			AddressPrefixes: utils.ExpandStringArray(d.Get("address_space").([]interface{})),
 		},
 		DhcpOptions: &network.DhcpOptions{
-			DNSServers: &dnses,
+			DNSServers: utils.ExpandStringArray(d.Get("dns_servers").([]interface{})),
 		},
 		Subnets: &subnets,
 	}
-	// finally; return the struct:
 	return properties, nil
 }
 func flattenVirtualNetworkSubnets(input *[]network.Subnet) *schema.Set {
