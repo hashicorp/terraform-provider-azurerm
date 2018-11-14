@@ -1,11 +1,14 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -29,7 +32,8 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				// NOTE: there's no validation requirements listed for this
-				// so we're intentionally not validating this at this time.
+				// so we're intentionally doing the minimum we can here
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"target_resource_id": {
@@ -161,9 +165,30 @@ func resourceArmMonitorDiagnosticSettingCreateUpdate(d *schema.ResourceData, met
 	metricsRaw := d.Get("metric").(*schema.Set).List()
 	metrics := expandMonitorDiagnosticsSettingsMetrics(metricsRaw)
 
-	// if no blocks are specified the API "creates" but 404's on Read
+	// if no blocks are specified  the API "creates" but 404's on Read
 	if len(logs) == 0 && len(metrics) == 0 {
 		return fmt.Errorf("At least one `log` or `metric` block must be specified")
+	}
+
+	// also if there's none enabled
+	valid := false
+	for _, v := range logs {
+		if v.Enabled != nil && *v.Enabled {
+			valid = true
+			break
+		}
+	}
+	if !valid {
+		for _, v := range metrics {
+			if v.Enabled != nil && *v.Enabled {
+				valid = true
+				break
+			}
+		}
+	}
+
+	if !valid {
+		return fmt.Errorf("At least one `log` or `metric` must be enabled")
 	}
 
 	properties := insights.DiagnosticSettingsResource{
@@ -173,7 +198,7 @@ func resourceArmMonitorDiagnosticSettingCreateUpdate(d *schema.ResourceData, met
 		},
 	}
 
-	valid := false
+	valid = false
 	eventHubAuthorizationRuleId := d.Get("eventhub_authorization_rule_id").(string)
 	eventHubName := d.Get("eventhub_name").(string)
 	if eventHubAuthorizationRuleId != "" {
@@ -268,18 +293,43 @@ func resourceArmMonitorDiagnosticSettingDelete(d *schema.ResourceData, meta inte
 		return err
 	}
 
-	targetResourceId := id.resourceID
-	actualResourceId := strings.TrimPrefix(targetResourceId, "/")
-	resp, err := client.Delete(ctx, actualResourceId, id.name)
+	targetResourceId := strings.TrimPrefix(id.resourceID, "/")
+	resp, err := client.Delete(ctx, targetResourceId, id.name)
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("Error deleting Monitor Diagnostics Setting %q for Resource %q: %+v", id.name, targetResourceId, err)
 		}
 	}
 
-	// TODO: we need to poll to ensure this is actually gone
+	// API appears to be eventually consistent (identified during tainting this resource)
+	log.Printf("[DEBUG] Waiting for Monitor Diagnostic Setting %q for Resource %q to disappear", id.name, id.resourceID)
+	stateConf := &resource.StateChangeConf{
+		Pending:                   []string{"Exists"},
+		Target:                    []string{"NotFound"},
+		Refresh:                   monitorDiagnosticSettingDeletedRefreshFunc(ctx, client, targetResourceId, id.name),
+		Timeout:                   60 * time.Minute,
+		MinTimeout:                15 * time.Second,
+		ContinuousTargetOccurence: 5,
+	}
+	if _, err = stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("Error waiting for Monitor Diagnostic Setting %q for Resource %q to become available: %s", id.name, id.resourceID, err)
+	}
 
 	return nil
+}
+
+func monitorDiagnosticSettingDeletedRefreshFunc(ctx context.Context, client insights.DiagnosticSettingsClient, targetResourceId string, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, targetResourceId, name)
+		if err != nil {
+			if utils.ResponseWasNotFound(res.Response) {
+				return "NotFound", "NotFound", nil
+			}
+			return nil, "", fmt.Errorf("Error issuing read request in monitorDiagnosticSettingDeletedRefreshFunc: %s", err)
+		}
+
+		return res, "Exists", nil
+	}
 }
 
 func expandMonitorDiagnosticsSettingsLogs(input []interface{}) []insights.LogSettings {
