@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -67,7 +68,7 @@ func resourceArmMySqlServer() *schema.Resource {
 						"capacity": {
 							Type:     schema.TypeInt,
 							Required: true,
-							ValidateFunc: validateIntInSlice([]int{
+							ValidateFunc: validate.IntInSlice([]int{
 								1,
 								2,
 								4,
@@ -133,7 +134,7 @@ func resourceArmMySqlServer() *schema.Resource {
 						"storage_mb": {
 							Type:         schema.TypeInt,
 							Required:     true,
-							ValidateFunc: validateIntBetweenDivisibleBy(5120, 4194304, 1024),
+							ValidateFunc: validate.IntBetweenAndDivisibleBy(5120, 4194304, 1024),
 						},
 						"backup_retention_days": {
 							Type:         schema.TypeInt,
