@@ -1,45 +1,45 @@
-## 1.19.0 (Unreleased)
+## 1.19.0 (November 15, 2018)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_key_vault_key` [GH-2231]
-* **New Data Source:** `azurerm_monitor_diagnostic_setting` [GH-1291]
-* **New Resource:** `azurerm_iothub_consumer_group` [GH-2243]
-* **New Resource:** `azurerm_monitor_diagnostic_setting` [GH-1291]
-* **New Resource:** `azurerm_mssql_elasticpool` [GH-2071]
+* **New Data Source:** `azurerm_key_vault_key` ([#2231](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2231))
+* **New Data Source:** `azurerm_monitor_diagnostic_setting` ([#1291](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1291))
+* **New Resource:** `azurerm_iothub_consumer_group` ([#2243](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2243))
+* **New Resource:** `azurerm_monitor_diagnostic_setting` ([#1291](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1291))
+* **New Resource:** `azurerm_mssql_elasticpool` ([#2071](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2071))
 
 IMPROVEMENTS:
 
-* dependencies: switching to Go 1.11 [GH-2229]
-* authentication: refactoring to allow authentication modes to be feature-toggled [GH-2199]
-* Data Source: `azurerm_kubernetes_cluster` - support for `role_based_access_control` [GH-1820]
-* `azurerm_app_service` - support for PHP 7.2 [GH-2308]
-* `azurerm_app_service_slot` - support for PHP 7.2 [GH-2308]
-* `azurerm_databricks_workspace` - fixing validation on the `name` field [GH-2221]
-* `azurerm_function_app` - support for the `enable_builtin_logging` property [GH-2268]
-* `azurerm_kubernetes_cluster` - support for `role_based_access_control` [GH-1820]
-* `azurerm_network_interface` - deprecating `internal_fqdn` since it's no longer setable/returned by Azure [GH-2253]
-* `azurerm_shared_image_version` - allowing larger numbers for versions [GH-2301]
-* `azurerm_virtual_machine` - support for assigning both a system and a user managed identity [GH-2188]
-* `azurerm_virtual_machine_scale_set` - support for assigning both a system and a user managed identity [GH-2188]
-* `azurerm_virtual_machine_scale_set` - support for setting `eviction_policy` [GH-2226]
-* `azurerm_virtual_network_gateway` - support for Zone Redundant Gateways [GH-2260]
+* dependencies: switching to Go 1.11 ([#2229](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2229))
+* authentication: refactoring to allow authentication modes to be feature-toggled ([#2199](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2199))
+* Data Source: `azurerm_kubernetes_cluster` - support for `role_based_access_control` ([#1820](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1820))
+* `azurerm_app_service` - support for PHP 7.2 ([#2308](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2308))
+* `azurerm_app_service_slot` - support for PHP 7.2 ([#2308](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2308))
+* `azurerm_databricks_workspace` - fixing validation on the `name` field ([#2221](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2221))
+* `azurerm_function_app` - support for the `enable_builtin_logging` property ([#2268](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2268))
+* `azurerm_kubernetes_cluster` - support for `role_based_access_control` ([#1820](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1820))
+* `azurerm_network_interface` - deprecating `internal_fqdn` since it's no longer setable/returned by Azure ([#2253](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2253))
+* `azurerm_shared_image_version` - allowing larger numbers for versions ([#2301](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2301))
+* `azurerm_virtual_machine` - support for assigning both a system and a user managed identity ([#2188](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2188))
+* `azurerm_virtual_machine_scale_set` - support for assigning both a system and a user managed identity ([#2188](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2188))
+* `azurerm_virtual_machine_scale_set` - support for setting `eviction_policy` ([#2226](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2226))
+* `azurerm_virtual_network_gateway` - support for Zone Redundant Gateways ([#2260](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2260))
 
 BUG FIXES:
 
-* Data Source: `azurerm_api_management` - ensuring the `public_ip_addresses` field is set [GH-2310]
-* `azurerm_api_management` - ensuring the `public_ip_addresses` field is set [GH-2310]
-* `azurerm_application_gateway` - refactoring to ensure all fields are set [GH-2054]
-* `azurerm_application_gateway` - SSL certificates no longer continually diff [GH-2054]
-* `azurerm_azuread_application` - fix regression and allow `http` for `identifier_uris` and `reply_urls` properties [GH-2320]
-* `azurerm_cosmosdb_account` - the `ip_range_filter` range filter now allows /32 ip addresses  [GH-2222]
-* `azurerm_public_ip` - fixing the casing of the `ip_version` / `public_ip_address_allocation` fields [GH-2296]
-* `azurerm_recovery_services_protected_vm` - VM can now be in a different resource group then the vault [GH-2287]
-* `azurerm_role_assignment` - will now wait after a Service Principal is created [GH-2204]
-* `azurerm_route` - allowing setting `next_hop_in_ip_address` to an empty value [GH-2184]
-* `azurerm_route_table` - allowing setting `next_hop_in_ip_address` to an empty value [GH-2184]
-* `azurerm_virtual_network_gateway` - plan is now empty when `bgp_settings` is omitted [GH-2304]
-* `azurerm_virtual_network` - add valdiation to prevent panics [GH-2305]
+* Data Source: `azurerm_api_management` - ensuring the `public_ip_addresses` field is set ([#2310](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2310))
+* `azurerm_api_management` - ensuring the `public_ip_addresses` field is set ([#2310](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2310))
+* `azurerm_application_gateway` - refactoring to ensure all fields are set ([#2054](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2054))
+* `azurerm_application_gateway` - SSL certificates no longer continually diff ([#2054](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2054))
+* `azurerm_azuread_application` - fix regression and allow `http` for `identifier_uris` and `reply_urls` properties ([#2320](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2320))
+* `azurerm_cosmosdb_account` - the `ip_range_filter` range filter now allows /32 ip addresses  ([#2222](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2222))
+* `azurerm_public_ip` - fixing the casing of the `ip_version` / `public_ip_address_allocation` fields ([#2296](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2296))
+* `azurerm_recovery_services_protected_vm` - VM can now be in a different resource group then the vault ([#2287](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2287))
+* `azurerm_role_assignment` - will now wait after a Service Principal is created ([#2204](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2204))
+* `azurerm_route` - allowing setting `next_hop_in_ip_address` to an empty value ([#2184](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2184))
+* `azurerm_route_table` - allowing setting `next_hop_in_ip_address` to an empty value ([#2184](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2184))
+* `azurerm_virtual_network_gateway` - plan is now empty when `bgp_settings` is omitted ([#2304](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2304))
+* `azurerm_virtual_network` - add valdiation to prevent panics ([#2305](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2305))
 
 ## 1.18.0 (November 02, 2018)
 
