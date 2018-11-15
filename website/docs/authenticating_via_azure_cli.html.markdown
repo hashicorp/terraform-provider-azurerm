@@ -25,7 +25,7 @@ When authenticating via the Azure CLI, Terraform will automatically connect to t
 
 ## Configuring the Azure CLI
 
-~> **Note:** There are multiple versions of the Azure CLI. The latest version is known as [the Azure CLI 2.0 (Python)](https://github.com/Azure/azure-cli) and [the older Azure CLI (Node.JS)](https://github.com/Azure/azure-xplat-cli). While Terraform currently supports both, we highly recommend users upgrade to the Azure CLI 2.0 (Python), if possible.
+~> **Note:** There are multiple versions of the Azure CLI. The latest version is known as [the Azure CLI 2.0 (Python)](https://github.com/Azure/azure-cli) and [the older Azure CLI (Node.JS)](https://github.com/Azure/azure-xplat-cli). While Terraform currently supports both, we **highly recommend** users upgrade to the Azure CLI 2.0 (Python), if possible.
 
 This guide assumes that you have [the Azure CLI 2.0 (Python)](https://github.com/Azure/azure-cli) installed.
 
