@@ -29,6 +29,7 @@ BUG FIXES:
 * `azurerm_api_management` - ensuring the `public_ip_addresses` field is set [GH-2310]
 * `azurerm_application_gateway` - refactoring to ensure all fields are set [GH-2054]
 * `azurerm_application_gateway` - SSL certificates no longer continually diff [GH-2054]
+* `azurerm_azuread_application` - fix regression and allow `http` for `identifier_uris` and `reply_urls` properties [GH-2320]
 * `azurerm_cosmosdb_account` - the `ip_range_filter` range filter now allows /32 ip addresses  [GH-2222]
 * `azurerm_public_ip` - fixing the casing of the `ip_version` / `public_ip_address_allocation` fields [GH-2296]
 * `azurerm_recovery_services_protected_vm` - VM can now be in a different resource group then the vault [GH-2287]
