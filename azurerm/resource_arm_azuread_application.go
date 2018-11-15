@@ -43,7 +43,7 @@ func resourceArmActiveDirectoryApplication() *schema.Resource {
 				MinItems: 1,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validate.URLIsHTTPS,
+					ValidateFunc: validate.URLIsHTTPOrHTTPS,
 				},
 			},
 
@@ -53,7 +53,7 @@ func resourceArmActiveDirectoryApplication() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validate.URLIsHTTPS,
+					ValidateFunc: validate.URLIsHTTPOrHTTPS,
 				},
 			},
 
