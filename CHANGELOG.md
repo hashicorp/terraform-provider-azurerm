@@ -3,7 +3,9 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_key_vault_key` [GH-2231]
+* **New Data Source:** `azurerm_monitor_diagnostic_setting` [GH-1291]
 * **New Resource:** `azurerm_iothub_consumer_group` [GH-2243]
+* **New Resource:** `azurerm_monitor_diagnostic_setting` [GH-1291]
 * **New Resource:** `azurerm_mssql_elasticpool` [GH-2071]
 
 IMPROVEMENTS:
