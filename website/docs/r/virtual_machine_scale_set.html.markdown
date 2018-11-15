@@ -138,6 +138,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   os_profile_linux_config {
     disable_password_authentication = false
+    provision_vm_agent              = true
 
     ssh_keys {
       path     = "/home/myadmin/.ssh/authorized_keys"
@@ -225,6 +226,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   os_profile_linux_config {
     disable_password_authentication = false
+    provision_vm_agent              = true
 
     ssh_keys {
       path     = "/home/myadmin/.ssh/authorized_keys"
@@ -414,7 +416,7 @@ output "principal_id" {
 `os_profile_linux_config` supports the following:
 
 * `disable_password_authentication` - (Required) Specifies whether password authentication should be disabled. If set to `false`, an `admin_password` must be specified.
-* `provision_vm_agent` - (Optional) Specifies whether VM agent should be provisioned.
+* `provision_vm_agent` - (Optional) Indicates whether virtual machine agent should be provisioned on the virtual machines in the scale set.
 * `ssh_keys` - (Optional) Specifies a collection of `path` and `key_data` to be placed on the virtual machine.
 
 ~> _**Note:** Please note that the only allowed `path` is `/home/<username>/.ssh/authorized_keys` due to a limitation of Azure_

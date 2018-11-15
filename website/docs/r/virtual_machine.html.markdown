@@ -85,6 +85,7 @@ resource "azurerm_virtual_machine" "main" {
   }
   os_profile_linux_config {
     disable_password_authentication = false
+    provision_vm_agent              = true
   }
   tags {
     environment = "staging"
@@ -208,7 +209,7 @@ A `os_profile_linux_config` block supports the following:
 
 * `disable_password_authentication` - (Required) Specifies whether password authentication should be disabled. If set to `false`, an `admin_password` must be specified.
 
-* `provision_vm_agent` - (Optional) Specifies whether VM agent should be provisioned.
+* `provision_vm_agent` - (Optional) Should the Azure Virtual Machine Guest Agent be installed on this Virtual Machine? Defaults to `false`.
 
 * `ssh_keys` - (Optional) One or more `ssh_keys` blocks. This field is required if `disable_password_authentication` is set to `true`.
 
