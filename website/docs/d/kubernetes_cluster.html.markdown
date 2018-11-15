@@ -80,7 +80,7 @@ A `agent_pool_profile` block exports the following:
 
 * `max_pods` - The maximum number of pods that can run on each agent.
 
-* `name` - The name assigned to this pool of agents
+* `name` - The name assigned to this pool of agents.
 
 * `os_disk_size_gb` - The size of the Agent VM's Operating System Disk in GB.
 

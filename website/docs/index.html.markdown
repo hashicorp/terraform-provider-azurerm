@@ -73,7 +73,7 @@ The following arguments are supported:
   the `ARM_CLIENT_SECRET` environment variable.
 
 * `tenant_id` - (Optional) The tenant ID to use. It can also be sourced from the
-  `ARM_TENANT_ID` environment variable.`
+  `ARM_TENANT_ID` environment variable.
 
 * `use_msi` - (Optional) Set to true to authenticate using managed service identity.
   It can also be sourced from the `ARM_USE_MSI` environment variable.

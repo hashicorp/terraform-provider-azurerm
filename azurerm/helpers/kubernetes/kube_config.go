@@ -108,8 +108,7 @@ func ParseKubeConfigAAD(config string) (*KubeConfigAAD, error) {
 	}
 
 	var kubeConfig KubeConfigAAD
-	err := yaml.Unmarshal([]byte(config), &kubeConfig)
-	if err != nil {
+	if err := yaml.Unmarshal([]byte(config), &kubeConfig); err != nil {
 		return nil, fmt.Errorf("Failed to unmarshal YAML config with error %+v", err)
 	}
 	if len(kubeConfig.Clusters) <= 0 || len(kubeConfig.Users) <= 0 {

@@ -475,8 +475,7 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 		return fmt.Errorf("Error creating/updating Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for completion of Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
@@ -712,7 +711,6 @@ func flattenKubernetesClusterAddonProfiles(profile map[string]*containerservice.
 func expandKubernetesClusterAgentPoolProfiles(d *schema.ResourceData) []containerservice.ManagedClusterAgentPoolProfile {
 	configs := d.Get("agent_pool_profile").([]interface{})
 	config := configs[0].(map[string]interface{})
-	profiles := make([]containerservice.ManagedClusterAgentPoolProfile, 0, len(configs))
 
 	name := config["name"].(string)
 	count := int32(config["count"].(int))
@@ -738,9 +736,7 @@ func expandKubernetesClusterAgentPoolProfiles(d *schema.ResourceData) []containe
 		profile.VnetSubnetID = utils.String(vnetSubnetID)
 	}
 
-	profiles = append(profiles, profile)
-
-	return profiles
+	return []containerservice.ManagedClusterAgentPoolProfile{profile}
 }
 
 func flattenKubernetesClusterAgentPoolProfiles(profiles *[]containerservice.ManagedClusterAgentPoolProfile, fqdn *string) []interface{} {
