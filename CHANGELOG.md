@@ -12,10 +12,12 @@ IMPROVEMENTS:
 
 * dependencies: switching to Go 1.11 [GH-2229]
 * authentication: refactoring to allow authentication modes to be feature-toggled [GH-2199]
+* Data Source: `azurerm_kubernetes_cluster` - support for `role_based_access_control` [GH-1820]
 * `azurerm_app_service` - support for PHP 7.2 [GH-2308]
 * `azurerm_app_service_slot` - support for PHP 7.2 [GH-2308]
 * `azurerm_databricks_workspace` - fixing validation on the `name` field [GH-2221]
 * `azurerm_function_app` - support for the `enable_builtin_logging` property [GH-2268]
+* `azurerm_kubernetes_cluster` - support for `role_based_access_control` [GH-1820]
 * `azurerm_network_interface` - deprecating `internal_fqdn` since it's no longer setable/returned by Azure [GH-2253]
 * `azurerm_shared_image_version` - allowing larger numbers for versions [GH-2301]
 * `azurerm_virtual_machine` - support for assigning both a system and a user managed identity [GH-2188]
