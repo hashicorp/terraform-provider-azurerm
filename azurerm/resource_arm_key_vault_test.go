@@ -113,7 +113,8 @@ func TestAccAzureRMKeyVault_networkAcls(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "network_acls.0.bypass", "None"),
 					resource.TestCheckResourceAttr(resourceName, "network_acls.0.default_action", "Deny"),
 					resource.TestCheckResourceAttr(resourceName, "network_acls.0.ip_rules.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "network_acls.0.virtual_network_subnet_ids.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "network_acls.0.virtual_network_subnet_ids.#", "2"),
+					
 				),
 			},
 			{
