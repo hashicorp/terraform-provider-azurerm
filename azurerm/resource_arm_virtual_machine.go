@@ -483,6 +483,11 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Type:     schema.TypeBool,
 							Required: true,
 						},
+						"provision_vm_agent": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 						"ssh_keys": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -1169,9 +1174,15 @@ func flattenAzureRmVirtualMachineOsProfileWindowsConfiguration(config *compute.W
 }
 
 func flattenAzureRmVirtualMachineOsProfileLinuxConfiguration(config *compute.LinuxConfiguration) []interface{} {
-
 	result := make(map[string]interface{})
-	result["disable_password_authentication"] = *config.DisablePasswordAuthentication
+
+	if v := config.DisablePasswordAuthentication; v != nil {
+		result["disable_password_authentication"] = *v
+	}
+
+	if v := config.ProvisionVMAgent; v != nil {
+		result["provision_vm_agent"] = *v
+	}
 
 	if config.SSH != nil && len(*config.SSH.PublicKeys) > 0 {
 		ssh_keys := make([]map[string]interface{}, 0, len(*config.SSH.PublicKeys))
@@ -1373,9 +1384,11 @@ func expandAzureRmVirtualMachineOsProfileLinuxConfig(d *schema.ResourceData) (*c
 
 	linuxConfig := osProfilesLinuxConfig[0].(map[string]interface{})
 	disablePasswordAuth := linuxConfig["disable_password_authentication"].(bool)
+	provisionVMAgent := linuxConfig["provision_vm_agent"].(bool)
 
 	config := &compute.LinuxConfiguration{
 		DisablePasswordAuthentication: &disablePasswordAuth,
+		ProvisionVMAgent:              &provisionVMAgent,
 	}
 
 	linuxKeys := linuxConfig["ssh_keys"].([]interface{})
@@ -1748,7 +1761,7 @@ func resourceArmVirtualMachineStorageOsProfileLinuxConfigHash(v interface{}) int
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%t-", m["disable_password_authentication"].(bool)))
+		buf.WriteString(fmt.Sprintf("%t-%t", m["disable_password_authentication"].(bool), m["provision_vm_agent"].(bool)))
 	}
 
 	return hashcode.String(buf.String())

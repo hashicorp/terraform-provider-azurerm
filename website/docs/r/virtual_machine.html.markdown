@@ -208,6 +208,8 @@ A `os_profile_linux_config` block supports the following:
 
 * `disable_password_authentication` - (Required) Specifies whether password authentication should be disabled. If set to `false`, an `admin_password` must be specified.
 
+* `provision_vm_agent` - (Optional) Specifies whether VM agent should be provisioned.
+
 * `ssh_keys` - (Optional) One or more `ssh_keys` blocks. This field is required if `disable_password_authentication` is set to `true`.
 
 ---
