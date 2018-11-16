@@ -30,7 +30,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateMsSqlServiceName,
+				ValidateFunc: azure.ValidateMsSqlElasticPoolName,
 			},
 
 			"location": locationSchema(),
@@ -41,7 +41,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateMsSqlServiceName,
+				ValidateFunc: azure.ValidateSqlServerName,
 			},
 
 			"sku": {
@@ -253,7 +253,7 @@ func resourceArmMsSqlElasticPoolCreate(d *schema.ResourceData, meta interface{})
 	tags := d.Get("tags").(map[string]interface{})
 
 	elasticPool := sql.ElasticPool{
-		Sku:                   sku,
+		Sku: sku,
 		ElasticPoolProperties: properties,
 		Location:              &location,
 		Tags:                  expandTags(tags),

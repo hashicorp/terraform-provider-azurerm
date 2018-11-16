@@ -102,7 +102,7 @@ func TestAzureValidateMsSqlServiceName(t *testing.T) {
 		},
 		{
 			ServiceName: "Asd",
-			Errors:      3,
+			Errors:      2,
 		},
 		{
 			ServiceName: "asd",
@@ -110,11 +110,11 @@ func TestAzureValidateMsSqlServiceName(t *testing.T) {
 		},
 		{
 			ServiceName: "-asd",
-			Errors:      3,
+			Errors:      2,
 		},
 		{
 			ServiceName: "asd-",
-			Errors:      3,
+			Errors:      2,
 		},
 		{
 			ServiceName: "asd-1",
@@ -126,7 +126,7 @@ func TestAzureValidateMsSqlServiceName(t *testing.T) {
 		},
 		{
 			ServiceName: "asd--1-",
-			Errors:      4,
+			Errors:      3,
 		},
 		{
 			ServiceName: "asdfghjklzasdfghjklzasdfghjklzasdfghjklzasdfghjklz",
@@ -135,6 +135,10 @@ func TestAzureValidateMsSqlServiceName(t *testing.T) {
 		{
 			ServiceName: "asdfghjklzasdfghjklzasdfghjklzasdfghjklzasdfghjklz1",
 			Errors:      3,
+		},
+		{
+			ServiceName: "asdfghjklzasdfghjklzasdfghjklzasdfghjklzasdfghjklz1--",
+			Errors:      4,
 		},
 	}
 

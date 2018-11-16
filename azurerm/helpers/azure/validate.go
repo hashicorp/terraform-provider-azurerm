@@ -2,7 +2,6 @@ package azure
 
 import (
 	"fmt"
-	"regexp"
 )
 
 func ValidateResourceID(i interface{}, k string) (ws []string, errors []error) {
@@ -34,27 +33,86 @@ func ValidateResourceIDOrEmpty(i interface{}, k string) (_ []string, errors []er
 	return ValidateResourceID(i, k)
 }
 
-//true for a resource ID or an empty string
-func ValidateMsSqlServiceName(i interface{}, k string) (_ []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return nil, errors
-	}
+func ValidateMsSqlElasticPoolName(i interface{}, k string) (_ []string, errors []error) {
+	return ValidateNameGeneric(i, k, alphanumericLower, hyphen, "azurerm_mssql_elasticpool", 3, 50)
+}
 
-	//First, second, and last characters must be a letter or number with a total length between 3 to 50 lowercase characters.
-	r := regexp.MustCompile("^[a-z0-9]{2}[-a-z0-9]{0,47}[a-z0-9]{1}$")
-	if !r.MatchString(v) {
-		errors = append(errors, fmt.Errorf("%q must be 3 - 50 characters in length", k))
-		errors = append(errors, fmt.Errorf("%q first, second, and last characters must be a lowercase letter or number", k))
-		errors = append(errors, fmt.Errorf("%q can only contain lowercase letters, numbers and hyphens", k))
-	}
+func ValidateSqlServerName(i interface{}, k string) (_ []string, errors []error) {
+	return ValidateNameGeneric(i, k, alphanumericLower, hyphen, "azurerm_sql_server", 3, 50)
+}
 
-	//No consecutive dashes.
-	r = regexp.MustCompile("(--)")
-	if r.MatchString(v) {
-		errors = append(errors, fmt.Errorf("%q must not contain any consecutive hyphens", k))
-	}
+func ValidateMySqlServerName(i interface{}, k string) (_ []string, errors []error) {
+	return ValidateNameGeneric(i, k, alphanumericLower, hyphen, "azurerm_mysql_server", 3, 50)
+}
 
-	return nil, errors
+func ValidatePostgreSqlServerName(i interface{}, k string) (_ []string, errors []error) {
+	return ValidateNameGeneric(i, k, alphanumericLower, hyphen, "azurerm_postgresql_server", 3, 50)
+}
+
+func ValidateAvailabilitySet(i interface{}, k string) (_ []string, errors []error) {
+	return ValidateNameGeneric(i, k, alphanumericBoth, hyphenUnderscore, "", 3, 80)
+}
+
+func ValidateVirtualMachineWindows(i interface{}, k string) (_ []string, errors []error) {
+	return ValidateNameGeneric(i, k, alphanumericBoth, hyphen, "", 3, 15)
+}
+
+func ValidateVirtualMachineLinux(i interface{}, k string) (_ []string, errors []error) {
+	return ValidateNameGeneric(i, k, alphanumericBoth, hyphen, "", 3, 64)
+}
+
+func ValidateFunctionAppName(i interface{}, k string) (_ []string, errors []error) {
+	return ValidateNameGeneric(i, k, alphanumericBoth, hyphen, "", 3, 60)
+}
+
+func ValidateStorageAccountName(i interface{}, k string) (_ []string, errors []error) {
+	return ValidateNameGeneric(i, k, alphanumericLower, none, "", 3, 24)
+}
+
+func ValidateContainerName(i interface{}, k string) (_ []string, errors []error) {
+	return ValidateNameGeneric(i, k, alphanumericBoth, hyphen, "", 3, 63)
+}
+
+func ValidateQueueName(i interface{}, k string) (_ []string, errors []error) {
+	return ValidateNameGeneric(i, k, alphanumericLower, none, "", 3, 63)
+}
+
+func ValidateTableName(i interface{}, k string) (_ []string, errors []error) {
+	return ValidateNameGeneric(i, k, alphanumericBoth, none, "", 3, 63)
+}
+
+func ValidateDataLakeStoreName(i interface{}, k string) (_ []string, errors []error) {
+	return ValidateNameGeneric(i, k, alphanumericLower, none, "", 3, 24)
+}
+
+func ValidateVirtualNetworkName(i interface{}, k string) (_ []string, errors []error) {
+	return ValidateNameGeneric(i, k, alphanumericBoth, hyphenUnderscorePeriod, "", 3, 64)
+}
+
+func ValidateSubnetName(i interface{}, k string) (_ []string, errors []error) {
+	return ValidateNameGeneric(i, k, alphanumericBoth, hyphenUnderscorePeriod, "", 3, 80)
+}
+
+func ValidateSecurityGroupName(i interface{}, k string) (_ []string, errors []error) {
+	return ValidateNameGeneric(i, k, alphanumericBoth, hyphenUnderscorePeriod, "", 3, 80)
+}
+
+func ValidateSecurityGroupRuleName(i interface{}, k string) (_ []string, errors []error) {
+	return ValidateNameGeneric(i, k, alphanumericBoth, hyphenUnderscorePeriod, "", 3, 80)
+}
+
+func ValidateLoadBalancerName(i interface{}, k string) (_ []string, errors []error) {
+	return ValidateNameGeneric(i, k, alphanumericBoth, hyphenUnderscorePeriod, "", 3, 80)
+}
+
+func ValidateLoadBalancerRulesName(i interface{}, k string) (_ []string, errors []error) {
+	return ValidateNameGeneric(i, k, alphanumericBoth, hyphenUnderscorePeriod, "", 3, 80)
+}
+
+func ValidateTrafficManagerName(i interface{}, k string) (_ []string, errors []error) {
+	return ValidateNameGeneric(i, k, alphanumericBoth, hyphenPeriod, "", 3, 80)
+}
+
+func ValidateContainerRegistryName(i interface{}, k string) (_ []string, errors []error) {
+	return ValidateNameGeneric(i, k, alphanumericBoth, none, "", 5, 50)
 }
