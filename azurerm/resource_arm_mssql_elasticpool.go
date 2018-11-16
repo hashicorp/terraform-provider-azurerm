@@ -153,6 +153,12 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 			},
 
 			"tags": tagsSchema(),
+
+			"max_size_bytes": {
+				Type:         schema.TypeInt,
+				Required:     true,
+				ValidateFunc: validation.IntAtLeast(0),
+			},
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
@@ -313,7 +319,7 @@ func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
-	if err := d.Set("elastic_pool_properties", flattenAzureRmMsSqlElasticPoolProperties(resp.ElasticPoolProperties)); err != nil {
+	if err := d.Set("elastic_pool_properties", flattenAzureRmMsSqlElasticPoolProperties(d, resp.ElasticPoolProperties)); err != nil {
 		return fmt.Errorf("Error setting `elastic_pool_properties`: %+v", err)
 	}
 
@@ -355,11 +361,14 @@ func expandAzureRmMsSqlElasticPoolProperties(d *schema.ResourceData) *sql.Elasti
 	minCapacity := perDatabaseSetting["min_capacity"].(float64)
 	maxCapacity := perDatabaseSetting["max_capacity"].(float64)
 
+	maxSizeBytes := int64(d.Get("max_size_bytes").(int))
+
 	return &sql.ElasticPoolProperties{
 		PerDatabaseSettings: &sql.ElasticPoolPerDatabaseSettings{
 			MinCapacity: utils.Float(minCapacity),
 			MaxCapacity: utils.Float(maxCapacity),
 		},
+		MaxSizeBytes: utils.Int64(maxSizeBytes),
 	}
 }
 
@@ -402,11 +411,12 @@ func flattenAzureRmMsSqlElasticPoolSku(resp *sql.Sku) []interface{} {
 	return []interface{}{values}
 }
 
-func flattenAzureRmMsSqlElasticPoolProperties(resp *sql.ElasticPoolProperties) []interface{} {
+func flattenAzureRmMsSqlElasticPoolProperties(d *schema.ResourceData, resp *sql.ElasticPoolProperties) []interface{} {
 	elasticPoolProperty := map[string]interface{}{}
 
 	if maxSizeBytes := resp.MaxSizeBytes; maxSizeBytes != nil {
 		elasticPoolProperty["max_size_bytes"] = *maxSizeBytes
+		d.Set("max_size_bytes", *maxSizeBytes)
 	}
 
 	elasticPoolProperty["state"] = string(resp.State)
