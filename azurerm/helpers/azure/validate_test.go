@@ -91,63 +91,67 @@ func TestAzureResourceIDOrEmpty(t *testing.T) {
 	}
 }
 
-func TestAzureValidateMsSqlServiceName(t *testing.T) {
+func TestAzureValidateMsSqlElasticPoolName(t *testing.T) {
 	cases := []struct {
-		ServiceName string
-		Errors      int
+		ElasticPoolName string
+		Errors          int
 	}{
 		{
-			ServiceName: "as",
-			Errors:      3,
+			ElasticPoolName: "as",
+			Errors:          2,
 		},
 		{
-			ServiceName: "Asd",
-			Errors:      2,
+			ElasticPoolName: "Asd",
+			Errors:          2,
 		},
 		{
-			ServiceName: "asd",
-			Errors:      0,
+			ElasticPoolName: "asd",
+			Errors:          0,
 		},
 		{
-			ServiceName: "-asd",
-			Errors:      2,
+			ElasticPoolName: "-asd",
+			Errors:          1,
 		},
 		{
-			ServiceName: "asd-",
-			Errors:      2,
+			ElasticPoolName: "asd-",
+			Errors:          1,
 		},
 		{
-			ServiceName: "asd-1",
-			Errors:      0,
+			ElasticPoolName: "asd-1",
+			Errors:          0,
 		},
 		{
-			ServiceName: "asd--1",
-			Errors:      1,
+			ElasticPoolName: "asd--1",
+			Errors:          1,
 		},
 		{
-			ServiceName: "asd--1-",
-			Errors:      3,
+			ElasticPoolName: "asd--1-",
+			Errors:          2,
 		},
 		{
-			ServiceName: "asdfghjklzasdfghjklzasdfghjklzasdfghjklzasdfghjklz",
-			Errors:      0,
+			ElasticPoolName: "asdfghjklzasdfghjklzasdfghjklzasdfghjklzasdfghjklz",
+			Errors:          0,
 		},
 		{
-			ServiceName: "asdfghjklzasdfghjklzasdfghjklzasdfghjklzasdfghjklz1",
-			Errors:      3,
+			ElasticPoolName: "asdfghjklzasdfghjklzasdfghjklzasdfghjklzasdfghjklz1",
+			Errors:          1,
 		},
 		{
-			ServiceName: "asdfghjklzasdfghjklzasdfghjklzasdfghjklzasdfghjklz1--",
-			Errors:      4,
+			ElasticPoolName: "asdfghjklzasdfghjklzasdfghjklzasdfghjklzasdfghjklz1--",
+			Errors:          3,
+		},
+		{
+			ElasticPoolName: "Aasdfghjklzasdfghjklzasdfghjklzasdfghjklzasdfghjklz1--",
+			Errors:          4,
 		},
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.ServiceName, func(t *testing.T) {
-			_, errors := ValidateMsSqlServiceName(tc.ServiceName, "name")
+		t.Run(tc.ElasticPoolName, func(t *testing.T) {
+			_, errors := ValidateMsSqlElasticPoolName(tc.ElasticPoolName, "name")
 
 			if len(errors) < tc.Errors {
-				t.Fatalf("Expected TestAzureValidateMsSqlServiceName to have %d not %d errors for %q", tc.Errors, len(errors), tc.ServiceName)
+				t.Fatalf("Expected TestAzureValidateMsSqlElasticPoolName to have %d not %d errors for %q", tc.Errors, len(errors), tc.ElasticPoolName)
 			}
 		})
 	}

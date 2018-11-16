@@ -38,14 +38,20 @@ func ValidateNameGeneric(i interface{}, attributeName string, pattern string, sp
 		maxLength = minLength + 1
 	}
 
-	regEx := fmt.Sprintf("^[%s]{2}[%s%s]{%d,%d}[%s]{1}$", pattern, pattern, specialChars, (minLength - 3), (maxLength - minLength), pattern)
+	if len(value) < minLength || len(value) > maxLength {
+		errors = append(errors, fmt.Errorf("%s %q must be %d - %d characters in length", errorPrefix, attributeName, minLength, maxLength))
+	}
+
+	regEx := fmt.Sprintf("^[%s]{2}.*[%s]{1}$", pattern, pattern)
 	r := regexp.MustCompile(regEx)
 	if !r.MatchString(value) {
-		if len(value) < minLength || len(value) > maxLength {
-			errors = append(errors, fmt.Errorf("%s %q must be %d - %d characters in length", errorPrefix, attributeName, minLength, maxLength))
-		}
 		errors = append(errors, fmt.Errorf("%s %q first, second, and last characters must be a %s", errorPrefix, attributeName, getOrTxt(pattern)))
-		errors = append(errors, fmt.Errorf("%s %q can only contain %s%s", errorPrefix, attributeName, getAndTxt(pattern), getAndTxt(specialChars)))
+	}
+
+	regEx = fmt.Sprintf("^[%s%s]*$", pattern, specialChars)
+	r = regexp.MustCompile(regEx)
+	if !r.MatchString(value) {
+		errors = append(errors, fmt.Errorf("%s %q can only contain %s", errorPrefix, attributeName, getAndTxt(pattern, specialChars)))
 	}
 
 	r = regexp.MustCompile("(--|__|\\.\\.|\\(\\(|\\)\\))")
@@ -56,25 +62,45 @@ func ValidateNameGeneric(i interface{}, attributeName string, pattern string, sp
 	return nil, errors
 }
 
-func getAndTxt(expression string) (msg string) {
+func getAndTxt(pattern string, specialChars string) (msg string) {
 
-	switch expression {
-	case hyphenUnderscoreParenthesesPeriod:
-		msg = ", hyphens, underscores, parentheses, and periods"
-	case hyphen:
-		msg = " and hyphens"
-	case hyphenPeriod:
-		msg = ", hyphens and periods"
-	case hyphenUnderscorePeriod:
-		msg = ", hyphens, underscores, and periods"
-	case alphanumericBoth:
-		msg = "letters, numbers"
-	case alphanumericLower:
-		msg = "lowercase letters, numbers"
-	case alphanumericUpper:
-		msg = "uppercase letters, numbers"
-	default:
-		msg = ""
+	if specialChars == none {
+		switch pattern {
+		case alphanumericBoth:
+			msg = "letters and numbers"
+		case alphanumericLower:
+			msg = "lowercase letters and numbers"
+		case alphanumericUpper:
+			msg = "uppercase letters and numbers"
+		default:
+			msg = ""
+		}
+	} else {
+		tmpMsg := ""
+
+		switch pattern {
+		case alphanumericBoth:
+			tmpMsg = "letters, numbers"
+		case alphanumericLower:
+			tmpMsg = "lowercase letters, numbers"
+		case alphanumericUpper:
+			tmpMsg = "uppercase letters, numbers"
+		}
+
+		switch specialChars {
+		case hyphenUnderscoreParenthesesPeriod:
+			msg = fmt.Sprintf("%s, hyphens, underscores, parentheses, and periods", tmpMsg)
+		case hyphenUnderscorePeriod:
+			msg = fmt.Sprintf("%s, hyphens, underscores, and periods", tmpMsg)
+		case hyphenUnderscore:
+			msg = fmt.Sprintf("%s, hyphens and underscores", tmpMsg)
+		case hyphenPeriod:
+			msg = fmt.Sprintf("%s, hyphens and periods", tmpMsg)
+		case hyphen:
+			msg = fmt.Sprintf("%s and hyphens", tmpMsg)
+		default:
+			msg = tmpMsg
+		}
 	}
 
 	return msg
