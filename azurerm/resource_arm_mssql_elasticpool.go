@@ -253,7 +253,7 @@ func resourceArmMsSqlElasticPoolCreate(d *schema.ResourceData, meta interface{})
 	tags := d.Get("tags").(map[string]interface{})
 
 	elasticPool := sql.ElasticPool{
-		Sku: sku,
+		Sku:                   sku,
 		ElasticPoolProperties: properties,
 		Location:              &location,
 		Tags:                  expandTags(tags),

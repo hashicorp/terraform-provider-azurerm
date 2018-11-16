@@ -5,10 +5,10 @@ import (
 	"regexp"
 )
 
-const hyphenUnderscoreParenthesesPeriod string = "-_\\(\\)\\."
-const hyphenUnderscorePeriod string = "-_\\."
+const hyphenUnderscoreParenthesesPeriod string = `-_\(\)\.`
+const hyphenUnderscorePeriod string = `-_\.`
 const hyphenUnderscore string = "-_"
-const hyphenPeriod string = "-\\."
+const hyphenPeriod string = `-\.`
 const hyphen string = "-"
 const none string = ""
 const alphanumericLower string = "a-z0-9"
@@ -48,13 +48,13 @@ func ValidateNameGeneric(i interface{}, attributeName string, pattern string, sp
 		errors = append(errors, fmt.Errorf("%s %q first, second, and last characters must be a %s", errorPrefix, attributeName, getOrTxt(pattern)))
 	}
 
-	regEx = fmt.Sprintf("^[%s%s]*$", pattern, specialChars)
+	regEx = fmt.Sprintf(`^[%s%s]*$`, pattern, specialChars)
 	r = regexp.MustCompile(regEx)
 	if !r.MatchString(value) {
 		errors = append(errors, fmt.Errorf("%s %q can only contain %s", errorPrefix, attributeName, getAndTxt(pattern, specialChars)))
 	}
 
-	r = regexp.MustCompile("(--|__|\\.\\.|\\(\\(|\\)\\))")
+	r = regexp.MustCompile(`(--|__|\.\.|\(\(|\)\))`)
 	if r.MatchString(value) {
 		errors = append(errors, fmt.Errorf("%s %q must not contain any consecutive hyphens, underscores, parentheses, or periods", errorPrefix, attributeName))
 	}
