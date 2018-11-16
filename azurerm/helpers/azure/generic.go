@@ -15,7 +15,14 @@ const alphanumericLower string = "a-z0-9"
 const alphanumericUpper string = "A-Z0-9"
 const alphanumericBoth string = "a-zA-Z0-9"
 
-// Generic method to validate Azure Resource names which enforces the Azure standards for naming conventions...
+// Generic method to validate Azure Resource names which enforce the Azure standards for naming conventions...
+// 1. First two characters must be a number or a letter
+// 2. Last characters must be a number or a letter
+// 3. No consecutive hyphens, underscores, parentheses, or periods
+// 4. Min and Max length for values vary depending on the resource
+// 5. Value can not start or end with any special character
+// NOTE: There is an absolute minimum length for all values of 3, it can not be lower than 3 because of the
+//       first two chars and last char must be a number or letter rule, it can however be larger than 3 if desired.
 func ValidateNameGeneric(i interface{}, attributeName string, pattern string, specialChars string, errorPrefix string, minLength int, maxLength int) (_ []string, errors []error) {
 	value, ok := i.(string)
 	if !ok {
@@ -41,7 +48,6 @@ func ValidateNameGeneric(i interface{}, attributeName string, pattern string, sp
 		errors = append(errors, fmt.Errorf("%s %q can only contain %s%s", errorPrefix, attributeName, getAndTxt(pattern), getAndTxt(specialChars)))
 	}
 
-	//No consecutive dashes.
 	r = regexp.MustCompile("(--|__|\\.\\.|\\(\\(|\\)\\))")
 	if r.MatchString(value) {
 		errors = append(errors, fmt.Errorf("%s %q must not contain any consecutive hyphens, underscores, parentheses, or periods", errorPrefix, attributeName))
