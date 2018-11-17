@@ -122,6 +122,7 @@ func TestAccAzureRMKubernetesCluster_roleBasedAccessControl(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "role_based_access_control.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "role_based_access_control.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "role_based_access_control.0.azure_active_directory.#", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "role_based_access_control.0.azure_active_directory.0.client_app_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "role_based_access_control.0.azure_active_directory.0.server_app_id"),
@@ -596,6 +597,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   role_based_access_control {
+		enaled=true
     azure_active_directory {
       server_app_id     = "%s"
       server_app_secret = "%s"

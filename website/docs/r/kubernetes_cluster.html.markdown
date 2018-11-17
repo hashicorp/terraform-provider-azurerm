@@ -167,7 +167,9 @@ A `oms_agent` block supports the following:
 
 A `role_based_access_control` block supports the following:
 
-* `azure_active_directory` - (Required) An `azure_active_directory` block. Changing this forces a new resource to be created.
+* `enabled` - (Required) Is RBAC enabled?. Changing this forces a new resource to be created.
+
+* `azure_active_directory` - (Optional) An `azure_active_directory` block. Changing this forces a new resource to be created.
 
 ---
 
