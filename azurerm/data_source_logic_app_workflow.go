@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -95,7 +96,13 @@ func flattenLogicAppDataSourceWorkflowParameters(input map[string]*logic.Workflo
 
 	for k, v := range input {
 		if v != nil {
-			output[k] = v.Value.(string)
+			// we only support string parameters at this time
+			val, ok := v.Value.(string)
+			if !ok {
+				log.Printf("[DEBUG] Skipping parameter %q since it's not a string", k)
+			}
+
+			output[k] = val
 		}
 	}
 
