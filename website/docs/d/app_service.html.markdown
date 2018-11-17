@@ -67,6 +67,8 @@ output "app_service_id" {
 
 * `always_on` - Is the app be loaded at all times?
 
+* `app_command_line` - App command line to launch.
+
 * `default_documents` - The ordering of default documents to load, if an address isn't specified.
 
 * `dotnet_framework_version` - The version of the .net framework's CLR used in this App Service.

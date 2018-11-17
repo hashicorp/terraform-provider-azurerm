@@ -26,6 +26,11 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 					Default:  false,
 				},
 
+				"app_command_line": {
+					Type:     schema.TypeString,
+					Optional: true,
+				},
+
 				"default_documents": {
 					Type:     schema.TypeList,
 					Optional: true,
@@ -221,6 +226,10 @@ func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 		siteConfig.AlwaysOn = utils.Bool(v.(bool))
 	}
 
+	if v, ok := config["app_command_line"]; ok {
+		siteConfig.AppCommandLine = utils.String(v.(string))
+	}
+
 	if v, ok := config["default_documents"]; ok {
 		input := v.([]interface{})
 
@@ -345,6 +354,10 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.AlwaysOn != nil {
 		result["always_on"] = *input.AlwaysOn
+	}
+
+	if input.AppCommandLine != nil {
+		result["app_command_line"] = *input.AppCommandLine
 	}
 
 	documents := make([]string, 0)
