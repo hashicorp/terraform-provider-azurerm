@@ -227,10 +227,12 @@ func resourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 
 	if props := loadBalancer.LoadBalancerPropertiesFormat; props != nil {
 		if feipConfigs := props.FrontendIPConfigurations; feipConfigs != nil {
-			d.Set("frontend_ip_configuration", flattenLoadBalancerFrontendIpConfiguration(feipConfigs))
+			if err := d.Set("frontend_ip_configuration", flattenLoadBalancerFrontendIpConfiguration(feipConfigs)); err != nil {
+				return fmt.Errorf("Error flattening `frontend_ip_configuration`: %+v", err)
+			}
 
 			privateIpAddress := ""
-			privateIpAddresses := make([]string, 0, len(*feipConfigs))
+			privateIpAddresses := make([]string, 0)
 			for _, config := range *feipConfigs {
 				if feipProps := config.FrontendIPConfigurationPropertiesFormat; feipProps != nil {
 					if ip := feipProps.PrivateIPAddress; ip != nil {
@@ -319,10 +321,17 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *schema.ResourceData) *
 }
 
 func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPConfiguration) []interface{} {
-	result := make([]interface{}, 0, len(*ipConfigs))
+	result := make([]interface{}, 0)
+	if ipConfigs == nil {
+		return result
+	}
+
 	for _, config := range *ipConfigs {
 		ipConfig := make(map[string]interface{})
-		ipConfig["name"] = *config.Name
+
+		if config.Name != nil {
+			ipConfig["name"] = *config.Name
+		}
 
 		zones := make([]string, 0)
 		if zs := config.Zones; zs != nil {
@@ -331,7 +340,7 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 		ipConfig["zones"] = zones
 
 		if props := config.FrontendIPConfigurationPropertiesFormat; props != nil {
-			ipConfig["private_ip_address_allocation"] = props.PrivateIPAllocationMethod
+			ipConfig["private_ip_address_allocation"] = string(props.PrivateIPAllocationMethod)
 
 			if subnet := props.Subnet; subnet != nil {
 				ipConfig["subnet_id"] = *subnet.ID
@@ -345,24 +354,22 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 				ipConfig["public_ip_address_id"] = *pip.ID
 			}
 
+			loadBalancingRules := make([]interface{}, 0)
 			if rules := props.LoadBalancingRules; rules != nil {
-				loadBalancingRules := make([]interface{}, 0, len(*rules))
 				for _, rule := range *rules {
 					loadBalancingRules = append(loadBalancingRules, *rule.ID)
 				}
-
-				ipConfig["load_balancer_rules"] = schema.NewSet(schema.HashString, loadBalancingRules)
 			}
+			ipConfig["load_balancer_rules"] = schema.NewSet(schema.HashString, loadBalancingRules)
 
+			inboundNatRules := make([]interface{}, 0)
 			if rules := props.InboundNatRules; rules != nil {
-				inboundNatRules := make([]interface{}, 0, len(*rules))
 				for _, rule := range *rules {
 					inboundNatRules = append(inboundNatRules, *rule.ID)
 				}
 
-				ipConfig["inbound_nat_rules"] = schema.NewSet(schema.HashString, inboundNatRules)
-
 			}
+			ipConfig["inbound_nat_rules"] = schema.NewSet(schema.HashString, inboundNatRules)
 		}
 
 		result = append(result, ipConfig)
