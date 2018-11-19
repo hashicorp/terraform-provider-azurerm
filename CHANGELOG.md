@@ -3,6 +3,7 @@
 BUG FIXES:
 
 * Data Source: `azurerm_logic_app_workflow` - ensuing the parameters are a string prior to flattening [GH-2348]
+* `azurerm_key_vault` - fixing a deadlock situation where multiple subnets are used from the same virtual network [GH-2324]
 
 ## 1.19.0 (November 15, 2018)
 
