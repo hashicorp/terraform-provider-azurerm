@@ -1,5 +1,10 @@
 ## 1.20.0 (Unreleased)
 
+IMPROVEMENTS:
+
+* `azurerm_app_service` - support for configuring `app_command_line` in the `site_config` block [GH-2350]
+* `azurerm_app_service_slot` - support for configuring `app_command_line` in the `site_config` block [GH-2350]
+
 BUG FIXES:
 
 * Data Source: `azurerm_logic_app_workflow` - ensuing the parameters are a string prior to flattening [GH-2348]
