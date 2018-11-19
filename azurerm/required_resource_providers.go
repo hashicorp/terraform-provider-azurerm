@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/resourceproviders"
+	"github.com/hashicorp/go-azure-helpers/resourceproviders"
 )
 
 // requiredResourceProviders returns all of the Resource Providers used by the AzureRM Provider
