@@ -113,7 +113,7 @@ func TestAccAzureRMKeyVault_networkAcls(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "network_acls.0.bypass", "None"),
 					resource.TestCheckResourceAttr(resourceName, "network_acls.0.default_action", "Deny"),
 					resource.TestCheckResourceAttr(resourceName, "network_acls.0.ip_rules.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "network_acls.0.virtual_network_subnet_ids.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "network_acls.0.virtual_network_subnet_ids.#", "2"),
 				),
 			},
 			{
@@ -351,14 +351,22 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
-resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
+resource "azurerm_subnet" "test_a" {
+  name                 = "acctestsubneta%d"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.2.0/24"
-  service_endpoints    = ["Microsoft.KeyVault"]
+  service_endpoints    = ["Microsoft.KeyVault",]
 }
-`, rInt, location, rInt, rInt)
+
+resource "azurerm_subnet" "test_b" {
+  name                 = "acctestsubnetb%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.4.0/24"
+  service_endpoints    = ["Microsoft.KeyVault",]
+}
+`, rInt, location, rInt, rInt, rInt)
 }
 
 func testAccAzureRMKeyVault_networkAcls(rInt int, location string) string {
@@ -392,7 +400,7 @@ resource "azurerm_key_vault" "test" {
   network_acls {
     default_action             = "Deny"
     bypass                     = "None"
-    virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
+    virtual_network_subnet_ids = ["${azurerm_subnet.test_a.id}", "${azurerm_subnet.test_b.id}"]
   }
 }
 `, template, rInt)
@@ -430,7 +438,7 @@ resource "azurerm_key_vault" "test" {
     default_action             = "Allow"
     bypass                     = "AzureServices"
     ip_rules                   = ["10.0.0.102/32"]
-    virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
+    virtual_network_subnet_ids = ["${azurerm_subnet.test_a.id}"]
   }
 }
 `, template, rInt)

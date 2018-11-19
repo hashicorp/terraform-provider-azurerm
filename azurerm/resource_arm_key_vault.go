@@ -215,7 +215,9 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 
 		virtualNetworkName := id.Path["virtualNetworks"]
-		virtualNetworkNames = append(virtualNetworkNames, virtualNetworkName)
+		if !sliceContainsValue(virtualNetworkNames, virtualNetworkName) {
+			virtualNetworkNames = append(virtualNetworkNames, virtualNetworkName)
+		}
 	}
 
 	azureRMLockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
@@ -350,8 +352,10 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 						return err2
 					}
 
-					networkName := id.Path["virtualNetworks"]
-					virtualNetworkNames = append(virtualNetworkNames, networkName)
+					virtualNetworkName := id.Path["virtualNetworks"]
+					if !sliceContainsValue(virtualNetworkNames, virtualNetworkName) {
+						virtualNetworkNames = append(virtualNetworkNames, virtualNetworkName)
+					}
 				}
 			}
 		}
