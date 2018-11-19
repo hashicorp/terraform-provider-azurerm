@@ -836,6 +836,30 @@
 			"revisionTime": "2018-07-15T04:49:06Z"
 		},
 		{
+			"checksumSHA1": "b8kc0RV3AFzddaIfqE68Q4aNegQ=",
+			"path": "github.com/hashicorp/go-azure-helpers/authentication",
+			"revision": "40eea1fb498b6898bde0f88df6af174453493da2",
+			"revisionTime": "2018-11-13T22:08:27Z",
+			"version": "0.1.0",
+			"versionExact": "0.1.0"
+		},
+		{
+			"checksumSHA1": "WnMb/nCF2kPWu4o52XgmBMExDQY=",
+			"path": "github.com/hashicorp/go-azure-helpers/resourceproviders",
+			"revision": "40eea1fb498b6898bde0f88df6af174453493da2",
+			"revisionTime": "2018-11-13T22:08:27Z",
+			"version": "0.1.0",
+			"versionExact": "0.1.0"
+		},
+		{
+			"checksumSHA1": "ip//Px6kdSuCH6OKEJUSMIgI3ng=",
+			"path": "github.com/hashicorp/go-azure-helpers/response",
+			"revision": "40eea1fb498b6898bde0f88df6af174453493da2",
+			"revisionTime": "2018-11-13T22:08:27Z",
+			"version": "0.1.0",
+			"versionExact": "0.1.0"
+		},
+		{
 			"checksumSHA1": "b8F628srIitj5p7Y130xc9k0QWs=",
 			"path": "github.com/hashicorp/go-cleanhttp",
 			"revision": "3573b8b52aa7b37b9358d966a898feb387f62437",
