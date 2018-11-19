@@ -1,4 +1,9 @@
 ## 1.20.0 (Unreleased)
+
+BUG FIXES:
+
+* Data Source: `azurerm_logic_app_workflow` - ensuing the parameters are a string prior to flattening [GH-2348]
+
 ## 1.19.0 (November 15, 2018)
 
 FEATURES:
