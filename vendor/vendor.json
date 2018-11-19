@@ -3,6 +3,14 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "Ohzmn3hdzuDAONRJ4pfj9gIcK9Y=",
+			"path": "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources",
+			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
+			"revisionTime": "2018-10-19T17:11:53Z",
+			"version": "v21.3.0",
+			"versionExact": "v21.3.0"
+		},
+		{
 			"checksumSHA1": "Ynbz9cbfu714dUSimcL4QRIg96E=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights",
 			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
@@ -844,7 +852,7 @@
 			"versionExact": "0.1.0"
 		},
 		{
-			"checksumSHA1": "WnMb/nCF2kPWu4o52XgmBMExDQY=",
+			"checksumSHA1": "b8kc0RV3AFzddaIfqE68Q4aNegQ=",
 			"path": "github.com/hashicorp/go-azure-helpers/resourceproviders",
 			"revision": "40eea1fb498b6898bde0f88df6af174453493da2",
 			"revisionTime": "2018-11-13T22:08:27Z",
