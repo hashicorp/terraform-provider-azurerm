@@ -214,6 +214,31 @@ func TestAccAzureRMKeyVault_update(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKeyVault_justCert(t *testing.T) {
+	resourceName := "azurerm_key_vault.test"
+	ri := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVault_justCert(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "access_policy.0.certificate_permissions.0", "get"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMKeyVaultDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).keyVaultClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -518,6 +543,37 @@ resource "azurerm_key_vault" "test" {
 
   tags {
     environment = "Production"
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMKeyVault_justCert(rInt int, location string) string {
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "vault%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+
+  sku {
+    name = "premium"
+  }
+
+  access_policy {
+    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+    object_id = "${data.azurerm_client_config.current.client_id}"
+
+    certificate_permissions = [
+      "get",
+    ]
   }
 }
 `, rInt, location, rInt)

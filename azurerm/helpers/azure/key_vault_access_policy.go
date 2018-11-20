@@ -15,6 +15,7 @@ func SchemaKeyVaultCertificatePermissions() *schema.Schema {
 		Elem: &schema.Schema{
 			Type: schema.TypeString,
 			ValidateFunc: validation.StringInSlice([]string{
+				string(keyvault.Backup),
 				string(keyvault.Create),
 				string(keyvault.Delete),
 				string(keyvault.Deleteissuers),
@@ -27,6 +28,7 @@ func SchemaKeyVaultCertificatePermissions() *schema.Schema {
 				string(keyvault.Manageissuers),
 				string(keyvault.Purge),
 				string(keyvault.Recover),
+				string(keyvault.Restore),
 				string(keyvault.Setissuers),
 				string(keyvault.Update),
 			}, true),
@@ -38,7 +40,7 @@ func SchemaKeyVaultCertificatePermissions() *schema.Schema {
 func SchemaKeyVaultKeyPermissions() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
-		Required: true,
+		Optional: true,
 		Elem: &schema.Schema{
 			Type: schema.TypeString,
 			ValidateFunc: validation.StringInSlice([]string{
@@ -67,7 +69,7 @@ func SchemaKeyVaultKeyPermissions() *schema.Schema {
 func SchemaKeyVaultSecretPermissions() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
-		Required: true,
+		Optional: true,
 		Elem: &schema.Schema{
 			Type: schema.TypeString,
 			ValidateFunc: validation.StringInSlice([]string{
