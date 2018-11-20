@@ -25,7 +25,7 @@ import (
 	"net/http"
 )
 
-// DeploymentOperationsClient is the provides operations for working with resources and resource groups.
+// DeploymentOperationsClient is the client for the DeploymentOperations methods of the Resources service.
 type DeploymentOperationsClient struct {
 	BaseClient
 }
@@ -40,21 +40,17 @@ func NewDeploymentOperationsClientWithBaseURI(baseURI string, subscriptionID str
 	return DeploymentOperationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Get gets a deployments operation.
+// Get get a list of deployments operations.
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
 // deploymentName - the name of the deployment.
-// operationID - the ID of the operation to get.
+// operationID - operation Id.
 func (client DeploymentOperationsClient) Get(ctx context.Context, resourceGroupName string, deploymentName string, operationID string) (result DeploymentOperation, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
-		{TargetValue: deploymentName,
-			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("resources.DeploymentOperationsClient", "Get", err.Error())
 	}
 
@@ -88,7 +84,7 @@ func (client DeploymentOperationsClient) GetPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-05-10"
+	const APIVersion = "2016-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -121,21 +117,17 @@ func (client DeploymentOperationsClient) GetResponder(resp *http.Response) (resu
 	return
 }
 
-// List gets all deployments operations for a deployment.
+// List gets a list of deployments operations.
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// deploymentName - the name of the deployment with the operation to get.
-// top - the number of results to return.
+// deploymentName - the name of the deployment.
+// top - query parameters.
 func (client DeploymentOperationsClient) List(ctx context.Context, resourceGroupName string, deploymentName string, top *int32) (result DeploymentOperationsListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
-		{TargetValue: deploymentName,
-			Constraints: []validation.Constraint{{Target: "deploymentName", Name: validation.MaxLength, Rule: 64, Chain: nil},
-				{Target: "deploymentName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "deploymentName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("resources.DeploymentOperationsClient", "List", err.Error())
 	}
 
@@ -169,7 +161,7 @@ func (client DeploymentOperationsClient) ListPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-05-10"
+	const APIVersion = "2016-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

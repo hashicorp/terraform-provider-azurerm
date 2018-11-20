@@ -24,7 +24,7 @@ import (
 	"net/http"
 )
 
-// ProvidersClient is the provides operations for working with resources and resource groups.
+// ProvidersClient is the client for the Providers methods of the Resources service.
 type ProvidersClient struct {
 	BaseClient
 }
@@ -39,10 +39,10 @@ func NewProvidersClientWithBaseURI(baseURI string, subscriptionID string) Provid
 	return ProvidersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Get gets the specified resource provider.
+// Get gets a resource provider.
 // Parameters:
-// resourceProviderNamespace - the namespace of the resource provider.
-// expand - the $expand query parameter. For example, to include property aliases in response, use
+// resourceProviderNamespace - namespace of the resource provider.
+// expand - the $expand query parameter. e.g. To include property aliases in response, use
 // $expand=resourceTypes/aliases.
 func (client ProvidersClient) Get(ctx context.Context, resourceProviderNamespace string, expand string) (result Provider, err error) {
 	req, err := client.GetPreparer(ctx, resourceProviderNamespace, expand)
@@ -73,7 +73,7 @@ func (client ProvidersClient) GetPreparer(ctx context.Context, resourceProviderN
 		"subscriptionId":            autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-05-10"
+	const APIVersion = "2016-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -109,11 +109,10 @@ func (client ProvidersClient) GetResponder(resp *http.Response) (result Provider
 	return
 }
 
-// List gets all resource providers for a subscription.
+// List gets a list of resource providers.
 // Parameters:
-// top - the number of results to return. If null is passed returns all deployments.
-// expand - the properties to include in the results. For example, use &$expand=metadata in the query string to
-// retrieve resource provider metadata. To include property aliases in response, use
+// top - query parameters. If null is passed returns all deployments.
+// expand - the $expand query parameter. e.g. To include property aliases in response, use
 // $expand=resourceTypes/aliases.
 func (client ProvidersClient) List(ctx context.Context, top *int32, expand string) (result ProviderListResultPage, err error) {
 	result.fn = client.listNextResults
@@ -144,7 +143,7 @@ func (client ProvidersClient) ListPreparer(ctx context.Context, top *int32, expa
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-05-10"
+	const APIVersion = "2016-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -210,9 +209,9 @@ func (client ProvidersClient) ListComplete(ctx context.Context, top *int32, expa
 	return
 }
 
-// Register registers a subscription with a resource provider.
+// Register registers provider to be used with a subscription.
 // Parameters:
-// resourceProviderNamespace - the namespace of the resource provider to register.
+// resourceProviderNamespace - namespace of the resource provider.
 func (client ProvidersClient) Register(ctx context.Context, resourceProviderNamespace string) (result Provider, err error) {
 	req, err := client.RegisterPreparer(ctx, resourceProviderNamespace)
 	if err != nil {
@@ -242,7 +241,7 @@ func (client ProvidersClient) RegisterPreparer(ctx context.Context, resourceProv
 		"subscriptionId":            autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-05-10"
+	const APIVersion = "2016-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -275,9 +274,9 @@ func (client ProvidersClient) RegisterResponder(resp *http.Response) (result Pro
 	return
 }
 
-// Unregister unregisters a subscription from a resource provider.
+// Unregister unregisters provider from a subscription.
 // Parameters:
-// resourceProviderNamespace - the namespace of the resource provider to unregister.
+// resourceProviderNamespace - namespace of the resource provider.
 func (client ProvidersClient) Unregister(ctx context.Context, resourceProviderNamespace string) (result Provider, err error) {
 	req, err := client.UnregisterPreparer(ctx, resourceProviderNamespace)
 	if err != nil {
@@ -307,7 +306,7 @@ func (client ProvidersClient) UnregisterPreparer(ctx context.Context, resourcePr
 		"subscriptionId":            autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-05-10"
+	const APIVersion = "2016-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

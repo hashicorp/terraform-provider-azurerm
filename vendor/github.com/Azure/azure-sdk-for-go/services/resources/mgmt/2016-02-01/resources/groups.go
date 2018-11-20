@@ -25,7 +25,7 @@ import (
 	"net/http"
 )
 
-// GroupsClient is the provides operations for working with resources and resource groups.
+// GroupsClient is the client for the Groups methods of the Resources service.
 type GroupsClient struct {
 	BaseClient
 }
@@ -40,7 +40,7 @@ func NewGroupsClientWithBaseURI(baseURI string, subscriptionID string) GroupsCli
 	return GroupsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CheckExistence checks whether a resource group exists.
+// CheckExistence checks whether resource group exists.
 // Parameters:
 // resourceGroupName - the name of the resource group to check. The name is case insensitive.
 func (client GroupsClient) CheckExistence(ctx context.Context, resourceGroupName string) (result autorest.Response, err error) {
@@ -80,7 +80,7 @@ func (client GroupsClient) CheckExistencePreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-05-10"
+	const APIVersion = "2016-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -112,10 +112,10 @@ func (client GroupsClient) CheckExistenceResponder(resp *http.Response) (result 
 	return
 }
 
-// CreateOrUpdate creates or updates a resource group.
+// CreateOrUpdate create a resource group.
 // Parameters:
-// resourceGroupName - the name of the resource group to create or update.
-// parameters - parameters supplied to the create or update a resource group.
+// resourceGroupName - the name of the resource group to be created or updated.
+// parameters - parameters supplied to the create or update resource group service operation.
 func (client GroupsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, parameters Group) (result Group, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -155,7 +155,7 @@ func (client GroupsClient) CreateOrUpdatePreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-05-10"
+	const APIVersion = "2016-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -190,10 +190,9 @@ func (client GroupsClient) CreateOrUpdateResponder(resp *http.Response) (result 
 	return
 }
 
-// Delete when you delete a resource group, all of its resources are also deleted. Deleting a resource group deletes
-// all of its template deployments and currently stored operations.
+// Delete delete resource group.
 // Parameters:
-// resourceGroupName - the name of the resource group to delete. The name is case insensitive.
+// resourceGroupName - the name of the resource group to be deleted. The name is case insensitive.
 func (client GroupsClient) Delete(ctx context.Context, resourceGroupName string) (result GroupsDeleteFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -225,7 +224,7 @@ func (client GroupsClient) DeletePreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-05-10"
+	const APIVersion = "2016-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -265,8 +264,8 @@ func (client GroupsClient) DeleteResponder(resp *http.Response) (result autorest
 
 // ExportTemplate captures the specified resource group as a template.
 // Parameters:
-// resourceGroupName - the name of the resource group to export as a template.
-// parameters - parameters for exporting the template.
+// resourceGroupName - the name of the resource group to be created or updated.
+// parameters - parameters supplied to the export template resource group operation.
 func (client GroupsClient) ExportTemplate(ctx context.Context, resourceGroupName string, parameters ExportTemplateRequest) (result GroupExportResult, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -304,7 +303,7 @@ func (client GroupsClient) ExportTemplatePreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-05-10"
+	const APIVersion = "2016-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -339,7 +338,7 @@ func (client GroupsClient) ExportTemplateResponder(resp *http.Response) (result 
 	return
 }
 
-// Get gets a resource group.
+// Get get a resource group.
 // Parameters:
 // resourceGroupName - the name of the resource group to get. The name is case insensitive.
 func (client GroupsClient) Get(ctx context.Context, resourceGroupName string) (result Group, err error) {
@@ -379,7 +378,7 @@ func (client GroupsClient) GetPreparer(ctx context.Context, resourceGroupName st
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-05-10"
+	const APIVersion = "2016-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -412,10 +411,10 @@ func (client GroupsClient) GetResponder(resp *http.Response) (result Group, err 
 	return
 }
 
-// List gets all the resource groups for a subscription.
+// List gets a collection of resource groups.
 // Parameters:
 // filter - the filter to apply on the operation.
-// top - the number of results to return. If null is passed, returns all resource groups.
+// top - query parameters. If null is passed returns all resource groups.
 func (client GroupsClient) List(ctx context.Context, filter string, top *int32) (result GroupListResultPage, err error) {
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx, filter, top)
@@ -445,7 +444,7 @@ func (client GroupsClient) ListPreparer(ctx context.Context, filter string, top 
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-05-10"
+	const APIVersion = "2016-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -511,49 +510,163 @@ func (client GroupsClient) ListComplete(ctx context.Context, filter string, top 
 	return
 }
 
-// Update resource groups can be updated through a simple PATCH operation to a group address. The format of the request
-// is the same as that for creating a resource group. If a field is unspecified, the current value is retained.
+// ListResources get all of the resources under a subscription.
 // Parameters:
-// resourceGroupName - the name of the resource group to update. The name is case insensitive.
-// parameters - parameters supplied to update a resource group.
-func (client GroupsClient) Update(ctx context.Context, resourceGroupName string, parameters GroupPatchable) (result Group, err error) {
+// resourceGroupName - query parameters. If null is passed returns all resource groups.
+// filter - the filter to apply on the operation.
+// expand - the $expand query parameter
+// top - query parameters. If null is passed returns all resource groups.
+func (client GroupsClient) ListResources(ctx context.Context, resourceGroupName string, filter string, expand string, top *int32) (result ListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("resources.GroupsClient", "Update", err.Error())
+		return result, validation.NewError("resources.GroupsClient", "ListResources", err.Error())
 	}
 
-	req, err := client.UpdatePreparer(ctx, resourceGroupName, parameters)
+	result.fn = client.listResourcesNextResults
+	req, err := client.ListResourcesPreparer(ctx, resourceGroupName, filter, expand, top)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.GroupsClient", "Update", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "resources.GroupsClient", "ListResources", nil, "Failure preparing request")
 		return
 	}
 
-	resp, err := client.UpdateSender(req)
+	resp, err := client.ListResourcesSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "resources.GroupsClient", "Update", resp, "Failure sending request")
+		result.lr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "resources.GroupsClient", "ListResources", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.UpdateResponder(resp)
+	result.lr, err = client.ListResourcesResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.GroupsClient", "Update", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "resources.GroupsClient", "ListResources", resp, "Failure responding to request")
 	}
 
 	return
 }
 
-// UpdatePreparer prepares the Update request.
-func (client GroupsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, parameters GroupPatchable) (*http.Request, error) {
+// ListResourcesPreparer prepares the ListResources request.
+func (client GroupsClient) ListResourcesPreparer(ctx context.Context, resourceGroupName string, filter string, expand string, top *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-05-10"
+	const APIVersion = "2016-02-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+	if len(expand) > 0 {
+		queryParameters["$expand"] = autorest.Encode("query", expand)
+	}
+	if top != nil {
+		queryParameters["$top"] = autorest.Encode("query", *top)
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/resources", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListResourcesSender sends the ListResources request. The method will close the
+// http.Response Body if it receives an error.
+func (client GroupsClient) ListResourcesSender(req *http.Request) (*http.Response, error) {
+	return autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListResourcesResponder handles the response to the ListResources request. The method always
+// closes the http.Response Body.
+func (client GroupsClient) ListResourcesResponder(resp *http.Response) (result ListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// listResourcesNextResults retrieves the next set of results, if any.
+func (client GroupsClient) listResourcesNextResults(lastResults ListResult) (result ListResult, err error) {
+	req, err := lastResults.listResultPreparer()
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "resources.GroupsClient", "listResourcesNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListResourcesSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "resources.GroupsClient", "listResourcesNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListResourcesResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "resources.GroupsClient", "listResourcesNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListResourcesComplete enumerates all values, automatically crossing page boundaries as required.
+func (client GroupsClient) ListResourcesComplete(ctx context.Context, resourceGroupName string, filter string, expand string, top *int32) (result ListResultIterator, err error) {
+	result.page, err = client.ListResources(ctx, resourceGroupName, filter, expand, top)
+	return
+}
+
+// Patch resource groups can be updated through a simple PATCH operation to a group address. The format of the request
+// is the same as that for creating a resource groups, though if a field is unspecified current value will be carried
+// over.
+// Parameters:
+// resourceGroupName - the name of the resource group to be created or updated. The name is case insensitive.
+// parameters - parameters supplied to the update state resource group service operation.
+func (client GroupsClient) Patch(ctx context.Context, resourceGroupName string, parameters Group) (result Group, err error) {
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("resources.GroupsClient", "Patch", err.Error())
+	}
+
+	req, err := client.PatchPreparer(ctx, resourceGroupName, parameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "resources.GroupsClient", "Patch", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.PatchSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "resources.GroupsClient", "Patch", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.PatchResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "resources.GroupsClient", "Patch", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// PatchPreparer prepares the Patch request.
+func (client GroupsClient) PatchPreparer(ctx context.Context, resourceGroupName string, parameters Group) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2016-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -568,16 +681,16 @@ func (client GroupsClient) UpdatePreparer(ctx context.Context, resourceGroupName
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// UpdateSender sends the Update request. The method will close the
+// PatchSender sends the Patch request. The method will close the
 // http.Response Body if it receives an error.
-func (client GroupsClient) UpdateSender(req *http.Request) (*http.Response, error) {
+func (client GroupsClient) PatchSender(req *http.Request) (*http.Response, error) {
 	return autorest.SendWithSender(client, req,
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// UpdateResponder handles the response to the Update request. The method always
+// PatchResponder handles the response to the Patch request. The method always
 // closes the http.Response Body.
-func (client GroupsClient) UpdateResponder(resp *http.Response) (result Group, err error) {
+func (client GroupsClient) PatchResponder(resp *http.Response) (result Group, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),

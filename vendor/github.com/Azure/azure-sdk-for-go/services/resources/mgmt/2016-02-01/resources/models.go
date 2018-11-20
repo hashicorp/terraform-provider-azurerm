@@ -54,15 +54,15 @@ func PossibleResourceIdentityTypeValues() []ResourceIdentityType {
 	return []ResourceIdentityType{SystemAssigned}
 }
 
-// AliasPathType the type of the paths for alias.
+// AliasPathType ...
 type AliasPathType struct {
 	// Path - The path of an alias.
 	Path *string `json:"path,omitempty"`
-	// APIVersions - The API versions.
+	// APIVersions - The api versions.
 	APIVersions *[]string `json:"apiVersions,omitempty"`
 }
 
-// AliasType the alias type.
+// AliasType ...
 type AliasType struct {
 	// Name - The alias name.
 	Name *string `json:"name,omitempty"`
@@ -80,110 +80,10 @@ type BasicDependency struct {
 	ResourceName *string `json:"resourceName,omitempty"`
 }
 
-// CreateOrUpdateByIDFuture an abstraction for monitoring and retrieving the results of a long-running operation.
-type CreateOrUpdateByIDFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *CreateOrUpdateByIDFuture) Result(client Client) (gr GenericResource, err error) {
-	var done bool
-	done, err = future.Done(client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.CreateOrUpdateByIDFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("resources.CreateOrUpdateByIDFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if gr.Response.Response, err = future.GetResult(sender); err == nil && gr.Response.Response.StatusCode != http.StatusNoContent {
-		gr, err = client.CreateOrUpdateByIDResponder(gr.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "resources.CreateOrUpdateByIDFuture", "Result", gr.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// CreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
-type CreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *CreateOrUpdateFuture) Result(client Client) (gr GenericResource, err error) {
-	var done bool
-	done, err = future.Done(client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.CreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("resources.CreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if gr.Response.Response, err = future.GetResult(sender); err == nil && gr.Response.Response.StatusCode != http.StatusNoContent {
-		gr, err = client.CreateOrUpdateResponder(gr.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "resources.CreateOrUpdateFuture", "Result", gr.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
 // DebugSetting ...
 type DebugSetting struct {
-	// DetailLevel - Specifies the type of information to log for debugging. The permitted values are none, requestContent, responseContent, or both requestContent and responseContent separated by a comma. The default is none. When setting this value, carefully consider the type of information you are passing in during deployment. By logging information about the request or response, you could potentially expose sensitive data that is retrieved through the deployment operations.
+	// DetailLevel - The debug detail level.
 	DetailLevel *string `json:"detailLevel,omitempty"`
-}
-
-// DeleteByIDFuture an abstraction for monitoring and retrieving the results of a long-running operation.
-type DeleteByIDFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DeleteByIDFuture) Result(client Client) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.Done(client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeleteByIDFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("resources.DeleteByIDFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
-}
-
-// DeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
-type DeleteFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *DeleteFuture) Result(client Client) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.Done(client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.DeleteFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("resources.DeleteFuture")
-		return
-	}
-	ar.Response = future.Response()
-	return
 }
 
 // Dependency deployment dependency information.
@@ -204,7 +104,7 @@ type Deployment struct {
 	Properties *DeploymentProperties `json:"properties,omitempty"`
 }
 
-// DeploymentExportResult the deployment export result.
+// DeploymentExportResult ...
 type DeploymentExportResult struct {
 	autorest.Response `json:"-"`
 	// Template - The template content.
@@ -231,9 +131,9 @@ type DeploymentExtendedFilter struct {
 // DeploymentListResult list of deployments.
 type DeploymentListResult struct {
 	autorest.Response `json:"-"`
-	// Value - An array of deployments.
+	// Value - The list of deployments.
 	Value *[]DeploymentExtended `json:"value,omitempty"`
-	// NextLink - The URL to use for getting the next set of results.
+	// NextLink - The URL to get the next set of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -333,9 +233,9 @@ func (page DeploymentListResultPage) Values() []DeploymentExtended {
 // DeploymentOperation deployment operation information.
 type DeploymentOperation struct {
 	autorest.Response `json:"-"`
-	// ID - Full deployment operation ID.
+	// ID - Full deployment operation id.
 	ID *string `json:"id,omitempty"`
-	// OperationID - Deployment operation ID.
+	// OperationID - Deployment operation id.
 	OperationID *string `json:"operationId,omitempty"`
 	// Properties - Deployment properties.
 	Properties *DeploymentOperationProperties `json:"properties,omitempty"`
@@ -364,9 +264,9 @@ type DeploymentOperationProperties struct {
 // DeploymentOperationsListResult list of deployment operations.
 type DeploymentOperationsListResult struct {
 	autorest.Response `json:"-"`
-	// Value - An array of deployment operations.
+	// Value - The list of deployments.
 	Value *[]DeploymentOperation `json:"value,omitempty"`
-	// NextLink - The URL to use for getting the next set of results.
+	// NextLink - The URL to get the next set of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -465,15 +365,15 @@ func (page DeploymentOperationsListResultPage) Values() []DeploymentOperation {
 
 // DeploymentProperties deployment properties.
 type DeploymentProperties struct {
-	// Template - The template content. You use this element when you want to pass the template syntax directly in the request rather than link to an existing template. It can be a JObject or well-formed JSON string. Use either the templateLink property or the template property, but not both.
+	// Template - The template content. It can be a JObject or a well formed JSON string. Use only one of Template or TemplateLink.
 	Template interface{} `json:"template,omitempty"`
-	// TemplateLink - The URI of the template. Use either the templateLink property or the template property, but not both.
+	// TemplateLink - The template URI. Use only one of Template or TemplateLink.
 	TemplateLink *TemplateLink `json:"templateLink,omitempty"`
-	// Parameters - Name and value pairs that define the deployment parameters for the template. You use this element when you want to provide the parameter values directly in the request rather than link to an existing parameter file. Use either the parametersLink property or the parameters property, but not both. It can be a JObject or a well formed JSON string.
+	// Parameters - Deployment parameters. It can be a JObject or a well formed JSON string. Use only one of Parameters or ParametersLink.
 	Parameters interface{} `json:"parameters,omitempty"`
-	// ParametersLink - The URI of parameters file. You use this element to link to an existing parameters file. Use either the parametersLink property or the parameters property, but not both.
+	// ParametersLink - The parameters URI. Use only one of Parameters or ParametersLink.
 	ParametersLink *ParametersLink `json:"parametersLink,omitempty"`
-	// Mode - The mode that is used to deploy resources. This value can be either Incremental or Complete. In Incremental mode, resources are deployed without deleting existing resources that are not included in the template. In Complete mode, resources are deployed and existing resources in the resource group that are not included in the template are deleted. Be careful when using Complete mode as you may unintentionally delete resources. Possible values include: 'Incremental', 'Complete'
+	// Mode - The deployment mode. Possible values include: 'Incremental', 'Complete'
 	Mode DeploymentMode `json:"mode,omitempty"`
 	// DebugSetting - The debug setting of the deployment.
 	DebugSetting *DebugSetting `json:"debugSetting,omitempty"`
@@ -501,7 +401,7 @@ type DeploymentPropertiesExtended struct {
 	Parameters interface{} `json:"parameters,omitempty"`
 	// ParametersLink - The URI referencing the parameters. Use only one of Parameters or ParametersLink.
 	ParametersLink *ParametersLink `json:"parametersLink,omitempty"`
-	// Mode - The deployment mode. Possible values are Incremental and Complete. Possible values include: 'Incremental', 'Complete'
+	// Mode - The deployment mode. Possible values include: 'Incremental', 'Complete'
 	Mode DeploymentMode `json:"mode,omitempty"`
 	// DebugSetting - The debug setting of the deployment.
 	DebugSetting *DebugSetting `json:"debugSetting,omitempty"`
@@ -569,7 +469,7 @@ type DeploymentValidateResult struct {
 
 // ExportTemplateRequest export resource group template request parameters.
 type ExportTemplateRequest struct {
-	// ResourcesProperty - The IDs of the resources. The only supported string currently is '*' (all resources). Future updates will support exporting specific resources.
+	// ResourcesProperty - The ids of the resources. The only supported string currently is '*' (all resources). Future api updates will support exporting specific resources.
 	ResourcesProperty *[]string `json:"resources,omitempty"`
 	// Options - The export template options. Supported values include 'IncludeParameterDefaultValue', 'IncludeComments' or 'IncludeParameterDefaultValue, IncludeComments
 	Options *string `json:"options,omitempty"`
@@ -584,13 +484,13 @@ type GenericResource struct {
 	Properties interface{} `json:"properties,omitempty"`
 	// Kind - The kind of the resource.
 	Kind *string `json:"kind,omitempty"`
-	// ManagedBy - ID of the resource that manages this resource.
+	// ManagedBy - Id of the resource that manages this resource.
 	ManagedBy *string `json:"managedBy,omitempty"`
-	// Sku - The SKU of the resource.
+	// Sku - The sku of the resource.
 	Sku *Sku `json:"sku,omitempty"`
 	// Identity - The identity of the resource.
 	Identity *Identity `json:"identity,omitempty"`
-	// ID - Resource ID
+	// ID - Resource Id
 	ID *string `json:"id,omitempty"`
 	// Name - Resource name
 	Name *string `json:"name,omitempty"`
@@ -654,13 +554,11 @@ type Group struct {
 	autorest.Response `json:"-"`
 	// ID - The ID of the resource group.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource group.
+	// Name - The Name of the resource group.
 	Name       *string          `json:"name,omitempty"`
 	Properties *GroupProperties `json:"properties,omitempty"`
-	// Location - The location of the resource group. It cannot be changed after the resource group has been created. It must be one of the supported Azure locations.
+	// Location - The location of the resource group. It cannot be changed after the resource group has been created. Has to be one of the supported Azure Locations, such as West US, East US, West Europe, East Asia, etc.
 	Location *string `json:"location,omitempty"`
-	// ManagedBy - The ID of the resource that manages this resource group.
-	ManagedBy *string `json:"managedBy,omitempty"`
 	// Tags - The tags attached to the resource group.
 	Tags map[string]*string `json:"tags"`
 }
@@ -680,16 +578,13 @@ func (g Group) MarshalJSON() ([]byte, error) {
 	if g.Location != nil {
 		objectMap["location"] = g.Location
 	}
-	if g.ManagedBy != nil {
-		objectMap["managedBy"] = g.ManagedBy
-	}
 	if g.Tags != nil {
 		objectMap["tags"] = g.Tags
 	}
 	return json.Marshal(objectMap)
 }
 
-// GroupExportResult resource group export result.
+// GroupExportResult ...
 type GroupExportResult struct {
 	autorest.Response `json:"-"`
 	// Template - The template content.
@@ -709,9 +604,9 @@ type GroupFilter struct {
 // GroupListResult list of resource groups.
 type GroupListResult struct {
 	autorest.Response `json:"-"`
-	// Value - An array of resource groups.
+	// Value - The list of resource groups.
 	Value *[]Group `json:"value,omitempty"`
-	// NextLink - The URL to use for getting the next set of results.
+	// NextLink - The URL to get the next set of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -808,35 +703,6 @@ func (page GroupListResultPage) Values() []Group {
 	return *page.glr.Value
 }
 
-// GroupPatchable resource group information.
-type GroupPatchable struct {
-	// Name - The name of the resource group.
-	Name       *string          `json:"name,omitempty"`
-	Properties *GroupProperties `json:"properties,omitempty"`
-	// ManagedBy - The ID of the resource that manages this resource group.
-	ManagedBy *string `json:"managedBy,omitempty"`
-	// Tags - The tags attached to the resource group.
-	Tags map[string]*string `json:"tags"`
-}
-
-// MarshalJSON is the custom marshaler for GroupPatchable.
-func (gp GroupPatchable) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if gp.Name != nil {
-		objectMap["name"] = gp.Name
-	}
-	if gp.Properties != nil {
-		objectMap["properties"] = gp.Properties
-	}
-	if gp.ManagedBy != nil {
-		objectMap["managedBy"] = gp.ManagedBy
-	}
-	if gp.Tags != nil {
-		objectMap["tags"] = gp.Tags
-	}
-	return json.Marshal(objectMap)
-}
-
 // GroupProperties the resource group properties.
 type GroupProperties struct {
 	// ProvisioningState - The provisioning state.
@@ -865,7 +731,7 @@ func (future *GroupsDeleteFuture) Result(client GroupsClient) (ar autorest.Respo
 	return
 }
 
-// HTTPMessage HTTP message.
+// HTTPMessage ...
 type HTTPMessage struct {
 	// Content - HTTP message content.
 	Content interface{} `json:"content,omitempty"`
@@ -873,9 +739,9 @@ type HTTPMessage struct {
 
 // Identity identity for the resource.
 type Identity struct {
-	// PrincipalID - The principal ID of resource identity.
+	// PrincipalID - The principal id of resource identity.
 	PrincipalID *string `json:"principalId,omitempty"`
-	// TenantID - The tenant ID of resource.
+	// TenantID - The tenant id of resource.
 	TenantID *string `json:"tenantId,omitempty"`
 	// Type - The identity type. Possible values include: 'SystemAssigned'
 	Type ResourceIdentityType `json:"type,omitempty"`
@@ -884,9 +750,9 @@ type Identity struct {
 // ListResult list of resource groups.
 type ListResult struct {
 	autorest.Response `json:"-"`
-	// Value - An array of resources.
+	// Value - The list of resources.
 	Value *[]GenericResource `json:"value,omitempty"`
-	// NextLink - The URL to use for getting the next set of results.
+	// NextLink - The URL to get the next set of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -983,11 +849,11 @@ func (page ListResultPage) Values() []GenericResource {
 	return *page.lr.Value
 }
 
-// ManagementErrorWithDetails the detailed error message of resource management.
+// ManagementErrorWithDetails ...
 type ManagementErrorWithDetails struct {
-	// Code - The error code returned when exporting the template.
+	// Code - The error code returned from the server.
 	Code *string `json:"code,omitempty"`
-	// Message - The error message describing the export error.
+	// Message - The error message returned from the server.
 	Message *string `json:"message,omitempty"`
 	// Target - The target of the error.
 	Target *string `json:"target,omitempty"`
@@ -997,7 +863,7 @@ type ManagementErrorWithDetails struct {
 
 // MoveInfo parameters of move resources.
 type MoveInfo struct {
-	// ResourcesProperty - The IDs of the resources.
+	// ResourcesProperty - The ids of the resources.
 	ResourcesProperty *[]string `json:"resources,omitempty"`
 	// TargetResourceGroup - The target resource group.
 	TargetResourceGroup *string `json:"targetResourceGroup,omitempty"`
@@ -1027,9 +893,9 @@ func (future *MoveResourcesFuture) Result(client Client) (ar autorest.Response, 
 
 // ParametersLink entity representing the reference to the deployment paramaters.
 type ParametersLink struct {
-	// URI - The URI of the parameters file.
+	// URI - URI referencing the template.
 	URI *string `json:"uri,omitempty"`
-	// ContentVersion - If included, must match the ContentVersion in the template.
+	// ContentVersion - If included it must match the ContentVersion in the template.
 	ContentVersion *string `json:"contentVersion,omitempty"`
 }
 
@@ -1043,16 +909,14 @@ type Plan struct {
 	Product *string `json:"product,omitempty"`
 	// PromotionCode - The promotion code.
 	PromotionCode *string `json:"promotionCode,omitempty"`
-	// Version - The plan's version.
-	Version *string `json:"version,omitempty"`
 }
 
 // Provider resource provider information.
 type Provider struct {
 	autorest.Response `json:"-"`
-	// ID - The provider ID.
+	// ID - The provider id.
 	ID *string `json:"id,omitempty"`
-	// Namespace - The namespace of the resource provider.
+	// Namespace - The namespace of the provider.
 	Namespace *string `json:"namespace,omitempty"`
 	// RegistrationState - The registration state of the provider.
 	RegistrationState *string `json:"registrationState,omitempty"`
@@ -1063,9 +927,9 @@ type Provider struct {
 // ProviderListResult list of resource providers.
 type ProviderListResult struct {
 	autorest.Response `json:"-"`
-	// Value - An array of resource providers.
+	// Value - The list of resource providers.
 	Value *[]Provider `json:"value,omitempty"`
-	// NextLink - The URL to use for getting the next set of results.
+	// NextLink - The URL to get the next set of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -1170,7 +1034,7 @@ type ProviderOperationDisplayProperties struct {
 	Provider *string `json:"provider,omitempty"`
 	// Resource - Operation resource.
 	Resource *string `json:"resource,omitempty"`
-	// Operation - The operation name.
+	// Operation - Operation.
 	Operation *string `json:"operation,omitempty"`
 	// Description - Operation description.
 	Description *string `json:"description,omitempty"`
@@ -1180,11 +1044,11 @@ type ProviderOperationDisplayProperties struct {
 type ProviderResourceType struct {
 	// ResourceType - The resource type.
 	ResourceType *string `json:"resourceType,omitempty"`
-	// Locations - The collection of locations where this resource type can be created.
+	// Locations - The collection of locations where this resource type can be created in.
 	Locations *[]string `json:"locations,omitempty"`
 	// Aliases - The aliases that are supported by this resource type.
 	Aliases *[]AliasType `json:"aliases,omitempty"`
-	// APIVersions - The API version.
+	// APIVersions - The api version.
 	APIVersions *[]string `json:"apiVersions,omitempty"`
 	// Properties - The properties.
 	Properties map[string]*string `json:"properties"`
@@ -1211,9 +1075,9 @@ func (prt ProviderResourceType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Resource basic set of the resource properties.
+// Resource ...
 type Resource struct {
-	// ID - Resource ID
+	// ID - Resource Id
 	ID *string `json:"id,omitempty"`
 	// Name - Resource name
 	Name *string `json:"name,omitempty"`
@@ -1246,25 +1110,25 @@ func (r Resource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Sku SKU for the resource.
+// Sku sku for the resource.
 type Sku struct {
-	// Name - The SKU name.
+	// Name - The sku name.
 	Name *string `json:"name,omitempty"`
-	// Tier - The SKU tier.
+	// Tier - The sku tier.
 	Tier *string `json:"tier,omitempty"`
-	// Size - The SKU size.
+	// Size - The sku size.
 	Size *string `json:"size,omitempty"`
-	// Family - The SKU family.
+	// Family - The sku family.
 	Family *string `json:"family,omitempty"`
-	// Model - The SKU model.
+	// Model - The sku model.
 	Model *string `json:"model,omitempty"`
-	// Capacity - The SKU capacity.
+	// Capacity - The sku capacity.
 	Capacity *int32 `json:"capacity,omitempty"`
 }
 
-// SubResource sub-resource.
+// SubResource ...
 type SubResource struct {
-	// ID - Resource ID
+	// ID - Resource Id
 	ID *string `json:"id,omitempty"`
 }
 
@@ -1273,7 +1137,7 @@ type TagCount struct {
 	// Type - Type of count.
 	Type *string `json:"type,omitempty"`
 	// Value - Value of count.
-	Value *int32 `json:"value,omitempty"`
+	Value *string `json:"value,omitempty"`
 }
 
 // TagDetails tag details.
@@ -1283,7 +1147,7 @@ type TagDetails struct {
 	ID *string `json:"id,omitempty"`
 	// TagName - The tag name.
 	TagName *string `json:"tagName,omitempty"`
-	// Count - The total number of resources that use the resource tag. When a tag is initially created and has no associated resources, the value is 0.
+	// Count - The tag count.
 	Count *TagCount `json:"count,omitempty"`
 	// Values - The list of tag values.
 	Values *[]TagValue `json:"values,omitempty"`
@@ -1292,9 +1156,9 @@ type TagDetails struct {
 // TagsListResult list of subscription tags.
 type TagsListResult struct {
 	autorest.Response `json:"-"`
-	// Value - An array of tags.
+	// Value - The list of tags.
 	Value *[]TagDetails `json:"value,omitempty"`
-	// NextLink - The URL to use for getting the next set of results.
+	// NextLink - The URL to get the next set of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -1414,38 +1278,10 @@ type TargetResource struct {
 
 // TemplateLink entity representing the reference to the template.
 type TemplateLink struct {
-	// URI - The URI of the template to deploy.
+	// URI - URI referencing the template.
 	URI *string `json:"uri,omitempty"`
-	// ContentVersion - If included, must match the ContentVersion in the template.
+	// ContentVersion - If included it must match the ContentVersion in the template.
 	ContentVersion *string `json:"contentVersion,omitempty"`
-}
-
-// UpdateByIDFuture an abstraction for monitoring and retrieving the results of a long-running operation.
-type UpdateByIDFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *UpdateByIDFuture) Result(client Client) (gr GenericResource, err error) {
-	var done bool
-	done, err = future.Done(client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.UpdateByIDFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("resources.UpdateByIDFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if gr.Response.Response, err = future.GetResult(sender); err == nil && gr.Response.Response.StatusCode != http.StatusNoContent {
-		gr, err = client.UpdateByIDResponder(gr.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "resources.UpdateByIDFuture", "Result", gr.Response.Response, "Failure responding to request")
-		}
-	}
-	return
 }
 
 // UpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
@@ -1473,28 +1309,5 @@ func (future *UpdateFuture) Result(client Client) (gr GenericResource, err error
 			err = autorest.NewErrorWithError(err, "resources.UpdateFuture", "Result", gr.Response.Response, "Failure responding to request")
 		}
 	}
-	return
-}
-
-// ValidateMoveResourcesFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
-type ValidateMoveResourcesFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ValidateMoveResourcesFuture) Result(client Client) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.Done(client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "resources.ValidateMoveResourcesFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("resources.ValidateMoveResourcesFuture")
-		return
-	}
-	ar.Response = future.Response()
 	return
 }
