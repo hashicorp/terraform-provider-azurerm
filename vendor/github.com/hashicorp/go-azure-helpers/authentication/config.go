@@ -14,6 +14,10 @@ type Config struct {
 	Environment                      string
 	AuthenticatedAsAServicePrincipal bool
 
+	// A Custom Resource Manager Endpoint
+	// at this time this should only be applicable for Azure Stack.
+	CustomResourceManagerEndpoint string
+
 	authMethod authMethod
 }
 

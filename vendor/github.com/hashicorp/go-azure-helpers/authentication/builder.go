@@ -14,6 +14,10 @@ type Builder struct {
 	TenantID       string
 	Environment    string
 
+	// The custom Resource Manager Endpoint which should be used
+	// only applicable for Azure Stack at this time.
+	CustomResourceManagerEndpoint string
+
 	// Azure CLI Parsing / CloudShell Auth
 	SupportsAzureCliCloudShellParsing bool
 
@@ -35,10 +39,11 @@ type Builder struct {
 // for authenticating with Azure
 func (b Builder) Build() (*Config, error) {
 	config := Config{
-		ClientID:       b.ClientID,
-		SubscriptionID: b.SubscriptionID,
-		TenantID:       b.TenantID,
-		Environment:    b.Environment,
+		ClientID:                      b.ClientID,
+		SubscriptionID:                b.SubscriptionID,
+		TenantID:                      b.TenantID,
+		Environment:                   b.Environment,
+		CustomResourceManagerEndpoint: b.CustomResourceManagerEndpoint,
 	}
 
 	// NOTE: the ordering here is important

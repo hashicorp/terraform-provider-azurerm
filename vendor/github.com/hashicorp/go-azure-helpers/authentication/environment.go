@@ -25,6 +25,22 @@ func DetermineEnvironment(name string) (*azure.Environment, error) {
 	return &env, nil
 }
 
+// LoadEnvironmentFromUrl attempts to load the specified environment from the endpoint.
+// if the endpoint is an empty string, or an environment can't be
+// found at the endpoint url then an error is returned
+func LoadEnvironmentFromUrl(endpoint string) (*azure.Environment, error) {
+	if endpoint == "" {
+		return nil, fmt.Errorf("Endpoint was not set!")
+	}
+
+	env, err := azure.EnvironmentFromURL(endpoint)
+	if err != nil {
+		return nil, fmt.Errorf("Error retrieving Environment from Endpoint %q: %+v", endpoint, err)
+	}
+
+	return &env, nil
+}
+
 func normalizeEnvironmentName(input string) string {
 	// Environment is stored as `Azure{Environment}Cloud`
 	output := strings.ToLower(input)
