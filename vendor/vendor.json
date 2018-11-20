@@ -371,14 +371,6 @@
 			"versionExact": "v21.3.0"
 		},
 		{
-			"checksumSHA1": "a6pcr3i1EBmvSKpAb7BB1rnh2I8=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
-		},
-		{
 			"checksumSHA1": "ie11UTGJ69WCFS5kTy3lBbRlqwo=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler",
 			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
