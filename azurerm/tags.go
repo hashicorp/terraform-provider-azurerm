@@ -1,7 +1,6 @@
 package azurerm
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -45,27 +44,27 @@ func tagValueToString(v interface{}) (string, error) {
 	}
 }
 
-func validateAzureRMTags(v interface{}, _ string) (ws []string, es []error) {
+func validateAzureRMTags(v interface{}, _ string) (warnings []string, errors []error) {
 	tagsMap := v.(map[string]interface{})
 
 	if len(tagsMap) > 15 {
-		es = append(es, errors.New("a maximum of 15 tags can be applied to each ARM resource"))
+		errors = append(errors, fmt.Errorf("a maximum of 15 tags can be applied to each ARM resource"))
 	}
 
 	for k, v := range tagsMap {
 		if len(k) > 512 {
-			es = append(es, fmt.Errorf("the maximum length for a tag key is 512 characters: %q is %d characters", k, len(k)))
+			errors = append(errors, fmt.Errorf("the maximum length for a tag key is 512 characters: %q is %d characters", k, len(k)))
 		}
 
 		value, err := tagValueToString(v)
 		if err != nil {
-			es = append(es, err)
+			errors = append(errors, err)
 		} else if len(value) > 256 {
-			es = append(es, fmt.Errorf("the maximum length for a tag value is 256 characters: the value for %q is %d characters", k, len(value)))
+			errors = append(errors, fmt.Errorf("the maximum length for a tag value is 256 characters: the value for %q is %d characters", k, len(value)))
 		}
 	}
 
-	return ws, es
+	return warnings, errors
 }
 
 func expandTags(tagsMap map[string]interface{}) map[string]*string {

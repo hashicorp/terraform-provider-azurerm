@@ -213,7 +213,7 @@ func resourceArmStorageShareDelete(d *schema.ResourceData, meta interface{}) err
 }
 
 //Following the naming convention as laid out in the docs https://msdn.microsoft.com/library/azure/dn167011.aspx
-func validateArmStorageShareName(v interface{}, k string) (ws []string, errors []error) {
+func validateArmStorageShareName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^[0-9a-z-]+$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
@@ -232,5 +232,5 @@ func validateArmStorageShareName(v interface{}, k string) (ws []string, errors [
 		errors = append(errors, fmt.Errorf(
 			"%q does not allow consecutive hyphens: %q", k, value))
 	}
-	return ws, errors
+	return warnings, errors
 }

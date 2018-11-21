@@ -39,7 +39,7 @@ func resourceArmStorageQueue() *schema.Resource {
 	}
 }
 
-func validateArmStorageQueueName(v interface{}, k string) (ws []string, errors []error) {
+func validateArmStorageQueueName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if !regexp.MustCompile(`^[a-z0-9-]+$`).MatchString(value) {
@@ -65,7 +65,7 @@ func validateArmStorageQueueName(v interface{}, k string) (ws []string, errors [
 			"%q must be at least 3 characters", k))
 	}
 
-	return ws, errors
+	return warnings, errors
 }
 
 func resourceArmStorageQueueCreate(d *schema.ResourceData, meta interface{}) error {

@@ -429,13 +429,13 @@ func flattenKeyVaultNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {
 	return []interface{}{output}
 }
 
-func validateKeyVaultName(v interface{}, k string) (ws []string, errors []error) {
+func validateKeyVaultName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if matched := regexp.MustCompile(`^[a-zA-Z0-9-]{3,24}$`).Match([]byte(value)); !matched {
 		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters and dashes and must be between 3-24 chars", k))
 	}
 
-	return ws, errors
+	return warnings, errors
 }
 
 func keyVaultRefreshFunc(vaultUri string) resource.StateRefreshFunc {

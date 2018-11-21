@@ -8,19 +8,19 @@ import (
 )
 
 func DevSpaceName() schema.SchemaValidateFunc {
-	return func(i interface{}, k string) (s []string, es []error) {
+	return func(i interface{}, k string) (warnings []string, errors []error) {
 		// Length should be between 3 and 31.
-		if s, es = validation.StringLenBetween(3, 31)(i, k); len(es) > 0 {
-			return s, es
+		if warnings, errors = validation.StringLenBetween(3, 31)(i, k); len(errors) > 0 {
+			return warnings, errors
 		}
 
 		// Naming rule.
 		regexStr := "^[a-zA-Z0-9](-?[a-zA-Z0-9])*$"
 		errMsg := "DevSpace name can only include alphanumeric characters, hyphens."
-		if s, es = validation.StringMatch(regexp.MustCompile(regexStr), errMsg)(i, k); len(es) > 0 {
-			return s, es
+		if warnings, errors = validation.StringMatch(regexp.MustCompile(regexStr), errMsg)(i, k); len(errors) > 0 {
+			return warnings, errors
 		}
 
-		return s, es
+		return warnings, errors
 	}
 }

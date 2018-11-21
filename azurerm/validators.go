@@ -12,47 +12,52 @@ import (
 	"github.com/satori/uuid"
 )
 
-func validateRFC3339Date(v interface{}, k string) (ws []string, errors []error) {
+func validateRFC3339Date(v interface{}, k string) (warnings []string, errors []error) {
 	dateString := v.(string)
 
 	if _, err := date.ParseTime(time.RFC3339, dateString); err != nil {
 		errors = append(errors, fmt.Errorf("%q is an invalid RFC3339 date: %+v", k, err))
 	}
 
-	return ws, errors
+	return warnings, errors
 }
 
-func validateUUID(v interface{}, k string) (ws []string, errors []error) {
+func validateUUID(v interface{}, k string) (warnings []string, errors []error) {
 	if _, err := uuid.FromString(v.(string)); err != nil {
 		errors = append(errors, fmt.Errorf("%q is an invalid UUUID: %s", k, err))
 	}
-	return ws, errors
+	return warnings, errors
 }
 
 func evaluateSchemaValidateFunc(i interface{}, k string, validateFunc schema.SchemaValidateFunc) (bool, error) { // nolint: unparam
-	_, es := validateFunc(i, k)
+	_, errors := validateFunc(i, k)
 
-	if len(es) > 0 {
-		return false, es[0]
+	errorStrings := []string{}
+	for _, e := range errors {
+		errorStrings = append(errorStrings, e.Error())
+	}
+
+	if len(errors) > 0 {
+		return false, fmt.Errorf(strings.Join(errorStrings, "\n"))
 	}
 
 	return true, nil
 }
 
 func validateIso8601Duration() schema.SchemaValidateFunc {
-	return func(i interface{}, k string) (s []string, es []error) {
+	return func(i interface{}, k string) (warnings []string, errors []error) {
 		v, ok := i.(string)
 		if !ok {
-			es = append(es, fmt.Errorf("expected type of %s to be string", k))
+			errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
 			return
 		}
 
 		matched, _ := regexp.MatchString(`^P([0-9]+Y)?([0-9]+M)?([0-9]+W)?([0-9]+D)?(T([0-9]+H)?([0-9]+M)?([0-9]+(\.?[0-9]+)?S)?)?$`, v)
 
 		if !matched {
-			es = append(es, fmt.Errorf("expected %s to be in ISO 8601 duration format, got %s", k, v))
+			errors = append(errors, fmt.Errorf("expected %s to be in ISO 8601 duration format, got %s", k, v))
 		}
-		return s, es
+		return warnings, errors
 	}
 }
 
@@ -171,32 +176,32 @@ func validateAzureVirtualMachineTimeZone() schema.SchemaValidateFunc {
 }
 
 func validateCollation() schema.SchemaValidateFunc {
-	return func(i interface{}, k string) (s []string, es []error) {
+	return func(i interface{}, k string) (warnings []string, errors []error) {
 		v, ok := i.(string)
 		if !ok {
-			es = append(es, fmt.Errorf("expected type of %s to be string", k))
+			errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
 			return
 		}
 
 		matched, _ := regexp.MatchString(`^[A-Za-z0-9_. ]+$`, v)
 
 		if !matched {
-			es = append(es, fmt.Errorf("%s contains invalid characters, only underscores are supported, got %s", k, v))
+			errors = append(errors, fmt.Errorf("%s contains invalid characters, only underscores are supported, got %s", k, v))
 			return
 		}
 
-		return s, es
+		return warnings, errors
 	}
 }
 
 func validateFilePath() schema.SchemaValidateFunc {
-	return func(v interface{}, k string) (ws []string, es []error) {
+	return func(v interface{}, k string) (warnings []string, errors []error) {
 		val := v.(string)
 
 		if !strings.HasPrefix(val, "/") {
-			es = append(es, fmt.Errorf("%q must start with `/`", k))
+			errors = append(errors, fmt.Errorf("%q must start with `/`", k))
 		}
 
-		return ws, es
+		return warnings, errors
 	}
 }

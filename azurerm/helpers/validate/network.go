@@ -9,7 +9,7 @@ func IPv6Address(i interface{}, k string) (warnings []string, errors []error) {
 	return validateIpv6Address(i, k, false)
 }
 
-func validateIpv6Address(i interface{}, k string, allowEmpty bool) (ws []string, errors []error) { // nolint: unparam
+func validateIpv6Address(i interface{}, k string, allowEmpty bool) (warnings []string, errors []error) { // nolint: unparam
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
@@ -25,7 +25,7 @@ func validateIpv6Address(i interface{}, k string, allowEmpty bool) (ws []string,
 		errors = append(errors, fmt.Errorf("%q is not a valid IPv6 address: %q", k, v))
 	}
 
-	return ws, errors
+	return warnings, errors
 
 }
 
