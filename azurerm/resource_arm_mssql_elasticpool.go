@@ -152,13 +152,14 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
-
 			"max_size_bytes": {
 				Type:         schema.TypeInt,
 				Required:     true,
 				ValidateFunc: validation.IntAtLeast(0),
 			},
+
+			"tags": tagsSchema(),
+
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
