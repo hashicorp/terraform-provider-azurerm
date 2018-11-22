@@ -5,6 +5,7 @@ import (
 	"log"
 	"math"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -119,37 +120,68 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 			},
 
 			"elastic_pool_properties": {
-				Type:     schema.TypeList,
-				Computed: true,
-				MaxItems: 1,
+				Type:       schema.TypeList,
+				Computed:   true,
+				MaxItems:   1,
+				Deprecated: "All properties herein have been move to the top level",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"state": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:       schema.TypeString,
+							Computed:   true,
+							Deprecated: "This property has been moved to the top level",
 						},
 
 						"creation_date": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:       schema.TypeString,
+							Computed:   true,
+							Deprecated: "This property has been moved to the top level",
 						},
 
 						"max_size_bytes": {
-							Type:     schema.TypeInt,
-							Computed: true,
+							Type:       schema.TypeInt,
+							Computed:   true,
+							Deprecated: "This property has been moved to the top level",
 						},
 
 						"zone_redundant": {
-							Type:     schema.TypeBool,
-							Computed: true,
+							Type:       schema.TypeBool,
+							Computed:   true,
+							Deprecated: "This property has been moved to the top level",
 						},
 
 						"license_type": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:       schema.TypeString,
+							Computed:   true,
+							Deprecated: "This property has been moved to the top level",
 						},
 					},
 				},
+			},
+
+			"state": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"creation_date": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"max_size_bytes": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
+			"zone_redundant": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
+			"license_type": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"tags": tagsSchema(),
@@ -208,7 +240,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 				}
 			}
 
-			// Addutional checks based of SKU type...
+			// Additional checks based of SKU type...
 			if strings.HasPrefix(strings.ToLower(name.(string)), "gp_") || strings.HasPrefix(strings.ToLower(name.(string)), "bc_") {
 				// vCore based
 				if maxCapacity.(float64) > float64(capacity.(int)) {
@@ -249,15 +281,16 @@ func resourceArmMsSqlElasticPoolCreate(d *schema.ResourceData, meta interface{})
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	sku := expandAzureRmMsSqlElasticPoolSku(d)
-	properties := expandAzureRmMsSqlElasticPoolProperties(d)
 	tags := d.Get("tags").(map[string]interface{})
 
 	elasticPool := sql.ElasticPool{
-		Sku:                   sku,
-		ElasticPoolProperties: properties,
-		Location:              &location,
-		Tags:                  expandTags(tags),
-		Name:                  &elasticPoolName,
+		Name:     &elasticPoolName,
+		Location: &location,
+		Sku:      sku,
+		Tags:     expandTags(tags),
+		ElasticPoolProperties: &sql.ElasticPoolProperties{
+			PerDatabaseSettings: expandAzureRmMsSqlElasticPoolPerDatabaseSettings(d),
+		},
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, elasticPoolName, elasticPool)
@@ -313,12 +346,21 @@ func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
-	if err := d.Set("elastic_pool_properties", flattenAzureRmMsSqlElasticPoolProperties(resp.ElasticPoolProperties)); err != nil {
-		return fmt.Errorf("Error setting `elastic_pool_properties`: %+v", err)
-	}
+	if properties := resp.ElasticPoolProperties; properties != nil {
+		d.Set("creation_date", properties.CreationDate.Format(time.RFC3339))
+		d.Set("license_type", string(properties.LicenseType))
+		d.Set("max_size_bytes", properties.MaxSizeBytes)
+		d.Set("state", string(properties.State))
+		d.Set("zone_redundant", properties.ZoneRedundant)
 
-	if err := d.Set("per_database_settings", flattenAzureRmMsSqlElasticPoolPerDatabaseSettings(resp.ElasticPoolProperties.PerDatabaseSettings)); err != nil {
-		return fmt.Errorf("Error setting `per_database_settings`: %+v", err)
+		//todo remove in 2.0
+		if err := d.Set("elastic_pool_properties", flattenAzureRmMsSqlElasticPoolProperties(resp.ElasticPoolProperties)); err != nil {
+			return fmt.Errorf("Error setting `elastic_pool_properties`: %+v", err)
+		}
+
+		if err := d.Set("per_database_settings", flattenAzureRmMsSqlElasticPoolPerDatabaseSettings(properties.PerDatabaseSettings)); err != nil {
+			return fmt.Errorf("Error setting `per_database_settings`: %+v", err)
+		}
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -348,18 +390,16 @@ func parseArmMsSqlElasticPoolId(sqlElasticPoolId string) (string, string, string
 	return id.ResourceGroup, id.Path["servers"], id.Path["elasticPools"], nil
 }
 
-func expandAzureRmMsSqlElasticPoolProperties(d *schema.ResourceData) *sql.ElasticPoolProperties {
+func expandAzureRmMsSqlElasticPoolPerDatabaseSettings(d *schema.ResourceData) *sql.ElasticPoolPerDatabaseSettings {
 	perDatabaseSettings := d.Get("per_database_settings").([]interface{})
 	perDatabaseSetting := perDatabaseSettings[0].(map[string]interface{})
 
 	minCapacity := perDatabaseSetting["min_capacity"].(float64)
 	maxCapacity := perDatabaseSetting["max_capacity"].(float64)
 
-	return &sql.ElasticPoolProperties{
-		PerDatabaseSettings: &sql.ElasticPoolPerDatabaseSettings{
-			MinCapacity: utils.Float(minCapacity),
-			MaxCapacity: utils.Float(maxCapacity),
-		},
+	return &sql.ElasticPoolPerDatabaseSettings{
+		MinCapacity: utils.Float(minCapacity),
+		MaxCapacity: utils.Float(maxCapacity),
 	}
 }
 

@@ -29,6 +29,10 @@ func TestAccAzureRMMsSqlElasticPool_basic_DTU(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "50"),
 					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "0"),
 					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "50"),
+					resource.TestCheckResourceAttrSet(resourceName, "creation_date"),
+					resource.TestCheckResourceAttrSet(resourceName, "max_size_bytes"),
+					resource.TestCheckResourceAttrSet(resourceName, "state"),
+					resource.TestCheckResourceAttrSet(resourceName, "zone_redundant"),
 				),
 			},
 			{
@@ -60,6 +64,10 @@ func TestAccAzureRMMsSqlElasticPool_basic_vCore(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "sku.0.family", "Gen5"),
 					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "0.25"),
 					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "4"),
+					resource.TestCheckResourceAttrSet(resourceName, "creation_date"),
+					resource.TestCheckResourceAttrSet(resourceName, "max_size_bytes"),
+					resource.TestCheckResourceAttrSet(resourceName, "state"),
+					resource.TestCheckResourceAttrSet(resourceName, "zone_redundant"),
 				),
 			},
 			{
