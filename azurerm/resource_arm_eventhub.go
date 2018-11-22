@@ -112,8 +112,9 @@ func resourceArmEventHub() *schema.Resource {
 										Required: true,
 									},
 									"storage_account_id": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: azure.ValidateResourceID,
 									},
 								},
 							},
