@@ -5,7 +5,6 @@ import (
 	"log"
 	"math"
 	"strings"
-	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -159,16 +158,6 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 				},
 			},
 
-			"state": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"creation_date": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"max_size_bytes": {
 				Type:     schema.TypeInt,
 				Computed: true,
@@ -176,11 +165,6 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 
 			"zone_redundant": {
 				Type:     schema.TypeBool,
-				Computed: true,
-			},
-
-			"license_type": {
-				Type:     schema.TypeString,
 				Computed: true,
 			},
 
@@ -347,10 +331,7 @@ func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if properties := resp.ElasticPoolProperties; properties != nil {
-		d.Set("creation_date", properties.CreationDate.Format(time.RFC3339))
-		d.Set("license_type", string(properties.LicenseType))
 		d.Set("max_size_bytes", properties.MaxSizeBytes)
-		d.Set("state", string(properties.State))
 		d.Set("zone_redundant", properties.ZoneRedundant)
 
 		//todo remove in 2.0

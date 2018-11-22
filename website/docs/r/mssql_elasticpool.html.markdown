@@ -93,7 +93,9 @@ The following attributes are exported:
 
 * `id` - The MsSQL Elastic Pool ID.
 
-* `creation_date` - The creation date of the MsSQL Elastic Pool.
+* `max_size_bytes` - The storage limit for the database elastic pool in bytes.
+
+* `zone_redundant` - Whether or not this elastic pool is zone redundant.
 
 ## Import
 
