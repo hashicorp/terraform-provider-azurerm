@@ -56,6 +56,8 @@ The following arguments are supported:
 
 ---
 
+* `display_name` - (Optional) The display name of the API.
+
 * `service_url` - (Optional) Absolute URL of the backend service implementing this API.
 
 * `description` - (Optional) Description of the API. May include HTML formatting tags.
@@ -72,9 +74,9 @@ The following arguments are supported:
 
 A `subscription_key_parameter_names` block supports the following:
 
-* `header` - (Optional) Subscription key header name. Default is `Ocp-Apim-Subscription-Key`.
+* `header` - (Optional) Subscription key header name.
 
-* `query` - (Optional) Subscription key query string parameter name. Default is `subscription-key`.
+* `query` - (Optional) Subscription key query string parameter name.
 
 ---
 
