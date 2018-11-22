@@ -62,6 +62,11 @@ func resourceArmApiManagementApi() *schema.Resource {
 				Computed: true,
 			},
 
+			"display_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
 			"service_url": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -322,7 +327,7 @@ func resourceArmApiManagementApiDelete(d *schema.ResourceData, meta interface{})
 }
 
 func expandApiManagementApiProperties(d *schema.ResourceData) *apimanagement.APICreateOrUpdateProperties {
-	displayName := d.Get("name").(string)
+	displayName := d.Get("display_name").(string)
 	path := d.Get("path").(string)
 	serviceUrl := d.Get("service_url").(string)
 	description := d.Get("description").(string)
