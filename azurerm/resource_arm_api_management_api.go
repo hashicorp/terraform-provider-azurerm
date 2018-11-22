@@ -214,8 +214,6 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 		}
 	}
 
-	properties = expandApiManagementApiProperties(d)
-
 	updateParams := apimanagement.APICreateOrUpdateParameter{
 		APICreateOrUpdateProperties: expandApiManagementApiProperties(d),
 	}
