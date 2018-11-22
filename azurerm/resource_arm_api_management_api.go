@@ -201,31 +201,30 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 	// First we execute import and then updated the other props.
 	if hasImport {
 		properties = expandApiManagementImportProperties(d)
-	} else {
-		properties = expandApiManagementApiProperties(d)
+		log.Printf("[DEBUG] Importing API Management API %q of type %q", name, properties.ContentFormat)
+
+		apiParams := apimanagement.APICreateOrUpdateParameter{
+			APICreateOrUpdateProperties: properties,
+		}
+
+		log.Printf("[DEBUG] Calling api with resource group %q, service name %q, api id %q", resGroup, serviceName, apiId)
+		_, err := client.CreateOrUpdate(ctx, resGroup, serviceName, apiId, apiParams, "")
+		if err != nil {
+			return fmt.Errorf("Error creating/updating API Management API %q (Resource Group %q): %+v", name, resGroup, err)
+		}
 	}
 
-	apiParams := apimanagement.APICreateOrUpdateParameter{
-		APICreateOrUpdateProperties: properties,
+	properties = expandApiManagementApiProperties(d)
+
+	updateParams := apimanagement.APICreateOrUpdateParameter{
+		APICreateOrUpdateProperties: expandApiManagementApiProperties(d),
 	}
 
 	log.Printf("[DEBUG] Calling api with resource group %q, service name %q, api id %q", resGroup, serviceName, apiId)
-	_, err := client.CreateOrUpdate(ctx, resGroup, serviceName, apiId, apiParams, "")
+	_, err := client.CreateOrUpdate(ctx, resGroup, serviceName, apiId, updateParams, "")
+
 	if err != nil {
 		return fmt.Errorf("Error creating/updating API Management API %q (Resource Group %q): %+v", name, resGroup, err)
-	}
-
-	if hasImport {
-		// Update with aditional properties not possible to send to Azure API during import
-		updateParams := apimanagement.APICreateOrUpdateParameter{
-			APICreateOrUpdateProperties: expandApiManagementApiProperties(d),
-		}
-
-		_, err := client.CreateOrUpdate(ctx, resGroup, serviceName, apiId, updateParams, "")
-
-		if err != nil {
-			return fmt.Errorf("Failed to update after import: %+v", err)
-		}
 	}
 
 	read, err := client.Get(ctx, resGroup, serviceName, apiId)
