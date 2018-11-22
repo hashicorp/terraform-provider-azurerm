@@ -318,12 +318,12 @@ func flattenAppServiceProperties(props *web.AppServicePlanProperties) []interfac
 	return result
 }
 
-func validateAppServicePlanName(v interface{}, k string) (ws []string, es []error) {
+func validateAppServicePlanName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if matched := regexp.MustCompile(`^[0-9a-zA-Z-_]{1,60}$`).Match([]byte(value)); !matched {
-		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters, dashes and underscores up to 60 characters in length", k))
+		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters, dashes and underscores up to 60 characters in length", k))
 	}
 
-	return ws, es
+	return warnings, errors
 }

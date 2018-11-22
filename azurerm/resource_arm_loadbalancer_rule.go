@@ -363,7 +363,7 @@ func expandAzureRmLoadBalancerRule(d *schema.ResourceData, lb *network.LoadBalan
 	}, nil
 }
 
-func validateArmLoadBalancerRuleName(v interface{}, k string) (ws []string, errors []error) {
+func validateArmLoadBalancerRuleName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^[a-zA-Z_0-9.-]+$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
@@ -390,5 +390,5 @@ func validateArmLoadBalancerRuleName(v interface{}, k string) (ws []string, erro
 			"%q must start with a word character or number: %q", k, value))
 	}
 
-	return ws, errors
+	return warnings, errors
 }

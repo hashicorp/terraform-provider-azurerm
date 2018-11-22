@@ -603,14 +603,14 @@ func flattenAzureRmAppServiceMachineIdentity(identity *web.ManagedServiceIdentit
 	return []interface{}{result}
 }
 
-func validateAppServiceName(v interface{}, k string) (ws []string, es []error) {
+func validateAppServiceName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if matched := regexp.MustCompile(`^[0-9a-zA-Z-]{1,60}$`).Match([]byte(value)); !matched {
-		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters and dashes and up to 60 characters in length", k))
+		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters and dashes and up to 60 characters in length", k))
 	}
 
-	return ws, es
+	return warnings, errors
 }
 
 func flattenAppServiceSiteCredential(input *web.UserProperties) []interface{} {

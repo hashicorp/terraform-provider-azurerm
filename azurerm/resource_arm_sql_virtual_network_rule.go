@@ -175,7 +175,7 @@ func resourceArmSqlVirtualNetworkRuleDelete(d *schema.ResourceData, meta interfa
 	This function checks the format of the SQL Virtual Network Rule Name to make sure that
 	it does not contain any potentially invalid values.
 */
-func validateSqlVirtualNetworkRuleName(v interface{}, k string) (ws []string, errors []error) {
+func validateSqlVirtualNetworkRuleName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	// Cannot be empty
@@ -211,7 +211,7 @@ func validateSqlVirtualNetworkRuleName(v interface{}, k string) (ws []string, er
 
 	// There are multiple returns in the case that there is more than one invalid
 	// case applied to the name.
-	return ws, errors
+	return warnings, errors
 }
 
 /*

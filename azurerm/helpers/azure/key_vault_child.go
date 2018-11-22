@@ -42,34 +42,34 @@ func ParseKeyVaultChildID(id string) (*KeyVaultChildID, error) {
 	return &childId, nil
 }
 
-func ValidateKeyVaultChildName(v interface{}, k string) (ws []string, es []error) {
+func ValidateKeyVaultChildName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if matched := regexp.MustCompile(`^[0-9a-zA-Z-]+$`).Match([]byte(value)); !matched {
-		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters and dashes", k))
+		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters and dashes", k))
 	}
 
-	return ws, es
+	return warnings, errors
 }
 
 // Unfortunately this can't (easily) go in the Validate package
 // since there's a circular reference on this package
-func ValidateKeyVaultChildId(i interface{}, k string) (s []string, es []error) {
-	if s, es = validation.NoZeroValues(i, k); len(es) > 0 {
-		return s, es
+func ValidateKeyVaultChildId(i interface{}, k string) (warnings []string, errors []error) {
+	if warnings, errors = validation.NoZeroValues(i, k); len(errors) > 0 {
+		return warnings, errors
 	}
 
 	v, ok := i.(string)
 	if !ok {
-		es = append(es, fmt.Errorf("Expected %s to be a string!", k))
-		return s, es
+		errors = append(errors, fmt.Errorf("Expected %s to be a string!", k))
+		return warnings, errors
 	}
 
 	_, err := ParseKeyVaultChildID(v)
 	if err != nil {
-		es = append(es, fmt.Errorf("Error parsing Key Vault Child ID: %s", err))
-		return s, es
+		errors = append(errors, fmt.Errorf("Error parsing Key Vault Child ID: %s", err))
+		return warnings, errors
 	}
 
-	return s, es
+	return warnings, errors
 }

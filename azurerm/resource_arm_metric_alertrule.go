@@ -420,17 +420,17 @@ func resourceGroupAndAlertRuleNameFromId(alertRuleId string) (string, string, er
 	return resourceGroup, name, nil
 }
 
-func validateMetricAlertRuleTags(v interface{}, f string) (ws []string, es []error) {
+func validateMetricAlertRuleTags(v interface{}, f string) (warnings []string, errors []error) {
 	// Normal validation required by any AzureRM resource.
-	ws, es = validateAzureRMTags(v, f)
+	warnings, errors = validateAzureRMTags(v, f)
 
 	tagsMap := v.(map[string]interface{})
 
 	for k := range tagsMap {
 		if strings.EqualFold(k, "$type") {
-			es = append(es, fmt.Errorf("the %q is not allowed as tag name", k))
+			errors = append(errors, fmt.Errorf("the %q is not allowed as tag name", k))
 		}
 	}
 
-	return ws, es
+	return warnings, errors
 }

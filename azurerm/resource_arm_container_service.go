@@ -598,7 +598,7 @@ func resourceAzureRMContainerServiceDiagnosticProfilesHash(v interface{}) int {
 	return hashcode.String(buf.String())
 }
 
-func validateArmContainerServiceOrchestrationPlatform(v interface{}, _ string) (ws []string, errors []error) {
+func validateArmContainerServiceOrchestrationPlatform(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(string)
 	capacities := map[string]bool{
 		"DCOS":       true,
@@ -609,10 +609,10 @@ func validateArmContainerServiceOrchestrationPlatform(v interface{}, _ string) (
 	if !capacities[value] {
 		errors = append(errors, fmt.Errorf("Container Service: Orchestration Platgorm can only be DCOS / Kubernetes / Swarm"))
 	}
-	return ws, errors
+	return warnings, errors
 }
 
-func validateArmContainerServiceMasterProfileCount(v interface{}, _ string) (ws []string, errors []error) {
+func validateArmContainerServiceMasterProfileCount(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(int)
 	capacities := map[int]bool{
 		1: true,
@@ -623,13 +623,13 @@ func validateArmContainerServiceMasterProfileCount(v interface{}, _ string) (ws 
 	if !capacities[value] {
 		errors = append(errors, fmt.Errorf("The number of master nodes must be 1, 3 or 5."))
 	}
-	return ws, errors
+	return warnings, errors
 }
 
-func validateArmContainerServiceAgentPoolProfileCount(v interface{}, _ string) (ws []string, errors []error) {
+func validateArmContainerServiceAgentPoolProfileCount(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(int)
 	if value > 100 || 0 >= value {
 		errors = append(errors, fmt.Errorf("The Count for an Agent Pool Profile can only be between 1 and 100."))
 	}
-	return ws, errors
+	return warnings, errors
 }

@@ -175,17 +175,17 @@ func resourceArmDatabricksWorkspaceDelete(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func validateDatabricksWorkspaceName(i interface{}, k string) (ws []string, errors []error) {
+func validateDatabricksWorkspaceName(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q type to be string", k))
-		return ws, errors
+		return warnings, errors
 	}
 
 	// Cannot be empty
 	if len(v) == 0 {
 		errors = append(errors, fmt.Errorf("%q cannot be an empty string: %q", k, v))
-		return ws, errors
+		return warnings, errors
 	}
 
 	// First, second, and last characters must be a letter or number with a total length between 3 to 64 characters
@@ -201,5 +201,5 @@ func validateDatabricksWorkspaceName(i interface{}, k string) (ws []string, erro
 		errors = append(errors, fmt.Errorf("%q must not contain any consecutive hyphens", k))
 	}
 
-	return ws, errors
+	return warnings, errors
 }
