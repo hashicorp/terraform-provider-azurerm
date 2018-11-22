@@ -4,8 +4,8 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 
+	"github.com/hashicorp/go-azure-helpers/storage"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/storage"
 )
 
 const (
@@ -194,7 +194,7 @@ func dataSourceArmStorageAccountSasRead(d *schema.ResourceData, _ interface{}) e
 	permissions := buildPermissionsString(permissionsIface[0].(map[string]interface{}))
 
 	// Parse the connection string
-	kvp, err := storage.ParseAzureStorageAccountConnectionString(connString)
+	kvp, err := storage.ParseStorageAccountConnectionString(connString)
 	if err != nil {
 		return err
 	}
@@ -212,7 +212,7 @@ func dataSourceArmStorageAccountSasRead(d *schema.ResourceData, _ interface{}) e
 	signedIp := ""
 	signedVersion := sasSignedVersion
 
-	sasToken, err := storage.ComputeAzureStorageAccountSas(accountName, accountKey, permissions, services, resourceTypes,
+	sasToken, err := storage.ComputeSASToken(accountName, accountKey, permissions, services, resourceTypes,
 		start, expiry, signedProtocol, signedIp, signedVersion)
 	if err != nil {
 		return err

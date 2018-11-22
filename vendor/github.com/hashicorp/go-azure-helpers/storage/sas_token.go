@@ -14,7 +14,9 @@ const (
 	connStringAccountNameKey = "AccountName"
 )
 
-func ComputeAzureStorageAccountSas(accountName string,
+// ComputeSASToken computes the SAS Token for a Storage Account based on the
+// access key & given permissions
+func ComputeSASToken(accountName string,
 	accountKey string,
 	permissions string,
 	services string,
@@ -65,10 +67,11 @@ func ComputeAzureStorageAccountSas(accountName string,
 	return sasToken, nil
 }
 
-// This connection string was for a real storage account which has been deleted
-// so its safe to include here for reference to understand the format.
-// DefaultEndpointsProtocol=https;AccountName=azurermtestsa0;AccountKey=2vJrjEyL4re2nxCEg590wJUUC7PiqqrDHjAN5RU304FNUQieiEwS2bfp83O0v28iSfWjvYhkGmjYQAdd9x+6nw==;EndpointSuffix=core.windows.net
-func ParseAzureStorageAccountConnectionString(connString string) (map[string]string, error) {
+// ParseStorageAccountConnectionString parses the Connection String for a Storage Account
+func ParseStorageAccountConnectionString(connString string) (map[string]string, error) {
+	// This connection string was for a real storage account which has been deleted
+	// so its safe to include here for reference to understand the format.
+	// DefaultEndpointsProtocol=https;AccountName=azurermtestsa0;AccountKey=2vJrjEyL4re2nxCEg590wJUUC7PiqqrDHjAN5RU304FNUQieiEwS2bfp83O0v28iSfWjvYhkGmjYQAdd9x+6nw==;EndpointSuffix=core.windows.net
 	validKeys := map[string]bool{"DefaultEndpointsProtocol": true, "BlobEndpoint": true,
 		"AccountName": true, "AccountKey": true, "EndpointSuffix": true}
 	// The k-v pairs are separated with semi-colons
