@@ -159,7 +159,6 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 			},
 
 			"tags": tagsSchema(),
-
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
