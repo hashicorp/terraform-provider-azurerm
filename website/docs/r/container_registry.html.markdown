@@ -16,6 +16,10 @@ Manages an Azure Container Registry.
 
 ## Example Usage
 
+### Classic (unmanaged) Container Registry
+
+When using the `Classic` SKU, you need to provide the Azure storage account.
+
 ```hcl
 resource "azurerm_resource_group" "test" {
   name     = "resourceGroup1"
@@ -40,6 +44,26 @@ resource "azurerm_container_registry" "test" {
 }
 ```
 
+### Managed Container Registry
+
+When using another SKU than `Classic`, Azure Container Registry manages the storage account for you.
+
+```hcl
+resource "azurerm_resource_group" "rg" {
+  name     = "resourceGroup1"
+  location = "West US"
+}
+
+resource "azurerm_container_registry" "acr" {
+  name                   = "containerRegistry1"
+  resource_group_name    = "${azurerm_resource_group.rg.name}"
+  location               = "${azurerm_resource_group.rg.location}"
+  sku                    = "Premium"
+  admin_enabled          = false
+  georeplication_locations = ["East US", "West Europe"]
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -57,6 +81,8 @@ The following arguments are supported:
 * `sku` - (Optional) The SKU name of the the container registry. Possible values are `Classic` (which was previously `Basic`), `Basic`, `Standard` and `Premium`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+* `georeplication_locations` - (Optional) A list of Azure locations where the container registry should be geo-replicated.
 
 ## Attributes Reference
 
