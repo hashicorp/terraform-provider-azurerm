@@ -1,9 +1,3 @@
-provider "azurerm" {
-   # currently using a version build from GitHub while PR on ACR has not been approved.
-   # https://github.com/terraform-providers/terraform-provider-azurerm/pull/2055 
-   # While done, uncomment and set new version 
-   # version = "~>1.5"
-}
 resource "azurerm_resource_group" "rg" {
   name     = "${var.resource_group_name}"
   location = "${var.resource_group_location}"
