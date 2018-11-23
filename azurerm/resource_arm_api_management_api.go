@@ -30,6 +30,11 @@ func resourceArmApiManagementApi() *schema.Resource {
 				ValidateFunc: validate.ApiManagementApiName,
 			},
 
+			"display_name": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+
 			"service_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -60,11 +65,6 @@ func resourceArmApiManagementApi() *schema.Resource {
 			"api_id": {
 				Type:     schema.TypeString,
 				Computed: true,
-			},
-
-			"display_name": {
-				Type:     schema.TypeString,
-				Optional: true,
 			},
 
 			"service_url": {
