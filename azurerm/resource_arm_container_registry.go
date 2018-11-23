@@ -179,7 +179,7 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 
 	// locations have been specified for geo-replication
 	if geoReplicationLocations != nil && geoReplicationLocations.Len() > 0 {
-		// the ACR is beeing created so no previous geo-replication locations
+		// the ACR is being created so no previous geo-replication locations
 		oldGeoReplicationLocations := []interface{}{}
 		err = applyGeoReplicationLocations(meta, resourceGroup, name, oldGeoReplicationLocations, geoReplicationLocations.List())
 		if err != nil {
@@ -312,7 +312,7 @@ func applyGeoReplicationLocations(meta interface{}, resourceGroup string, name s
 	}
 
 	// create new geo-replication locations
-	for locationToCreate, _ := range createLocations {
+	for locationToCreate := range createLocations {
 		// if false, the location does not need to be created, continue
 		if !createLocations[locationToCreate] {
 			continue
@@ -398,9 +398,9 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if *resp.AdminUserEnabled {
-		credsResp, err := client.ListCredentials(ctx, resourceGroup, name)
-		if err != nil {
-			return fmt.Errorf("Error making Read request on Azure Container Registry %s for Credentials: %s", name, err)
+		credsResp, errList := client.ListCredentials(ctx, resourceGroup, name)
+		if errList != nil {
+			return fmt.Errorf("Error making Read request on Azure Container Registry %s for Credentials: %s", name, errList)
 		}
 
 		d.Set("admin_username", credsResp.Username)
