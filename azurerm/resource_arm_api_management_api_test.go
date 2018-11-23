@@ -152,6 +152,7 @@ resource "azurerm_api_management" "test" {
 
 resource "azurerm_api_management_api" "test" {
   name         = "acctestAMA-%d"
+	display_name = "api1"
   service_name = "${azurerm_api_management.test.name}"
   path         = "api1"
   protocols    = ["https"]
@@ -188,6 +189,7 @@ resource "azurerm_api_management" "test" {
 
 resource "azurerm_api_management_api" "test" {
   name         = "acctestAMA-%d"
+	display_name = "api1"
   service_name = "${azurerm_api_management.test.name}"
   path         = "api1"
   protocols    = ["http", "https"]
