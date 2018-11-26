@@ -10,7 +10,7 @@ import (
 
 	"strconv"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-12-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/structure"

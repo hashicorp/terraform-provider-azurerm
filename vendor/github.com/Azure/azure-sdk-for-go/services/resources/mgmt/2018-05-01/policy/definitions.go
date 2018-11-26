@@ -40,7 +40,7 @@ func NewDefinitionsClientWithBaseURI(baseURI string, subscriptionID string) Defi
 	return DefinitionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate creates or updates a policy definition.
+// CreateOrUpdate this operation creates or updates a policy definition in the given subscription with the given name.
 // Parameters:
 // policyDefinitionName - the name of the policy definition to create.
 // parameters - the policy definition properties.
@@ -73,7 +73,7 @@ func (client DefinitionsClient) CreateOrUpdatePreparer(ctx context.Context, poli
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-12-01"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -108,7 +108,8 @@ func (client DefinitionsClient) CreateOrUpdateResponder(resp *http.Response) (re
 	return
 }
 
-// CreateOrUpdateAtManagementGroup creates or updates a policy definition at management group level.
+// CreateOrUpdateAtManagementGroup this operation creates or updates a policy definition in the given management group
+// with the given name.
 // Parameters:
 // policyDefinitionName - the name of the policy definition to create.
 // parameters - the policy definition properties.
@@ -142,7 +143,7 @@ func (client DefinitionsClient) CreateOrUpdateAtManagementGroupPreparer(ctx cont
 		"policyDefinitionName": autorest.Encode("path", policyDefinitionName),
 	}
 
-	const APIVersion = "2016-12-01"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -177,7 +178,7 @@ func (client DefinitionsClient) CreateOrUpdateAtManagementGroupResponder(resp *h
 	return
 }
 
-// Delete deletes a policy definition.
+// Delete this operation deletes the policy definition in the given subscription with the given name.
 // Parameters:
 // policyDefinitionName - the name of the policy definition to delete.
 func (client DefinitionsClient) Delete(ctx context.Context, policyDefinitionName string) (result autorest.Response, err error) {
@@ -209,7 +210,7 @@ func (client DefinitionsClient) DeletePreparer(ctx context.Context, policyDefini
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-12-01"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -241,7 +242,8 @@ func (client DefinitionsClient) DeleteResponder(resp *http.Response) (result aut
 	return
 }
 
-// DeleteAtManagementGroup deletes a policy definition at management group level.
+// DeleteAtManagementGroup this operation deletes the policy definition in the given management group with the given
+// name.
 // Parameters:
 // policyDefinitionName - the name of the policy definition to delete.
 // managementGroupID - the ID of the management group.
@@ -274,7 +276,7 @@ func (client DefinitionsClient) DeleteAtManagementGroupPreparer(ctx context.Cont
 		"policyDefinitionName": autorest.Encode("path", policyDefinitionName),
 	}
 
-	const APIVersion = "2016-12-01"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -306,7 +308,7 @@ func (client DefinitionsClient) DeleteAtManagementGroupResponder(resp *http.Resp
 	return
 }
 
-// Get gets the policy definition.
+// Get this operation retrieves the policy definition in the given subscription with the given name.
 // Parameters:
 // policyDefinitionName - the name of the policy definition to get.
 func (client DefinitionsClient) Get(ctx context.Context, policyDefinitionName string) (result Definition, err error) {
@@ -338,7 +340,7 @@ func (client DefinitionsClient) GetPreparer(ctx context.Context, policyDefinitio
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-12-01"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -371,7 +373,8 @@ func (client DefinitionsClient) GetResponder(resp *http.Response) (result Defini
 	return
 }
 
-// GetAtManagementGroup gets the policy definition at management group level.
+// GetAtManagementGroup this operation retrieves the policy definition in the given management group with the given
+// name.
 // Parameters:
 // policyDefinitionName - the name of the policy definition to get.
 // managementGroupID - the ID of the management group.
@@ -404,7 +407,7 @@ func (client DefinitionsClient) GetAtManagementGroupPreparer(ctx context.Context
 		"policyDefinitionName": autorest.Encode("path", policyDefinitionName),
 	}
 
-	const APIVersion = "2016-12-01"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -437,9 +440,9 @@ func (client DefinitionsClient) GetAtManagementGroupResponder(resp *http.Respons
 	return
 }
 
-// GetBuiltIn gets the built in policy definition.
+// GetBuiltIn this operation retrieves the built-in policy definition with the given name.
 // Parameters:
-// policyDefinitionName - the name of the built in policy definition to get.
+// policyDefinitionName - the name of the built-in policy definition to get.
 func (client DefinitionsClient) GetBuiltIn(ctx context.Context, policyDefinitionName string) (result Definition, err error) {
 	req, err := client.GetBuiltInPreparer(ctx, policyDefinitionName)
 	if err != nil {
@@ -468,7 +471,7 @@ func (client DefinitionsClient) GetBuiltInPreparer(ctx context.Context, policyDe
 		"policyDefinitionName": autorest.Encode("path", policyDefinitionName),
 	}
 
-	const APIVersion = "2016-12-01"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -501,7 +504,7 @@ func (client DefinitionsClient) GetBuiltInResponder(resp *http.Response) (result
 	return
 }
 
-// List gets all the policy definitions for a subscription.
+// List this operation retrieves a list of all the policy definitions in a given subscription.
 func (client DefinitionsClient) List(ctx context.Context) (result DefinitionListResultPage, err error) {
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx)
@@ -531,7 +534,7 @@ func (client DefinitionsClient) ListPreparer(ctx context.Context) (*http.Request
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-12-01"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -591,7 +594,7 @@ func (client DefinitionsClient) ListComplete(ctx context.Context) (result Defini
 	return
 }
 
-// ListBuiltIn gets all the built in policy definitions.
+// ListBuiltIn this operation retrieves a list of all the built-in policy definitions.
 func (client DefinitionsClient) ListBuiltIn(ctx context.Context) (result DefinitionListResultPage, err error) {
 	result.fn = client.listBuiltInNextResults
 	req, err := client.ListBuiltInPreparer(ctx)
@@ -617,7 +620,7 @@ func (client DefinitionsClient) ListBuiltIn(ctx context.Context) (result Definit
 
 // ListBuiltInPreparer prepares the ListBuiltIn request.
 func (client DefinitionsClient) ListBuiltInPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2016-12-01"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -677,7 +680,7 @@ func (client DefinitionsClient) ListBuiltInComplete(ctx context.Context) (result
 	return
 }
 
-// ListByManagementGroup gets all the policy definitions for a subscription at management group level.
+// ListByManagementGroup this operation retrieves a list of all the policy definitions in a given management group.
 // Parameters:
 // managementGroupID - the ID of the management group.
 func (client DefinitionsClient) ListByManagementGroup(ctx context.Context, managementGroupID string) (result DefinitionListResultPage, err error) {
@@ -709,7 +712,7 @@ func (client DefinitionsClient) ListByManagementGroupPreparer(ctx context.Contex
 		"managementGroupId": autorest.Encode("path", managementGroupID),
 	}
 
-	const APIVersion = "2016-12-01"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

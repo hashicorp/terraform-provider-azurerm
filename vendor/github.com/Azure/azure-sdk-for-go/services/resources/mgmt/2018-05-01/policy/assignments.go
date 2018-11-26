@@ -41,13 +41,25 @@ func NewAssignmentsClientWithBaseURI(baseURI string, subscriptionID string) Assi
 	return AssignmentsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Create policy assignments are inherited by child resources. For example, when you apply a policy to a resource group
-// that policy is assigned to all resources in the group.
+// Create this operation creates or updates a policy assignment with the given scope and name. Policy assignments apply
+// to all resources contained within their scope. For example, when you assign a policy at resource group scope, that
+// policy applies to all resources in the group.
 // Parameters:
-// scope - the scope of the policy assignment.
+// scope - the scope of the policy assignment. Valid scopes are: management group (format:
+// '/providers/Microsoft.Management/managementGroups/{managementGroup}'), subscription (format:
+// '/subscriptions/{subscriptionId}'), resource group (format:
+// '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}', or resource (format:
+// '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/[{parentResourcePath}/]{resourceType}/{resourceName}'
 // policyAssignmentName - the name of the policy assignment.
 // parameters - parameters for the policy assignment.
 func (client AssignmentsClient) Create(ctx context.Context, scope string, policyAssignmentName string, parameters Assignment) (result Assignment, err error) {
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: parameters,
+			Constraints: []validation.Constraint{{Target: "parameters.Sku", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "parameters.Sku.Name", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
+		return result, validation.NewError("policy.AssignmentsClient", "Create", err.Error())
+	}
+
 	req, err := client.CreatePreparer(ctx, scope, policyAssignmentName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policy.AssignmentsClient", "Create", nil, "Failure preparing request")
@@ -76,7 +88,7 @@ func (client AssignmentsClient) CreatePreparer(ctx context.Context, scope string
 		"scope":                scope,
 	}
 
-	const APIVersion = "2016-12-01"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -111,17 +123,26 @@ func (client AssignmentsClient) CreateResponder(resp *http.Response) (result Ass
 	return
 }
 
-// CreateByID policy assignments are inherited by child resources. For example, when you apply a policy to a resource
-// group that policy is assigned to all resources in the group. When providing a scope for the assigment, use
-// '/subscriptions/{subscription-id}/' for subscriptions,
-// '/subscriptions/{subscription-id}/resourceGroups/{resource-group-name}' for resource groups, and
-// '/subscriptions/{subscription-id}/resourceGroups/{resource-group-name}/providers/{resource-provider-namespace}/{resource-type}/{resource-name}'
-// for resources.
+// CreateByID this operation creates or updates the policy assignment with the given ID. Policy assignments made on a
+// scope apply to all resources contained in that scope. For example, when you assign a policy to a resource group that
+// policy applies to all resources in the group. Policy assignment IDs have this format:
+// '{scope}/providers/Microsoft.Authorization/policyAssignments/{policyAssignmentName}'. Valid scopes are: management
+// group (format: '/providers/Microsoft.Management/managementGroups/{managementGroup}'), subscription (format:
+// '/subscriptions/{subscriptionId}'), resource group (format:
+// '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}', or resource (format:
+// '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/[{parentResourcePath}/]{resourceType}/{resourceName}'.
 // Parameters:
 // policyAssignmentID - the ID of the policy assignment to create. Use the format
-// '/{scope}/providers/Microsoft.Authorization/policyAssignments/{policy-assignment-name}'.
+// '{scope}/providers/Microsoft.Authorization/policyAssignments/{policyAssignmentName}'.
 // parameters - parameters for policy assignment.
 func (client AssignmentsClient) CreateByID(ctx context.Context, policyAssignmentID string, parameters Assignment) (result Assignment, err error) {
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: parameters,
+			Constraints: []validation.Constraint{{Target: "parameters.Sku", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "parameters.Sku.Name", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
+		return result, validation.NewError("policy.AssignmentsClient", "CreateByID", err.Error())
+	}
+
 	req, err := client.CreateByIDPreparer(ctx, policyAssignmentID, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policy.AssignmentsClient", "CreateByID", nil, "Failure preparing request")
@@ -149,7 +170,7 @@ func (client AssignmentsClient) CreateByIDPreparer(ctx context.Context, policyAs
 		"policyAssignmentId": policyAssignmentID,
 	}
 
-	const APIVersion = "2016-12-01"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -184,9 +205,15 @@ func (client AssignmentsClient) CreateByIDResponder(resp *http.Response) (result
 	return
 }
 
-// Delete deletes a policy assignment.
+// Delete this operation deletes a policy assignment, given its name and the scope it was created in. The scope of a
+// policy assignment is the part of its ID preceding
+// '/providers/Microsoft.Authorization/policyAssignments/{policyAssignmentName}'.
 // Parameters:
-// scope - the scope of the policy assignment.
+// scope - the scope of the policy assignment. Valid scopes are: management group (format:
+// '/providers/Microsoft.Management/managementGroups/{managementGroup}'), subscription (format:
+// '/subscriptions/{subscriptionId}'), resource group (format:
+// '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}', or resource (format:
+// '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/[{parentResourcePath}/]{resourceType}/{resourceName}'
 // policyAssignmentName - the name of the policy assignment to delete.
 func (client AssignmentsClient) Delete(ctx context.Context, scope string, policyAssignmentName string) (result Assignment, err error) {
 	req, err := client.DeletePreparer(ctx, scope, policyAssignmentName)
@@ -217,7 +244,7 @@ func (client AssignmentsClient) DeletePreparer(ctx context.Context, scope string
 		"scope":                scope,
 	}
 
-	const APIVersion = "2016-12-01"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -250,13 +277,16 @@ func (client AssignmentsClient) DeleteResponder(resp *http.Response) (result Ass
 	return
 }
 
-// DeleteByID when providing a scope for the assigment, use '/subscriptions/{subscription-id}/' for subscriptions,
-// '/subscriptions/{subscription-id}/resourceGroups/{resource-group-name}' for resource groups, and
-// '/subscriptions/{subscription-id}/resourceGroups/{resource-group-name}/providers/{resource-provider-namespace}/{resource-type}/{resource-name}'
-// for resources.
+// DeleteByID this operation deletes the policy with the given ID. Policy assignment IDs have this format:
+// '{scope}/providers/Microsoft.Authorization/policyAssignments/{policyAssignmentName}'. Valid formats for {scope} are:
+// '/providers/Microsoft.Management/managementGroups/{managementGroup}' (management group),
+// '/subscriptions/{subscriptionId}' (subscription),
+// '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}' (resource group), or
+// '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/[{parentResourcePath}/]{resourceType}/{resourceName}'
+// (resource).
 // Parameters:
 // policyAssignmentID - the ID of the policy assignment to delete. Use the format
-// '/{scope}/providers/Microsoft.Authorization/policyAssignments/{policy-assignment-name}'.
+// '{scope}/providers/Microsoft.Authorization/policyAssignments/{policyAssignmentName}'.
 func (client AssignmentsClient) DeleteByID(ctx context.Context, policyAssignmentID string) (result Assignment, err error) {
 	req, err := client.DeleteByIDPreparer(ctx, policyAssignmentID)
 	if err != nil {
@@ -285,7 +315,7 @@ func (client AssignmentsClient) DeleteByIDPreparer(ctx context.Context, policyAs
 		"policyAssignmentId": policyAssignmentID,
 	}
 
-	const APIVersion = "2016-12-01"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -311,16 +341,20 @@ func (client AssignmentsClient) DeleteByIDResponder(resp *http.Response) (result
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
 	return
 }
 
-// Get gets a policy assignment.
+// Get this operation retrieves a single policy assignment, given its name and the scope it was created at.
 // Parameters:
-// scope - the scope of the policy assignment.
+// scope - the scope of the policy assignment. Valid scopes are: management group (format:
+// '/providers/Microsoft.Management/managementGroups/{managementGroup}'), subscription (format:
+// '/subscriptions/{subscriptionId}'), resource group (format:
+// '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}', or resource (format:
+// '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/[{parentResourcePath}/]{resourceType}/{resourceName}'
 // policyAssignmentName - the name of the policy assignment to get.
 func (client AssignmentsClient) Get(ctx context.Context, scope string, policyAssignmentName string) (result Assignment, err error) {
 	req, err := client.GetPreparer(ctx, scope, policyAssignmentName)
@@ -351,7 +385,7 @@ func (client AssignmentsClient) GetPreparer(ctx context.Context, scope string, p
 		"scope":                scope,
 	}
 
-	const APIVersion = "2016-12-01"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -384,13 +418,15 @@ func (client AssignmentsClient) GetResponder(resp *http.Response) (result Assign
 	return
 }
 
-// GetByID when providing a scope for the assigment, use '/subscriptions/{subscription-id}/' for subscriptions,
-// '/subscriptions/{subscription-id}/resourceGroups/{resource-group-name}' for resource groups, and
-// '/subscriptions/{subscription-id}/resourceGroups/{resource-group-name}/providers/{resource-provider-namespace}/{resource-type}/{resource-name}'
-// for resources.
+// GetByID the operation retrieves the policy assignment with the given ID. Policy assignment IDs have this format:
+// '{scope}/providers/Microsoft.Authorization/policyAssignments/{policyAssignmentName}'. Valid scopes are: management
+// group (format: '/providers/Microsoft.Management/managementGroups/{managementGroup}'), subscription (format:
+// '/subscriptions/{subscriptionId}'), resource group (format:
+// '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}', or resource (format:
+// '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/[{parentResourcePath}/]{resourceType}/{resourceName}'.
 // Parameters:
 // policyAssignmentID - the ID of the policy assignment to get. Use the format
-// '/{scope}/providers/Microsoft.Authorization/policyAssignments/{policy-assignment-name}'.
+// '{scope}/providers/Microsoft.Authorization/policyAssignments/{policyAssignmentName}'.
 func (client AssignmentsClient) GetByID(ctx context.Context, policyAssignmentID string) (result Assignment, err error) {
 	req, err := client.GetByIDPreparer(ctx, policyAssignmentID)
 	if err != nil {
@@ -419,7 +455,7 @@ func (client AssignmentsClient) GetByIDPreparer(ctx context.Context, policyAssig
 		"policyAssignmentId": policyAssignmentID,
 	}
 
-	const APIVersion = "2016-12-01"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -452,9 +488,18 @@ func (client AssignmentsClient) GetByIDResponder(resp *http.Response) (result As
 	return
 }
 
-// List gets all the policy assignments for a subscription.
+// List this operation retrieves the list of all policy assignments associated with the given subscription that match
+// the optional given $filter. Valid values for $filter are: 'atScope()' or 'policyDefinitionId eq '{value}''. If
+// $filter is not provided, the unfiltered list includes all policy assignments associated with the subscription,
+// including those that apply directly or from management groups that contain the given subscription, as well as any
+// applied to objects contained within the subscription. If $filter=atScope() is provided, the returned list includes
+// all policy assignments that apply to the subscription, which is everything in the unfiltered list except those
+// applied to objects contained within the subscription. If $filter=policyDefinitionId eq '{value}' is provided, the
+// returned list includes only policy assignments that apply to the subscription and assign the policy definition whose
+// id is {value}.
 // Parameters:
-// filter - the filter to apply on the operation.
+// filter - the filter to apply on the operation. Valid values for $filter are: 'atScope()' or
+// 'policyDefinitionId eq '{value}''. If $filter is not provided, no filtering is performed.
 func (client AssignmentsClient) List(ctx context.Context, filter string) (result AssignmentListResultPage, err error) {
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx, filter)
@@ -484,7 +529,7 @@ func (client AssignmentsClient) ListPreparer(ctx context.Context, filter string)
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-12-01"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -547,14 +592,34 @@ func (client AssignmentsClient) ListComplete(ctx context.Context, filter string)
 	return
 }
 
-// ListForResource gets policy assignments for a resource.
+// ListForResource this operation retrieves the list of all policy assignments associated with the specified resource
+// in the given resource group and subscription that match the optional given $filter. Valid values for $filter are:
+// 'atScope()' or 'policyDefinitionId eq '{value}''. If $filter is not provided, the unfiltered list includes all
+// policy assignments associated with the resource, including those that apply directly or from all containing scopes,
+// as well as any applied to resources contained within the resource. If $filter=atScope() is provided, the returned
+// list includes all policy assignments that apply to the resource, which is everything in the unfiltered list except
+// those applied to resources contained within the resource. If $filter=policyDefinitionId eq '{value}' is provided,
+// the returned list includes only policy assignments that apply to the resource and assign the policy definition whose
+// id is {value}. Three parameters plus the resource name are used to identify a specific resource. If the resource is
+// not part of a parent resource (the more common case), the parent resource path should not be provided (or provided
+// as ''). For example a web app could be specified as ({resourceProviderNamespace} == 'Microsoft.Web',
+// {parentResourcePath} == '', {resourceType} == 'sites', {resourceName} == 'MyWebApp'). If the resource is part of a
+// parent resource, then all parameters should be provided. For example a virtual machine DNS name could be specified
+// as ({resourceProviderNamespace} == 'Microsoft.Compute', {parentResourcePath} == 'virtualMachines/MyVirtualMachine',
+// {resourceType} == 'domainNames', {resourceName} == 'MyComputerName'). A convenient alternative to providing the
+// namespace and type name separately is to provide both in the {resourceType} parameter, format:
+// ({resourceProviderNamespace} == '', {parentResourcePath} == '', {resourceType} == 'Microsoft.Web/sites',
+// {resourceName} == 'MyWebApp').
 // Parameters:
-// resourceGroupName - the name of the resource group containing the resource. The name is case insensitive.
-// resourceProviderNamespace - the namespace of the resource provider.
-// parentResourcePath - the parent resource path.
-// resourceType - the resource type.
-// resourceName - the name of the resource with policy assignments.
-// filter - the filter to apply on the operation.
+// resourceGroupName - the name of the resource group containing the resource.
+// resourceProviderNamespace - the namespace of the resource provider. For example, the namespace of a virtual
+// machine is Microsoft.Compute (from Microsoft.Compute/virtualMachines)
+// parentResourcePath - the parent resource path. Use empty string if there is none.
+// resourceType - the resource type name. For example the type name of a web app is 'sites' (from
+// Microsoft.Web/sites).
+// resourceName - the name of the resource.
+// filter - the filter to apply on the operation. Valid values for $filter are: 'atScope()' or
+// 'policyDefinitionId eq '{value}''. If $filter is not provided, no filtering is performed.
 func (client AssignmentsClient) ListForResource(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string, filter string) (result AssignmentListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -597,7 +662,7 @@ func (client AssignmentsClient) ListForResourcePreparer(ctx context.Context, res
 		"subscriptionId":            autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-12-01"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -660,10 +725,19 @@ func (client AssignmentsClient) ListForResourceComplete(ctx context.Context, res
 	return
 }
 
-// ListForResourceGroup gets policy assignments for the resource group.
+// ListForResourceGroup this operation retrieves the list of all policy assignments associated with the given resource
+// group in the given subscription that match the optional given $filter. Valid values for $filter are: 'atScope()' or
+// 'policyDefinitionId eq '{value}''. If $filter is not provided, the unfiltered list includes all policy assignments
+// associated with the resource group, including those that apply directly or apply from containing scopes, as well as
+// any applied to resources contained within the resource group. If $filter=atScope() is provided, the returned list
+// includes all policy assignments that apply to the resource group, which is everything in the unfiltered list except
+// those applied to resources contained within the resource group. If $filter=policyDefinitionId eq '{value}' is
+// provided, the returned list includes only policy assignments that apply to the resource group and assign the policy
+// definition whose id is {value}.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains policy assignments.
-// filter - the filter to apply on the operation.
+// filter - the filter to apply on the operation. Valid values for $filter are: 'atScope()' or
+// 'policyDefinitionId eq '{value}''. If $filter is not provided, no filtering is performed.
 func (client AssignmentsClient) ListForResourceGroup(ctx context.Context, resourceGroupName string, filter string) (result AssignmentListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -702,7 +776,7 @@ func (client AssignmentsClient) ListForResourceGroupPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-12-01"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
