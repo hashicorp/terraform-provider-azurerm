@@ -19,13 +19,13 @@ We recommend [using a Service Principal when running in a shared environment](au
   
   When the timezones `az` and `terraform` run in differ (for example when `az` is run inside docker, which defaults to UTC, and the system timezone where `terraform` runs is not UTC), `terraform` interprets the token differently from what `az` intended and may incorrectly determine the token to be stale and invalid.
   
-  When `terraform`  and `az` are run on hosts / containers with different timezones, the variable $TZ should be set on the host.  
+  When `terraform`  and `az` are run on hosts / containers with different timezones, the variable $TZ should be set on the host.
 
 When authenticating via the Azure CLI, Terraform will automatically connect to the Default Subscription - this can be changed by using the Azure CLI - and is documented below.
 
 ## Configuring the Azure CLI
 
-~> **Note:** There are multiple versions of the Azure CLI - the latest version is known as [the Azure CLI 2.0 (Python)](https://github.com/Azure/azure-cli) and [the older Azure CLI (Node.JS)](https://github.com/Azure/azure-xplat-cli). While Terraform currently supports both - we highly recommend users upgrade to the Azure CLI 2.0 (Python) if possible.
+~> **Note:** There are multiple versions of the Azure CLI - the latest version is known as [the Azure CLI 2.0 (Python)](https://github.com/Azure/azure-cli), which can be used for authentication. Terraform does not support the older [Azure CLI (Node.JS)](https://github.com/Azure/azure-xplat-cli) or [Azure PowerShell](https://github.com/Azure/azure-powershell).
 
 This guide assumes that you have [the Azure CLI 2.0 (Python)](https://github.com/Azure/azure-cli) installed.
 
