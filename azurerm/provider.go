@@ -323,9 +323,9 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			MsiEndpoint:    d.Get("msi_endpoint").(string),
 
 			// Feature Toggles
-			SupportsClientSecretAuth:          true,
-			SupportsManagedServiceIdentity:    d.Get("use_msi").(bool),
-			SupportsAzureCliCloudShellParsing: true,
+			SupportsClientSecretAuth:       true,
+			SupportsManagedServiceIdentity: d.Get("use_msi").(bool),
+			SupportsAzureCliParsing:        true,
 		}
 
 		config, err := builder.Build()
