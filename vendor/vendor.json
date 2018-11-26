@@ -363,8 +363,8 @@
 			"versionExact": "v21.3.0"
 		},
 		{
-			"checksumSHA1": "pn550P6giSwxXck8lRRaNOPwxaQ=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-12-01/policy",
+			"checksumSHA1": "uzyd1GHAwK4+q82pHHwNuoYrxqU=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy",
 			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
 			"revisionTime": "2018-10-19T17:11:53Z",
 			"version": "v21.3.0",
