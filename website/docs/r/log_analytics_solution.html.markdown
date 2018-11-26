@@ -60,9 +60,9 @@ The following arguments are supported:
 
 * `workspace_resource_id` - (Required) The full resource ID of the Log Analytics workspace with which the solution will be linked. Changing this forces a new resource to be created.
 
-* `workspace_resource_name` - (Required) The full name of the Log Analytics workspace with which the solution will be linked. Changing this forces a new resource to be created.
+* `workspace_name` - (Required) The full name of the Log Analytics workspace with which the solution will be linked. Changing this forces a new resource to be created.
 
-* `plan` - A `plan` block as documented below.
+* `plan` - (Required) A `plan` block as documented below.
 
 ---
 
@@ -73,7 +73,6 @@ A `plan` block includes:
 * `product` - (Required) The product name of the solution. For example `OMSGallery/Containers`. Changing this forces a new resource to be created.
 
 * `promotion_code` - (Optional) A promotion code to be used with the solution.
-
 
 ## Import
 
