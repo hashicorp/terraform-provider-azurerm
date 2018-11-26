@@ -31,9 +31,11 @@ func resourceArmKeyVault() *schema.Resource {
 		Read:   resourceArmKeyVaultRead,
 		Update: resourceArmKeyVaultCreateUpdate,
 		Delete: resourceArmKeyVaultDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+
 		MigrateState:  resourceAzureRMKeyVaultMigrateState,
 		SchemaVersion: 1,
 
