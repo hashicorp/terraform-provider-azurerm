@@ -14,7 +14,43 @@ Manages a Diagnostic Setting for an existing Resource.
 ## Example Usage
 
 ```
+resource "azurerm_resource_group" "test" {
+  name     = "example-resources"
+  location = "West Europe"
+}
 
+data "azurerm_storage_account" "test" {
+  name                = "examplestoracc"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+data "azurerm_key_vault" "test" {
+  name                = "example-vault"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name               = "example"
+  target_resource_id = "${data.azurerm_key_vault.test.id}"
+  storage_account_id = "${data.azurerm_storage_account.test.id}"
+
+  log {
+    category = "AuditEvent"
+    enabled  = false
+
+    retention_policy {
+      enabled = false
+    }
+  }
+
+  metric {
+    category = "AllMetrics"
+
+    retention_policy {
+      enabled = false
+    }
+  }
+}
 ```
 
 ## Argument Reference
