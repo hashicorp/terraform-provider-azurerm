@@ -387,7 +387,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool) (*Arm
 
 	// Resource Manager endpoints
 	endpoint := env.ResourceManagerEndpoint
-	auth, err := c.GetAuthorizationToken(oauthConfig, endpoint)
+	auth, err := c.GetAuthorizationToken(oauthConfig, env.TokenAudience)
 	if err != nil {
 		return nil, err
 	}
