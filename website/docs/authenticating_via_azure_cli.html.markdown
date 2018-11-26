@@ -9,17 +9,11 @@ description: |-
 
 # Azure Provider: Authenticating using the Azure CLI
 
-Terraform supports authenticating to Azure through a Service Principal or the Azure CLI.
+Terraform supports authenticating to Azure using the Azure CLI, a Service Principal or via Managed Service Identity.
 
-We recommend [using a Service Principal when running in a shared environment](authenticating_via_service_principal.html) (such as within a CI server/automation) - and authenticating via the Azure CLI when you're running Terraform locally.
+We recommend [using a Service Principal when running in a shared environment](authenticating_via_service_principal.html) (such as within a CI server/automation) and authenticating via the Azure CLI when running Terraform locally.
 
-~> **NOTE:** Authenticating via the Azure CLI is only supported when using a User Account. If you're using a Service Principal (e.g. via `az login --service-principal`) you should instead [authenticate via the Service Principal directly](authenticating_via_service_principal.html).
-
-~> **NOTE:** Take note that when `az login` fetches the access tokens, these are interpreted (and stored) according to the timezone settings the azure-cli runs in.
-  
-  When the timezones `az` and `terraform` run in differ (for example when `az` is run inside docker, which defaults to UTC, and the system timezone where `terraform` runs is not UTC), `terraform` interprets the token differently from what `az` intended and may incorrectly determine the token to be stale and invalid.
-  
-  When `terraform`  and `az` are run on hosts / containers with different timezones, the variable $TZ should be set on the host.
+~> **NOTE:** Authenticating via the Azure CLI is only supported when using a User Account. If you're using a Service Principal (for example via `az login --service-principal`) you should instead [authenticate via the Service Principal directly](authenticating_via_service_principal.html).
 
 When authenticating via the Azure CLI, Terraform will automatically connect to the Default Subscription - this can be changed by using the Azure CLI - and is documented below.
 
@@ -29,7 +23,7 @@ When authenticating via the Azure CLI, Terraform will automatically connect to t
 
 This guide assumes that you have [the Azure CLI 2.0 (Python)](https://github.com/Azure/azure-cli) installed.
 
-~> **Note:** If you're using the **China**, **German** or **Government** Azure Clouds - you'll need to first configure the Azure CLI to work with that Cloud.  You can do this by running:
+~> **Note:** If you're using the **China**, **German** or **US Government** Azure Clouds, you'll need to first configure the Azure CLI to work with that Cloud. You can do this by running:
 
 ```shell
 $ az cloud set --name AzureChinaCloud|AzureGermanCloud|AzureUSGovernment
@@ -43,7 +37,7 @@ Firstly, login to the Azure CLI using:
 $ az login
 ```
 
-~> **NOTE:** Authenticating via the Azure CLI is only supported when using a User Account. If you're using a Service Principal (e.g. via `az login --service-principal`) you should instead [authenticate via the Service Principal directly](authenticating_via_service_principal.html).
+~> **NOTE:** Authenticating via the Azure CLI is only supported when using a User Account. If you're using a Service Principal (for example via `az login --service-principal`) you should instead [authenticate via the Service Principal directly](authenticating_via_service_principal.html).
 
 This will prompt you to open a web browser, as shown below:
 
@@ -51,13 +45,13 @@ This will prompt you to open a web browser, as shown below:
 To sign in, use a web browser to open the page https://aka.ms/devicelogin and enter the code XXXXXXXX to authenticate.
 ```
 
-Once logged in - it's possible to list the Subscriptions associated with the account via:
+Once logged in, it's possible to list the Subscriptions associated with the account via:
 
 ```shell
 $ az account list
 ```
 
-The output (similar to below) will display one or more Subscriptions - with the `id` field being the Subscription ID.
+The output (similar to below) will display one or more Subscriptions:
 
 ```json
 [
@@ -76,10 +70,12 @@ The output (similar to below) will display one or more Subscriptions - with the 
 ]
 ```
 
-~> **Note:** When authenticating via the Azure CLI, Terraform will automatically connect to the Default Subscription. As such if you have multiple subscriptions on the account, you may need to set the Default Subscription, via:
+In the snippet above, `id` refers to the Subscription ID and `isDefault` refers to whether this Subscription is configured as the default.
+
+~> **Note:** When authenticating via the Azure CLI, Terraform will automatically connect to the Default Subscription. Therefore, if you have multiple subscriptions on the account, you may need to set the Default Subscription, via:
 
 ```shell
 $ az account set --subscription="SUBSCRIPTION_ID"
 ```
 
-Also, if you have been authenticating with a service principal and you switch to Azure CLI, you must null out the ARM_* environment variables. Failure to do so causes errors to be thrown.
+If you're previously authenticated using a Service Principal (configured via Environment Variables) - you must remove the `ARM_*` prefixed Environment Variables in order to be able to authenticate using the Azure CLI.
