@@ -115,16 +115,6 @@ func resourceArmContainerRegistry() *schema.Resource {
 
 		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
 			sku := d.Get("sku").(string)
-			if _, ok := d.GetOk("storage_account_id"); ok {
-				if strings.ToLower(sku) != strings.ToLower(string(containerregistry.Classic)) {
-					return fmt.Errorf("`storage_account_id` can only be specified for a Classic (unmanaged) Sku.")
-				}
-			} else {
-				if strings.ToLower(sku) == strings.ToLower(string(containerregistry.Classic)) {
-					return fmt.Errorf("`storage_account_id` must be specified for a Classic (unmanaged) Sku.")
-				}
-			}
-
 			geoReplicationLocations := d.Get("georeplication_locations").(*schema.Set)
 			// if locations have been specified for geo-replication then, the SKU has to be Premium
 			if geoReplicationLocations != nil && geoReplicationLocations.Len() > 0 && !strings.EqualFold(sku, string(containerregistry.Premium)) {
@@ -162,8 +152,16 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 	}
 
 	if v, ok := d.GetOk("storage_account_id"); ok {
+		if strings.ToLower(sku) != strings.ToLower(string(containerregistry.Classic)) {
+			return fmt.Errorf("`storage_account_id` can only be specified for a Classic (unmanaged) Sku.")
+		}
+
 		parameters.StorageAccount = &containerregistry.StorageAccountProperties{
 			ID: utils.String(v.(string)),
+		}
+	} else {
+		if strings.ToLower(sku) == strings.ToLower(string(containerregistry.Classic)) {
+			return fmt.Errorf("`storage_account_id` must be specified for a Classic (unmanaged) Sku.")
 		}
 	}
 
