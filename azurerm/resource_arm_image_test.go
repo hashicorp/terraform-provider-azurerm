@@ -25,7 +25,7 @@ func TestAccAzureRMImage_standaloneImage(t *testing.T) {
 	preConfig := testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName, location)
 	postConfig := testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMImageDestroy,
@@ -45,6 +45,11 @@ func TestAccAzureRMImage_standaloneImage(t *testing.T) {
 					testCheckAzureRMImageExists("azurerm_image.test", true),
 				),
 			},
+			{
+				ResourceName:      "azurerm_image.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -60,7 +65,7 @@ func TestAccAzureRMImage_customImageVMFromVHD(t *testing.T) {
 	preConfig := testAccAzureRMImage_customImage_fromVHD_setup(ri, userName, password, hostName, location)
 	postConfig := testAccAzureRMImage_customImage_fromVHD_provision(ri, userName, password, hostName, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMImageDestroy,
@@ -95,7 +100,7 @@ func TestAccAzureRMImage_customImageVMFromVM(t *testing.T) {
 	preConfig := testAccAzureRMImage_customImage_fromVM_sourceVM(ri, userName, password, hostName, location)
 	postConfig := testAccAzureRMImage_customImage_fromVM_destinationVM(ri, userName, password, hostName, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMImageDestroy,
@@ -130,7 +135,7 @@ func TestAccAzureRMImageVMSS_customImageVMSSFromVHD(t *testing.T) {
 	preConfig := testAccAzureRMImageVMSS_customImage_fromVHD_setup(ri, userName, password, hostName, location)
 	postConfig := testAccAzureRMImageVMSS_customImage_fromVHD_provision(ri, userName, password, hostName, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMImageDestroy,
@@ -1300,6 +1305,7 @@ resource "azurerm_virtual_machine_scale_set" "testdestination" {
     ip_configuration {
       name      = "TestIPConfiguration"
       subnet_id = "${azurerm_subnet.test.id}"
+      primary   = true
     }
   }
 

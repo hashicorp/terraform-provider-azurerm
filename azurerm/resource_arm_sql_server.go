@@ -175,10 +175,5 @@ func resourceArmSqlServerDelete(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error deleting SQL Server %s: %+v", name, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return future.WaitForCompletionRef(ctx, client.Client)
 }

@@ -9,7 +9,7 @@ import (
 
 func TestAccDataSourceAzureRMBuiltInRoleDefinition_contributor(t *testing.T) {
 	dataSourceName := "data.azurerm_builtin_role_definition.test"
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -36,7 +36,7 @@ func TestAccDataSourceAzureRMBuiltInRoleDefinition_contributor(t *testing.T) {
 
 func TestAccDataSourceAzureRMBuiltInRoleDefinition_owner(t *testing.T) {
 	dataSourceName := "data.azurerm_builtin_role_definition.test"
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -58,7 +58,7 @@ func TestAccDataSourceAzureRMBuiltInRoleDefinition_owner(t *testing.T) {
 
 func TestAccDataSourceAzureRMBuiltInRoleDefinition_reader(t *testing.T) {
 	dataSourceName := "data.azurerm_builtin_role_definition.test"
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -80,7 +80,7 @@ func TestAccDataSourceAzureRMBuiltInRoleDefinition_reader(t *testing.T) {
 
 func TestAccDataSourceAzureRMBuiltInRoleDefinition_virtualMachineContributor(t *testing.T) {
 	dataSourceName := "data.azurerm_builtin_role_definition.test"
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -91,7 +91,7 @@ func TestAccDataSourceAzureRMBuiltInRoleDefinition_virtualMachineContributor(t *
 					resource.TestCheckResourceAttrSet(dataSourceName, "description"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "type"),
 					resource.TestCheckResourceAttr(dataSourceName, "permissions.#", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.actions.#", "37"),
+					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.actions.#", "38"),
 					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.actions.0", "Microsoft.Authorization/*/read"),
 					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.actions.15", "Microsoft.Network/networkSecurityGroups/join/action"),
 					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.not_actions.#", "0"),

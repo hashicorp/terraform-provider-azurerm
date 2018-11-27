@@ -15,7 +15,7 @@ func TestAccAzureRMMonitorActionGroup_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMMonitorActionGroup_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
@@ -44,7 +44,7 @@ func TestAccAzureRMMonitorActionGroup_emailReceiver(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMMonitorActionGroup_emailReceiver(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
@@ -74,7 +74,7 @@ func TestAccAzureRMMonitorActionGroup_smsReceiver(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMMonitorActionGroup_smsReceiver(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
@@ -105,7 +105,7 @@ func TestAccAzureRMMonitorActionGroup_webhookReceiver(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMMonitorActionGroup_webhookReceiver(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
@@ -135,7 +135,7 @@ func TestAccAzureRMMonitorActionGroup_complete(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMMonitorActionGroup_complete(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
@@ -174,7 +174,7 @@ func TestAccAzureRMMonitorActionGroup_disabledUpdate(t *testing.T) {
 	preConfig := testAccAzureRMMonitorActionGroup_disabledBasic(ri, location)
 	postConfig := testAccAzureRMMonitorActionGroup_basic(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
@@ -212,7 +212,7 @@ func TestAccAzureRMMonitorActionGroup_singleReceiverUpdate(t *testing.T) {
 	smsConfig := testAccAzureRMMonitorActionGroup_smsReceiver(ri, location)
 	webhookConfig := testAccAzureRMMonitorActionGroup_webhookReceiver(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
@@ -262,7 +262,7 @@ func TestAccAzureRMMonitorActionGroup_multipleReceiversUpdate(t *testing.T) {
 	basicConfig := testAccAzureRMMonitorActionGroup_basic(ri, location)
 	completeConfig := testAccAzureRMMonitorActionGroup_complete(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
@@ -449,7 +449,7 @@ resource "azurerm_monitor_action_group" "test" {
 }
 
 func testCheckAzureRMMonitorActionGroupDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).actionGroupsClient
+	conn := testAccProvider.Meta().(*ArmClient).monitorActionGroupsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -488,12 +488,12 @@ func testCheckAzureRMMonitorActionGroupExists(name string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for Action Group Instance: %s", resourceName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).actionGroupsClient
+		conn := testAccProvider.Meta().(*ArmClient).monitorActionGroupsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, resourceName)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on actionGroupsClient: %+v", err)
+			return fmt.Errorf("Bad: Get on monitorActionGroupsClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {

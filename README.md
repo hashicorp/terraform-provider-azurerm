@@ -9,7 +9,7 @@ General Requirements
 ------------
 
 -	[Terraform](https://www.terraform.io/downloads.html) 0.10.x
--	[Go](https://golang.org/doc/install) 1.10 (to build the provider plugin)
+-	[Go](https://golang.org/doc/install) 1.11.x (to build the provider plugin)
 
 Windows Specific Requirements
 -----------------------------
@@ -59,7 +59,7 @@ resource "azurerm_resource_group" "main" {
   location = "West US"
 }
 
-# Create a virtual network in the web_servers resource group
+# Create a virtual network in the production-resources resource group
 resource "azurerm_virtual_network" "network" {
   name                = "production-network"
   resource_group_name = "${azurerm_resource_group.main.name}"

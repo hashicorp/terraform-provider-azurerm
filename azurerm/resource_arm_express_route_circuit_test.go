@@ -26,24 +26,14 @@ func TestAccAzureRMExpressRouteCircuit(t *testing.T) {
 			"allowClassicOperationsUpdate": testAccAzureRMExpressRouteCircuit_allowClassicOperationsUpdate,
 		},
 		"PrivatePeering": {
-			"azurePrivatePeering":  testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering,
-			"importPrivatePeering": testAccAzureRMExpressRouteCircuitPeering_importAzurePrivatePeering,
+			"azurePrivatePeering": testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering,
 		},
 		"MicrosoftPeering": {
-			"microsoftPeering":       testAccAzureRMExpressRouteCircuitPeering_microsoftPeering,
-			"importMicrosoftPeering": testAccAzureRMExpressRouteCircuitPeering_importMicrosoftPeering,
+			"microsoftPeering": testAccAzureRMExpressRouteCircuitPeering_microsoftPeering,
 		},
 		"authorization": {
 			"basic":    testAccAzureRMExpressRouteCircuitAuthorization_basic,
 			"multiple": testAccAzureRMExpressRouteCircuitAuthorization_multiple,
-			"import":   testAccAzureRMExpressRouteCircuitAuthorization_importBasic,
-		},
-		"authorizationImport": {
-			"basic": testAccAzureRMExpressRouteCircuitAuthorization_importBasic,
-		},
-		"circuitImport": {
-			"metered":   testAccAzureRMExpressRouteCircuit_importMetered,
-			"unlimited": testAccAzureRMExpressRouteCircuit_importUnlimited,
 		},
 	}
 
@@ -61,10 +51,11 @@ func TestAccAzureRMExpressRouteCircuit(t *testing.T) {
 }
 
 func testAccAzureRMExpressRouteCircuit_basicMetered(t *testing.T) {
+	resourceName := "azurerm_express_route_circuit.test"
 	var erc network.ExpressRouteCircuit
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
@@ -72,18 +63,24 @@ func testAccAzureRMExpressRouteCircuit_basicMetered(t *testing.T) {
 			{
 				Config: testAccAzureRMExpressRouteCircuit_basicMeteredConfig(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMExpressRouteCircuitExists("azurerm_express_route_circuit.test", &erc),
+					testCheckAzureRMExpressRouteCircuitExists(resourceName, &erc),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func testAccAzureRMExpressRouteCircuit_basicUnlimited(t *testing.T) {
+	resourceName := "azurerm_express_route_circuit.test"
 	var erc network.ExpressRouteCircuit
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
@@ -91,8 +88,13 @@ func testAccAzureRMExpressRouteCircuit_basicUnlimited(t *testing.T) {
 			{
 				Config: testAccAzureRMExpressRouteCircuit_basicUnlimitedConfig(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMExpressRouteCircuitExists("azurerm_express_route_circuit.test", &erc),
+					testCheckAzureRMExpressRouteCircuitExists(resourceName, &erc),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -103,7 +105,7 @@ func testAccAzureRMExpressRouteCircuit_update(t *testing.T) {
 	var erc network.ExpressRouteCircuit
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
@@ -131,7 +133,7 @@ func testAccAzureRMExpressRouteCircuit_tierUpdate(t *testing.T) {
 	var erc network.ExpressRouteCircuit
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
@@ -159,7 +161,7 @@ func testAccAzureRMExpressRouteCircuit_premiumMetered(t *testing.T) {
 	var erc network.ExpressRouteCircuit
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
@@ -172,6 +174,11 @@ func testAccAzureRMExpressRouteCircuit_premiumMetered(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "sku.0.family", "MeteredData"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -181,7 +188,7 @@ func testAccAzureRMExpressRouteCircuit_premiumUnlimited(t *testing.T) {
 	var erc network.ExpressRouteCircuit
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
@@ -194,6 +201,11 @@ func testAccAzureRMExpressRouteCircuit_premiumUnlimited(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "sku.0.family", "UnlimitedData"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -203,7 +215,7 @@ func testAccAzureRMExpressRouteCircuit_allowClassicOperationsUpdate(t *testing.T
 	var erc network.ExpressRouteCircuit
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
@@ -346,7 +358,7 @@ resource "azurerm_express_route_circuit" "test" {
 func testAccAzureRMExpressRouteCircuit_sku(rInt int, location string, tier string, family string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -376,7 +388,7 @@ resource "azurerm_express_route_circuit" "test" {
 func testAccAzureRMExpressRouteCircuit_allowClassicOperations(rInt int, location string, allowClassicOperations string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

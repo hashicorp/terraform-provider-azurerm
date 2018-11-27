@@ -371,7 +371,7 @@ func resourceArmAutoScaleSettingCreateOrUpdate(d *schema.ResourceData, meta inte
 		Tags: expandedTags,
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
+	if _, err = client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
 		return fmt.Errorf("Error creating AutoScale Setting %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -848,10 +848,8 @@ func flattenAzureRmAutoScaleSettingRecurrence(input *insights.Recurrence) []inte
 		}
 
 		days := make([]string, 0)
-		if schedule.Days != nil {
-			for _, v := range *schedule.Days {
-				days = append(days, v)
-			}
+		if s := schedule.Days; s != nil {
+			days = *s
 		}
 		result["days"] = days
 
@@ -887,14 +885,14 @@ func flattenAzureRmAutoScaleSettingNotification(notifications *[]insights.Autosc
 
 		emails := make([]interface{}, 0)
 		if email := notification.Email; email != nil {
-			result := make(map[string]interface{}, 0)
+			block := make(map[string]interface{})
 
 			if send := email.SendToSubscriptionAdministrator; send != nil {
-				result["send_to_subscription_administrator"] = *send
+				block["send_to_subscription_administrator"] = *send
 			}
 
 			if send := email.SendToSubscriptionCoAdministrators; send != nil {
-				result["send_to_subscription_co_administrator"] = *send
+				block["send_to_subscription_co_administrator"] = *send
 			}
 
 			customEmails := make([]interface{}, 0)
@@ -903,9 +901,9 @@ func flattenAzureRmAutoScaleSettingNotification(notifications *[]insights.Autosc
 					customEmails = append(customEmails, v)
 				}
 			}
-			result["custom_emails"] = customEmails
+			block["custom_emails"] = customEmails
 
-			emails = append(emails, result)
+			emails = append(emails, block)
 		}
 		result["email"] = emails
 

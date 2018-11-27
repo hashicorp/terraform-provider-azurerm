@@ -17,7 +17,7 @@ func TestAccDataSourceAzureRMPublicIPs_namePrefix(t *testing.T) {
 	resourceConfig := testAccDataSourceAzureRMPublicIPs_prefix(ri, rs, location)
 	dataSourceConfig := testAccDataSourceAzureRMPublicIPs_prefixDataSource(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
@@ -47,7 +47,7 @@ func TestAccDataSourceAzureRMPublicIPs_assigned(t *testing.T) {
 	resourceConfig := testAccDataSourceAzureRMPublicIPs_attached(ri, rs, location)
 	dataSourceConfig := testAccDataSourceAzureRMPublicIPs_attachedDataSource(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
@@ -79,7 +79,7 @@ func TestAccDataSourceAzureRMPublicIPs_allocationType(t *testing.T) {
 	resourceConfig := testAccDataSourceAzureRMPublicIPs_allocationType(ri, rs, location)
 	dataSourceConfig := testAccDataSourceAzureRMPublicIPs_allocationTypeDataSources(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,

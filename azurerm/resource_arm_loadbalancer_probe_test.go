@@ -21,7 +21,7 @@ func TestAccAzureRMLoadBalancerProbe_basic(t *testing.T) {
 		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/probes/%s",
 		subscriptionID, ri, ri, probeName)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -35,6 +35,13 @@ func TestAccAzureRMLoadBalancerProbe_basic(t *testing.T) {
 						"azurerm_lb_probe.test", "id", probeId),
 				),
 			},
+			{
+				ResourceName:      "azurerm_lb.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				// location is deprecated and was never actually used
+				ImportStateVerifyIgnore: []string{"location"},
+			},
 		},
 	})
 }
@@ -45,7 +52,7 @@ func TestAccAzureRMLoadBalancerProbe_removal(t *testing.T) {
 	probeName := fmt.Sprintf("probe-%d", ri)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -68,13 +75,13 @@ func TestAccAzureRMLoadBalancerProbe_removal(t *testing.T) {
 	})
 }
 
-func maProbe_update(t *testing.T) {
+func TestAccAzureRMLoadBalancerProbe_update(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := acctest.RandInt()
 	probeName := fmt.Sprintf("probe-%d", ri)
 	probe2Name := fmt.Sprintf("probe-%d", acctest.RandInt())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -106,7 +113,7 @@ func TestAccAzureRMLoadBalancerProbe_updateProtocol(t *testing.T) {
 	ri := acctest.RandInt()
 	probeName := fmt.Sprintf("probe-%d", ri)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -140,7 +147,7 @@ func TestAccAzureRMLoadBalancerProbe_reapply(t *testing.T) {
 		return s.Remove("azurerm_lb_probe.test")
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -170,7 +177,7 @@ func TestAccAzureRMLoadBalancerProbe_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	probeName := fmt.Sprintf("probe-%d", ri)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -389,7 +396,6 @@ resource "azurerm_lb_probe" "test2" {
   name                = "%s"
   port                = 8080
 }
-
 `, rInt, location, rInt, rInt, rInt, probeName, probe2Name)
 }
 

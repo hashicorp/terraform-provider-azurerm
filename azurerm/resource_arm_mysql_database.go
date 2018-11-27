@@ -140,10 +140,5 @@ func resourceArmMySqlDatabaseDelete(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return future.WaitForCompletionRef(ctx, client.Client)
 }

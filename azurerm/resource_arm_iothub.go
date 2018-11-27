@@ -7,21 +7,24 @@ import (
 	"strconv"
 	"time"
 
+	"strings"
+
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2018-04-01/devices"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"strings"
 )
 
 func resourceArmIotHub() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotHubCreateAndUpdate,
+		Create: resourceArmIotHubCreateUpdate,
 		Read:   resourceArmIotHubRead,
-		Update: resourceArmIotHubCreateAndUpdate,
+		Update: resourceArmIotHubCreateUpdate,
 		Delete: resourceArmIotHubDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -29,9 +32,10 @@ func resourceArmIotHub() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.IoTHubName,
 			},
 
 			"location": locationSchema(),
@@ -47,7 +51,7 @@ func resourceArmIotHub() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(devices.B1),
 								string(devices.B2),
@@ -62,7 +66,7 @@ func resourceArmIotHub() *schema.Resource {
 						"tier": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(devices.Basic),
 								string(devices.Free),
@@ -185,7 +189,7 @@ func resourceArmIotHub() *schema.Resource {
 						"encoding": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(eventhub.Avro),
 								string(eventhub.AvroDeflate),
@@ -249,7 +253,7 @@ func resourceArmIotHub() *schema.Resource {
 
 }
 
-func resourceArmIotHubCreateAndUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).iothubResourceClient
 	ctx := meta.(*ArmClient).StopContext
 	subscriptionID := meta.(*ArmClient).subscriptionId
@@ -265,7 +269,7 @@ func resourceArmIotHubCreateAndUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if !*res.NameAvailable {
-		_, err := client.Get(ctx, resourceGroup, name)
+		_, err = client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("An IoTHub already exists with the name %q - please choose an alternate name: %s", name, string(res.Reason))
 		}
@@ -282,21 +286,17 @@ func resourceArmIotHubCreateAndUpdate(d *schema.ResourceData, meta interface{}) 
 
 	routes := expandIoTHubRoutes(d)
 
-	routingProperties := devices.RoutingProperties{
-		Endpoints: endpoints,
-		Routes:    routes,
-	}
-
-	iotHubProperties := devices.IotHubProperties{
-		Routing: &routingProperties,
-	}
-
 	properties := devices.IotHubDescription{
-		Name:       utils.String(name),
-		Location:   utils.String(location),
-		Sku:        &skuInfo,
-		Tags:       expandTags(tags),
-		Properties: &iotHubProperties,
+		Name:     utils.String(name),
+		Location: utils.String(location),
+		Sku:      skuInfo,
+		Properties: &devices.IotHubProperties{
+			Routing: &devices.RoutingProperties{
+				Endpoints: endpoints,
+				Routes:    routes,
+			},
+		},
+		Tags: expandTags(tags),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties, "")
@@ -349,7 +349,7 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 	keys := flattenIoTHubSharedAccessPolicy(keyList.Value)
 
 	if err := d.Set("shared_access_policy", keys); err != nil {
-		return fmt.Errorf("Error flattening `shared_access_policy` in IoTHub %q: %+v", name, err)
+		return fmt.Errorf("Error setting `shared_access_policy` in IoTHub %q: %+v", name, err)
 	}
 
 	if properties := hub.Properties; properties != nil {
@@ -358,20 +358,13 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 			if v == nil {
 				continue
 			}
+
 			if k == "events" {
-				if v.Endpoint != nil {
-					d.Set("event_hub_events_endpoint", *v.Endpoint)
-				}
-				if v.Path != nil {
-					d.Set("event_hub_events_path", *v.Path)
-				}
+				d.Set("event_hub_events_endpoint", v.Endpoint)
+				d.Set("event_hub_events_path", v.Path)
 			} else if k == "operationsMonitoringEvents" {
-				if v.Endpoint != nil {
-					d.Set("event_hub_operations_endpoint", *v.Endpoint)
-				}
-				if v.Path != nil {
-					d.Set("event_hub_operations_path", *v.Path)
-				}
+				d.Set("event_hub_operations_endpoint", v.Endpoint)
+				d.Set("event_hub_operations_path", v.Path)
 			}
 
 		}
@@ -380,12 +373,12 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 
 		endpoints := flattenIoTHubEndpoint(properties.Routing)
 		if err := d.Set("endpoint", endpoints); err != nil {
-			return fmt.Errorf("Error flattening `endpoint` in IoTHub %q: %+v", name, err)
+			return fmt.Errorf("Error setting `endpoint` in IoTHub %q: %+v", name, err)
 		}
 
 		routes := flattenIoTHubRoute(properties.Routing)
 		if err := d.Set("route", routes); err != nil {
-			return fmt.Errorf("Error flattening `route` in IoTHub %q: %+v", name, err)
+			return fmt.Errorf("Error setting `route` in IoTHub %q: %+v", name, err)
 		}
 	}
 
@@ -396,7 +389,7 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	sku := flattenIoTHubSku(hub.Sku)
 	if err := d.Set("sku", sku); err != nil {
-		return fmt.Errorf("Error flattening `sku`: %+v", err)
+		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 	d.Set("type", hub.Type)
 	flattenAndSetTags(d, hub.Tags)
@@ -529,7 +522,7 @@ func expandIoTHubEndpoints(d *schema.ResourceData, subscriptionId string) (*devi
 				Encoding:                &encoding,
 			}
 			storageContainerProperties = append(storageContainerProperties, storageContainer)
-			break
+
 		case "AzureIotHub.ServiceBusQueue":
 			sbQueue := devices.RoutingServiceBusQueueEndpointProperties{
 				ConnectionString: &connectionStr,
@@ -538,7 +531,7 @@ func expandIoTHubEndpoints(d *schema.ResourceData, subscriptionId string) (*devi
 				ResourceGroup:    &resourceGroup,
 			}
 			serviceBusQueueEndpointProperties = append(serviceBusQueueEndpointProperties, sbQueue)
-			break
+
 		case "AzureIotHub.ServiceBusTopic":
 			sbTopic := devices.RoutingServiceBusTopicEndpointProperties{
 				ConnectionString: &connectionStr,
@@ -547,7 +540,7 @@ func expandIoTHubEndpoints(d *schema.ResourceData, subscriptionId string) (*devi
 				ResourceGroup:    &resourceGroup,
 			}
 			serviceBusTopicEndpointProperties = append(serviceBusTopicEndpointProperties, sbTopic)
-			break
+
 		case "AzureIotHub.EventHub":
 			eventHub := devices.RoutingEventHubProperties{
 				ConnectionString: &connectionStr,
@@ -556,7 +549,6 @@ func expandIoTHubEndpoints(d *schema.ResourceData, subscriptionId string) (*devi
 				ResourceGroup:    &resourceGroup,
 			}
 			eventHubProperties = append(eventHubProperties, eventHub)
-			break
 		}
 	}
 
@@ -568,7 +560,7 @@ func expandIoTHubEndpoints(d *schema.ResourceData, subscriptionId string) (*devi
 	}, nil
 }
 
-func expandIoTHubSku(d *schema.ResourceData) devices.IotHubSkuInfo {
+func expandIoTHubSku(d *schema.ResourceData) *devices.IotHubSkuInfo {
 	skuList := d.Get("sku").([]interface{})
 	skuMap := skuList[0].(map[string]interface{})
 	capacity := int64(skuMap["capacity"].(int))
@@ -576,7 +568,7 @@ func expandIoTHubSku(d *schema.ResourceData) devices.IotHubSkuInfo {
 	name := skuMap["name"].(string)
 	tier := skuMap["tier"].(string)
 
-	return devices.IotHubSkuInfo{
+	return &devices.IotHubSkuInfo{
 		Name:     devices.IotHubSku(name),
 		Tier:     devices.IotHubSkuTier(tier),
 		Capacity: utils.Int64(capacity),
@@ -584,7 +576,7 @@ func expandIoTHubSku(d *schema.ResourceData) devices.IotHubSkuInfo {
 }
 
 func flattenIoTHubSku(input *devices.IotHubSkuInfo) []interface{} {
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 
 	output["name"] = string(input.Name)
 	output["tier"] = string(input.Tier)
@@ -629,7 +621,7 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 
 		if containers := input.Endpoints.StorageContainers; containers != nil {
 			for _, container := range *containers {
-				output := make(map[string]interface{}, 0)
+				output := make(map[string]interface{})
 
 				if connString := container.ConnectionString; connString != nil {
 					output["connection_string"] = *connString
@@ -660,7 +652,7 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 
 		if queues := input.Endpoints.ServiceBusQueues; queues != nil {
 			for _, queue := range *queues {
-				output := make(map[string]interface{}, 0)
+				output := make(map[string]interface{})
 
 				if connString := queue.ConnectionString; connString != nil {
 					output["connection_string"] = *connString
@@ -675,7 +667,7 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 
 		if topics := input.Endpoints.ServiceBusTopics; topics != nil {
 			for _, topic := range *topics {
-				output := make(map[string]interface{}, 0)
+				output := make(map[string]interface{})
 
 				if connString := topic.ConnectionString; connString != nil {
 					output["connection_string"] = *connString
@@ -690,7 +682,7 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 
 		if eventHubs := input.Endpoints.EventHubs; eventHubs != nil {
 			for _, eventHub := range *eventHubs {
-				output := make(map[string]interface{}, 0)
+				output := make(map[string]interface{})
 
 				if connString := eventHub.ConnectionString; connString != nil {
 					output["connection_string"] = *connString
@@ -712,7 +704,7 @@ func flattenIoTHubRoute(input *devices.RoutingProperties) []interface{} {
 
 	if input != nil && input.Routes != nil {
 		for _, route := range *input.Routes {
-			output := make(map[string]interface{}, 0)
+			output := make(map[string]interface{})
 
 			if name := route.Name; name != nil {
 				output["name"] = *name
@@ -735,7 +727,7 @@ func flattenIoTHubRoute(input *devices.RoutingProperties) []interface{} {
 	return results
 }
 
-func validateIoTHubEndpointName(v interface{}, k string) (ws []string, errors []error) {
+func validateIoTHubEndpointName(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	reservedNames := []string{
@@ -751,10 +743,10 @@ func validateIoTHubEndpointName(v interface{}, k string) (ws []string, errors []
 		}
 	}
 
-	return
+	return warnings, errors
 }
 
-func validateIoTHubFileNameFormat(v interface{}, k string) (ws []string, errors []error) {
+func validateIoTHubFileNameFormat(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	requiredComponents := []string{
@@ -773,5 +765,5 @@ func validateIoTHubFileNameFormat(v interface{}, k string) (ws []string, errors 
 		}
 	}
 
-	return
+	return warnings, errors
 }

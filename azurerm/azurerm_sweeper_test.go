@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/authentication"
 )
 
 func TestMain(m *testing.M) {
@@ -30,16 +30,23 @@ func buildConfigForSweepers() (*ArmClient, error) {
 		return nil, fmt.Errorf("ARM_SUBSCRIPTION_ID, ARM_CLIENT_ID, ARM_CLIENT_SECRET and ARM_TENANT_ID must be set for acceptance tests")
 	}
 
-	config := &authentication.Config{
-		SubscriptionID:           subscriptionID,
-		ClientID:                 clientID,
-		ClientSecret:             clientSecret,
-		TenantID:                 tenantID,
-		Environment:              environment,
-		SkipProviderRegistration: false,
+	builder := &authentication.Builder{
+		SubscriptionID: subscriptionID,
+		ClientID:       clientID,
+		ClientSecret:   clientSecret,
+		TenantID:       tenantID,
+		Environment:    environment,
+
+		// Feature Toggles
+		SupportsClientSecretAuth: true,
 	}
 
-	return getArmClient(config)
+	config, err := builder.Build()
+	if err != nil {
+		return nil, fmt.Errorf("Error building ARM Client: %+v", err)
+	}
+
+	return getArmClient(config, false)
 }
 
 func shouldSweepAcceptanceTestResource(name string, resourceLocation string, region string) bool {

@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/go-uuid"
 )
 
-func UUID(i interface{}, k string) (_ []string, errors []error) {
+func UUID(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
@@ -17,5 +17,5 @@ func UUID(i interface{}, k string) (_ []string, errors []error) {
 		errors = append(errors, fmt.Errorf("%q isn't a valid UUID (%q): %+v", k, v, err))
 	}
 
-	return
+	return warnings, errors
 }

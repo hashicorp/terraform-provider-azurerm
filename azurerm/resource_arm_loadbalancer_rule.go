@@ -78,13 +78,13 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 			"frontend_port": {
 				Type:         schema.TypeInt,
 				Required:     true,
-				ValidateFunc: validate.PortNumber,
+				ValidateFunc: validate.PortNumberOrZero,
 			},
 
 			"backend_port": {
 				Type:         schema.TypeInt,
 				Required:     true,
-				ValidateFunc: validate.PortNumber,
+				ValidateFunc: validate.PortNumberOrZero,
 			},
 
 			"probe_id": {
@@ -335,7 +335,7 @@ func expandAzureRmLoadBalancerRule(d *schema.ResourceData, lb *network.LoadBalan
 	}
 
 	if v := d.Get("frontend_ip_configuration_name").(string); v != "" {
-		rule, _, exists := findLoadBalancerFrontEndIpConfigurationByName(lb, v)
+		rule, exists := findLoadBalancerFrontEndIpConfigurationByName(lb, v)
 		if !exists {
 			return nil, fmt.Errorf("[ERROR] Cannot find FrontEnd IP Configuration with the name %s", v)
 		}
@@ -358,12 +358,12 @@ func expandAzureRmLoadBalancerRule(d *schema.ResourceData, lb *network.LoadBalan
 	}
 
 	return &network.LoadBalancingRule{
-		Name: utils.String(d.Get("name").(string)),
+		Name:                              utils.String(d.Get("name").(string)),
 		LoadBalancingRulePropertiesFormat: &properties,
 	}, nil
 }
 
-func validateArmLoadBalancerRuleName(v interface{}, k string) (ws []string, errors []error) {
+func validateArmLoadBalancerRuleName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^[a-zA-Z_0-9.-]+$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
@@ -390,5 +390,5 @@ func validateArmLoadBalancerRuleName(v interface{}, k string) (ws []string, erro
 			"%q must start with a word character or number: %q", k, value))
 	}
 
-	return
+	return warnings, errors
 }

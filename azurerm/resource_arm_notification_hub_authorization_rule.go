@@ -216,5 +216,5 @@ func flattenNotificationHubAuthorizationRuleRights(input *[]notificationhubs.Acc
 		}
 	}
 
-	return
+	return manage, send, listen
 }

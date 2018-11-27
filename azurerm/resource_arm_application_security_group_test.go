@@ -15,7 +15,7 @@ func TestAccAzureRMApplicationSecurityGroup_basic(t *testing.T) {
 	resourceName := "azurerm_application_security_group.test"
 	config := testAccAzureRMApplicationSecurityGroup_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMApplicationSecurityGroupDestroy,
@@ -36,7 +36,7 @@ func TestAccAzureRMApplicationSecurityGroup_complete(t *testing.T) {
 	resourceName := "azurerm_application_security_group.test"
 	config := testAccAzureRMApplicationSecurityGroup_complete(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMApplicationSecurityGroupDestroy,
@@ -58,7 +58,7 @@ func TestAccAzureRMApplicationSecurityGroup_update(t *testing.T) {
 	location := testLocation()
 	resourceName := "azurerm_application_security_group.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMApplicationSecurityGroupDestroy,
@@ -104,7 +104,7 @@ func testCheckAzureRMApplicationSecurityGroupDestroy(s *terraform.State) error {
 			return err
 		}
 
-		return fmt.Errorf("Applicaton Security Group still exists:\n%#v", resp)
+		return fmt.Errorf("Application Security Group still exists:\n%#v", resp)
 	}
 
 	return nil
@@ -143,8 +143,8 @@ func testCheckAzureRMApplicationSecurityGroupExists(name string) resource.TestCh
 func testAccAzureRMApplicationSecurityGroup_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
- name = "acctestRG-%d"
- location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_application_security_group" "test" {
@@ -158,16 +158,17 @@ resource "azurerm_application_security_group" "test" {
 func testAccAzureRMApplicationSecurityGroup_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
- name = "acctestRG-%d"
- location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_application_security_group" "test" {
   name                = "acctest-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
   tags {
-	"Hello" = "World"
+    "Hello" = "World"
   }
 }
 `, rInt, location, rInt)

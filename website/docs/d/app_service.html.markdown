@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service"
 sidebar_current: "docs-azurerm-datasource-app-service-x"
 description: |-
-  Get information about an App Service.
+  Gets information about an existing App Service.
 ---
 
 # Data Source: azurerm_app_service
 
-Use this data source to obtain information about an App Service.
+Use this data source to access information about an existing App Service.
 
 ## Example Usage
 
@@ -67,11 +67,15 @@ output "app_service_id" {
 
 * `always_on` - Is the app be loaded at all times?
 
+* `app_command_line` - App command line to launch.
+
 * `default_documents` - The ordering of default documents to load, if an address isn't specified.
 
 * `dotnet_framework_version` - The version of the .net framework's CLR used in this App Service.
 
 * `http2_enabled` - Is HTTP2 Enabled on this App Service?
+
+* `ftps_state` - State of FTP / FTPS service for this AppService.
 
 * `ip_restriction` - One or more `ip_restriction` blocks as defined below.
 
@@ -80,6 +84,8 @@ output "app_service_id" {
 * `java_container` - The Java Container in use.
 
 * `java_container_version` - The version of the Java Container in use.
+
+* `linux_fx_version` - Linux App Framework and version for the AppService.
 
 * `local_mysql_enabled` - Is "MySQL In App" Enabled? This runs a local MySQL instance with your app and shares resources from the App Service plan.
 
@@ -101,9 +107,7 @@ output "app_service_id" {
 
 * `websockets_enabled` - Are WebSockets enabled for this App Service?
 
-* `ftps_state` - State of FTP / FTPS service for this AppService.
-
-* `linux_fx_version` - Linux App Framework and version for the AppService.
+* `virtual_network_name` - The name of the Virtual Network which this App Service is attached to.
 
 ---
 

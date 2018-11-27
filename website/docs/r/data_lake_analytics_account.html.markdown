@@ -31,7 +31,6 @@ resource "azurerm_data_lake_analytics_account" "example" {
 
   default_store_account_name = "${azurerm_data_lake_store.example.name}"
 }
-
 ```
 
 ## Argument Reference

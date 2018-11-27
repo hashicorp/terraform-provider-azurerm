@@ -144,12 +144,12 @@ func resourceArmRedisFirewallRuleDelete(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func validateRedisFirewallRuleName(v interface{}, k string) (ws []string, es []error) {
+func validateRedisFirewallRuleName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if matched := regexp.MustCompile(`^[0-9a-zA-Z]+$`).Match([]byte(value)); !matched {
-		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters", k))
+		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters", k))
 	}
 
-	return
+	return warnings, errors
 }

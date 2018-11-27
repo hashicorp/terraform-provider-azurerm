@@ -5,7 +5,7 @@ import (
 	"log"
 	"regexp"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -86,7 +86,7 @@ func resourceArmSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) e
 
 	properties := compute.Snapshot{
 		Location: utils.String(location),
-		DiskProperties: &compute.DiskProperties{
+		SnapshotProperties: &compute.SnapshotProperties{
 			CreationData: &compute.CreationData{
 				CreateOption: compute.DiskCreateOption(createOption),
 			},
@@ -95,20 +95,20 @@ func resourceArmSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if v, ok := d.GetOk("source_uri"); ok {
-		properties.DiskProperties.CreationData.SourceURI = utils.String(v.(string))
+		properties.SnapshotProperties.CreationData.SourceURI = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("source_resource_id"); ok {
-		properties.DiskProperties.CreationData.SourceResourceID = utils.String(v.(string))
+		properties.SnapshotProperties.CreationData.SourceResourceID = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("storage_account_id"); ok {
-		properties.DiskProperties.CreationData.StorageAccountID = utils.String(v.(string))
+		properties.SnapshotProperties.CreationData.StorageAccountID = utils.String(v.(string))
 	}
 
 	diskSizeGB := d.Get("disk_size_gb").(int)
 	if diskSizeGB > 0 {
-		properties.DiskProperties.DiskSizeGB = utils.Int32(int32(diskSizeGB))
+		properties.SnapshotProperties.DiskSizeGB = utils.Int32(int32(diskSizeGB))
 	}
 
 	if v, ok := d.GetOk("encryption_settings"); ok {
@@ -166,7 +166,7 @@ func resourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	if props := resp.DiskProperties; props != nil {
+	if props := resp.SnapshotProperties; props != nil {
 
 		if data := props.CreationData; data != nil {
 			d.Set("create_option", string(data.CreateOption))
@@ -215,7 +215,7 @@ func resourceArmSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func validateSnapshotName(v interface{}, k string) (ws []string, errors []error) {
+func validateSnapshotName(v interface{}, _ string) (warnings []string, errors []error) {
 	// a-z, A-Z, 0-9, _ and -. The max name length is 80
 	value := v.(string)
 
@@ -229,5 +229,5 @@ func validateSnapshotName(v interface{}, k string) (ws []string, errors []error)
 		errors = append(errors, fmt.Errorf("Snapshot Name can be up to 80 characters, currently %d.", length))
 	}
 
-	return
+	return warnings, errors
 }

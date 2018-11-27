@@ -13,7 +13,7 @@ func TestAccDataSourceAzureRMImage_basic(t *testing.T) {
 
 	config := testAccDataSourceAzureRMImageBasic(acctest.RandInt(), acctest.RandString(4), testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -45,7 +45,7 @@ func TestAccDataSourceAzureRMImage_localFilter(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccDataSourceAzureRMImageLocalFilter(ri, acctest.RandString(4), testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -191,7 +191,6 @@ data "azurerm_image" "test" {
 output "location" {
   value = "${data.azurerm_image.test.location}"
 }
-
 `, rInt, location, rInt, rInt, rInt, rInt, rString, rInt, rInt, rInt)
 }
 
@@ -313,7 +312,6 @@ resource "azurerm_image" "abc" {
   }
 }
 
-
 resource "azurerm_image" "def" {
   name                = "def-acctest-%d"
   location            = "${azurerm_resource_group.test.location}"
@@ -347,6 +345,5 @@ data "azurerm_image" "test2" {
 output "location" {
   value = "${data.azurerm_image.test1.location}"
 }
-
 `, rInt, location, rInt, rInt, rInt, rInt, rString, rInt, rInt, rInt, rInt)
 }

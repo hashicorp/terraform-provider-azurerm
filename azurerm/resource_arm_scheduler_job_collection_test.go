@@ -1,3 +1,5 @@
+// nolint: megacheck
+// entire automation SDK has been depreciated in v21.3 in favor of logic apps, an entirely different service.
 package azurerm
 
 import (
@@ -16,7 +18,7 @@ func TestAccAzureRMSchedulerJobCollection_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_scheduler_job_collection.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobCollectionDestroy,
@@ -38,7 +40,7 @@ func TestAccAzureRMSchedulerJobCollection_complete(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_scheduler_job_collection.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobCollectionDestroy,

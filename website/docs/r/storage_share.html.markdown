@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_storage_share
 
-Create an Azure Storage File Share.
+Manage an Azure Storage File Share.
 
 ## Example Usage
 

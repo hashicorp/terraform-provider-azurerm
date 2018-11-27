@@ -15,7 +15,7 @@ func TestAccAzureRMPostgreSQLDatabase_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMPostgreSQLDatabase_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
@@ -37,7 +37,7 @@ func TestAccAzureRMPostgreSQLDatabase_charsetLowercase(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMPostgreSQLDatabase_charsetLowercase(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
@@ -59,7 +59,7 @@ func TestAccAzureRMPostgreSQLDatabase_charsetMixedcase(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMPostgreSQLDatabase_charsetMixedcase(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
@@ -155,9 +155,9 @@ resource "azurerm_postgresql_server" "test" {
   }
 
   storage_profile {
-    storage_mb = 51200
+    storage_mb            = 51200
     backup_retention_days = 7
-    geo_redundant_backup = "Disabled"
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"
@@ -196,9 +196,9 @@ resource "azurerm_postgresql_server" "test" {
   }
 
   storage_profile {
-    storage_mb = 51200
+    storage_mb            = 51200
     backup_retention_days = 7
-    geo_redundant_backup = "Disabled"
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"
@@ -237,9 +237,9 @@ resource "azurerm_postgresql_server" "test" {
   }
 
   storage_profile {
-    storage_mb = 51200
+    storage_mb            = 51200
     backup_retention_days = 7
-    geo_redundant_backup = "Disabled"
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"

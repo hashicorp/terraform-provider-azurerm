@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -73,6 +74,8 @@ func dataSourceArmAzureADApplicationRead(d *schema.ResourceData, meta interface{
 	var application graphrbac.Application
 
 	if oId, ok := d.GetOk("object_id"); ok {
+
+		// use the object_id to find the Azure AD application
 		objectId := oId.(string)
 		resp, err := client.Get(ctx, objectId)
 		if err != nil {
@@ -85,12 +88,17 @@ func dataSourceArmAzureADApplicationRead(d *schema.ResourceData, meta interface{
 
 		application = resp
 	} else {
-		resp, err := client.ListComplete(ctx, "")
+
+		// use the name to find the Azure AD application
+		name := d.Get("name").(string)
+		filter := fmt.Sprintf("displayName eq '%s'", name)
+		log.Printf("[DEBUG] [data_source_azuread_application] Using filter %q", filter)
+
+		resp, err := client.ListComplete(ctx, filter)
+
 		if err != nil {
 			return fmt.Errorf("Error listing Azure AD Applications: %+v", err)
 		}
-
-		name := d.Get("name").(string)
 
 		var app *graphrbac.Application
 		for _, v := range *resp.Response().Value {
@@ -118,39 +126,17 @@ func dataSourceArmAzureADApplicationRead(d *schema.ResourceData, meta interface{
 	d.Set("available_to_other_tenants", application.AvailableToOtherTenants)
 	d.Set("oauth2_allow_implicit_flow", application.Oauth2AllowImplicitFlow)
 
-	identifierUris := flattenAzureADDataSourceApplicationIdentifierUris(application.IdentifierUris)
-	if err := d.Set("identifier_uris", identifierUris); err != nil {
-		return fmt.Errorf("Error setting `identifier_uris`: %+v", err)
+	if s := application.IdentifierUris; s != nil {
+		if err := d.Set("identifier_uris", *s); err != nil {
+			return fmt.Errorf("Error setting `identifier_uris`: %+v", err)
+		}
 	}
 
-	replyUrls := flattenAzureADDataSourceApplicationReplyUrls(application.ReplyUrls)
-	if err := d.Set("reply_urls", replyUrls); err != nil {
-		return fmt.Errorf("Error setting `reply_urls`: %+v", err)
+	if s := application.ReplyUrls; s != nil {
+		if err := d.Set("reply_urls", *s); err != nil {
+			return fmt.Errorf("Error setting `reply_urls`: %+v", err)
+		}
 	}
 
 	return nil
-}
-
-func flattenAzureADDataSourceApplicationIdentifierUris(input *[]string) []string {
-	output := make([]string, 0)
-
-	if input != nil {
-		for _, v := range *input {
-			output = append(output, v)
-		}
-	}
-
-	return output
-}
-
-func flattenAzureADDataSourceApplicationReplyUrls(input *[]string) []string {
-	output := make([]string, 0)
-
-	if input != nil {
-		for _, v := range *input {
-			output = append(output, v)
-		}
-	}
-
-	return output
 }

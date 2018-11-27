@@ -56,10 +56,11 @@ func testSweepResourceGroups(region string) error {
 }
 
 func TestAccAzureRMResourceGroup_basic(t *testing.T) {
+	resourceName := "azurerm_resource_group.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMResourceGroup_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
@@ -67,8 +68,13 @@ func TestAccAzureRMResourceGroup_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMResourceGroupExists("azurerm_resource_group.test"),
+					testCheckAzureRMResourceGroupExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -79,7 +85,7 @@ func TestAccAzureRMResourceGroup_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMResourceGroup_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
@@ -103,7 +109,7 @@ func TestAccAzureRMResourceGroup_withTags(t *testing.T) {
 	preConfig := testAccAzureRMResourceGroup_withTags(ri, location)
 	postConfig := testAccAzureRMResourceGroup_withTagsUpdated(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
@@ -118,12 +124,22 @@ func TestAccAzureRMResourceGroup_withTags(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMResourceGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "staging"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -211,8 +227,8 @@ func testCheckAzureRMResourceGroupDestroy(s *terraform.State) error {
 func testAccAzureRMResourceGroup_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 `, rInt, location)
 }
@@ -220,13 +236,13 @@ resource "azurerm_resource_group" "test" {
 func testAccAzureRMResourceGroup_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 
-    tags {
-	environment = "Production"
-	cost_center = "MSFT"
-    }
+  tags {
+    environment = "Production"
+    cost_center = "MSFT"
+  }
 }
 `, rInt, location)
 }
@@ -234,12 +250,12 @@ resource "azurerm_resource_group" "test" {
 func testAccAzureRMResourceGroup_withTagsUpdated(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 
-    tags {
-	environment = "staging"
-    }
+  tags {
+    environment = "staging"
+  }
 }
 `, rInt, location)
 }

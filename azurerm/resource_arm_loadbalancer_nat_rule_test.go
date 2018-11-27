@@ -21,7 +21,7 @@ func TestAccAzureRMLoadBalancerNatRule_basic(t *testing.T) {
 		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/inboundNatRules/%s",
 		subscriptionID, ri, ri, natRuleName)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -35,6 +35,13 @@ func TestAccAzureRMLoadBalancerNatRule_basic(t *testing.T) {
 						"azurerm_lb_nat_rule.test", "id", natRuleId),
 				),
 			},
+			{
+				ResourceName:      "azurerm_lb.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				// location is deprecated and was never actually used
+				ImportStateVerifyIgnore: []string{"location"},
+			},
 		},
 	})
 }
@@ -44,7 +51,7 @@ func TestAccAzureRMLoadBalancerNatRule_removal(t *testing.T) {
 	ri := acctest.RandInt()
 	natRuleName := fmt.Sprintf("NatRule-%d", ri)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -73,7 +80,7 @@ func TestAccAzureRMLoadBalancerNatRule_update(t *testing.T) {
 	natRuleName := fmt.Sprintf("NatRule-%d", ri)
 	natRule2Name := fmt.Sprintf("NatRule-%d", acctest.RandInt())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -111,7 +118,7 @@ func TestAccAzureRMLoadBalancerNatRule_reapply(t *testing.T) {
 		return s.Remove("azurerm_lb_nat_rule.test")
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -141,7 +148,7 @@ func TestAccAzureRMLoadBalancerNatRule_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	natRuleName := fmt.Sprintf("NatRule-%d", ri)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -165,7 +172,7 @@ func TestAccAzureRMLoadBalancerNatRule_enableFloatingIP(t *testing.T) {
 	natRuleName := fmt.Sprintf("NatRule-%d", ri)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -187,7 +194,7 @@ func TestAccAzureRMLoadBalancerNatRule_disableFloatingIP(t *testing.T) {
 	natRuleName := fmt.Sprintf("NatRule-%d", ri)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,

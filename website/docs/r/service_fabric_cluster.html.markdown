@@ -19,13 +19,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_service_fabric_cluster" "test" {
-  name                = "example-servicefabric"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  reliability_level   = "Bronze"
-  upgrade_mode        = "Automatic"
-  vm_image            = "Windows"
-  management_endpoint = "https://example:80"
+  name                 = "example-servicefabric"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = "${azurerm_resource_group.test.location}"
+  reliability_level    = "Bronze"
+  upgrade_mode         = "Manual"
+  cluster_code_version = "6.3.176.9494"
+  vm_image             = "Windows"
+  management_endpoint  = "https://example:80"
 
   node_type {
     name                 = "first"
@@ -60,11 +61,13 @@ The following arguments are supported:
 
 ---
 
+* `cluster_code_version` - (Optional) Required if Upgrade Mode set to `Manual`, Specifies the Version of the Cluster Code of the cluster.
+
 * `add_on_features` - (Optional) A List of one or more features which should be enabled, such as `DnsService`.
 
 * `certificate` - (Optional) A `certificate` block as defined below.
 
-* `client_certificate_thumbprint` - (Optional) A `client_certificate_thumbprint` block as defined below.
+* `client_certificate_thumbprint` - (Optional) One or two `client_certificate_thumbprint` blocks as defined below.
 
 -> **NOTE:** If Client Certificates are enabled then at a Certificate must be configured on the cluster.
 

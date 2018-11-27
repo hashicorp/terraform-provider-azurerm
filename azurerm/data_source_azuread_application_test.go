@@ -13,7 +13,7 @@ func TestAccDataSourceAzureRMAzureADApplication_byObjectId(t *testing.T) {
 	id := uuid.New().String()
 	config := testAccDataSourceAzureRMAzureADApplication_objectId(id)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
@@ -26,7 +26,7 @@ func TestAccDataSourceAzureRMAzureADApplication_byObjectId(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(dataSourceName),
 					resource.TestCheckResourceAttr(dataSourceName, "name", fmt.Sprintf("acctest%s", id)),
-					resource.TestCheckResourceAttr(dataSourceName, "homepage", fmt.Sprintf("http://acctest%s", id)),
+					resource.TestCheckResourceAttr(dataSourceName, "homepage", fmt.Sprintf("https://acctest%s", id)),
 					resource.TestCheckResourceAttr(dataSourceName, "identifier_uris.#", "0"),
 					resource.TestCheckResourceAttr(dataSourceName, "reply_urls.#", "0"),
 					resource.TestCheckResourceAttr(dataSourceName, "oauth2_allow_implicit_flow", "false"),
@@ -40,7 +40,7 @@ func TestAccDataSourceAzureRMAzureADApplication_byObjectId(t *testing.T) {
 func TestAccDataSourceAzureRMAzureADApplication_byObjectIdComplete(t *testing.T) {
 	dataSourceName := "data.azurerm_azuread_application.test"
 	id := uuid.New().String()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
@@ -53,7 +53,7 @@ func TestAccDataSourceAzureRMAzureADApplication_byObjectIdComplete(t *testing.T)
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(dataSourceName),
 					resource.TestCheckResourceAttr(dataSourceName, "name", fmt.Sprintf("acctest%s", id)),
-					resource.TestCheckResourceAttr(dataSourceName, "homepage", fmt.Sprintf("http://homepage-%s", id)),
+					resource.TestCheckResourceAttr(dataSourceName, "homepage", fmt.Sprintf("https://homepage-%s", id)),
 					resource.TestCheckResourceAttr(dataSourceName, "identifier_uris.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "reply_urls.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "oauth2_allow_implicit_flow", "true"),
@@ -69,7 +69,7 @@ func TestAccDataSourceAzureRMAzureADApplication_byName(t *testing.T) {
 	id := uuid.New().String()
 	config := testAccDataSourceAzureRMAzureADApplication_name(id)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
@@ -82,7 +82,7 @@ func TestAccDataSourceAzureRMAzureADApplication_byName(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(dataSourceName),
 					resource.TestCheckResourceAttr(dataSourceName, "name", fmt.Sprintf("acctest%s", id)),
-					resource.TestCheckResourceAttr(dataSourceName, "homepage", fmt.Sprintf("http://acctest%s", id)),
+					resource.TestCheckResourceAttr(dataSourceName, "homepage", fmt.Sprintf("https://acctest%s", id)),
 					resource.TestCheckResourceAttr(dataSourceName, "identifier_uris.#", "0"),
 					resource.TestCheckResourceAttr(dataSourceName, "reply_urls.#", "0"),
 					resource.TestCheckResourceAttr(dataSourceName, "oauth2_allow_implicit_flow", "false"),
