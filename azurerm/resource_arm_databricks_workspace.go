@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -46,6 +47,13 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 
 			"tags": tagsSchema(),
 
+			"managed_resource_group": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.NoZeroValues,
+			},
+
 			"managed_resource_group_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -64,12 +72,21 @@ func resourceArmDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta int
 	name := d.Get("name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
-	skuName := d.Get("sku").(string)
+	skuName := strings.ToLower(d.Get("sku").(string))
+	managedResourceGroupName := d.Get("managed_resource_group").(string)
+	var managedResourceGroupID string
 
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
 
-	managedResourceGroupID := fmt.Sprintf("/subscriptions/%s/resourceGroups/databricks-rg-%s", subscriptionID, resourceGroup)
+	if managedResourceGroupName == "" {
+		//no managed resource group name was provided, we use the default pattern
+		log.Printf("[DEBUG][azurerm_databricks_workspace] no managed resource group id was provided, we use the default pattern.")
+		managedResourceGroupID = fmt.Sprintf("/subscriptions/%s/resourceGroups/databricks-rg-%s", subscriptionID, resourceGroup)
+	} else {
+		log.Printf("[DEBUG][azurerm_databricks_workspace] a managed group name was provided: %q", managedResourceGroupName)
+		managedResourceGroupID = fmt.Sprintf("/subscriptions/%s/resourceGroups/%s", subscriptionID, managedResourceGroupName)
+	}
 
 	workspace := databricks.Workspace{
 		Sku: &databricks.Sku{
