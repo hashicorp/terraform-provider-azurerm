@@ -48,6 +48,7 @@ func TestAccAzureRMEventHubNamespace_KafkaEnabled(t *testing.T) {
 				Config: testAccAzureRMEventHubNamespace_KafkaEnabled(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "kafka_enabled", "true"),
 				),
 			},
 			{
