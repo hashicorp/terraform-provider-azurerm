@@ -261,8 +261,8 @@ func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
 	ri := acctest.RandInt()
 	containerRegistryName := fmt.Sprintf("testacccr%d", ri)
 	resourceGroupName := fmt.Sprintf("testAccRg-%d", ri)
-	config := testAccAzureRMContainerRegistry_geoReplication(ri, testLocation(), skuPremium, "\"eastus\", \"westus\"")
-	updatedConfig := testAccAzureRMContainerRegistry_geoReplication(ri, testLocation(), skuPremium, "\"westeurope\", \"eastus\"")
+	config := testAccAzureRMContainerRegistry_geoReplication(ri, testLocation(), skuPremium, `"eastus", "westus"`)
+	updatedConfig := testAccAzureRMContainerRegistry_geoReplication(ri, testLocation(), skuPremium, `"centralus", "eastus"`)
 	updatedConfigWithNoLocation := testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation(ri, testLocation(), skuPremium)
 	updatedConfigBasicSku := testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation(ri, testLocation(), skuBasic)
 
@@ -278,8 +278,9 @@ func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "name", containerRegistryName),
 					resource.TestCheckResourceAttr(dataSourceName, "resource_group_name", resourceGroupName),
 					resource.TestCheckResourceAttr(dataSourceName, "sku", skuPremium),
+					resource.TestCheckResourceAttr(dataSourceName, "georeplication_locations.#", "2"),
 					testCheckAzureRMContainerRegistryExists(dataSourceName),
-					testCheckAzureRMContainerRegistryGeoreplications(dataSourceName, skuPremium, []string{"\"eastus\"", "\"westus\""}),
+					testCheckAzureRMContainerRegistryGeoreplications(dataSourceName, skuPremium, []string{`"eastus"`, `"westus"`}),
 				),
 			},
 			// second config udpates the ACR with updated locations
@@ -289,8 +290,9 @@ func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "name", containerRegistryName),
 					resource.TestCheckResourceAttr(dataSourceName, "resource_group_name", resourceGroupName),
 					resource.TestCheckResourceAttr(dataSourceName, "sku", skuPremium),
+					resource.TestCheckResourceAttr(dataSourceName, "georeplication_locations.#", "2"),
 					testCheckAzureRMContainerRegistryExists(dataSourceName),
-					testCheckAzureRMContainerRegistryGeoreplications(dataSourceName, skuPremium, []string{"\"eastus\"", "\"westeurope\""}),
+					testCheckAzureRMContainerRegistryGeoreplications(dataSourceName, skuPremium, []string{`"eastus"`, `"centralus"`}),
 				),
 			},
 			// third config udpates the ACR with no location
@@ -311,8 +313,9 @@ func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "name", containerRegistryName),
 					resource.TestCheckResourceAttr(dataSourceName, "resource_group_name", resourceGroupName),
 					resource.TestCheckResourceAttr(dataSourceName, "sku", skuPremium),
+					resource.TestCheckResourceAttr(dataSourceName, "georeplication_locations.#", "2"),
 					testCheckAzureRMContainerRegistryExists(dataSourceName),
-					testCheckAzureRMContainerRegistryGeoreplications(dataSourceName, skuPremium, []string{"\"eastus\"", "\"westus\""}),
+					testCheckAzureRMContainerRegistryGeoreplications(dataSourceName, skuPremium, []string{`"eastus"`, `"westus"`}),
 				),
 			},
 			// fifth config updates the SKU to basic and no replicas (should remove the existing replicas if any)
