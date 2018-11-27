@@ -66,6 +66,12 @@ func resourceArmEventHubNamespace() *schema.Resource {
 				Default:  false,
 			},
 
+			"kafka_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"maximum_throughput_units": {
 				Type:         schema.TypeInt,
 				Optional:     true,
@@ -115,6 +121,7 @@ func resourceArmEventHubNamespaceCreate(d *schema.ResourceData, meta interface{}
 	tags := d.Get("tags").(map[string]interface{})
 
 	autoInflateEnabled := d.Get("auto_inflate_enabled").(bool)
+	kafkaEnabled := d.Get("kafka_enabled").(bool)
 
 	parameters := eventhub.EHNamespace{
 		Location: &location,
@@ -125,6 +132,7 @@ func resourceArmEventHubNamespaceCreate(d *schema.ResourceData, meta interface{}
 		},
 		EHNamespaceProperties: &eventhub.EHNamespaceProperties{
 			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
+			KafkaEnabled: utils.Bool(kafkaEnabled),
 		},
 		Tags: expandTags(tags),
 	}
@@ -197,6 +205,7 @@ func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) 
 
 	if props := resp.EHNamespaceProperties; props != nil {
 		d.Set("auto_inflate_enabled", props.IsAutoInflateEnabled)
+		d.Set("kafka_enabled", props.KafkaEnabled)
 		d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
 	}
 
