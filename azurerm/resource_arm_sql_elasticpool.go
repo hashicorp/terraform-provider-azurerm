@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -13,10 +15,11 @@ import (
 
 func resourceArmSqlElasticPool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSqlElasticPoolCreate,
+		Create: resourceArmSqlElasticPoolCreateUpdate,
 		Read:   resourceArmSqlElasticPoolRead,
-		Update: resourceArmSqlElasticPoolCreate,
+		Update: resourceArmSqlElasticPoolCreateUpdate,
 		Delete: resourceArmSqlElasticPoolDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -33,9 +36,10 @@ func resourceArmSqlElasticPool() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"server_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateMsSqlServerName,
 			},
 
 			"edition": {
@@ -78,7 +82,7 @@ func resourceArmSqlElasticPool() *schema.Resource {
 	}
 }
 
-func resourceArmSqlElasticPoolCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).sqlElasticPoolsClient
 	ctx := meta.(*ArmClient).StopContext
 
