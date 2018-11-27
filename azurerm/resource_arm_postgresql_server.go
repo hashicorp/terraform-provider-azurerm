@@ -5,6 +5,9 @@ import (
 	"log"
 	"strings"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -62,13 +65,13 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 								"MO_Gen5_8",
 								"MO_Gen5_16",
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"capacity": {
 							Type:     schema.TypeInt,
 							Required: true,
-							ValidateFunc: validateIntInSlice([]int{
+							ValidateFunc: validate.IntInSlice([]int{
 								1,
 								2,
 								4,
@@ -86,7 +89,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 								string(postgresql.GeneralPurpose),
 								string(postgresql.MemoryOptimized),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"family": {
@@ -96,7 +99,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 								"Gen4",
 								"Gen5",
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
@@ -124,7 +127,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 					// TODO: Swap for the azure go api enum once supported.
 					"10.0",
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"storage_profile": {
@@ -136,7 +139,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 						"storage_mb": {
 							Type:         schema.TypeInt,
 							Required:     true,
-							ValidateFunc: validateIntBetweenDivisibleBy(5120, 4194304, 1024),
+							ValidateFunc: validate.IntBetweenAndDivisibleBy(5120, 4194304, 1024),
 						},
 
 						"backup_retention_days": {
@@ -152,7 +155,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 								"Enabled",
 								"Disabled",
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
@@ -165,7 +168,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 					string(postgresql.SslEnforcementEnumDisabled),
 					string(postgresql.SslEnforcementEnumEnabled),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"fqdn": {
@@ -333,11 +336,11 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("ssl_enforcement", string(resp.SslEnforcement))
 
 	if err := d.Set("sku", flattenPostgreSQLServerSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Error flattening `sku`: %+v", err)
+		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
 	if err := d.Set("storage_profile", flattenPostgreSQLStorageProfile(resp.StorageProfile)); err != nil {
-		return fmt.Errorf("Error flattening `storage_profile`: %+v", err)
+		return fmt.Errorf("Error setting `storage_profile`: %+v", err)
 	}
 
 	flattenAndSetTags(d, resp.Tags)

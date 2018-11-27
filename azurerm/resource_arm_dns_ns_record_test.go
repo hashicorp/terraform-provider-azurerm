@@ -17,7 +17,7 @@ func TestAccAzureRMDnsNsRecord_deprecatedBasic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMDnsNsRecord_deprecatedBasic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
@@ -37,7 +37,7 @@ func TestAccAzureRMDnsNsRecord_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMDnsNsRecord_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
@@ -47,6 +47,11 @@ func TestAccAzureRMDnsNsRecord_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsNsRecordExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -60,7 +65,7 @@ func TestAccAzureRMDnsNsRecord_deprecatedUpdateRecords(t *testing.T) {
 	preConfig := testAccAzureRMDnsNsRecord_deprecatedBasic(ri, location)
 	postConfig := testAccAzureRMDnsNsRecord_deprecatedUpdateRecords(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
@@ -90,7 +95,7 @@ func TestAccAzureRMDnsNsRecord_updateRecords(t *testing.T) {
 	preConfig := testAccAzureRMDnsNsRecord_basic(ri, location)
 	postConfig := testAccAzureRMDnsNsRecord_updateRecords(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
@@ -121,7 +126,7 @@ func TestAccAzureRMDnsNsRecord_deprecatedChangeRecordToRecords(t *testing.T) {
 	preConfig := testAccAzureRMDnsNsRecord_deprecatedBasic(ri, location)
 	postConfig := testAccAzureRMDnsNsRecord_deprecatedBasicNewRecords(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
@@ -152,7 +157,7 @@ func TestAccAzureRMDnsNsRecord_deprecatedWithTags(t *testing.T) {
 	preConfig := testAccAzureRMDnsNsRecord_deprecatedWithTags(ri, location)
 	postConfig := testAccAzureRMDnsNsRecord_deprecatedWithTagsUpdate(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
@@ -182,7 +187,7 @@ func TestAccAzureRMDnsNsRecord_withTags(t *testing.T) {
 	preConfig := testAccAzureRMDnsNsRecord_withTags(ri, location)
 	postConfig := testAccAzureRMDnsNsRecord_withTagsUpdate(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
@@ -200,6 +205,11 @@ func TestAccAzureRMDnsNsRecord_withTags(t *testing.T) {
 					testCheckAzureRMDnsNsRecordExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -306,11 +316,11 @@ resource "azurerm_dns_ns_record" "test" {
   ttl                 = 300
 
   record {
-	  nsdname = "ns1.contoso.com"
+    nsdname = "ns1.contoso.com"
   }
 
   record {
-	  nsdname = "ns2.contoso.com"
+    nsdname = "ns2.contoso.com"
   }
 }
 `, rInt, location, rInt, rInt)
@@ -445,8 +455,8 @@ resource "azurerm_dns_ns_record" "test" {
   ttl                 = 300
 
   record {
-		nsdname = "ns1.contoso.com"
-	}
+    nsdname = "ns1.contoso.com"
+  }
 
   record {
     nsdname = "ns2.contoso.com"

@@ -126,9 +126,9 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 	appServicePlan := web.AppServicePlan{
 		Location:                 &location,
 		AppServicePlanProperties: properties,
-		Kind: &kind,
-		Tags: expandTags(tags),
-		Sku:  &sku,
+		Kind:                     &kind,
+		Tags:                     expandTags(tags),
+		Sku:                      &sku,
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, appServicePlan)
@@ -188,7 +188,7 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 
 	if props := resp.AppServicePlanProperties; props != nil {
 		if err := d.Set("properties", flattenAppServiceProperties(props)); err != nil {
-			return fmt.Errorf("Error flattening `properties`: %+v", err)
+			return fmt.Errorf("Error setting `properties`: %+v", err)
 		}
 
 		if props.MaximumNumberOfWorkers != nil {
@@ -197,7 +197,7 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if err := d.Set("sku", flattenAppServicePlanSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Error flattening `sku`: %+v", err)
+		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -300,7 +300,7 @@ func expandAppServicePlanProperties(d *schema.ResourceData) *web.AppServicePlanP
 
 func flattenAppServiceProperties(props *web.AppServicePlanProperties) []interface{} {
 	result := make([]interface{}, 0, 1)
-	properties := make(map[string]interface{}, 0)
+	properties := make(map[string]interface{})
 
 	if props.HostingEnvironmentProfile != nil && props.HostingEnvironmentProfile.ID != nil {
 		properties["app_service_environment_id"] = *props.HostingEnvironmentProfile.ID
@@ -318,12 +318,12 @@ func flattenAppServiceProperties(props *web.AppServicePlanProperties) []interfac
 	return result
 }
 
-func validateAppServicePlanName(v interface{}, k string) (ws []string, es []error) {
+func validateAppServicePlanName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if matched := regexp.MustCompile(`^[0-9a-zA-Z-_]{1,60}$`).Match([]byte(value)); !matched {
-		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters, dashes and underscores up to 60 characters in length", k))
+		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters, dashes and underscores up to 60 characters in length", k))
 	}
 
-	return
+	return warnings, errors
 }

@@ -221,9 +221,9 @@ func resourceArmContainerServiceCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	ctx := meta.(*ArmClient).StopContext
-	_, error := containerServiceClient.CreateOrUpdate(ctx, resGroup, name, parameters)
-	if error != nil {
-		return error
+	_, err := containerServiceClient.CreateOrUpdate(ctx, resGroup, name, parameters)
+	if err != nil {
+		return err
 	}
 
 	read, err := containerServiceClient.Get(ctx, resGroup, name)
@@ -323,11 +323,7 @@ func resourceArmContainerServiceDelete(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error issuing Azure ARM delete request of Container Service '%s': %s", name, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, containerServiceClient.Client)
-	if err != nil {
-		return err
-	}
-	return nil
+	return future.WaitForCompletionRef(ctx, containerServiceClient.Client)
 }
 
 func flattenAzureRmContainerServiceMasterProfile(profile containerservice.MasterProfile) *schema.Set {
@@ -446,7 +442,7 @@ func expandAzureRmContainerServiceLinuxProfile(d *schema.ResourceData) container
 	adminUsername := config["admin_username"].(string)
 
 	linuxKeys := config["ssh_key"].(*schema.Set).List()
-	sshPublicKeys := []containerservice.SSHPublicKey{}
+	sshPublicKeys := make([]containerservice.SSHPublicKey, 0)
 
 	key := linuxKeys[0].(map[string]interface{})
 	keyData := key["key_data"].(string)
@@ -602,7 +598,7 @@ func resourceAzureRMContainerServiceDiagnosticProfilesHash(v interface{}) int {
 	return hashcode.String(buf.String())
 }
 
-func validateArmContainerServiceOrchestrationPlatform(v interface{}, k string) (ws []string, errors []error) {
+func validateArmContainerServiceOrchestrationPlatform(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(string)
 	capacities := map[string]bool{
 		"DCOS":       true,
@@ -613,10 +609,10 @@ func validateArmContainerServiceOrchestrationPlatform(v interface{}, k string) (
 	if !capacities[value] {
 		errors = append(errors, fmt.Errorf("Container Service: Orchestration Platgorm can only be DCOS / Kubernetes / Swarm"))
 	}
-	return
+	return warnings, errors
 }
 
-func validateArmContainerServiceMasterProfileCount(v interface{}, k string) (ws []string, errors []error) {
+func validateArmContainerServiceMasterProfileCount(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(int)
 	capacities := map[int]bool{
 		1: true,
@@ -627,13 +623,13 @@ func validateArmContainerServiceMasterProfileCount(v interface{}, k string) (ws 
 	if !capacities[value] {
 		errors = append(errors, fmt.Errorf("The number of master nodes must be 1, 3 or 5."))
 	}
-	return
+	return warnings, errors
 }
 
-func validateArmContainerServiceAgentPoolProfileCount(v interface{}, k string) (ws []string, errors []error) {
+func validateArmContainerServiceAgentPoolProfileCount(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(int)
 	if value > 100 || 0 >= value {
 		errors = append(errors, fmt.Errorf("The Count for an Agent Pool Profile can only be between 1 and 100."))
 	}
-	return
+	return warnings, errors
 }

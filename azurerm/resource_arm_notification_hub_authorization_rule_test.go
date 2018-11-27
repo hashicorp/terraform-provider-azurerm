@@ -16,7 +16,7 @@ func TestAccAzureRMNotificationHubAuthorizationRule_listen(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubAuthorizationRuleDestroy,
@@ -32,6 +32,11 @@ func TestAccAzureRMNotificationHubAuthorizationRule_listen(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -42,7 +47,7 @@ func TestAccAzureRMNotificationHubAuthorizationRule_manage(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubAuthorizationRuleDestroy,
@@ -58,6 +63,11 @@ func TestAccAzureRMNotificationHubAuthorizationRule_manage(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -68,7 +78,7 @@ func TestAccAzureRMNotificationHubAuthorizationRule_send(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubAuthorizationRuleDestroy,
@@ -84,6 +94,11 @@ func TestAccAzureRMNotificationHubAuthorizationRule_send(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -94,7 +109,7 @@ func TestAccAzureRMNotificationHubAuthorizationRule_updated(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubAuthorizationRuleDestroy,
@@ -231,7 +246,7 @@ resource "azurerm_notification_hub_authorization_rule" "test" {
 func testAzureRMNotificationHubAuthorizationRule_template(ri int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -248,7 +263,7 @@ resource "azurerm_notification_hub_namespace" "test" {
 
 resource "azurerm_notification_hub" "test" {
   name                = "acctestnh-%d"
-  namespace_name      = "${azurerm_notification_hub_namespace.test.name}" 
+  namespace_name      = "${azurerm_notification_hub_namespace.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
 }

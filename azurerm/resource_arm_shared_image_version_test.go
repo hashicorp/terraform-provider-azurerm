@@ -23,7 +23,7 @@ func TestAccAzureRMSharedImageVersion_basic(t *testing.T) {
 	location := testLocation()
 	altLocation := testAltLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSharedImageVersionDestroy,
@@ -51,6 +51,7 @@ func TestAccAzureRMSharedImageVersion_basic(t *testing.T) {
 					testCheckAzureRMSharedImageVersionExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_image_id"),
 					resource.TestCheckResourceAttr(resourceName, "target_region.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "name", "1234567890.1234567890.1234567890"),
 				),
 			},
 			{
@@ -181,7 +182,7 @@ func testAccAzureRMSharedImageVersion_imageVersionUpdated(rInt int, location, al
 %s
 
 resource "azurerm_shared_image_version" "test" {
-  name                = "0.0.1"
+  name                = "1234567890.1234567890.1234567890"
   gallery_name        = "${azurerm_shared_image_gallery.test.name}"
   image_name          = "${azurerm_shared_image.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"

@@ -18,7 +18,7 @@ func TestAccAzureRMDataLakeAnalyticsFirewallRule_basic(t *testing.T) {
 	startIP := "1.1.1.1"
 	endIP := "2.2.2.2"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDataLakeAnalyticsFirewallRuleDestroy,
@@ -44,7 +44,7 @@ func TestAccAzureRMDataLakeAnalyticsFirewallRule_update(t *testing.T) {
 	resourceName := "azurerm_data_lake_analytics_firewall_rule.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDataLakeAnalyticsFirewallRuleDestroy,
@@ -74,7 +74,7 @@ func TestAccAzureRMDataLakeAnalyticsFirewallRule_azureServices(t *testing.T) {
 	ri := acctest.RandInt()
 	azureServicesIP := "0.0.0.0"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDataLakeAnalyticsFirewallRuleDestroy,
@@ -183,5 +183,5 @@ resource "azurerm_data_lake_analytics_firewall_rule" "test" {
   start_ip_address    = "%[4]s"
   end_ip_address      = "%[5]s"
 }
-`, rInt, location, strconv.Itoa(rInt)[0:15], startIP, endIP)
+`, rInt, location, strconv.Itoa(rInt)[0:10], startIP, endIP)
 }

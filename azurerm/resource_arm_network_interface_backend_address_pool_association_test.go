@@ -14,7 +14,7 @@ import (
 func TestAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_basic(t *testing.T) {
 	resourceName := "azurerm_network_interface_backend_address_pool_association.test"
 	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		// intentional as this is a Virtual Resource
@@ -35,7 +35,7 @@ func TestAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_deleted(t *test
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		// intentional as this is a Virtual Resource

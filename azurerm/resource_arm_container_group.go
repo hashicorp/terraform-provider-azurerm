@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-06-01/containerinstance"
+	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -39,7 +39,7 @@ func resourceArmContainerGroup() *schema.Resource {
 				ForceNew:         true,
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				ValidateFunc: validation.StringInSlice([]string{
-					"Public",
+					string(containerinstance.Public),
 				}, true),
 			},
 
@@ -156,7 +156,7 @@ func resourceArmContainerGroup() *schema.Resource {
 						},
 
 						"ports": {
-							Type:          schema.TypeList,
+							Type:          schema.TypeSet,
 							Optional:      true,
 							ForceNew:      true,
 							ConflictsWith: []string{"container.0.port", "container.0.protocol"},
@@ -169,8 +169,8 @@ func resourceArmContainerGroup() *schema.Resource {
 										DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 										Default:          string("TCP"),
 										ValidateFunc: validation.StringInSlice([]string{
-											"tcp",
-											"udp",
+											string(containerinstance.TCP),
+											string(containerinstance.UDP),
 										}, true),
 									},
 									"port": {
@@ -296,7 +296,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 			Containers:    containers,
 			RestartPolicy: containerinstance.ContainerGroupRestartPolicy(restartPolicy),
 			IPAddress: &containerinstance.IPAddress{
-				Type:  &IPAddressType,
+				Type:  containerinstance.ContainerGroupIPAddressType(IPAddressType),
 				Ports: containerGroupPorts,
 			},
 			OsType:                   containerinstance.OperatingSystemTypes(OSType),
@@ -431,7 +431,7 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 			},
 		}
 
-		if v, _ := data["port"]; v != 0 {
+		if v := data["port"]; v != 0 {
 			port := int32(v.(int))
 
 			// container port (port number)
@@ -459,10 +459,8 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 			var ports []containerinstance.ContainerPort
 			for _, v := range p {
 				portObj := v.(map[string]interface{})
-				portI := portObj["port"]
-				port := int32(portI.(int))
-				protoI := portObj["protocol"]
-				proto := protoI.(string)
+				port := int32(portObj["port"].(int))
+				proto := portObj["protocol"].(string)
 				ports = append(ports, containerinstance.ContainerPort{
 					Protocol: containerinstance.ContainerNetworkProtocol(strings.ToUpper(proto)),
 					Port:     &port,
@@ -502,7 +500,7 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 		}
 
 		if container.Command == nil {
-			if v, _ := data["command"]; v != "" {
+			if v := data["command"]; v != "" {
 				command := strings.Split(v.(string), " ")
 				container.Command = &command
 			}
@@ -527,7 +525,7 @@ func expandContainerEnvironmentVariables(input interface{}, secure bool) *[]cont
 	envVars := input.(map[string]interface{})
 	output := make([]containerinstance.EnvironmentVariable, 0, len(envVars))
 
-	if secure == true {
+	if secure {
 
 		for k, v := range envVars {
 			ev := containerinstance.EnvironmentVariable{
@@ -717,10 +715,7 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 		commands := make([]string, 0)
 		if command := container.Command; command != nil {
 			containerConfig["command"] = strings.Join(*command, " ")
-
-			for _, v := range *command {
-				commands = append(commands, v)
-			}
+			commands = *command
 		}
 		containerConfig["commands"] = commands
 

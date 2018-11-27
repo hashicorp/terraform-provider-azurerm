@@ -15,7 +15,7 @@ func TestAccAzureRMKeyVaultKey_basicEC(t *testing.T) {
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultKey_basicEC(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
@@ -25,6 +25,12 @@ func TestAccAzureRMKeyVaultKey_basicEC(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultKeyExists(resourceName),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"key_size"},
 			},
 		},
 	})
@@ -35,7 +41,7 @@ func TestAccAzureRMKeyVaultKey_basicRSA(t *testing.T) {
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultKey_basicRSA(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
@@ -45,6 +51,12 @@ func TestAccAzureRMKeyVaultKey_basicRSA(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultKeyExists(resourceName),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"key_size"},
 			},
 		},
 	})
@@ -55,7 +67,7 @@ func TestAccAzureRMKeyVaultKey_basicRSAHSM(t *testing.T) {
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultKey_basicRSAHSM(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
@@ -66,6 +78,12 @@ func TestAccAzureRMKeyVaultKey_basicRSAHSM(t *testing.T) {
 					testCheckAzureRMKeyVaultKeyExists(resourceName),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"key_size"},
+			},
 		},
 	})
 }
@@ -75,7 +93,7 @@ func TestAccAzureRMKeyVaultKey_complete(t *testing.T) {
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultKey_complete(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
@@ -88,6 +106,12 @@ func TestAccAzureRMKeyVaultKey_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.hello", "world"),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"key_size"},
+			},
 		},
 	})
 }
@@ -98,7 +122,7 @@ func TestAccAzureRMKeyVaultKey_update(t *testing.T) {
 	config := testAccAzureRMKeyVaultKey_basicRSA(rs, testLocation())
 	updatedConfig := testAccAzureRMKeyVaultKey_basicUpdated(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
@@ -128,7 +152,7 @@ func TestAccAzureRMKeyVaultKey_disappears(t *testing.T) {
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultKey_basicEC(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
@@ -149,7 +173,7 @@ func TestAccAzureRMKeyVaultKey_disappearsWhenParentKeyVaultDeleted(t *testing.T)
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultKey_basicEC(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,

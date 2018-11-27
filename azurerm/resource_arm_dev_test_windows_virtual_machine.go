@@ -245,7 +245,7 @@ func resourceArmDevTestWindowsVirtualMachineRead(d *schema.ResourceData, meta in
 
 		flattenedImage := azure.FlattenDevTestVirtualMachineGalleryImage(props.GalleryImageReference)
 		if err := d.Set("gallery_image_reference", flattenedImage); err != nil {
-			return fmt.Errorf("Error flattening `gallery_image_reference`: %+v", err)
+			return fmt.Errorf("Error setting `gallery_image_reference`: %+v", err)
 		}
 
 		// Computed fields

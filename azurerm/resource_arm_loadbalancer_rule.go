@@ -358,12 +358,12 @@ func expandAzureRmLoadBalancerRule(d *schema.ResourceData, lb *network.LoadBalan
 	}
 
 	return &network.LoadBalancingRule{
-		Name: utils.String(d.Get("name").(string)),
+		Name:                              utils.String(d.Get("name").(string)),
 		LoadBalancingRulePropertiesFormat: &properties,
 	}, nil
 }
 
-func validateArmLoadBalancerRuleName(v interface{}, k string) (ws []string, errors []error) {
+func validateArmLoadBalancerRuleName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^[a-zA-Z_0-9.-]+$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
@@ -390,5 +390,5 @@ func validateArmLoadBalancerRuleName(v interface{}, k string) (ws []string, erro
 			"%q must start with a word character or number: %q", k, value))
 	}
 
-	return
+	return warnings, errors
 }

@@ -16,7 +16,7 @@ func testAccAzureRMPacketCapture_localDisk(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPacketCaptureDestroy,
@@ -26,6 +26,11 @@ func testAccAzureRMPacketCapture_localDisk(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPacketCaptureExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -38,7 +43,7 @@ func testAccAzureRMPacketCapture_storageAccount(t *testing.T) {
 	rs := acctest.RandString(5)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPacketCaptureDestroy,
@@ -48,6 +53,11 @@ func testAccAzureRMPacketCapture_storageAccount(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPacketCaptureExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -60,7 +70,7 @@ func testAccAzureRMPacketCapture_storageAccountAndLocalDisk(t *testing.T) {
 	rs := acctest.RandString(5)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPacketCaptureDestroy,
@@ -70,6 +80,11 @@ func testAccAzureRMPacketCapture_storageAccountAndLocalDisk(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPacketCaptureExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -81,7 +96,7 @@ func testAccAzureRMPacketCapture_withFilters(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPacketCaptureDestroy,
@@ -91,6 +106,11 @@ func testAccAzureRMPacketCapture_withFilters(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPacketCaptureExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -153,7 +173,7 @@ func testCheckAzureRMPacketCaptureDestroy(s *terraform.State) error {
 func testAzureRMPacketCapture_base(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -164,54 +184,54 @@ resource "azurerm_network_watcher" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name = "acctvn-%d"
-  address_space = ["10.0.0.0/16"]
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
-  name = "internal"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                 = "internal"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix = "10.0.2.0/24"
+  address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
-  name = "acctni-%d"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctni-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   ip_configuration {
-    name = "testconfiguration1"
-    subnet_id = "${azurerm_subnet.test.id}"
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
     private_ip_address_allocation = "dynamic"
   }
 }
 
 resource "azurerm_virtual_machine" "test" {
-  name = "acctvm-%d"
-  location = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                  = "acctvm-%d"
+  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
   network_interface_ids = ["${azurerm_network_interface.test.id}"]
-  vm_size = "Standard_F2"
+  vm_size               = "Standard_F2"
 
   storage_image_reference {
     publisher = "Canonical"
-    offer = "UbuntuServer"
-    sku = "16.04-LTS"
-    version = "latest"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
   }
 
   storage_os_disk {
-    name = "osdisk"
-    caching = "ReadWrite"
-    create_option = "FromImage"
+    name              = "osdisk"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
   os_profile {
-    computer_name = "hostname%d"
+    computer_name  = "hostname%d"
     admin_username = "testadmin"
     admin_password = "Password1234!"
   }

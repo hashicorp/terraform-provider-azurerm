@@ -15,7 +15,7 @@ func TestAccAzureRMDevTestVirtualMachine_basic(t *testing.T) {
 	rInt := acctest.RandIntRange(11111, 99999)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDevTestWindowsVirtualMachineDestroy,
@@ -48,7 +48,7 @@ func TestAccAzureRMDevTestWindowsVirtualMachine_inboundNatRules(t *testing.T) {
 	rInt := acctest.RandIntRange(11111, 99999)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDevTestWindowsVirtualMachineDestroy,
@@ -84,7 +84,7 @@ func TestAccAzureRMDevTestWindowsVirtualMachine_updateStorage(t *testing.T) {
 	rInt := acctest.RandIntRange(11111, 99999)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDevTestWindowsVirtualMachineDestroy,

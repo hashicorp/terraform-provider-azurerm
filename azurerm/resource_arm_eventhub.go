@@ -112,8 +112,9 @@ func resourceArmEventHub() *schema.Resource {
 										Required: true,
 									},
 									"storage_account_id": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: azure.ValidateResourceID,
 									},
 								},
 							},
@@ -241,25 +242,27 @@ func resourceArmEventHubDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func validateEventHubPartitionCount(v interface{}, k string) (ws []string, errors []error) {
+func validateEventHubPartitionCount(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(int)
 
 	if !(32 >= value && value >= 2) {
 		errors = append(errors, fmt.Errorf("EventHub Partition Count has to be between 2 and 32"))
 	}
-	return
+
+	return warnings, errors
 }
 
-func validateEventHubMessageRetentionCount(v interface{}, k string) (ws []string, errors []error) {
+func validateEventHubMessageRetentionCount(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(int)
 
 	if !(7 >= value && value >= 1) {
 		errors = append(errors, fmt.Errorf("EventHub Retention Count has to be between 1 and 7"))
 	}
-	return
+
+	return warnings, errors
 }
 
-func validateEventHubArchiveNameFormat(v interface{}, k string) (ws []string, errors []error) {
+func validateEventHubArchiveNameFormat(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	requiredComponents := []string{
@@ -280,7 +283,7 @@ func validateEventHubArchiveNameFormat(v interface{}, k string) (ws []string, er
 		}
 	}
 
-	return
+	return warnings, errors
 }
 
 func expandEventHubCaptureDescription(d *schema.ResourceData) (*eventhub.CaptureDescription, error) {
@@ -327,7 +330,7 @@ func flattenEventHubCaptureDescription(description *eventhub.CaptureDescription)
 	results := make([]interface{}, 0)
 
 	if description != nil {
-		output := make(map[string]interface{}, 0)
+		output := make(map[string]interface{})
 
 		if enabled := description.Enabled; enabled != nil {
 			output["enabled"] = *enabled
@@ -344,7 +347,7 @@ func flattenEventHubCaptureDescription(description *eventhub.CaptureDescription)
 		}
 
 		if destination := description.Destination; destination != nil {
-			destinationOutput := make(map[string]interface{}, 0)
+			destinationOutput := make(map[string]interface{})
 
 			if name := destination.Name; name != nil {
 				destinationOutput["name"] = *name

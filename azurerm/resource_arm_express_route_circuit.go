@@ -181,7 +181,7 @@ func resourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}
 	if resp.Sku != nil {
 		sku := flattenExpressRouteCircuitSku(resp.Sku)
 		if err := d.Set("sku", sku); err != nil {
-			return fmt.Errorf("Error flattening `sku`: %+v", err)
+			return fmt.Errorf("Error setting `sku`: %+v", err)
 		}
 	}
 
@@ -217,12 +217,7 @@ func resourceArmExpressRouteCircuitDelete(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return future.WaitForCompletionRef(ctx, client.Client)
 }
 
 func expandExpressRouteCircuitSku(d *schema.ResourceData) *network.ExpressRouteCircuitSku {

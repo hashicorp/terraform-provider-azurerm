@@ -112,6 +112,8 @@ The following arguments are supported:
 
 ~> **NOTE** Setting `content` to an empty string will revert the runbook to the `publish_content_link`.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 `publish_content_link` supports the following:
 
 * `uri` - (Required) The uri of the runbook content.

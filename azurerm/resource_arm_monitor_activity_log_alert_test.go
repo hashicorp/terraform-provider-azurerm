@@ -16,7 +16,7 @@ func TestAccAzureRMMonitorActivityLogAlert_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMMonitorActivityLogAlert_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMonitorActivityLogAlertDestroy,
@@ -47,7 +47,7 @@ func TestAccAzureRMMonitorActivityLogAlert_singleResource(t *testing.T) {
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMMonitorActivityLogAlert_singleResource(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMonitorActivityLogAlertDestroy,
@@ -80,7 +80,7 @@ func TestAccAzureRMMonitorActivityLogAlert_complete(t *testing.T) {
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMMonitorActivityLogAlert_complete(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMonitorActivityLogAlertDestroy,
@@ -122,7 +122,7 @@ func TestAccAzureRMMonitorActivityLogAlert_basicAndCompleteUpdate(t *testing.T) 
 	basicConfig := testAccAzureRMMonitorActivityLogAlert_basic(ri, location)
 	completeConfig := testAccAzureRMMonitorActivityLogAlert_complete(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
@@ -196,7 +196,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   scopes              = ["${azurerm_resource_group.test.id}"]
 
   criteria {
-    category       = "Recommendation"
+    category = "Recommendation"
   }
 }
 `, rInt, location, rInt)
@@ -273,21 +273,22 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   enabled             = true
   description         = "This is just a test resource."
-  scopes              = [
+
+  scopes = [
     "${azurerm_resource_group.test.id}",
-    "${azurerm_storage_account.test.id}"
+    "${azurerm_storage_account.test.id}",
   ]
 
   criteria {
-    operation_name = "Microsoft.Storage/storageAccounts/write"
-    category       		= "Recommendation"
+    operation_name    = "Microsoft.Storage/storageAccounts/write"
+    category          = "Recommendation"
     resource_provider = "Microsoft.Storage"
-    resource_type  		= "Microsoft.Storage/storageAccounts"
-    resource_group 		= "${azurerm_resource_group.test.name}"
-    resource_id    		= "${azurerm_storage_account.test.id}"
-    caller         		= "user@example.com"
-    level        		  = "Error"
-    status        		= "Failed"
+    resource_type     = "Microsoft.Storage/storageAccounts"
+    resource_group    = "${azurerm_resource_group.test.name}"
+    resource_id       = "${azurerm_storage_account.test.id}"
+    caller            = "user@example.com"
+    level             = "Error"
+    status            = "Failed"
   }
 
   action {
@@ -296,6 +297,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
 
   action {
     action_group_id = "${azurerm_monitor_action_group.test2.id}"
+
     webhook_properties {
       from = "terraform test"
       to   = "microsoft azure"

@@ -383,7 +383,7 @@ func flattenMonitorActivityLogAlertAction(input *insights.ActivityLogAlertAction
 		return
 	}
 	for _, action := range *input.ActionGroups {
-		v := make(map[string]interface{}, 0)
+		v := make(map[string]interface{})
 
 		if action.ActionGroupID != nil {
 			v["action_group_id"] = *action.ActionGroupID
@@ -399,7 +399,7 @@ func flattenMonitorActivityLogAlertAction(input *insights.ActivityLogAlertAction
 
 		result = append(result, v)
 	}
-	return
+	return result
 }
 
 func resourceArmMonitorActivityLogAlertActionHash(input interface{}) int {

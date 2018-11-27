@@ -30,7 +30,7 @@ func TestAccAzureRMEventHubNamespaceAuthorizationRule_manage(t *testing.T) {
 func testAccAzureRMEventHubNamespaceAuthorizationRule(t *testing.T, listen, send, manage bool) {
 	resourceName := "azurerm_eventhub_namespace_authorization_rule.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy,
@@ -62,7 +62,7 @@ func testAccAzureRMEventHubNamespaceAuthorizationRule(t *testing.T, listen, send
 func TestAccAzureRMEventHubNamespaceAuthorizationRule_rightsUpdate(t *testing.T) {
 	resourceName := "azurerm_eventhub_namespace_authorization_rule.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy,

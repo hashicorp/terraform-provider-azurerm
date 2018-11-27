@@ -34,9 +34,5 @@ func dataSourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) er
 
 	d.SetId(*resp.ID)
 
-	if err := resourceArmResourceGroupRead(d, meta); err != nil {
-		return err
-	}
-
-	return nil
+	return resourceArmResourceGroupRead(d, meta)
 }

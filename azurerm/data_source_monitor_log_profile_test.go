@@ -17,7 +17,7 @@ func testAccDataSourceAzureRMMonitorLogProfile_storageaccount(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := acctest.RandString(10)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogProfileDestroy,
@@ -44,7 +44,7 @@ func testAccDataSourceAzureRMMonitorLogProfile_eventhub(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := acctest.RandString(10)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogProfileDestroy,
@@ -69,39 +69,39 @@ func testAccDataSourceAzureRMMonitorLogProfile_eventhub(t *testing.T) {
 func testAccDataSourceAzureRMMonitorLogProfile_storageaccountConfig(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name     = "acctestrg-%d"
-    location = "%s"
+  name     = "acctestrg-%d"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
-    name                     = "acctestsa%s"
-    resource_group_name      = "${azurerm_resource_group.test.name}"
-    location                 = "${azurerm_resource_group.test.location}"
-    account_tier             = "Standard"
-    account_replication_type = "GRS"
+  name                     = "acctestsa%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
 }
-    
+
 resource "azurerm_monitor_log_profile" "test" {
-    name = "acctestlp-%d"
+  name = "acctestlp-%d"
 
-    categories = [
-        "Action",
-    ]
-    
-    locations = [
-        "%s"
-    ]
-    
-    storage_account_id = "${azurerm_storage_account.test.id}"
+  categories = [
+    "Action",
+  ]
 
-    retention_policy {
-        enabled = true
-        days    = 7
-    }
+  locations = [
+    "%s",
+  ]
+
+  storage_account_id = "${azurerm_storage_account.test.id}"
+
+  retention_policy {
+    enabled = true
+    days    = 7
+  }
 }
 
 data "azurerm_monitor_log_profile" "test" {
-    name = "${azurerm_monitor_log_profile.test.name}"
+  name = "${azurerm_monitor_log_profile.test.name}"
 }
 `, rInt, location, rString, rInt, location)
 }
@@ -109,40 +109,40 @@ data "azurerm_monitor_log_profile" "test" {
 func testAccDataSourceAzureRMMonitorLogProfile_eventhubConfig(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name     = "acctestrg-%d"
-    location = "%s"
+  name     = "acctestrg-%d"
+  location = "%s"
 }
 
 resource "azurerm_eventhub_namespace" "test" {
-    name                = "acctestehns-%s"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku                 = "Standard"
-    capacity            = 2
+  name                = "acctestehns-%s"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+  capacity            = 2
 }
-    
+
 resource "azurerm_monitor_log_profile" "test" {
-    name = "acctestlp-%d"
+  name = "acctestlp-%d"
 
-    categories = [
-        "Action",
-    ]
-    
-    locations = [
-        "%s"
-    ]
-    
-    # RootManageSharedAccessKey is created by default with listen, send, manage permissions
-    servicebus_rule_id = "${azurerm_eventhub_namespace.test.id}/authorizationrules/RootManageSharedAccessKey"
+  categories = [
+    "Action",
+  ]
 
-    retention_policy {
-        enabled = true
-        days    = 7
-    }
+  locations = [
+    "%s",
+  ]
+
+  # RootManageSharedAccessKey is created by default with listen, send, manage permissions
+  servicebus_rule_id = "${azurerm_eventhub_namespace.test.id}/authorizationrules/RootManageSharedAccessKey"
+
+  retention_policy {
+    enabled = true
+    days    = 7
+  }
 }
 
 data "azurerm_monitor_log_profile" "test" {
-    name = "${azurerm_monitor_log_profile.test.name}"
+  name = "${azurerm_monitor_log_profile.test.name}"
 }
 `, rInt, location, rString, rInt, location)
 }

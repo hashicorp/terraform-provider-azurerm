@@ -18,7 +18,7 @@ func TestAccAzureRMVirtualMachineExtension_basic(t *testing.T) {
 	preConfig := testAccAzureRMVirtualMachineExtension_basic(ri, location)
 	postConfig := testAccAzureRMVirtualMachineExtension_basicUpdate(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineExtensionDestroy,
@@ -29,6 +29,12 @@ func TestAccAzureRMVirtualMachineExtension_basic(t *testing.T) {
 					testCheckAzureRMVirtualMachineExtensionExists(resourceName),
 					resource.TestMatchResourceAttr(resourceName, "settings", regexp.MustCompile("hostname")),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"protected_settings"},
 			},
 			{
 				Config: postConfig,
@@ -47,7 +53,7 @@ func TestAccAzureRMVirtualMachineExtension_concurrent(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMVirtualMachineExtension_concurrent(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineExtensionDestroy,
@@ -69,7 +75,7 @@ func TestAccAzureRMVirtualMachineExtension_linuxDiagnostics(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMVirtualMachineExtension_linuxDiagnostics(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineExtensionDestroy,
@@ -142,105 +148,105 @@ func testCheckAzureRMVirtualMachineExtensionDestroy(s *terraform.State) error {
 func testAccAzureRMVirtualMachineExtension_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-    name = "acctvn-%d"
-    address_space = ["10.0.0.0/16"]
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
-    name = "acctsub-%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_network_name = "${azurerm_virtual_network.test.name}"
-    address_prefix = "10.0.2.0/24"
+  name                 = "acctsub-%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
-    name = "acctni-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctni-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    ip_configuration {
-    	name = "testconfiguration1"
-    	subnet_id = "${azurerm_subnet.test.id}"
-    	private_ip_address_allocation = "dynamic"
-    }
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
+  }
 }
 
 resource "azurerm_storage_account" "test" {
-    name                     = "accsa%d"
-    resource_group_name      = "${azurerm_resource_group.test.name}"
-    location                 = "${azurerm_resource_group.test.location}"
-    account_tier             = "Standard"
-    account_replication_type = "LRS"
+  name                     = "accsa%d"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 
-    tags {
-        environment = "staging"
-    }
+  tags {
+    environment = "staging"
+  }
 }
 
 resource "azurerm_storage_container" "test" {
-    name = "vhds"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    storage_account_name = "${azurerm_storage_account.test.name}"
-    container_access_type = "private"
+  name                  = "vhds"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine" "test" {
-    name = "acctvm-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    network_interface_ids = ["${azurerm_network_interface.test.id}"]
-    vm_size = "Standard_F2"
+  name                  = "acctvm-%d"
+  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  vm_size               = "Standard_F2"
 
-    storage_image_reference {
-		publisher = "Canonical"
-		offer = "UbuntuServer"
-		sku = "16.04-LTS"
-		version = "latest"
-    }
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
 
-    storage_os_disk {
-        name = "myosdisk1"
-        vhd_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-        caching = "ReadWrite"
-        create_option = "FromImage"
-    }
+  storage_os_disk {
+    name          = "myosdisk1"
+    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+    caching       = "ReadWrite"
+    create_option = "FromImage"
+  }
 
-    os_profile {
-		computer_name = "hostname%d"
-		admin_username = "testadmin"
-		admin_password = "Password1234!"
-    }
+  os_profile {
+    computer_name  = "hostname%d"
+    admin_username = "testadmin"
+    admin_password = "Password1234!"
+  }
 
-    os_profile_linux_config {
-	disable_password_authentication = false
-   }
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
 }
 
 resource "azurerm_virtual_machine_extension" "test" {
-    name = "acctvme-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_machine_name = "${azurerm_virtual_machine.test.name}"
-    publisher = "Microsoft.Azure.Extensions"
-    type = "CustomScript"
-    type_handler_version = "2.0"
+  name                 = "acctvme-%d"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_machine_name = "${azurerm_virtual_machine.test.name}"
+  publisher            = "Microsoft.Azure.Extensions"
+  type                 = "CustomScript"
+  type_handler_version = "2.0"
 
-    settings = <<SETTINGS
+  settings = <<SETTINGS
 	{
 		"commandToExecute": "hostname"
 	}
 SETTINGS
 
-	tags {
-		environment = "Production"
-	}
+  tags {
+    environment = "Production"
+  }
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
 }
@@ -248,106 +254,106 @@ SETTINGS
 func testAccAzureRMVirtualMachineExtension_basicUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-    name = "acctvn-%d"
-    address_space = ["10.0.0.0/16"]
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
-    name = "acctsub-%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_network_name = "${azurerm_virtual_network.test.name}"
-    address_prefix = "10.0.2.0/24"
+  name                 = "acctsub-%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
-    name = "acctni-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctni-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    ip_configuration {
-    	name = "testconfiguration1"
-    	subnet_id = "${azurerm_subnet.test.id}"
-    	private_ip_address_allocation = "dynamic"
-    }
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
+  }
 }
 
 resource "azurerm_storage_account" "test" {
-    name                     = "accsa%d"
-    resource_group_name      = "${azurerm_resource_group.test.name}"
-    location                 = "${azurerm_resource_group.test.location}"
-    account_tier             = "Standard"
-    account_replication_type = "LRS"
+  name                     = "accsa%d"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 
-    tags {
-        environment = "staging"
-    }
+  tags {
+    environment = "staging"
+  }
 }
 
 resource "azurerm_storage_container" "test" {
-    name = "vhds"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    storage_account_name = "${azurerm_storage_account.test.name}"
-    container_access_type = "private"
+  name                  = "vhds"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine" "test" {
-    name = "acctvm-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    network_interface_ids = ["${azurerm_network_interface.test.id}"]
-    vm_size = "Standard_F2"
+  name                  = "acctvm-%d"
+  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  vm_size               = "Standard_F2"
 
-    storage_image_reference {
-		publisher = "Canonical"
-		offer = "UbuntuServer"
-		sku = "16.04-LTS"
-		version = "latest"
-    }
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
 
-    storage_os_disk {
-        name = "myosdisk1"
-        vhd_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-        caching = "ReadWrite"
-        create_option = "FromImage"
-    }
+  storage_os_disk {
+    name          = "myosdisk1"
+    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+    caching       = "ReadWrite"
+    create_option = "FromImage"
+  }
 
-    os_profile {
-		computer_name = "hostname%d"
-		admin_username = "testadmin"
-		admin_password = "Password1234!"
-    }
+  os_profile {
+    computer_name  = "hostname%d"
+    admin_username = "testadmin"
+    admin_password = "Password1234!"
+  }
 
-    os_profile_linux_config {
-	disable_password_authentication = false
-   }
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
 }
 
 resource "azurerm_virtual_machine_extension" "test" {
-    name = "acctvme-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_machine_name = "${azurerm_virtual_machine.test.name}"
-    publisher = "Microsoft.Azure.Extensions"
-    type = "CustomScript"
-    type_handler_version = "2.0"
+  name                 = "acctvme-%d"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_machine_name = "${azurerm_virtual_machine.test.name}"
+  publisher            = "Microsoft.Azure.Extensions"
+  type                 = "CustomScript"
+  type_handler_version = "2.0"
 
-    settings = <<SETTINGS
+  settings = <<SETTINGS
 	{
 		"commandToExecute": "whoami"
 	}
 SETTINGS
 
-	tags {
-		environment = "Production"
-		cost_center = "MSFT"
-	}
+  tags {
+    environment = "Production"
+    cost_center = "MSFT"
+  }
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
 }
@@ -355,97 +361,97 @@ SETTINGS
 func testAccAzureRMVirtualMachineExtension_concurrent(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-    name = "acctvn-%d"
-    address_space = ["10.0.0.0/16"]
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
-    name = "acctsub-%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_network_name = "${azurerm_virtual_network.test.name}"
-    address_prefix = "10.0.2.0/24"
+  name                 = "acctsub-%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
-    name = "acctni-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctni-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    ip_configuration {
-    	name = "testconfiguration1"
-    	subnet_id = "${azurerm_subnet.test.id}"
-    	private_ip_address_allocation = "dynamic"
-    }
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
+  }
 }
 
 resource "azurerm_storage_account" "test" {
-    name                     = "accsa%d"
-    resource_group_name      = "${azurerm_resource_group.test.name}"
-    location                 = "${azurerm_resource_group.test.location}"
-    account_tier             = "Standard"
-    account_replication_type = "LRS"
+  name                     = "accsa%d"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 
-    tags {
-        environment = "staging"
-    }
+  tags {
+    environment = "staging"
+  }
 }
 
 resource "azurerm_storage_container" "test" {
-    name = "vhds"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    storage_account_name = "${azurerm_storage_account.test.name}"
-    container_access_type = "private"
+  name                  = "vhds"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine" "test" {
-    name = "acctvm-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    network_interface_ids = ["${azurerm_network_interface.test.id}"]
-    vm_size = "Standard_F2"
+  name                  = "acctvm-%d"
+  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  vm_size               = "Standard_F2"
 
-    storage_image_reference {
-	publisher = "Canonical"
-	offer = "UbuntuServer"
-	sku = "16.04-LTS"
-	version = "latest"
-    }
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
 
-    storage_os_disk {
-        name = "myosdisk1"
-        vhd_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-        caching = "ReadWrite"
-        create_option = "FromImage"
-    }
+  storage_os_disk {
+    name          = "myosdisk1"
+    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+    caching       = "ReadWrite"
+    create_option = "FromImage"
+  }
 
-    os_profile {
-	computer_name = "hostname%d"
-	admin_username = "testadmin"
-	admin_password = "Password1234!"
-    }
+  os_profile {
+    computer_name  = "hostname%d"
+    admin_username = "testadmin"
+    admin_password = "Password1234!"
+  }
 
-    os_profile_linux_config {
-	disable_password_authentication = false
-   }
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
 }
 
 resource "azurerm_virtual_machine_extension" "test" {
-    name = "acctvme-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_machine_name = "${azurerm_virtual_machine.test.name}"
-    publisher = "Microsoft.Azure.Extensions"
-    type = "CustomScript"
-    type_handler_version = "2.0"
+  name                 = "acctvme-%d"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_machine_name = "${azurerm_virtual_machine.test.name}"
+  publisher            = "Microsoft.Azure.Extensions"
+  type                 = "CustomScript"
+  type_handler_version = "2.0"
 
-    settings = <<SETTINGS
+  settings = <<SETTINGS
 	{
 		"commandToExecute": "hostname"
 	}
@@ -453,15 +459,15 @@ SETTINGS
 }
 
 resource "azurerm_virtual_machine_extension" "test2" {
-    name = "acctvme-%d-2"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_machine_name = "${azurerm_virtual_machine.test.name}"
-    publisher = "Microsoft.OSTCExtensions"
-    type = "CustomScriptForLinux"
-    type_handler_version = "1.5"
+  name                 = "acctvme-%d-2"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_machine_name = "${azurerm_virtual_machine.test.name}"
+  publisher            = "Microsoft.OSTCExtensions"
+  type                 = "CustomScriptForLinux"
+  type_handler_version = "1.5"
 
-    settings = <<SETTINGS
+  settings = <<SETTINGS
 	{
 		"commandToExecute": "whoami"
 	}
@@ -473,106 +479,106 @@ SETTINGS
 func testAccAzureRMVirtualMachineExtension_linuxDiagnostics(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-    name = "acctvn-%d"
-    address_space = ["10.0.0.0/16"]
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
-    name = "acctsub-%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_network_name = "${azurerm_virtual_network.test.name}"
-    address_prefix = "10.0.2.0/24"
+  name                 = "acctsub-%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
-    name = "acctni-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctni-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    ip_configuration {
-    	name = "testconfiguration1"
-    	subnet_id = "${azurerm_subnet.test.id}"
-    	private_ip_address_allocation = "dynamic"
-    }
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
+  }
 }
 
 resource "azurerm_storage_account" "test" {
-    name                     = "accsa%d"
-    resource_group_name      = "${azurerm_resource_group.test.name}"
-    location                 = "${azurerm_resource_group.test.location}"
-    account_tier             = "Standard"
-    account_replication_type = "LRS"
+  name                     = "accsa%d"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 
-    tags {
-        environment = "staging"
-    }
+  tags {
+    environment = "staging"
+  }
 }
 
 resource "azurerm_storage_container" "test" {
-    name = "vhds"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    storage_account_name = "${azurerm_storage_account.test.name}"
-    container_access_type = "private"
+  name                  = "vhds"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
 }
 
 resource "azurerm_virtual_machine" "test" {
-    name = "acctvm-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    network_interface_ids = ["${azurerm_network_interface.test.id}"]
-    vm_size = "Standard_F2"
+  name                  = "acctvm-%d"
+  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  vm_size               = "Standard_F2"
 
-    storage_image_reference {
-	publisher = "Canonical"
-	offer = "UbuntuServer"
-	sku = "16.04-LTS"
-	version = "latest"
-    }
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
 
-    storage_os_disk {
-        name = "myosdisk1"
-        vhd_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-        caching = "ReadWrite"
-        create_option = "FromImage"
-    }
+  storage_os_disk {
+    name          = "myosdisk1"
+    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+    caching       = "ReadWrite"
+    create_option = "FromImage"
+  }
 
-    os_profile {
-	computer_name = "hostname%d"
-	admin_username = "testadmin"
-	admin_password = "Password1234!"
-    }
+  os_profile {
+    computer_name  = "hostname%d"
+    admin_username = "testadmin"
+    admin_password = "Password1234!"
+  }
 
-    os_profile_linux_config {
-	disable_password_authentication = false
-   }
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
 }
 
 resource "azurerm_virtual_machine_extension" "test" {
-    name = "acctvme-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_machine_name = "${azurerm_virtual_machine.test.name}"
-    publisher = "Microsoft.OSTCExtensions"
-    type = "LinuxDiagnostic"
-    type_handler_version = "2.3"
+  name                 = "acctvme-%d"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_machine_name = "${azurerm_virtual_machine.test.name}"
+  publisher            = "Microsoft.OSTCExtensions"
+  type                 = "LinuxDiagnostic"
+  type_handler_version = "2.3"
 
-    protected_settings = <<SETTINGS
+  protected_settings = <<SETTINGS
 	{
 		"storageAccountName": "${azurerm_storage_account.test.name}",
         "storageAccountKey": "${azurerm_storage_account.test.primary_access_key}"
 	}
 SETTINGS
 
-	tags {
-		environment = "Production"
-	}
+  tags {
+    environment = "Production"
+  }
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
 }

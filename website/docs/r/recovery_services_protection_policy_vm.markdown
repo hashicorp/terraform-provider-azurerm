@@ -26,7 +26,7 @@ resource "azurerm_recovery_services_vault" "example" {
 }
 
 resource "azurerm_recovery_services_protection_policy_vm" "test" {
-  name                = "acctest-%d"
+  name                = "tfex-recovery-vault-policy"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
 
@@ -123,7 +123,7 @@ The `retention_yearly` block supports:
 
 * `weeks` - (Required) The weeks of the month to retain backups of. Must be one of `First`, `Second`, `Third`, `Fourth`, `Last`.
 
-* `weeks` - (Required) The months of the year to retain backups of. Must be one of `January`, `Febuary`, `March`, `April`, `May`, `June`, `July`, `Augest`, `September`, `October`, `November` and `December`.
+* `months` - (Required) The months of the year to retain backups of. Must be one of `January`, `Febuary`, `March`, `April`, `May`, `June`, `July`, `Augest`, `September`, `October`, `November` and `December`.
 
 ---
 

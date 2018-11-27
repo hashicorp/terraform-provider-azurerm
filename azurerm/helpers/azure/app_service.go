@@ -26,6 +26,11 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 					Default:  false,
 				},
 
+				"app_command_line": {
+					Type:     schema.TypeString,
+					Optional: true,
+				},
+
 				"default_documents": {
 					Type:     schema.TypeList,
 					Optional: true,
@@ -117,6 +122,7 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 						"5.6",
 						"7.0",
 						"7.1",
+						"7.2",
 					}, false),
 				},
 
@@ -218,6 +224,10 @@ func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 
 	if v, ok := config["always_on"]; ok {
 		siteConfig.AlwaysOn = utils.Bool(v.(bool))
+	}
+
+	if v, ok := config["app_command_line"]; ok {
+		siteConfig.AppCommandLine = utils.String(v.(string))
 	}
 
 	if v, ok := config["default_documents"]; ok {
@@ -335,7 +345,7 @@ func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 
 func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	results := make([]interface{}, 0)
-	result := make(map[string]interface{}, 0)
+	result := make(map[string]interface{})
 
 	if input == nil {
 		log.Printf("[DEBUG] SiteConfig is nil")
@@ -346,11 +356,13 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 		result["always_on"] = *input.AlwaysOn
 	}
 
+	if input.AppCommandLine != nil {
+		result["app_command_line"] = *input.AppCommandLine
+	}
+
 	documents := make([]string, 0)
-	if input.DefaultDocuments != nil {
-		for _, document := range *input.DefaultDocuments {
-			documents = append(documents, document)
-		}
+	if s := input.DefaultDocuments; s != nil {
+		documents = *s
 	}
 	result["default_documents"] = documents
 
@@ -381,22 +393,22 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	restrictions := make([]interface{}, 0)
 	if vs := input.IPSecurityRestrictions; vs != nil {
 		for _, v := range *vs {
-			result := make(map[string]interface{}, 0)
+			block := make(map[string]interface{})
 			if ip := v.IPAddress; ip != nil {
 				// the 2018-02-01 API uses CIDR format (a.b.c.d/x), so translate that back to IP and mask
 				if strings.Contains(*ip, "/") {
 					ipAddr, ipNet, _ := net.ParseCIDR(*ip)
-					result["ip_address"] = ipAddr.String()
+					block["ip_address"] = ipAddr.String()
 					mask := net.IP(ipNet.Mask)
-					result["subnet_mask"] = mask.String()
+					block["subnet_mask"] = mask.String()
 				} else {
-					result["ip_address"] = *ip
+					block["ip_address"] = *ip
 				}
 			}
 			if subnet := v.SubnetMask; subnet != nil {
-				result["subnet_mask"] = *subnet
+				block["subnet_mask"] = *subnet
 			}
-			restrictions = append(restrictions, result)
+			restrictions = append(restrictions, block)
 		}
 	}
 	result["ip_restriction"] = restrictions

@@ -67,7 +67,7 @@ func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMServiceBusNamespace_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
@@ -78,6 +78,11 @@ func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
 					testCheckAzureRMServiceBusNamespaceExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -87,7 +92,7 @@ func TestAccAzureRMServiceBusNamespace_readDefaultKeys(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMServiceBusNamespace_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
@@ -116,7 +121,7 @@ func TestAccAzureRMServiceBusNamespace_NonStandardCasing(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMServiceBusNamespaceNonStandardCasing(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
@@ -132,6 +137,11 @@ func TestAccAzureRMServiceBusNamespace_NonStandardCasing(t *testing.T) {
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -141,7 +151,7 @@ func TestAccAzureRMServiceBusNamespace_premium(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMServiceBusNamespace_premium(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
@@ -151,6 +161,11 @@ func TestAccAzureRMServiceBusNamespace_premium(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusNamespaceExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -215,14 +230,15 @@ func testCheckAzureRMServiceBusNamespaceExists(name string) resource.TestCheckFu
 func testAccAzureRMServiceBusNamespace_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
+
 resource "azurerm_servicebus_namespace" "test" {
-    name = "acctestservicebusnamespace-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku = "basic"
+  name                = "acctestservicebusnamespace-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "basic"
 }
 `, rInt, location, rInt)
 }
@@ -230,14 +246,15 @@ resource "azurerm_servicebus_namespace" "test" {
 func testAccAzureRMServiceBusNamespaceNonStandardCasing(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
+
 resource "azurerm_servicebus_namespace" "test" {
-    name = "acctestservicebusnamespace-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku = "Basic"
+  name                = "acctestservicebusnamespace-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Basic"
 }
 `, rInt, location, rInt)
 }
@@ -245,16 +262,16 @@ resource "azurerm_servicebus_namespace" "test" {
 func testAccAzureRMServiceBusNamespace_premium(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name     = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-    name                = "acctestservicebusnamespace-%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku                 = "Premium"
-    capacity            = 1
+  name                = "acctestservicebusnamespace-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Premium"
+  capacity            = 1
 }
 `, rInt, location, rInt)
 }
