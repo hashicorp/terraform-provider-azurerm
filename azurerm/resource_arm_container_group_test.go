@@ -9,8 +9,6 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
-	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-04-01/containerinstance"
 )
 
 func TestAccAzureRMContainerGroup_imageRegistryCredentials(t *testing.T) {
@@ -616,7 +614,7 @@ resource "azurerm_container_group" "test" {
 `, ri, location, ri, ri, ri, ri)
 }
 
-func testCheckAzureRMContainerGroupExists(name string, checkResp func(containerinstance.ContainerGroup) error) resource.TestCheckFunc {
+func testCheckAzureRMContainerGroupExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
