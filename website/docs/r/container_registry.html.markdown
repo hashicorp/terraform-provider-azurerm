@@ -46,7 +46,7 @@ resource "azurerm_container_registry" "test" {
 
 ### Managed Container Registry
 
-When using another SKU than `Classic`, Azure Container Registry manages the storage account for you.
+When using a SKU other than `Classic`, Azure Container Registry manages the storage account for you.
 
 ```hcl
 resource "azurerm_resource_group" "rg" {
