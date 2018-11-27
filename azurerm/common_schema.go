@@ -56,3 +56,7 @@ func zonesSchemaComputed() *schema.Schema {
 func expandZones(v []interface{}) *[]string {
 	return azure.ExpandZones(v)
 }
+
+func azureRMHashLocation(location interface{}) int {
+	return azure.HashAzureLocation(location)
+}

@@ -101,10 +101,11 @@ type ArmClient struct {
 	dnsClient   dns.RecordSetsClient
 	zonesClient dns.ZonesClient
 
-	containerRegistryClient  containerregistry.RegistriesClient
-	containerServicesClient  containerservice.ContainerServicesClient
-	kubernetesClustersClient containerservice.ManagedClustersClient
-	containerGroupsClient    containerinstance.ContainerGroupsClient
+	containerRegistryClient             containerregistry.RegistriesClient
+	containerRegistryReplicationsClient containerregistry.ReplicationsClient
+	containerServicesClient             containerservice.ContainerServicesClient
+	kubernetesClustersClient            containerservice.ManagedClustersClient
+	containerGroupsClient               containerinstance.ContainerGroupsClient
 
 	eventGridTopicsClient       eventgrid.TopicsClient
 	eventHubClient              eventhub.EventHubsClient
@@ -612,6 +613,11 @@ func (c *ArmClient) registerContainerRegistryClients(endpoint, subscriptionId st
 	crc := containerregistry.NewRegistriesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&crc.Client, auth)
 	c.containerRegistryClient = crc
+
+	// container registry replicalication client
+	crrc := containerregistry.NewReplicationsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&crrc.Client, auth)
+	c.containerRegistryReplicationsClient = crrc
 }
 
 func (c *ArmClient) registerContainerServicesClients(endpoint, subscriptionId string, auth autorest.Authorizer) {

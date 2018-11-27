@@ -3,8 +3,10 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -252,6 +254,85 @@ func TestAccAzureRMContainerRegistry_update(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
+	dataSourceName := "azurerm_container_registry.test"
+	skuPremium := "Premium"
+	skuBasic := "Basic"
+	ri := acctest.RandInt()
+	containerRegistryName := fmt.Sprintf("testacccr%d", ri)
+	resourceGroupName := fmt.Sprintf("testAccRg-%d", ri)
+	config := testAccAzureRMContainerRegistry_geoReplication(ri, testLocation(), skuPremium, `"eastus", "westus"`)
+	updatedConfig := testAccAzureRMContainerRegistry_geoReplication(ri, testLocation(), skuPremium, `"centralus", "eastus"`)
+	updatedConfigWithNoLocation := testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation(ri, testLocation(), skuPremium)
+	updatedConfigBasicSku := testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation(ri, testLocation(), skuBasic)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		Steps: []resource.TestStep{
+			// first config creates an ACR with locations
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(dataSourceName, "name", containerRegistryName),
+					resource.TestCheckResourceAttr(dataSourceName, "resource_group_name", resourceGroupName),
+					resource.TestCheckResourceAttr(dataSourceName, "sku", skuPremium),
+					resource.TestCheckResourceAttr(dataSourceName, "georeplication_locations.#", "2"),
+					testCheckAzureRMContainerRegistryExists(dataSourceName),
+					testCheckAzureRMContainerRegistryGeoreplications(dataSourceName, skuPremium, []string{`"eastus"`, `"westus"`}),
+				),
+			},
+			// second config udpates the ACR with updated locations
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(dataSourceName, "name", containerRegistryName),
+					resource.TestCheckResourceAttr(dataSourceName, "resource_group_name", resourceGroupName),
+					resource.TestCheckResourceAttr(dataSourceName, "sku", skuPremium),
+					resource.TestCheckResourceAttr(dataSourceName, "georeplication_locations.#", "2"),
+					testCheckAzureRMContainerRegistryExists(dataSourceName),
+					testCheckAzureRMContainerRegistryGeoreplications(dataSourceName, skuPremium, []string{`"eastus"`, `"centralus"`}),
+				),
+			},
+			// third config udpates the ACR with no location
+			{
+				Config: updatedConfigWithNoLocation,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(dataSourceName, "name", containerRegistryName),
+					resource.TestCheckResourceAttr(dataSourceName, "resource_group_name", resourceGroupName),
+					resource.TestCheckResourceAttr(dataSourceName, "sku", skuPremium),
+					testCheckAzureRMContainerRegistryExists(dataSourceName),
+					testCheckAzureRMContainerRegistryGeoreplications(dataSourceName, skuPremium, nil),
+				),
+			},
+			// fourth config updates an ACR with replicas
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(dataSourceName, "name", containerRegistryName),
+					resource.TestCheckResourceAttr(dataSourceName, "resource_group_name", resourceGroupName),
+					resource.TestCheckResourceAttr(dataSourceName, "sku", skuPremium),
+					resource.TestCheckResourceAttr(dataSourceName, "georeplication_locations.#", "2"),
+					testCheckAzureRMContainerRegistryExists(dataSourceName),
+					testCheckAzureRMContainerRegistryGeoreplications(dataSourceName, skuPremium, []string{`"eastus"`, `"westus"`}),
+				),
+			},
+			// fifth config updates the SKU to basic and no replicas (should remove the existing replicas if any)
+			{
+				Config: updatedConfigBasicSku,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(dataSourceName, "name", containerRegistryName),
+					resource.TestCheckResourceAttr(dataSourceName, "resource_group_name", resourceGroupName),
+					resource.TestCheckResourceAttr(dataSourceName, "sku", skuBasic),
+					testCheckAzureRMContainerRegistryExists(dataSourceName),
+					testCheckAzureRMContainerRegistryGeoreplications(dataSourceName, skuBasic, nil),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMContainerRegistryDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).containerRegistryClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -301,6 +382,46 @@ func testCheckAzureRMContainerRegistryExists(name string) resource.TestCheckFunc
 
 		if resp.StatusCode == http.StatusNotFound {
 			return fmt.Errorf("Bad: Container Registry %q (resource group: %q) does not exist", name, resourceGroup)
+		}
+
+		return nil
+	}
+}
+
+func testCheckAzureRMContainerRegistryGeoreplications(registryName string, sku string, expectedLocations []string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[registryName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", registryName)
+		}
+
+		name := rs.Primary.Attributes["name"]
+		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for Container Registry: %s", name)
+		}
+
+		conn := testAccProvider.Meta().(*ArmClient).containerRegistryReplicationsClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		resp, err := conn.List(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("Bad: Get on containerRegistryClient: %+v", err)
+		}
+
+		georeplicationValues := resp.Values()
+		expectedLocationsCount := len(expectedLocations) + 1 // the main location is returned by the API as a geolocation for replication.
+
+		// if Sku is not premium, listing the geo-replications locations returns an empty list
+		if strings.ToLower(sku) != strings.ToLower(string(containerregistry.Premium)) {
+			expectedLocationsCount = 0
+		}
+
+		actualLocationsCount := len(georeplicationValues)
+
+		if expectedLocationsCount != actualLocationsCount {
+			return fmt.Errorf("Bad: Container Registry %q (resource group: %q) expected locations count is %d, actual location count is %d", name, resourceGroup, expectedLocationsCount, actualLocationsCount)
 		}
 
 		return nil
@@ -406,4 +527,37 @@ resource "azurerm_container_registry" "test" {
   }
 }
 `, rInt, location, rStr, rInt)
+}
+
+func testAccAzureRMContainerRegistry_geoReplication(rInt int, location string, sku string, georeplicationLocations string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "testAccRg-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                   = "testacccr%d"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  location               = "${azurerm_resource_group.test.location}"
+  sku                    = "%s"
+  georeplication_locations = [%s]
+}
+`, rInt, location, rInt, sku, georeplicationLocations)
+}
+
+func testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation(rInt int, location string, sku string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "testAccRg-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                   = "testacccr%d"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  location               = "${azurerm_resource_group.test.location}"
+  sku                    = "%s"
+}
+`, rInt, location, rInt, sku)
 }
