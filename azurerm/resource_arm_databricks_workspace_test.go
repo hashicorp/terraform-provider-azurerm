@@ -186,15 +186,15 @@ func testCheckAzureRMDatabricksWorkspaceDestroy(s *terraform.State) error {
 func testAccAzureRMDatabricksWorkspace_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+	name     = "acctestRG-%d"
+	location = "%s"
 }
 
 resource "azurerm_databricks_workspace" "test" {
-  name                = "acctestdbw-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  sku                 = "standard"
+	name                = "acctestdbw-%d"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	location            = "${azurerm_resource_group.test.location}"
+	sku                 = "standard"
 }
 `, rInt, location, rInt)
 }
@@ -202,21 +202,21 @@ resource "azurerm_databricks_workspace" "test" {
 func testAccAzureRMDatabricksWorkspace_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+	name     = "acctestRG-%d"
+	location = "%s"
 }
 
 resource "azurerm_databricks_workspace" "test" {
-  name                		= "acctestdbw-%d"
-  resource_group_name 		= "${azurerm_resource_group.test.name}"
-  location            		= "${azurerm_resource_group.test.location}"
+	name                		= "acctestdbw-%d"
+	resource_group_name 		= "${azurerm_resource_group.test.name}"
+	location            		= "${azurerm_resource_group.test.location}"
 	sku                 		= "standard"
 	managed_resource_group 	= "acctestRG-%d-managed"
 
-  tags {
-    environment = "Production"
-    pricing     = "Standard"
-  }
+	tags {
+		environment = "Production"
+		pricing     = "Standard"
+	}
 }
 `, rInt, location, rInt, rInt)
 }
@@ -224,20 +224,20 @@ resource "azurerm_databricks_workspace" "test" {
 func testAccAzureRMDatabricksWorkspace_completeUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+	name     = "acctestRG-%d"
+	location = "%s"
 }
 
 resource "azurerm_databricks_workspace" "test" {
-  name                		= "acctestdbw-%d"
-  resource_group_name		 	= "${azurerm_resource_group.test.name}"
-  location            		= "${azurerm_resource_group.test.location}"
+	name                		= "acctestdbw-%d"
+	resource_group_name		 	= "${azurerm_resource_group.test.name}"
+	location            		= "${azurerm_resource_group.test.location}"
 	sku                 		= "standard"
 	managed_resource_group 	= "acctestRG-%d-managed"
 
-  tags {
-    pricing = "Standard"
-  }
+	tags {
+		pricing = "Standard"
+	}
 }
 `, rInt, location, rInt, rInt)
 }

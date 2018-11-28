@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `managed_resource_group` - (Optional) The name of the resource group where Azure should place the managed Databricks resources. Changing this forces a new resource to be created.
 
-~> **NOTE** You have to provide a unused resource group name in `managed_resource_group` as Azure has to create the resource group as 'managed' resource group during the deployment. The deployment will fail if a resource group with the same name in the same subscription already exists.
+~> **NOTE** Azure requires that this Resource Group does not exist in this Subscription (and that the Azure API creates it) - otherwise the deployment will fail.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
