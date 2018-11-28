@@ -42,7 +42,7 @@ The following arguments are supported:
 
 * `sku` - (Required) The `sku` to use for the Databricks Workspace. Possible values are `Standard` or `Premium`. Changing this forces a new resource to be created.
 
-* `managed_resource_group` - (Optional) The name of the resource group where Azure should place the managed Databricks resources.
+* `managed_resource_group` - (Optional) The name of the resource group where Azure should place the managed Databricks resources. Changing this forces a new resource to be created.
 
 ~> **NOTE** You have to provide a unused resource group name in `managed_resource_group` as Azure has to create the resource group as 'managed' resource group during the deployment. The deployment will fail if a resource group with the same name in the same subscription already exists.
 

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -40,8 +39,8 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"Standard",
-					"Premium",
+					"standard",
+					"premium",
 				}, false),
 			},
 
@@ -50,6 +49,7 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 			"managed_resource_group": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				Computed:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
@@ -72,7 +72,7 @@ func resourceArmDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta int
 	name := d.Get("name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
-	skuName := strings.ToLower(d.Get("sku").(string))
+	skuName := d.Get("sku").(string)
 	managedResourceGroupName := d.Get("managed_resource_group").(string)
 	var managedResourceGroupID string
 
