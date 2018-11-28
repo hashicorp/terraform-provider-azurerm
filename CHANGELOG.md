@@ -16,6 +16,7 @@ BUG FIXES:
 
 * Data Source: `azurerm_logic_app_workflow` - ensuing the parameters are a string prior to flattening [GH-2348]
 * `azurerm_key_vault` - fixing a deadlock situation where multiple subnets are used from the same virtual network [GH-2324]
+* `azurerm_eventhub` - making the `partition_count` field ForceNew [GH-2400]
 * `azurerm_eventhub` - now validates that the `storage_account_id` is a proper resource ID  [GH-2374]
 
 ## 1.19.0 (November 15, 2018)
