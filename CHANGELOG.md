@@ -18,6 +18,7 @@ BUG FIXES:
 * `azurerm_key_vault` - fixing a deadlock situation where multiple subnets are used from the same virtual network [GH-2324]
 * `azurerm_eventhub` - making the `partition_count` field ForceNew [GH-2400]
 * `azurerm_eventhub` - now validates that the `storage_account_id` is a proper resource ID  [GH-2374]
+* `azurerm_mssql_elasticpool` - relaxed validation of the `name` property [GH-2398]
 
 ## 1.19.0 (November 15, 2018)
 
