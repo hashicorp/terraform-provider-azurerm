@@ -455,9 +455,9 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 		}
 
 		if v, ok := data["ports"]; ok {
-			p := v.([]interface{})
+			s := v.(*schema.Set)
 			var ports []containerinstance.ContainerPort
-			for _, v := range p {
+			for _, v := range s.List() {
 				portObj := v.(map[string]interface{})
 				port := int32(portObj["port"].(int))
 				proto := portObj["protocol"].(string)
