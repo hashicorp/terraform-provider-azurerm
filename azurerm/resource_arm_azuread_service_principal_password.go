@@ -1,6 +1,8 @@
 package azurerm
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"log"
 	"strings"
@@ -40,10 +42,11 @@ func resourceArmActiveDirectoryServicePrincipalPassword() *schema.Resource {
 			},
 
 			"value": {
-				Type:      schema.TypeString,
-				Required:  true,
-				ForceNew:  true,
-				Sensitive: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				Sensitive:        true,
+				DiffSuppressFunc: resourceArmActiveDirectoryServicePrincipalPasswordDiff,
 			},
 
 			"start_date": {
@@ -119,6 +122,8 @@ func resourceArmActiveDirectoryServicePrincipalPasswordCreate(d *schema.Resource
 	if err != nil {
 		return fmt.Errorf("Error creating Password Credential %q for Service Principal %q: %+v", keyId, objectId, err)
 	}
+
+	d.Set("value", resourceArmActiveDirectoryServicePrincipalPasswordHash(value))
 
 	d.SetId(fmt.Sprintf("%s/%s", objectId, keyId))
 
@@ -238,4 +243,13 @@ func resourceArmActiveDirectoryServicePrincipalPasswordDelete(d *schema.Resource
 	}
 
 	return nil
+}
+
+func resourceArmActiveDirectoryServicePrincipalPasswordHash(password string) string {
+	hash := sha256.Sum256([]byte(password))
+	return base64.StdEncoding.EncodeToString(hash[:])
+}
+
+func resourceArmActiveDirectoryServicePrincipalPasswordDiff(k, old, new string, d *schema.ResourceData) bool {
+	return old == resourceArmActiveDirectoryServicePrincipalPasswordHash(new)
 }
