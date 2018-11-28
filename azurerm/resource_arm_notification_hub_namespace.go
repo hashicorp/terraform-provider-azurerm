@@ -238,7 +238,7 @@ func notificationHubNamespaceStateRefreshFunc(ctx context.Context, client notifi
 		// Upstream Bug: https://github.com/Azure/azure-sdk-for-go/issues/2254
 
 		if _, err := client.Delete(ctx, resourceGroupName, name); err != nil {
-			log.Printf(fmt.Sprintf("Error reissuing Notification Hub Namespace %q delete request (Resource Group %q): %+v", name, resourceGroupName, err))
+			log.Printf("Error reissuing Notification Hub Namespace %q delete request (Resource Group %q): %+v", name, resourceGroupName, err)
 		}
 
 		return res, strconv.Itoa(res.StatusCode), nil

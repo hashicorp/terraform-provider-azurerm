@@ -56,6 +56,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.ResourceIdentityTypeSystemAssigned),
 								string(compute.ResourceIdentityTypeUserAssigned),
+								string(compute.ResourceIdentityTypeSystemAssignedUserAssigned),
 							}, false),
 						},
 						"identity_ids": {
@@ -194,6 +195,16 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 					string(compute.Low),
 					string(compute.Regular),
 				}, true),
+			},
+
+			"eviction_policy": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.Deallocate),
+					string(compute.Delete),
+				}, false),
 			},
 
 			"os_profile": {
@@ -752,17 +763,17 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 	storageProfile.OsDisk = osDisk
 
 	if _, ok := d.GetOk("storage_profile_data_disk"); ok {
-		dataDisks, err := expandAzureRMVirtualMachineScaleSetsStorageProfileDataDisk(d)
-		if err != nil {
-			return err
+		dataDisks, err2 := expandAzureRMVirtualMachineScaleSetsStorageProfileDataDisk(d)
+		if err2 != nil {
+			return err2
 		}
 		storageProfile.DataDisks = &dataDisks
 	}
 
 	if _, ok := d.GetOk("storage_profile_image_reference"); ok {
-		imageRef, err := expandAzureRmVirtualMachineScaleSetStorageProfileImageReference(d)
-		if err != nil {
-			return err
+		imageRef, err2 := expandAzureRmVirtualMachineScaleSetStorageProfileImageReference(d)
+		if err2 != nil {
+			return err2
 		}
 		storageProfile.ImageReference = imageRef
 	}
@@ -782,6 +793,7 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 	overprovision := d.Get("overprovision").(bool)
 	singlePlacementGroup := d.Get("single_placement_group").(bool)
 	priority := d.Get("priority").(string)
+	evictionPolicy := d.Get("eviction_policy").(string)
 
 	scaleSetProps := compute.VirtualMachineScaleSetProperties{
 		UpgradePolicy: &compute.UpgradePolicy{
@@ -800,6 +812,10 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 		SinglePlacementGroup: &singlePlacementGroup,
 	}
 
+	if strings.EqualFold(priority, string(compute.Low)) {
+		scaleSetProps.VirtualMachineProfile.EvictionPolicy = compute.VirtualMachineEvictionPolicyTypes(evictionPolicy)
+	}
+
 	if _, ok := d.GetOk("boot_diagnostics"); ok {
 		diagnosticProfile := expandAzureRMVirtualMachineScaleSetsDiagnosticProfile(d)
 		scaleSetProps.VirtualMachineProfile.DiagnosticsProfile = &diagnosticProfile
@@ -812,12 +828,12 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 	}
 
 	properties := compute.VirtualMachineScaleSet{
-		Name:     &name,
-		Location: &location,
-		Tags:     expandTags(tags),
-		Sku:      sku,
+		Name:                             &name,
+		Location:                         &location,
+		Tags:                             expandTags(tags),
+		Sku:                              sku,
 		VirtualMachineScaleSetProperties: &scaleSetProps,
-		Zones: zones,
+		Zones:                            zones,
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -829,9 +845,9 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 	}
 
 	if _, ok := d.GetOk("plan"); ok {
-		plan, err := expandAzureRmVirtualMachineScaleSetPlan(d)
-		if err != nil {
-			return err
+		plan, err2 := expandAzureRmVirtualMachineScaleSetPlan(d)
+		if err2 != nil {
+			return err2
 		}
 
 		properties.Plan = plan
@@ -842,7 +858,7 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 		return err
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 
@@ -912,7 +928,8 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 
 		if profile := properties.VirtualMachineProfile; profile != nil {
 			d.Set("license_type", profile.LicenseType)
-			d.Set("priority", profile.Priority)
+			d.Set("priority", string(profile.Priority))
+			d.Set("eviction_policy", string(profile.EvictionPolicy))
 
 			osProfile := flattenAzureRMVirtualMachineScaleSetOsProfile(d, profile.OsProfile)
 			if err := d.Set("os_profile", osProfile); err != nil {
@@ -1029,7 +1046,7 @@ func resourceArmVirtualMachineScaleSetDelete(d *schema.ResourceData, meta interf
 		return err
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 
@@ -1175,7 +1192,7 @@ func flattenAzureRmVirtualMachineScaleSetBootDiagnostics(bootDiagnostic *compute
 }
 
 func flattenAzureRmVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicy *compute.RollingUpgradePolicy) []interface{} {
-	b := make(map[string]interface{}, 0)
+	b := make(map[string]interface{})
 
 	if v := rollingUpgradePolicy.MaxBatchInstancePercent; v != nil {
 		b["max_batch_instance_percent"] = *v
@@ -1214,17 +1231,15 @@ func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.Virtual
 			s["network_security_group_id"] = *v.ID
 		}
 
-		if netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.DNSSettings != nil {
-			dnsSetting := make(map[string]interface{})
-			dnsServers := make([]string, 0, len(*netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.DNSSettings.DNSServers))
-			if netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.DNSSettings.DNSServers != nil {
-				for _, dnsServer := range *netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.DNSSettings.DNSServers {
-					dnsServers = append(dnsServers, dnsServer)
-				}
-				dnsSetting["dns_servers"] = dnsServers
+		if dnsSettings := netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.DNSSettings; dnsSettings != nil {
+			dnsServers := make([]string, 0)
+			if s := dnsSettings.DNSServers; s != nil {
+				dnsServers = *s
 			}
 
-			s["dns_settings"] = []interface{}{dnsSetting}
+			s["dns_settings"] = []interface{}{map[string]interface{}{
+				"dns_servers": dnsServers,
+			}}
 		}
 
 		if netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.IPConfigurations != nil {
@@ -1807,7 +1822,7 @@ func expandAzureRmVirtualMachineScaleSetIdentity(d *schema.ResourceData) *comput
 	identity := identities[0].(map[string]interface{})
 	identityType := compute.ResourceIdentityType(identity["type"].(string))
 
-	identityIds := make(map[string]*compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue, 0)
+	identityIds := make(map[string]*compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue)
 	for _, id := range identity["identity_ids"].([]interface{}) {
 		identityIds[id.(string)] = &compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue{}
 	}
@@ -1816,7 +1831,7 @@ func expandAzureRmVirtualMachineScaleSetIdentity(d *schema.ResourceData) *comput
 		Type: identityType,
 	}
 
-	if vmssIdentity.Type == compute.ResourceIdentityTypeUserAssigned {
+	if vmssIdentity.Type == compute.ResourceIdentityTypeUserAssigned || vmssIdentity.Type == compute.ResourceIdentityTypeSystemAssignedUserAssigned {
 		vmssIdentity.UserAssignedIdentities = identityIds
 	}
 
@@ -2171,7 +2186,7 @@ func flattenAzureRmVirtualMachineScaleSetPlan(plan *compute.Plan) []interface{} 
 }
 
 // When upgrade_policy_mode is not Rolling, we will just ignore rolling_upgrade_policy (returns true).
-func azureRmVirtualMachineScaleSetSuppressRollingUpgradePolicyDiff(k, old, new string, d *schema.ResourceData) bool {
+func azureRmVirtualMachineScaleSetSuppressRollingUpgradePolicyDiff(k, _, new string, d *schema.ResourceData) bool {
 	if k == "rolling_upgrade_policy.#" && new == "0" {
 		return strings.ToLower(d.Get("upgrade_policy_mode").(string)) != "rolling"
 	}

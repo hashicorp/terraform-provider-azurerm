@@ -4,19 +4,18 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
-	"net/http/httputil"
 	"os"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
 	appinsights "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-10-12/cdn"
 	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
-	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-06-01/containerinstance"
+	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
@@ -48,14 +47,14 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/2017-08-01-preview/security"
 	"github.com/Azure/azure-sdk-for-go/services/preview/signalr/mgmt/2018-03-01-preview/signalr"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
+	MsSql "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/backup"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
 	"github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-12-01/policy"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
 	"github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
 	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
@@ -67,10 +66,11 @@ import (
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
-	"github.com/Azure/go-autorest/autorest/azure"
-	uuid "github.com/hashicorp/go-uuid"
+	az "github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-helpers/authentication"
+	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform/httpclient"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/authentication"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/terraform-providers/terraform-provider-azurerm/version"
 )
@@ -82,7 +82,7 @@ type ArmClient struct {
 	tenantId                 string
 	subscriptionId           string
 	usingServicePrincipal    bool
-	environment              azure.Environment
+	environment              az.Environment
 	skipProviderRegistration bool
 
 	StopContext context.Context
@@ -182,10 +182,12 @@ type ArmClient struct {
 	sqlDatabasesClient                       sql.DatabasesClient
 	sqlDatabaseThreatDetectionPoliciesClient sql.DatabaseThreatDetectionPoliciesClient
 	sqlElasticPoolsClient                    sql.ElasticPoolsClient
-	sqlFirewallRulesClient                   sql.FirewallRulesClient
-	sqlServersClient                         sql.ServersClient
-	sqlServerAzureADAdministratorsClient     sql.ServerAzureADAdministratorsClient
-	sqlVirtualNetworkRulesClient             sql.VirtualNetworkRulesClient
+	// Client for the new 2017-10-01-preview SQL API which implements vCore, DTU, and Azure data standards
+	msSqlElasticPoolsClient              MsSql.ElasticPoolsClient
+	sqlFirewallRulesClient               sql.FirewallRulesClient
+	sqlServersClient                     sql.ServersClient
+	sqlServerAzureADAdministratorsClient sql.ServerAzureADAdministratorsClient
+	sqlVirtualNetworkRulesClient         sql.VirtualNetworkRulesClient
 
 	// Data Lake Store
 	dataLakeStoreAccountClient       storeAccount.AccountsClient
@@ -215,11 +217,13 @@ type ArmClient struct {
 	managementGroupsSubscriptionClient managementgroups.SubscriptionsClient
 
 	// Monitor
-	monitorActionGroupsClient      insights.ActionGroupsClient
-	monitorActivityLogAlertsClient insights.ActivityLogAlertsClient
-	monitorAlertRulesClient        insights.AlertRulesClient
-	monitorLogProfilesClient       insights.LogProfilesClient
-	monitorMetricAlertsClient      insights.MetricAlertsClient
+	monitorActionGroupsClient               insights.ActionGroupsClient
+	monitorActivityLogAlertsClient          insights.ActivityLogAlertsClient
+	monitorAlertRulesClient                 insights.AlertRulesClient
+	monitorDiagnosticSettingsClient         insights.DiagnosticSettingsClient
+	monitorDiagnosticSettingsCategoryClient insights.DiagnosticSettingsCategoryClient
+	monitorLogProfilesClient                insights.LogProfilesClient
+	monitorMetricAlertsClient               insights.MetricAlertsClient
 
 	// MSI
 	userAssignedIdentitiesClient msi.UserAssignedIdentitiesClient
@@ -268,8 +272,9 @@ type ArmClient struct {
 	subscriptionsClient   subscriptions.Client
 
 	// Scheduler
-	schedulerJobCollectionsClient scheduler.JobCollectionsClient
-	schedulerJobsClient           scheduler.JobsClient
+	schedulerJobCollectionsClient scheduler.JobCollectionsClient //nolint: megacheck
+
+	schedulerJobsClient scheduler.JobsClient //nolint: megacheck
 
 	// Search
 	searchServicesClient  search.ServicesClient
@@ -335,57 +340,9 @@ func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Autho
 	setUserAgent(client)
 	client.Authorizer = auth
 	//client.RequestInspector = azure.WithClientID(clientRequestID())
-	client.Sender = buildSender()
+	client.Sender = azure.BuildSender()
 	client.SkipResourceProviderRegistration = c.skipProviderRegistration
 	client.PollingDuration = 60 * time.Minute
-}
-
-func buildSender() autorest.Sender {
-	return autorest.DecorateSender(&http.Client{
-		Transport: &http.Transport{
-			Proxy: http.ProxyFromEnvironment,
-		},
-	}, withRequestLogging())
-}
-
-func withRequestLogging() autorest.SendDecorator {
-	return func(s autorest.Sender) autorest.Sender {
-		return autorest.SenderFunc(func(r *http.Request) (*http.Response, error) {
-			// strip the authorization header prior to printing
-			authHeaderName := "Authorization"
-			auth := r.Header.Get(authHeaderName)
-			if auth != "" {
-				r.Header.Del(authHeaderName)
-			}
-
-			// dump request to wire format
-			if dump, err := httputil.DumpRequestOut(r, true); err == nil {
-				log.Printf("[DEBUG] AzureRM Request: \n%s\n", dump)
-			} else {
-				// fallback to basic message
-				log.Printf("[DEBUG] AzureRM Request: %s to %s\n", r.Method, r.URL)
-			}
-
-			// add the auth header back
-			if auth != "" {
-				r.Header.Add(authHeaderName, auth)
-			}
-
-			resp, err := s.Do(r)
-			if resp != nil {
-				// dump response to wire format
-				if dump, err := httputil.DumpResponse(resp, true); err == nil {
-					log.Printf("[DEBUG] AzureRM Response for %s: \n%s\n", r.URL, dump)
-				} else {
-					// fallback to basic message
-					log.Printf("[DEBUG] AzureRM Response: %s for %s\n", resp.Status, r.URL)
-				}
-			} else {
-				log.Printf("[DEBUG] Request to %s completed with no response", r.URL)
-			}
-			return resp, err
-		})
-	}
 }
 
 func setUserAgent(client *autorest.Client) {
@@ -404,63 +361,12 @@ func setUserAgent(client *autorest.Client) {
 	log.Printf("[DEBUG] AzureRM Client User Agent: %s\n", client.UserAgent)
 }
 
-func getAuthorizationToken(c *authentication.Config, oauthConfig *adal.OAuthConfig, endpoint string) (*autorest.BearerAuthorizer, error) {
-	useServicePrincipal := c.ClientSecret != ""
-
-	if useServicePrincipal {
-		spt, err := adal.NewServicePrincipalToken(*oauthConfig, c.ClientID, c.ClientSecret, endpoint)
-		if err != nil {
-			return nil, err
-		}
-
-		auth := autorest.NewBearerAuthorizer(spt)
-		return auth, nil
-	}
-
-	if c.UseMsi {
-		spt, err := adal.NewServicePrincipalTokenFromMSI(c.MsiEndpoint, endpoint)
-		if err != nil {
-			return nil, err
-		}
-		auth := autorest.NewBearerAuthorizer(spt)
-		return auth, nil
-	}
-
-	if c.IsCloudShell {
-		// load the refreshed tokens from the Azure CLI
-		err := c.LoadTokensFromAzureCLI()
-		if err != nil {
-			return nil, fmt.Errorf("Error loading the refreshed CloudShell tokens: %+v", err)
-		}
-	}
-
-	spt, err := adal.NewServicePrincipalTokenFromManualToken(*oauthConfig, c.ClientID, endpoint, *c.AccessToken)
-	if err != nil {
-		return nil, err
-	}
-
-	err = spt.Refresh()
-
-	if err != nil {
-		return nil, fmt.Errorf("Error refreshing Service Principal Token: %+v", err)
-	}
-
-	auth := autorest.NewBearerAuthorizer(spt)
-	return auth, nil
-}
-
 // getArmClient is a helper method which returns a fully instantiated
 // *ArmClient based on the Config's current settings.
-func getArmClient(c *authentication.Config) (*ArmClient, error) {
-	// detect cloud from environment
-	env, envErr := azure.EnvironmentFromName(c.Environment)
-	if envErr != nil {
-		// try again with wrapped value to support readable values like german instead of AZUREGERMANCLOUD
-		wrapped := fmt.Sprintf("AZURE%sCLOUD", c.Environment)
-		var innerErr error
-		if env, innerErr = azure.EnvironmentFromName(wrapped); innerErr != nil {
-			return nil, envErr
-		}
+func getArmClient(c *authentication.Config, skipProviderRegistration bool) (*ArmClient, error) {
+	env, err := authentication.DetermineEnvironment(c.Environment)
+	if err != nil {
+		return nil, err
 	}
 
 	// client declarations:
@@ -468,9 +374,9 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 		clientId:                 c.ClientID,
 		tenantId:                 c.TenantID,
 		subscriptionId:           c.SubscriptionID,
-		environment:              env,
-		usingServicePrincipal:    c.ClientSecret != "",
-		skipProviderRegistration: c.SkipProviderRegistration,
+		environment:              *env,
+		usingServicePrincipal:    c.AuthenticatedAsAServicePrincipal,
+		skipProviderRegistration: skipProviderRegistration,
 	}
 
 	oauthConfig, err := adal.NewOAuthConfig(env.ActiveDirectoryEndpoint, c.TenantID)
@@ -483,25 +389,24 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 		return nil, fmt.Errorf("Unable to configure OAuthConfig for tenant %s", c.TenantID)
 	}
 
-	sender := buildSender()
-
 	// Resource Manager endpoints
 	endpoint := env.ResourceManagerEndpoint
-	auth, err := getAuthorizationToken(c, oauthConfig, endpoint)
+	auth, err := c.GetAuthorizationToken(oauthConfig, env.TokenAudience)
 	if err != nil {
 		return nil, err
 	}
 
 	// Graph Endpoints
 	graphEndpoint := env.GraphEndpoint
-	graphAuth, err := getAuthorizationToken(c, oauthConfig, graphEndpoint)
+	graphAuth, err := c.GetAuthorizationToken(oauthConfig, graphEndpoint)
 	if err != nil {
 		return nil, err
 	}
 
 	// Key Vault Endpoints
+	sender := azure.BuildSender()
 	keyVaultAuth := autorest.NewBearerAuthorizerCallback(sender, func(tenantID, resource string) (*autorest.BearerAuthorizer, error) {
-		keyVaultSpt, err := getAuthorizationToken(c, oauthConfig, resource)
+		keyVaultSpt, err := c.GetAuthorizationToken(oauthConfig, resource)
 		if err != nil {
 			return nil, err
 		}
@@ -795,6 +700,10 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	c.configureClient(&sqlEPClient.Client, auth)
 	c.sqlElasticPoolsClient = sqlEPClient
 
+	MsSqlEPClient := MsSql.NewElasticPoolsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&MsSqlEPClient.Client, auth)
+	c.msSqlElasticPoolsClient = MsSqlEPClient
+
 	sqlSrvClient := sql.NewServersClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&sqlSrvClient.Client, auth)
 	c.sqlServersClient = sqlSrvClient
@@ -930,6 +839,14 @@ func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth
 	autoscaleSettingsClient := insights.NewAutoscaleSettingsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&autoscaleSettingsClient.Client, auth)
 	c.autoscaleSettingsClient = autoscaleSettingsClient
+
+	monitoringInsightsClient := insights.NewDiagnosticSettingsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&monitoringInsightsClient.Client, auth)
+	c.monitorDiagnosticSettingsClient = monitoringInsightsClient
+
+	monitoringCategorySettingsClient := insights.NewDiagnosticSettingsCategoryClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&monitoringCategorySettingsClient.Client, auth)
+	c.monitorDiagnosticSettingsCategoryClient = monitoringCategorySettingsClient
 }
 
 func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
@@ -1107,11 +1024,11 @@ func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, au
 }
 
 func (c *ArmClient) registerSchedulerClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	jobCollectionsClient := scheduler.NewJobCollectionsClientWithBaseURI(endpoint, subscriptionId)
+	jobCollectionsClient := scheduler.NewJobCollectionsClientWithBaseURI(endpoint, subscriptionId) //nolint: megacheck
 	c.configureClient(&jobCollectionsClient.Client, auth)
 	c.schedulerJobCollectionsClient = jobCollectionsClient
 
-	jobsClient := scheduler.NewJobsClientWithBaseURI(endpoint, subscriptionId)
+	jobsClient := scheduler.NewJobsClientWithBaseURI(endpoint, subscriptionId) //nolint: megacheck
 	c.configureClient(&jobsClient.Client, auth)
 	c.schedulerJobsClient = jobsClient
 }
@@ -1235,7 +1152,7 @@ var (
 	storageKeyCache   = make(map[string]string)
 )
 
-func (armClient *ArmClient) getKeyForStorageAccount(ctx context.Context, resourceGroupName, storageAccountName string) (string, bool, error) {
+func (c *ArmClient) getKeyForStorageAccount(ctx context.Context, resourceGroupName, storageAccountName string) (string, bool, error) {
 	cacheIndex := resourceGroupName + "/" + storageAccountName
 	storageKeyCacheMu.RLock()
 	key, ok := storageKeyCache[cacheIndex]
@@ -1249,7 +1166,7 @@ func (armClient *ArmClient) getKeyForStorageAccount(ctx context.Context, resourc
 	defer storageKeyCacheMu.Unlock()
 	key, ok = storageKeyCache[cacheIndex]
 	if !ok {
-		accountKeys, err := armClient.storageServiceClient.ListKeys(ctx, resourceGroupName, storageAccountName)
+		accountKeys, err := c.storageServiceClient.ListKeys(ctx, resourceGroupName, storageAccountName)
 		if utils.ResponseWasNotFound(accountKeys.Response) {
 			return "", false, nil
 		}
@@ -1280,16 +1197,16 @@ func (armClient *ArmClient) getKeyForStorageAccount(ctx context.Context, resourc
 	return key, true, nil
 }
 
-func (armClient *ArmClient) getBlobStorageClientForStorageAccount(ctx context.Context, resourceGroupName, storageAccountName string) (*mainStorage.BlobStorageClient, bool, error) {
-	key, accountExists, err := armClient.getKeyForStorageAccount(ctx, resourceGroupName, storageAccountName)
+func (c *ArmClient) getBlobStorageClientForStorageAccount(ctx context.Context, resourceGroupName, storageAccountName string) (*mainStorage.BlobStorageClient, bool, error) {
+	key, accountExists, err := c.getKeyForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return nil, accountExists, err
 	}
-	if accountExists == false {
+	if !accountExists {
 		return nil, false, nil
 	}
 
-	storageClient, err := mainStorage.NewClient(storageAccountName, key, armClient.environment.StorageEndpointSuffix,
+	storageClient, err := mainStorage.NewClient(storageAccountName, key, c.environment.StorageEndpointSuffix,
 		mainStorage.DefaultAPIVersion, true)
 	if err != nil {
 		return nil, true, fmt.Errorf("Error creating storage client for storage storeAccount %q: %s", storageAccountName, err)
@@ -1299,16 +1216,16 @@ func (armClient *ArmClient) getBlobStorageClientForStorageAccount(ctx context.Co
 	return &blobClient, true, nil
 }
 
-func (armClient *ArmClient) getFileServiceClientForStorageAccount(ctx context.Context, resourceGroupName, storageAccountName string) (*mainStorage.FileServiceClient, bool, error) {
-	key, accountExists, err := armClient.getKeyForStorageAccount(ctx, resourceGroupName, storageAccountName)
+func (c *ArmClient) getFileServiceClientForStorageAccount(ctx context.Context, resourceGroupName, storageAccountName string) (*mainStorage.FileServiceClient, bool, error) {
+	key, accountExists, err := c.getKeyForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return nil, accountExists, err
 	}
-	if accountExists == false {
+	if !accountExists {
 		return nil, false, nil
 	}
 
-	storageClient, err := mainStorage.NewClient(storageAccountName, key, armClient.environment.StorageEndpointSuffix,
+	storageClient, err := mainStorage.NewClient(storageAccountName, key, c.environment.StorageEndpointSuffix,
 		mainStorage.DefaultAPIVersion, true)
 	if err != nil {
 		return nil, true, fmt.Errorf("Error creating storage client for storage storeAccount %q: %s", storageAccountName, err)
@@ -1318,16 +1235,16 @@ func (armClient *ArmClient) getFileServiceClientForStorageAccount(ctx context.Co
 	return &fileClient, true, nil
 }
 
-func (armClient *ArmClient) getTableServiceClientForStorageAccount(ctx context.Context, resourceGroupName, storageAccountName string) (*mainStorage.TableServiceClient, bool, error) {
-	key, accountExists, err := armClient.getKeyForStorageAccount(ctx, resourceGroupName, storageAccountName)
+func (c *ArmClient) getTableServiceClientForStorageAccount(ctx context.Context, resourceGroupName, storageAccountName string) (*mainStorage.TableServiceClient, bool, error) {
+	key, accountExists, err := c.getKeyForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return nil, accountExists, err
 	}
-	if accountExists == false {
+	if !accountExists {
 		return nil, false, nil
 	}
 
-	storageClient, err := mainStorage.NewClient(storageAccountName, key, armClient.environment.StorageEndpointSuffix,
+	storageClient, err := mainStorage.NewClient(storageAccountName, key, c.environment.StorageEndpointSuffix,
 		mainStorage.DefaultAPIVersion, true)
 	if err != nil {
 		return nil, true, fmt.Errorf("Error creating storage client for storage storeAccount %q: %s", storageAccountName, err)
@@ -1337,16 +1254,16 @@ func (armClient *ArmClient) getTableServiceClientForStorageAccount(ctx context.C
 	return &tableClient, true, nil
 }
 
-func (armClient *ArmClient) getQueueServiceClientForStorageAccount(ctx context.Context, resourceGroupName, storageAccountName string) (*mainStorage.QueueServiceClient, bool, error) {
-	key, accountExists, err := armClient.getKeyForStorageAccount(ctx, resourceGroupName, storageAccountName)
+func (c *ArmClient) getQueueServiceClientForStorageAccount(ctx context.Context, resourceGroupName, storageAccountName string) (*mainStorage.QueueServiceClient, bool, error) {
+	key, accountExists, err := c.getKeyForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return nil, accountExists, err
 	}
-	if accountExists == false {
+	if !accountExists {
 		return nil, false, nil
 	}
 
-	storageClient, err := mainStorage.NewClient(storageAccountName, key, armClient.environment.StorageEndpointSuffix,
+	storageClient, err := mainStorage.NewClient(storageAccountName, key, c.environment.StorageEndpointSuffix,
 		mainStorage.DefaultAPIVersion, true)
 	if err != nil {
 		return nil, true, fmt.Errorf("Error creating storage client for storage storeAccount %q: %s", storageAccountName, err)

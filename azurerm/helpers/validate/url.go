@@ -29,19 +29,19 @@ func URLWithScheme(validSchemes []string) schema.SchemaValidateFunc {
 			return
 		}
 
-		url, err := url.Parse(v)
+		u, err := url.Parse(v)
 		if err != nil {
 			errors = append(errors, fmt.Errorf("%q url is in an invalid format: %q (%+v)", k, v, err))
 			return
 		}
 
-		if url.Host == "" {
+		if u.Host == "" {
 			errors = append(errors, fmt.Errorf("%q url has no host: %q", k, v))
 			return
 		}
 
 		for _, s := range validSchemes {
-			if url.Scheme == s {
+			if u.Scheme == s {
 				return //last check so just return
 			}
 		}

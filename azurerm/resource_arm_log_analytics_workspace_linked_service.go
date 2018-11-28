@@ -139,7 +139,7 @@ func resourceArmLogAnalyticsWorkspaceLinkedServiceRead(d *schema.ResourceData, m
 
 	linkedServiceProperties := flattenLogAnalyticsWorkspaceLinkedServiceProperties(resp.LinkedServiceProperties)
 	if err := d.Set("linked_service_properties", linkedServiceProperties); err != nil {
-		return fmt.Errorf("Error flattening Log Analytics Linked Service Properties: %+v", err)
+		return fmt.Errorf("Error setting Log Analytics Linked Service Properties: %+v", err)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -147,7 +147,7 @@ func resourceArmLogAnalyticsWorkspaceLinkedServiceRead(d *schema.ResourceData, m
 }
 
 func flattenLogAnalyticsWorkspaceLinkedServiceProperties(input *operationalinsights.LinkedServiceProperties) interface{} {
-	properties := make(map[string]interface{}, 0)
+	properties := make(map[string]interface{})
 
 	// resource id linked service
 	if resourceID := input.ResourceID; resourceID != nil {

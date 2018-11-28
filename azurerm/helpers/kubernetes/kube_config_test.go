@@ -17,14 +17,17 @@ func TestParseKubeConfig(t *testing.T) {
 		{
 			"user_with_token.yml",
 			KubeConfig{
-				APIVersion: "v1",
-				Clusters: []clusterItem{
-					{
-						Name: "test-cluster",
-						Cluster: cluster{
-							Server: "https://testcluster.net:8080",
+				KubeConfigBase: KubeConfigBase{
+					APIVersion: "v1",
+					Clusters: []clusterItem{
+						{
+							Name: "test-cluster",
+							Cluster: cluster{
+								Server: "https://testcluster.net:8080",
+							},
 						},
 					},
+					Kind: "Config",
 				},
 				Users: []userItem{
 					{
@@ -34,22 +37,36 @@ func TestParseKubeConfig(t *testing.T) {
 						},
 					},
 				},
-				Kind: "Config",
 			},
 			isValidConfig,
 		},
 		{
 			"user_with_cert.yml",
 			KubeConfig{
-				APIVersion: "v1",
-				Clusters: []clusterItem{
-					{
-						Name: "test-cluster",
-						Cluster: cluster{
-							ClusterAuthorityData: "test-cluster-authority-data",
-							Server:               "https://testcluster.org:443",
+				KubeConfigBase: KubeConfigBase{
+					APIVersion: "v1",
+					Clusters: []clusterItem{
+						{
+							Name: "test-cluster",
+							Cluster: cluster{
+								ClusterAuthorityData: "test-cluster-authority-data",
+								Server:               "https://testcluster.org:443",
+							},
 						},
 					},
+					Contexts: []contextItem{
+						{
+							Name: "test-cluster",
+							Context: context{
+								Cluster:   "test-cluster",
+								User:      "test-user",
+								Namespace: "test-namespace",
+							},
+						},
+					},
+					CurrentContext: "test-cluster",
+					Kind:           "Config",
+					Preferences:    nil,
 				},
 				Users: []userItem{
 					{
@@ -60,33 +77,37 @@ func TestParseKubeConfig(t *testing.T) {
 						},
 					},
 				},
-				Contexts: []contextItem{
-					{
-						Name: "test-cluster",
-						Context: context{
-							Cluster:   "test-cluster",
-							User:      "test-user",
-							Namespace: "test-namespace",
-						},
-					},
-				},
-				CurrentContext: "test-cluster",
-				Kind:           "Config",
-				Preferences:    nil,
 			},
 			isValidConfig,
 		},
 		{
 			"user_with_cert_token.yml",
 			KubeConfig{
-				APIVersion: "v1",
-				Clusters: []clusterItem{
-					{
-						Name: "test-cluster",
-						Cluster: cluster{
-							ClusterAuthorityData: "test-cluster-authority-data",
-							Server:               "https://testcluster.org:443",
+				KubeConfigBase: KubeConfigBase{
+					APIVersion: "v1",
+					Clusters: []clusterItem{
+						{
+							Name: "test-cluster",
+							Cluster: cluster{
+								ClusterAuthorityData: "test-cluster-authority-data",
+								Server:               "https://testcluster.org:443",
+							},
 						},
+					},
+					Contexts: []contextItem{
+						{
+							Name: "test-cluster",
+							Context: context{
+								Cluster:   "test-cluster",
+								User:      "test-user",
+								Namespace: "test-namespace",
+							},
+						},
+					},
+					CurrentContext: "test-cluster",
+					Kind:           "Config",
+					Preferences: map[string]interface{}{
+						"colors": true,
 					},
 				},
 				Users: []userItem{
@@ -98,21 +119,6 @@ func TestParseKubeConfig(t *testing.T) {
 							Token:                "test-token",
 						},
 					},
-				},
-				Contexts: []contextItem{
-					{
-						Name: "test-cluster",
-						Context: context{
-							Cluster:   "test-cluster",
-							User:      "test-user",
-							Namespace: "test-namespace",
-						},
-					},
-				},
-				CurrentContext: "test-cluster",
-				Kind:           "Config",
-				Preferences: map[string]interface{}{
-					"colors": true,
 				},
 			},
 			isValidConfig,
@@ -170,7 +176,7 @@ func isValidConfig(expected KubeConfig, encodedConfig string) (bool, error) {
 	return true, nil
 }
 
-func isInvalidConfig(expected KubeConfig, encodedConfig string) (bool, error) {
+func isInvalidConfig(_ KubeConfig, encodedConfig string) (bool, error) {
 	_, err := ParseKubeConfig(encodedConfig)
 	if err == nil {
 		return false, fmt.Errorf("expected test to throw error but didn't")

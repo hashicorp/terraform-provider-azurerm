@@ -106,7 +106,7 @@ func dataSourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{
 
 			flattenedRegions := flattenSharedImageVersionDataSourceTargetRegions(profile.TargetRegions)
 			if err := d.Set("target_region", flattenedRegions); err != nil {
-				return fmt.Errorf("Error flattening `target_region`: %+v", err)
+				return fmt.Errorf("Error setting `target_region`: %+v", err)
 			}
 
 			if source := profile.Source; source != nil {
@@ -127,7 +127,7 @@ func flattenSharedImageVersionDataSourceTargetRegions(input *[]compute.TargetReg
 
 	if input != nil {
 		for _, v := range *input {
-			output := make(map[string]interface{}, 0)
+			output := make(map[string]interface{})
 
 			if v.Name != nil {
 				output["name"] = azureRMNormalizeLocation(*v.Name)

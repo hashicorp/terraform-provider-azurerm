@@ -106,7 +106,7 @@ func dataSourceAppServicePlanRead(d *schema.ResourceData, meta interface{}) erro
 
 	if props := resp.AppServicePlanProperties; props != nil {
 		if err := d.Set("properties", flattenAppServiceProperties(props)); err != nil {
-			return fmt.Errorf("Error flattening `properties`: %+v", err)
+			return fmt.Errorf("Error setting `properties`: %+v", err)
 		}
 
 		if props.MaximumNumberOfWorkers != nil {
@@ -115,7 +115,7 @@ func dataSourceAppServicePlanRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if err := d.Set("sku", flattenAppServicePlanSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Error flattening `sku`: %+v", err)
+		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
 	flattenAndSetTags(d, resp.Tags)

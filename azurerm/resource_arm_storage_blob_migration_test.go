@@ -16,7 +16,7 @@ func TestAccAzureRMStorageBlobMigrateState(t *testing.T) {
 		return
 	}
 
-	client, err := getArmClient(config)
+	client, err := getArmClient(config, false)
 	if err != nil {
 		t.Fatal(fmt.Errorf("Error building ARM Client: %+v", err))
 		return
@@ -36,7 +36,7 @@ func TestAccAzureRMStorageBlobMigrateState(t *testing.T) {
 			StateVersion: 0,
 			ID:           "some_id",
 			InputAttributes: map[string]string{
-				"name": "blob.vhd",
+				"name":                   "blob.vhd",
 				"storage_container_name": "container",
 				"storage_account_name":   "example",
 			},

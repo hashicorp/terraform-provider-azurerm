@@ -1,29 +1,100 @@
-## 1.18.0 (Unreleased)
-
-FEATURES:
-
-* **New Resource:** `azurerm_devspace_controller` [GH-2086]
-* **New Resource:** `azurerm_log_analytics_workspace_linked_service` [GH-2139]
+## 1.20.0 (Unreleased)
 
 IMPROVEMENTS:
 
-* dependencies: upgrading to v21.3.0 of `github.com/Azure/azure-sdk-for-go` [GH-2163]
-* authentication: using the Proxy from the Environment, if set [GH-2133]
-* `azurerm_automation_account` - exposing `dsc_server_endpoint`, `dsc_primary_access_key`, `dsc_secondary_access_key` properties [GH-2166] 
-* `azurerm_automation_account` - support for the `free` SKU [GH-2166] 
-* `azurerm_cosmosdb_account` - support for the `enable_multiple_write_locations` property [GH-2109] 
-* `azurerm_key_vault_certificate` - support for setting `extended_key_usage` [GH-2128]
-* `azurerm_monitor_activity_log_alert` - support the criteria fields `resource_provider`, `resource_type`, `resource_group` [GH-2150]
-* `azurerm_virtual_network_gateway` - support for `OpenVPN` as a client protocol option [GH-2126]
-* `azurerm_virtual_machine_scale_set` - support for the `application_security_group_ids` property of `ip_configuration`  [GH-2009]
-* `azurerm_virtual_machine_scale_set` - support for a Rolling Upgrade Policy with Automatic OS upgrades [GH-922]
+* authentication: switching to use the shared Azure authentication library [GH-2355]
+* authentication: requesting a token using the audience address [GH-2381]
+* sdk: upgrading to version `2018-05-01` of the Policy API [GH-2386]
+* `azurerm_app_service` - support for configuring `app_command_line` in the `site_config` block [GH-2350]
+* `azurerm_app_service_slot` - support for configuring `app_command_line` in the `site_config` block [GH-2350]
+* `azurerm_mssql_elasticpool` - deprecated the `elastic_pool_properties` propety and moved `max_size_bytes` and `zone_redundant` to the top level [GH-2378]
 
 BUG FIXES:
 
-* security: removing the `Authorization` header from the debug logs [GH-2131]
-* `azurerm_function_app` - correctly marking the resource as missing upon manual deletion [GH-2111]
-* `azurerm_kubernetes_cluster` - changing `os_disk_size_gb` to computed as the API now returns a valid default [GH-2117]
-* `azurerm_public_ip` - `domain_name_label` validation now allows 63 characters [GH-2122]
+* Data Source: `azurerm_logic_app_workflow` - ensuing the parameters are a string prior to flattening [GH-2348]
+* `azurerm_key_vault` - fixing a deadlock situation where multiple subnets are used from the same virtual network [GH-2324]
+* `azurerm_eventhub` - now validates that the `storage_account_id` is a proper resource ID  [GH-2374]
+
+## 1.19.0 (November 15, 2018)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_key_vault_key` ([#2231](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2231))
+* **New Data Source:** `azurerm_monitor_diagnostic_setting` ([#1291](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1291))
+* **New Resource:** `azurerm_iothub_consumer_group` ([#2243](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2243))
+* **New Resource:** `azurerm_monitor_diagnostic_setting` ([#1291](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1291))
+* **New Resource:** `azurerm_mssql_elasticpool` ([#2071](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2071))
+
+IMPROVEMENTS:
+
+* dependencies: switching to Go 1.11 ([#2229](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2229))
+* authentication: refactoring to allow authentication modes to be feature-toggled ([#2199](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2199))
+* Data Source: `azurerm_kubernetes_cluster` - support for `role_based_access_control` ([#1820](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1820))
+* `azurerm_app_service` - support for PHP 7.2 ([#2308](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2308))
+* `azurerm_app_service_slot` - support for PHP 7.2 ([#2308](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2308))
+* `azurerm_databricks_workspace` - fixing validation on the `name` field ([#2221](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2221))
+* `azurerm_function_app` - support for the `enable_builtin_logging` property ([#2268](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2268))
+* `azurerm_kubernetes_cluster` - support for `role_based_access_control` ([#1820](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1820))
+* `azurerm_network_interface` - deprecating `internal_fqdn` since it's no longer setable/returned by Azure ([#2253](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2253))
+* `azurerm_shared_image_version` - allowing larger numbers for versions ([#2301](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2301))
+* `azurerm_virtual_machine` - support for assigning both a system and a user managed identity ([#2188](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2188))
+* `azurerm_virtual_machine_scale_set` - support for assigning both a system and a user managed identity ([#2188](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2188))
+* `azurerm_virtual_machine_scale_set` - support for setting `eviction_policy` ([#2226](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2226))
+* `azurerm_virtual_network_gateway` - support for Zone Redundant Gateways ([#2260](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2260))
+
+BUG FIXES:
+
+* Data Source: `azurerm_api_management` - ensuring the `public_ip_addresses` field is set ([#2310](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2310))
+* `azurerm_api_management` - ensuring the `public_ip_addresses` field is set ([#2310](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2310))
+* `azurerm_application_gateway` - refactoring to ensure all fields are set ([#2054](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2054))
+* `azurerm_application_gateway` - SSL certificates no longer continually diff ([#2054](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2054))
+* `azurerm_azuread_application` - fix regression and allow `http` for `identifier_uris` and `reply_urls` properties ([#2320](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2320))
+* `azurerm_cosmosdb_account` - the `ip_range_filter` range filter now allows /32 ip addresses  ([#2222](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2222))
+* `azurerm_public_ip` - fixing the casing of the `ip_version` / `public_ip_address_allocation` fields ([#2296](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2296))
+* `azurerm_recovery_services_protected_vm` - VM can now be in a different resource group then the vault ([#2287](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2287))
+* `azurerm_role_assignment` - will now wait after a Service Principal is created ([#2204](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2204))
+* `azurerm_route` - allowing setting `next_hop_in_ip_address` to an empty value ([#2184](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2184))
+* `azurerm_route_table` - allowing setting `next_hop_in_ip_address` to an empty value ([#2184](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2184))
+* `azurerm_virtual_network_gateway` - plan is now empty when `bgp_settings` is omitted ([#2304](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2304))
+* `azurerm_virtual_network` - add valdiation to prevent panics ([#2305](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2305))
+
+## 1.18.0 (November 02, 2018)
+
+FEATURES:
+
+* **New Resource:** `azurerm_devspace_controller` ([#2086](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2086))
+* **New Resource:** `azurerm_log_analytics_workspace_linked_service` ([#2139](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2139))
+
+IMPROVEMENTS:
+
+* authentication: decoupling the authentication methods from the provider to enable splitting out the authentication library ([#2197](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2197))
+* authentication: using the Proxy from the Environment, if set ([#2133](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2133))
+* dependencies: upgrading to v21.3.0 of `github.com/Azure/azure-sdk-for-go` ([#2163](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2163))
+* refactoring:  decoupling Resource Provider Registration to enable splitting out the authentication library ([#2197](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2197))
+* sdk: upgrading to `2018-10-01` of the `containerinstance` sdk ([#2174](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2174))
+* `azurerm_automation_account` - exposing `dsc_server_endpoint`, `dsc_primary_access_key`, `dsc_secondary_access_key` properties [[#2166](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2166)] 
+* `azurerm_automation_account` - support for the `free` SKU ([#2166](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2166))
+* `azurerm_client_config` - ensuring the `service_principal_application_id` and `service_principal_object_id` are always set ([#2120](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2120))
+* `azurerm_cosmosdb_account` - support for the `enable_multiple_write_locations` property ([#2109](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2109))
+* `azurerm_eventhub_namespace` - allow `maximum_throughput_units` to be zero ([#2124](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2124))
+* `azurerm_key_vault_certificate` - support for setting `extended_key_usage` ([#2128](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2128))
+* `azurerm_key_vault_certificate` - support for setting `subject_alternative_names` ([#2123](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2123))
+* `azurerm_managed_disk` - support for the `UltraSSD_LRS` storage account type ([#2118](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2118))
+* `azurerm_monitor_activity_log_alert` - support the criteria fields `resource_provider`, `resource_type`, `resource_group` ([#2150](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2150))
+* `azurerm_recovery_services_protected_vm` - `backup_policy_id` is now required ([#2154](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2154))
+* `azurerm_sql_database` - adding validation to `requested_service_objective_name` ([#2125](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2125))
+* `azurerm_virtual_network_gateway` - support for `OpenVPN` as a client protocol option ([#2126](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2126))
+* `azurerm_virtual_machine_scale_set` - support for the `application_security_group_ids` property of `ip_configuration`  ([#2009](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2009))
+* `azurerm_virtual_machine_scale_set` - support for a Rolling Upgrade Policy with Automatic OS upgrades ([#922](https://github.com/terraform-providers/terraform-provider-azurerm/issues/922))
+
+BUG FIXES:
+
+* security: removing the `Authorization` header from the debug logs ([#2131](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2131))
+* `azurerm_api_management` - validating the Key Vault Secret ID for the `key_vault_id` field in the `hostname_configuration` block ([#2189](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2189))
+* `azurerm_function_app` - correctly marking the resource as missing upon manual deletion ([#2111](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2111))
+* `azurerm_kubernetes_cluster` - changing `os_disk_size_gb` to computed as the API now returns a valid default ([#2117](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2117))
+* `azurerm_public_ip` - `domain_name_label` validation now allows 63 characters ([#2122](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2122))
+* `azurerm_virtual_machine` - making `availability_set_id` conflict with `zones` ([#2185](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2185))
 
 
 ## 1.17.0 (October 18, 2018)
@@ -877,10 +948,3 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * `azurerm_virtual_machine_scale_set` - fix panic with `additional_unattend_config` block ([#266](https://github.com/terraform-providers/terraform-provider-azurerm/issues/266))
-
-## 0.2.0 (September 15, 2017)
-
-FEATURES:
-
-* **Support for authenticating using the Azure CLI** ([#316](https://github.com/terraform-providers/terraform-provider-azurerm/issues/316))
-* **New Resource:** `azurerm_container_group` ([#333](https://github.com/terraform-providers/terraform-provider-azurerm/issues/333)] [[#31

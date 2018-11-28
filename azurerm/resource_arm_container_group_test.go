@@ -17,7 +17,7 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentials(t *testing.T) {
 
 	config := testAccAzureRMContainerGroup_imageRegistryCredentials(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
@@ -55,7 +55,7 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 	config := testAccAzureRMContainerGroup_imageRegistryCredentials(ri, testLocation())
 	updated := testAccAzureRMContainerGroup_imageRegistryCredentialsUpdated(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
@@ -93,7 +93,7 @@ func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
 
 	config := testAccAzureRMContainerGroup_linuxBasic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
@@ -126,7 +126,7 @@ func TestAccAzureRMContainerGroup_linuxBasicUpdate(t *testing.T) {
 	config := testAccAzureRMContainerGroup_linuxBasic(ri, testLocation())
 	updatedConfig := testAccAzureRMContainerGroup_linuxBasicUpdated(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
@@ -155,7 +155,7 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 
 	config := testAccAzureRMContainerGroup_linuxComplete(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
@@ -205,7 +205,7 @@ func TestAccAzureRMContainerGroup_windowsBasic(t *testing.T) {
 
 	config := testAccAzureRMContainerGroup_windowsBasic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
@@ -233,7 +233,7 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 
 	config := testAccAzureRMContainerGroup_windowsComplete(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
@@ -502,71 +502,71 @@ resource "azurerm_container_group" "test" {
 func testAccAzureRMContainerGroup_linuxComplete(ri int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name     = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
-    name                     = "accsa%d"
-    resource_group_name      = "${azurerm_resource_group.test.name}"
-    location                 = "${azurerm_resource_group.test.location}"
-    account_tier             = "Standard"
-    account_replication_type = "LRS"
+  name                     = "accsa%d"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_share" "test" {
-    name = "acctestss-%d"
+  name = "acctestss-%d"
 
-    resource_group_name  = "${azurerm_resource_group.test.name}"
-    storage_account_name = "${azurerm_storage_account.test.name}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.test.name}"
 
-    quota = 50
+  quota = 50
 }
 
 resource "azurerm_container_group" "test" {
-    name                = "acctestcontainergroup-%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    ip_address_type     = "public"
-    dns_name_label      = "acctestcontainergroup-%d"
-    os_type             = "Linux"
-    restart_policy      = "OnFailure"
+  name                = "acctestcontainergroup-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  ip_address_type     = "public"
+  dns_name_label      = "acctestcontainergroup-%d"
+  os_type             = "Linux"
+  restart_policy      = "OnFailure"
 
-    container {
-        name   = "hf"
-        image  = "seanmckenna/aci-hellofiles"
-        cpu    = "1"
-        memory = "1.5"
+  container {
+    name   = "hf"
+    image  = "seanmckenna/aci-hellofiles"
+    cpu    = "1"
+    memory = "1.5"
 
-        port     = "80"
-        protocol = "TCP"
+    port     = "80"
+    protocol = "TCP"
 
-        volume {
-          name       = "logs"
-          mount_path = "/aci/logs"
-          read_only  = false
-          share_name = "${azurerm_storage_share.test.name}"
+    volume {
+      name       = "logs"
+      mount_path = "/aci/logs"
+      read_only  = false
+      share_name = "${azurerm_storage_share.test.name}"
 
-          storage_account_name = "${azurerm_storage_account.test.name}"
-          storage_account_key = "${azurerm_storage_account.test.primary_access_key}"
-        }
-
-        environment_variables {
-          "foo" = "bar"
-          "foo1" = "bar1"
-        }
-
-        secure_environment_variables {
-          "secureFoo"  = "secureBar"
-          "secureFoo1" = "secureBar1"
-        }
-
-        commands = ["/bin/bash", "-c", "ls"]
+      storage_account_name = "${azurerm_storage_account.test.name}"
+      storage_account_key  = "${azurerm_storage_account.test.primary_access_key}"
     }
 
-    tags {
-        environment = "Testing"
+    environment_variables {
+      "foo"  = "bar"
+      "foo1" = "bar1"
     }
+
+    secure_environment_variables {
+      "secureFoo"  = "secureBar"
+      "secureFoo1" = "secureBar1"
+    }
+
+    commands = ["/bin/bash", "-c", "ls"]
+  }
+
+  tags {
+    environment = "Testing"
+  }
 }
 `, ri, location, ri, ri, ri, ri)
 }

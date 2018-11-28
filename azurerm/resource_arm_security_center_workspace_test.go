@@ -17,7 +17,7 @@ func testAccAzureRMSecurityCenterWorkspace_basic(t *testing.T) {
 
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSecurityCenterWorkspaceDestroy,
@@ -48,7 +48,7 @@ func testAccAzureRMSecurityCenterWorkspace_update(t *testing.T) {
 
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -130,9 +130,8 @@ func testCheckAzureRMSecurityCenterWorkspaceDestroy(s *terraform.State) error {
 
 func testAccAzureRMSecurityCenterWorkspace_basicCfg(rInt int, location, scope string) string {
 	return fmt.Sprintf(`
-
 resource "azurerm_security_center_subscription_pricing" "test" {
-    tier = "Standard"
+  tier = "Standard"
 }
 
 resource "azurerm_resource_group" "test" {
@@ -148,8 +147,8 @@ resource "azurerm_log_analytics_workspace" "test1" {
 }
 
 resource "azurerm_security_center_workspace" "test" {
-    scope        = "%[3]s"
-    workspace_id = "${azurerm_log_analytics_workspace.test1.id}"
+  scope        = "%[3]s"
+  workspace_id = "${azurerm_log_analytics_workspace.test1.id}"
 }
 `, rInt, location, scope)
 }
@@ -157,7 +156,7 @@ resource "azurerm_security_center_workspace" "test" {
 func testAccAzureRMSecurityCenterWorkspace_differentWorkspaceCfg(rInt int, location, scope string) string {
 	return fmt.Sprintf(`
 resource "azurerm_security_center_subscription_pricing" "test" {
-    tier = "Standard"
+  tier = "Standard"
 }
 
 resource "azurerm_resource_group" "test" {
@@ -173,8 +172,8 @@ resource "azurerm_log_analytics_workspace" "test2" {
 }
 
 resource "azurerm_security_center_workspace" "test" {
-    scope        = "%[3]s"
-    workspace_id = "${azurerm_log_analytics_workspace.test2.id}"
+  scope        = "%[3]s"
+  workspace_id = "${azurerm_log_analytics_workspace.test2.id}"
 }
 `, rInt, location, scope)
 }

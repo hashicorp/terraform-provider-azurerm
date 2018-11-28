@@ -16,7 +16,7 @@ func TestAccAzureRMDnsMxRecord_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMDnsMxRecord_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsMxRecordDestroy,
@@ -26,6 +26,11 @@ func TestAccAzureRMDnsMxRecord_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsMxRecordExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -38,7 +43,7 @@ func TestAccAzureRMDnsMxRecord_updateRecords(t *testing.T) {
 	preConfig := testAccAzureRMDnsMxRecord_basic(ri, location)
 	postConfig := testAccAzureRMDnsMxRecord_updateRecords(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsMxRecordDestroy,
@@ -68,7 +73,7 @@ func TestAccAzureRMDnsMxRecord_withTags(t *testing.T) {
 	preConfig := testAccAzureRMDnsMxRecord_withTags(ri, location)
 	postConfig := testAccAzureRMDnsMxRecord_withTagsUpdate(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsMxRecordDestroy,
@@ -86,6 +91,11 @@ func TestAccAzureRMDnsMxRecord_withTags(t *testing.T) {
 					testCheckAzureRMDnsMxRecordExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

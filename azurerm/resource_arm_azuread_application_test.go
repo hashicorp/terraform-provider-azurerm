@@ -15,7 +15,7 @@ func TestAccAzureRMActiveDirectoryApplication_basic(t *testing.T) {
 	id := uuid.New().String()
 	config := testAccAzureRMActiveDirectoryApplication_basic(id)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
@@ -43,7 +43,7 @@ func TestAccAzureRMActiveDirectoryApplication_availableToOtherTenants(t *testing
 	id := uuid.New().String()
 	config := testAccAzureRMActiveDirectoryApplication_availableToOtherTenants(id)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
@@ -69,7 +69,7 @@ func TestAccAzureRMActiveDirectoryApplication_complete(t *testing.T) {
 	id := uuid.New().String()
 	config := testAccAzureRMActiveDirectoryApplication_complete(id)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
@@ -102,7 +102,7 @@ func TestAccAzureRMActiveDirectoryApplication_update(t *testing.T) {
 	updatedId := uuid.New().String()
 	updatedConfig := testAccAzureRMActiveDirectoryApplication_complete(updatedId)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
@@ -200,8 +200,8 @@ func testAccAzureRMActiveDirectoryApplication_complete(id string) string {
 resource "azurerm_azuread_application" "test" {
   name                       = "acctest%s"
   homepage                   = "https://homepage-%s"
-  identifier_uris            = ["https://%s.hashicorptest.com"]
-  reply_urls                 = ["https://replyurl-%s"]
+  identifier_uris            = ["http://%s.hashicorptest.com"]
+  reply_urls                 = ["http://%s.hashicorptest.com"]
   oauth2_allow_implicit_flow = true
 }
 `, id, id, id, id)

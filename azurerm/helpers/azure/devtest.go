@@ -119,7 +119,7 @@ func FlattenDevTestVirtualMachineGalleryImage(input *dtl.GalleryImageReference) 
 	results := make([]interface{}, 0)
 
 	if input != nil {
-		output := make(map[string]interface{}, 0)
+		output := make(map[string]interface{})
 
 		if input.Offer != nil {
 			output["offer"] = *input.Offer

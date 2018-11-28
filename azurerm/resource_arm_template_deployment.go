@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
+	"github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -168,7 +168,7 @@ func resourceArmTemplateDeploymentRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error making Read request on Azure RM Template Deployment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	outputs := make(map[string]string, 0)
+	outputs := make(map[string]string)
 	if outs := resp.Properties.Outputs; outs != nil {
 		outsVal := outs.(map[string]interface{})
 		if len(outsVal) > 0 {

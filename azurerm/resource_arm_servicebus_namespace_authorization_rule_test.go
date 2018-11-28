@@ -31,7 +31,7 @@ func TestAccAzureRMServiceBusNamespaceAuthorizationRule_manage(t *testing.T) {
 func testAccAzureRMServiceBusNamespaceAuthorizationRule(t *testing.T, listen, send, manage bool) {
 	resourceName := "azurerm_servicebus_namespace_authorization_rule.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceAuthorizationRuleDestroy,
@@ -63,7 +63,7 @@ func testAccAzureRMServiceBusNamespaceAuthorizationRule(t *testing.T, listen, se
 func TestAccAzureRMServiceBusNamespaceAuthorizationRule_rightsUpdate(t *testing.T) {
 	resourceName := "azurerm_servicebus_namespace_authorization_rule.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceAuthorizationRuleDestroy,

@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -13,15 +15,17 @@ func dataSourceArmKeyVaultSecret() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateKeyVaultChildName,
 			},
 
 			"vault_uri": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.URLIsHTTPS,
 			},
 
 			"value": {
@@ -62,7 +66,7 @@ func dataSourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	// the version may have changed, so parse the updated id
-	respID, err := parseKeyVaultChildID(*resp.ID)
+	respID, err := azure.ParseKeyVaultChildID(*resp.ID)
 	if err != nil {
 		return err
 	}

@@ -10,7 +10,7 @@ import (
 
 	"strconv"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-12-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/structure"
@@ -136,8 +136,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 		DefinitionProperties: &properties,
 	}
 
-	_, err := client.CreateOrUpdate(ctx, name, definition)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, name, definition); err != nil {
 		return err
 	}
 

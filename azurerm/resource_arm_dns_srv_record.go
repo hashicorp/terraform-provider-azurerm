@@ -162,9 +162,9 @@ func resourceArmDnsSrvRecordDelete(d *schema.ResourceData, meta interface{}) err
 	name := id.Path["SRV"]
 	zoneName := id.Path["dnszones"]
 
-	resp, error := client.Delete(ctx, resGroup, zoneName, name, dns.SRV, "")
+	resp, err := client.Delete(ctx, resGroup, zoneName, name, dns.SRV, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS SRV Record %s: %+v", name, error)
+		return fmt.Errorf("Error deleting DNS SRV Record %s: %+v", name, err)
 	}
 
 	return nil

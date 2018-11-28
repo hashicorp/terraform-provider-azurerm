@@ -44,7 +44,7 @@ resource "azurerm_lb_backend_address_pool" "backlb" {
 }
 
 resource "azurerm_lb_probe" "prob" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.rg.name}"
   loadbalancer_id     = "${azurerm_lb.lb.id}"
   name                = "ssh-running-probe"
   port                = 22
@@ -82,7 +82,6 @@ resource "azurerm_virtual_machine_scale_set" "scaleset" {
   name                = "autoscalewad"
   location            = "${azurerm_resource_group.rg.location}"
   resource_group_name = "${azurerm_resource_group.rg.name}"
-  upgrade_policy_mode = "Manual"
   overprovision       = true
   depends_on          = ["azurerm_lb.lb", "azurerm_virtual_network.vnet"]
 
@@ -98,7 +97,6 @@ resource "azurerm_virtual_machine_scale_set" "scaleset" {
   }
 
   health_probe_id = "${azurerm_lb_probe.prob.id}"
-  depends_on      = ["azurerm_lb_rule.lbr"]
 
   sku {
     name     = "${var.vm_sku}"

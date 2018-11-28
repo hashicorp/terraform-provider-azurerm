@@ -13,6 +13,8 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -31,13 +33,14 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateKeyVaultChildName,
+				ValidateFunc: azure.ValidateKeyVaultChildName,
 			},
 
 			"vault_uri": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.URLIsHTTPS,
 			},
 
 			"certificate": {
@@ -97,7 +100,7 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 										Type:     schema.TypeInt,
 										Required: true,
 										ForceNew: true,
-										ValidateFunc: validateIntInSlice([]int{
+										ValidateFunc: validate.IntInSlice([]int{
 											2048,
 											4096,
 										}),
@@ -220,6 +223,41 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 										Required: true,
 										ForceNew: true,
 									},
+									"subject_alternative_names": {
+										Type:     schema.TypeList,
+										Optional: true,
+										ForceNew: true,
+										Computed: true,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"emails": {
+													Type:     schema.TypeList,
+													Optional: true,
+													ForceNew: true,
+													Elem: &schema.Schema{
+														Type: schema.TypeString,
+													},
+												},
+												"dns_names": {
+													Type:     schema.TypeList,
+													Optional: true,
+													ForceNew: true,
+													Elem: &schema.Schema{
+														Type: schema.TypeString,
+													},
+												},
+												"upns": {
+													Type:     schema.TypeList,
+													Optional: true,
+													ForceNew: true,
+													Elem: &schema.Schema{
+														Type: schema.TypeString,
+													},
+												},
+											},
+										},
+									},
 									"validity_in_months": {
 										Type:     schema.TypeInt,
 										Required: true,
@@ -334,7 +372,7 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 	client := meta.(*ArmClient).keyVaultManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseKeyVaultChildID(d.Id())
+	id, err := azure.ParseKeyVaultChildID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -356,7 +394,7 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 
 	certificatePolicy := flattenKeyVaultCertificatePolicy(cert.Policy)
 	if err := d.Set("certificate_policy", certificatePolicy); err != nil {
-		return fmt.Errorf("Error flattening Key Vault Certificate Policy: %+v", err)
+		return fmt.Errorf("Error setting Key Vault Certificate Policy: %+v", err)
 	}
 
 	// Computed
@@ -384,7 +422,7 @@ func resourceArmKeyVaultCertificateDelete(d *schema.ResourceData, meta interface
 	client := meta.(*ArmClient).keyVaultManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseKeyVaultChildID(d.Id())
+	id, err := azure.ParseKeyVaultChildID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -474,11 +512,37 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 			keyUsage = append(keyUsage, keyvault.KeyUsageType(key.(string)))
 		}
 
+		subjectAlternativeNames := &keyvault.SubjectAlternativeNames{}
+		if v, ok := cert["subject_alternative_names"]; ok {
+
+			if sans := v.([]interface{}); len(sans) > 0 {
+				if sans[0] != nil {
+					san := sans[0].(map[string]interface{})
+
+					emails := san["emails"].([]interface{})
+					if len(emails) > 0 {
+						subjectAlternativeNames.Emails = utils.ExpandStringArray(emails)
+					}
+
+					dnsNames := san["dns_names"].([]interface{})
+					if len(dnsNames) > 0 {
+						subjectAlternativeNames.DNSNames = utils.ExpandStringArray(dnsNames)
+					}
+
+					upns := san["upns"].([]interface{})
+					if len(upns) > 0 {
+						subjectAlternativeNames.Upns = utils.ExpandStringArray(upns)
+					}
+				}
+			}
+		}
+
 		policy.X509CertificateProperties = &keyvault.X509CertificateProperties{
-			ValidityInMonths: utils.Int32(int32(cert["validity_in_months"].(int))),
-			Subject:          utils.String(cert["subject"].(string)),
-			KeyUsage:         &keyUsage,
-			Ekus:             extendedKeyUsage,
+			ValidityInMonths:        utils.Int32(int32(cert["validity_in_months"].(int))),
+			Subject:                 utils.String(cert["subject"].(string)),
+			KeyUsage:                &keyUsage,
+			Ekus:                    extendedKeyUsage,
+			SubjectAlternativeNames: subjectAlternativeNames,
 		}
 	}
 
@@ -486,17 +550,17 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 }
 
 func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []interface{} {
-	policy := make(map[string]interface{}, 0)
+	policy := make(map[string]interface{})
 
 	if params := input.IssuerParameters; params != nil {
-		issuerParams := make(map[string]interface{}, 0)
+		issuerParams := make(map[string]interface{})
 		issuerParams["name"] = *params.Name
 		policy["issuer_parameters"] = []interface{}{issuerParams}
 	}
 
 	// key properties
 	if props := input.KeyProperties; props != nil {
-		keyProps := make(map[string]interface{}, 0)
+		keyProps := make(map[string]interface{})
 		keyProps["exportable"] = *props.Exportable
 		keyProps["key_size"] = int(*props.KeySize)
 		keyProps["key_type"] = *props.KeyType
@@ -509,15 +573,15 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []inter
 	lifetimeActions := make([]interface{}, 0)
 	if actions := input.LifetimeActions; actions != nil {
 		for _, action := range *actions {
-			lifetimeAction := make(map[string]interface{}, 0)
+			lifetimeAction := make(map[string]interface{})
 
-			actionOutput := make(map[string]interface{}, 0)
+			actionOutput := make(map[string]interface{})
 			if act := action.Action; act != nil {
 				actionOutput["action_type"] = string(act.ActionType)
 			}
 			lifetimeAction["action"] = []interface{}{actionOutput}
 
-			triggerOutput := make(map[string]interface{}, 0)
+			triggerOutput := make(map[string]interface{})
 			if trigger := action.Trigger; trigger != nil {
 				if days := trigger.DaysBeforeExpiry; days != nil {
 					triggerOutput["days_before_expiry"] = int(*trigger.DaysBeforeExpiry)
@@ -535,7 +599,7 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []inter
 
 	// secret properties
 	if props := input.SecretProperties; props != nil {
-		keyProps := make(map[string]interface{}, 0)
+		keyProps := make(map[string]interface{})
 		keyProps["content_type"] = *props.ContentType
 
 		policy["secret_properties"] = []interface{}{keyProps}
@@ -543,19 +607,31 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []inter
 
 	// x509 Certificate Properties
 	if props := input.X509CertificateProperties; props != nil {
-		certProps := make(map[string]interface{}, 0)
+		certProps := make(map[string]interface{})
 
 		usages := make([]string, 0)
 		for _, usage := range *props.KeyUsage {
 			usages = append(usages, string(usage))
 		}
+
+		sanOutputs := make([]interface{}, 0)
+		if san := props.SubjectAlternativeNames; san != nil {
+			sanOutput := make(map[string]interface{})
+
+			sanOutput["emails"] = utils.FlattenStringArray(san.Emails)
+			sanOutput["dns_names"] = utils.FlattenStringArray(san.DNSNames)
+			sanOutput["upns"] = utils.FlattenStringArray(san.Upns)
+
+			sanOutputs = append(sanOutputs, sanOutput)
+		}
+
 		certProps["key_usage"] = usages
 		certProps["subject"] = *props.Subject
 		certProps["validity_in_months"] = int(*props.ValidityInMonths)
 		if props.Ekus != nil {
 			certProps["extended_key_usage"] = props.Ekus
 		}
-
+		certProps["subject_alternative_names"] = sanOutputs
 		policy["x509_certificate_properties"] = []interface{}{certProps}
 	}
 
