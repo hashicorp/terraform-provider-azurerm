@@ -29,6 +29,8 @@ resource "azurerm_recovery_services_protection_policy_vm" "test" {
   name                = "tfex-recovery-vault-policy"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
+  
+  timezone = "UTC"
 
   backup = {
     frequency = "Daily"
@@ -70,6 +72,8 @@ The following arguments are supported:
 * `recovery_vault_name` - (Required) Specifies the name of the Recovery Services Vault to use. Changing this forces a new resource to be created.
 
 * `backup` - (Required) Configures the Policy backup frequecent, times & days as documented in the `backup` block below. 
+
+* `timezone` - (Optional) Specifies the timezone.
 
 * `retention_daily` - (Optional) Configures the policy daily retention as documented in the `retention_daily` block below. Required when backup frequency is `Daily`.
 

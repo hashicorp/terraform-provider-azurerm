@@ -47,8 +47,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/2017-08-01-preview/security"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	MsSql "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/backup"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2017-07-01/backup"
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
 	"github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
@@ -256,7 +256,7 @@ type ArmClient struct {
 
 	// Recovery Services
 	recoveryServicesVaultsClient             recoveryservices.VaultsClient
-	recoveryServicesProtectedItemsClient     backup.ProtectedItemsClient
+	recoveryServicesProtectedItemsClient     backup.ProtectedItemsGroupClient
 	recoveryServicesProtectionPoliciesClient backup.ProtectionPoliciesClient
 
 	// Relay
@@ -963,7 +963,7 @@ func (c *ArmClient) registerRecoveryServiceClients(endpoint, subscriptionId stri
 	c.configureClient(&vaultsClient.Client, auth)
 	c.recoveryServicesVaultsClient = vaultsClient
 
-	protectedItemsClient := backup.NewProtectedItemsClientWithBaseURI(endpoint, subscriptionId)
+	protectedItemsClient := backup.NewProtectedItemsGroupClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&protectedItemsClient.Client, auth)
 	c.recoveryServicesProtectedItemsClient = protectedItemsClient
 
