@@ -73,7 +73,7 @@ The following arguments are supported:
 
 * `backup` - (Required) Configures the Policy backup frequecent, times & days as documented in the `backup` block below. 
 
-* `timezone` - (Optional) Specifies the timezone.
+* `timezone` - (Optional) Specifies the timezone. Defaults to `UTC`
 
 * `retention_daily` - (Optional) Configures the policy daily retention as documented in the `retention_daily` block below. Required when backup frequency is `Daily`.
 
