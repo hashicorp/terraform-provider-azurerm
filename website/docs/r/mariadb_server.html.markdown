@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_mariadb_server
 
-Manage a MariaDB Server.
+Manages a MariaDB Server.
 
 ## Example Usage
 
