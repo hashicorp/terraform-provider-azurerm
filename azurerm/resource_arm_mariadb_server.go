@@ -186,7 +186,7 @@ func resourceArmMariaDbServerCreateOrUpdate(d *schema.ResourceData, meta interfa
 	tier := sku.Tier
 	storageMB := storageProfile.StorageMB
 
-	if strings.ToLower(string(tier)) == "basic" && int32(*storageMB) > int32(1048576) {
+	if strings.ToLower(string(tier)) == "basic" && int32(*storageMB) > 1048576 {
 		return fmt.Errorf("basic pricing tier only supports upto 1,048,576 MB (1TB) of storage")
 	}
 
