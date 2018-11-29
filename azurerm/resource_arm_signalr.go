@@ -114,7 +114,7 @@ func resourceArmSignalRCreateOrUpdate(d *schema.ResourceData, meta interface{}) 
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("SignalR %q (resource group %q) ID is empty", name, resourceGroup)
+		return fmt.Errorf("SignalR %q (Resource Group %q) ID is empty", name, resourceGroup)
 	}
 	d.SetId(*read.ID)
 
