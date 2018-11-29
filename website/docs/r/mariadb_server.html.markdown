@@ -89,7 +89,9 @@ A `sku` block supports the following:
 
 * `backup_retention_days` - (Optional) Backup retention days for the server, supported values are between `7` and `35` days.
 
-* `geo_redundant_backup` - (Optional) Enable Geo-redundant or not for server backup. Valid values for this property are `Enabled` or `Disabled`, not supported for the `basic` tier.
+* `geo_redundant_backup` - (Optional) Enable Geo-redundant or not for server backup. Valid values for this property are `Enabled` or `Disabled`.
+
+-> **NOTE:** Geo Redundant Backups cannot be configured when using the `Basic` tier.
 
 ## Attributes Reference
 
