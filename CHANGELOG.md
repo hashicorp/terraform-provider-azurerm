@@ -8,6 +8,7 @@ IMPROVEMENTS:
 * sdk: upgrading to version `2018-05-01` of the Policy API [GH-2386]
 * `azurerm_app_service` - support for configuring `app_command_line` in the `site_config` block [GH-2350]
 * `azurerm_app_service_slot` - support for configuring `app_command_line` in the `site_config` block [GH-2350]
+* `azurerm_application_insights` - added `Node.JS` application type [GH-2407]
 * `azurerm_key_vault` - exposed `backup` and `restore` permissions made `key_permissions` and `secret_permissions` optional [GH-2363]
 * `azurerm_container_registry` - supprt for geo-replication via the `georeplication_locations` property [GH-2055]
 * `azurerm_mssql_elasticpool` - deprecated the `elastic_pool_properties` propety and moved `max_size_bytes` and `zone_redundant` to the top level [GH-2378]
