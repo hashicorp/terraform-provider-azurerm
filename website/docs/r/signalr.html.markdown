@@ -38,7 +38,7 @@ The following arguments are supported:
 
 * `sku_name` - (Required) Specifies which tier to use. Valid values are `Free_F1` and `Standard_S1`.
 
-* `capacity` - (Optional) Specifies the number of units associated with this SignalR service. Valid values are 1, 2, 5, 10, 20, 50 and 100. Defaults to 1.
+* `capacity` - (Optional) Specifies the number of units associated with this SignalR service. Valid values are `1`, `2`, `5`, `10`, `20`, `50` and `100`. Defaults to `1`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
