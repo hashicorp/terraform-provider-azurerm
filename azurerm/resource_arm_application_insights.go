@@ -2,9 +2,10 @@ package azurerm
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"log"
 	"net/http"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/hashicorp/terraform/helper/schema"
