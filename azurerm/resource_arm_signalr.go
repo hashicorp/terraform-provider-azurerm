@@ -194,7 +194,7 @@ func resourceArmSignalRDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error deleting SignalR %q (resource group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("Error waiting for the deletion of SignalR %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
