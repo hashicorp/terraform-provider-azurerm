@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"log"
 	"net/http"
 
@@ -36,7 +37,7 @@ func resourceArmApplicationInsights() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					"web",
 					"other",
@@ -45,6 +46,7 @@ func resourceArmApplicationInsights() *schema.Resource {
 					"phone",
 					"store",
 					"ios",
+					"Node.JS",
 				}, true),
 			},
 
