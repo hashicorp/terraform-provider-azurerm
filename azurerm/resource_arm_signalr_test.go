@@ -212,7 +212,7 @@ func TestAccAzureRMSignalR_skuAndCapacityUpdate(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 	freeConfig := testAccAzureRMSignalR_basic(ri, location)
-	standardConfig := testAccAzureRMSignalR_standardWithCapacity(ri, location, 4)
+	standardConfig := testAccAzureRMSignalR_standardWithCapacity(ri, location, 2)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -236,7 +236,7 @@ func TestAccAzureRMSignalR_skuAndCapacityUpdate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku_name", "Standard_S1"),
-					resource.TestCheckResourceAttr(resourceName, "capacity", "4"),
+					resource.TestCheckResourceAttr(resourceName, "capacity", "2"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
 					resource.TestCheckResourceAttrSet(resourceName, "port"),
