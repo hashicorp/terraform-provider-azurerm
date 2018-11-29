@@ -139,7 +139,7 @@ func resourceArmSignalRRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error getting SignalR %q (resource group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error getting SignalR %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
