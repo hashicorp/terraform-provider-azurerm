@@ -43,6 +43,33 @@ func resourceArmSignalR() *schema.Resource {
 				}, false),
 			},
 
+			"capacity": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      1,
+				ValidateFunc: validation.IntBetween(1, 100),
+			},
+
+			"hostname": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"ip_address": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"port": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
+			"server_port": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -57,6 +84,7 @@ func resourceArmSignalRCreateOrUpdate(d *schema.ResourceData, meta interface{}) 
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	sku := d.Get("sku_name").(string)
+	capacity := d.Get("capacity").(int)
 
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
@@ -64,7 +92,8 @@ func resourceArmSignalRCreateOrUpdate(d *schema.ResourceData, meta interface{}) 
 	parameters := &signalr.CreateParameters{
 		Location: utils.String(location),
 		Sku: &signalr.ResourceSku{
-			Name: utils.String(sku),
+			Name:     utils.String(sku),
+			Capacity: utils.Int32(int32(capacity)),
 		},
 		Tags: expandedTags,
 	}
@@ -73,7 +102,7 @@ func resourceArmSignalRCreateOrUpdate(d *schema.ResourceData, meta interface{}) 
 	if err != nil {
 		return fmt.Errorf("Error creating or updating SignalR %q (resource group %q): %+v", name, resourceGroup, err)
 	}
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for the result of creating or updating SignalR %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -115,8 +144,27 @@ func resourceArmSignalRRead(d *schema.ResourceData, meta interface{}) error {
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
-	if sku := resp.Sku; sku != nil && sku.Name != nil {
-		d.Set("sku_name", *sku.Name)
+	if sku := resp.Sku; sku != nil {
+		if sku.Name != nil {
+			d.Set("sku_name", *sku.Name)
+		}
+		if sku.Capacity != nil {
+			d.Set("capacity", *sku.Capacity)
+		}
+	}
+	if properties := resp.Properties; properties != nil {
+		if properties.HostName != nil {
+			d.Set("hostname", *properties.HostName)
+		}
+		if properties.ExternalIP != nil {
+			d.Set("ip_address", *properties.ExternalIP)
+		}
+		if properties.PublicPort != nil {
+			d.Set("port", *properties.PublicPort)
+		}
+		if properties.ServerPort != nil {
+			d.Set("server_port", *properties.ServerPort)
+		}
 	}
 	flattenAndSetTags(d, resp.Tags)
 
