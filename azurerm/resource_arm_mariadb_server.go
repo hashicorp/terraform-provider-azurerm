@@ -242,7 +242,7 @@ func resourceArmMariaDbServerRead(d *schema.ResourceData, meta interface{}) erro
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] MariaDB Server %q was not found (resource group %q)", name, resourceGroup)
+			log.Printf("[WARN] MariaDB Server %q was not found (Resource Group %q)", name, resourceGroup)
 			d.SetId("")
 			return nil
 		}
