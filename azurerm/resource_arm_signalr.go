@@ -103,7 +103,7 @@ func resourceArmSignalRCreateOrUpdate(d *schema.ResourceData, meta interface{}) 
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating or updating SignalR %q (resource group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error creating or updating SignalR %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for the result of creating or updating SignalR %q (Resource Group %q): %+v", name, resourceGroup, err)
