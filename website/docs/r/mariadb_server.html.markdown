@@ -10,6 +10,8 @@ description: |-
 
 Manages a MariaDB Server.
 
+-> **NOTE** MariaDB Server is currently in Public Preview. You can find more information, including [how to register for the Public Preview here](https://azure.microsoft.com/en-us/updates/mariadb-public-preview/).
+
 ## Example Usage
 
 ```hcl
@@ -27,6 +29,7 @@ resource "azurerm_mariadb_server" "test" {
     name     = "B_Gen5_2"
     capacity = 2
     tier     = "Basic"
+    family   = "Gen5"
   }
 
   storage_profile {
@@ -37,6 +40,7 @@ resource "azurerm_mariadb_server" "test" {
 
   administrator_login          = "mariadbadmin"
   administrator_login_password = "H@Sh1CoR3!"
+  version                      = "10.2"
   ssl_enforcement              = "Enabled"
 }
 ```
@@ -59,6 +63,8 @@ The following arguments are supported:
 
 * `administrator_login_password` - (Required) The Password associated with the `administrator_login` for the MariaDB Server.
 
+* `version` - (Required) Specifies the version of MariaDB to use. The valid value is `10.2`. Changing this forces a new resource to be created.
+
 * `ssl_enforcement` - (Required) Specifies if SSL should be enforced on connections. Possible values are `Enabled` and `Disabled`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -73,7 +79,8 @@ A `sku` block supports the following:
 
 * `tier` - (Required) The tier of the particular SKU. Possible values are `Basic`, `GeneralPurpose`, and `MemoryOptimized`. For more information see the [product documentation](https://docs.microsoft.com/en-us/azure/mariadb/concepts-pricing-tiers). 
 
-  **NOTE:** `family` has been omitted from the SKU since MariaDB only supports `Gen5` hardware.
+* `family` - (Required) The `family` of the hardware (e.g. `Gen5`), before selecting your `family` check the [product documentation](https://docs.microsoft.com/en-us/azure/mariadb/concepts-pricing-tiers#compute-generations-vcores-and-memory) for availability in your region.
+
 ---
 
 `storage_profile` supports the following:
@@ -91,8 +98,6 @@ The following attributes are exported:
 * `id` - The ID of the MariaDB Server.
 
 * `fqdn` - The FQDN of the MariaDB Server.
-
-* `version` - The Version of the MariaDB Server.
 
 ## Import
 

@@ -5,7 +5,6 @@ import (
 	"log"
 	"strings"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/mariadb/mgmt/2018-06-01-preview/mariadb"
@@ -58,7 +57,6 @@ func resourceArmMariaDbServer() *schema.Resource {
 								"MO_Gen5_8",
 								"MO_Gen5_16",
 							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"capacity": {
@@ -82,12 +80,14 @@ func resourceArmMariaDbServer() *schema.Resource {
 								string(mariadb.GeneralPurpose),
 								string(mariadb.MemoryOptimized),
 							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"family": {
 							Type:     schema.TypeString,
-							Computed: true,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Gen5",
+							}, true),
 						},
 					},
 				},
@@ -103,6 +103,15 @@ func resourceArmMariaDbServer() *schema.Resource {
 				Type:      schema.TypeString,
 				Required:  true,
 				Sensitive: true,
+			},
+
+			"version": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"10.2",
+				}, true),
 			},
 
 			"storage_profile": {
@@ -130,7 +139,6 @@ func resourceArmMariaDbServer() *schema.Resource {
 								string(mariadb.Enabled),
 								string(mariadb.Disabled),
 							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
@@ -143,7 +151,6 @@ func resourceArmMariaDbServer() *schema.Resource {
 					string(mariadb.SslEnforcementEnumDisabled),
 					string(mariadb.SslEnforcementEnumEnabled),
 				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"fqdn": {
@@ -151,24 +158,7 @@ func resourceArmMariaDbServer() *schema.Resource {
 				Computed: true,
 			},
 
-			"version": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"tags": tagsSchema(),
-		},
-
-		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-
-			tier, _ := diff.GetOk("sku.0.tier")
-			storageMB, _ := diff.GetOk("storage_profile.0.storage_mb")
-
-			if strings.ToLower(tier.(string)) == "basic" && storageMB.(int) > 1048576 {
-				return fmt.Errorf("basic pricing tier only supports upto 1,048,576 MB (1TB) of storage")
-			}
-
-			return nil
 		},
 	}
 }
@@ -186,12 +176,19 @@ func resourceArmMariaDbServerCreateOrUpdate(d *schema.ResourceData, meta interfa
 	adminLogin := d.Get("administrator_login").(string)
 	adminLoginPassword := d.Get("administrator_login_password").(string)
 	sslEnforcement := d.Get("ssl_enforcement").(string)
-	version := "10.2"
+	version := d.Get("version").(string)
 	createMode := "Default"
 	tags := d.Get("tags").(map[string]interface{})
 
 	sku := expandAzureRmMariaDbServerSku(d)
 	storageProfile := expandAzureRmMariaDbStorageProfile(d)
+
+	tier := sku.Tier
+	storageMB := storageProfile.StorageMB
+
+	if strings.ToLower(tier.(string)) == "basic" && storageMB.(int) > 1048576 {
+		return fmt.Errorf("basic pricing tier only supports upto 1,048,576 MB (1TB) of storage")
+	}
 
 	properties := mariadb.ServerForCreate{
 		Location: &location,
@@ -319,7 +316,7 @@ func expandAzureRmMariaDbServerSku(d *schema.ResourceData) *mariadb.Sku {
 	name := sku["name"].(string)
 	capacity := sku["capacity"].(int)
 	tier := sku["tier"].(string)
-	family := "Gen5"
+	family := sku["family"].(string)
 
 	return &mariadb.Sku{
 		Name:     utils.String(name),
@@ -347,6 +344,10 @@ func expandAzureRmMariaDbStorageProfile(d *schema.ResourceData) *mariadb.Storage
 func flattenMariaDbServerSku(resp *mariadb.Sku) []interface{} {
 	values := map[string]interface{}{}
 
+	if resp == nil {
+		return []interface{}{}
+	}
+
 	if name := resp.Name; name != nil {
 		values["name"] = *name
 	}
@@ -366,6 +367,10 @@ func flattenMariaDbServerSku(resp *mariadb.Sku) []interface{} {
 
 func flattenMariaDbStorageProfile(resp *mariadb.StorageProfile) []interface{} {
 	values := map[string]interface{}{}
+
+	if resp == nil {
+		return []interface{}{}
+	}
 
 	if storageMB := resp.StorageMB; storageMB != nil {
 		values["storage_mb"] = *storageMB

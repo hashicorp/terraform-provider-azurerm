@@ -308,6 +308,7 @@ resource "azurerm_mariadb_server" "test" {
     name     = "B_Gen5_2"
     capacity = 2
     tier     = "Basic"
+    family   = "Gen5"
   }
 
   storage_profile {
@@ -318,6 +319,7 @@ resource "azurerm_mariadb_server" "test" {
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
+  version                      = "10.2"
   ssl_enforcement              = "Enabled"
 }
 `, rInt, location, rInt)
@@ -339,6 +341,7 @@ resource "azurerm_mariadb_server" "test" {
     name     = "B_Gen5_2"
     capacity = 2
     tier     = "Basic"
+    family   = "Gen5"
   }
 
   storage_profile {
@@ -349,7 +352,8 @@ resource "azurerm_mariadb_server" "test" {
 
   administrator_login          = "acctestun"
   administrator_login_password = "R3dH0TCh1l1P3pp3rs!"
-  ssl_enforcement              = "Disabled"
+  version                      = "10.2"
+  ssl_enforcement              = "Enabled"
 }
 `, rInt, location, rInt)
 }
@@ -370,6 +374,7 @@ resource "azurerm_mariadb_server" "test" {
     name     = "B_Gen5_1"
     capacity = 1
     tier     = "Basic"
+    family   = "Gen5"
   }
 
   storage_profile {
@@ -380,6 +385,7 @@ resource "azurerm_mariadb_server" "test" {
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
+  version                      = "10.2"
   ssl_enforcement              = "Enabled"
 }
 `, rInt, location, rInt)
@@ -401,6 +407,7 @@ resource "azurerm_mariadb_server" "test" {
     name     = "B_Gen5_2"
     capacity = 2
     tier     = "Basic"
+		family   = "Gen5"
   }
 
   storage_profile {
@@ -411,6 +418,7 @@ resource "azurerm_mariadb_server" "test" {
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
+  version                      = "10.2"
   ssl_enforcement              = "Enabled"
 }
 `, rInt, location, rInt)
@@ -432,6 +440,7 @@ resource "azurerm_mariadb_server" "test" {
     name     = "GP_Gen5_32"
     capacity = 32
     tier     = "GeneralPurpose"
+    family   = "Gen5"
   }
 
   storage_profile {
@@ -442,6 +451,7 @@ resource "azurerm_mariadb_server" "test" {
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
+  version                      = "10.2"
   ssl_enforcement              = "Enabled"
 }
 `, rInt, location, rInt)
@@ -463,6 +473,7 @@ resource "azurerm_mariadb_server" "test" {
     name     = "MO_Gen5_16"
     capacity = 16
     tier     = "MemoryOptimized"
+    family   = "Gen5"
   }
 
   storage_profile {
@@ -473,6 +484,7 @@ resource "azurerm_mariadb_server" "test" {
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
+  version                      = "10.2"
   ssl_enforcement              = "Enabled"
 }
 `, rInt, location, rInt)
@@ -494,6 +506,7 @@ resource "azurerm_mariadb_server" "test" {
     name     = "MO_Gen5_16"
     capacity = 16
     tier     = "MemoryOptimized"
+    family   = "Gen5"
   }
 
   storage_profile {
@@ -504,6 +517,7 @@ resource "azurerm_mariadb_server" "test" {
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
+  version                      = "10.2"
   ssl_enforcement              = "Enabled"
 }
 `, rInt, location, rInt)
