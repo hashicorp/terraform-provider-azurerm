@@ -72,6 +72,8 @@ func resourceArmSignalR() *schema.Resource {
 
 			"tags": tagsSchema(),
 		},
+
+		CustomizeDiff: resourceArmSignalRCustomizeDiff,
 	}
 }
 
@@ -195,5 +197,15 @@ func resourceArmSignalRDelete(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
+	return nil
+}
+
+func resourceArmSignalRCustomizeDiff(diff *schema.ResourceDiff, v interface{}) error {
+	sku := diff.Get("sku_name").(string)
+	if sku == "Free_F1" {
+		if capacity := diff.Get("capacity").(int); capacity != 1 {
+			return fmt.Errorf("`capacity` must be 1 if `sku_name` is `%s`", sku)
+		}
+	}
 	return nil
 }
