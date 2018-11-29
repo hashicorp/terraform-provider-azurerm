@@ -188,7 +188,7 @@ func resourceArmSignalRDelete(d *schema.ResourceData, meta interface{}) error {
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error deleting SignalR %q (resource group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("Error deleting SignalR %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 		return nil
 	}
