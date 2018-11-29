@@ -49,7 +49,12 @@ resource "azurerm_container_group" "aci-helloworld" {
     image  = "seanmckenna/aci-hellofiles"
     cpu    = "0.5"
     memory = "1.5"
-    port   = "80"
+    ports  = {
+      port = 80
+    }
+    ports = {
+      port = 443 
+    }
 
     environment_variables {
       "NODE_ENV" = "testing"
@@ -119,9 +124,7 @@ The `container` block supports:
 
 * `memory` - (Required) The required memory of the containers in GB. Changing this forces a new resource to be created.
 
-* `port` - (Optional) A public port for the container. Changing this forces a new resource to be created.
-
-* `protocol` - (Optional) The protocol associated with port for the container. Allowed values are `TCP` and `UDP`.
+* `ports` - (Optional) A set of public ports for the container. Changing this forces a new resource to be created. Set as documented in the `ports` block below.
 
 * `environment_variables` - (Optional) A list of environment variables to be set on the container. Specified as a map of name/value pairs. Changing this forces a new resource to be created.
 
@@ -156,6 +159,12 @@ The `image_registry_credential` block supports:
 * `password` - (Required) The password with which to connect to the registry.
 
 * `server` - (Required) The address to use to connect to the registry without protocol ("https"/"http"). For example: "myacr.acr.io"
+
+The `ports` block supports:
+
+* `port` - (Required) The port number the container will expose.
+
+* `protocol` - (Optional) The network protocol ("tcp"/"udp") the port will use.
 
 ## Attributes Reference
 
