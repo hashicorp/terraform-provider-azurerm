@@ -85,7 +85,7 @@ A `sku` block supports the following:
 
 A `storage_profile` block supports the following:
 
-* `storage_mb` - (Required) Max storage allowed for a server. Possible values are between `5120` MB (5GB) and `1048576`MB (1TB) for the Basic SKU and between `5120` MB (5GB) and `4194304` MB (4TB) for General Purpose/Memory Optimized SKUs. For more information see the [product documentation](https://docs.microsoft.com/en-us/rest/api/mariadb/servers/create#storageprofile).
+* `storage_mb` - (Required) Max storage allowed for a server. Possible values are between `5120` MB (5GB) and `1024000`MB (1TB) for the Basic SKU and between `5120` MB (5GB) and `4096000` MB (4TB) for General Purpose/Memory Optimized SKUs. For more information see the [product documentation](https://docs.microsoft.com/en-us/rest/api/mariadb/servers/create#storageprofile).
 
 * `backup_retention_days` - (Optional) Backup retention days for the server, supported values are between `7` and `35` days.
 

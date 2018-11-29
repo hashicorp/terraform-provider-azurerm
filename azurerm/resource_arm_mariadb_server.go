@@ -123,7 +123,7 @@ func resourceArmMariaDbServer() *schema.Resource {
 						"storage_mb": {
 							Type:         schema.TypeInt,
 							Required:     true,
-							ValidateFunc: validate.IntBetweenAndDivisibleBy(5120, 4194304, 1024),
+							ValidateFunc: validate.IntBetweenAndDivisibleBy(5120, 4096000, 1024),
 						},
 
 						"backup_retention_days": {
@@ -183,11 +183,33 @@ func resourceArmMariaDbServerCreateOrUpdate(d *schema.ResourceData, meta interfa
 	sku := expandAzureRmMariaDbServerSku(d)
 	storageProfile := expandAzureRmMariaDbStorageProfile(d)
 
+	capacity := sku.Capacity
 	tier := sku.Tier
 	storageMB := storageProfile.StorageMB
 
-	if strings.ToLower(string(tier)) == "basic" && int32(*storageMB) > 1048576 {
-		return fmt.Errorf("basic pricing tier only supports upto 1,048,576 MB (1TB) of storage")
+	if strings.ToLower(string(tier)) == "basic" {
+		if *storageMB > 1024000 {
+			return fmt.Errorf("basic pricing tier only supports upto 1,024,000 MB (1TB) of storage")
+		}
+
+		if *capacity > 2 {
+			return fmt.Errorf("basic pricing tier only supports upto 2 vCores")
+		}
+	}
+
+	if strings.ToLower(string(tier)) == "generalpurpose" && *capacity < 2 {
+		return fmt.Errorf("general purpose pricing tier must have at least 2 vCores")
+	}
+
+	if strings.ToLower(string(tier)) == "memoryoptimized" {
+
+		if *capacity < 2 {
+			return fmt.Errorf("memory optimized pricing tier must have at least 2 vCores")
+		}
+
+		if *capacity > 16 {
+			return fmt.Errorf("memory optimized pricing tier only supports upto 16 vCores")
+		}
 	}
 
 	properties := mariadb.ServerForCreate{
