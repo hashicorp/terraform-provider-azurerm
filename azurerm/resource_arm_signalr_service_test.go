@@ -10,25 +10,25 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccAzureRMSignalR_basic(t *testing.T) {
-	resourceName := "azurerm_signalr.test"
+func TestAccAzureRMSignalRService_basic(t *testing.T) {
+	resourceName := "azurerm_signalr_service.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMSignalR_basic(ri, testLocation())
+	config := testAccAzureRMSignalRService_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMSignalRDestroy,
+		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSignalRExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku_name", "Free_F1"),
-					resource.TestCheckResourceAttr(resourceName, "capacity", "1"),
+					testCheckAzureRMSignalRServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Free"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(resourceName, "port"),
+					resource.TestCheckResourceAttrSet(resourceName, "public_port"),
 					resource.TestCheckResourceAttrSet(resourceName, "server_port"),
 				),
 			},
@@ -41,25 +41,25 @@ func TestAccAzureRMSignalR_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSignalR_standard(t *testing.T) {
-	resourceName := "azurerm_signalr.test"
+func TestAccAzureRMSignalRService_standard(t *testing.T) {
+	resourceName := "azurerm_signalr_service.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMSignalR_standard(ri, testLocation())
+	config := testAccAzureRMSignalRService_standardWithCapacity(ri, testLocation(), 1)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMSignalRDestroy,
+		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSignalRExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku_name", "Standard_S1"),
-					resource.TestCheckResourceAttr(resourceName, "capacity", "1"),
+					testCheckAzureRMSignalRServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(resourceName, "port"),
+					resource.TestCheckResourceAttrSet(resourceName, "public_port"),
 					resource.TestCheckResourceAttrSet(resourceName, "server_port"),
 				),
 			},
@@ -72,25 +72,25 @@ func TestAccAzureRMSignalR_standard(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSignalR_standardWithCapacity(t *testing.T) {
-	resourceName := "azurerm_signalr.test"
+func TestAccAzureRMSignalRService_standardWithCap2(t *testing.T) {
+	resourceName := "azurerm_signalr_service.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMSignalR_standardWithCapacity(ri, testLocation(), 2)
+	config := testAccAzureRMSignalRService_standardWithCapacity(ri, testLocation(), 2)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMSignalRDestroy,
+		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSignalRExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku_name", "Standard_S1"),
-					resource.TestCheckResourceAttr(resourceName, "capacity", "2"),
+					testCheckAzureRMSignalRServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "2"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(resourceName, "port"),
+					resource.TestCheckResourceAttrSet(resourceName, "public_port"),
 					resource.TestCheckResourceAttrSet(resourceName, "server_port"),
 				),
 			},
@@ -103,12 +103,12 @@ func TestAccAzureRMSignalR_standardWithCapacity(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSignalR_skuUpdate(t *testing.T) {
-	resourceName := "azurerm_signalr.test"
+func TestAccAzureRMSignalRService_skuUpdate(t *testing.T) {
+	resourceName := "azurerm_signalr_service.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	freeConfig := testAccAzureRMSignalR_basic(ri, location)
-	standardConfig := testAccAzureRMSignalR_standard(ri, location)
+	freeConfig := testAccAzureRMSignalRService_basic(ri, location)
+	standardConfig := testAccAzureRMSignalRService_standardWithCapacity(ri, location, 1)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -118,36 +118,36 @@ func TestAccAzureRMSignalR_skuUpdate(t *testing.T) {
 			{
 				Config: freeConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSignalRExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku_name", "Free_F1"),
-					resource.TestCheckResourceAttr(resourceName, "capacity", "1"),
+					testCheckAzureRMSignalRServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Free"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(resourceName, "port"),
+					resource.TestCheckResourceAttrSet(resourceName, "public_port"),
 					resource.TestCheckResourceAttrSet(resourceName, "server_port"),
 				),
 			},
 			{
 				Config: standardConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSignalRExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku_name", "Standard_S1"),
-					resource.TestCheckResourceAttr(resourceName, "capacity", "1"),
+					testCheckAzureRMSignalRServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(resourceName, "port"),
+					resource.TestCheckResourceAttrSet(resourceName, "public_port"),
 					resource.TestCheckResourceAttrSet(resourceName, "server_port"),
 				),
 			},
 			{
 				Config: freeConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSignalRExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku_name", "Free_F1"),
-					resource.TestCheckResourceAttr(resourceName, "capacity", "1"),
+					testCheckAzureRMSignalRServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Free"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(resourceName, "port"),
+					resource.TestCheckResourceAttrSet(resourceName, "public_port"),
 					resource.TestCheckResourceAttrSet(resourceName, "server_port"),
 				),
 			},
@@ -155,12 +155,12 @@ func TestAccAzureRMSignalR_skuUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSignalR_capacityUpdate(t *testing.T) {
-	resourceName := "azurerm_signalr.test"
+func TestAccAzureRMSignalRService_capacityUpdate(t *testing.T) {
+	resourceName := "azurerm_signalr_service.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	standardConfig := testAccAzureRMSignalR_standard(ri, location)
-	standardCap5Config := testAccAzureRMSignalR_standardWithCapacity(ri, location, 5)
+	standardConfig := testAccAzureRMSignalRService_standard(ri, location)
+	standardCap5Config := testAccAzureRMSignalRService_standardWithCapacity(ri, location, 5)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -170,36 +170,36 @@ func TestAccAzureRMSignalR_capacityUpdate(t *testing.T) {
 			{
 				Config: standardConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSignalRExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku_name", "Standard_S1"),
-					resource.TestCheckResourceAttr(resourceName, "capacity", "1"),
+					testCheckAzureRMSignalRServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(resourceName, "port"),
+					resource.TestCheckResourceAttrSet(resourceName, "public_port"),
 					resource.TestCheckResourceAttrSet(resourceName, "server_port"),
 				),
 			},
 			{
 				Config: standardCap5Config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSignalRExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku_name", "Standard_S1"),
-					resource.TestCheckResourceAttr(resourceName, "capacity", "5"),
+					testCheckAzureRMSignalRServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "5"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(resourceName, "port"),
+					resource.TestCheckResourceAttrSet(resourceName, "public_port"),
 					resource.TestCheckResourceAttrSet(resourceName, "server_port"),
 				),
 			},
 			{
 				Config: standardConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSignalRExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku_name", "Standard_S1"),
-					resource.TestCheckResourceAttr(resourceName, "capacity", "1"),
+					testCheckAzureRMSignalRServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(resourceName, "port"),
+					resource.TestCheckResourceAttrSet(resourceName, "public_port"),
 					resource.TestCheckResourceAttrSet(resourceName, "server_port"),
 				),
 			},
@@ -207,12 +207,12 @@ func TestAccAzureRMSignalR_capacityUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSignalR_skuAndCapacityUpdate(t *testing.T) {
-	resourceName := "azurerm_signalr.test"
+func TestAccAzureRMSignalRService_skuAndCapacityUpdate(t *testing.T) {
+	resourceName := "azurerm_signalr_service.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	freeConfig := testAccAzureRMSignalR_basic(ri, location)
-	standardConfig := testAccAzureRMSignalR_standardWithCapacity(ri, location, 2)
+	freeConfig := testAccAzureRMSignalRService_basic(ri, location)
+	standardConfig := testAccAzureRMSignalRService_standardWithCapacity(ri, location, 2)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -222,36 +222,36 @@ func TestAccAzureRMSignalR_skuAndCapacityUpdate(t *testing.T) {
 			{
 				Config: freeConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSignalRExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku_name", "Free_F1"),
-					resource.TestCheckResourceAttr(resourceName, "capacity", "1"),
+					testCheckAzureRMSignalRServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Free"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(resourceName, "port"),
+					resource.TestCheckResourceAttrSet(resourceName, "public_port"),
 					resource.TestCheckResourceAttrSet(resourceName, "server_port"),
 				),
 			},
 			{
 				Config: standardConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSignalRExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku_name", "Standard_S1"),
-					resource.TestCheckResourceAttr(resourceName, "capacity", "2"),
+					testCheckAzureRMSignalRServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "2"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(resourceName, "port"),
+					resource.TestCheckResourceAttrSet(resourceName, "public_port"),
 					resource.TestCheckResourceAttrSet(resourceName, "server_port"),
 				),
 			},
 			{
 				Config: freeConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSignalRExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku_name", "Free_F1"),
-					resource.TestCheckResourceAttr(resourceName, "capacity", "1"),
+					testCheckAzureRMSignalRServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Free"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(resourceName, "port"),
+					resource.TestCheckResourceAttrSet(resourceName, "public_port"),
 					resource.TestCheckResourceAttrSet(resourceName, "server_port"),
 				),
 			},
@@ -259,60 +259,49 @@ func TestAccAzureRMSignalR_skuAndCapacityUpdate(t *testing.T) {
 	})
 }
 
-func testAccAzureRMSignalR_basic(rInt int, location string) string {
+func testAccAzureRMSignalRService_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
 
-resource "azurerm_signalr" "test" {
+resource "azurerm_signalr_service" "test" {
   name                = "acctestSignalR-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku_name            = "Free_F1"
+  sku {
+    name     = "Free"
+    capacity = 1
+  }
 }
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMSignalR_standard(rInt int, location string) string {
+func testAccAzureRMSignalRService_standardWithCapacity(rInt int, location string, capacity int) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
 
-resource "azurerm_signalr" "test" {
+resource "azurerm_signalr_service" "test" {
   name                = "acctestSignalR-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku_name            = "Standard_S1"
-}
-`, rInt, location, rInt)
-}
-
-func testAccAzureRMSignalR_standardWithCapacity(rInt int, location string, capacity int) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_signalr" "test" {
-  name                = "acctestSignalR-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  sku_name            = "Standard_S1"
-  capacity            = %d
+  sku {
+    name     = "Standard"
+    capacity = %d
+  }
 }
 `, rInt, location, rInt, capacity)
 }
 
-func testCheckAzureRMSignalRDestroy(s *terraform.State) error {
+func testCheckAzureRMSignalRServiceDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).signalRClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_signalr" {
+		if rs.Type != "azurerm_signalr_service" {
 			continue
 		}
 
@@ -330,7 +319,7 @@ func testCheckAzureRMSignalRDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMSignalRExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMSignalRServiceExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]

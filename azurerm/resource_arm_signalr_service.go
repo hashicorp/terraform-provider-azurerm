@@ -12,12 +12,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSignalR() *schema.Resource {
+func resourceArmSignalRService() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSignalRCreateOrUpdate,
-		Read:   resourceArmSignalRRead,
-		Update: resourceArmSignalRCreateOrUpdate,
-		Delete: resourceArmSignalRDelete,
+		Create: resourceArmSignalRServiceCreateOrUpdate,
+		Read:   resourceArmSignalRServiceRead,
+		Update: resourceArmSignalRServiceCreateOrUpdate,
+		Delete: resourceArmSignalRServiceDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -35,20 +35,28 @@ func resourceArmSignalR() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameSchema(),
 
-			"sku_name": {
-				Type:     schema.TypeString,
+			"sku": {
+				Type:     schema.TypeList,
 				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Free_F1",
-					"Standard_S1",
-				}, false),
-			},
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Free",
+								"Standard",
+							}, false),
+						},
 
-			"capacity": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Default:      1,
-				ValidateFunc: validate.IntInSlice([]int{1, 2, 5, 10, 20, 50, 100}),
+						"capacity": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validate.IntInSlice([]int{1, 2, 5, 10, 20, 50, 100}),
+						},
+					},
+				},
 			},
 
 			"hostname": {
@@ -61,7 +69,7 @@ func resourceArmSignalR() *schema.Resource {
 				Computed: true,
 			},
 
-			"port": {
+			"public_port": {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
@@ -73,12 +81,10 @@ func resourceArmSignalR() *schema.Resource {
 
 			"tags": tagsSchema(),
 		},
-
-		CustomizeDiff: resourceArmSignalRCustomizeDiff,
 	}
 }
 
-func resourceArmSignalRCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSignalRServiceCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).signalRClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -86,19 +92,15 @@ func resourceArmSignalRCreateOrUpdate(d *schema.ResourceData, meta interface{}) 
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	sku := d.Get("sku_name").(string)
-	capacity := d.Get("capacity").(int)
+	sku := d.Get("sku").([]interface{})
 
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
 
 	parameters := &signalr.CreateParameters{
 		Location: utils.String(location),
-		Sku: &signalr.ResourceSku{
-			Name:     utils.String(sku),
-			Capacity: utils.Int32(int32(capacity)),
-		},
-		Tags: expandedTags,
+		Sku:      expandSignalRServiceSku(sku),
+		Tags:     expandedTags,
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
@@ -118,10 +120,10 @@ func resourceArmSignalRCreateOrUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 	d.SetId(*read.ID)
 
-	return resourceArmSignalRRead(d, meta)
+	return resourceArmSignalRServiceRead(d, meta)
 }
 
-func resourceArmSignalRRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSignalRServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).signalRClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -147,34 +149,21 @@ func resourceArmSignalRRead(d *schema.ResourceData, meta interface{}) error {
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
-	if sku := resp.Sku; sku != nil {
-		if sku.Name != nil {
-			d.Set("sku_name", *sku.Name)
-		}
-		if sku.Capacity != nil {
-			d.Set("capacity", *sku.Capacity)
-		}
+	if err = d.Set("sku", flattenSignalRServiceSku(resp.Sku)); err != nil {
+		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 	if properties := resp.Properties; properties != nil {
-		if properties.HostName != nil {
-			d.Set("hostname", *properties.HostName)
-		}
-		if properties.ExternalIP != nil {
-			d.Set("ip_address", *properties.ExternalIP)
-		}
-		if properties.PublicPort != nil {
-			d.Set("port", *properties.PublicPort)
-		}
-		if properties.ServerPort != nil {
-			d.Set("server_port", *properties.ServerPort)
-		}
+		d.Set("hostname", properties.HostName)
+		d.Set("ip_address", properties.ExternalIP)
+		d.Set("public_port", properties.PublicPort)
+		d.Set("server_port", properties.ServerPort)
 	}
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil
 }
 
-func resourceArmSignalRDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSignalRServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).signalRClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -201,12 +190,34 @@ func resourceArmSignalRDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceArmSignalRCustomizeDiff(diff *schema.ResourceDiff, v interface{}) error {
-	sku := diff.Get("sku_name").(string)
-	if sku == "Free_F1" {
-		if capacity := diff.Get("capacity").(int); capacity != 1 {
-			return fmt.Errorf("`capacity` must be 1 if `sku_name` is `%s`", sku)
+func expandSignalRServiceSku(input []interface{}) *signalr.ResourceSku {
+	v := input[0].(map[string]interface{})
+	name := v["name"].(string)
+	if name == "Free" {
+		name = "Free_F1"
+	} else if name == "Standard" {
+		name = "Standard_S1"
+	}
+	capacity := v["capacity"].(int)
+	return &signalr.ResourceSku{
+		Name:     utils.String(name),
+		Capacity: utils.Int32(int32(capacity)),
+	}
+}
+
+func flattenSignalRServiceSku(input *signalr.ResourceSku) []interface{} {
+	result := make(map[string]interface{})
+	if input != nil {
+		if input.Name != nil {
+			if name := *input.Name; name == "Free_F1" {
+				result["name"] = "Free"
+			} else if name == "Standard_S1" {
+				result["name"] = "Standard"
+			}
+		}
+		if input.Capacity != nil {
+			result["capacity"] = *input.Capacity
 		}
 	}
-	return nil
+	return []interface{}{result}
 }

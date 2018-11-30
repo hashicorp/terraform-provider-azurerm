@@ -1,12 +1,12 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_signalr"
+page_title: "Azure Resource Manager: azurerm_signalr_service"
 sidebar_current: "docs-azurerm-resource-messaging-signalr"
 description: |-
   Manages an Azure SignalR service.
 ---
 
-# azurerm_signalr
+# azurerm_signalr_service
 
 Manages an Azure SignalR service.
 
@@ -18,7 +18,7 @@ resource "azurerm_resource_group" "example" {
   location = "West US"
 }
 
-resource "azurerm_signalr" "example" {
+resource "azurerm_signalr_service" "example" {
   name                = "tfex-signalr"
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
@@ -58,8 +58,8 @@ The following attributes are exported:
 
 ## Import
 
-SignalR service can be imported using the `resource id`, e.g.
+SignalR services can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_signalr.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/terraform-signalr/providers/Microsoft.SignalRService/SignalR/tfex-signalr
+terraform import azurerm_signalr_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/terraform-signalr/providers/Microsoft.SignalRService/SignalR/tfex-signalr
 ```
