@@ -79,7 +79,7 @@ func resourceArmMariaDbServer() *schema.Resource {
 								string(mariadb.Basic),
 								string(mariadb.GeneralPurpose),
 								string(mariadb.MemoryOptimized),
-							}, true),
+							}, false),
 						},
 
 						"family": {
