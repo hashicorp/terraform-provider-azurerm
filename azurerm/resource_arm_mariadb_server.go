@@ -138,7 +138,7 @@ func resourceArmMariaDbServer() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(mariadb.Enabled),
 								string(mariadb.Disabled),
-							}, true),
+							}, false),
 						},
 					},
 				},
