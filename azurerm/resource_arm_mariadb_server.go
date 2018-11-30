@@ -111,7 +111,7 @@ func resourceArmMariaDbServer() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"10.2",
-				}, true),
+				}, false),
 			},
 
 			"storage_profile": {
