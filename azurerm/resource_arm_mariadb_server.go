@@ -150,7 +150,7 @@ func resourceArmMariaDbServer() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(mariadb.SslEnforcementEnumDisabled),
 					string(mariadb.SslEnforcementEnumEnabled),
-				}, true),
+				}, false),
 			},
 
 			"fqdn": {
