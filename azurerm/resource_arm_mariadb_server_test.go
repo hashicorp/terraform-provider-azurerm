@@ -234,27 +234,27 @@ func TestAccAzureRMMariaDbServer_updateSKU(t *testing.T) {
 
 //
 
-func testCheckAzureRMMariaDbServerExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMMariaDbServerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for MariaDB Server: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for MariaDB Server: %s", resourceName)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).mariadbServersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(ctx, resourceGroup, name)
+		resp, err := client.Get(ctx, resourceGroup, resourceName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: MariaDB Server %q (resource group: %q) does not exist", name, resourceGroup)
+				return fmt.Errorf("Bad: MariaDB Server %q (resource group: %q) does not exist", resourceName, resourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on mariadbServersClient: %+v", err)

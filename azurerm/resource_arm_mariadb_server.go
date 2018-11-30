@@ -3,6 +3,8 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -29,6 +31,10 @@ func resourceArmMariaDbServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile("^[-a-zA-Z0-9]{3,50}$"),
+					"MariaDB server name must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
+				),
 			},
 
 			"location": locationSchema(),
@@ -94,15 +100,17 @@ func resourceArmMariaDbServer() *schema.Resource {
 			},
 
 			"administrator_login": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"administrator_login_password": {
-				Type:      schema.TypeString,
-				Required:  true,
-				Sensitive: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"version": {
@@ -177,38 +185,60 @@ func resourceArmMariaDbServerCreateOrUpdate(d *schema.ResourceData, meta interfa
 	adminLoginPassword := d.Get("administrator_login_password").(string)
 	sslEnforcement := d.Get("ssl_enforcement").(string)
 	version := d.Get("version").(string)
-	createMode := "Default"
 	tags := d.Get("tags").(map[string]interface{})
 
 	sku := expandAzureRmMariaDbServerSku(d)
 	storageProfile := expandAzureRmMariaDbStorageProfile(d)
 
+	skuName := sku.Name
 	capacity := sku.Capacity
-	tier := sku.Tier
+	tier := string(sku.Tier)
 	storageMB := storageProfile.StorageMB
 
-	if strings.ToLower(string(tier)) == "basic" {
+	// General sku validation for all sku's
+	if !strings.HasSuffix(*skuName, strconv.Itoa(int(*capacity))) {
+		return fmt.Errorf("the value in the capacity property must match the capacity value defined in the sku name (sku.capacity: %d, sku.name: %s)", *capacity, *skuName)
+	}
+
+	// Specific validation based on sku's pricing tier
+	// Basic
+	if strings.ToLower(tier) == "basic" {
+		if !strings.HasPrefix(*skuName, "B_") {
+			return fmt.Errorf("the basic pricing tier sku name must begin with the letter B (sku.name: %s)", *skuName)
+		}
+
 		if *storageMB > 1024000 {
-			return fmt.Errorf("basic pricing tier only supports upto 1,024,000 MB (1TB) of storage")
+			return fmt.Errorf("basic pricing tier only supports upto 1,024,000 MB (1TB) of storage (storageProfile.StorageMB: %s)", *storageMB)
 		}
 
 		if *capacity > 2 {
-			return fmt.Errorf("basic pricing tier only supports upto 2 vCores")
+			return fmt.Errorf("basic pricing tier only supports upto 2 vCores (sku.capacity: %d)", *capacity)
 		}
 	}
 
-	if strings.ToLower(string(tier)) == "generalpurpose" && *capacity < 2 {
-		return fmt.Errorf("general purpose pricing tier must have at least 2 vCores")
-	}
-
-	if strings.ToLower(string(tier)) == "memoryoptimized" {
+	// General Purpose
+	if strings.ToLower(tier) == "generalpurpose" {
+		if !strings.HasPrefix(*skuName, "GP_") {
+			return fmt.Errorf("the general purpose pricing tier sku name must begin with the letters GP (sku.name: %s)", *skuName)
+		}
 
 		if *capacity < 2 {
-			return fmt.Errorf("memory optimized pricing tier must have at least 2 vCores")
+			return fmt.Errorf("general purpose pricing tier must have at least 2 vCores (sku.capacity: %d)", *capacity)
+		}
+	}
+
+	// Memory Optimized
+	if strings.ToLower(tier) == "memoryoptimized" {
+		if !strings.HasPrefix(*skuName, "MO_") {
+			return fmt.Errorf("the memory optimized pricing tier sku name must begin with the letters MO (sku.name: %s)", *skuName)
+		}
+
+		if *capacity < 2 {
+			return fmt.Errorf("memory optimized pricing tier must have at least 2 vCores (sku.capacity: %d)", *capacity)
 		}
 
 		if *capacity > 16 {
-			return fmt.Errorf("memory optimized pricing tier only supports upto 16 vCores")
+			return fmt.Errorf("memory optimized pricing tier only supports upto 16 vCores (sku.capacity: %d)", *capacity)
 		}
 	}
 
@@ -231,8 +261,7 @@ func resourceArmMariaDbServerCreateOrUpdate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error creating MariaDB Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for creation of MariaDB Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -279,7 +308,10 @@ func resourceArmMariaDbServerRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	d.Set("administrator_login", resp.AdministratorLogin)
+	if properties := resp.ServerProperties; properties != nil {
+		d.Set("administrator_login", properties.AdministratorLogin)
+	}
+
 	d.Set("version", string(resp.Version))
 	d.Set("ssl_enforcement", string(resp.SslEnforcement))
 
@@ -319,8 +351,7 @@ func resourceArmMariaDbServerDelete(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error deleting MariaDB Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
@@ -363,46 +394,46 @@ func expandAzureRmMariaDbStorageProfile(d *schema.ResourceData) *mariadb.Storage
 	}
 }
 
-func flattenMariaDbServerSku(resp *mariadb.Sku) []interface{} {
+func flattenMariaDbServerSku(sku *mariadb.Sku) []interface{} {
 	values := map[string]interface{}{}
 
-	if resp == nil {
+	if sku == nil {
 		return []interface{}{}
 	}
 
-	if name := resp.Name; name != nil {
+	if name := sku.Name; name != nil {
 		values["name"] = *name
 	}
 
-	if capacity := resp.Capacity; capacity != nil {
+	if capacity := sku.Capacity; capacity != nil {
 		values["capacity"] = *capacity
 	}
 
-	values["tier"] = string(resp.Tier)
+	values["tier"] = string(sku.Tier)
 
-	if family := resp.Family; family != nil {
+	if family := sku.Family; family != nil {
 		values["family"] = *family
 	}
 
 	return []interface{}{values}
 }
 
-func flattenMariaDbStorageProfile(resp *mariadb.StorageProfile) []interface{} {
+func flattenMariaDbStorageProfile(storage *mariadb.StorageProfile) []interface{} {
 	values := map[string]interface{}{}
 
-	if resp == nil {
+	if storage == nil {
 		return []interface{}{}
 	}
 
-	if storageMB := resp.StorageMB; storageMB != nil {
+	if storageMB := storage.StorageMB; storageMB != nil {
 		values["storage_mb"] = *storageMB
 	}
 
-	if backupRetentionDays := resp.BackupRetentionDays; backupRetentionDays != nil {
+	if backupRetentionDays := storage.BackupRetentionDays; backupRetentionDays != nil {
 		values["backup_retention_days"] = *backupRetentionDays
 	}
 
-	values["geo_redundant_backup"] = string(resp.GeoRedundantBackup)
+	values["geo_redundant_backup"] = string(storage.GeoRedundantBackup)
 
 	return []interface{}{values}
 }
