@@ -22,7 +22,10 @@ resource "azurerm_signalr_service" "example" {
   name                = "tfex-signalr"
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
-  sku_name            = "Free_F1"
+  sku {
+    name     = "Free"
+    capacity = 1
+  }
 }
 ```
 
@@ -36,11 +39,17 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the SignalR service exists. Changing this forces a new resource to be created.
 
-* `sku_name` - (Required) Specifies which tier to use. Valid values are `Free_F1` and `Standard_S1`.
-
-* `capacity` - (Optional) Specifies the number of units associated with this SignalR service. Valid values are `1`, `2`, `5`, `10`, `20`, `50` and `100`. Defaults to `1`.
+* `sku` - A `sku` block as documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+A `sku` block supports the following:
+
+* `name` - (Required) Specifies which tier to use. Valid values are `Free` and `Standard`.
+
+* `capacity` - (Required) Specifies the number of units associated with this SignalR service. Valid values are `1`, `2`, `5`, `10`, `20`, `50` and `100`.
 
 ## Attributes Reference
 
@@ -52,7 +61,7 @@ The following attributes are exported:
 
 * `ip_address` - The publicly accessible IP of the SignalR service.
 
-* `port` - The publicly accessible port of the SignalR service which is designed for browser/client use.
+* `public_port` - The publicly accessible port of the SignalR service which is designed for browser/client use.
 
 * `server_port` - The publicly accessible port of the SignalR service which is designed for customer server side use.
 

@@ -159,7 +159,7 @@ func TestAccAzureRMSignalRService_capacityUpdate(t *testing.T) {
 	resourceName := "azurerm_signalr_service.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	standardConfig := testAccAzureRMSignalRService_standard(ri, location)
+	standardConfig := testAccAzureRMSignalRService_standardWithCapacity(ri, location, 1)
 	standardCap5Config := testAccAzureRMSignalRService_standardWithCapacity(ri, location, 5)
 
 	resource.ParallelTest(t, resource.TestCase{
