@@ -56,7 +56,7 @@ func resourceArmMariaDbServer() *schema.Resource {
 								"MO_Gen5_4",
 								"MO_Gen5_8",
 								"MO_Gen5_16",
-							}, true),
+							}, false),
 						},
 
 						"capacity": {
