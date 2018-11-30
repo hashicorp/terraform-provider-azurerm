@@ -87,7 +87,7 @@ func resourceArmMariaDbServer() *schema.Resource {
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Gen5",
-							}, true),
+							}, false),
 						},
 					},
 				},
