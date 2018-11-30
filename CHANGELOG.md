@@ -20,6 +20,7 @@ BUG FIXES:
 * `azurerm_eventhub` - making the `partition_count` field ForceNew [GH-2400]
 * `azurerm_eventhub` - now validates that the `storage_account_id` is a proper resource ID  [GH-2374]
 * `azurerm_mssql_elasticpool` - relaxed validation of the `name` property [GH-2398]
+* `azurerm_recovery_services_protection_policy_vm` - added the `timezone` property [GH-2404]
 
 ## 1.19.0 (November 15, 2018)
 
