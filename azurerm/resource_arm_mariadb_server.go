@@ -220,7 +220,7 @@ func resourceArmMariaDbServerCreateOrUpdate(d *schema.ResourceData, meta interfa
 			Version:                    mariadb.ServerVersion(version),
 			SslEnforcement:             mariadb.SslEnforcementEnum(sslEnforcement),
 			StorageProfile:             storageProfile,
-			CreateMode:                 mariadb.CreateMode(createMode),
+			CreateMode:                 mariadb.CreateModeDefault,
 		},
 		Sku:  sku,
 		Tags: expandTags(tags),
