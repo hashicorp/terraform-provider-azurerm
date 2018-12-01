@@ -1169,9 +1169,11 @@ func flattenAzureRmVirtualMachineOsProfileWindowsConfiguration(config *compute.W
 }
 
 func flattenAzureRmVirtualMachineOsProfileLinuxConfiguration(config *compute.LinuxConfiguration) []interface{} {
-
 	result := make(map[string]interface{})
-	result["disable_password_authentication"] = *config.DisablePasswordAuthentication
+
+	if v := config.DisablePasswordAuthentication; v != nil {
+		result["disable_password_authentication"] = *v
+	}
 
 	if config.SSH != nil && len(*config.SSH.PublicKeys) > 0 {
 		ssh_keys := make([]map[string]interface{}, 0, len(*config.SSH.PublicKeys))

@@ -2654,12 +2654,12 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   os_profile {
     computer_name_prefix = "prefix"
     admin_username       = "ubuntu"
-    admin_password       = "password"
+    admin_password       = "Passwword1234"
     custom_data          = "updated custom data!"
   }
 
   os_profile_linux_config {
-    disable_password_authentication = true
+    disable_password_authentication = false
 
     ssh_keys {
       path     = "/home/ubuntu/.ssh/authorized_keys"
@@ -3715,7 +3715,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   os_profile_linux_config {
-    disable_password_authentication = true
+    disable_password_authentication = false
 
     ssh_keys {
       path     = "/home/myadmin/.ssh/authorized_keys"
@@ -3828,7 +3828,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   os_profile_linux_config {
-    disable_password_authentication = true
+    disable_password_authentication = false
 
     ssh_keys {
       path     = "/home/myadmin/.ssh/authorized_keys"
