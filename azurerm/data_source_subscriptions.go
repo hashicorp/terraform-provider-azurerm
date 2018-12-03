@@ -47,7 +47,7 @@ func dataSourceArmSubscriptionsRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error listing subscriptions: %+v", err)
 	}
 
-	//check if the display name matches the 'prefix' comparison
+	//iterate across each subscriptions and append them to slice
 	subscriptions := make([]map[string]interface{}, 0)
 	for results.NotDone() {
 		val := results.Value()
