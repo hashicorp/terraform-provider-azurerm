@@ -12,6 +12,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
 	appinsights "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-10-12/cdn"
 	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
@@ -132,6 +133,9 @@ type ArmClient struct {
 
 	// Autoscale Settings
 	autoscaleSettingsClient insights.AutoscaleSettingsClient
+
+	// Batch
+	batchAccountClient batch.AccountClient
 
 	// CDN
 	cdnCustomDomainsClient cdn.CustomDomainsClient
@@ -415,6 +419,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool) (*Arm
 	client.registerAppInsightsClients(endpoint, c.SubscriptionID, auth)
 	client.registerAutomationClients(endpoint, c.SubscriptionID, auth)
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth)
+	client.registerBatchClients(endpoint, c.SubscriptionID, auth)
 	client.registerCDNClients(endpoint, c.SubscriptionID, auth)
 	client.registerCognitiveServiceClients(endpoint, c.SubscriptionID, auth)
 	client.registerComputeClients(endpoint, c.SubscriptionID, auth)
@@ -521,6 +526,12 @@ func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscription
 	servicePrincipalsClient := graphrbac.NewServicePrincipalsClientWithBaseURI(graphEndpoint, tenantId)
 	c.configureClient(&servicePrincipalsClient.Client, graphAuth)
 	c.servicePrincipalsClient = servicePrincipalsClient
+}
+
+func (c *ArmClient) registerBatchClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	batchAccount := batch.NewAccountClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&batchAccount.Client, auth)
+	c.batchAccountClient = batchAccount
 }
 
 func (c *ArmClient) registerCDNClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
