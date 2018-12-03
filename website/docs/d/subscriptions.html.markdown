@@ -26,7 +26,10 @@ output "first_available_subscription_display_name" {
 
 ## Argument Reference
 
-There are no arguments available for this data source.
+-> **NOTE** The comparisons are case-insensitive.
+
+* `display_name_prefix` - (Optional) This argument can be used to only return subscriptions that start with this given string.
+* `display_name_contains` - (Optional) This argument can be used to only return subscriptions that contain the given string.
 
 ## Attributes Reference
 

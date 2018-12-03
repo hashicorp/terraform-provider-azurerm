@@ -2,6 +2,8 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
+	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -12,6 +14,14 @@ func dataSourceArmSubscriptions() *schema.Resource {
 		Read: dataSourceArmSubscriptionsRead,
 
 		Schema: map[string]*schema.Schema{
+			"display_name_prefix": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"display_name_contains": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"subscriptions": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -28,16 +38,43 @@ func dataSourceArmSubscriptionsRead(d *schema.ResourceData, meta interface{}) er
 	subClient := armClient.subscriptionsClient
 	ctx := armClient.StopContext
 
+	displayNamePrefix := strings.ToLower(d.Get("display_name_prefix").(string))
+	displayNameContains := strings.ToLower(d.Get("display_name_contains").(string))
+
 	//ListComplete returns an iterator struct
 	results, err := subClient.ListComplete(ctx)
 	if err != nil {
 		return fmt.Errorf("Error listing subscriptions: %+v", err)
 	}
 
-	//iterate across each subscriptions and append them to slice
+	//check if the display name matches the 'prefix' comparison
 	subscriptions := make([]map[string]interface{}, 0)
 	for results.NotDone() {
 		val := results.Value()
+
+		//check if the display name prefix matches the given input
+		if displayNamePrefix != "" {
+			if strings.HasPrefix(strings.ToLower(*val.DisplayName), displayNamePrefix) == false {
+				//the display name does not match the given prefix
+				log.Printf("[DEBUG][data_azurerm_subscriptions] %q does not match the prefix check %q", *val.DisplayName, displayNamePrefix)
+				if err = results.Next(); err != nil {
+					return fmt.Errorf("Error going to next subscriptions value: %+v", err)
+				}
+				continue
+			}
+		}
+
+		//check if the display name matches the 'contains' comparison
+		if displayNameContains != "" {
+			if strings.Contains(strings.ToLower(*val.DisplayName), displayNameContains) == false {
+				//the display name does not match the contains check
+				log.Printf("[DEBUG][data_azurerm_subscriptions] %q does not match the contains check %q", *val.DisplayName, displayNameContains)
+				if err = results.Next(); err != nil {
+					return fmt.Errorf("Error going to next subscriptions value: %+v", err)
+				}
+				continue
+			}
+		}
 
 		s := make(map[string]interface{})
 
