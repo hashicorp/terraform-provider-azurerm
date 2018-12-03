@@ -107,6 +107,7 @@ func TestAccAzureRMDatabricksWorkspace_complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDatabricksWorkspaceExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_resource_group_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "managed_resource_group_name"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
 					resource.TestCheckResourceAttr(resourceName, "tags.pricing", "Standard"),
@@ -117,6 +118,7 @@ func TestAccAzureRMDatabricksWorkspace_complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDatabricksWorkspaceExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_resource_group_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "managed_resource_group_name"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.pricing", "Standard"),
 				),
@@ -207,11 +209,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_databricks_workspace" "test" {
-	name                		= "acctestdbw-%d"
-	resource_group_name 		= "${azurerm_resource_group.test.name}"
-	location            		= "${azurerm_resource_group.test.location}"
-	sku                 		= "standard"
-	managed_resource_group 	= "acctestRG-%d-managed"
+	name                					= "acctestdbw-%d"
+	resource_group_name 					= "${azurerm_resource_group.test.name}"
+	location            					= "${azurerm_resource_group.test.location}"
+	sku                 					= "standard"
+	managed_resource_group_name 	= "acctestRG-%d-managed"
 
 	tags {
 		environment = "Production"
@@ -229,11 +231,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_databricks_workspace" "test" {
-	name                		= "acctestdbw-%d"
-	resource_group_name		 	= "${azurerm_resource_group.test.name}"
-	location            		= "${azurerm_resource_group.test.location}"
-	sku                 		= "standard"
-	managed_resource_group 	= "acctestRG-%d-managed"
+	name                					= "acctestdbw-%d"
+	resource_group_name		 				= "${azurerm_resource_group.test.name}"
+	location            					= "${azurerm_resource_group.test.location}"
+	sku                 					= "standard"
+	managed_resource_group_name 	= "acctestRG-%d-managed"
 
 	tags {
 		pricing = "Standard"

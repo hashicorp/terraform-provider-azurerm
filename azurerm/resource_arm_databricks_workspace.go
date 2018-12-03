@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -47,7 +46,7 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 
 			"tags": tagsSchema(),
 
-			"managed_resource_group": {
+			"managed_resource_group_name": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
@@ -74,7 +73,7 @@ func resourceArmDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta int
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 	skuName := d.Get("sku").(string)
-	managedResourceGroupName := d.Get("managed_resource_group").(string)
+	managedResourceGroupName := d.Get("managed_resource_group_name").(string)
 	var managedResourceGroupID string
 
 	tags := d.Get("tags").(map[string]interface{})
@@ -158,10 +157,12 @@ func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}
 	}
 
 	if props := resp.WorkspaceProperties; props != nil {
+		managedResourceGroupID, err := parseAzureResourceID(*props.ManagedResourceGroupID)
+		if err != nil {
+			return err
+		}
 		d.Set("managed_resource_group_id", props.ManagedResourceGroupID)
-		//get the managed resource group name from the resource group id property
-		managedResourceGroupID := strings.Split(*props.ManagedResourceGroupID, "/")
-		d.Set("managed_resource_group", managedResourceGroupID[4])
+		d.Set("managed_resource_group_name", managedResourceGroupID.ResourceGroup)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
