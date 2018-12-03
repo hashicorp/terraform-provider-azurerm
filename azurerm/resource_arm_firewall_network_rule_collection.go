@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -93,7 +93,6 @@ func resourceArmFirewallNetworkRuleCollection() *schema.Resource {
 								Type: schema.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
 									string(network.Any),
-									string(network.ICMP),
 									string(network.TCP),
 									string(network.UDP),
 								}, false),

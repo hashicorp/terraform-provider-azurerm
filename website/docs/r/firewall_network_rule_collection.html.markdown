@@ -116,7 +116,7 @@ A `rule` block supports the following:
 
 * `destination_ports` - (Required) A list of destination ports.
 
-* `protocols` - (Required) A list of protocols. Possible values are `Any`, `ICMP`, `TCP` and `UDP`.
+* `protocols` - (Required) A list of protocols. Possible values are `Any`, `TCP` and `UDP`.
 
 ## Import
 
