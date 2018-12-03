@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -158,6 +159,9 @@ func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}
 
 	if props := resp.WorkspaceProperties; props != nil {
 		d.Set("managed_resource_group_id", props.ManagedResourceGroupID)
+		//get the managed resource group name from the resource group id property
+		managedResourceGroupID := strings.Split(*props.ManagedResourceGroupID, "/")
+		d.Set("managed_resource_group", managedResourceGroupID[4])
 	}
 
 	flattenAndSetTags(d, resp.Tags)
