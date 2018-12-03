@@ -54,7 +54,7 @@ func dataSourceArmSubscriptionsRead(d *schema.ResourceData, meta interface{}) er
 
 		//check if the display name prefix matches the given input
 		if displayNamePrefix != "" {
-			if strings.HasPrefix(strings.ToLower(*val.DisplayName), displayNamePrefix) == false {
+			if !strings.HasPrefix(strings.ToLower(*val.DisplayName), displayNamePrefix) {
 				//the display name does not match the given prefix
 				log.Printf("[DEBUG][data_azurerm_subscriptions] %q does not match the prefix check %q", *val.DisplayName, displayNamePrefix)
 				if err = results.Next(); err != nil {
@@ -66,7 +66,7 @@ func dataSourceArmSubscriptionsRead(d *schema.ResourceData, meta interface{}) er
 
 		//check if the display name matches the 'contains' comparison
 		if displayNameContains != "" {
-			if strings.Contains(strings.ToLower(*val.DisplayName), displayNameContains) == false {
+			if !strings.Contains(strings.ToLower(*val.DisplayName), displayNameContains) {
 				//the display name does not match the contains check
 				log.Printf("[DEBUG][data_azurerm_subscriptions] %q does not match the contains check %q", *val.DisplayName, displayNameContains)
 				if err = results.Next(); err != nil {
