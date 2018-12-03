@@ -26,10 +26,8 @@ output "first_available_subscription_display_name" {
 
 ## Argument Reference
 
--> **NOTE** The comparisons are case-insensitive.
-
-* `display_name_prefix` - (Optional) This argument can be used to only return subscriptions that start with this given string.
-* `display_name_contains` - (Optional) This argument can be used to only return subscriptions that contain the given string.
+* `display_name_prefix` - (Optional) A case-insensitive prefix which can be used to filter on the `display_name` field
+* `display_name_contains` - (Optional) A case-insensitive value which must be contained within the `display_name` field, used to filter the results
 
 ## Attributes Reference
 
