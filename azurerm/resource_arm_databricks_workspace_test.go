@@ -92,7 +92,7 @@ func TestAccAzureRMDatabricksWorkspace_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDatabricksWorkspace_withTags(t *testing.T) {
+func TestAccAzureRMDatabricksWorkspace_complete(t *testing.T) {
 	resourceName := "azurerm_databricks_workspace.test"
 	ri := acctest.RandInt()
 	location := testLocation()
@@ -103,20 +103,22 @@ func TestAccAzureRMDatabricksWorkspace_withTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDatabricksWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDatabricksWorkspace_withTags(ri, location),
+				Config: testAccAzureRMDatabricksWorkspace_complete(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDatabricksWorkspaceExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_resource_group_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "managed_resource_group_name"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
 					resource.TestCheckResourceAttr(resourceName, "tags.pricing", "Standard"),
 				),
 			},
 			{
-				Config: testAccAzureRMDatabricksWorkspace_withTagsUpdate(ri, location),
+				Config: testAccAzureRMDatabricksWorkspace_completeUpdate(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDatabricksWorkspaceExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_resource_group_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "managed_resource_group_name"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.pricing", "Standard"),
 				),
@@ -186,56 +188,58 @@ func testCheckAzureRMDatabricksWorkspaceDestroy(s *terraform.State) error {
 func testAccAzureRMDatabricksWorkspace_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+	name     = "acctestRG-%d"
+	location = "%s"
 }
 
 resource "azurerm_databricks_workspace" "test" {
-  name                = "acctestdbw-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  sku                 = "Standard"
+	name                = "acctestdbw-%d"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	location            = "${azurerm_resource_group.test.location}"
+	sku                 = "standard"
 }
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMDatabricksWorkspace_withTags(rInt int, location string) string {
+func testAccAzureRMDatabricksWorkspace_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+	name     = "acctestRG-%d"
+	location = "%s"
 }
 
 resource "azurerm_databricks_workspace" "test" {
-  name                = "acctestdbw-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  sku                 = "Standard"
+	name                					= "acctestdbw-%d"
+	resource_group_name 					= "${azurerm_resource_group.test.name}"
+	location            					= "${azurerm_resource_group.test.location}"
+	sku                 					= "standard"
+	managed_resource_group_name 	= "acctestRG-%d-managed"
 
-  tags {
-    environment = "Production"
-    pricing     = "Standard"
-  }
+	tags {
+		environment = "Production"
+		pricing     = "Standard"
+	}
 }
-`, rInt, location, rInt)
+`, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMDatabricksWorkspace_withTagsUpdate(rInt int, location string) string {
+func testAccAzureRMDatabricksWorkspace_completeUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+	name     = "acctestRG-%d"
+	location = "%s"
 }
 
 resource "azurerm_databricks_workspace" "test" {
-  name                = "acctestdbw-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  sku                 = "Standard"
+	name                					= "acctestdbw-%d"
+	resource_group_name		 				= "${azurerm_resource_group.test.name}"
+	location            					= "${azurerm_resource_group.test.location}"
+	sku                 					= "standard"
+	managed_resource_group_name 	= "acctestRG-%d-managed"
 
-  tags {
-    pricing = "Standard"
-  }
+	tags {
+		pricing = "Standard"
+	}
 }
-`, rInt, location, rInt)
+`, rInt, location, rInt, rInt)
 }
