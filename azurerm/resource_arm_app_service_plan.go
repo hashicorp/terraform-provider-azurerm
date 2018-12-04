@@ -242,7 +242,10 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 			d.Set("app_service_environment_id", profile.ID)
 		}
 
-		d.Set("maximum_number_of_workers", props.MaximumNumberOfWorkers)
+		if props.MaximumNumberOfWorkers != nil {
+			d.Set("maximum_number_of_workers", int(*props.MaximumNumberOfWorkers))
+		}
+
 		d.Set("per_site_scaling", props.PerSiteScaling)
 		d.Set("reserved", props.Reserved)
 	}
