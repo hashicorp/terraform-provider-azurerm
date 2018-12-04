@@ -2,11 +2,12 @@ package azurerm
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"log"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
