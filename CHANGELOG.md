@@ -13,6 +13,7 @@ IMPROVEMENTS:
 * sdk: upgrading to version `2018-05-01` of the Policy API [GH-2386]
 * Data Source: `azurerm_subscriptions` - ability to filtering by prefix/contains on the Display Name [GH-2429]
 * `azurerm_app_service` - support for configuring `app_command_line` in the `site_config` block [GH-2350]
+* `azurerm_app_service_plan` - deprecated the `properties` and moved `app_service_environment_id`, `per_site_scaling` and `reserved` to the top level  [GH-2442]
 * `azurerm_app_service_slot` - support for configuring `app_command_line` in the `site_config` block [GH-2350]
 * `azurerm_application_insights` - added `Node.JS` application type [GH-2407]
 * `azurerm_container_registry` - supprt for geo-replication via the `georeplication_locations` property [GH-2055]
