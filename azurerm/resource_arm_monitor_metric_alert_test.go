@@ -17,7 +17,7 @@ func TestAccAzureRMMonitorMetricAlert_basic(t *testing.T) {
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMMonitorMetricAlert_basic(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
@@ -52,7 +52,7 @@ func TestAccAzureRMMonitorMetricAlert_complete(t *testing.T) {
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMMonitorMetricAlert_complete(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
@@ -109,7 +109,7 @@ func TestAccAzureRMMonitorMetricAlert_basicAndCompleteUpdate(t *testing.T) {
 	basicConfig := testAccAzureRMMonitorMetricAlert_basic(ri, rs, location)
 	completeConfig := testAccAzureRMMonitorMetricAlert_complete(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
@@ -276,6 +276,7 @@ resource "azurerm_monitor_metric_alert" "test" {
       "operator" = "Include"
       "values"   = ["*"]
     }
+
     dimension {
       "name"     = "ApiName"
       "operator" = "Include"

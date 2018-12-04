@@ -14,21 +14,25 @@ import (
 func TestAccAzureRMEventGridTopic_basic(t *testing.T) {
 	resourceName := "azurerm_eventgrid_topic.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMEventGridTopic_basic(ri)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMEventGridTopicDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMEventGridTopic_basic(ri),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventGridTopicExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "endpoint"),
 					resource.TestCheckResourceAttrSet(resourceName, "primary_access_key"),
 					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -37,15 +41,14 @@ func TestAccAzureRMEventGridTopic_basic(t *testing.T) {
 func TestAccAzureRMEventGridTopic_basicWithTags(t *testing.T) {
 	resourceName := "azurerm_eventgrid_topic.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMEventGridTopic_basicWithTags(ri)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMEventGridTopicDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMEventGridTopic_basicWithTags(ri),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventGridTopicExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
@@ -54,6 +57,11 @@ func TestAccAzureRMEventGridTopic_basicWithTags(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "primary_access_key"),
 					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -147,6 +155,7 @@ resource "azurerm_eventgrid_topic" "test" {
   name                = "acctesteg-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
   tags {
     "foo" = "bar"
   }

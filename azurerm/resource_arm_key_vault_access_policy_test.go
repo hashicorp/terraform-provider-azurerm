@@ -15,7 +15,7 @@ func TestAccAzureRMKeyVaultAccessPolicy_basic(t *testing.T) {
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultAccessPolicy_basic(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
@@ -29,6 +29,11 @@ func TestAccAzureRMKeyVaultAccessPolicy_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "secret_permissions.1", "set"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -39,7 +44,7 @@ func TestAccAzureRMKeyVaultAccessPolicy_multiple(t *testing.T) {
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultAccessPolicy_multiple(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
@@ -64,6 +69,16 @@ func TestAccAzureRMKeyVaultAccessPolicy_multiple(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName2, "certificate_permissions.1", "delete"),
 				),
 			},
+			{
+				ResourceName:      resourceName1,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      resourceName2,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -74,7 +89,7 @@ func TestAccAzureRMKeyVaultAccessPolicy_update(t *testing.T) {
 	preConfig := testAccAzureRMKeyVaultAccessPolicy_basic(rs, testLocation())
 	postConfig := testAccAzureRMKeyVaultAccessPolicy_update(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,

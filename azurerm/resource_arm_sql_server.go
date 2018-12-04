@@ -3,11 +3,11 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -18,19 +18,17 @@ func resourceArmSqlServer() *schema.Resource {
 		Read:   resourceArmSqlServerRead,
 		Update: resourceArmSqlServerCreateUpdate,
 		Delete: resourceArmSqlServerDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile("^[-a-z0-9]{3,50}$"),
-					"SQL server name must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
-				),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateMsSqlServerName,
 			},
 
 			"location": locationSchema(),
@@ -175,10 +173,5 @@ func resourceArmSqlServerDelete(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error deleting SQL Server %s: %+v", name, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return future.WaitForCompletionRef(ctx, client.Client)
 }

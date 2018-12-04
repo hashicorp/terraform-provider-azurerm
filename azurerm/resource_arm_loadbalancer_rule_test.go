@@ -77,7 +77,7 @@ func TestAccAzureRMLoadBalancerRule_basic(t *testing.T) {
 		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/loadBalancingRules/%s",
 		subscriptionID, ri, ri, lbRuleName)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -107,7 +107,7 @@ func TestAccAzureRMLoadBalancerRule_removal(t *testing.T) {
 	ri := acctest.RandInt()
 	lbRuleName := fmt.Sprintf("LbRule-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -138,7 +138,7 @@ func TestAccAzureRMLoadBalancerRule_inconsistentReads(t *testing.T) {
 	lbRuleName := fmt.Sprintf("LbRule-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
 	probeName := fmt.Sprintf("LbProbe-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -171,7 +171,7 @@ func TestAccAzureRMLoadBalancerRule_update(t *testing.T) {
 		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/loadBalancingRules/%s",
 		subscriptionID, ri, ri, lbRule2Name)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -213,7 +213,7 @@ func TestAccAzureRMLoadBalancerRule_reapply(t *testing.T) {
 		return s.Remove("azurerm_lb_rule.test")
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -243,7 +243,7 @@ func TestAccAzureRMLoadBalancerRule_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	lbRuleName := fmt.Sprintf("LbRule-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -379,7 +379,6 @@ resource "azurerm_lb" "test" {
     public_ip_address_id = "${azurerm_public_ip.test.id}"
   }
 }
-
 `, rInt, location, rInt, rInt, rInt)
 }
 
@@ -435,7 +434,6 @@ resource "azurerm_lb_rule" "test" {
   backend_port                   = 3389
   frontend_ip_configuration_name = "one-%d"
 }
-
 `, rInt, location, rInt, rInt, rInt, backendPoolName, probeName, lbRuleName, rInt)
 }
 
@@ -485,7 +483,6 @@ resource "azurerm_lb_rule" "test2" {
   backend_port                   = 3390
   frontend_ip_configuration_name = "one-%d"
 }
-
 `, rInt, location, rInt, rInt, rInt, lbRuleName, rInt, lbRule2Name, rInt)
 }
 

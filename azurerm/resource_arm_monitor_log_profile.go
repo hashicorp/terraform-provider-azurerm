@@ -160,11 +160,11 @@ func resourceArmLogProfileRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("categories", props.Categories)
 
 		if err := d.Set("locations", flattenAzureRmLogProfileLocations(props.Locations)); err != nil {
-			return fmt.Errorf("Error flattening `locations`: %+v", err)
+			return fmt.Errorf("Error setting `locations`: %+v", err)
 		}
 
 		if err := d.Set("retention_policy", flattenAzureRmLogProfileRetentionPolicy(props.RetentionPolicy)); err != nil {
-			return fmt.Errorf("Error flattening `retention_policy`: %+v", err)
+			return fmt.Errorf("Error setting `retention_policy`: %+v", err)
 		}
 	}
 
@@ -190,7 +190,7 @@ func resourceArmLogProfileDelete(d *schema.ResourceData, meta interface{}) error
 
 func expandLogProfileCategories(d *schema.ResourceData) []string {
 	logProfileCategories := d.Get("categories").(*schema.Set).List()
-	categories := []string{}
+	categories := make([]string, 0)
 
 	for _, category := range logProfileCategories {
 		categories = append(categories, category.(string))
@@ -201,7 +201,7 @@ func expandLogProfileCategories(d *schema.ResourceData) []string {
 
 func expandLogProfileLocations(d *schema.ResourceData) []string {
 	logProfileLocations := d.Get("locations").(*schema.Set).List()
-	locations := []string{}
+	locations := make([]string, 0)
 
 	for _, location := range logProfileLocations {
 		locations = append(locations, azureRMNormalizeLocation(location.(string)))

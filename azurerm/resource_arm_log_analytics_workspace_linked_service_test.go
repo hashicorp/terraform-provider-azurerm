@@ -15,7 +15,7 @@ func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_requiredOnly(t *testing.T)
 	ri := acctest.RandInt()
 	config := testAccAzureRMLogAnalyticsWorkspaceLinkedServiceRequiredOnly(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceDestroy,
@@ -38,7 +38,7 @@ func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_optionalArguments(t *testi
 	ri := acctest.RandInt()
 	config := testAccAzureRMLogAnalyticsWorkspaceLinkedServiceOptionalArguments(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceDestroy,
@@ -124,7 +124,7 @@ func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_importRequiredOnly(t *test
 	ri := acctest.RandInt()
 	config := testAccAzureRMLogAnalyticsWorkspaceLinkedServiceRequiredOnly(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceDestroy,
@@ -148,7 +148,7 @@ func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_importOptionalArguments(t 
 	ri := acctest.RandInt()
 	config := testAccAzureRMLogAnalyticsWorkspaceLinkedServiceOptionalArguments(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceDestroy,
@@ -168,83 +168,81 @@ func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_importOptionalArguments(t 
 
 func testAccAzureRMLogAnalyticsWorkspaceLinkedServiceRequiredOnly(rInt int, location string) string {
 	return fmt.Sprintf(`
-	resource "azurerm_resource_group" "test" {
-		name     = "acctestresourcegroup-%d"
-		location = "%v"
-	}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestresourcegroup-%d"
+  location = "%v"
+}
 
-	resource "azurerm_automation_account" "test" {
-		name                = "acctestautomation-%d"
-		location            = "${azurerm_resource_group.test.location}"
-		resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_automation_account" "test" {
+  name                = "acctestautomation-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-		sku {
-			name = "Basic"
-		}
+  sku {
+    name = "Basic"
+  }
 
-		tags {
-			environment = "development"
-		}
-	}
+  tags {
+    environment = "development"
+  }
+}
 
-	resource "azurerm_log_analytics_workspace" "test" {
-		name                = "acctestworkspace-%d"
-		location            = "${azurerm_resource_group.test.location}"
-		resource_group_name = "${azurerm_resource_group.test.name}"
-		sku                 = "PerGB2018"
-		retention_in_days   = 30
-	}
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestworkspace-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
 
-	resource "azurerm_log_analytics_workspace_linked_service" "test" {
-		resource_group_name = "${azurerm_resource_group.test.name}"
-		workspace_name      = "${azurerm_log_analytics_workspace.test.name}"
+resource "azurerm_log_analytics_workspace_linked_service" "test" {
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  workspace_name      = "${azurerm_log_analytics_workspace.test.name}"
 
-		linked_service_properties {
-			resource_id = "${azurerm_automation_account.test.id}"
-		}
-	}
-
+  linked_service_properties {
+    resource_id = "${azurerm_automation_account.test.id}"
+  }
+}
 `, rInt, location, rInt, rInt)
 }
 
 func testAccAzureRMLogAnalyticsWorkspaceLinkedServiceOptionalArguments(rInt int, location string) string {
 	return fmt.Sprintf(`
-	resource "azurerm_resource_group" "test" {
-		name     = "acctestresourcegroup-%d"
-		location = "%v"
-	}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestresourcegroup-%d"
+  location = "%v"
+}
 
-	resource "azurerm_automation_account" "test" {
-		name                = "acctestautomation-%d"
-		location            = "${azurerm_resource_group.test.location}"
-		resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_automation_account" "test" {
+  name                = "acctestautomation-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-		sku {
-			name = "Basic"
-		}
+  sku {
+    name = "Basic"
+  }
 
-		tags {
-			environment = "development"
-		}
-	}
+  tags {
+    environment = "development"
+  }
+}
 
-	resource "azurerm_log_analytics_workspace" "test" {
-		name                = "acctestworkspace-%d"
-		location            = "${azurerm_resource_group.test.location}"
-		resource_group_name = "${azurerm_resource_group.test.name}"
-		sku                 = "PerGB2018"
-		retention_in_days   = 30
-	}
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestworkspace-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
 
-	resource "azurerm_log_analytics_workspace_linked_service" "test" {
-		resource_group_name = "${azurerm_resource_group.test.name}"
-		workspace_name      = "${azurerm_log_analytics_workspace.test.name}"
-		linked_service_name = "automation"
+resource "azurerm_log_analytics_workspace_linked_service" "test" {
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  workspace_name      = "${azurerm_log_analytics_workspace.test.name}"
+  linked_service_name = "automation"
 
-		linked_service_properties {
-			resource_id = "${azurerm_automation_account.test.id}"
-		}
-	}
-
+  linked_service_properties {
+    resource_id = "${azurerm_automation_account.test.id}"
+  }
+}
 `, rInt, location, rInt, rInt)
 }

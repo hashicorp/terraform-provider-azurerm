@@ -10,6 +10,8 @@ description: |-
 
 Allows you to manage an Azure SQL Elastic Pool.
 
+~> **NOTE:** -  This version of the `Elasticpool` resource is being **deprecated** and should no longer be used. Please use the [azurerm_mssql_elasticpool](./mssql_elasticpool.html) version instead.
+
 ## Example Usage
 
 ```hcl

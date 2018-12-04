@@ -46,8 +46,7 @@ resource "azurerm_key_vault" "test" {
 
   network_acls {
     default_action             = "Deny"
-    bypass                     = "None"
-    virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
+    bypass                     = "AzureServices"
   }
 
   tags {

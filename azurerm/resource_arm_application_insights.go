@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -36,7 +38,7 @@ func resourceArmApplicationInsights() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					"web",
 					"other",
@@ -45,6 +47,7 @@ func resourceArmApplicationInsights() *schema.Resource {
 					"phone",
 					"store",
 					"ios",
+					"Node.JS",
 				}, true),
 			},
 
@@ -82,11 +85,11 @@ func resourceArmApplicationInsightsCreateOrUpdate(d *schema.ResourceData, meta i
 	}
 
 	insightProperties := insights.ApplicationInsightsComponent{
-		Name:     &name,
-		Location: &location,
-		Kind:     &applicationType,
+		Name:                                   &name,
+		Location:                               &location,
+		Kind:                                   &applicationType,
 		ApplicationInsightsComponentProperties: &applicationInsightsComponentProperties,
-		Tags: expandTags(tags),
+		Tags:                                   expandTags(tags),
 	}
 
 	resp, err := client.CreateOrUpdate(ctx, resGroup, name, insightProperties)

@@ -16,7 +16,7 @@ func TestAccAzureRMAvailabilitySet_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAvailabilitySet_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
@@ -29,6 +29,11 @@ func TestAccAzureRMAvailabilitySet_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "platform_fault_domain_count", "3"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -38,7 +43,7 @@ func TestAccAzureRMAvailabilitySet_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAvailabilitySet_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
@@ -64,7 +69,7 @@ func TestAccAzureRMAvailabilitySet_withTags(t *testing.T) {
 	preConfig := testAccAzureRMAvailabilitySet_withTags(ri, location)
 	postConfig := testAccAzureRMAvailabilitySet_withUpdatedTags(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
@@ -86,6 +91,11 @@ func TestAccAzureRMAvailabilitySet_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "staging"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -95,7 +105,7 @@ func TestAccAzureRMAvailabilitySet_withDomainCounts(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAvailabilitySet_withDomainCounts(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
@@ -108,6 +118,11 @@ func TestAccAzureRMAvailabilitySet_withDomainCounts(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "platform_fault_domain_count", "3"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -117,7 +132,7 @@ func TestAccAzureRMAvailabilitySet_managed(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAvailabilitySet_managed(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
@@ -128,6 +143,11 @@ func TestAccAzureRMAvailabilitySet_managed(t *testing.T) {
 					testCheckAzureRMAvailabilitySetExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "managed", "true"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

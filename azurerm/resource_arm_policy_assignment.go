@@ -9,7 +9,7 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-12-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/structure"
@@ -114,7 +114,7 @@ func resourceArmPolicyAssignmentCreate(d *schema.ResourceData, meta interface{})
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 10,
 	}
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Policy Assignment %q to become available: %s", name, err)
 	}
 

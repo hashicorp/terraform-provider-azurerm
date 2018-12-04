@@ -43,7 +43,7 @@ func resourceArmActiveDirectoryApplication() *schema.Resource {
 				MinItems: 1,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validate.URLIsHTTPS,
+					ValidateFunc: validate.URLIsHTTPOrHTTPS,
 				},
 			},
 
@@ -53,7 +53,7 @@ func resourceArmActiveDirectoryApplication() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validate.URLIsHTTPS,
+					ValidateFunc: validate.URLIsHTTPOrHTTPS,
 				},
 			},
 
@@ -167,12 +167,18 @@ func resourceArmActiveDirectoryApplicationRead(d *schema.ResourceData, meta inte
 	d.Set("available_to_other_tenants", resp.AvailableToOtherTenants)
 	d.Set("oauth2_allow_implicit_flow", resp.Oauth2AllowImplicitFlow)
 
-	identifierUris := flattenAzureADApplicationIdentifierUris(resp.IdentifierUris)
+	identifierUris := make([]string, 0)
+	if s := resp.IdentifierUris; s != nil {
+		identifierUris = *s
+	}
 	if err := d.Set("identifier_uris", identifierUris); err != nil {
 		return fmt.Errorf("Error setting `identifier_uris`: %+v", err)
 	}
 
-	replyUrls := flattenAzureADApplicationReplyUrls(resp.ReplyUrls)
+	replyUrls := make([]string, 0)
+	if s := resp.IdentifierUris; s != nil {
+		replyUrls = *s
+	}
 	if err := d.Set("reply_urls", replyUrls); err != nil {
 		return fmt.Errorf("Error setting `reply_urls`: %+v", err)
 	}
@@ -235,28 +241,4 @@ func expandAzureRmActiveDirectoryApplicationReplyUrls(d *schema.ResourceData) *[
 	}
 
 	return &urls
-}
-
-func flattenAzureADApplicationIdentifierUris(input *[]string) []string {
-	output := make([]string, 0)
-
-	if input != nil {
-		for _, v := range *input {
-			output = append(output, v)
-		}
-	}
-
-	return output
-}
-
-func flattenAzureADApplicationReplyUrls(input *[]string) []string {
-	output := make([]string, 0)
-
-	if input != nil {
-		for _, v := range *input {
-			output = append(output, v)
-		}
-	}
-
-	return output
 }

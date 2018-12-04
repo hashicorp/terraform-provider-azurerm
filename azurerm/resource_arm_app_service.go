@@ -447,6 +447,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	if err := d.Set("app_settings", flattenAppServiceAppSettings(appSettingsResp.Properties)); err != nil {
 		return err
 	}
+
 	if err := d.Set("connection_string", flattenAppServiceConnectionStrings(connectionStringsResp.Properties)); err != nil {
 		return err
 	}
@@ -466,12 +467,12 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
 	identity := flattenAzureRmAppServiceMachineIdentity(resp.Identity)
 	if err := d.Set("identity", identity); err != nil {
 		return err
 	}
+
+	flattenAndSetTags(d, resp.Tags)
 
 	return nil
 }
@@ -503,7 +504,7 @@ func resourceArmAppServiceDelete(d *schema.ResourceData, meta interface{}) error
 
 func flattenAppServiceSourceControl(input *web.SiteSourceControlProperties) []interface{} {
 	results := make([]interface{}, 0)
-	result := make(map[string]interface{}, 0)
+	result := make(map[string]interface{})
 
 	if input == nil {
 		log.Printf("[DEBUG] SiteSourceControlProperties is nil")
@@ -557,7 +558,7 @@ func flattenAppServiceConnectionStrings(input map[string]*web.ConnStringValueTyp
 	results := make([]interface{}, 0)
 
 	for k, v := range input {
-		result := make(map[string]interface{}, 0)
+		result := make(map[string]interface{})
 		result["name"] = k
 		result["type"] = string(v.Type)
 		result["value"] = *v.Value
@@ -568,7 +569,7 @@ func flattenAppServiceConnectionStrings(input map[string]*web.ConnStringValueTyp
 }
 
 func flattenAppServiceAppSettings(input map[string]*string) map[string]string {
-	output := make(map[string]string, 0)
+	output := make(map[string]string)
 	for k, v := range input {
 		output[k] = *v
 	}
@@ -603,19 +604,19 @@ func flattenAzureRmAppServiceMachineIdentity(identity *web.ManagedServiceIdentit
 	return []interface{}{result}
 }
 
-func validateAppServiceName(v interface{}, k string) (ws []string, es []error) {
+func validateAppServiceName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if matched := regexp.MustCompile(`^[0-9a-zA-Z-]{1,60}$`).Match([]byte(value)); !matched {
-		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters and dashes and up to 60 characters in length", k))
+		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters and dashes and up to 60 characters in length", k))
 	}
 
-	return
+	return warnings, errors
 }
 
 func flattenAppServiceSiteCredential(input *web.UserProperties) []interface{} {
 	results := make([]interface{}, 0)
-	result := make(map[string]interface{}, 0)
+	result := make(map[string]interface{})
 
 	if input == nil {
 		log.Printf("[DEBUG] UserProperties is nil")

@@ -106,7 +106,7 @@ func resourceArmAppServiceActiveSlotRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceArmAppServiceActiveSlotDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAppServiceActiveSlotDelete(_ *schema.ResourceData, _ interface{}) error {
 	// There is nothing to delete so return nil
 	return nil
 }

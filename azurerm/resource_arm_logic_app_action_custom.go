@@ -97,7 +97,7 @@ func resourceArmLogicAppActionCustomRead(d *schema.ResourceData, meta interface{
 	}
 
 	if err := d.Set("body", string(body)); err != nil {
-		return fmt.Errorf("Error flattening `body` for Action %q: %+v", name, err)
+		return fmt.Errorf("Error setting `body` for Action %q: %+v", name, err)
 	}
 
 	return nil

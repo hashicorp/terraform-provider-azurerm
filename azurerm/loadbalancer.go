@@ -138,16 +138,16 @@ func loadbalancerStateRefreshFunc(ctx context.Context, client network.LoadBalanc
 	}
 }
 
-func validateLoadBalancerPrivateIpAddressAllocation(v interface{}, k string) (ws []string, errors []error) {
+func validateLoadBalancerPrivateIpAddressAllocation(v interface{}, _ string) (warnings []string, errors []error) {
 	value := strings.ToLower(v.(string))
 	if value != "static" && value != "dynamic" {
 		errors = append(errors, fmt.Errorf("LoadBalancer Allocations can only be Static or Dynamic"))
 	}
-	return
+	return warnings, errors
 }
 
 // sets the loadbalancer_id in the ResourceData from the sub resources full id
-func loadBalancerSubResourceStateImporter(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func loadBalancerSubResourceStateImporter(d *schema.ResourceData, _ interface{}) ([]*schema.ResourceData, error) {
 	r, err := regexp.Compile(`.+\/loadBalancers\/.+?\/`)
 	if err != nil {
 		return nil, err

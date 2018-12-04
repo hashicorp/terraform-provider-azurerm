@@ -39,8 +39,9 @@ func resourceArmRoute() *schema.Resource {
 			},
 
 			"address_prefix": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"next_hop_type": {
@@ -57,9 +58,9 @@ func resourceArmRoute() *schema.Resource {
 			},
 
 			"next_hop_in_ip_address": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 		},
 	}
@@ -96,7 +97,7 @@ func resourceArmRouteCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error Creating/Updating Route %q (Route Table %q / Resource Group %q): %+v", name, rtName, resGroup, err)
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for completion for Route %q (Route Table %q / Resource Group %q): %+v", name, rtName, resGroup, err)
 	}
 
@@ -140,10 +141,7 @@ func resourceArmRouteRead(d *schema.ResourceData, meta interface{}) error {
 	if props := resp.RoutePropertiesFormat; props != nil {
 		d.Set("address_prefix", props.AddressPrefix)
 		d.Set("next_hop_type", string(props.NextHopType))
-
-		if ip := props.NextHopIPAddress; ip != nil {
-			d.Set("next_hop_in_ip_address", props.NextHopIPAddress)
-		}
+		d.Set("next_hop_in_ip_address", props.NextHopIPAddress)
 	}
 
 	return nil

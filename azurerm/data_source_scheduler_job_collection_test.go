@@ -12,7 +12,7 @@ func TestAccDataSourceAzureRMSchedulerJobCollection_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_scheduler_job_collection.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -28,7 +28,7 @@ func TestAccDataSourceAzureRMSchedulerJobCollection_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_scheduler_job_collection.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{

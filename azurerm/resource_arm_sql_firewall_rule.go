@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -15,6 +17,7 @@ func resourceArmSqlFirewallRule() *schema.Resource {
 		Read:   resourceArmSqlFirewallRuleRead,
 		Update: resourceArmSqlFirewallRuleCreateUpdate,
 		Delete: resourceArmSqlFirewallRuleDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -29,9 +32,10 @@ func resourceArmSqlFirewallRule() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"server_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateMsSqlServerName,
 			},
 
 			"start_ip_address": {

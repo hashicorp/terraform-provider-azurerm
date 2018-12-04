@@ -419,7 +419,8 @@ func flattenMonitorMetricAlertCriteria(input insights.BasicMetricAlertCriteria) 
 
 		result = append(result, v)
 	}
-	return
+
+	return result
 }
 
 func flattenMonitorMetricAlertAction(input *[]insights.MetricAlertAction) (result []interface{}) {
@@ -428,7 +429,7 @@ func flattenMonitorMetricAlertAction(input *[]insights.MetricAlertAction) (resul
 		return
 	}
 	for _, action := range *input {
-		v := make(map[string]interface{}, 0)
+		v := make(map[string]interface{})
 
 		if action.ActionGroupID != nil {
 			v["action_group_id"] = *action.ActionGroupID
@@ -444,7 +445,8 @@ func flattenMonitorMetricAlertAction(input *[]insights.MetricAlertAction) (resul
 
 		result = append(result, v)
 	}
-	return
+
+	return result
 }
 
 func resourceArmMonitorMetricAlertActionHash(input interface{}) int {

@@ -14,7 +14,7 @@ func TestAccAzureRMAutomationAccount_basic(t *testing.T) {
 	resourceName := "azurerm_automation_account.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationAccountDestroy,
@@ -42,7 +42,7 @@ func TestAccAzureRMAutomationAccount_complete(t *testing.T) {
 	resourceName := "azurerm_automation_account.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationAccountDestroy,
@@ -127,16 +127,17 @@ func testCheckAzureRMAutomationAccountExists(name string) resource.TestCheckFunc
 func testAccAzureRMAutomationAccount_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
- name = "acctestRG-%d"
- location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_automation_account" "test" {
   name                = "acctest-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
   sku {
-	name = "Basic"
+    name = "Basic"
   }
 }
 `, rInt, location, rInt)
@@ -145,20 +146,21 @@ resource "azurerm_automation_account" "test" {
 func testAccAzureRMAutomationAccount_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
- name = "acctestRG-%d"
- location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_automation_account" "test" {
   name                = "acctest-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
   sku {
-	name = "Basic"
+    name = "Basic"
   }
 
   tags {
-  	"hello" = "world"
+    "hello" = "world"
   }
 }
 `, rInt, location, rInt)

@@ -87,6 +87,9 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 					string(network.VirtualNetworkGatewaySkuNameVpnGw1),
 					string(network.VirtualNetworkGatewaySkuNameVpnGw2),
 					string(network.VirtualNetworkGatewaySkuNameVpnGw3),
+					string(network.VirtualNetworkGatewaySkuNameErGw1AZ),
+					string(network.VirtualNetworkGatewaySkuNameErGw2AZ),
+					string(network.VirtualNetworkGatewaySkuNameErGw3AZ),
 				}, true),
 			},
 
@@ -280,9 +283,9 @@ func resourceArmVirtualNetworkGatewayCreateUpdate(d *schema.ResourceData, meta i
 	}
 
 	gateway := network.VirtualNetworkGateway{
-		Name:     &name,
-		Location: &location,
-		Tags:     expandTags(tags),
+		Name:                                  &name,
+		Location:                              &location,
+		Tags:                                  expandTags(tags),
 		VirtualNetworkGatewayPropertiesFormat: properties,
 	}
 
@@ -291,7 +294,7 @@ func resourceArmVirtualNetworkGatewayCreateUpdate(d *schema.ResourceData, meta i
 		return fmt.Errorf("Error Creating/Updating AzureRM Virtual Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for completion of AzureRM Virtual Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
@@ -358,11 +361,9 @@ func resourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface
 			return fmt.Errorf("Error setting `vpn_client_configuration`: %+v", err)
 		}
 
-		if gw.BgpSettings != nil {
-			bgpSettingsFlat := flattenArmVirtualNetworkGatewayBgpSettings(gw.BgpSettings)
-			if err := d.Set("bgp_settings", bgpSettingsFlat); err != nil {
-				return fmt.Errorf("Error setting `bgp_settings`: %+v", err)
-			}
+		bgpSettingsFlat := flattenArmVirtualNetworkGatewayBgpSettings(gw.BgpSettings)
+		if err := d.Set("bgp_settings", bgpSettingsFlat); err != nil {
+			return fmt.Errorf("Error setting `bgp_settings`: %+v", err)
 		}
 	}
 
@@ -385,7 +386,7 @@ func resourceArmVirtualNetworkGatewayDelete(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error deleting Virtual Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for deletion of Virtual Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
@@ -710,30 +711,30 @@ func resourceGroupAndVirtualNetworkGatewayFromId(virtualNetworkGatewayId string)
 	return resGroup, name, nil
 }
 
-func validateArmVirtualNetworkGatewaySubnetId(i interface{}, k string) (s []string, es []error) {
+func validateArmVirtualNetworkGatewaySubnetId(i interface{}, k string) (warnings []string, errors []error) {
 	value, ok := i.(string)
 	if !ok {
-		es = append(es, fmt.Errorf("expected type of %s to be string", k))
+		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
 		return
 	}
 
 	id, err := parseAzureResourceID(value)
 	if err != nil {
-		es = append(es, fmt.Errorf("expected %s to be an Azure resource id", k))
+		errors = append(errors, fmt.Errorf("expected %s to be an Azure resource id", k))
 		return
 	}
 
 	subnet, ok := id.Path["subnets"]
 	if !ok {
-		es = append(es, fmt.Errorf("expected %s to reference a subnet resource", k))
+		errors = append(errors, fmt.Errorf("expected %s to reference a subnet resource", k))
 		return
 	}
 
 	if strings.ToLower(subnet) != "gatewaysubnet" {
-		es = append(es, fmt.Errorf("expected %s to reference a gateway subnet with name GatewaySubnet", k))
+		errors = append(errors, fmt.Errorf("expected %s to reference a gateway subnet with name GatewaySubnet", k))
 	}
 
-	return
+	return warnings, errors
 }
 
 func validateArmVirtualNetworkGatewayPolicyBasedVpnSku() schema.SchemaValidateFunc {
@@ -758,10 +759,13 @@ func validateArmVirtualNetworkGatewayExpressRouteSku() schema.SchemaValidateFunc
 		string(network.VirtualNetworkGatewaySkuTierStandard),
 		string(network.VirtualNetworkGatewaySkuTierHighPerformance),
 		string(network.VirtualNetworkGatewaySkuTierUltraPerformance),
+		string(network.VirtualNetworkGatewaySkuNameErGw1AZ),
+		string(network.VirtualNetworkGatewaySkuNameErGw2AZ),
+		string(network.VirtualNetworkGatewaySkuNameErGw3AZ),
 	}, true)
 }
 
-func resourceArmVirtualNetworkGatewayCustomizeDiff(diff *schema.ResourceDiff, v interface{}) error {
+func resourceArmVirtualNetworkGatewayCustomizeDiff(diff *schema.ResourceDiff, _ interface{}) error {
 
 	if vpnClient, ok := diff.GetOk("vpn_client_configuration"); ok {
 		if vpnClientConfig, ok := vpnClient.([]interface{})[0].(map[string]interface{}); ok {

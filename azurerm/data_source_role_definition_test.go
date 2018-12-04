@@ -15,7 +15,7 @@ func TestAccDataSourceAzureRMRoleDefinition_basic(t *testing.T) {
 	id := uuid.New().String()
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -49,11 +49,12 @@ resource "azurerm_role_definition" "test" {
   description        = "Created by the Data Source Role Definition Acceptance Test"
 
   permissions {
-    actions     = ["*"]
+    actions = ["*"]
+
     not_actions = [
-    	"Microsoft.Authorization/*/Delete",
-    	"Microsoft.Authorization/*/Write",
-    	"Microsoft.Authorization/elevateAccess/Action"
+      "Microsoft.Authorization/*/Delete",
+      "Microsoft.Authorization/*/Write",
+      "Microsoft.Authorization/elevateAccess/Action",
     ]
   }
 

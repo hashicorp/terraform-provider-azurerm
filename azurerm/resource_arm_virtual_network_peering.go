@@ -83,7 +83,7 @@ func resourceArmVirtualNetworkPeeringCreate(d *schema.ResourceData, meta interfa
 	resGroup := d.Get("resource_group_name").(string)
 
 	peer := network.VirtualNetworkPeering{
-		Name: &name,
+		Name:                                  &name,
 		VirtualNetworkPeeringPropertiesFormat: getVirtualNetworkPeeringProperties(d),
 	}
 

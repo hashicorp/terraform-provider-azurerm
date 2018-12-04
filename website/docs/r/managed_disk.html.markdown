@@ -82,7 +82,7 @@ The following arguments are supported:
     Changing this forces a new resource to be created.
 
 * `storage_account_type` - (Required) The type of storage to use for the managed disk.
-    Allowable values are `Standard_LRS` or `Premium_LRS`.
+    Allowable values are `Standard_LRS`, `Premium_LRS`, `StandardSSD_LRS` or `UltraSSD_LRS`.
 
 * `create_option` - (Required) The method to use when creating the managed disk. Possible values include:
  * `Import` - Import a VHD file in to the managed disk (VHD specified with `source_uri`).
@@ -108,7 +108,7 @@ The following arguments are supported:
 
 * `zones` - (Optional) A collection containing the availability zone to allocate the Managed Disk in.
 
--> **Please Note**: Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](http://aka.ms/azenroll).
+-> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).
 
 For more information on managed disks, such as sizing options and pricing, please check out the
 [azure documentation](https://docs.microsoft.com/en-us/azure/storage/storage-managed-disks-overview).

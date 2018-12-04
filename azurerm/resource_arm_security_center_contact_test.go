@@ -12,7 +12,7 @@ import (
 func TestAccAzureRMSecurityCenterContact_basic(t *testing.T) {
 	resourceName := "azurerm_security_center_contact.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSecurityCenterContactDestroy,
@@ -39,7 +39,7 @@ func TestAccAzureRMSecurityCenterContact_basic(t *testing.T) {
 func TestAccAzureRMSecurityCenterContact_update(t *testing.T) {
 	resourceName := "azurerm_security_center_contact.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSecurityCenterContactDestroy,
