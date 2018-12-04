@@ -313,7 +313,7 @@ func TestAccAzureRMCosmosDBAccount_table(t *testing.T) {
 	})
 }
 
-func TestAbcAzureRMCosmosDBAccount_updatePropertiesAndLocation(t *testing.T) {
+func TestAccAzureRMCosmosDBAccount_updatePropertiesAndLocation(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 

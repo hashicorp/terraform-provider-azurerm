@@ -40,12 +40,20 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"Standard",
-					"Premium",
+					"standard",
+					"premium",
 				}, false),
 			},
 
 			"tags": tagsSchema(),
+
+			"managed_resource_group_name": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Computed:     true,
+				ValidateFunc: validation.NoZeroValues,
+			},
 
 			"managed_resource_group_id": {
 				Type:     schema.TypeString,
@@ -66,11 +74,20 @@ func resourceArmDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta int
 	location := azure.NormalizeLocation(d.Get("location"))
 	resourceGroup := d.Get("resource_group_name").(string)
 	skuName := d.Get("sku").(string)
+	managedResourceGroupName := d.Get("managed_resource_group_name").(string)
+	var managedResourceGroupID string
 
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
 
-	managedResourceGroupID := fmt.Sprintf("/subscriptions/%s/resourceGroups/databricks-rg-%s", subscriptionID, resourceGroup)
+	if managedResourceGroupName == "" {
+		//no managed resource group name was provided, we use the default pattern
+		log.Printf("[DEBUG][azurerm_databricks_workspace] no managed resource group id was provided, we use the default pattern.")
+		managedResourceGroupID = fmt.Sprintf("/subscriptions/%s/resourceGroups/databricks-rg-%s", subscriptionID, resourceGroup)
+	} else {
+		log.Printf("[DEBUG][azurerm_databricks_workspace] a managed group name was provided: %q", managedResourceGroupName)
+		managedResourceGroupID = fmt.Sprintf("/subscriptions/%s/resourceGroups/%s", subscriptionID, managedResourceGroupName)
+	}
 
 	workspace := databricks.Workspace{
 		Sku: &databricks.Sku{
@@ -139,7 +156,12 @@ func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}
 	}
 
 	if props := resp.WorkspaceProperties; props != nil {
+		managedResourceGroupID, err := parseAzureResourceID(*props.ManagedResourceGroupID)
+		if err != nil {
+			return err
+		}
 		d.Set("managed_resource_group_id", props.ManagedResourceGroupID)
+		d.Set("managed_resource_group_name", managedResourceGroupID.ResourceGroup)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
