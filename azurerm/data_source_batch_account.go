@@ -3,10 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
-
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -28,14 +25,9 @@ func dataSourceArmBatchAccount() *schema.Resource {
 				Computed: true,
 			},
 			"pool_allocation_mode": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				Default:          string(batch.BatchService),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(batch.BatchService),
-					string(batch.UserSubscription),
-				}, true),
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 			"tags": tagsForDataSourceSchema(),
 		},
@@ -58,15 +50,20 @@ func dataSourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error making Read request on AzureRM Batch account %q: %+v", name, err)
 	}
 
-	// todo : fetch properties
-
 	d.SetId(*resp.ID)
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
+
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
+
+	if autoStorage := resp.AutoStorage; autoStorage != nil {
+		d.Set("storage_account_id", autoStorage.StorageAccountID)
+	}
+
+	d.Set("pool_allocation_mode", resp.PoolAllocationMode)
 
 	flattenAndSetTags(d, resp.Tags)
 
