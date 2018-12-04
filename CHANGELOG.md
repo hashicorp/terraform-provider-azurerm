@@ -1,5 +1,9 @@
 ## 1.20.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_monitor_action_group` [GH-2430]
+
 IMPROVEMENTS:
 
 * authentication: switching to use the shared Azure authentication library [GH-2355]
