@@ -11,6 +11,7 @@ IMPROVEMENTS:
 * authentication: requesting a token using the audience address [GH-2381]
 * authentication: switching to request tokens from the Azure CLI [GH-2387]
 * sdk: upgrading to version `2018-05-01` of the Policy API [GH-2386]
+* Data Source: `azurerm_subscriptions` - ability to filtering by prefix/contains on the Display Name [GH-2429]
 * `azurerm_app_service` - support for configuring `app_command_line` in the `site_config` block [GH-2350]
 * `azurerm_app_service_slot` - support for configuring `app_command_line` in the `site_config` block [GH-2350]
 * `azurerm_application_insights` - added `Node.JS` application type [GH-2407]
