@@ -2,11 +2,13 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -30,18 +32,18 @@ func resourceArmBatchAccount() *schema.Resource {
 			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
 			"location":            locationSchema(),
 			"storage_account_id": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceIDOrEmpty,
 			},
 			"pool_allocation_mode": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				Default:          string(batch.BatchService),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(batch.BatchService),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(batch.BatchService),
 					string(batch.UserSubscription),
-				}, true),
+				}, false),
 			},
 			"tags": tagsSchema(),
 		},
@@ -51,6 +53,8 @@ func resourceArmBatchAccount() *schema.Resource {
 func resourceArmBatchAccountCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).batchAccountClient
 	ctx := meta.(*ArmClient).StopContext
+
+	log.Printf("[INFO] preparing arguments for Azure Batch account creation.")
 
 	resourceGroupName := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
@@ -109,6 +113,7 @@ func resourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) error
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
+			log.Printf("[DEBUG] Batch Account %q was not found in Resource Group %q - removing from state!", name, resourceGroupName)
 			return nil
 		}
 		return fmt.Errorf("Error reading the state of Batch account %q: %+v", name, err)
@@ -116,8 +121,11 @@ func resourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) error
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroupName)
-	d.Set("location", resp.Location)
 	d.Set("pool_allocation_mode", resp.PoolAllocationMode)
+
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
 	if resp.AutoStorage != nil {
 		d.Set("storage_acount_id", resp.AutoStorage.StorageAccountID)
@@ -129,7 +137,43 @@ func resourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmBatchAccountUpdate(d *schema.ResourceData, meta interface{}) error {
-	return nil
+	client := meta.(*ArmClient).batchAccountClient
+	ctx := meta.(*ArmClient).StopContext
+
+	log.Printf("[INFO] preparing arguments for Azure Batch account update.")
+
+	resourceGroupName := d.Get("resource_group_name").(string)
+	name := d.Get("name").(string)
+
+	storageAccountId := d.Get("storage_account_id").(string)
+	tags := d.Get("tags").(map[string]interface{})
+
+	parameters := batch.AccountUpdateParameters{
+		AccountUpdateProperties: &batch.AccountUpdateProperties{
+			AutoStorage: &batch.AutoStorageBaseProperties{
+				StorageAccountID: &storageAccountId,
+			},
+		},
+		Tags: expandTags(tags),
+	}
+
+	_, err := client.Update(ctx, resourceGroupName, name, parameters)
+	if err != nil {
+		return fmt.Errorf("Error updating Batch account %q (Resource Group %q): %+v", name, resourceGroupName, err)
+	}
+
+	read, err := client.Get(ctx, resourceGroupName, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Batch account %q (Resource Group %q): %+v", name, resourceGroupName, err)
+	}
+
+	if read.ID == nil {
+		return fmt.Errorf("Cannot read Batch account %q (resource group %q) ID", name, resourceGroupName)
+	}
+
+	d.SetId(*read.ID)
+
+	return resourceArmBatchAccountRead(d, meta)
 }
 
 func resourceArmBatchAccountDelete(d *schema.ResourceData, meta interface{}) error {

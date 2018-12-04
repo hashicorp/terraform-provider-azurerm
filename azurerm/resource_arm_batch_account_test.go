@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestValidateBatchAccountName(t *testing.T) {
@@ -36,15 +37,18 @@ func TestAccAzureRMBatchAccount_basic(t *testing.T) {
 	resourceName := "azurerm_batch_account.test"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
+	rs2 := acctest.RandString(4)
 	location := testLocation()
 
-	config := testAccAzureRMBatchAccount_basic(ri, rs, location)
+	config := testAccAzureRMBatchAccount_basic(ri, rs, rs, location)
+	configUpdate := testAccAzureRMBatchAccount_basicUpdate(ri, rs2, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
-		// CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMBatchAccountDestroy,
 		Steps: []resource.TestStep{
+			// Create
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
@@ -52,6 +56,17 @@ func TestAccAzureRMBatchAccount_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "pool_allocation_mode", "BatchService"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.env", "test"),
+				),
+			},
+			// Update
+			{
+				Config: configUpdate,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMBatchAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "pool_allocation_mode", "BatchService"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.env", "test"),
+					resource.TestCheckResourceAttr(resourceName, "tags.version", "2"),
 				),
 			},
 		},
@@ -86,7 +101,32 @@ func testCheckAzureRMBatchAccountExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testAccAzureRMBatchAccount_basic(rInt int, rString string, location string) string {
+func testCheckAzureRMBatchAccountDestroy(s *terraform.State) error {
+	conn := testAccProvider.Meta().(*ArmClient).batchAccountClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "azurerm_batch_account" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+
+		resp, err := conn.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return err
+			}
+		}
+
+		return nil
+	}
+
+	return nil
+}
+
+func testAccAzureRMBatchAccount_basic(rInt int, storageSuffix string, batchAccountSuffix string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "testaccbatch%d"
@@ -112,5 +152,35 @@ resource "azurerm_batch_account" "test" {
     env = "test"
   }
 }
-`, rInt, location, rString, rString)
+`, rInt, location, storageSuffix, batchAccountSuffix)
+}
+
+func testAccAzureRMBatchAccount_basicUpdate(rInt int, storageSuffix string, batchAccountSuffix string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "testaccbatch%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+	name                     = "testaccsa%s"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
+  }
+
+resource "azurerm_batch_account" "test" {
+  name                 = "testaccbatch%s"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = "${azurerm_resource_group.test.location}"
+  pool_allocation_mode = "BatchService"
+  storage_account_id   = "${azurerm_storage_account.test.id}"
+
+  tags {
+	env = "test"
+	version = "2"
+  }
+}
+`, rInt, location, storageSuffix, batchAccountSuffix)
 }
