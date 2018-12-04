@@ -224,7 +224,7 @@ func TestAccAzureRMMariaDbServer_updateSKU(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "16"),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "MemoryOptimized"),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.family", "Gen5"),
-					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "4194304"),
+					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "4096000"),
 					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
 				),
 			},
@@ -476,7 +476,7 @@ resource "azurerm_mariadb_server" "test" {
   }
 
   storage_profile {
-    storage_mb            = 4194304
+    storage_mb            = 4096000
     backup_retention_days = 7
     geo_redundant_backup  = "Disabled"
   }
@@ -509,7 +509,7 @@ resource "azurerm_mariadb_server" "test" {
   }
 
   storage_profile {
-    storage_mb            = 4194304
+    storage_mb            = 4096000
     backup_retention_days = 7
     geo_redundant_backup  = "Enabled"
   }
