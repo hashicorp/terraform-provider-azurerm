@@ -310,23 +310,21 @@ func resourceArmMariaDbServerRead(d *schema.ResourceData, meta interface{}) erro
 
 	if properties := resp.ServerProperties; properties != nil {
 		d.Set("administrator_login", properties.AdministratorLogin)
-	}
+		d.Set("version", string(properties.Version))
+		d.Set("ssl_enforcement", string(properties.SslEnforcement))
+		// Computed
+		d.Set("fqdn", properties.FullyQualifiedDomainName)
 
-	d.Set("version", string(resp.Version))
-	d.Set("ssl_enforcement", string(resp.SslEnforcement))
+		if err := d.Set("storage_profile", flattenMariaDbStorageProfile(properties.StorageProfile)); err != nil {
+			return fmt.Errorf("Error setting `storage_profile`: %+v", err)
+		}
+	}
 
 	if err := d.Set("sku", flattenMariaDbServerSku(resp.Sku)); err != nil {
 		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
-	if err := d.Set("storage_profile", flattenMariaDbStorageProfile(resp.StorageProfile)); err != nil {
-		return fmt.Errorf("Error setting `storage_profile`: %+v", err)
-	}
-
 	flattenAndSetTags(d, resp.Tags)
-
-	// Computed
-	d.Set("fqdn", resp.FullyQualifiedDomainName)
 
 	return nil
 }
