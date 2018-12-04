@@ -63,6 +63,8 @@ func TestAccAzureRMAppServicePlan_basicWindows(t *testing.T) {
 				Config: testAccAzureRMAppServicePlan_basicWindows(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServicePlanExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "per_site_scaling", "false"),
+					resource.TestCheckResourceAttr(resourceName, "reserved", "false"),
 				),
 			},
 			{
@@ -93,6 +95,8 @@ func TestAccAzureRMAppServicePlan_basicLinux(t *testing.T) {
 				Config: testAccAzureRMAppServicePlan_basicLinuxNew(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServicePlanExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "per_site_scaling", "false"),
+					resource.TestCheckResourceAttr(resourceName, "reserved", "true"),
 				),
 			},
 			{
