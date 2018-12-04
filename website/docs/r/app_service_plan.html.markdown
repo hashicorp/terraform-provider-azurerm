@@ -92,7 +92,13 @@ The following arguments are supported:
 
 * `sku` - (Required) A `sku` block as documented below.
 
-* `properties` - (Optional) A `properties` block as documented below.
+* `app_service_environment_id` - (Optional) The ID of the App Service Environment where the App Service Plan should be located. Changing forces a new resource to be created.
+
+~> **NOTE:** Attaching to an App Service Environment requires the App Service Plan use a `Premium` SKU (when using an ASEv1) and the `Isolated` SKU (for an ASEv2).
+
+* `reserved` - (Optional) Is this App Service Plan `Reserved`. Defaults to `false`.
+
+* `per_site_scaling` - (Optional) Can Apps assigned to this App Service Plan be scaled independently? If set to `false` apps assigned to this plan will scale to all instances of the plan.  Defaults to `false`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -104,15 +110,7 @@ The following arguments are supported:
 
 * `capacity` - (Optional) Specifies the number of workers associated with this App Service Plan.
 
-`properties` supports the following:
 
-* `app_service_environment_id` - (Optional) The ID of the App Service Environment where the App Service Plan should be located. Changing forces a new resource to be created.
-
-~> **NOTE:** Attaching to an App Service Environment requires the App Service Plan use a `Premium` SKU (when using an ASEv1) and the `Isolated` SKU (for an ASEv2).
-
-* `reserved` - (Optional) Is this App Service Plan `Reserved`. Defaults to `false`.
-
-* `per_site_scaling` - (Optional) Can Apps assigned to this App Service Plan be scaled independently? If set to `false` apps assigned to this plan will scale to all instances of the plan.  Defaults to `false`.
 
 ## Attributes Reference
 
