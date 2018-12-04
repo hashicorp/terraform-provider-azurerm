@@ -3,8 +3,8 @@ package azurerm
 import (
 	"fmt"
 
-  "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
-	multierror "github.com/hashicorp/go-multierror"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -449,8 +449,7 @@ func sliceToSet(slice []string) *schema.Set {
 }
 
 func validateSecurityRule(sgRule map[string]interface{}) error {
-	var err *
-  .Error
+	var err *multierror.Error
 
 	sourcePortRange := sgRule["source_port_range"].(string)
 	sourcePortRanges := sgRule["source_port_ranges"].(*schema.Set)
