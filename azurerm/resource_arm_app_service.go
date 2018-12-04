@@ -447,6 +447,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	if err := d.Set("app_settings", flattenAppServiceAppSettings(appSettingsResp.Properties)); err != nil {
 		return err
 	}
+
 	if err := d.Set("connection_string", flattenAppServiceConnectionStrings(connectionStringsResp.Properties)); err != nil {
 		return err
 	}
