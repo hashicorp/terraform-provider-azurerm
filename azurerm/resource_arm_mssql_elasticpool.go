@@ -30,7 +30,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateMsSqlServiceName,
+				ValidateFunc: azure.ValidateMsSqlElasticPoolName,
 			},
 
 			"location": locationSchema(),
@@ -41,7 +41,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateMsSqlServiceName,
+				ValidateFunc: azure.ValidateMsSqlServerName,
 			},
 
 			"sku": {
