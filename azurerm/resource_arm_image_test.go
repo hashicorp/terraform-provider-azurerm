@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -165,7 +166,7 @@ func testGeneralizeVMImage(resourceGroup string, vmName string, userName string,
 		vmClient := armClient.vmClient
 		ctx := armClient.StopContext
 
-		normalizedLocation := azureRMNormalizeLocation(location)
+		normalizedLocation := azure.NormalizeLocation(location)
 		suffix := armClient.environment.ResourceManagerVMDNSSuffix
 		dnsName := fmt.Sprintf("%s.%s.%s", hostName, normalizedLocation, suffix)
 

@@ -336,7 +336,7 @@ func applyGeoReplicationLocations(meta interface{}, resourceGroup string, name s
 
 	// loop on the list of previously deployed locations
 	for _, ol := range oldGeoReplicationLocations {
-		oldLocation := azureRMNormalizeLocation(ol)
+		oldLocation := azure.NormalizeLocation(ol)
 		// if the old location is still in the list of locations, then continue
 		if _, ok := createLocations[oldLocation]; ok {
 			continue

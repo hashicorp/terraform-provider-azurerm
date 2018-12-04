@@ -217,7 +217,7 @@ func dataSourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) 
 		for _, l := range *props.FailoverPolicies {
 			locations[*l.FailoverPriority] = map[string]interface{}{
 				"id":                *l.ID,
-				"location":          azureRMNormalizeLocation(*l.LocationName),
+				"location":          azure.NormalizeLocation(*l.LocationName),
 				"failover_priority": int(*l.FailoverPriority),
 			}
 		}

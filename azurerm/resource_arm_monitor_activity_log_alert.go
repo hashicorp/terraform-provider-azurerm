@@ -168,7 +168,7 @@ func resourceArmMonitorActivityLogAlertCreateOrUpdate(d *schema.ResourceData, me
 	expandedTags := expandTags(tags)
 
 	parameters := insights.ActivityLogAlertResource{
-		Location: utils.String(azureRMNormalizeLocation("Global")),
+		Location: utils.String(azure.NormalizeLocation("Global")),
 		ActivityLogAlert: &insights.ActivityLogAlert{
 			Enabled:     utils.Bool(enabled),
 			Description: utils.String(description),

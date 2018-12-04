@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -89,7 +90,7 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				StateFunc:        azureRMNormalizeLocation,
+				StateFunc:        azure.NormalizeLocation,
 				DiffSuppressFunc: azureRMSuppressLocationDiff,
 			},
 

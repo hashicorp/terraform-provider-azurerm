@@ -275,7 +275,7 @@ func flattenDataSourceApiManagementAdditionalLocations(input *[]apimanagement.Ad
 		output := make(map[string]interface{})
 
 		if prop.Location != nil {
-			output["location"] = azureRMNormalizeLocation(*prop.Location)
+			output["location"] = azure.NormalizeLocation(*prop.Location)
 		}
 
 		if prop.PublicIPAddresses != nil {

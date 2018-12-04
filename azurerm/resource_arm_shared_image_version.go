@@ -62,7 +62,7 @@ func resourceArmSharedImageVersion() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							StateFunc:        azureRMNormalizeLocation,
+							StateFunc:        azure.NormalizeLocation,
 							DiffSuppressFunc: azureRMSuppressLocationDiff,
 						},
 
@@ -251,7 +251,7 @@ func flattenSharedImageVersionTargetRegions(input *[]compute.TargetRegion) []int
 			output := make(map[string]interface{})
 
 			if v.Name != nil {
-				output["name"] = azureRMNormalizeLocation(*v.Name)
+				output["name"] = azure.NormalizeLocation(*v.Name)
 			}
 
 			if v.RegionalReplicaCount != nil {

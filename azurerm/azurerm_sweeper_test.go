@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 func TestMain(m *testing.M) {
@@ -57,8 +58,8 @@ func shouldSweepAcceptanceTestResource(name string, resourceLocation string, reg
 		return false
 	}
 
-	normalisedResourceLocation := azureRMNormalizeLocation(resourceLocation)
-	normalisedRegion := azureRMNormalizeLocation(region)
+	normalisedResourceLocation := azure.NormalizeLocation(resourceLocation)
+	normalisedRegion := azure.NormalizeLocation(region)
 
 	if normalisedResourceLocation != normalisedRegion {
 		log.Printf("Region %q isn't %q - skipping", normalisedResourceLocation, normalisedRegion)

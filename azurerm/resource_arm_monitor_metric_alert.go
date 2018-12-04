@@ -226,7 +226,7 @@ func resourceArmMonitorMetricAlertCreateOrUpdate(d *schema.ResourceData, meta in
 	expandedTags := expandTags(tags)
 
 	parameters := insights.MetricAlertResource{
-		Location: utils.String(azureRMNormalizeLocation("Global")),
+		Location: utils.String(azure.NormalizeLocation("Global")),
 		MetricAlertProperties: &insights.MetricAlertProperties{
 			Enabled:             utils.Bool(enabled),
 			AutoMitigate:        utils.Bool(autoMitigate),

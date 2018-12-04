@@ -615,7 +615,7 @@ func expandAzureRmApiManagementAdditionalLocations(d *schema.ResourceData, sku *
 
 	for _, v := range inputLocations {
 		config := v.(map[string]interface{})
-		location := azureRMNormalizeLocation(config["location"].(string))
+		location := azure.NormalizeLocation(config["location"].(string))
 
 		additionalLocation := apimanagement.AdditionalLocation{
 			Location: utils.String(location),
@@ -638,7 +638,7 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 		output := make(map[string]interface{})
 
 		if prop.Location != nil {
-			output["location"] = azureRMNormalizeLocation(*prop.Location)
+			output["location"] = azure.NormalizeLocation(*prop.Location)
 		}
 
 		if prop.PublicIPAddresses != nil {

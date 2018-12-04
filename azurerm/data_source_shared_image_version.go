@@ -129,7 +129,7 @@ func flattenSharedImageVersionDataSourceTargetRegions(input *[]compute.TargetReg
 			output := make(map[string]interface{})
 
 			if v.Name != nil {
-				output["name"] = azureRMNormalizeLocation(*v.Name)
+				output["name"] = azure.NormalizeLocation(*v.Name)
 			}
 
 			if v.RegionalReplicaCount != nil {

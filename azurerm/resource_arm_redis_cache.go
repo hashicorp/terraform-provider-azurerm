@@ -41,7 +41,7 @@ func resourceArmRedisCache() *schema.Resource {
 				Type:      schema.TypeString,
 				Required:  true,
 				ForceNew:  true,
-				StateFunc: azureRMNormalizeLocation,
+				StateFunc: azure.NormalizeLocation,
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
