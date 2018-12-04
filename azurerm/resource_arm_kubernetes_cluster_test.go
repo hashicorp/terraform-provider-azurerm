@@ -597,7 +597,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   role_based_access_control {
-		enaled=true
+		enabled=true
     azure_active_directory {
       server_app_id     = "%s"
       server_app_secret = "%s"
