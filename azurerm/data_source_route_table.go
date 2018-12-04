@@ -6,6 +6,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -83,9 +84,7 @@ func dataSourceArmRouteTableRead(d *schema.ResourceData, meta interface{}) error
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
-	}
+	azure.FlattenAndSetLocation(d, resp.Location)
 
 	if props := resp.RouteTablePropertiesFormat; props != nil {
 		if err := d.Set("route", flattenRouteTableDataSourceRoutes(props.Routes)); err != nil {

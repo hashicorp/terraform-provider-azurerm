@@ -145,7 +145,7 @@ func resourceArmDevTestLinuxVirtualMachineCreateUpdate(d *schema.ResourceData, m
 	disallowPublicIPAddress := d.Get("disallow_public_ip_address").(bool)
 	labSubnetName := d.Get("lab_subnet_name").(string)
 	labVirtualNetworkId := d.Get("lab_virtual_network_id").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	notes := d.Get("notes").(string)
 	password := d.Get("password").(string)
 	sshKey := d.Get("ssh_key").(string)
@@ -228,9 +228,9 @@ func resourceArmDevTestLinuxVirtualMachineRead(d *schema.ResourceData, meta inte
 	labName := id.Path["labs"]
 	name := id.Path["virtualmachines"]
 
-	read, err := client.Get(ctx, resourceGroup, labName, name, "")
+	resp, err := client.Get(ctx, resourceGroup, labName, name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(read.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] DevTest Linux Virtual Machine %q was not found in Lab %q / Resource Group %q - removing from state!", name, labName, resourceGroup)
 			d.SetId("")
 			return nil
@@ -239,14 +239,12 @@ func resourceArmDevTestLinuxVirtualMachineRead(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error making Read request on DevTest Linux Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
 	}
 
-	d.Set("name", read.Name)
+	d.Set("name", resp.Name)
 	d.Set("lab_name", labName)
 	d.Set("resource_group_name", resourceGroup)
-	if location := read.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
-	}
+	azure.FlattenAndSetLocation(d, resp.Location)
 
-	if props := read.LabVirtualMachineProperties; props != nil {
+	if props := resp.LabVirtualMachineProperties; props != nil {
 		d.Set("allow_claim", props.AllowClaim)
 		d.Set("disallow_public_ip_address", props.DisallowPublicIPAddress)
 		d.Set("notes", props.Notes)
@@ -264,7 +262,7 @@ func resourceArmDevTestLinuxVirtualMachineRead(d *schema.ResourceData, meta inte
 		d.Set("unique_identifier", props.UniqueIdentifier)
 	}
 
-	flattenAndSetTags(d, read.Tags)
+	flattenAndSetTags(d, resp.Tags)
 
 	return nil
 }

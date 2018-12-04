@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"sort"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -175,9 +177,7 @@ func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 	d.SetId(*img.ID)
 	d.Set("name", img.Name)
 	d.Set("resource_group_name", resGroup)
-	if location := img.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
-	}
+	azure.FlattenAndSetLocation(d, img.Location)
 
 	if profile := img.StorageProfile; profile != nil {
 		if disk := profile.OsDisk; disk != nil {

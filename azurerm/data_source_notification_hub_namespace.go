@@ -5,6 +5,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -77,9 +78,7 @@ func resourceArmDataSourceNotificationHubNamespaceRead(d *schema.ResourceData, m
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
-	}
+	azure.FlattenAndSetLocation(d, resp.Location)
 
 	sku := flattenNotificationHubDataSourceNamespacesSku(resp.Sku)
 	if err := d.Set("sku", sku); err != nil {

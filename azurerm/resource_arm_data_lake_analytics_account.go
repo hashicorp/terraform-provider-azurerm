@@ -73,7 +73,7 @@ func resourceArmDateLakeAnalyticsAccountCreate(d *schema.ResourceData, meta inte
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	resourceGroup := d.Get("resource_group_name").(string)
 	storeAccountName := d.Get("default_store_account_name").(string)
 	tier := d.Get("tier").(string)
@@ -177,9 +177,7 @@ func resourceArmDateLakeAnalyticsAccountRead(d *schema.ResourceData, meta interf
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
-	}
+	azure.FlattenAndSetLocation(d, resp.Location)
 
 	if properties := resp.DataLakeAnalyticsAccountProperties; properties != nil {
 		d.Set("tier", string(properties.CurrentTier))

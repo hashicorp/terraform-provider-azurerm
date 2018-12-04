@@ -35,6 +35,13 @@ func SchemaLocationDeprecated() *schema.Schema {
 	}
 }
 
+func FlattenAndSetLocation(d *schema.ResourceData, location *string) error {
+	if location != nil {
+		return d.Set("location", NormalizeLocation(location))
+	}
+	return nil
+}
+
 // azureRMNormalizeLocation is a function which normalises human-readable region/location
 // names (e.g. "West US") to the values used and returned by the Azure API (e.g. "westus").
 // In state we track the API internal version as it is easier to go from the human form
@@ -44,7 +51,16 @@ func NormalizeLocation(location interface{}) string {
 	return strings.Replace(strings.ToLower(input), " ", "", -1)
 }
 
-func SuppressLocationDiff(k, old, new string, d *schema.ResourceData) bool {
+func NormalizeLocationRef(location interface{}) string {
+	input := location.(*string)
+	if input != nil {
+		return NormalizeLocation(*input)
+	}
+
+	return ""
+}
+
+func SuppressLocationDiff(k, old, new string, _ *schema.ResourceData) bool {
 	return NormalizeLocation(old) == NormalizeLocation(new)
 }
 

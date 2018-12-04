@@ -77,7 +77,7 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	log.Printf("[INFO] preparing arguments for AzureRM Azure Firewall creation")
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	resourceGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 	ipConfigs, subnetToLock, vnetToLock, err := expandArmFirewallIPConfigurations(d)
@@ -137,9 +137,9 @@ func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 	resourceGroup := id.ResourceGroup
 	name := id.Path["azureFirewalls"]
 
-	read, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		if utils.ResponseWasNotFound(read.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Firewall %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
 			d.SetId("")
 			return nil
@@ -148,20 +148,18 @@ func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error making Read request on Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	d.Set("name", read.Name)
+	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
-	if location := read.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
-	}
+	azure.FlattenAndSetLocation(d, resp.Location)
 
-	if props := read.AzureFirewallPropertiesFormat; props != nil {
+	if props := resp.AzureFirewallPropertiesFormat; props != nil {
 		ipConfigs := flattenArmFirewallIPConfigurations(props.IPConfigurations)
 		if err := d.Set("ip_configuration", ipConfigs); err != nil {
 			return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
 		}
 	}
 
-	flattenAndSetTags(d, read.Tags)
+	flattenAndSetTags(d, resp.Tags)
 
 	return nil
 }

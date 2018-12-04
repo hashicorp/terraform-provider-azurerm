@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
@@ -275,7 +277,7 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	skuInfo := expandIoTHubSku(d)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -329,9 +331,9 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 
 	name := id.Path["IotHubs"]
 	resourceGroup := id.ResourceGroup
-	hub, err := client.Get(ctx, id.ResourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, name)
 	if err != nil {
-		if utils.ResponseWasNotFound(hub.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] IoTHub %q (Resource Group %q) was not found!", name, resourceGroup)
 			d.SetId("")
 			return nil
@@ -352,7 +354,7 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error setting `shared_access_policy` in IoTHub %q: %+v", name, err)
 	}
 
-	if properties := hub.Properties; properties != nil {
+	if properties := resp.Properties; properties != nil {
 
 		for k, v := range properties.EventHubEndpoints {
 			if v == nil {
@@ -384,15 +386,13 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
-	if location := hub.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
-	}
-	sku := flattenIoTHubSku(hub.Sku)
+	azure.FlattenAndSetLocation(d, resp.Location)
+	sku := flattenIoTHubSku(resp.Sku)
 	if err := d.Set("sku", sku); err != nil {
 		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
-	d.Set("type", hub.Type)
-	flattenAndSetTags(d, hub.Tags)
+	d.Set("type", resp.Type)
+	flattenAndSetTags(d, resp.Tags)
 
 	return nil
 }

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -42,24 +44,24 @@ func dataSourceArmRecoveryServicesVaultRead(d *schema.ResourceData, meta interfa
 
 	log.Printf("[DEBUG] Reading Recovery Service Vault %q (resource group %q)", name, resourceGroup)
 
-	vault, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		if utils.ResponseWasNotFound(vault.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Recovery Services Vault %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 
 		return fmt.Errorf("Error making Read request on Recovery Service Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	d.SetId(*vault.ID)
-	d.Set("name", vault.Name)
-	d.Set("location", azureRMNormalizeLocation(*vault.Location))
+	d.SetId(*resp.ID)
+	d.Set("name", resp.Name)
+	azure.FlattenAndSetLocation(d, resp.Location)
 	d.Set("resource_group_name", resourceGroup)
 
-	if sku := vault.Sku; sku != nil {
+	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Name))
 	}
 
-	flattenAndSetTags(d, vault.Tags)
+	flattenAndSetTags(d, resp.Tags)
 	return nil
 }

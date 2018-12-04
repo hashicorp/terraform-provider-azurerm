@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -188,9 +189,7 @@ func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	accessKeys := *keys.Keys
-	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
-	}
+	azure.FlattenAndSetLocation(d, resp.Location)
 	d.Set("account_kind", resp.Kind)
 
 	if sku := resp.Sku; sku != nil {

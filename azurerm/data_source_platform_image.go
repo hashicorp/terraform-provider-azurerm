@@ -3,6 +3,8 @@ package azurerm
 import (
 	"fmt"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -40,7 +42,7 @@ func dataSourceArmPlatformImageRead(d *schema.ResourceData, meta interface{}) er
 	client := meta.(*ArmClient).vmImageClient
 	ctx := meta.(*ArmClient).StopContext
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	publisher := d.Get("publisher").(string)
 	offer := d.Get("offer").(string)
 	sku := d.Get("sku").(string)
@@ -51,17 +53,14 @@ func dataSourceArmPlatformImageRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	// the last value is the latest, apparently.
-	latestVersion := (*result.Value)[len(*result.Value)-1]
+	resp := (*result.Value)[len(*result.Value)-1]
 
-	d.SetId(*latestVersion.ID)
-	if location := latestVersion.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
-	}
-
+	d.SetId(*resp.ID)
+	azure.FlattenAndSetLocation(d, resp.Location)
 	d.Set("publisher", publisher)
 	d.Set("offer", offer)
 	d.Set("sku", sku)
-	d.Set("version", latestVersion.Name)
+	d.Set("version", resp.Name)
 
 	return nil
 }

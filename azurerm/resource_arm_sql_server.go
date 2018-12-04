@@ -73,7 +73,7 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	adminUsername := d.Get("administrator_login").(string)
 	adminPassword := d.Get("administrator_login_password").(string)
 	version := d.Get("version").(string)
@@ -141,9 +141,7 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
-	}
+	azure.FlattenAndSetLocation(d, resp.Location)
 
 	if serverProperties := resp.ServerProperties; serverProperties != nil {
 		d.Set("version", serverProperties.Version)

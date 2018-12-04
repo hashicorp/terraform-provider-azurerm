@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -79,35 +80,33 @@ func dataSourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interf
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
-	collection, err := client.Get(ctx, resourceGroup, name) //nolint: megacheck
+	resp, err := client.Get(ctx, resourceGroup, name) //nolint: megacheck
 	if err != nil {
-		if utils.ResponseWasNotFound(collection.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Scheduler Job Collection %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 
 		return fmt.Errorf("Error making Read request on Scheduler Job Collection %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	d.SetId(*collection.ID)
+	d.SetId(*resp.ID)
 
 	//standard properties
-	d.Set("name", collection.Name)
+	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
-	if location := collection.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
-	}
+	azure.FlattenAndSetLocation(d, resp.Location)
 
-	flattenAndSetTags(d, collection.Tags)
+	flattenAndSetTags(d, resp.Tags)
 
 	//resource specific
-	if properties := collection.Properties; properties != nil {
+	if properties := resp.Properties; properties != nil {
 		if sku := properties.Sku; sku != nil {
 			d.Set("sku", sku.Name)
 		}
 		d.Set("state", string(properties.State))
 
 		if err := d.Set("quota", flattenAzureArmSchedulerJobCollectionQuota(properties.Quota)); err != nil {
-			return fmt.Errorf("Error setting quota for Job Collection %q (Resource Group %q): %+v", *collection.Name, resourceGroup, err)
+			return fmt.Errorf("Error setting quota for Job Collection %q (Resource Group %q): %+v", *resp.Name, resourceGroup, err)
 		}
 	}
 

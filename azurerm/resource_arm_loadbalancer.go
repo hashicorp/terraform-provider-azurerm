@@ -143,7 +143,7 @@ func resourceArmLoadBalancerCreate(d *schema.ResourceData, meta interface{}) err
 	log.Printf("[INFO] preparing arguments for Azure ARM Load Balancer creation.")
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	resGroup := d.Get("resource_group_name").(string)
 	sku := network.LoadBalancerSku{
 		Name: network.LoadBalancerSkuName(d.Get("sku").(string)),
@@ -206,7 +206,7 @@ func resourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	loadBalancer, exists, err := retrieveLoadBalancerById(d.Id(), meta)
+	resp, exists, err := retrieveLoadBalancerById(d.Id(), meta)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Load Balancer by ID %q: %+v", d.Id(), err)
 	}
@@ -216,17 +216,15 @@ func resourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 		return nil
 	}
 
-	d.Set("name", loadBalancer.Name)
+	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := loadBalancer.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
-	}
+	azure.FlattenAndSetLocation(d, resp.Location)
 
-	if sku := loadBalancer.Sku; sku != nil {
+	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Name))
 	}
 
-	if props := loadBalancer.LoadBalancerPropertiesFormat; props != nil {
+	if props := resp.LoadBalancerPropertiesFormat; props != nil {
 		if feipConfigs := props.FrontendIPConfigurations; feipConfigs != nil {
 			d.Set("frontend_ip_configuration", flattenLoadBalancerFrontendIpConfiguration(feipConfigs))
 
@@ -249,7 +247,7 @@ func resourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	flattenAndSetTags(d, loadBalancer.Tags)
+	flattenAndSetTags(d, resp.Tags)
 
 	return nil
 }

@@ -297,7 +297,7 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	tags := d.Get("tags").(map[string]interface{})
 
 	sku := expandAzureRmApiManagementSku(d)
@@ -383,10 +383,7 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
-
-	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
-	}
+	azure.FlattenAndSetLocation(d, resp.Location)
 
 	identity := flattenAzureRmApiManagementMachineIdentity(resp.Identity)
 	if err := d.Set("identity", identity); err != nil {

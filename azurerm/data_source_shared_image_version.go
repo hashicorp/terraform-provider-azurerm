@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -96,9 +97,7 @@ func dataSourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{
 	d.Set("gallery_name", galleryName)
 	d.Set("resource_group_name", resourceGroup)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
-	}
+	azure.FlattenAndSetLocation(d, resp.Location)
 
 	if props := resp.GalleryImageVersionProperties; props != nil {
 		if profile := props.PublishingProfile; profile != nil {

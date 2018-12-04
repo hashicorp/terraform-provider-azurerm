@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -87,7 +89,7 @@ func resourceArmDevTestLabCreateUpdate(d *schema.ResourceData, meta interface{})
 	log.Printf("[INFO] preparing arguments for DevTest Lab creation")
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	resourceGroup := d.Get("resource_group_name").(string)
 	storageType := d.Get("storage_type").(string)
 	tags := d.Get("tags").(map[string]interface{})
@@ -135,9 +137,9 @@ func resourceArmDevTestLabRead(d *schema.ResourceData, meta interface{}) error {
 	resourceGroup := id.ResourceGroup
 	name := id.Path["labs"]
 
-	read, err := client.Get(ctx, resourceGroup, name, "")
+	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(read.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] DevTest Lab %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
 			d.SetId("")
 			return nil
@@ -146,13 +148,11 @@ func resourceArmDevTestLabRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error making Read request on DevTest Lab %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	d.Set("name", read.Name)
+	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
-	if location := read.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
-	}
+	azure.FlattenAndSetLocation(d, resp.Location)
 
-	if props := read.LabProperties; props != nil {
+	if props := resp.LabProperties; props != nil {
 		d.Set("storage_type", string(props.LabStorageType))
 
 		// Computed fields
@@ -164,7 +164,7 @@ func resourceArmDevTestLabRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("unique_identifier", props.UniqueIdentifier)
 	}
 
-	flattenAndSetTags(d, read.Tags)
+	flattenAndSetTags(d, resp.Tags)
 
 	return nil
 }

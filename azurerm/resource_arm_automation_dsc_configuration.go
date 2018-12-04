@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -80,7 +81,7 @@ func resourceArmAutomationDscConfigurationCreateUpdate(d *schema.ResourceData, m
 	resGroup := d.Get("resource_group_name").(string)
 	accName := d.Get("automation_account_name").(string)
 	contentEmbedded := d.Get("content_embedded").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	logVerbose := d.Get("log_verbose").(bool)
 	description := d.Get("description").(string)
 
@@ -141,9 +142,7 @@ func resourceArmAutomationDscConfigurationRead(d *schema.ResourceData, meta inte
 	d.Set("resource_group_name", resGroup)
 	d.Set("automation_account_name", accName)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
-	}
+	azure.FlattenAndSetLocation(d, resp.Location)
 
 	if props := resp.DscConfigurationProperties; props != nil {
 		d.Set("log_verbose", props.LogVerbose)

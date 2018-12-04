@@ -7,6 +7,8 @@ import (
 	"log"
 	"regexp"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+
 	"github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
 
 	"github.com/hashicorp/terraform/helper/schema"
@@ -125,7 +127,7 @@ func resourceArmSchedulerJobCollectionCreateUpdate(d *schema.ResourceData, meta 
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	resourceGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -177,9 +179,9 @@ func resourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interfac
 
 	log.Printf("[DEBUG] Reading Scheduler Job Collection %q (resource group %q)", name, resourceGroup)
 
-	collection, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		if utils.ResponseWasNotFound(collection.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -188,22 +190,20 @@ func resourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interfac
 	}
 
 	//standard properties
-	d.Set("name", collection.Name)
+	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
-	if location := collection.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
-	}
-	flattenAndSetTags(d, collection.Tags)
+	azure.FlattenAndSetLocation(d, resp.Location)
+	flattenAndSetTags(d, resp.Tags)
 
 	//resource specific
-	if properties := collection.Properties; properties != nil {
+	if properties := resp.Properties; properties != nil {
 		if sku := properties.Sku; sku != nil {
 			d.Set("sku", sku.Name)
 		}
 		d.Set("state", string(properties.State))
 
 		if err := d.Set("quota", flattenAzureArmSchedulerJobCollectionQuota(properties.Quota)); err != nil {
-			return fmt.Errorf("Error setting quota for Job Collection %q (Resource Group %q): %+v", *collection.Name, resourceGroup, err)
+			return fmt.Errorf("Error setting quota for Job Collection %q (Resource Group %q): %+v", *resp.Name, resourceGroup, err)
 		}
 	}
 

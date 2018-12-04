@@ -298,7 +298,7 @@ func resourceArmCosmosDBAccountCreate(d *schema.ResourceData, meta interface{}) 
 	log.Printf("[INFO] preparing arguments for AzureRM Cosmos DB Account creation.")
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	resourceGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 	kind := d.Get("kind").(string)
@@ -521,9 +521,7 @@ func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	d.Set("name", resp.Name)
-	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
-	}
+	azure.FlattenAndSetLocation(d, resp.Location)
 	d.Set("resource_group_name", resourceGroup)
 	flattenAndSetTags(d, resp.Tags)
 
@@ -533,7 +531,7 @@ func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("endpoint", resp.DocumentEndpoint)
 
 	if v := resp.IsVirtualNetworkFilterEnabled; v != nil {
-		d.Set("is_virtual_network_filter_enabled", resp.IsVirtualNetworkFilterEnabled)
+		d.Set("is_virtual_network_filter_enabled", v)
 	}
 
 	if v := resp.EnableAutomaticFailover; v != nil {

@@ -727,7 +727,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	log.Printf("[INFO] preparing arguments for Application Gateway creation.")
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -807,9 +807,9 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 	resGroup := id.ResourceGroup
 	name := id.Path["applicationGateways"]
 
-	applicationGateway, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		if utils.ResponseWasNotFound(applicationGateway.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Application Gateway %q was not found in Resource Group %q - removing from state", name, resGroup)
 			d.SetId("")
 			return nil
@@ -818,13 +818,11 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error making Read request on Application Gateway %s: %+v", name, err)
 	}
 
-	d.Set("name", applicationGateway.Name)
+	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := applicationGateway.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
-	}
+	azure.FlattenAndSetLocation(d, resp.Location)
 
-	if props := applicationGateway.ApplicationGatewayPropertiesFormat; props != nil {
+	if props := resp.ApplicationGatewayPropertiesFormat; props != nil {
 		flattenedCerts := flattenApplicationGatewayAuthenticationCertificates(props.AuthenticationCertificates, d)
 		if setErr := d.Set("authentication_certificate", flattenedCerts); setErr != nil {
 			return fmt.Errorf("Error setting `authentication_certificate`: %+v", setErr)
@@ -899,7 +897,7 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	flattenAndSetTags(d, applicationGateway.Tags)
+	flattenAndSetTags(d, resp.Tags)
 
 	return nil
 }

@@ -5,6 +5,8 @@ import (
 	"log"
 	"regexp"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
@@ -133,7 +135,7 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location"))
 	sku := d.Get("sku").(string)
 	adminUserEnabled := d.Get("admin_enabled").(bool)
 	tags := d.Get("tags").(map[string]interface{})
@@ -294,14 +296,14 @@ func applyGeoReplicationLocations(meta interface{}, resourceGroup string, name s
 
 	// loop on the new location values
 	for _, nl := range newGeoReplicationLocations {
-		newLocation := azureRMNormalizeLocation(nl)
+		newLocation := azure.NormalizeLocation(nl)
 		createLocations[newLocation] = true // the location needs to be created
 	}
 
 	// loop on the old location values
 	for _, ol := range oldGeoReplicationLocations {
 		// oldLocation was created from a previous deployment
-		oldLocation := azureRMNormalizeLocation(ol)
+		oldLocation := azure.NormalizeLocation(ol)
 
 		// if the list of locations to create already contains the location
 		if _, ok := createLocations[oldLocation]; ok {
@@ -379,11 +381,8 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
-
-	location := resp.Location
-	if location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
-	}
+	location := azure.NormalizeLocationRef(resp.Location)
+	d.Set("location", location)
 	d.Set("admin_enabled", resp.AdminUserEnabled)
 	d.Set("login_server", resp.LoginServer)
 
@@ -426,8 +425,8 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 
 		for _, value := range replicationValues {
 			if value.Location != nil {
-				valueLocation := azureRMNormalizeLocation(*value.Location)
-				if location != nil && valueLocation != azureRMNormalizeLocation(*location) {
+				valueLocation := azure.NormalizeLocationRef(value.Location)
+				if valueLocation != location {
 					georeplication_locations.Add(valueLocation)
 				}
 			}
