@@ -186,8 +186,7 @@ func testCheckAzureRMNetworkWatcherDisappears(name string) resource.TestCheckFun
 			}
 		}
 
-		err = future.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("Bad: Delete on watcherClient: %+v", err)
 		}
 

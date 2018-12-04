@@ -138,8 +138,7 @@ func resourceArmActiveDirectoryApplicationUpdate(d *schema.ResourceData, meta in
 		properties.Oauth2AllowImplicitFlow = utils.Bool(oauth)
 	}
 
-	_, err := client.Patch(ctx, d.Id(), properties)
-	if err != nil {
+	if _, err := client.Patch(ctx, d.Id(), properties); err != nil {
 		return fmt.Errorf("Error patching Azure AD Application with ID %q: %+v", d.Id(), err)
 	}
 
@@ -197,8 +196,8 @@ func resourceArmActiveDirectoryApplicationDelete(d *schema.ResourceData, meta in
 		properties := graphrbac.ApplicationUpdateParameters{
 			AvailableToOtherTenants: utils.Bool(false),
 		}
-		_, err := client.Patch(ctx, d.Id(), properties)
-		if err != nil {
+
+		if _, err := client.Patch(ctx, d.Id(), properties); err != nil {
 			return fmt.Errorf("Error patching Azure AD Application with ID %q: %+v", d.Id(), err)
 		}
 	}

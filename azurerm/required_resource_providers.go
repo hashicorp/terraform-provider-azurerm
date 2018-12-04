@@ -66,8 +66,7 @@ func ensureResourceProvidersAreRegistered(ctx context.Context, client resources.
 
 	if len(providersToRegister) > 0 {
 		log.Printf("[DEBUG] Registering %d Resource Providers", len(providersToRegister))
-		err := resourceproviders.RegisterForSubscription(ctx, client, providersToRegister)
-		if err != nil {
+		if err := resourceproviders.RegisterForSubscription(ctx, client, providersToRegister); err != nil {
 			return err
 		}
 	} else {

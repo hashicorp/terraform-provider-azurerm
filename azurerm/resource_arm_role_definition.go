@@ -126,8 +126,7 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 		},
 	}
 
-	_, err := client.CreateOrUpdate(ctx, scope, roleDefinitionId, properties)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, scope, roleDefinitionId, properties); err != nil {
 		return err
 	}
 
