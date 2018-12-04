@@ -1,5 +1,9 @@
 ## 1.20.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_mariadb_server` [GH-2406]
+
 IMPROVEMENTS:
 
 * authentication: switching to use the shared Azure authentication library [GH-2355]
@@ -8,6 +12,7 @@ IMPROVEMENTS:
 * sdk: upgrading to version `2018-05-01` of the Policy API [GH-2386]
 * `azurerm_app_service` - support for configuring `app_command_line` in the `site_config` block [GH-2350]
 * `azurerm_app_service_slot` - support for configuring `app_command_line` in the `site_config` block [GH-2350]
+* `azurerm_application_insights` - added `Node.JS` application type [GH-2407]
 * `azurerm_key_vault` - exposed `backup` and `restore` permissions made `key_permissions` and `secret_permissions` optional [GH-2363]
 * `azurerm_container_registry` - supprt for geo-replication via the `georeplication_locations` property [GH-2055]
 * `azurerm_mssql_elasticpool` - deprecated the `elastic_pool_properties` propety and moved `max_size_bytes` and `zone_redundant` to the top level [GH-2378]
@@ -18,6 +23,8 @@ BUG FIXES:
 * `azurerm_key_vault` - fixing a deadlock situation where multiple subnets are used from the same virtual network [GH-2324]
 * `azurerm_eventhub` - making the `partition_count` field ForceNew [GH-2400]
 * `azurerm_eventhub` - now validates that the `storage_account_id` is a proper resource ID  [GH-2374]
+* `azurerm_mssql_elasticpool` - relaxed validation of the `name` property [GH-2398]
+* `azurerm_recovery_services_protection_policy_vm` - added the `timezone` property [GH-2404]
 
 ## 1.19.0 (November 15, 2018)
 
@@ -281,7 +288,7 @@ IMPROVEMENTS:
 * `azurerm_iothub` - support for the `Basic` SKU ([#1717](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1717))
 * `azurerm_kubernetes_cluster` - support for `max_pods` within the `agent_pool_profile` block ([#1753](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1753))
 * `azurerm_kubernetes_cluster` - support for the `add_on_profile` block ([#1751](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1751))
-* `azurerm_kubernetes_cluster` - validation for when `pod_cidr` is set with a `network_plugin` set to `azure` ([#1763](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1763))
+* `azurerm_kubernetes_cluster` - validation for when `pod_cidr` is set with a `network_plugin` set to `azure` ([#1763](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1763))
 * `azurerm_kubernetes_cluster` - `client_id` and `client_secret` in the `service_principal` block are now ForceNew ([#1737](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1737))
 * `azurerm_kubernetes_cluster` - `docker_bridge_cidr`, `dns_service_ip` and `service_cidr` are now conditionally set ([#1715](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1715))
 * `azurerm_lb_nat_rule` - `protocol` property now supports `All` ([#1736](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1736))
