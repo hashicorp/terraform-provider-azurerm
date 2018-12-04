@@ -243,6 +243,14 @@
 			"versionExact": "v21.3.0"
 		},
 		{
+			"checksumSHA1": "fnApqrMFYSd4sVvZbgQhpbn5Tm8=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/preview/mariadb/mgmt/2018-06-01-preview/mariadb",
+			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
+			"revisionTime": "2018-10-19T17:11:53Z",
+			"version": "v21.3.0",
+			"versionExact": "v21.3.0"
+		},
+		{
 			"checksumSHA1": "NTKrqzjgDA3tOouG/avprOJuw0M=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights",
 			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
@@ -307,16 +315,16 @@
 			"versionExact": "v21.3.0"
 		},
 		{
-			"checksumSHA1": "P0456F5O0iLtB3RwYPZ8apWby6A=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/backup",
+			"checksumSHA1": "UWSnIzZywuEpEevbPfbPNLk1dFk=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices",
 			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
 			"revisionTime": "2018-10-19T17:11:53Z",
 			"version": "v21.3.0",
 			"versionExact": "v21.3.0"
 		},
 		{
-			"checksumSHA1": "UWSnIzZywuEpEevbPfbPNLk1dFk=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices",
+			"checksumSHA1": "D1RyQEwuDGT8PKaB1bWL0AkdzrA=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2017-07-01/backup",
 			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
 			"revisionTime": "2018-10-19T17:11:53Z",
 			"version": "v21.3.0",

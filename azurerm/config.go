@@ -39,6 +39,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/preview/devspaces/mgmt/2018-06-01-preview/devspaces"
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
+	"github.com/Azure/azure-sdk-for-go/services/preview/mariadb/mgmt/2018-06-01-preview/mariadb"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi"
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
@@ -47,8 +48,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/2017-08-01-preview/security"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	MsSql "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/backup"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2017-07-01/backup"
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
 	"github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
@@ -169,6 +170,7 @@ type ArmClient struct {
 	devSpaceControllerClient devspaces.ControllersClient
 
 	// Databases
+	mariadbServersClient                     mariadb.ServersClient
 	mysqlConfigurationsClient                mysql.ConfigurationsClient
 	mysqlDatabasesClient                     mysql.DatabasesClient
 	mysqlFirewallRulesClient                 mysql.FirewallRulesClient
@@ -257,7 +259,7 @@ type ArmClient struct {
 
 	// Recovery Services
 	recoveryServicesVaultsClient             recoveryservices.VaultsClient
-	recoveryServicesProtectedItemsClient     backup.ProtectedItemsClient
+	recoveryServicesProtectedItemsClient     backup.ProtectedItemsGroupClient
 	recoveryServicesProtectionPoliciesClient backup.ProtectionPoliciesClient
 
 	// Relay
@@ -639,6 +641,10 @@ func (c *ArmClient) registerDatabricksClients(endpoint, subscriptionId string, a
 }
 
 func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	mariadbServersClient := mariadb.NewServersClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&mariadbServersClient.Client, auth)
+	c.mariadbServersClient = mariadbServersClient
+
 	// MySQL
 	mysqlConfigClient := mysql.NewConfigurationsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&mysqlConfigClient.Client, auth)
@@ -969,7 +975,7 @@ func (c *ArmClient) registerRecoveryServiceClients(endpoint, subscriptionId stri
 	c.configureClient(&vaultsClient.Client, auth)
 	c.recoveryServicesVaultsClient = vaultsClient
 
-	protectedItemsClient := backup.NewProtectedItemsClientWithBaseURI(endpoint, subscriptionId)
+	protectedItemsClient := backup.NewProtectedItemsGroupClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&protectedItemsClient.Client, auth)
 	c.recoveryServicesProtectedItemsClient = protectedItemsClient
 

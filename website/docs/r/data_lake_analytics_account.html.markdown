@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_lake_analytics_account"
-sidebar_current: "docs-azurerm-resource-data-lake-analytics-account-x"
+sidebar_current: "docs-azurerm-resource-data-lake-analytics-account"
 description: |-
   Manage an Azure Data Lake Analytics Account.
 ---

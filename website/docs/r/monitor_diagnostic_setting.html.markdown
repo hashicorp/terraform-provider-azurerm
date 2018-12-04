@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Diagnostic Setting. Changing this forces a new resource to be created.
 
-* `resource_id` - (Required) The ID of an existing Resource on which to configure Diagnostic Settings. Changing this forces a new resource to be created.
+* `target_resource_id` - (Required) The ID of an existing Resource on which to configure Diagnostic Settings. Changing this forces a new resource to be created.
 
 * `event_hub_name` - (Optional) Specifies the name of the Event Hub where Diagnostics Data should be sent. Changing this forces a new resource to be created.
 
