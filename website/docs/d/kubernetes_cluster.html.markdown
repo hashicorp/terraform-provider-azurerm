@@ -99,6 +99,8 @@ A `azure_active_directory` block exports the following:
 
 * `server_app_id` - The Server ID of an Azure Active Directory Application.
 
+* `server_app_secret` - The Server Secret of an Azure Active Directory Application.
+
 * `tenant_id` - The Tenant ID used for Azure Active Directory Application.
 ---
 
@@ -178,6 +180,8 @@ A `role_based_access_control` block exports the following:
 A `service_principal` block supports the following:
 
 * `client_id` - The Client ID of the Service Principal used by this Managed Kubernetes Cluster.
+
+* `client_secret` - The Client Secret of the Service Principal used by this Managed Kubernetes Cluster.
 
 ---
 
