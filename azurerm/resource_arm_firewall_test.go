@@ -255,7 +255,7 @@ resource "azurerm_firewall" "test" {
   ip_configuration {
     name                          = "configuration"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    internal_public_ip_address_id = "${azurerm_public_ip.test.id}"
+    public_ip_address_id          = "${azurerm_public_ip.test.id}"
   }
 }
 `, rInt, location, rInt, rInt, rInt)
@@ -298,7 +298,7 @@ resource "azurerm_firewall" "test" {
   ip_configuration {
     name                          = "configuration"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    internal_public_ip_address_id = "${azurerm_public_ip.test.id}"
+    public_ip_address_id          = "${azurerm_public_ip.test.id}"
   }
 
   tags {
@@ -346,7 +346,7 @@ resource "azurerm_firewall" "test" {
   ip_configuration {
     name                          = "configuration"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    internal_public_ip_address_id = "${azurerm_public_ip.test.id}"
+    public_ip_address_id          = "${azurerm_public_ip.test.id}"
   }
 
   tags {

@@ -54,6 +54,12 @@ func resourceArmFirewall() *schema.Resource {
 						},
 						"internal_public_ip_address_id": {
 							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: azure.ValidateResourceID,
+							Deprecated:   "This field has been deprecated. Use `public_ip_address_id` instead.",
+						},
+						"public_ip_address_id": {
+							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
@@ -247,7 +253,7 @@ func expandArmFirewallIPConfigurations(d *schema.ResourceData) (*[]network.Azure
 		data := configRaw.(map[string]interface{})
 		name := data["name"].(string)
 		subnetId := data["subnet_id"].(string)
-		intPubID := data["internal_public_ip_address_id"].(string)
+		pubID := data["public_ip_address_id"].(string)
 
 		subnetID, err := parseAzureResourceID(subnetId)
 		if err != nil {
@@ -272,7 +278,7 @@ func expandArmFirewallIPConfigurations(d *schema.ResourceData) (*[]network.Azure
 					ID: utils.String(subnetId),
 				},
 				PublicIPAddress: &network.SubResource{
-					ID: utils.String(intPubID),
+					ID: utils.String(pubID),
 				},
 			},
 		}
@@ -310,7 +316,7 @@ func flattenArmFirewallIPConfigurations(input *[]network.AzureFirewallIPConfigur
 
 		if pip := props.PublicIPAddress; pip != nil {
 			if id := pip.ID; id != nil {
-				afIPConfig["internal_public_ip_address_id"] = *id
+				afIPConfig["public_ip_address_id"] = *id
 			}
 		}
 		result = append(result, afIPConfig)

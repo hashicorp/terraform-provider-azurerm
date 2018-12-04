@@ -51,7 +51,7 @@ resource "azurerm_firewall" "test" {
   ip_configuration {
     name                          = "configuration"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    internal_public_ip_address_id = "${azurerm_public_ip.test.id}"
+    public_ip_address_id          = "${azurerm_public_ip.test.id}"
   }
 }
 
@@ -116,7 +116,7 @@ A `rule` block supports the following:
 
 * `destination_ports` - (Required) A list of destination ports.
 
-* `protocols` - (Required) A list of protocols. Possible values are `Any`, `TCP` and `UDP`.
+* `protocols` - (Required) A list of protocols. Possible values are `Any`, `ICMP`, `TCP` and `UDP`.
 
 ## Import
 
