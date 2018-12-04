@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"log"
 	"regexp"
 	"strconv"
@@ -178,7 +179,7 @@ func resourceArmMariaDbServerCreateOrUpdate(d *schema.ResourceData, meta interfa
 	log.Printf("[INFO] preparing arguments for AzureRM MariaDB Server creation.")
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	adminLogin := d.Get("administrator_login").(string)
@@ -303,10 +304,7 @@ func resourceArmMariaDbServerRead(d *schema.ResourceData, meta interface{}) erro
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
-
-	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
-	}
+	azure.FlattenAndSetLocation(d, resp.Location)
 
 	if properties := resp.ServerProperties; properties != nil {
 		d.Set("administrator_login", properties.AdministratorLogin)
