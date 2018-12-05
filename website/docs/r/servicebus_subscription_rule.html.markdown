@@ -14,7 +14,7 @@ Manage a ServiceBus Subscription Rule.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "tfex-servicebus-sub-rule-sql"
+  name     = "tfex-servicebus-subscription-rule-sql"
   location = "West Europe"
 }
 
@@ -60,7 +60,7 @@ resource "azurerm_servicebus_subscription_rule" "example" {
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "tfex-servicebus-sub-rule-cor"
+  name     = "tfex-servicebus-subscription-rule-cor"
   location = "West Europe"
 }
 
