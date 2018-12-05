@@ -90,7 +90,7 @@ func resourceArmMariaDbDatabaseCreateOrUpdate(d *schema.ResourceData, meta inter
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return err
+		return fmt.Errorf("Error waiting for completion of Maria DB %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, serverName, name)
