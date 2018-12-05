@@ -68,7 +68,7 @@ func resourceArmMariaDbDatabaseCreateOrUpdate(d *schema.ResourceData, meta inter
 	client := meta.(*ArmClient).mariadbDatabasesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	log.Printf("[INFO] preparing arguments for AzureRM MariaDB Database creation.")
+	log.Printf("[INFO] preparing arguments for AzureRM MariaDB database creation.")
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -86,19 +86,19 @@ func resourceArmMariaDbDatabaseCreateOrUpdate(d *schema.ResourceData, meta inter
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, properties)
 	if err != nil {
-		return fmt.Errorf("error creating MariaDB %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("error creating MariaDB database %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("error waiting for completion of MariaDB %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("error waiting for completion of MariaDB database %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, serverName, name)
 	if err != nil {
-		return fmt.Errorf("error retrieving MariaDB %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("error retrieving MariaDB database %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("cannot read MariaDB Database %q (Resource Group %q) ID", name, resourceGroup)
+		return fmt.Errorf("cannot read MariaDB database %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -112,7 +112,7 @@ func resourceArmMariaDbDatabaseRead(d *schema.ResourceData, meta interface{}) er
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("cannot parse MariaDB Database %q ID:\n%+v", d.Id(), err)
+		return fmt.Errorf("cannot parse MariaDB database %q ID:\n%+v", d.Id(), err)
 	}
 	resourceGroup := id.ResourceGroup
 	serverName := id.Path["servers"]
@@ -121,12 +121,12 @@ func resourceArmMariaDbDatabaseRead(d *schema.ResourceData, meta interface{}) er
 	resp, err := client.Get(ctx, resourceGroup, serverName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] MariaDB Database %q was not found (Resource Group %q)", name, resourceGroup)
+			log.Printf("[WARN] MariaDB database %q was not found (Resource Group %q)", name, resourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("error making Read request on Azure MariaDB Database %q:\n%+v", name, err)
+		return fmt.Errorf("error making Read request on Azure MariaDB database %q:\n%+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -147,7 +147,7 @@ func resourceArmMariaDbDatabaseDelete(d *schema.ResourceData, meta interface{}) 
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("cannot parse MariaDB Database %q ID:\n%+v", d.Id(), err)
+		return fmt.Errorf("cannot parse MariaDB database %q ID:\n%+v", d.Id(), err)
 	}
 
 	resourceGroup := id.ResourceGroup
@@ -160,11 +160,11 @@ func resourceArmMariaDbDatabaseDelete(d *schema.ResourceData, meta interface{}) 
 			return nil
 		}
 
-		return fmt.Errorf("error making Read request on MariaDB Database %q (Resource Group %q):\n%+v", name, resourceGroup, err)
+		return fmt.Errorf("error making Read request on MariaDB database %q (Resource Group %q):\n%+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("error waiting for deletion of MariaDB Database %q (Resource Group %q):\n%+v", name, resourceGroup, err)
+		return fmt.Errorf("error waiting for deletion of MariaDB database %q (Resource Group %q):\n%+v", name, resourceGroup, err)
 	}
 
 	return nil
