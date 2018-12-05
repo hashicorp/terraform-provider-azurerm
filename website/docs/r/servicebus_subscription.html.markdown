@@ -13,24 +13,15 @@ Manage a ServiceBus Subscription.
 ## Example Usage
 
 ```hcl
-variable "location" {
-  description = "Azure datacenter to deploy to."
-  default     = "West US"
-}
-
-variable "servicebus_name" {
-  description = "Input your unique Azure service bus name"
-}
-
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "terraform-servicebus"
-  location = "${var.location}"
+  location = "West Europe"
 }
 
-resource "azurerm_servicebus_namespace" "test" {
-  name                = "${var.servicebus_name}"
-  location            = "${var.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_servicebus_namespace" "example" {
+  name                = "tfex_sevicebus_namespace"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   sku                 = "standard"
 
   tags {
@@ -38,19 +29,19 @@ resource "azurerm_servicebus_namespace" "test" {
   }
 }
 
-resource "azurerm_servicebus_topic" "test" {
-  name                = "testTopic"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+resource "azurerm_servicebus_topic" "example" {
+  name                = "tfex_sevicebus_topic"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
 
   enable_partitioning = true
 }
 
-resource "azurerm_servicebus_subscription" "test" {
-  name                = "testSubscription"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name          = "${azurerm_servicebus_topic.test.name}"
+resource "azurerm_servicebus_subscription" "example" {
+  name                = "tfex_sevicebus_subscription"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
+  topic_name          = "${azurerm_servicebus_topic.example.name}"
   max_delivery_count  = 1
 }
 ```
