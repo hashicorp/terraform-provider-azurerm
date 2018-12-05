@@ -331,7 +331,9 @@ func resourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 
 	if gw := resp.VirtualNetworkGatewayPropertiesFormat; gw != nil {
 		d.Set("type", string(gw.GatewayType))

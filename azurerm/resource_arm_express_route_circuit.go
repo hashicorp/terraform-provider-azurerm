@@ -175,7 +175,9 @@ func resourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 
 	if resp.Sku != nil {
 		sku := flattenExpressRouteCircuitSku(resp.Sku)

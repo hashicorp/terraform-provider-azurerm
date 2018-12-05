@@ -312,7 +312,9 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 
 	if props := resp.ManagedClusterProperties; props != nil {
 		d.Set("dns_prefix", props.DNSPrefix)

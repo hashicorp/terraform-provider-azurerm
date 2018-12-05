@@ -177,7 +177,9 @@ func resourceArmDateLakeAnalyticsAccountRead(d *schema.ResourceData, meta interf
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 
 	if properties := resp.DataLakeAnalyticsAccountProperties; properties != nil {
 		d.Set("tier", string(properties.CurrentTier))

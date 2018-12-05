@@ -262,7 +262,9 @@ func resourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 
 	//either source VM or storage profile can be specified, but not both
 	if resp.SourceVirtualMachine != nil {

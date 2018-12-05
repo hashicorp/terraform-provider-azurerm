@@ -431,7 +431,9 @@ func resourceArmServiceFabricClusterRead(d *schema.ResourceData, meta interface{
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 
 	if props := resp.ClusterProperties; props != nil {
 		d.Set("cluster_code_version", props.ClusterCodeVersion)

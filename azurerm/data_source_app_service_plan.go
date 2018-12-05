@@ -101,7 +101,9 @@ func dataSourceAppServicePlanRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("kind", resp.Kind)
 
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 
 	if props := resp.AppServicePlanProperties; props != nil {
 		if err := d.Set("properties", flattenAppServiceProperties(props)); err != nil {

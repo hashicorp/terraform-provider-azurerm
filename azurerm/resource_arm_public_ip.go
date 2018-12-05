@@ -227,7 +227,9 @@ func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("zones", resp.Zones)
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Name))

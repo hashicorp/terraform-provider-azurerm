@@ -437,7 +437,9 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err = azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 
 	if props := resp.SiteProperties; props != nil {
 		d.Set("app_service_plan_id", props.ServerFarmID)

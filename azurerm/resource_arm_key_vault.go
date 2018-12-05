@@ -287,7 +287,9 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 
 	if props := resp.Properties; props != nil {
 		d.Set("tenant_id", props.TenantID.String())

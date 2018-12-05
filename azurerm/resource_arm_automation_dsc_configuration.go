@@ -141,8 +141,9 @@ func resourceArmAutomationDscConfigurationRead(d *schema.ResourceData, meta inte
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("automation_account_name", accName)
-
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err = azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 
 	if props := resp.DscConfigurationProperties; props != nil {
 		d.Set("log_verbose", props.LogVerbose)

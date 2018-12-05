@@ -213,7 +213,9 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 
 	if alertRule := resp.AlertRule; alertRule != nil {
 		d.Set("description", alertRule.Description)

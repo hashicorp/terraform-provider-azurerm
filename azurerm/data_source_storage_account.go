@@ -189,7 +189,9 @@ func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	accessKeys := *keys.Keys
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 	d.Set("account_kind", resp.Kind)
 
 	if sku := resp.Sku; sku != nil {

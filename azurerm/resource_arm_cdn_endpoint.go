@@ -350,7 +350,9 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("profile_name", profileName)
 
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 
 	if props := resp.EndpointProperties; props != nil {
 		d.Set("host_name", props.HostName)

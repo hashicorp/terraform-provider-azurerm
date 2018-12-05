@@ -156,7 +156,9 @@ func resourceArmLogAnalyticsSolutionRead(d *schema.ResourceData, meta interface{
 	}
 
 	d.Set("resource_group_name", resGroup)
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 
 	// Reversing the mapping used to get .solution_name
 	// expecting resp.Name to be in format "SolutionName(WorkspaceName)".

@@ -381,8 +381,9 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
-	location := azure.NormalizeLocationRef(resp.Location)
-	d.Set("location", location)
+	if err = azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 	d.Set("admin_enabled", resp.AdminUserEnabled)
 	d.Set("login_server", resp.LoginServer)
 
@@ -420,15 +421,18 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 	replicationValues := replications.Values()
 
 	// if there is more than one location (the main one and the replicas)
-	if replicationValues != nil || len(replicationValues) > 1 {
+	if resp.Location != nil && (replicationValues != nil || len(replicationValues) > 1) {
+		resourceLocation := azure.NormalizeLocation(*resp.Location)
 		georeplication_locations := &schema.Set{F: schema.HashString}
 
 		for _, value := range replicationValues {
-			if value.Location != nil {
-				valueLocation := azure.NormalizeLocationRef(value.Location)
-				if valueLocation != location {
-					georeplication_locations.Add(valueLocation)
-				}
+			if value.Location == nil {
+				continue
+			}
+
+			valueLocation := azure.NormalizeLocation(*value.Location)
+			if resourceLocation != valueLocation {
+				georeplication_locations.Add(valueLocation)
 			}
 		}
 

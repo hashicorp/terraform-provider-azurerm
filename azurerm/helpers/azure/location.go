@@ -1,6 +1,7 @@
 package azure
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/hashicorp/terraform/helper/hashcode"
@@ -37,7 +38,9 @@ func SchemaLocationDeprecated() *schema.Schema {
 
 func FlattenAndSetLocation(d *schema.ResourceData, location *string) error {
 	if location != nil {
-		return d.Set("location", NormalizeLocation(location))
+		if err := d.Set("location", NormalizeLocation(location)); err != nil {
+			return fmt.Errorf("Error setting `location`: %s", err)
+		}
 	}
 	return nil
 }
@@ -49,15 +52,6 @@ func FlattenAndSetLocation(d *schema.ResourceData, location *string) error {
 func NormalizeLocation(location interface{}) string {
 	input := location.(string)
 	return strings.Replace(strings.ToLower(input), " ", "", -1)
-}
-
-func NormalizeLocationRef(location interface{}) string {
-	input := location.(*string)
-	if input != nil {
-		return NormalizeLocation(*input)
-	}
-
-	return ""
 }
 
 func SuppressLocationDiff(k, old, new string, _ *schema.ResourceData) bool {

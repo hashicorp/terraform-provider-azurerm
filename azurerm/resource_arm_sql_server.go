@@ -141,7 +141,9 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 
 	if serverProperties := resp.ServerProperties; serverProperties != nil {
 		d.Set("version", serverProperties.Version)

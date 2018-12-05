@@ -150,7 +150,9 @@ func resourceArmNotificationHubNamespaceRead(d *schema.ResourceData, meta interf
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 
 	sku := flattenNotificationHubNamespacesSku(resp.Sku)
 	if err := d.Set("sku", sku); err != nil {

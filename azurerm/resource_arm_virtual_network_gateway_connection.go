@@ -290,7 +290,9 @@ func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 
 	if string(conn.ConnectionType) != "" {
 		d.Set("type", string(conn.ConnectionType))

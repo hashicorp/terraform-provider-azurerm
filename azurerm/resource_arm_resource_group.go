@@ -81,7 +81,9 @@ func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	d.Set("name", resp.Name)
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil

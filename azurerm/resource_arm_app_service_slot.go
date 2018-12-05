@@ -353,7 +353,9 @@ func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("name", slot)
 	d.Set("app_service_name", appServiceName)
 	d.Set("resource_group_name", resGroup)
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 
 	if props := resp.SiteProperties; props != nil {
 		d.Set("app_service_plan_id", props.ServerFarmID)

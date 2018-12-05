@@ -56,7 +56,9 @@ func dataSourceArmPlatformImageRead(d *schema.ResourceData, meta interface{}) er
 	resp := (*result.Value)[len(*result.Value)-1]
 
 	d.SetId(*resp.ID)
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 	d.Set("publisher", publisher)
 	d.Set("offer", offer)
 	d.Set("sku", sku)

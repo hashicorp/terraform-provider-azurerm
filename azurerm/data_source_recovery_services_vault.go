@@ -55,7 +55,9 @@ func dataSourceArmRecoveryServicesVaultRead(d *schema.ResourceData, meta interfa
 
 	d.SetId(*resp.ID)
 	d.Set("name", resp.Name)
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 	d.Set("resource_group_name", resourceGroup)
 
 	if sku := resp.Sku; sku != nil {

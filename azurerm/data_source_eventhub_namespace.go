@@ -92,7 +92,9 @@ func dataSourceEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) e
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err = azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 
 	d.Set("sku", string(resp.Sku.Name))
 	d.Set("capacity", resp.Sku.Capacity)

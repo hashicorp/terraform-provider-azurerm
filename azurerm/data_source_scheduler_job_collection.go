@@ -94,7 +94,9 @@ func dataSourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interf
 	//standard properties
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 
 	flattenAndSetTags(d, resp.Tags)
 

@@ -235,7 +235,9 @@ func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("resource_group_name", resGroup)
 	d.Set("zones", resp.Zones)
 
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("storage_account_type", string(sku.Name))

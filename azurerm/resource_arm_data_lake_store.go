@@ -218,7 +218,9 @@ func resourceArmDateLakeStoreRead(d *schema.ResourceData, meta interface{}) erro
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 
 	if properties := resp.DataLakeStoreAccountProperties; properties != nil {
 		d.Set("tier", string(properties.CurrentTier))

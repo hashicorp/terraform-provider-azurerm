@@ -144,7 +144,9 @@ func resourceArmSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 	d.Set("server_name", serverName)
 
 	if elasticPool := resp.ElasticPoolProperties; elasticPool != nil {

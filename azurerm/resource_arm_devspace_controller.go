@@ -167,7 +167,9 @@ func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{})
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroupName)
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 
 	if err := d.Set("sku", flattenDevSpaceControllerSku(resp.Sku)); err != nil {
 		return fmt.Errorf("Error flattenning `sku`: %+v", err)

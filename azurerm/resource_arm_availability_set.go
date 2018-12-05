@@ -125,7 +125,9 @@ func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) er
 	availSet := *resp.AvailabilitySetProperties
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 	d.Set("platform_update_domain_count", availSet.PlatformUpdateDomainCount)
 	d.Set("platform_fault_domain_count", availSet.PlatformFaultDomainCount)
 

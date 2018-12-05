@@ -412,7 +412,9 @@ func resourceArmAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) e
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err = azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 
 	d.Set("enabled", resp.Enabled)
 	d.Set("target_resource_id", resp.TargetResourceURI)

@@ -156,7 +156,9 @@ func resourceArmRelayNamespaceRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err = azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 
 	if sku := resp.Sku; sku != nil {
 		flattenedSku := flattenRelayNamespaceSku(sku)

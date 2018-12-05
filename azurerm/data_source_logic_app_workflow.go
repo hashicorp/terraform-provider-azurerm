@@ -67,7 +67,9 @@ func dataSourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{})
 
 	d.SetId(*resp.ID)
 
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 
 	if props := resp.WorkflowProperties; props != nil {
 		parameters := flattenLogicAppDataSourceWorkflowParameters(props.Parameters)

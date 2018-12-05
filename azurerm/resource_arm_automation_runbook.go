@@ -209,7 +209,9 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err = azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 
 	d.Set("account_name", accName)
 	if props := resp.RunbookProperties; props != nil {

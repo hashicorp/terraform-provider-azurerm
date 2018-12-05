@@ -305,7 +305,9 @@ func resourceArmMariaDbServerRead(d *schema.ResourceData, meta interface{}) erro
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 
 	if properties := resp.ServerProperties; properties != nil {
 		d.Set("administrator_login", properties.AdministratorLogin)

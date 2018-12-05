@@ -386,7 +386,9 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 	sku := flattenIoTHubSku(resp.Sku)
 	if err := d.Set("sku", sku); err != nil {
 		return fmt.Errorf("Error setting `sku`: %+v", err)

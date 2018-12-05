@@ -185,7 +185,9 @@ func resourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("name", name)
 	d.Set("gallery_name", galleryName)
 	d.Set("resource_group_name", resourceGroup)
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 
 	if props := resp.GalleryImageProperties; props != nil {
 		d.Set("description", props.Description)

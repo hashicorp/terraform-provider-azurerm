@@ -201,7 +201,9 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("kind", resp.Kind)
 
-	azure.FlattenAndSetLocation(d, resp.Location)
+	if err := azure.FlattenAndSetLocation(d, resp.Location); err != nil {
+		return err
+	}
 
 	if err := d.Set("sku", flattenCognitiveAccountSku(resp.Sku)); err != nil {
 		return fmt.Errorf("Error setting `sku`: %+v", err)
