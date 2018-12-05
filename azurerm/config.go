@@ -171,6 +171,7 @@ type ArmClient struct {
 
 	// Databases
 	mariadbServersClient                     mariadb.ServersClient
+	mariadbDatabasesClient                   mariadb.DatabasesClient
 	mysqlConfigurationsClient                mysql.ConfigurationsClient
 	mysqlDatabasesClient                     mysql.DatabasesClient
 	mysqlFirewallRulesClient                 mysql.FirewallRulesClient
@@ -644,6 +645,10 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	mariadbServersClient := mariadb.NewServersClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&mariadbServersClient.Client, auth)
 	c.mariadbServersClient = mariadbServersClient
+	
+	mariadbDBClient := mariadb.NewDatabasesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&mariadbDBClient.Client, auth)
+	c.mariadbDatabasesClient = mariadbDBClient
 
 	// MySQL
 	mysqlConfigClient := mysql.NewConfigurationsClientWithBaseURI(endpoint, subscriptionId)
