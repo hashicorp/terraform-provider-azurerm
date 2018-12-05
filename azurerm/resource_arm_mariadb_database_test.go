@@ -32,50 +32,6 @@ func TestAccAzureRMMariaDbDatabase_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMariaDbDatabase_charsetLowercase(t *testing.T) {
-	resourceName := "azurerm_mariadb_database.test"
-	ri := acctest.RandInt()
-	config := testAccAzureRMMariaDbDatabase_charsetLowercase(ri, testLocation())
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMMariaDbDatabaseDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDbDatabaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "charset", "utf8"),
-					resource.TestCheckResourceAttr(resourceName, "collation", "utf8_general_ci"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMMariaDbDatabase_charsetMixedcase(t *testing.T) {
-	resourceName := "azurerm_mariadb_database.test"
-	ri := acctest.RandInt()
-	config := testAccAzureRMMariaDbDatabase_charsetMixedcase(ri, testLocation())
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMMariaDbDatabaseDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDbDatabaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "charset", "utf8"),
-					resource.TestCheckResourceAttr(resourceName, "collation", "utf8_general_ci"),
-				),
-			},
-		},
-	})
-}
-
 func testCheckAzureRMMariaDbDatabaseExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -136,88 +92,6 @@ func testCheckAzureRMMariaDbDatabaseDestroy(s *terraform.State) error {
 }
 
 func testAccAzureRMMariaDbDatabase_basic(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_mariadb_server" "test" {
-  name                = "acctestmariadbsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  sku {
-    name     = "B_Gen5_2"
-    capacity = 2
-    tier     = "Basic"
-    family   = "Gen5"
-  }
-
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
-
-  administrator_login          = "acctestun"
-  administrator_login_password = "H@Sh1CoR3!"
-  version                      = "10.2"
-  ssl_enforcement              = "Enabled"
-}
-
-resource "azurerm_mariadb_database" "test" {
-  name                = "acctestmariadb_%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mariadb_server.test.name}"
-  charset             = "utf8"
-  collation           = "utf8_general_ci"
-}
-`, rInt, location, rInt, rInt)
-}
-
-func testAccAzureRMMariaDbDatabase_charsetLowercase(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_mariadb_server" "test" {
-  name                = "acctestmariadbsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  sku {
-    name     = "B_Gen5_2"
-    capacity = 2
-    tier     = "Basic"
-    family   = "Gen5"
-  }
-
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
-
-  administrator_login          = "acctestun"
-  administrator_login_password = "H@Sh1CoR3!"
-  version                      = "10.2"
-  ssl_enforcement              = "Enabled"
-}
-
-resource "azurerm_mariadb_database" "test" {
-  name                = "acctestmariadb_%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mariadb_server.test.name}"
-  charset             = "utf8"
-  collation           = "utf8_general_ci"
-}
-`, rInt, location, rInt, rInt)
-}
-
-func testAccAzureRMMariaDbDatabase_charsetMixedcase(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
