@@ -6,7 +6,7 @@ description: |-
   Manages a MariaDB Database within a MariaDB Server.
 ---
 
-# azurerm_postgresql_database
+# azurerm_mariadb_database
 
 Manages a MariaDB Database within a MariaDB Server
 

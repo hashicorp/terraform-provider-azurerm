@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_monitor_action_group` [GH-2430]
+* **New Resource:** `azurerm_mariadb_database` [GH-2445]
 * **New Resource:** `azurerm_mariadb_server` [GH-2406]
 
 IMPROVEMENTS:
@@ -11,11 +12,13 @@ IMPROVEMENTS:
 * authentication: requesting a token using the audience address [GH-2381]
 * authentication: switching to request tokens from the Azure CLI [GH-2387]
 * sdk: upgrading to version `2018-05-01` of the Policy API [GH-2386]
+* Data Source: `azurerm_subscriptions` - ability to filtering by prefix/contains on the Display Name [GH-2429]
 * `azurerm_app_service` - support for configuring `app_command_line` in the `site_config` block [GH-2350]
+* `azurerm_app_service_plan` - deprecated the `properties` and moved `app_service_environment_id`, `per_site_scaling` and `reserved` to the top level  [GH-2442]
 * `azurerm_app_service_slot` - support for configuring `app_command_line` in the `site_config` block [GH-2350]
 * `azurerm_application_insights` - added `Node.JS` application type [GH-2407]
-* `azurerm_key_vault` - exposed `backup` and `restore` permissions made `key_permissions` and `secret_permissions` optional [GH-2363]
 * `azurerm_container_registry` - supprt for geo-replication via the `georeplication_locations` property [GH-2055]
+* `azurerm_key_vault` - exposed `backup` and `restore` permissions made `key_permissions` and `secret_permissions` optional [GH-2363]
 * `azurerm_mssql_elasticpool` - deprecated the `elastic_pool_properties` propety and moved `max_size_bytes` and `zone_redundant` to the top level [GH-2378]
 
 BUG FIXES:
@@ -26,6 +29,7 @@ BUG FIXES:
 * `azurerm_eventhub` - now validates that the `storage_account_id` is a proper resource ID  [GH-2374]
 * `azurerm_mssql_elasticpool` - relaxed validation of the `name` property [GH-2398]
 * `azurerm_recovery_services_protection_policy_vm` - added the `timezone` property [GH-2404]
+* `azurerm_virtual_machine` - nil-checking properties prior to accessing [GH-2365]
 
 ## 1.19.0 (November 15, 2018)
 
