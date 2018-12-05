@@ -24,7 +24,7 @@ func TestAccAzureRMMariaDbDatabase_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDbDatabaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "charset", "UTF8"),
+					resource.TestCheckResourceAttr(resourceName, "charset", "utf8"),
 					resource.TestCheckResourceAttr(resourceName, "collation", "utf8_general_ci"),
 				),
 			},
@@ -46,7 +46,7 @@ func TestAccAzureRMMariaDbDatabase_charsetLowercase(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDbDatabaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "charset", "UTF8"),
+					resource.TestCheckResourceAttr(resourceName, "charset", "utf8"),
 					resource.TestCheckResourceAttr(resourceName, "collation", "utf8_general_ci"),
 				),
 			},
@@ -68,7 +68,7 @@ func TestAccAzureRMMariaDbDatabase_charsetMixedcase(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDbDatabaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "charset", "UTF8"),
+					resource.TestCheckResourceAttr(resourceName, "charset", "utf8"),
 					resource.TestCheckResourceAttr(resourceName, "collation", "utf8_general_ci"),
 				),
 			},
@@ -167,10 +167,10 @@ resource "azurerm_mariadb_server" "test" {
 }
 
 resource "azurerm_mariadb_database" "test" {
-  name                = "acctestmariadb-%d"
+  name                = "acctestmariadb_%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   server_name         = "${azurerm_mariadb_server.test.name}"
-  charset             = "UTF8"
+  charset             = "utf8"
   collation           = "utf8_general_ci"
 }
 `, rInt, location, rInt, rInt)
@@ -208,7 +208,7 @@ resource "azurerm_mariadb_server" "test" {
 }
 
 resource "azurerm_mariadb_database" "test" {
-  name                = "acctestmariadb-%d"
+  name                = "acctestmariadb_%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   server_name         = "${azurerm_mariadb_server.test.name}"
   charset             = "utf8"
@@ -249,10 +249,10 @@ resource "azurerm_mariadb_server" "test" {
 }
 
 resource "azurerm_mariadb_database" "test" {
-  name                = "acctestmariadb-%d"
+  name                = "acctestmariadb_%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   server_name         = "${azurerm_mariadb_server.test.name}"
-  charset             = "Utf8"
+  charset             = "utf8"
   collation           = "utf8_general_ci"
 }
 `, rInt, location, rInt, rInt)
