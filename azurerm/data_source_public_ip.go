@@ -71,6 +71,7 @@ func dataSourceArmPublicIPRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("fqdn", "")
 	d.Set("domain_name_label", "")
 	d.Set("ip_address", "")
+	d.Set("ip_version", "")
 	d.Set("idle_timeout_in_minutes", 0)
 
 	if props := resp.PublicIPAddressPropertiesFormat; props != nil {
