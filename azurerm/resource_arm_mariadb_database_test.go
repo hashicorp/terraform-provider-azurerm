@@ -76,16 +76,15 @@ func testCheckAzureRMMariaDbDatabaseDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
+				return fmt.Errorf("Error deleting MariaDB Database %q (Resource Group %q):\n%+v", name, resourceGroup, err)
 			}
 
-			return err
+			return fmt.Errorf("Error MariaDB Database %q (Resource Group %q) still exists:\n%#+v", name, resourceGroup, err)
 		}
 
-		return fmt.Errorf("MariaDB Database still exists:\n%#v", resp)
+		return fmt.Errorf("MariaDB Database %q (Resource Group %q) still exists:\n%#+v", name, resourceGroup, resp)
 	}
 
 	return nil
