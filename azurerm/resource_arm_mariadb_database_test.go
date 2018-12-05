@@ -44,7 +44,7 @@ func testCheckAzureRMMariaDbDatabaseExists(resourceName string) resource.TestChe
 		serverName := rs.Primary.Attributes["server_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for MariaDB Database: %q", name)
+			return fmt.Errorf("bad: no resource group found in state for MariaDB database: %q", name)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).mariadbDatabasesClient
@@ -53,9 +53,9 @@ func testCheckAzureRMMariaDbDatabaseExists(resourceName string) resource.TestChe
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: MariaDB Database %q (Server %q Resource Group: %q) does not exist", name, serverName, resourceGroup)
+				return fmt.Errorf("bad: MariaDB database %q (Server %q Resource Group: %q) does not exist", name, serverName, resourceGroup)
 			}
-			return fmt.Errorf("Bad: Get on mariadbDatabasesClient: %+v", err)
+			return fmt.Errorf("bad: get on mariadbDatabasesClient: %+v", err)
 		}
 
 		return nil
@@ -80,9 +80,9 @@ func testCheckAzureRMMariaDbDatabaseDestroy(s *terraform.State) error {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
 			}
-			return fmt.Errorf("Error MariaDB Database %q (Resource Group %q) still exists:\n%+v", name, resourceGroup, err)
+			return fmt.Errorf("error MariaDB database %q (Resource Group %q) still exists:\n%+v", name, resourceGroup, err)
 		}
-		return fmt.Errorf("MariaDB Database %q (Resource Group %q) still exists:\n%#+v", name, resourceGroup, resp)
+		return fmt.Errorf("MariaDB database %q (Resource Group %q) still exists:\n%#+v", name, resourceGroup, resp)
 	}
 
 	return nil
