@@ -112,7 +112,7 @@ func resourceArmMariaDbDatabaseRead(d *schema.ResourceData, meta interface{}) er
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Cannot parse MariaDB Database %q (Resource Group %s) ID: %+v", d.Id(), err)
+		return fmt.Errorf("Cannot parse MariaDB Database %q (Resource Group %s) ID: %+v", d.Id(), resourceGroup, err)
 	}
 	resourceGroup := id.ResourceGroup
 	serverName := id.Path["servers"]
