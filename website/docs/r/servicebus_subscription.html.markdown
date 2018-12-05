@@ -14,7 +14,7 @@ Manage a ServiceBus Subscription.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "tfex-servicebus-sub"
+  name     = "tfex-servicebus-subscription"
   location = "West Europe"
 }
 
