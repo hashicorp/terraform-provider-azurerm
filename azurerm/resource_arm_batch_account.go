@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
@@ -193,7 +194,8 @@ func resourceArmBatchAccountDelete(d *schema.ResourceData, meta interface{}) err
 	}
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	// if the error is not that the Batch account was not found
+	if err != nil && future.Response().StatusCode != http.StatusNotFound {
 		return fmt.Errorf("Error waiting for deletion of Batch account %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 
