@@ -95,7 +95,7 @@ func resourceArmMariaDbDatabaseCreateOrUpdate(d *schema.ResourceData, meta inter
 
 	read, err := client.Get(ctx, resGroup, serverName, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving Maria DB %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read MariaDB Database %s (resource group %s) ID", name, resGroup)
