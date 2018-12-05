@@ -13,15 +13,15 @@ Manages a MariaDB Database within a MariaDB Server
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "mariadb-database-RG"
+resource "azurerm_resource_group" "example" {
+  name     = "tfex-mariadb-database-RG"
   location = "westeurope"
 }
 
-resource "azurerm_mariadb_server" "test" {
+resource "azurerm_mariadb_server" "example" {
   name                = "mariadb-svr"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   sku {
     name     = "B_Gen5_2"
@@ -42,10 +42,10 @@ resource "azurerm_mariadb_server" "test" {
   ssl_enforcement              = "Enabled"
 }
 
-resource "azurerm_mariadb_database" "test" {
+resource "azurerm_mariadb_database" "example" {
   name                = "mariadb_database"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mariadb_server.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  server_name         = "${azurerm_mariadb_server.example.name}"
   charset             = "utf8"
   collation           = "utf8_general_ci"
 }
