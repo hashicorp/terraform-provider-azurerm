@@ -86,7 +86,7 @@ func resourceArmMariaDbDatabaseCreateOrUpdate(d *schema.ResourceData, meta inter
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, name, properties)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating Maria DB %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
