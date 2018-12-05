@@ -38,7 +38,7 @@ func SchemaLocationDeprecated() *schema.Schema {
 
 func FlattenAndSetLocation(d *schema.ResourceData, location *string) error {
 	if location != nil {
-		if err := d.Set("location", NormalizeLocation(location)); err != nil {
+		if err := d.Set("location", NormalizeLocation(*location)); err != nil {
 			return fmt.Errorf("Error setting `location`: %s", err)
 		}
 	}
