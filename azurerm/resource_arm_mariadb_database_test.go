@@ -91,7 +91,7 @@ func testCheckAzureRMMariaDbDatabaseExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for MariaDB Database: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).postgresqlDatabasesClient
+		client := testAccProvider.Meta().(*ArmClient).mariadbDatabasesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
@@ -99,7 +99,7 @@ func testCheckAzureRMMariaDbDatabaseExists(name string) resource.TestCheckFunc {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: MariaDB Database %q (server %q resource group: %q) does not exist", name, serverName, resourceGroup)
 			}
-			return fmt.Errorf("Bad: Get on postgresqlDatabasesClient: %+v", err)
+			return fmt.Errorf("Bad: Get on mariadbDatabasesClient: %+v", err)
 		}
 
 		return nil
@@ -107,7 +107,7 @@ func testCheckAzureRMMariaDbDatabaseExists(name string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMMariaDbDatabaseDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).postgresqlDatabasesClient
+	client := testAccProvider.Meta().(*ArmClient).mariadbDatabasesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
