@@ -645,7 +645,7 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	mariadbDBClient := mariadb.NewDatabasesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&mariadbDBClient.Client, auth)
 	c.mariadbDatabasesClient = mariadbDBClient
-	
+
 	mariadbServersClient := mariadb.NewServersClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&mariadbServersClient.Client, auth)
 	c.mariadbServersClient = mariadbServersClient
