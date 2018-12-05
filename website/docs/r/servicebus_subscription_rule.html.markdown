@@ -60,7 +60,7 @@ resource "azurerm_servicebus_subscription_rule" "example" {
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "terraform-servicebus"
+  name     = "tfex-servicebus-sub-rule-cor"
   location = "West Europe"
 }
 
