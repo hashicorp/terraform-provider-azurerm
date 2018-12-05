@@ -57,10 +57,12 @@ func resourceArmMySqlServer() *schema.Resource {
 								"GP_Gen5_8",
 								"GP_Gen5_16",
 								"GP_Gen5_32",
+								"GP_Gen5_64",
 								"MO_Gen5_2",
 								"MO_Gen5_4",
 								"MO_Gen5_8",
 								"MO_Gen5_16",
+								"MO_Gen5_32",
 							}, true),
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
@@ -75,6 +77,7 @@ func resourceArmMySqlServer() *schema.Resource {
 								8,
 								16,
 								32,
+								64,
 							}),
 						},
 
@@ -225,8 +228,7 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error creating MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for creation of MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
