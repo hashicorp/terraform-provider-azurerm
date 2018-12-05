@@ -158,7 +158,7 @@ func resourceArmMariaDbDatabaseDelete(d *schema.ResourceData, meta interface{}) 
 		if response.WasNotFound(future.Response()) {
 			return fmt.Errorf("Error deleting MariaDB Database %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
-		return fmt.Errorf("MariaDB Database still exists:\n%#v", err)
+		return fmt.Errorf("MariaDB Database still exists:\n%+v", err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {

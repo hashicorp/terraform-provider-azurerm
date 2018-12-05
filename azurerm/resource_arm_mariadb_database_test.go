@@ -37,14 +37,14 @@ func testCheckAzureRMMariaDbDatabaseExists(resourceName string) resource.TestChe
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
+			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for MariaDB Database: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for MariaDB Database: %q", name)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).mariadbDatabasesClient
@@ -53,7 +53,7 @@ func testCheckAzureRMMariaDbDatabaseExists(resourceName string) resource.TestChe
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: MariaDB Database %q (server %q resource group: %q) does not exist", name, serverName, resourceGroup)
+				return fmt.Errorf("Bad: MariaDB Database %q (Server %q Resource Group: %q) does not exist", name, serverName, resourceGroup)
 			}
 			return fmt.Errorf("Bad: Get on mariadbDatabasesClient: %+v", err)
 		}
@@ -81,7 +81,7 @@ func testCheckAzureRMMariaDbDatabaseDestroy(s *terraform.State) error {
 				return fmt.Errorf("Error deleting MariaDB Database %q (Resource Group %q):\n%+v", name, resourceGroup, err)
 			}
 
-			return fmt.Errorf("Error MariaDB Database %q (Resource Group %q) still exists:\n%#+v", name, resourceGroup, err)
+			return fmt.Errorf("Error MariaDB Database %q (Resource Group %q) still exists:\n%+v", name, resourceGroup, err)
 		}
 
 		return fmt.Errorf("MariaDB Database %q (Resource Group %q) still exists:\n%#+v", name, resourceGroup, resp)
@@ -94,7 +94,7 @@ func testAccAzureRMMariaDbDatabase_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
-  location = "%s"
+  location = %q
 }
 
 resource "azurerm_mariadb_server" "test" {
