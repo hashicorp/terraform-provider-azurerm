@@ -14,7 +14,7 @@ Manage a ServiceBus Subscription Rule.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "terraform-servicebus"
+  name     = "tfex-servicebus-sub-rule-sql"
   location = "West Europe"
 }
 

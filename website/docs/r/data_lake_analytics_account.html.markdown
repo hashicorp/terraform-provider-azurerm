@@ -14,7 +14,7 @@ Manage an Azure Data Lake Analytics Account.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "tfex_datalake_fw_rule"
+  name     = "tfex-datalake-account"
   location = "northeurope"
 }
 

@@ -16,7 +16,7 @@ Manage a ServiceBus Topic.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "terraform-servicebus"
+  name     = "tfex-servicebus-topic"
   location = "West Europe"
 }
 
