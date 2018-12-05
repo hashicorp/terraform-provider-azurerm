@@ -71,7 +71,7 @@ func resourceArmMariaDbDatabaseCreateOrUpdate(d *schema.ResourceData, meta inter
 	log.Printf("[INFO] preparing arguments for AzureRM MariaDB Database creation.")
 
 	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 	serverName := d.Get("server_name").(string)
 
 	charset := d.Get("charset").(string)
@@ -84,21 +84,21 @@ func resourceArmMariaDbDatabaseCreateOrUpdate(d *schema.ResourceData, meta inter
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, name, properties)
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, properties)
 	if err != nil {
-		return fmt.Errorf("Error creating Maria DB %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error creating MariaDB %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Maria DB %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error waiting for completion of MariaDB %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, serverName, name)
+	read, err := client.Get(ctx, resourceGroup, serverName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Maria DB %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error retrieving MariaDB %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read MariaDB Database %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read MariaDB Database %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -112,33 +112,30 @@ func resourceArmMariaDbDatabaseRead(d *schema.ResourceData, meta interface{}) er
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return err
+		return fmt.Errorf("Cannot parse MariaDB Database %q (Resource Group %s) ID: %+v", d.Id(), err)
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	serverName := id.Path["servers"]
 	name := id.Path["databases"]
 
-	resp, err := client.Get(ctx, resGroup, serverName, name)
+	resp, err := client.Get(ctx, resourceGroup, serverName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] MariaDB Database '%s' was not found (resource group '%s')", name, resGroup)
+			log.Printf("[WARN] MariaDB Database %q was not found (Resource Group %q)", name, resourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Azure MariaDB Database %s: %+v", name, err)
+		return fmt.Errorf("Error making Read request on Azure MariaDB Database %q: %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("resource_group_name", resourceGroup)
 	d.Set("server_name", serverName)
 
-	if props := resp.DatabaseProperties; props != nil {
-		d.Set("charset", props.Charset)
-
-		if collation := props.Collation; collation != nil {
-			d.Set("collation", collation)
-		}
+	if properties := resp.DatabaseProperties; properties != nil {
+		d.Set("charset", properties.Charset)
+		d.Set("collation", properties.Collation)
 	}
 
 	return nil
@@ -152,24 +149,20 @@ func resourceArmMariaDbDatabaseDelete(d *schema.ResourceData, meta interface{}) 
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	serverName := id.Path["servers"]
 	name := id.Path["databases"]
 
-	future, err := client.Delete(ctx, resGroup, serverName, name)
+	future, err := client.Delete(ctx, resourceGroup, serverName, name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
-			return nil
+			return fmt.Errorf("Error deleting MariaDB Database %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
-		return err
+		return fmt.Errorf("MariaDB Database still exists:\n%#v", err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return err
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for deletion of MariaDB Database %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return nil
