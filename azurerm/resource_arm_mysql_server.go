@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -64,7 +65,7 @@ func resourceArmMySqlServer() *schema.Resource {
 								"MO_Gen5_16",
 								"MO_Gen5_32",
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"capacity": {
@@ -89,7 +90,7 @@ func resourceArmMySqlServer() *schema.Resource {
 								string(mysql.GeneralPurpose),
 								string(mysql.MemoryOptimized),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"family": {
@@ -99,7 +100,7 @@ func resourceArmMySqlServer() *schema.Resource {
 								"Gen4",
 								"Gen5",
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
@@ -124,7 +125,7 @@ func resourceArmMySqlServer() *schema.Resource {
 					string(mysql.FiveFullStopSix),
 					string(mysql.FiveFullStopSeven),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ForceNew:         true,
 			},
 
@@ -151,7 +152,7 @@ func resourceArmMySqlServer() *schema.Resource {
 								"Enabled",
 								"Disabled",
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
@@ -164,7 +165,7 @@ func resourceArmMySqlServer() *schema.Resource {
 					string(mysql.SslEnforcementEnumDisabled),
 					string(mysql.SslEnforcementEnumEnabled),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"fqdn": {
