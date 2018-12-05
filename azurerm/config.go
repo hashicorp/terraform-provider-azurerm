@@ -170,8 +170,8 @@ type ArmClient struct {
 	devSpaceControllerClient devspaces.ControllersClient
 
 	// Databases
-	mariadbServersClient                     mariadb.ServersClient
 	mariadbDatabasesClient                   mariadb.DatabasesClient
+	mariadbServersClient                     mariadb.ServersClient
 	mysqlConfigurationsClient                mysql.ConfigurationsClient
 	mysqlDatabasesClient                     mysql.DatabasesClient
 	mysqlFirewallRulesClient                 mysql.FirewallRulesClient
@@ -642,13 +642,13 @@ func (c *ArmClient) registerDatabricksClients(endpoint, subscriptionId string, a
 }
 
 func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
-	mariadbServersClient := mariadb.NewServersClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&mariadbServersClient.Client, auth)
-	c.mariadbServersClient = mariadbServersClient
-	
 	mariadbDBClient := mariadb.NewDatabasesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&mariadbDBClient.Client, auth)
 	c.mariadbDatabasesClient = mariadbDBClient
+	
+	mariadbServersClient := mariadb.NewServersClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&mariadbServersClient.Client, auth)
+	c.mariadbServersClient = mariadbServersClient
 
 	// MySQL
 	mysqlConfigClient := mysql.NewConfigurationsClientWithBaseURI(endpoint, subscriptionId)
