@@ -112,7 +112,7 @@ func resourceArmMariaDbDatabaseRead(d *schema.ResourceData, meta interface{}) er
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Cannot parse MariaDB Database %q ID: %+v", d.Id(), err)
+		return fmt.Errorf("Cannot parse MariaDB Database %q ID:\n%+v", d.Id(), err)
 	}
 	resourceGroup := id.ResourceGroup
 	serverName := id.Path["servers"]
@@ -126,7 +126,7 @@ func resourceArmMariaDbDatabaseRead(d *schema.ResourceData, meta interface{}) er
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Azure MariaDB Database %q: %+v", name, err)
+		return fmt.Errorf("Error making Read request on Azure MariaDB Database %q:\n%+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -147,8 +147,9 @@ func resourceArmMariaDbDatabaseDelete(d *schema.ResourceData, meta interface{}) 
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return err
+		return fmt.Errorf("Cannot parse MariaDB Database %q ID:\n%+v", d.Id(), err)
 	}
+
 	resourceGroup := id.ResourceGroup
 	serverName := id.Path["servers"]
 	name := id.Path["databases"]
@@ -156,13 +157,14 @@ func resourceArmMariaDbDatabaseDelete(d *schema.ResourceData, meta interface{}) 
 	future, err := client.Delete(ctx, resourceGroup, serverName, name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error deleting MariaDB Database %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return nil
 		}
-		return fmt.Errorf("MariaDB Database still exists:\n%+v", err)
+
+		return fmt.Errorf("Error making Read request on MariaDB Database %q (Resource Group %q):\n%+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of MariaDB Database %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("error waiting for deletion of MariaDB Database %q (Resource Group %q):\n%+v", name, resourceGroup, err)
 	}
 
 	return nil
