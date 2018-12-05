@@ -277,8 +277,7 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 		properties.AdvancedSchedule = advancedRef
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resGroup, accountName, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, accountName, name, parameters); err != nil {
 		return err
 	}
 

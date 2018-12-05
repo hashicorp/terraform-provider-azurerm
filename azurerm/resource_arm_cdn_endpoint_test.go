@@ -288,8 +288,7 @@ func testCheckAzureRMCdnEndpointDisappears(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: Delete on cdnEndpointsClient: %+v", err)
 		}
 
-		err = future.WaitForCompletionRef(ctx, conn.Client)
-		if err != nil {
+		if err = future.WaitForCompletionRef(ctx, conn.Client); err != nil {
 			return fmt.Errorf("Bad: Delete on cdnEndpointsClient: %+v", err)
 		}
 

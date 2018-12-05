@@ -91,8 +91,7 @@ func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{})
 		Tags: expandTags(tags),
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties); err != nil {
 		return fmt.Errorf("[ERROR] Error creating Logic App Workflow %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -152,8 +151,7 @@ func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{})
 		Tags: expandTags(tags),
 	}
 
-	_, err = client.CreateOrUpdate(ctx, resourceGroup, name, properties)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, resourceGroup, name, properties); err != nil {
 		return fmt.Errorf("Error updating Logic App Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 

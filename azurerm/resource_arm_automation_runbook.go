@@ -150,8 +150,7 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 		Tags:     expandTags(tags),
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resGroup, accName, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, accName, name, parameters); err != nil {
 		return fmt.Errorf("Error creating/updating Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
 	}
 
@@ -159,13 +158,12 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 		content := v.(string)
 		reader := ioutil.NopCloser(bytes.NewBufferString(content))
 		draftClient := meta.(*ArmClient).automationRunbookDraftClient
-		_, err = draftClient.ReplaceContent(ctx, resGroup, accName, name, reader)
-		if err != nil {
+
+		if _, err := draftClient.ReplaceContent(ctx, resGroup, accName, name, reader); err != nil {
 			return fmt.Errorf("Error setting the draft Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
 		}
 
-		_, err = draftClient.Publish(ctx, resGroup, accName, name)
-		if err != nil {
+		if _, err := draftClient.Publish(ctx, resGroup, accName, name); err != nil {
 			return fmt.Errorf("Error publishing the updated Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
 		}
 	}

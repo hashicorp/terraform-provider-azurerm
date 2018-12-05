@@ -56,8 +56,8 @@ func resourceArmAppServiceCustomHostnameBindingCreate(d *schema.ResourceData, me
 			SiteName: utils.String(appServiceName),
 		},
 	}
-	_, err := client.CreateOrUpdateHostNameBinding(ctx, resourceGroup, appServiceName, hostname, properties)
-	if err != nil {
+
+	if _, err := client.CreateOrUpdateHostNameBinding(ctx, resourceGroup, appServiceName, hostname, properties); err != nil {
 		return err
 	}
 

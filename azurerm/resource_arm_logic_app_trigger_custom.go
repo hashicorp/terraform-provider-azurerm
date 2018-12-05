@@ -52,13 +52,11 @@ func resourceArmLogicAppTriggerCustomCreateUpdate(d *schema.ResourceData, meta i
 	bodyRaw := d.Get("body").(string)
 
 	var body map[string]interface{}
-	err := json.Unmarshal([]byte(bodyRaw), &body)
-	if err != nil {
+	if err := json.Unmarshal([]byte(bodyRaw), &body); err != nil {
 		return fmt.Errorf("Error unmarshalling JSON for Custom Trigger %q: %+v", name, err)
 	}
 
-	err = resourceLogicAppTriggerUpdate(d, meta, logicAppId, name, body)
-	if err != nil {
+	if err := resourceLogicAppTriggerUpdate(d, meta, logicAppId, name, body); err != nil {
 		return err
 	}
 

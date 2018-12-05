@@ -276,8 +276,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 		containerGroup.ContainerGroupProperties.IPAddress.DNSNameLabel = &dnsNameLabel
 	}
 
-	_, err := containerGroupsClient.CreateOrUpdate(ctx, resGroup, name, containerGroup)
-	if err != nil {
+	if _, err := containerGroupsClient.CreateOrUpdate(ctx, resGroup, name, containerGroup); err != nil {
 		return err
 	}
 
