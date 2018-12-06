@@ -126,7 +126,7 @@ func resourceArmMariaDbDatabaseRead(d *schema.ResourceData, meta interface{}) er
 			return nil
 		}
 
-		return fmt.Errorf("error making Read request on Azure MariaDB database %q:\n%+v", name, err)
+		return fmt.Errorf("error making Read request on Azure MariaDB database %q (Resource Group %q):\n%+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)

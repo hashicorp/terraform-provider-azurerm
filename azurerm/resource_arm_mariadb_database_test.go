@@ -37,7 +37,7 @@ func testCheckAzureRMMariaDbDatabaseExists(resourceName string) resource.TestChe
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %q", resourceName)
+			return fmt.Errorf("not found: %q", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
