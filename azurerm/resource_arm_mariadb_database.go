@@ -28,7 +28,7 @@ func resourceArmMariaDbDatabase() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile("^[_a-zA-Z0-9]{1,64}$"),
-					"name must be 1 - 64 characters long, and contain only letters, numbers and underscores.",
+					"name must be 1 - 64 characters long, and contain only letters, numbers and underscores",
 				),
 			},
 
@@ -40,7 +40,7 @@ func resourceArmMariaDbDatabase() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile("^[-a-zA-Z0-9]{3,50}$"),
-					"server_name must be 3 - 50 characters long, and contain only letters, numbers and hyphens.",
+					"server_name must be 3 - 50 characters long, and contain only letters, numbers and hyphens",
 				),
 			},
 
@@ -50,7 +50,7 @@ func resourceArmMariaDbDatabase() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile("^[a-z0-9]{3,8}$"),
-					"charset must be 3 - 8 characters long, and contain only lowercase letters and numbers.",
+					"charset must be 3 - 8 characters long, and contain only lowercase letters and numbers",
 				),
 			},
 
@@ -68,7 +68,7 @@ func resourceArmMariaDbDatabaseCreateOrUpdate(d *schema.ResourceData, meta inter
 	client := meta.(*ArmClient).mariadbDatabasesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	log.Printf("[INFO] preparing arguments for AzureRM MariaDB database creation.")
+	log.Printf("[INFO] preparing arguments for AzureRM MariaDB database creation")
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
