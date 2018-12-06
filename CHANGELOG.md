@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_monitor_action_group` [GH-2430]
+* **New Resource:** `azurerm_mariadb_database` [GH-2445]
 * **New Resource:** `azurerm_mariadb_server` [GH-2406]
 
 IMPROVEMENTS:
