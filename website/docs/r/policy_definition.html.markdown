@@ -8,7 +8,9 @@ description: |-
 
 # azurerm_policy_definition
 
-Manages a policy rule definition. Policy definitions do not take effect until they are assigned to a scope using a Policy Assignment.
+Manages a policy rule definition on a management group or your provider subscription. 
+
+Policy definitions do not take effect until they are assigned to a scope using a Policy Assignment.
 
 ## Example Usage
 
@@ -67,6 +69,8 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of the policy definition.
 
+* `management_group_id` - (Optional) the management group id (IE: `${data.azurerm_management_group.test.group_id`) where where to define this policy
+
 * `policy_rule` - (Optional) The policy rule for the policy definition. This
     is a json object representing the rule that contains an if and
     a then block.
@@ -90,4 +94,8 @@ Policy Definitions can be imported using the `policy name`, e.g.
 
 ```shell
 terraform import azurerm_policy_definition.testPolicy  /subscriptions/<SUBSCRIPTION_ID>/providers/Microsoft.Authorization/policyDefinitions/<POLICY_NAME>
+```
+or
+```shell
+terraform import azurerm_policy_definition.testPolicy /providers/Microsoft.Management/managementgroups/<MANGAGEMENT_GROUP_ID>/providers/Microsoft.Authorization/policyDefinitions/<POLICY_NAME>
 ```
