@@ -957,7 +957,7 @@ func resourceAzureRMCosmosDBAccountFailoverPolicyHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		location := azure.NormalizeLocation(m["location"])
+		location := azureRMNormalizeLocation(m["location"])
 		priority := int32(m["priority"].(int))
 
 		buf.WriteString(fmt.Sprintf("%s-%d", location, priority))

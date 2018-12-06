@@ -21,7 +21,7 @@
   "EnableGC": true,
   "Linters": {
     "errcheck": {
-      "Command": "errcheck -abspath {not_tests=-ignoretests} -ignore github.com/hashicorp/terraform/helper/schema:ForceNew|Set -ignore io:Close -ignore github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure:FlattenAndSetLocation"
+      "Command": "errcheck -abspath {not_tests=-ignoretests} -ignore github.com/hashicorp/terraform/helper/schema:ForceNew|Set -ignore io:Close"
     },
     "nakedret": {
       "Command": "nakedret -l 1"

@@ -177,7 +177,9 @@ func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 	d.SetId(*img.ID)
 	d.Set("name", img.Name)
 	d.Set("resource_group_name", resGroup)
-	azure.FlattenAndSetLocation(d, img.Location)
+	if err := azure.FlattenAndSetLocation(d, img.Location); err != nil {
+		return err
+	}
 
 	if profile := img.StorageProfile; profile != nil {
 		if disk := profile.OsDisk; disk != nil {
