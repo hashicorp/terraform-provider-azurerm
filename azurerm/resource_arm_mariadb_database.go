@@ -126,7 +126,7 @@ func resourceArmMariaDbDatabaseRead(d *schema.ResourceData, meta interface{}) er
 			return nil
 		}
 
-		return fmt.Errorf("error making Read request on Azure MariaDB database %q (Resource Group %q):\n%+v", name, resourceGroup, err)
+		return fmt.Errorf("error making read request on Azure MariaDB database %q (Resource Group %q):\n%+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -160,7 +160,7 @@ func resourceArmMariaDbDatabaseDelete(d *schema.ResourceData, meta interface{}) 
 			return nil
 		}
 
-		return fmt.Errorf("error making Read request on MariaDB database %q (Resource Group %q):\n%+v", name, resourceGroup, err)
+		return fmt.Errorf("error making delete request on MariaDB database %q (Resource Group %q):\n%+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
