@@ -214,6 +214,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_logic_app_trigger_http_request":         resourceArmLogicAppTriggerHttpRequest(),
 			"azurerm_logic_app_trigger_recurrence":           resourceArmLogicAppTriggerRecurrence(),
 			"azurerm_logic_app_workflow":                     resourceArmLogicAppWorkflow(),
+			"azurerm_mariadb_database":                       resourceArmMariaDbDatabase(),
 			"azurerm_mariadb_server":                         resourceArmMariaDbServer(),
 			"azurerm_managed_disk":                           resourceArmManagedDisk(),
 			"azurerm_management_lock":                        resourceArmManagementLock(),
