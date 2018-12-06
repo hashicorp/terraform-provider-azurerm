@@ -150,8 +150,7 @@ func testCheckAzureRMNetworkInterfaceNATRuleAssociationDisappears(name string) r
 			return fmt.Errorf("Error removing NAT Rule Association for Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
 		}
 
-		err = future.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("Error waiting for removal of NAT Rule Association for NIC %q (Resource Group %q): %+v", nicName, resourceGroup, err)
 		}
 

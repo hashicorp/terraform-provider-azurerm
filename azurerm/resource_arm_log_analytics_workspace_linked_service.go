@@ -88,8 +88,7 @@ func resourceArmLogAnalyticsWorkspaceLinkedServiceCreateUpdate(d *schema.Resourc
 		},
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resGroup, workspaceName, lsName, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, workspaceName, lsName, parameters); err != nil {
 		return fmt.Errorf("Error issuing create request for Log Analytics Workspace Linked Service %q/%q (Resource Group %q): %+v", workspaceName, lsName, resGroup, err)
 	}
 

@@ -172,8 +172,7 @@ func resourceArmMetricAlertRuleCreateOrUpdate(d *schema.ResourceData, meta inter
 		AlertRule: alertRule,
 	}
 
-	_, err = client.CreateOrUpdate(ctx, resourceGroup, name, alertRuleResource)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, resourceGroup, name, alertRuleResource); err != nil {
 		return err
 	}
 

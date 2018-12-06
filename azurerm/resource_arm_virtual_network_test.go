@@ -65,8 +65,7 @@ func testSweepVirtualNetworks(region string) error {
 			return err
 		}
 
-		err = future.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			if response.WasNotFound(future.Response()) {
 				continue
 			}
@@ -238,8 +237,7 @@ func testCheckAzureRMVirtualNetworkDisappears(name string) resource.TestCheckFun
 			return fmt.Errorf("Error deleting Virtual Network %q (RG %q): %+v", virtualNetworkName, resourceGroup, err)
 		}
 
-		err = future.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("Error waiting for deletion of Virtual Network %q (RG %q): %+v", virtualNetworkName, resourceGroup, err)
 		}
 

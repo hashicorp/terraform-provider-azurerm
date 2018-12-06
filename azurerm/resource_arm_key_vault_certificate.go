@@ -315,8 +315,7 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 			CertificatePolicy:        &policy,
 			Tags:                     expandTags(tags),
 		}
-		_, err := client.ImportCertificate(ctx, keyVaultBaseUrl, name, importParameters)
-		if err != nil {
+		if _, err := client.ImportCertificate(ctx, keyVaultBaseUrl, name, importParameters); err != nil {
 			return err
 		}
 	} else {
@@ -325,8 +324,7 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 			CertificatePolicy: &policy,
 			Tags:              expandTags(tags),
 		}
-		_, err := client.CreateCertificate(ctx, keyVaultBaseUrl, name, parameters)
-		if err != nil {
+		if _, err := client.CreateCertificate(ctx, keyVaultBaseUrl, name, parameters); err != nil {
 			return err
 		}
 

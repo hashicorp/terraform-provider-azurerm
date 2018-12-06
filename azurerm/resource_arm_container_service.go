@@ -221,8 +221,7 @@ func resourceArmContainerServiceCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	ctx := meta.(*ArmClient).StopContext
-	_, err := containerServiceClient.CreateOrUpdate(ctx, resGroup, name, parameters)
-	if err != nil {
+	if _, err := containerServiceClient.CreateOrUpdate(ctx, resGroup, name, parameters); err != nil {
 		return err
 	}
 

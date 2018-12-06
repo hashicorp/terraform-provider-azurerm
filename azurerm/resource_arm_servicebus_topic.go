@@ -158,8 +158,7 @@ func resourceArmServiceBusTopicCreate(d *schema.ResourceData, meta interface{}) 
 		parameters.SBTopicProperties.DuplicateDetectionHistoryTimeWindow = utils.String(duplicateWindow)
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters); err != nil {
 		return err
 	}
 

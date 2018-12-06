@@ -65,8 +65,7 @@ func ValidateKeyVaultChildId(i interface{}, k string) (warnings []string, errors
 		return warnings, errors
 	}
 
-	_, err := ParseKeyVaultChildID(v)
-	if err != nil {
+	if _, err := ParseKeyVaultChildID(v); err != nil {
 		errors = append(errors, fmt.Errorf("Error parsing Key Vault Child ID: %s", err))
 		return warnings, errors
 	}

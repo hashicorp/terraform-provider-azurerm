@@ -179,8 +179,7 @@ func testCheckAzureRMTemplateDeploymentDisappears(name string) resource.TestChec
 		client := testAccProvider.Meta().(*ArmClient).deploymentsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, err := client.Delete(ctx, resourceGroup, deploymentName)
-		if err != nil {
+		if _, err := client.Delete(ctx, resourceGroup, deploymentName); err != nil {
 			return fmt.Errorf("Failed deleting Deployment %q (Resource Group %q): %+v", deploymentName, resourceGroup, err)
 		}
 
