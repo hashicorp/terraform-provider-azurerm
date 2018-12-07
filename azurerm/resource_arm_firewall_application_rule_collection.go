@@ -140,12 +140,12 @@ func resourceArmFirewallApplicationRuleCollectionCreateUpdate(d *schema.Resource
 	}
 
 	if firewall.AzureFirewallPropertiesFormat == nil {
-		return fmt.Errorf("Error expanding Firewall %q (Resource Group %q): `properties` was nil.", firewallName, resourceGroup)
+		return fmt.Errorf("Error expanding Firewall %q (Resource Group %q): `properties` was nil", firewallName, resourceGroup)
 	}
 	props := *firewall.AzureFirewallPropertiesFormat
 
 	if props.ApplicationRuleCollections == nil {
-		return fmt.Errorf("Error expanding Firewall %q (Resource Group %q): `properties.ApplicationRuleCollections` was nil.", firewallName, resourceGroup)
+		return fmt.Errorf("Error expanding Firewall %q (Resource Group %q): `properties.ApplicationRuleCollections` was nil", firewallName, resourceGroup)
 	}
 	ruleCollections := *props.ApplicationRuleCollections
 
@@ -357,55 +357,54 @@ func resourceArmFirewallApplicationRuleCollectionDelete(d *schema.ResourceData, 
 	return nil
 }
 
-func expandArmFirewallApplicationRules(input *schema.Set) []network.AzureFirewallApplicationRule {
-	appRules := input.List()
-	rules := make([]network.AzureFirewallApplicationRule, 0)
+func expandArmFirewallApplicationRules(inputs *schema.Set) []network.AzureFirewallApplicationRule {
+	outputs := make([]network.AzureFirewallApplicationRule, 0)
 
-	for _, appRule := range appRules {
-		rule := appRule.(map[string]interface{})
+	for _, input := range inputs.List() {
+		rule := input.(map[string]interface{})
 
-		name := rule["name"].(string)
-		description := rule["description"].(string)
+		ruleName := rule["name"].(string)
+		ruleDescription := rule["description"].(string)
 
-		sourceAddresses := make([]string, 0)
+		ruleSourceAddresses := make([]string, 0)
 		for _, v := range rule["source_addresses"].(*schema.Set).List() {
-			sourceAddresses = append(sourceAddresses, v.(string))
+			ruleSourceAddresses = append(ruleSourceAddresses, v.(string))
 		}
 
-		fqdnTags := make([]string, 0)
+		ruleFqdnTags := make([]string, 0)
 		for _, v := range rule["fqdn_tags"].(*schema.Set).List() {
-			fqdnTags = append(fqdnTags, v.(string))
+			ruleFqdnTags = append(ruleFqdnTags, v.(string))
 		}
 
-		targetFqdns := make([]string, 0)
+		ruleTargetFqdns := make([]string, 0)
 		for _, v := range rule["target_fqdns"].(*schema.Set).List() {
-			targetFqdns = append(targetFqdns, v.(string))
+			ruleTargetFqdns = append(ruleTargetFqdns, v.(string))
 		}
 
-		ruleToAdd := network.AzureFirewallApplicationRule{
-			Name:            utils.String(name),
-			Description:     utils.String(description),
-			SourceAddresses: &sourceAddresses,
-			FqdnTags:        &fqdnTags,
-			TargetFqdns:     &targetFqdns,
+		output := network.AzureFirewallApplicationRule{
+			Name:            utils.String(ruleName),
+			Description:     utils.String(ruleDescription),
+			SourceAddresses: &ruleSourceAddresses,
+			FqdnTags:        &ruleFqdnTags,
+			TargetFqdns:     &ruleTargetFqdns,
 		}
 
-		arProtocols := make([]network.AzureFirewallApplicationRuleProtocol, 0)
+		ruleProtocols := make([]network.AzureFirewallApplicationRuleProtocol, 0)
 		protocols := rule["protocol"].([]interface{})
 		for _, v := range protocols {
 			protocol := v.(map[string]interface{})
 			port := protocol["port"].(int)
-			p := network.AzureFirewallApplicationRuleProtocol{
+			ruleProtocol := network.AzureFirewallApplicationRuleProtocol{
 				Port:         utils.Int32(int32(port)),
 				ProtocolType: network.AzureFirewallApplicationRuleProtocolType(protocol["type"].(string)),
 			}
-			arProtocols = append(arProtocols, p)
+			ruleProtocols = append(ruleProtocols, ruleProtocol)
 		}
-		ruleToAdd.Protocols = &arProtocols
-		rules = append(rules, ruleToAdd)
+		output.Protocols = &ruleProtocols
+		outputs = append(outputs, output)
 	}
 
-	return rules
+	return outputs
 }
 
 func flattenFirewallApplicationRuleCollectionRules(rules *[]network.AzureFirewallApplicationRule) []map[string]interface{} {
@@ -416,24 +415,24 @@ func flattenFirewallApplicationRuleCollectionRules(rules *[]network.AzureFirewal
 
 	for _, rule := range *rules {
 		output := make(map[string]interface{})
-		if rule.Name != nil {
-			output["name"] = *rule.Name
+		if ruleName := rule.Name; ruleName != nil {
+			output["name"] = *ruleName
 		}
-		if rule.Description != nil {
-			output["description"] = *rule.Description
+		if ruleDescription := rule.Description; ruleDescription != nil {
+			output["description"] = *ruleDescription
 		}
-		if rule.SourceAddresses != nil {
-			output["source_addresses"] = sliceToSet(*rule.SourceAddresses)
+		if ruleSourceAddresses := rule.SourceAddresses; ruleSourceAddresses != nil {
+			output["source_addresses"] = sliceToSet(*ruleSourceAddresses)
 		}
-		if rule.FqdnTags != nil {
-			output["fqdn_tags"] = sliceToSet(*rule.FqdnTags)
+		if ruleFqdnTags := rule.FqdnTags; ruleFqdnTags != nil {
+			output["fqdn_tags"] = sliceToSet(*ruleFqdnTags)
 		}
-		if rule.TargetFqdns != nil {
-			output["target_fqdns"] = sliceToSet(*rule.TargetFqdns)
+		if ruleTargetFqdns := rule.TargetFqdns; ruleTargetFqdns != nil {
+			output["target_fqdns"] = sliceToSet(*ruleTargetFqdns)
 		}
 		protocols := make([]map[string]interface{}, 0)
-		if arProtocols := rule.Protocols; arProtocols != nil {
-			for _, p := range *arProtocols {
+		if ruleProtocols := rule.Protocols; ruleProtocols != nil {
+			for _, p := range *ruleProtocols {
 				protocol := make(map[string]interface{})
 				if port := p.Port; port != nil {
 					protocol["port"] = int(*port)
