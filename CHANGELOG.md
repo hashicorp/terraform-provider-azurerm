@@ -27,11 +27,13 @@ BUG FIXES:
 
 * Data Source: `azurerm_logic_app_workflow` - ensuing the parameters are a string prior to flattening [GH-2348]
 * Data Source: `azurerm_public_ip` - ensuing properties always exist [GH-2448]
+* Data Source: `azurerm_route_table` - validation updated to prevent empty and blank `property` values from causing a panic [GH-2467]
 * `azurerm_key_vault` - fixing a deadlock situation where multiple subnets are used from the same virtual network [GH-2324]
 * `azurerm_eventhub` - making the `partition_count` field ForceNew [GH-2400]
 * `azurerm_eventhub` - now validates that the `storage_account_id` is a proper resource ID  [GH-2374]
 * `azurerm_mssql_elasticpool` - relaxed validation of the `name` property [GH-2398]
 * `azurerm_recovery_services_protection_policy_vm` - added the `timezone` property [GH-2404]
+* `azurerm_route_table` - validation updated to prevent empty and blank `property` values from causing a panic [GH-2467]
 * `azurerm_virtual_machine` - nil-checking properties prior to accessing [GH-2365]
 
 ## 1.19.0 (November 15, 2018)
