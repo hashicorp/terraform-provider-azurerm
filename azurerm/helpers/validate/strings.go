@@ -2,7 +2,7 @@ package validate
 
 import (
 	"fmt"
-	"regexp"
+	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -15,9 +15,12 @@ func NoEmptyStrings() schema.SchemaValidateFunc {
 			return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
 		}
 
-		if invalid := regexp.MustCompile(`^$|\s+`).MatchString(v); invalid {
-			return nil, []error{fmt.Errorf("%q must not begin or end with whitespace and can not be empty", k)}
+		newv := strings.TrimSpace(v)
+
+		if len(newv) == 0 {
+			return nil, []error{fmt.Errorf("%q must not be empty", k)}
 		}
+
 		return nil, nil
 	}
 }
