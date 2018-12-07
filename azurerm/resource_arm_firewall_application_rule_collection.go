@@ -55,7 +55,7 @@ func resourceArmFirewallApplicationRuleCollection() *schema.Resource {
 			},
 
 			"rule": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				MinItems: 1,
 				Elem: &schema.Resource{
@@ -149,7 +149,7 @@ func resourceArmFirewallApplicationRuleCollectionCreateUpdate(d *schema.Resource
 	}
 	ruleCollections := *props.ApplicationRuleCollections
 
-	applicationRules := expandArmFirewallApplicationRules(d.Get("rule").(*schema.Set))
+	applicationRules := expandArmFirewallApplicationRules(d.Get("rule").([]interface{}))
 	priority := d.Get("priority").(int)
 	newRuleCollection := network.AzureFirewallApplicationRuleCollection{
 		Name: utils.String(name),
@@ -289,7 +289,6 @@ func resourceArmFirewallApplicationRuleCollectionRead(d *schema.ResourceData, me
 		}
 
 		flattenedRules := flattenFirewallApplicationRuleCollectionRules(props.Rules)
-		// if err := d.Set("rule", schema.NewSet(resourceArmFirewallApplicationRuleCollectionRuleProtocolHash, flattenedRules)); err != nil {
 		if err := d.Set("rule", flattenedRules); err != nil {
 			return fmt.Errorf("Error setting `rule`: %+v", err)
 		}
@@ -357,10 +356,10 @@ func resourceArmFirewallApplicationRuleCollectionDelete(d *schema.ResourceData, 
 	return nil
 }
 
-func expandArmFirewallApplicationRules(inputs *schema.Set) []network.AzureFirewallApplicationRule {
+func expandArmFirewallApplicationRules(inputs []interface{}) []network.AzureFirewallApplicationRule {
 	outputs := make([]network.AzureFirewallApplicationRule, 0)
 
-	for _, input := range inputs.List() {
+	for _, input := range inputs {
 		rule := input.(map[string]interface{})
 
 		ruleName := rule["name"].(string)
