@@ -168,7 +168,7 @@ The following arguments are supported:
 
 * `linux_profile` - (Required) A Linux Profile block as documented below.
 
-* `agent_pool_profile` - (Required) One or more Agent Pool Profile's block as documented below.
+* `agent_pool_profile` - (Required) A Agent Pool Profile's block as documented below.
 
 * `service_principal` - (only Required when you're using `Kubernetes` as an Orchestration Platform) A Service Principal block as documented below.
 
