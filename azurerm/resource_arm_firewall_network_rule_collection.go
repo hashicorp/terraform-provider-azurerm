@@ -7,7 +7,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -132,12 +131,6 @@ func resourceArmFirewallNetworkRuleCollectionCreateUpdate(d *schema.ResourceData
 		return fmt.Errorf("Error expanding Firewall %q (Resource Group %q): `properties.NetworkRuleCollections` was nil.", firewallName, resourceGroup)
 	}
 	ruleCollections := *props.NetworkRuleCollections
-
-	ipConfigurations, err := azure.FirewallFixIPConfiguration(props.IPConfigurations)
-	if err != nil {
-		return fmt.Errorf("Error fixing IP Configurations for Firewall %q (Resource Group %q): %+v", firewallName, resourceGroup, err)
-	}
-	firewall.AzureFirewallPropertiesFormat.IPConfigurations = ipConfigurations
 
 	networkRules := expandArmFirewallNetworkRules(d.Get("rule").(*schema.Set))
 	priority := d.Get("priority").(int)
@@ -332,12 +325,6 @@ func resourceArmFirewallNetworkRuleCollectionDelete(d *schema.ResourceData, meta
 		}
 	}
 	props.NetworkRuleCollections = &networkRules
-
-	ipConfigs, err := azure.FirewallFixIPConfiguration(props.IPConfigurations)
-	if err != nil {
-		return fmt.Errorf("Error fixing IP Configuration for Firewall %q (Resource Group %q): %+v", firewallName, resourceGroup, err)
-	}
-	props.IPConfigurations = ipConfigs
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, firewallName, firewall)
 	if err != nil {

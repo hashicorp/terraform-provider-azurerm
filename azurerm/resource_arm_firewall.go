@@ -257,14 +257,14 @@ func expandArmFirewallIPConfigurations(d *schema.ResourceData) (*[]network.Azure
 		data := configRaw.(map[string]interface{})
 		name := data["name"].(string)
 		subnetId := data["subnet_id"].(string)
-		intPubID, hasInt := data["internal_public_ip_address_id"].(string)
 
-		if pubID, hasPub := data["public_ip_address_id"].(string); hasPub {
-			intPubID = pubID
-			hasInt = true
+		exist := false
+		pubID, exist := data["internal_public_ip_address_id"].(string)
+		if !exist {
+			pubID, exist = data["public_ip_address_id"].(string)
 		}
 
-		if !hasInt {
+		if !exist {
 			return nil, nil, nil, fmt.Errorf("one of `ip_configuration.0.internal_public_ip_address_id` or `ip_configuration.0.public_ip_address_id` must be set")
 		}
 
@@ -291,7 +291,7 @@ func expandArmFirewallIPConfigurations(d *schema.ResourceData) (*[]network.Azure
 					ID: utils.String(subnetId),
 				},
 				PublicIPAddress: &network.SubResource{
-					ID: utils.String(intPubID),
+					ID: utils.String(pubID),
 				},
 			},
 		}
@@ -330,9 +330,6 @@ func flattenArmFirewallIPConfigurations(input *[]network.AzureFirewallIPConfigur
 		if pip := props.PublicIPAddress; pip != nil {
 			if id := pip.ID; id != nil {
 				afIPConfig["internal_public_ip_address_id"] = *id
-			}
-
-			if id := pip.ID; id != nil {
 				afIPConfig["public_ip_address_id"] = *id
 			}
 		}
