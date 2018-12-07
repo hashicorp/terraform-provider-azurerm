@@ -9,17 +9,25 @@
 
             <li<%= sidebar_current("docs-azurerm-index") %>>
               <a href="/docs/providers/azurerm/index.html">Azure Provider</a>
+            </li>
+
+            <li<%= sidebar_current("docs-azurerm-authentication") %>>
+              <a href="#">Authentication</a>
               <ul class="nav nav-visible">
-                <li<%= sidebar_current("docs-azurerm-index-authentication-azure-cli") %>>
-                    <a href="/docs/providers/azurerm/authenticating_via_azure_cli.html">Authenticating via the Azure CLI</a>
+                <li<%= sidebar_current("docs-azurerm-authentication-azure-cli") %>>
+                    <a href="/docs/providers/azurerm/auth/azure_cli.html">Authenticating via the Azure CLI</a>
                 </li>
 
-                <li<%= sidebar_current("docs-azurerm-index-authentication-service-principal") %>>
-                    <a href="/docs/providers/azurerm/authenticating_via_service_principal.html">Authenticating via a Service Principal (Shared Account)</a>
+                <li<%= sidebar_current("docs-azurerm-authentication-managed-service-identity") %>>
+                    <a href="/docs/providers/azurerm/auth/managed_service_identity.html">Authenticating via Managed Service Identity</a>
                 </li>
 
-                <li<%= sidebar_current("docs-azurerm-index-authentication-msi") %>>
-                    <a href="/docs/providers/azurerm/authenticating_via_msi.html">Authenticating via Managed Service Identity</a>
+                <li<%= sidebar_current("docs-azurerm-authentication-service-principal-client-certificate") %>>
+                    <a href="/docs/providers/azurerm/auth/service_principal_client_certificate.html">Authenticating via a Service Principal with a Client Certificate</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-authentication-service-principal-client-secret") %>>
+                    <a href="/docs/providers/azurerm/auth/service_principal_client_secret.html">Authenticating via a Service Principal with a Client Secret</a>
                 </li>
               </ul>
             </li>
