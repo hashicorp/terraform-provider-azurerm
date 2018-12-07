@@ -31,7 +31,7 @@ func resourceArmRouteTable() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings(),
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"location": locationSchema(),
