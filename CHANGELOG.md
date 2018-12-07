@@ -17,11 +17,11 @@ IMPROVEMENTS:
 * `azurerm_app_service_plan` - deprecated the `properties` and moved `app_service_environment_id`, `per_site_scaling` and `reserved` to the top level  [GH-2442]
 * `azurerm_app_service_slot` - support for configuring `app_command_line` in the `site_config` block [GH-2350]
 * `azurerm_application_insights` - added `Node.JS` application type [GH-2407]
-* `azurerm_container_registry` - supprt for geo-replication via the `georeplication_locations` property [GH-2055]
+* `azurerm_container_registry` - support for geo-replication via the `georeplication_locations` property [GH-2055]
 * `azurerm_key_vault` - exposed `backup` and `restore` permissions made `key_permissions` and `secret_permissions` optional [GH-2363]
-* `azurerm_mssql_elasticpool` - deprecated the `elastic_pool_properties` propety and moved `max_size_bytes` and `zone_redundant` to the top level [GH-2378]
-* `azurerm_mysql_server` - added new skus `GP_Gen5_64` and `MO_Gen5_32` [GH-2446]
-* `azurerm_postgresql_server` added new skus `GP_Gen5_64` and `MO_Gen5_32` - [GH-2447]
+* `azurerm_mssql_elasticpool` - deprecated the `elastic_pool_properties` property and moved `max_size_bytes` and `zone_redundant` to the top level [GH-2378]
+* `azurerm_mysql_server` - support for new skus `GP_Gen5_64` and `MO_Gen5_32` [GH-2446]
+* `azurerm_postgresql_server` support for new skus `GP_Gen5_64` and `MO_Gen5_32` - [GH-2447]
 
 BUG FIXES:
 
