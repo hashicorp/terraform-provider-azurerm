@@ -100,7 +100,7 @@ func resourceArmDevSpaceControllerCreate(d *schema.ResourceData, meta interface{
 	log.Printf("[INFO] preparing arguments for DevSpace Controller creation")
 
 	name := d.Get("name").(string)
-	location := azure.NormalizeLocation(d.Get("location"))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	resGroupName := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 

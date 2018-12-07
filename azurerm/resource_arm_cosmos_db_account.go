@@ -139,7 +139,6 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 						"location": {
 							Type:             schema.TypeString,
 							Required:         true,
-							StateFunc:        azure.NormalizeLocation,
 							DiffSuppressFunc: azureRMSuppressLocationDiff,
 						},
 
@@ -298,7 +297,7 @@ func resourceArmCosmosDBAccountCreate(d *schema.ResourceData, meta interface{}) 
 	log.Printf("[INFO] preparing arguments for AzureRM Cosmos DB Account creation.")
 
 	name := d.Get("name").(string)
-	location := azure.NormalizeLocation(d.Get("location"))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 	kind := d.Get("kind").(string)
@@ -736,7 +735,7 @@ func expandAzureRmCosmosDBAccountGeoLocations(databaseName string, d *schema.Res
 		data := l.(map[string]interface{})
 
 		location := documentdb.Location{
-			LocationName:     utils.String(azure.NormalizeLocation(data["location"])),
+			LocationName:     utils.String(azure.NormalizeLocation(data["location"].(string))),
 			FailoverPriority: utils.Int32(int32(data["failover_priority"].(int))),
 		}
 
@@ -974,7 +973,7 @@ func resourceAzureRMCosmosDBAccountGeoLocationHash(v interface{}) int {
 		if v, ok := m["prefix"].(string); ok {
 			prefix = v
 		}
-		location := azure.NormalizeLocation(m["location"])
+		location := azure.NormalizeLocation(m["location"].(string))
 		priority := int32(m["failover_priority"].(int))
 
 		buf.WriteString(fmt.Sprintf("%s-%s-%d", prefix, location, priority))

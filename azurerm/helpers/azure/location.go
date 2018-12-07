@@ -13,7 +13,6 @@ func SchemaLocation() *schema.Schema {
 		Type:             schema.TypeString,
 		Required:         true,
 		ForceNew:         true,
-		StateFunc:        NormalizeLocation,
 		DiffSuppressFunc: SuppressLocationDiff,
 	}
 }
@@ -30,7 +29,6 @@ func SchemaLocationDeprecated() *schema.Schema {
 		Type:             schema.TypeString,
 		ForceNew:         true,
 		Optional:         true,
-		StateFunc:        NormalizeLocation,
 		DiffSuppressFunc: SuppressLocationDiff,
 		Deprecated:       "location is no longer used",
 	}
@@ -49,9 +47,8 @@ func FlattenAndSetLocation(d *schema.ResourceData, location *string) error {
 // names (e.g. "West US") to the values used and returned by the Azure API (e.g. "westus").
 // In state we track the API internal version as it is easier to go from the human form
 // to the canonical form than the other way around.
-func NormalizeLocation(location interface{}) string {
-	input := location.(string)
-	return strings.Replace(strings.ToLower(input), " ", "", -1)
+func NormalizeLocation(location string) string {
+	return strings.Replace(strings.ToLower(location), " ", "", -1)
 }
 
 func SuppressLocationDiff(k, old, new string, _ *schema.ResourceData) bool {

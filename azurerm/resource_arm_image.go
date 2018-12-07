@@ -164,7 +164,7 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 	log.Printf("[INFO] preparing arguments for AzureRM Image creation.")
 
 	name := d.Get("name").(string)
-	location := azure.NormalizeLocation(d.Get("location"))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	expandedTags := expandTags(d.Get("tags").(map[string]interface{}))
 

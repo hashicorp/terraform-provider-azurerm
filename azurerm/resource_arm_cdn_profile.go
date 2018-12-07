@@ -60,7 +60,7 @@ func resourceArmCdnProfileCreate(d *schema.ResourceData, meta interface{}) error
 	log.Printf("[INFO] preparing arguments for Azure ARM CDN Profile creation.")
 
 	name := d.Get("name").(string)
-	location := azure.NormalizeLocation(d.Get("location"))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	sku := d.Get("sku").(string)
 	tags := d.Get("tags").(map[string]interface{})

@@ -42,7 +42,7 @@ func dataSourceArmPlatformImageRead(d *schema.ResourceData, meta interface{}) er
 	client := meta.(*ArmClient).vmImageClient
 	ctx := meta.(*ArmClient).StopContext
 
-	location := azure.NormalizeLocation(d.Get("location"))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	publisher := d.Get("publisher").(string)
 	offer := d.Get("offer").(string)
 	sku := d.Get("sku").(string)

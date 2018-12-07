@@ -84,7 +84,7 @@ func resourceArmVirtualMachineExtensionsCreate(d *schema.ResourceData, meta inte
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	location := azure.NormalizeLocation(d.Get("location"))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	vmName := d.Get("virtual_machine_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	publisher := d.Get("publisher").(string)

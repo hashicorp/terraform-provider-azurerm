@@ -135,7 +135,7 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
-	location := azure.NormalizeLocation(d.Get("location"))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	sku := d.Get("sku").(string)
 	adminUserEnabled := d.Get("admin_enabled").(bool)
 	tags := d.Get("tags").(map[string]interface{})
@@ -296,14 +296,14 @@ func applyGeoReplicationLocations(meta interface{}, resourceGroup string, name s
 
 	// loop on the new location values
 	for _, nl := range newGeoReplicationLocations {
-		newLocation := azure.NormalizeLocation(nl)
+		newLocation := azure.NormalizeLocation(nl.(string))
 		createLocations[newLocation] = true // the location needs to be created
 	}
 
 	// loop on the old location values
 	for _, ol := range oldGeoReplicationLocations {
 		// oldLocation was created from a previous deployment
-		oldLocation := azure.NormalizeLocation(ol)
+		oldLocation := azure.NormalizeLocation(ol.(string))
 
 		// if the list of locations to create already contains the location
 		if _, ok := createLocations[oldLocation]; ok {
@@ -336,7 +336,7 @@ func applyGeoReplicationLocations(meta interface{}, resourceGroup string, name s
 
 	// loop on the list of previously deployed locations
 	for _, ol := range oldGeoReplicationLocations {
-		oldLocation := azure.NormalizeLocation(ol)
+		oldLocation := azure.NormalizeLocation(ol.(string))
 		// if the old location is still in the list of locations, then continue
 		if _, ok := createLocations[oldLocation]; ok {
 			continue

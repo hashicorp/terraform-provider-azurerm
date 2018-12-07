@@ -131,7 +131,7 @@ func resourceArmNotificationHubCreateUpdate(d *schema.ResourceData, meta interfa
 	name := d.Get("name").(string)
 	namespaceName := d.Get("namespace_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := azure.NormalizeLocation(d.Get("location"))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 
 	apnsRaw := d.Get("apns_credential").([]interface{})
 	apnsCredential, err := expandNotificationHubsAPNSCredentials(apnsRaw)

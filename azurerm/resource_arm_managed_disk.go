@@ -120,7 +120,7 @@ func resourceArmManagedDiskCreate(d *schema.ResourceData, meta interface{}) erro
 	log.Printf("[INFO] preparing arguments for Azure ARM Managed Disk creation.")
 
 	name := d.Get("name").(string)
-	location := azure.NormalizeLocation(d.Get("location"))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	storageAccountType := d.Get("storage_account_type").(string)
 	osType := d.Get("os_type").(string)

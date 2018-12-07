@@ -85,7 +85,7 @@ func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta inter
 	log.Printf("[INFO] preparing arguments for Automation Account create/update.")
 
 	name := d.Get("name").(string)
-	location := azure.NormalizeLocation(d.Get("location"))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 	sku := expandAutomationAccountSku(d)

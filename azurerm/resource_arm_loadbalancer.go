@@ -143,7 +143,7 @@ func resourceArmLoadBalancerCreate(d *schema.ResourceData, meta interface{}) err
 	log.Printf("[INFO] preparing arguments for Azure ARM Load Balancer creation.")
 
 	name := d.Get("name").(string)
-	location := azure.NormalizeLocation(d.Get("location"))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	sku := network.LoadBalancerSku{
 		Name: network.LoadBalancerSkuName(d.Get("sku").(string)),

@@ -58,7 +58,7 @@ func resourceArmSharedImageGalleryCreateUpdate(d *schema.ResourceData, meta inte
 	// TODO: support for Timeouts/Requiring Import
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := azure.NormalizeLocation(d.Get("location"))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	description := d.Get("description").(string)
 	tags := d.Get("tags").(map[string]interface{})
 

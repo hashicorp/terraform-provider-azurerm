@@ -46,8 +46,8 @@ func resourceArmMonitorLogProfile() *schema.Resource {
 				MinItems: 1,
 				Required: true,
 				Elem: &schema.Schema{
-					Type:             schema.TypeString,
-					StateFunc:        azure.NormalizeLocation,
+					Type: schema.TypeString,
+
 					DiffSuppressFunc: azureRMSuppressLocationDiff,
 				},
 				Set: schema.HashString,

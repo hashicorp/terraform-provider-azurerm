@@ -89,7 +89,7 @@ func resourceArmDevTestLabCreateUpdate(d *schema.ResourceData, meta interface{})
 	log.Printf("[INFO] preparing arguments for DevTest Lab creation")
 
 	name := d.Get("name").(string)
-	location := azure.NormalizeLocation(d.Get("location"))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 	storageType := d.Get("storage_type").(string)
 	tags := d.Get("tags").(map[string]interface{})

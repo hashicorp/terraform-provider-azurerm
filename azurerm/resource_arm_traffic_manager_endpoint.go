@@ -8,7 +8,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -87,10 +86,10 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 
 			// when targeting an Azure resource the location of that resource will be set on the endpoint
 			"endpoint_location": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				Computed:         true,
-				StateFunc:        azure.NormalizeLocation,
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+
 				DiffSuppressFunc: azureRMSuppressLocationDiff,
 			},
 
@@ -131,8 +130,7 @@ func resourceArmTrafficManagerEndpointCreate(d *schema.ResourceData, meta interf
 	}
 
 	ctx := meta.(*ArmClient).StopContext
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, profileName, endpointType, name, params)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, profileName, endpointType, name, params); err != nil {
 		return err
 	}
 

@@ -152,7 +152,7 @@ func resourceArmAppServiceSlotCreate(d *schema.ResourceData, meta interface{}) e
 
 	slot := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	location := azure.NormalizeLocation(d.Get("location"))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	appServiceName := d.Get("app_service_name").(string)
 	appServicePlanId := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
@@ -227,7 +227,7 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 
 	resGroup := id.ResourceGroup
 	appServiceName := id.Path["sites"]
-	location := azure.NormalizeLocation(d.Get("location"))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	appServicePlanId := d.Get("app_service_plan_id").(string)
 	slot := id.Path["slots"]
 	siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))

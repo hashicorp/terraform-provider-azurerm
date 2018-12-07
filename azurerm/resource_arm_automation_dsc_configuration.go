@@ -81,7 +81,7 @@ func resourceArmAutomationDscConfigurationCreateUpdate(d *schema.ResourceData, m
 	resGroup := d.Get("resource_group_name").(string)
 	accName := d.Get("automation_account_name").(string)
 	contentEmbedded := d.Get("content_embedded").(string)
-	location := azure.NormalizeLocation(d.Get("location"))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	logVerbose := d.Get("log_verbose").(bool)
 	description := d.Get("description").(string)
 

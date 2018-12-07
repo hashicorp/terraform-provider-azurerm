@@ -71,7 +71,7 @@ func resourceArmDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta int
 	log.Printf("[INFO] preparing arguments for Azure ARM Databricks Workspace creation.")
 
 	name := d.Get("name").(string)
-	location := azure.NormalizeLocation(d.Get("location"))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 	skuName := d.Get("sku").(string)
 	managedResourceGroupName := d.Get("managed_resource_group_name").(string)

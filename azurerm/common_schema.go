@@ -22,7 +22,7 @@ func deprecatedLocationSchema() *schema.Schema {
 }
 
 func azureRMNormalizeLocation(location interface{}) string {
-	return azure.NormalizeLocation(location)
+	return azure.NormalizeLocation(location.(string))
 }
 
 func azureRMSuppressLocationDiff(k, old, new string, d *schema.ResourceData) bool {

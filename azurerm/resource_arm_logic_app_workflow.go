@@ -71,7 +71,7 @@ func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{})
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := azure.NormalizeLocation(d.Get("location"))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	parameters := expandLogicAppWorkflowParameters(d.Get("parameters").(map[string]interface{}))
 
 	workflowSchema := d.Get("workflow_schema").(string)
@@ -140,7 +140,7 @@ func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("[ERROR] Error parsing Logic App Workflow - `WorkflowProperties` is nil")
 	}
 
-	location := azure.NormalizeLocation(d.Get("location"))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	parameters := expandLogicAppWorkflowParameters(d.Get("parameters").(map[string]interface{}))
 	tags := d.Get("tags").(map[string]interface{})
 

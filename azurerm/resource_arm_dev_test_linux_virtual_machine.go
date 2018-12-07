@@ -145,7 +145,7 @@ func resourceArmDevTestLinuxVirtualMachineCreateUpdate(d *schema.ResourceData, m
 	disallowPublicIPAddress := d.Get("disallow_public_ip_address").(bool)
 	labSubnetName := d.Get("lab_subnet_name").(string)
 	labVirtualNetworkId := d.Get("lab_virtual_network_id").(string)
-	location := azure.NormalizeLocation(d.Get("location"))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	notes := d.Get("notes").(string)
 	password := d.Get("password").(string)
 	sshKey := d.Get("ssh_key").(string)

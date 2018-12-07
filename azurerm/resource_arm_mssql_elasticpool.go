@@ -262,7 +262,7 @@ func resourceArmMsSqlElasticPoolCreate(d *schema.ResourceData, meta interface{})
 
 	elasticPoolName := d.Get("name").(string)
 	serverName := d.Get("server_name").(string)
-	location := azure.NormalizeLocation(d.Get("location"))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	sku := expandAzureRmMsSqlElasticPoolSku(d)
 	tags := d.Get("tags").(map[string]interface{})
