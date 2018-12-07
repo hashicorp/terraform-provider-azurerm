@@ -46,12 +46,12 @@ func TestNoEmptyStrings(t *testing.T) {
 		{
 			Value:    "  1",
 			TestName: "DoubleSpaceOne",
-			ErrCount: 1,
+			ErrCount: 0,
 		},
 		{
 			Value:    "1 ",
 			TestName: "OneSpace",
-			ErrCount: 1,
+			ErrCount: 0,
 		},
 	}
 
