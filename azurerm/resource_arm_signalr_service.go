@@ -45,8 +45,8 @@ func resourceArmSignalRService() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"Free",
-								"Standard",
+								"Free_F1",
+								"Standard_S1",
 							}, false),
 						},
 
@@ -192,16 +192,9 @@ func resourceArmSignalRServiceDelete(d *schema.ResourceData, meta interface{}) e
 
 func expandSignalRServiceSku(input []interface{}) *signalr.ResourceSku {
 	v := input[0].(map[string]interface{})
-	name := v["name"].(string)
-	if name == "Free" {
-		name = "Free_F1"
-	} else if name == "Standard" {
-		name = "Standard_S1"
-	}
-	capacity := v["capacity"].(int)
 	return &signalr.ResourceSku{
-		Name:     utils.String(name),
-		Capacity: utils.Int32(int32(capacity)),
+		Name:     utils.String(v["name"].(string)),
+		Capacity: utils.Int32(int32(v["capacity"].(int))),
 	}
 }
 
@@ -209,11 +202,7 @@ func flattenSignalRServiceSku(input *signalr.ResourceSku) []interface{} {
 	result := make(map[string]interface{})
 	if input != nil {
 		if input.Name != nil {
-			if name := *input.Name; name == "Free_F1" {
-				result["name"] = "Free"
-			} else if name == "Standard_S1" {
-				result["name"] = "Standard"
-			}
+			result["name"] = *input.Name
 		}
 		if input.Capacity != nil {
 			result["capacity"] = *input.Capacity

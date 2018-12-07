@@ -24,7 +24,7 @@ func TestAccAzureRMSignalRService_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Free"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Free_F1"),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
@@ -55,7 +55,7 @@ func TestAccAzureRMSignalRService_standard(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard_S1"),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
@@ -86,7 +86,7 @@ func TestAccAzureRMSignalRService_standardWithCap2(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard_S1"),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "2"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
@@ -119,7 +119,7 @@ func TestAccAzureRMSignalRService_skuUpdate(t *testing.T) {
 				Config: freeConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Free"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Free_F1"),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
@@ -131,7 +131,7 @@ func TestAccAzureRMSignalRService_skuUpdate(t *testing.T) {
 				Config: standardConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard_S1"),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
@@ -143,7 +143,7 @@ func TestAccAzureRMSignalRService_skuUpdate(t *testing.T) {
 				Config: freeConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Free"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Free_F1"),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
@@ -171,7 +171,7 @@ func TestAccAzureRMSignalRService_capacityUpdate(t *testing.T) {
 				Config: standardConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard_S1"),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
@@ -183,7 +183,7 @@ func TestAccAzureRMSignalRService_capacityUpdate(t *testing.T) {
 				Config: standardCap5Config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard_S1"),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "5"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
@@ -195,7 +195,7 @@ func TestAccAzureRMSignalRService_capacityUpdate(t *testing.T) {
 				Config: standardConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard_S1"),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
@@ -223,7 +223,7 @@ func TestAccAzureRMSignalRService_skuAndCapacityUpdate(t *testing.T) {
 				Config: freeConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Free"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Free_F1"),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
@@ -235,7 +235,7 @@ func TestAccAzureRMSignalRService_skuAndCapacityUpdate(t *testing.T) {
 				Config: standardConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard_S1"),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "2"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
@@ -247,7 +247,7 @@ func TestAccAzureRMSignalRService_skuAndCapacityUpdate(t *testing.T) {
 				Config: freeConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Free"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Free_F1"),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
@@ -271,7 +271,7 @@ resource "azurerm_signalr_service" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku {
-    name     = "Free"
+    name     = "Free_F1"
     capacity = 1
   }
 }
@@ -290,7 +290,7 @@ resource "azurerm_signalr_service" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku {
-    name     = "Standard"
+    name     = "Standard_S1"
     capacity = %d
   }
 }
