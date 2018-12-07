@@ -57,7 +57,7 @@ func TestNoEmptyStrings(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.TestName, func(t *testing.T) {
-			_, errors := NoEmptyStrings()(tc.Value, tc.TestName)
+			_, errors := NoEmptyStrings(tc.Value, tc.TestName)
 
 			if len(errors) < tc.ErrCount {
 				t.Fatalf("Expected NoEmptyStrings to have %d not %d errors for %q", tc.ErrCount, len(errors), tc.TestName)
