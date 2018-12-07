@@ -53,7 +53,7 @@ func resourceArmRouteTable() *schema.Resource {
 						"address_prefix": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings(),
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"next_hop_type": {
