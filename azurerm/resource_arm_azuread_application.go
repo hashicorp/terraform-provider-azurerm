@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"

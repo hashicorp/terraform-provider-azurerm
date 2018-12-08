@@ -7,9 +7,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )

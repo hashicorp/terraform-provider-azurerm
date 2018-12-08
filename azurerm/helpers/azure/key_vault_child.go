@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
 
 type KeyVaultChildID struct {

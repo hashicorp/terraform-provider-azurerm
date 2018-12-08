@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -828,12 +829,12 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 	}
 
 	properties := compute.VirtualMachineScaleSet{
-		Name:                             &name,
-		Location:                         &location,
-		Tags:                             expandTags(tags),
-		Sku:                              sku,
+		Name:     &name,
+		Location: &location,
+		Tags:     expandTags(tags),
+		Sku:      sku,
 		VirtualMachineScaleSetProperties: &scaleSetProps,
-		Zones:                            zones,
+		Zones: zones,
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
