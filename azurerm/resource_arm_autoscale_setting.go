@@ -30,7 +30,7 @@ func resourceArmAutoScaleSetting() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
@@ -59,7 +59,7 @@ func resourceArmAutoScaleSetting() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"capacity": {
 							Type:     schema.TypeList,
@@ -100,7 +100,7 @@ func resourceArmAutoScaleSetting() *schema.Resource {
 												"metric_name": {
 													Type:         schema.TypeString,
 													Required:     true,
-													ValidateFunc: validation.NoZeroValues,
+													ValidateFunc: validate.NoEmptyStrings,
 												},
 												"metric_resource_id": {
 													Type:         schema.TypeString,
@@ -320,7 +320,7 @@ func resourceArmAutoScaleSetting() *schema.Resource {
 									"service_uri": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validation.NoZeroValues,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 									"properties": {
 										Type:     schema.TypeMap,

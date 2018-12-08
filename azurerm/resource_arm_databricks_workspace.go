@@ -51,7 +51,7 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				Computed:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"managed_resource_group_id": {

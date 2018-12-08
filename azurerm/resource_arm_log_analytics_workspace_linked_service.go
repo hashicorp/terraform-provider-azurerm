@@ -36,7 +36,7 @@ func resourceArmLogAnalyticsWorkspaceLinkedService() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				Default:      "automation",
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"linked_service_properties": {

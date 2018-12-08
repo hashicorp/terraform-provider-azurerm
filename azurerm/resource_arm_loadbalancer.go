@@ -58,7 +58,7 @@ func resourceArmLoadBalancer() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"subnet_id": {
@@ -99,7 +99,7 @@ func resourceArmLoadBalancer() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: validation.NoZeroValues,
+								ValidateFunc: validate.NoEmptyStrings,
 							},
 							Set: schema.HashString,
 						},
@@ -109,7 +109,7 @@ func resourceArmLoadBalancer() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: validation.NoZeroValues,
+								ValidateFunc: validate.NoEmptyStrings,
 							},
 							Set: schema.HashString,
 						},

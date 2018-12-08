@@ -32,7 +32,7 @@ func resourceArmSecurityCenterWorkspace() *schema.Resource {
 			"scope": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"workspace_id": {

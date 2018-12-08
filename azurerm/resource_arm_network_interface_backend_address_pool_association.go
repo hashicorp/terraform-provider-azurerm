@@ -33,7 +33,7 @@ func resourceArmNetworkInterfaceBackendAddressPoolAssociation() *schema.Resource
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"backend_address_pool_id": {

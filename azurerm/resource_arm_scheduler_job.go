@@ -55,7 +55,7 @@ func resourceArmSchedulerJob() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			//actions
@@ -106,7 +106,7 @@ func resourceArmSchedulerJob() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      "00:00:30",
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"count": {
@@ -286,7 +286,7 @@ func resourceArmSchedulerJobActionWebSchema(propertyName string) *schema.Resourc
 			"body": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"headers": {
@@ -308,14 +308,14 @@ func resourceArmSchedulerJobActionWebSchema(propertyName string) *schema.Resourc
 						"username": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"password": {
 							Type:         schema.TypeString,
 							Required:     true,
 							Sensitive:    true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
@@ -335,14 +335,14 @@ func resourceArmSchedulerJobActionWebSchema(propertyName string) *schema.Resourc
 							Type:         schema.TypeString,
 							Required:     true,
 							Sensitive:    true, //sensitive & shortens diff
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"password": {
 							Type:         schema.TypeString,
 							Required:     true,
 							Sensitive:    true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"thumbprint": {
@@ -376,19 +376,19 @@ func resourceArmSchedulerJobActionWebSchema(propertyName string) *schema.Resourc
 						"tenant_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"client_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"secret": {
 							Type:         schema.TypeString,
 							Required:     true,
 							Sensitive:    true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"audience": {
@@ -424,13 +424,13 @@ func resourceArmSchedulerJobActionStorageSchema() *schema.Resource {
 			"sas_token": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"message": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 		},
 	}

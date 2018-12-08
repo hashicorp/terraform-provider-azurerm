@@ -33,7 +33,7 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 				ForceNew: true,
 				// NOTE: there's no validation requirements listed for this
 				// so we're intentionally doing the minimum we can here
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"target_resource_id": {

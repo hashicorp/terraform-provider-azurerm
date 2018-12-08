@@ -45,7 +45,7 @@ func resourceArmFirewall() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"subnet_id": {
 							Type:         schema.TypeString,

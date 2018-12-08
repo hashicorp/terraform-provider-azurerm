@@ -29,7 +29,7 @@ func resourceArmMonitorLogProfile() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 			"storage_account_id": {
 				Type:         schema.TypeString,
