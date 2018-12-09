@@ -91,6 +91,14 @@
 			"versionExact": "v21.3.0"
 		},
 		{
+			"checksumSHA1": "SrSuQj2csIVYL0Iz2S5z9hDkm0o=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory",
+			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
+			"revisionTime": "2018-10-19T17:11:53Z",
+			"version": "=v21.3.0",
+			"versionExact": "v21.3.0"
+		},
+		{
 			"checksumSHA1": "9oNfXIzF5S8ninqAOSfpVf5rNEY=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account",
 			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
