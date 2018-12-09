@@ -335,8 +335,9 @@ func flattenArmDataFactoryV2Identity(identity *datafactory.FactoryIdentity) inte
 	}
 
 	result := make(map[string]interface{})
-	result["type"] = string(*identity.Type)
-
+	if identity.Type != nil {
+		result["type"] = *identity.Type
+	}
 	if identity.PrincipalID != nil {
 		result["principal_id"] = identity.PrincipalID.String()
 	}

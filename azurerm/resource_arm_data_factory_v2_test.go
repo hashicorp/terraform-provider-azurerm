@@ -108,7 +108,7 @@ func TestAccAzureRMDataFactoryV2_tagsUpdated(t *testing.T) {
 func TestAccAzureRMDataFactoryV2_identity(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMDataFactoryV2_identity(ri, testLocation())
-	match := regexp.MustCompile("^(\\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\\}{0,1})$")
+	uuidMatch := regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -121,8 +121,8 @@ func TestAccAzureRMDataFactoryV2_identity(t *testing.T) {
 					testCheckAzureRMDataFactoryV2Exists("azurerm_data_factory_v2.test"),
 					resource.TestCheckResourceAttr("azurerm_data_factory_v2.test", "identity.#", "1"),
 					resource.TestCheckResourceAttr("azurerm_data_factory_v2.test", "identity.0.type", "SystemAssigned"),
-					resource.TestMatchResourceAttr("azurerm_data_factory_v2.test", "identity.0.principal_id", match),
-					resource.TestMatchResourceAttr("azurerm_data_factory_v2.test", "identity.0.tenant_id", match),
+					resource.TestMatchResourceAttr("azurerm_data_factory_v2.test", "identity.0.principal_id", uuidMatch),
+					resource.TestMatchResourceAttr("azurerm_data_factory_v2.test", "identity.0.tenant_id", uuidMatch),
 				),
 			},
 		},

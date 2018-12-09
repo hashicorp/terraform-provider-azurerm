@@ -431,7 +431,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool) (*Arm
 	client.registerCosmosDBClients(endpoint, c.SubscriptionID, auth)
 	client.registerDatabricksClients(endpoint, c.SubscriptionID, auth)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
-	client.registerDataFactoryClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerDataFactoryClients(endpoint, c.SubscriptionID, auth)
 	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth)
 	client.registerDeviceClients(endpoint, c.SubscriptionID, auth)
 	client.registerDevSpaceClients(endpoint, c.SubscriptionID, auth)
@@ -734,7 +734,7 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	c.sqlVirtualNetworkRulesClient = sqlVNRClient
 }
 
-func (c *ArmClient) registerDataFactoryClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+func (c *ArmClient) registerDataFactoryClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	dataFactoryClient := datafactory.NewFactoriesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&dataFactoryClient.Client, auth)
 	c.dataFactoryClient = dataFactoryClient
