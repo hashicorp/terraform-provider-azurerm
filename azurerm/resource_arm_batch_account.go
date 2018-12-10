@@ -67,12 +67,15 @@ func resourceArmBatchAccountCreate(d *schema.ResourceData, meta interface{}) err
 	parameters := batch.AccountCreateParameters{
 		Location: &location,
 		AccountCreateProperties: &batch.AccountCreateProperties{
-			AutoStorage: &batch.AutoStorageBaseProperties{
-				StorageAccountID: &storageAccountId,
-			},
 			PoolAllocationMode: batch.PoolAllocationMode(poolAllocationMode),
 		},
 		Tags: expandTags(tags),
+	}
+
+	if storageAccountId != "" {
+		parameters.AccountCreateProperties.AutoStorage = &batch.AutoStorageBaseProperties{
+			StorageAccountID: &storageAccountId,
+		}
 	}
 
 	future, err := client.Create(ctx, resourceGroupName, name, parameters)
