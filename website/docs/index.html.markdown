@@ -78,7 +78,6 @@ on the issue
 
 If you have configuration questions, or general questions about using the provider, try checking out:
 
-* The [Terraform-Azure Community Slack](https://terraform-azure.slack.com/) ([request invite](https://terraform-azure.slack.com/join/shared_invite/enQtNDMzNjQ5NzcxMDc3LTJkZTJhNTg3NTE5ZTdjZjFhMThmMTVmOTg5YWJkMDU1YTMzN2YyOWJmZGM3MGI4OTQ0ODQxNTEyNjdjMDAxMjM))
 * [Terraform's community resources](https://www.terraform.io/docs/extend/community/index.html)
 * [HashiCorp support](https://support.hashicorp.com) for Terraform Enterprise customers
 
