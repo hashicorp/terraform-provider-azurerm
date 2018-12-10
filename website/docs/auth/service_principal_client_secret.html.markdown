@@ -151,7 +151,7 @@ At this point the newly created Azure Active Directory application should be vis
 
 Now that the Azure Active Directory Application exists we can create a Client Secret which can be used for authentication - to do this select **Settings** and then **Keys**. This screen displays the Passwords (Client Secrets) and Public Keys (Client Certificates) which are associated with this Azure Active Directory Application.
 
-On this screen we can generate a new Password by entering a Description and selecting an Expiry Date, and then pressing **Save**. Once the Password has been generated it'll be displayed on screen - _however it's only displayed one time_ so **be sure to copy it now** (otherwise you'll need to regenerate a new key). This newly generated Password forms the `client_secret` you'll need.
+On this screen we can generate a new Password by entering a Description and selecting an Expiry Date, and then pressing **Save**. Once the Password has been generated it will be displayed on screen - _the Password is only displayed once_ so **be sure to copy it now** (otherwise you will need to regenerate a new key). This newly generated Password is the `client_secret` you will need.
 
 ### 3. Granting the Application access to manage resources in your Azure Subscription
 

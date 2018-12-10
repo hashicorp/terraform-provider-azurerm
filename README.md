@@ -43,7 +43,7 @@ Using the provider
 ```
 # Configure the Microsoft Azure Provider
 provider "azurerm" {
-  # more information on the authentication methods supported by
+  # More information on the authentication methods supported by
   # the AzureRM Provider can be found here:
   # http://terraform.io/docs/providers/azurerm/index.html
 
@@ -90,7 +90,7 @@ In order to run the unit tests for the provider, you can run:
 $ make test
 ```
 
-Most of the tests in the provider are Acceptance Tests - which provisions real resources in Azure. It's possible to run the entire acceptance test suite by running `make testacc` - however it's likely you'll want to run a subset, which you can do using a prefix, by running:
+The majority of tests in the provider are Acceptance Tests - which provisions real resources in Azure. It's possible to run the entire acceptance test suite by running `make testacc` - however it's likely you'll want to run a subset, which you can do using a prefix, by running:
 
 ```
 make testacc TESTARGS='-run=TestAccAzureRMResourceGroup'

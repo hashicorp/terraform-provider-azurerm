@@ -54,8 +54,7 @@ resource "azurerm_virtual_network" "test" {
 
 The Azure provider's bugs and feature requests can be found in the [GitHub repo issues](https://github.com/terraform-providers/terraform-provider-azurerm/issues).
 Please avoid "me too" or "+1" comments. Instead, use a thumbs up [reaction](https://blog.github.com/2016-03-10-add-reactions-to-pull-requests-issues-and-comments/)
-on enhancement requests. Provider maintainers will often prioritize work based on the
-number of thumbs on an issue.
+on enhancement requests. Provider maintainers will often prioritize work based on the number of thumbs on an issue.
 
 Community input is appreciated on outstanding issues! We love to hear what use
 cases you have for new features, and want to provide the best possible
@@ -63,9 +62,9 @@ experience for you using the Azure provider.
 
 If you have a bug or feature request without an existing issue
 
-* and an existing resource or field is working in an unexpected way, [file a bug](https://github.com/terraform-providers/terraform-provider-azurerm/issues/new?template=bug.md).
+* if an existing resource or field is working in an unexpected way, [file a bug](https://github.com/terraform-providers/terraform-provider-azurerm/issues/new?template=bug.md).
 
-* and you'd like the provider to support a new resource or field, [file an enhancement/feature request](https://github.com/terraform-providers/terraform-provider-azurerm/issues/new?template=enhancement.md).
+* if you'd like the provider to support a new resource or field, [file an enhancement/feature request](https://github.com/terraform-providers/terraform-provider-azurerm/issues/new?template=enhancement.md).
 
 The provider maintainers will often use the assignee field on an issue to mark
 who is working on it.
