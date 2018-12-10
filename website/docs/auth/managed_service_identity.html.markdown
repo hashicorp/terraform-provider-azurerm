@@ -22,7 +22,7 @@ We recommend using either a Service Principal or Managed Service Identity when r
 
 ## What is Managed Service Identity?
 
-Certain services within Azure (for example Virtual Machines and VM Scale Sets) can be assigned an Azure Active Directory identity which can be used to access the Azure Subscription. This identity can then be assigned permissions to a Subscription, Resource Group or other resources using the Azure Identity and Access Management functionality - however by default no permissions are assigned.
+Certain services within Azure (for example Virtual Machines and Virtual Machine Scale Sets) can be assigned an Azure Active Directory identity which can be used to access the Azure Subscription. This identity can then be assigned permissions to a Subscription, Resource Group or other resources using the Azure Identity and Access Management functionality - however by default no permissions are assigned.
 
 Once a resource is configured with an identity, a local metadata service exposes credentials which can be used by applications such as Terraform.
 
