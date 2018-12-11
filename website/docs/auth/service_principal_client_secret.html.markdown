@@ -129,7 +129,7 @@ Information on how to configure the Provider block using the newly created Servi
 
 ### Creating a Service Principal in the Azure Portal
 
-There are three tasks needed to create a Service Principal via [the Azure Portal](https://portal.azure.com):
+There are three tasks necessary to create a Service Principal using [the Azure Portal](https://portal.azure.com):
 
  1. Create an Application in Azure Active Directory (which acts as a Service Principal)
  2. Generating a Client Secret for the Azure Active Directory Application (which can be used for authentication)
