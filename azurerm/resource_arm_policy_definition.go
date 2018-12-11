@@ -166,7 +166,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 10,
 	}
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Policy Definition %q to become available: %s", name, err)
 	}
 
