@@ -852,36 +852,36 @@
 			"revisionTime": "2018-07-15T04:49:06Z"
 		},
 		{
-			"checksumSHA1": "6wvg4jOPIzX4P41T0BQidyhCZuo=",
+			"checksumSHA1": "xXXC4VU7wckbYUkhk578k0Dxbuc=",
 			"path": "github.com/hashicorp/go-azure-helpers/authentication",
-			"revision": "ec113df69f49ef0d7ce828c6433022c61fa474eb",
-			"revisionTime": "2018-11-26T13:55:26Z",
-			"version": "0.2.0",
-			"versionExact": "0.2.0"
+			"revision": "df9554e6b1e9f15193593fae2fff690f7f520220",
+			"revisionTime": "2018-12-11T09:40:55Z",
+			"version": "0.3.0",
+			"versionExact": "0.3.0"
 		},
 		{
 			"checksumSHA1": "QwsnT5sLpT2jJ/1qJQRvqU8xl14=",
 			"path": "github.com/hashicorp/go-azure-helpers/resourceproviders",
-			"revision": "ec113df69f49ef0d7ce828c6433022c61fa474eb",
-			"revisionTime": "2018-11-26T13:55:26Z",
-			"version": "0.2.0",
-			"versionExact": "0.2.0"
+			"revision": "df9554e6b1e9f15193593fae2fff690f7f520220",
+			"revisionTime": "2018-12-11T09:40:55Z",
+			"version": "0.3.0",
+			"versionExact": "0.3.0"
 		},
 		{
 			"checksumSHA1": "ip//Px6kdSuCH6OKEJUSMIgI3ng=",
 			"path": "github.com/hashicorp/go-azure-helpers/response",
-			"revision": "ec113df69f49ef0d7ce828c6433022c61fa474eb",
-			"revisionTime": "2018-11-26T13:55:26Z",
-			"version": "0.2.0",
-			"versionExact": "0.2.0"
+			"revision": "df9554e6b1e9f15193593fae2fff690f7f520220",
+			"revisionTime": "2018-12-11T09:40:55Z",
+			"version": "0.3.0",
+			"versionExact": "0.3.0"
 		},
 		{
-			"checksumSHA1": "Ji4mcyJSLYqsL5LWgYWVairiOpQ=",
+			"checksumSHA1": "o819WNmGrxKtld9Sfqa7G+4ixQU=",
 			"path": "github.com/hashicorp/go-azure-helpers/storage",
-			"revision": "ec113df69f49ef0d7ce828c6433022c61fa474eb",
-			"revisionTime": "2018-11-26T13:55:26Z",
-			"version": "0.2.0",
-			"versionExact": "0.2.0"
+			"revision": "df9554e6b1e9f15193593fae2fff690f7f520220",
+			"revisionTime": "2018-12-11T09:40:55Z",
+			"version": "0.3.0",
+			"versionExact": "0.3.0"
 		},
 		{
 			"checksumSHA1": "b8F628srIitj5p7Y130xc9k0QWs=",
