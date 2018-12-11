@@ -9,6 +9,7 @@ FEATURES:
 IMPROVEMENTS:
 
 * authentication: switching to use the shared Azure authentication library [GH-2355]
+* authentication: support for authenticating using a Service Principal with a Client Certificate [GH-2471]
 * authentication: requesting a token using the audience address [GH-2381]
 * authentication: switching to request tokens from the Azure CLI [GH-2387]
 * sdk: upgrading to version `2018-05-01` of the Policy API [GH-2386]
