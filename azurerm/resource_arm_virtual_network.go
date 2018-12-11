@@ -110,7 +110,7 @@ func resourceArmVirtualNetworkCreate(d *schema.ResourceData, meta interface{}) e
 		Name:                           &name,
 		Location:                       &location,
 		VirtualNetworkPropertiesFormat: vnetProperties,
-		Tags: expandTags(tags),
+		Tags:                           expandTags(tags),
 	}
 
 	networkSecurityGroupNames := make([]string, 0)
