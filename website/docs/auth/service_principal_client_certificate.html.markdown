@@ -18,7 +18,7 @@ Terraform supports a number of different methods for authenticating to Azure:
 
 ---
 
-We recommend using either a Service Principal or Managed Service Identity when running in automation (for example on a CI Server) - and authenticating using the Azure CLI when running Terraform locally.
+We recommend using either a Service Principal or Managed Service Identity when running Terraform non-interactively (such as when running Terraform in a CI server) - and authenticating using the Azure CLI when running Terraform locally.
 
 ---
 
