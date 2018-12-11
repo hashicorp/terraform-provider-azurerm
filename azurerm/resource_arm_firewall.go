@@ -260,11 +260,11 @@ func expandArmFirewallIPConfigurations(d *schema.ResourceData) (*[]network.Azure
 
 		exist := false
 		pubID, exist := data["internal_public_ip_address_id"].(string)
-		if !exist {
+		if !exist || pubID == "" {
 			pubID, exist = data["public_ip_address_id"].(string)
 		}
 
-		if !exist {
+		if !exist || pubID == "" {
 			return nil, nil, nil, fmt.Errorf("one of `ip_configuration.0.internal_public_ip_address_id` or `ip_configuration.0.public_ip_address_id` must be set")
 		}
 
