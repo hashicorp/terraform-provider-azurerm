@@ -122,7 +122,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 				Type:       schema.TypeList,
 				Computed:   true,
 				MaxItems:   1,
-				Deprecated: "These properties herein have been move to the top level or removed",
+				Deprecated: "These properties herein have been moved to the top level or removed",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"state": {
