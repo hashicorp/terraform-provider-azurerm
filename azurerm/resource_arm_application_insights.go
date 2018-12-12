@@ -15,9 +15,9 @@ import (
 
 func resourceArmApplicationInsights() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApplicationInsightsCreateOrUpdate,
+		Create: resourceArmApplicationInsightsCreateUpdate,
 		Read:   resourceArmApplicationInsightsRead,
-		Update: resourceArmApplicationInsightsCreateOrUpdate,
+		Update: resourceArmApplicationInsightsCreateUpdate,
 		Delete: resourceArmApplicationInsightsDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -67,7 +67,7 @@ func resourceArmApplicationInsights() *schema.Resource {
 	}
 }
 
-func resourceArmApplicationInsightsCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).appInsightsClient
 	ctx := meta.(*ArmClient).StopContext
 

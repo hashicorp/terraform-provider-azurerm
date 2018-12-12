@@ -12,9 +12,9 @@ import (
 
 func resourceArmMonitorActionGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMonitorActionGroupCreateOrUpdate,
+		Create: resourceArmMonitorActionGroupCreateUpdate,
 		Read:   resourceArmMonitorActionGroupRead,
-		Update: resourceArmMonitorActionGroupCreateOrUpdate,
+		Update: resourceArmMonitorActionGroupCreateUpdate,
 		Delete: resourceArmMonitorActionGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -109,7 +109,7 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 	}
 }
 
-func resourceArmMonitorActionGroupCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMonitorActionGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).monitorActionGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 

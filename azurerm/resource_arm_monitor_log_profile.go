@@ -16,9 +16,9 @@ import (
 
 func resourceArmMonitorLogProfile() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogProfileCreateOrUpdate,
+		Create: resourceArmLogProfileCreateUpdate,
 		Read:   resourceArmLogProfileRead,
-		Update: resourceArmLogProfileCreateOrUpdate,
+		Update: resourceArmLogProfileCreateUpdate,
 		Delete: resourceArmLogProfileDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -84,7 +84,7 @@ func resourceArmMonitorLogProfile() *schema.Resource {
 	}
 }
 
-func resourceArmLogProfileCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLogProfileCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).monitorLogProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
