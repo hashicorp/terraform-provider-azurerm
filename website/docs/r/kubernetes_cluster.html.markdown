@@ -169,6 +169,8 @@ A `role_based_access_control` block supports the following:
 
 * `azure_active_directory` - (Required) An `azure_active_directory` block. Changing this forces a new resource to be created.
 
+* `enabled` - (Required) Is Role Based Access Control Enabled? Changing this forces a new resource to be created.
+
 ---
 
 A `service_principal` block supports the following:

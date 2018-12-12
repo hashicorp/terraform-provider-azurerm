@@ -24,6 +24,15 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   role_based_access_control {
     enabled = true
+    
+    azure_active_directory {
+      # NOTE: in a Production environment these should be different values
+      # but for the purposes of this example, this should be sufficient
+      client_app_id = "${var.kubernetes_client_id}"
+
+      server_app_id     = "${var.kubernetes_client_id}"
+      server_app_secret = "${var.kubernetes_client_secret}"
+    }
   }
 
   tags {

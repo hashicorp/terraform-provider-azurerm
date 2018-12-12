@@ -241,6 +241,10 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
 						"azure_active_directory": {
 							Type:     schema.TypeList,
 							Computed: true,
@@ -341,7 +345,7 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 			return fmt.Errorf("Error setting `network_profile`: %+v", err)
 		}
 
-		roleBasedAccessControl := flattenKubernetesClusterDataSourceRoleBasedAccessControl(props.AadProfile)
+		roleBasedAccessControl := flattenKubernetesClusterDataSourceRoleBasedAccessControl(props)
 		if err := d.Set("role_based_access_control", roleBasedAccessControl); err != nil {
 			return fmt.Errorf("Error setting `role_based_access_control`: %+v", err)
 		}
@@ -363,30 +367,35 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func flattenKubernetesClusterDataSourceRoleBasedAccessControl(input *containerservice.ManagedClusterAADProfile) []interface{} {
-	if input == nil {
-		return []interface{}{}
+func flattenKubernetesClusterDataSourceRoleBasedAccessControl(input *containerservice.ManagedClusterProperties) []interface{} {
+	rbacEnabled := false
+	if input.EnableRBAC != nil {
+		rbacEnabled = *input.EnableRBAC
 	}
 
-	profile := make(map[string]interface{})
+	results := make([]interface{}, 0)
+	if profile := input.AadProfile; profile != nil {
+		output := make(map[string]interface{})
 
-	if input.ClientAppID != nil {
-		profile["client_app_id"] = *input.ClientAppID
-	}
+		if profile.ClientAppID != nil {
+			output["client_app_id"] = *profile.ClientAppID
+		}
 
-	if input.ServerAppID != nil {
-		profile["server_app_id"] = *input.ServerAppID
-	}
+		if profile.ServerAppID != nil {
+			output["server_app_id"] = *profile.ServerAppID
+		}
 
-	if input.TenantID != nil {
-		profile["tenant_id"] = *input.TenantID
+		if profile.TenantID != nil {
+			output["tenant_id"] = *profile.TenantID
+		}
+
+		results = append(results, output)
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"azure_active_directory": []interface{}{
-				profile,
-			},
+			"enabled":                rbacEnabled,
+			"azure_active_directory": results,
 		},
 	}
 }

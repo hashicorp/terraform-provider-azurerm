@@ -173,6 +173,8 @@ A `role_based_access_control` block exports the following:
 
 * `azure_active_directory` - A `azure_active_directory` block as documented above.
 
+* `enabled` - Is Role Based Access Control enabled?
+
 ---
 
 A `service_principal` block supports the following:

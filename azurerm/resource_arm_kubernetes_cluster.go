@@ -314,13 +314,19 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			"role_based_access_control": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+							ForceNew: true,
+						},
 						"azure_active_directory": {
 							Type:     schema.TypeList,
-							Required: true,
+							Optional: true,
 							ForceNew: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
@@ -450,8 +456,7 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 	}
 
 	rbacRaw := d.Get("role_based_access_control").([]interface{})
-	azureADProfile := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
-	roleBasedAccessControlEnabled := azureADProfile != nil
+	rbacEnabled, azureADProfile := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
 
 	parameters := containerservice.ManagedCluster{
 		Name:     &name,
@@ -461,7 +466,7 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 			AddonProfiles:           addonProfiles,
 			AgentPoolProfiles:       &agentProfiles,
 			DNSPrefix:               utils.String(dnsPrefix),
-			EnableRBAC:              utils.Bool(roleBasedAccessControlEnabled),
+			EnableRBAC:              utils.Bool(rbacEnabled),
 			KubernetesVersion:       utils.String(kubernetesVersion),
 			LinuxProfile:            linuxProfile,
 			NetworkProfile:          networkProfile,
@@ -552,7 +557,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("Error setting `network_profile`: %+v", err)
 		}
 
-		roleBasedAccessControl := flattenKubernetesClusterRoleBasedAccessControl(props.AadProfile, d)
+		roleBasedAccessControl := flattenKubernetesClusterRoleBasedAccessControl(props, d)
 		if err := d.Set("role_based_access_control", roleBasedAccessControl); err != nil {
 			return fmt.Errorf("Error setting `role_based_access_control`: %+v", err)
 		}
@@ -914,12 +919,14 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 	return []interface{}{values}
 }
 
-func expandKubernetesClusterRoleBasedAccessControl(input []interface{}, providerTenantId string) *containerservice.ManagedClusterAADProfile {
+func expandKubernetesClusterRoleBasedAccessControl(input []interface{}, providerTenantId string) (bool, *containerservice.ManagedClusterAADProfile) {
 	if len(input) == 0 {
-		return nil
+		return false, nil
 	}
 
 	val := input[0].(map[string]interface{})
+
+	rbacEnabled := val["enabled"].(bool)
 
 	azureADsRaw := val["azure_active_directory"].([]interface{})
 	azureAdRaw := azureADsRaw[0].(map[string]interface{})
@@ -933,7 +940,7 @@ func expandKubernetesClusterRoleBasedAccessControl(input []interface{}, provider
 		tenantId = providerTenantId
 	}
 
-	return &containerservice.ManagedClusterAADProfile{
+	return rbacEnabled, &containerservice.ManagedClusterAADProfile{
 		ClientAppID:     utils.String(clientAppId),
 		ServerAppID:     utils.String(serverAppId),
 		ServerAppSecret: utils.String(serverAppSecret),
@@ -941,46 +948,51 @@ func expandKubernetesClusterRoleBasedAccessControl(input []interface{}, provider
 	}
 }
 
-func flattenKubernetesClusterRoleBasedAccessControl(input *containerservice.ManagedClusterAADProfile, d *schema.ResourceData) []interface{} {
-	if input == nil {
-		return []interface{}{}
+func flattenKubernetesClusterRoleBasedAccessControl(input *containerservice.ManagedClusterProperties, d *schema.ResourceData) []interface{} {
+	rbacEnabled := false
+	if input.EnableRBAC != nil {
+		rbacEnabled = *input.EnableRBAC
 	}
 
-	profile := make(map[string]interface{})
+	results := make([]interface{}, 0)
+	if profile := input.AadProfile; profile != nil {
+		output := make(map[string]interface{})
 
-	if input.ClientAppID != nil {
-		profile["client_app_id"] = *input.ClientAppID
-	}
+		if profile.ClientAppID != nil {
+			output["client_app_id"] = *profile.ClientAppID
+		}
 
-	if input.ServerAppID != nil {
-		profile["server_app_id"] = *input.ServerAppID
-	}
+		if profile.ServerAppID != nil {
+			output["server_app_id"] = *profile.ServerAppID
+		}
 
-	// since input.ServerAppSecret isn't returned we're pulling this out of the existing state (which won't work for Imports)
-	// role_based_access_control.0.azure_active_directory.0.server_app_secret
-	if existing, ok := d.GetOk("role_based_access_control"); ok {
-		rbacRawVals := existing.([]interface{})
-		if len(rbacRawVals) > 0 {
-			rbacRawVal := rbacRawVals[0].(map[string]interface{})
-			if azureADVals, ok := rbacRawVal["azure_active_directory"].([]interface{}); ok && len(azureADVals) > 0 {
-				azureADVal := azureADVals[0].(map[string]interface{})
-				v := azureADVal["server_app_secret"]
-				if v != nil {
-					profile["server_app_secret"] = v.(string)
+		// since input.ServerAppSecret isn't returned we're pulling this out of the existing state (which won't work for Imports)
+		// role_based_access_control.0.azure_active_directory.0.server_app_secret
+		if existing, ok := d.GetOk("role_based_access_control"); ok {
+			rbacRawVals := existing.([]interface{})
+			if len(rbacRawVals) > 0 {
+				rbacRawVal := rbacRawVals[0].(map[string]interface{})
+				if azureADVals, ok := rbacRawVal["azure_active_directory"].([]interface{}); ok && len(azureADVals) > 0 {
+					azureADVal := azureADVals[0].(map[string]interface{})
+					v := azureADVal["server_app_secret"]
+					if v != nil {
+						output["server_app_secret"] = v.(string)
+					}
 				}
 			}
 		}
-	}
 
-	if input.TenantID != nil {
-		profile["tenant_id"] = *input.TenantID
+		if profile.TenantID != nil {
+			output["tenant_id"] = *profile.TenantID
+		}
+
+		results = append(results, output)
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"azure_active_directory": []interface{}{
-				profile,
-			},
+			"enabled":                rbacEnabled,
+			"azure_active_directory": results,
 		},
 	}
 }
