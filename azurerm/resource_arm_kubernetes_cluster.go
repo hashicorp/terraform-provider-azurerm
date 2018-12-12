@@ -986,25 +986,30 @@ func expandKubernetesClusterRoleBasedAccessControl(input []interface{}, provider
 	val := input[0].(map[string]interface{})
 
 	rbacEnabled := val["enabled"].(bool)
-
 	azureADsRaw := val["azure_active_directory"].([]interface{})
-	azureAdRaw := azureADsRaw[0].(map[string]interface{})
 
-	clientAppId := azureAdRaw["client_app_id"].(string)
-	serverAppId := azureAdRaw["server_app_id"].(string)
-	serverAppSecret := azureAdRaw["server_app_secret"].(string)
-	tenantId := azureAdRaw["tenant_id"].(string)
+	var aad *containerservice.ManagedClusterAADProfile
+	if len(azureADsRaw) > 0 {
+		azureAdRaw := azureADsRaw[0].(map[string]interface{})
 
-	if tenantId == "" {
-		tenantId = providerTenantId
+		clientAppId := azureAdRaw["client_app_id"].(string)
+		serverAppId := azureAdRaw["server_app_id"].(string)
+		serverAppSecret := azureAdRaw["server_app_secret"].(string)
+		tenantId := azureAdRaw["tenant_id"].(string)
+
+		if tenantId == "" {
+			tenantId = providerTenantId
+		}
+
+		aad = &containerservice.ManagedClusterAADProfile{
+			ClientAppID:     utils.String(clientAppId),
+			ServerAppID:     utils.String(serverAppId),
+			ServerAppSecret: utils.String(serverAppSecret),
+			TenantID:        utils.String(tenantId),
+		}
 	}
 
-	return rbacEnabled, &containerservice.ManagedClusterAADProfile{
-		ClientAppID:     utils.String(clientAppId),
-		ServerAppID:     utils.String(serverAppId),
-		ServerAppSecret: utils.String(serverAppSecret),
-		TenantID:        utils.String(tenantId),
-	}
+	return rbacEnabled, aad
 }
 
 func flattenKubernetesClusterRoleBasedAccessControl(input *containerservice.ManagedClusterProperties, d *schema.ResourceData) []interface{} {
