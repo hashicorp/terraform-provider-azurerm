@@ -47,7 +47,7 @@ The following arguments are supported:
 
 A `sku` block supports the following:
 
-* `name` - (Required) Specifies which tier to use. Valid values are `Free` and `Standard`.
+* `name` - (Required) Specifies which tier to use. Valid values are `Free_F!` and `Standard_S1`.
 
 * `capacity` - (Required) Specifies the number of units associated with this SignalR service. Valid values are `1`, `2`, `5`, `10`, `20`, `50` and `100`.
 
