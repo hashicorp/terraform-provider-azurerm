@@ -19,7 +19,7 @@ data "azurerm_batch_account "test" {
   resource_group_name = "test"
 }
 
-output "login_server" {
+output "pool_allocation_mode" {
   value = "${data.azurerm_batch_account.test.pool_allocation_mode}"
 }
 ```

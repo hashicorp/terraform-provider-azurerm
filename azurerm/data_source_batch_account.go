@@ -18,7 +18,7 @@ func dataSourceArmBatchAccount() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validateAzureRMBatchAccountName,
 			},
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 			"location":            locationForDataSourceSchema(),
 			"storage_account_id": {
 				Type:     schema.TypeString,
@@ -26,7 +26,6 @@ func dataSourceArmBatchAccount() *schema.Resource {
 			},
 			"pool_allocation_mode": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 			"tags": tagsForDataSourceSchema(),
@@ -59,11 +58,12 @@ func dataSourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	if autoStorage := resp.AutoStorage; autoStorage != nil {
-		d.Set("storage_account_id", autoStorage.StorageAccountID)
+	if props := resp.AccountProperties; props != nil {
+		if autoStorage := props.AutoStorage; autoStorage != nil {
+			d.Set("storage_account_id", autoStorage.StorageAccountID)
+		}
+		d.Set("pool_allocation_mode", props.PoolAllocationMode)
 	}
-
-	d.Set("pool_allocation_mode", resp.PoolAllocationMode)
 
 	flattenAndSetTags(d, resp.Tags)
 

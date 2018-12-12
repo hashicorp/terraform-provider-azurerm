@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `pool_allocation_mode` - (Optional) Specifies the mode to use for pool allocation: BatchService (default) or UserSubscription.
+* `pool_allocation_mode` - (Optional) Specifies the mode to use for pool allocation. Possible values are `BatchService` or `UserSubscription`. Defaults to `BatchService`.
 
 * `storage_account_id` - (Optional) Specifies the storage account to use for the Batch account. If not specified, Azure Batch will manage the storage.
 
@@ -61,13 +61,3 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The Batch account ID.
-
-* `name` - The Batch account name.
-
-* `location` - The Azure Region in which this Batch account exists.
-
-* `pool_allocation_mode` - The pool allocation mode configured for this Batch account.
-
-* `storage_account_id` - The ID of the Storage Account used for this Batch account.
-
-* `tags` - A map of tags assigned to the Batch account.
