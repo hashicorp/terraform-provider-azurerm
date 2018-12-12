@@ -14,9 +14,9 @@ import (
 
 func resourceArmSignalRService() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSignalRServiceCreateOrUpdate,
+		Create: resourceArmSignalRServiceCreateUpdate,
 		Read:   resourceArmSignalRServiceRead,
-		Update: resourceArmSignalRServiceCreateOrUpdate,
+		Update: resourceArmSignalRServiceCreateUpdate,
 		Delete: resourceArmSignalRServiceDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -84,7 +84,7 @@ func resourceArmSignalRService() *schema.Resource {
 	}
 }
 
-func resourceArmSignalRServiceCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSignalRServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).signalRClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -93,7 +93,6 @@ func resourceArmSignalRServiceCreateOrUpdate(d *schema.ResourceData, meta interf
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	sku := d.Get("sku").([]interface{})
-
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
 
@@ -149,15 +148,18 @@ func resourceArmSignalRServiceRead(d *schema.ResourceData, meta interface{}) err
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
+
 	if err = d.Set("sku", flattenSignalRServiceSku(resp.Sku)); err != nil {
 		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
+
 	if properties := resp.Properties; properties != nil {
 		d.Set("hostname", properties.HostName)
 		d.Set("ip_address", properties.ExternalIP)
 		d.Set("public_port", properties.PublicPort)
 		d.Set("server_port", properties.ServerPort)
 	}
+
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil
@@ -199,14 +201,19 @@ func expandSignalRServiceSku(input []interface{}) *signalr.ResourceSku {
 }
 
 func flattenSignalRServiceSku(input *signalr.ResourceSku) []interface{} {
-	result := make(map[string]interface{})
-	if input != nil {
-		if input.Name != nil {
-			result["name"] = *input.Name
-		}
-		if input.Capacity != nil {
-			result["capacity"] = *input.Capacity
-		}
+	if input == nil {
+		return []interface{}{}
 	}
+
+	result := make(map[string]interface{})
+
+	if input.Name != nil {
+		result["name"] = *input.Name
+	}
+
+	if input.Capacity != nil {
+		result["capacity"] = *input.Capacity
+	}
+
 	return []interface{}{result}
 }
