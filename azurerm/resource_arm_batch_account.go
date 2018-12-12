@@ -30,11 +30,12 @@ func resourceArmBatchAccount() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validateAzureRMBatchAccountName,
 			},
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": resourceGroupNameSchema(),
 			"location":            locationSchema(),
 			"storage_account_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: azure.ValidateResourceIDOrEmpty,
 			},
 			"pool_allocation_mode": {
@@ -67,12 +68,15 @@ func resourceArmBatchAccountCreate(d *schema.ResourceData, meta interface{}) err
 	parameters := batch.AccountCreateParameters{
 		Location: &location,
 		AccountCreateProperties: &batch.AccountCreateProperties{
-			AutoStorage: &batch.AutoStorageBaseProperties{
-				StorageAccountID: &storageAccountId,
-			},
 			PoolAllocationMode: batch.PoolAllocationMode(poolAllocationMode),
 		},
 		Tags: expandTags(tags),
+	}
+
+	if storageAccountId != "" {
+		parameters.AccountCreateProperties.AutoStorage = &batch.AutoStorageBaseProperties{
+			StorageAccountID: &storageAccountId,
+		}
 	}
 
 	future, err := client.Create(ctx, resourceGroupName, name, parameters)
@@ -122,14 +126,16 @@ func resourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) error
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroupName)
-	d.Set("pool_allocation_mode", resp.PoolAllocationMode)
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	if resp.AutoStorage != nil {
-		d.Set("storage_acount_id", resp.AutoStorage.StorageAccountID)
+	if props := resp.AccountProperties; props != nil {
+		if autoStorage := props.AutoStorage; autoStorage != nil {
+			d.Set("storage_account_id", autoStorage.StorageAccountID)
+		}
+		d.Set("pool_allocation_mode", props.PoolAllocationMode)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -143,8 +149,12 @@ func resourceArmBatchAccountUpdate(d *schema.ResourceData, meta interface{}) err
 
 	log.Printf("[INFO] preparing arguments for Azure Batch account update.")
 
-	resourceGroupName := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
+	id, err := parseAzureResourceID(d.Id())
+	if err != nil {
+		return err
+	}
+	name := id.Path["batchAccounts"]
+	resourceGroupName := id.ResourceGroup
 
 	storageAccountId := d.Get("storage_account_id").(string)
 	tags := d.Get("tags").(map[string]interface{})
@@ -158,7 +168,7 @@ func resourceArmBatchAccountUpdate(d *schema.ResourceData, meta interface{}) err
 		Tags: expandTags(tags),
 	}
 
-	_, err := client.Update(ctx, resourceGroupName, name, parameters)
+	_, err = client.Update(ctx, resourceGroupName, name, parameters)
 	if err != nil {
 		return fmt.Errorf("Error updating Batch account %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}

@@ -73,6 +73,33 @@ func TestAccAzureRMBatchAccount_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMBatchAccount_noStorageAccount(t *testing.T) {
+	resourceName := "azurerm_batch_account.test"
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	location := testLocation()
+
+	config := testAccAzureRMBatchAccount_noStorageAccount(ri, rs, location)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMBatchAccountDestroy,
+		Steps: []resource.TestStep{
+			// Create
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMBatchAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "pool_allocation_mode", "BatchService"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.env", "test"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMBatchAccountExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -183,4 +210,24 @@ resource "azurerm_batch_account" "test" {
   }
 }
 `, rInt, location, storageSuffix, batchAccountSuffix)
+}
+
+func testAccAzureRMBatchAccount_noStorageAccount(rInt int, batchAccountSuffix string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "testaccbatch%d"
+  location = "%s"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                 = "testaccbatch%s"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = "${azurerm_resource_group.test.location}"
+  pool_allocation_mode = "BatchService"
+
+  tags {
+    env = "test"
+  }
+}
+`, rInt, location, batchAccountSuffix)
 }
