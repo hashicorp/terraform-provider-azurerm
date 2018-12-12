@@ -46,6 +46,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/management"
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/2017-08-01-preview/security"
+	"github.com/Azure/azure-sdk-for-go/services/preview/signalr/mgmt/2018-03-01-preview/signalr"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	MsSql "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
@@ -298,6 +299,9 @@ type ArmClient struct {
 	// Service Fabric
 	serviceFabricClustersClient servicefabric.ClustersClient
 
+	// SignalR
+	signalRClient signalr.Client
+
 	// Storage
 	storageServiceClient storage.AccountsClient
 	storageUsageClient   storage.UsageClient
@@ -451,6 +455,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool) (*Arm
 	client.registerServiceBusClients(endpoint, c.SubscriptionID, auth)
 	client.registerServiceFabricClients(endpoint, c.SubscriptionID, auth)
 	client.registerSchedulerClients(endpoint, c.SubscriptionID, auth)
+	client.registerSignalRClients(endpoint, c.SubscriptionID, auth)
 	client.registerStorageClients(endpoint, c.SubscriptionID, auth)
 	client.registerTrafficManagerClients(endpoint, c.SubscriptionID, auth)
 	client.registerWebClients(endpoint, c.SubscriptionID, auth)
@@ -1097,6 +1102,12 @@ func (c *ArmClient) registerServiceFabricClients(endpoint, subscriptionId string
 	clustersClient := servicefabric.NewClustersClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&clustersClient.Client, auth)
 	c.serviceFabricClustersClient = clustersClient
+}
+
+func (c *ArmClient) registerSignalRClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	sc := signalr.NewClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&sc.Client, auth)
+	c.signalRClient = sc
 }
 
 func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
