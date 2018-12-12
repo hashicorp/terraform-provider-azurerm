@@ -94,6 +94,8 @@ func TestAccAzureRMKubernetesCluster_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.host"),
 					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.username"),
 					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.password"),
+					resource.TestCheckResourceAttr(resourceName, "kube_admin_config.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "kube_admin_config_raw", ""),
 					resource.TestCheckResourceAttrSet(resourceName, "agent_pool_profile.0.max_pods"),
 				),
 			},
@@ -125,6 +127,8 @@ func TestAccAzureRMKubernetesCluster_roleBasedAccessControl(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "role_based_access_control.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "role_based_access_control.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "role_based_access_control.0.azure_active_directory.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "kube_admin_config.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "kube_admin_config_raw", ""),
 				),
 			},
 			{
@@ -160,6 +164,8 @@ func TestAccAzureRMKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "role_based_access_control.0.azure_active_directory.0.server_app_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "role_based_access_control.0.azure_active_directory.0.server_app_secret"),
 					resource.TestCheckResourceAttrSet(resourceName, "role_based_access_control.0.azure_active_directory.0.tenant_id"),
+					resource.TestCheckResourceAttr(resourceName, "kube_admin_config.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_admin_config_raw"),
 				),
 			},
 			{

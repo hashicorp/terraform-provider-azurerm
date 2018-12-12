@@ -131,6 +131,47 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"kube_admin_config": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"host": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"username": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"password": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"client_certificate": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"client_key": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"cluster_ca_certificate": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"kube_admin_config_raw": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
 			"kube_config": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -290,14 +331,13 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 }
 
 func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) error {
-	kubernetesClustersClient := meta.(*ArmClient).kubernetesClustersClient
-	client := meta.(*ArmClient)
+	client := meta.(*ArmClient).kubernetesClustersClient
+	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	ctx := client.StopContext
-	resp, err := kubernetesClustersClient.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Managed Kubernetes Cluster %q was not found in Resource Group %q", name, resourceGroup)
@@ -306,7 +346,7 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	profile, err := kubernetesClustersClient.GetAccessProfile(ctx, resourceGroup, name, "clusterUser")
+	profile, err := client.GetAccessProfile(ctx, resourceGroup, name, "clusterUser")
 	if err != nil {
 		return fmt.Errorf("Error retrieving Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -353,6 +393,23 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 		servicePrincipal := flattenKubernetesClusterDataSourceServicePrincipalProfile(props.ServicePrincipalProfile)
 		if err := d.Set("service_principal", servicePrincipal); err != nil {
 			return fmt.Errorf("Error setting `service_principal`: %+v", err)
+		}
+
+		// adminProfile is only available for RBAC enabled clusters with AAD
+		if props.AadProfile != nil {
+			adminProfile, err := client.GetAccessProfile(ctx, resourceGroup, name, "clusterAdmin")
+			if err != nil {
+				return fmt.Errorf("Error retrieving Admin Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+
+			adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterAccessProfile(adminProfile)
+			d.Set("kube_admin_config_raw", adminKubeConfigRaw)
+			if err := d.Set("kube_admin_config", adminKubeConfig); err != nil {
+				return fmt.Errorf("Error setting `kube_admin_config`: %+v", err)
+			}
+		} else {
+			d.Set("kube_admin_config_raw", "")
+			d.Set("kube_admin_config", []interface{}{})
 		}
 	}
 
