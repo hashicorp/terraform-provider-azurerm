@@ -14,7 +14,7 @@ import (
 
 func resourceArmMariaDbDatabase() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMariaDbDatabaseCreateOrUpdate,
+		Create: resourceArmMariaDbDatabaseCreateUpdate,
 		Read:   resourceArmMariaDbDatabaseRead,
 		Delete: resourceArmMariaDbDatabaseDelete,
 		Importer: &schema.ResourceImporter{
@@ -64,7 +64,7 @@ func resourceArmMariaDbDatabase() *schema.Resource {
 	}
 }
 
-func resourceArmMariaDbDatabaseCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMariaDbDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).mariadbDatabasesClient
 	ctx := meta.(*ArmClient).StopContext
 

@@ -171,7 +171,7 @@ func resourceArmSqlDatabase() *schema.Resource {
 				Optional:         true,
 				Computed:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     validation.NoZeroValues,
+				ValidateFunc:     validate.NoEmptyStrings,
 				// TODO: add validation once the Enum's complete
 				// https://github.com/Azure/azure-rest-api-specs/issues/1609
 			},
@@ -267,13 +267,13 @@ func resourceArmSqlDatabase() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Sensitive:    true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"storage_endpoint": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"use_server_default": {

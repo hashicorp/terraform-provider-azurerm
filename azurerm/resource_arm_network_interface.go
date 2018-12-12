@@ -66,7 +66,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"subnet_id": {
@@ -160,7 +160,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validation.NoZeroValues,
+					ValidateFunc: validate.NoEmptyStrings,
 				},
 				Set: schema.HashString,
 			},
@@ -169,7 +169,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"applied_dns_servers": {
@@ -178,7 +178,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validation.NoZeroValues,
+					ValidateFunc: validate.NoEmptyStrings,
 				},
 				Set: schema.HashString,
 			},

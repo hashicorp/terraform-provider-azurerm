@@ -12,14 +12,15 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmAutoScaleSetting() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAutoScaleSettingCreateOrUpdate,
+		Create: resourceArmAutoScaleSettingCreateUpdate,
 		Read:   resourceArmAutoScaleSettingRead,
-		Update: resourceArmAutoScaleSettingCreateOrUpdate,
+		Update: resourceArmAutoScaleSettingCreateUpdate,
 		Delete: resourceArmAutoScaleSettingDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -30,7 +31,7 @@ func resourceArmAutoScaleSetting() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
@@ -59,7 +60,7 @@ func resourceArmAutoScaleSetting() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"capacity": {
 							Type:     schema.TypeList,
@@ -100,7 +101,7 @@ func resourceArmAutoScaleSetting() *schema.Resource {
 												"metric_name": {
 													Type:         schema.TypeString,
 													Required:     true,
-													ValidateFunc: validation.NoZeroValues,
+													ValidateFunc: validate.NoEmptyStrings,
 												},
 												"metric_resource_id": {
 													Type:         schema.TypeString,
@@ -320,7 +321,7 @@ func resourceArmAutoScaleSetting() *schema.Resource {
 									"service_uri": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validation.NoZeroValues,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 									"properties": {
 										Type:     schema.TypeMap,
@@ -338,7 +339,7 @@ func resourceArmAutoScaleSetting() *schema.Resource {
 	}
 }
 
-func resourceArmAutoScaleSettingCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).autoscaleSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 

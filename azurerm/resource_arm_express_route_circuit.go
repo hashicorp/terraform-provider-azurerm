@@ -14,9 +14,9 @@ var expressRouteCircuitResourceName = "azurerm_express_route_circuit"
 
 func resourceArmExpressRouteCircuit() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmExpressRouteCircuitCreateOrUpdate,
+		Create: resourceArmExpressRouteCircuitCreateUpdate,
 		Read:   resourceArmExpressRouteCircuitRead,
-		Update: resourceArmExpressRouteCircuitCreateOrUpdate,
+		Update: resourceArmExpressRouteCircuitCreateUpdate,
 		Delete: resourceArmExpressRouteCircuitDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -103,7 +103,7 @@ func resourceArmExpressRouteCircuit() *schema.Resource {
 	}
 }
 
-func resourceArmExpressRouteCircuitCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).expressRouteCircuitClient
 	ctx := meta.(*ArmClient).StopContext
 

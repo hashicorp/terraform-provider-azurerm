@@ -30,7 +30,7 @@ func resourceArmLoadBalancerNatPool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"location": deprecatedLocationSchema(),
@@ -77,7 +77,7 @@ func resourceArmLoadBalancerNatPool() *schema.Resource {
 			"frontend_ip_configuration_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"frontend_ip_configuration_id": {

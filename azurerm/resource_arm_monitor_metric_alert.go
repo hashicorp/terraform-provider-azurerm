@@ -11,14 +11,15 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmMonitorMetricAlert() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMonitorMetricAlertCreateOrUpdate,
+		Create: resourceArmMonitorMetricAlertCreateUpdate,
 		Read:   resourceArmMonitorMetricAlertRead,
-		Update: resourceArmMonitorMetricAlertCreateOrUpdate,
+		Update: resourceArmMonitorMetricAlertCreateUpdate,
 		Delete: resourceArmMonitorMetricAlertDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -30,7 +31,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
@@ -59,12 +60,12 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 						"metric_namespace": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"metric_name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"aggregation": {
 							Type:     schema.TypeString,
@@ -100,7 +101,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 									"name": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validation.NoZeroValues,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 									"operator": {
 										Type:     schema.TypeString,
@@ -205,7 +206,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 	}
 }
 
-func resourceArmMonitorMetricAlertCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).monitorMetricAlertsClient
 	ctx := meta.(*ArmClient).StopContext
 

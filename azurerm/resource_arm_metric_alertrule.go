@@ -14,9 +14,9 @@ import (
 
 func resourceArmMetricAlertRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMetricAlertRuleCreateOrUpdate,
+		Create: resourceArmMetricAlertRuleCreateUpdate,
 		Read:   resourceArmMetricAlertRuleRead,
-		Update: resourceArmMetricAlertRuleCreateOrUpdate,
+		Update: resourceArmMetricAlertRuleCreateUpdate,
 		Delete: resourceArmMetricAlertRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -150,7 +150,7 @@ func resourceArmMetricAlertRule() *schema.Resource {
 	}
 }
 
-func resourceArmMetricAlertRuleCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMetricAlertRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).monitorAlertRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
