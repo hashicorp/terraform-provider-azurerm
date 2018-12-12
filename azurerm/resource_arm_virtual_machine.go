@@ -836,8 +836,7 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 
@@ -958,8 +957,7 @@ func resourceArmVirtualMachineDeleteManagedDisk(managedDiskID string, meta inter
 		return fmt.Errorf("Error deleting Managed Disk (%s %s) %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error deleting Managed Disk (%s %s) %+v", name, resGroup, err)
 	}
 

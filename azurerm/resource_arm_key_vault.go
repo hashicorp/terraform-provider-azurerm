@@ -225,8 +225,7 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	azureRMLockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
 	defer azureRMUnlockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
 
-	_, err = client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
 		return fmt.Errorf("Error updating Key Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 

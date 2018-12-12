@@ -141,8 +141,7 @@ func resourceArmServiceBusSubscriptionCreate(d *schema.ResourceData, meta interf
 		parameters.DefaultMessageTimeToLive = &defaultMessageTtl
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, topicName, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, topicName, name, parameters); err != nil {
 		return err
 	}
 

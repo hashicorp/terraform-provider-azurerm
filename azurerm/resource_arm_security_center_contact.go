@@ -79,8 +79,8 @@ func resourceArmSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta i
 	}
 
 	if d.IsNewResource() {
-		_, err := client.Create(ctx, name, contact)
-		if err != nil {
+
+		if _, err := client.Create(ctx, name, contact); err != nil {
 			return fmt.Errorf("Error creating Security Center Contact: %+v", err)
 		}
 
@@ -94,8 +94,7 @@ func resourceArmSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta i
 
 		d.SetId(*resp.ID)
 	} else {
-		_, err := client.Update(ctx, name, contact)
-		if err != nil {
+		if _, err := client.Update(ctx, name, contact); err != nil {
 			return fmt.Errorf("Error updating Security Center Contact: %+v", err)
 		}
 	}

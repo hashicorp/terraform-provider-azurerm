@@ -344,8 +344,7 @@ func testCheckAzureRMFirewallNetworkRuleCollectionDisappears(resourceName string
 			return fmt.Errorf("Error removing Network Rule Collection from Firewall: %+v", err)
 		}
 
-		err = future.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("Error waiting for the removal of Network Rule Collection from Firewall: %+v", err)
 		}
 

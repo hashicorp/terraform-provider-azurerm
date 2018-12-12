@@ -107,8 +107,7 @@ func resourceArmDevTestLabCreateUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error creating/updating DevTest Lab %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for creation/update of DevTest Lab %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -198,8 +197,7 @@ func resourceArmDevTestLabDelete(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error deleting DevTest Lab %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for the deletion of DevTest Lab %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 

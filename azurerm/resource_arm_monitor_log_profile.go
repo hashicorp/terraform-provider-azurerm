@@ -259,8 +259,7 @@ func retryLogProfilesClientGet(name string, meta interface{}) func() *resource.R
 		client := meta.(*ArmClient).monitorLogProfilesClient
 		ctx := meta.(*ArmClient).StopContext
 
-		_, err := client.Get(ctx, name)
-		if err != nil {
+		if _, err := client.Get(ctx, name); err != nil {
 			return resource.RetryableError(err)
 		}
 

@@ -13,25 +13,16 @@ Manage a ServiceBus Namespace.
 ## Example Usage
 
 ```hcl
-variable "location" {
-  description = "Azure datacenter to deploy to."
-  default     = "West US"
-}
-
-variable "servicebus_name" {
-  description = "Input your unique Azure service bus name"
-}
-
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "terraform-servicebus"
-  location = "${var.location}"
+  location = "West Europe"
 }
 
-resource "azurerm_servicebus_namespace" "test" {
-  name                = "${var.servicebus_name}"
-  location            = "${var.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "basic"
+resource "azurerm_servicebus_namespace" "example" {
+  name                = "tfex_sevicebus_namespace"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  sku                 = "standard"
 
   tags {
     source = "terraform"

@@ -75,8 +75,7 @@ func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) e
 		Tags:        expandTags(tags),
 	}
 
-	_, err := client.SetSecret(ctx, keyVaultBaseUrl, name, parameters)
-	if err != nil {
+	if _, err := client.SetSecret(ctx, keyVaultBaseUrl, name, parameters); err != nil {
 		return err
 	}
 
@@ -116,8 +115,7 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 			Tags:        expandTags(tags),
 		}
 
-		_, err = client.SetSecret(ctx, id.KeyVaultBaseUrl, id.Name, parameters)
-		if err != nil {
+		if _, err = client.SetSecret(ctx, id.KeyVaultBaseUrl, id.Name, parameters); err != nil {
 			return err
 		}
 

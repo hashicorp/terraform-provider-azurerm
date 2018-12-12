@@ -247,8 +247,7 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error creating CDN Endpoint %q (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for CDN Endpoint %q (Profile %q / Resource Group %q) to finish creating: %+v", name, profileName, resourceGroup, err)
 	}
 
@@ -313,8 +312,7 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error updating CDN Endpoint %q (Profile %q / Resource Group %q): %s", name, profileName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, endpointsClient.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, endpointsClient.Client); err != nil {
 		return fmt.Errorf("Error waiting for the CDN Endpoint %q (Profile %q / Resource Group %q) to finish updating: %+v", name, profileName, resourceGroup, err)
 	}
 
@@ -409,8 +407,7 @@ func resourceArmCdnEndpointDelete(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error deleting CDN Endpoint %q (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}

@@ -153,8 +153,7 @@ func resourceArmNotificationHubCreateUpdate(d *schema.ResourceData, meta interfa
 		},
 	}
 
-	_, err = client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters); err != nil {
 		return fmt.Errorf("Error creating Notification Hub %q (Namespace %q / Resource Group %q): %+v", name, namespaceName, resourceGroup, err)
 	}
 

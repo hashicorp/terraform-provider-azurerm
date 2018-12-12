@@ -186,8 +186,7 @@ func resourceArmDevTestWindowsVirtualMachineCreateUpdate(d *schema.ResourceData,
 		return fmt.Errorf("Error creating/updating DevTest Windows Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for creation/update of DevTest Windows Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
 	}
 
@@ -286,8 +285,7 @@ func resourceArmDevTestWindowsVirtualMachineDelete(d *schema.ResourceData, meta 
 		return fmt.Errorf("Error deleting DevTest Windows Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for the deletion of DevTest Windows Virtual Machine %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
 	}
 

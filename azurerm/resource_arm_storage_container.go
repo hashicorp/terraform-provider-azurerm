@@ -252,8 +252,8 @@ func resourceArmStorageContainerDelete(d *schema.ResourceData, meta interface{})
 func checkContainerIsCreated(reference *storage.Container) func() *resource.RetryError {
 	return func() *resource.RetryError {
 		createOptions := &storage.CreateContainerOptions{}
-		_, err := reference.CreateIfNotExists(createOptions)
-		if err != nil {
+
+		if _, err := reference.CreateIfNotExists(createOptions); err != nil {
 			return resource.RetryableError(err)
 		}
 

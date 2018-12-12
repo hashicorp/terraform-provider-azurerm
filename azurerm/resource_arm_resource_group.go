@@ -43,8 +43,7 @@ func resourceArmResourceGroupCreateUpdate(d *schema.ResourceData, meta interface
 		Location: utils.String(location),
 		Tags:     expandTags(tags),
 	}
-	_, err := client.CreateOrUpdate(ctx, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, name, parameters); err != nil {
 		return fmt.Errorf("Error creating resource group: %+v", err)
 	}
 

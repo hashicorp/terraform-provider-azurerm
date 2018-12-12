@@ -90,8 +90,7 @@ func resourceArmAutomationModuleCreateUpdate(d *schema.ResourceData, meta interf
 		},
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resGroup, accName, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, accName, name, parameters); err != nil {
 		return err
 	}
 

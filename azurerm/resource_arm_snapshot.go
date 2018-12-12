@@ -123,8 +123,7 @@ func resourceArmSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 
@@ -208,8 +207,7 @@ func resourceArmSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error deleting Snapshot: %+v", err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error deleting Snapshot: %+v", err)
 	}
 

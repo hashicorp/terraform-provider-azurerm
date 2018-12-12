@@ -23,6 +23,15 @@ func resourceArmContainerService() *schema.Resource {
 		Update: resourceArmContainerServiceCreate,
 		Delete: resourceArmContainerServiceDelete,
 
+		DeprecationMessage: `Azure Container Service (ACS) has been deprecated in favour of Azure (Managed) Kubernetes Service (AKS).
+
+Azure will remove support for ACS Clusters on January 31, 2020. In preparation for this, the AzureRM Provider will remove support for the 'azurerm_container_service' resource in the next major version of the AzureRM Provider, which is targeted for Early 2019.
+
+If you're using ACS with Kubernetes, we'd recommend migrating to AKS / the 'azurerm_kubernetes_cluster' resource.
+
+More information can be found here: https://azure.microsoft.com/en-us/updates/azure-container-service-will-retire-on-january-31-2020/
+`,
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -222,8 +231,7 @@ func resourceArmContainerServiceCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	ctx := meta.(*ArmClient).StopContext
-	_, err := containerServiceClient.CreateOrUpdate(ctx, resGroup, name, parameters)
-	if err != nil {
+	if _, err := containerServiceClient.CreateOrUpdate(ctx, resGroup, name, parameters); err != nil {
 		return err
 	}
 

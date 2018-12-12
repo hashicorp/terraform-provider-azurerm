@@ -139,8 +139,7 @@ func resourceArmMonitorActionGroupCreateOrUpdate(d *schema.ResourceData, meta in
 		Tags: expandedTags,
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, name, parameters); err != nil {
 		return fmt.Errorf("Error creating or updating action group %q (resource group %q): %+v", name, resGroup, err)
 	}
 

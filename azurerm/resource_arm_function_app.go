@@ -343,8 +343,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 
@@ -363,8 +362,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		siteConfigResource := web.SiteConfigResource{
 			SiteConfig: &siteConfig,
 		}
-		_, err := client.CreateOrUpdateConfiguration(ctx, resGroup, name, siteConfigResource)
-		if err != nil {
+		if _, err := client.CreateOrUpdateConfiguration(ctx, resGroup, name, siteConfigResource); err != nil {
 			return fmt.Errorf("Error updating Configuration for Function App %q: %+v", name, err)
 		}
 	}
@@ -376,8 +374,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 			Properties: connectionStrings,
 		}
 
-		_, err := client.UpdateConnectionStrings(ctx, resGroup, name, properties)
-		if err != nil {
+		if _, err := client.UpdateConnectionStrings(ctx, resGroup, name, properties); err != nil {
 			return fmt.Errorf("Error updating Connection Strings for App Service %q: %+v", name, err)
 		}
 	}

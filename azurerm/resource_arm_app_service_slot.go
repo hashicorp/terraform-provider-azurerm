@@ -263,8 +263,7 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 		siteConfigResource := web.SiteConfigResource{
 			SiteConfig: &siteConfig,
 		}
-		_, err := client.CreateOrUpdateConfigurationSlot(ctx, resGroup, appServiceName, siteConfigResource, slot)
-		if err != nil {
+		if _, err := client.CreateOrUpdateConfigurationSlot(ctx, resGroup, appServiceName, siteConfigResource, slot); err != nil {
 			return fmt.Errorf("Error updating Configuration for App Service Slot %q/%q: %+v", appServiceName, slot, err)
 		}
 	}
@@ -290,8 +289,7 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 			Properties: appSettings,
 		}
 
-		_, err := client.UpdateApplicationSettingsSlot(ctx, resGroup, appServiceName, settings, slot)
-		if err != nil {
+		if _, err := client.UpdateApplicationSettingsSlot(ctx, resGroup, appServiceName, settings, slot); err != nil {
 			return fmt.Errorf("Error updating Application Settings for App Service Slot %q/%q: %+v", appServiceName, slot, err)
 		}
 	}
@@ -303,8 +301,7 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 			Properties: connectionStrings,
 		}
 
-		_, err := client.UpdateConnectionStringsSlot(ctx, resGroup, appServiceName, properties, slot)
-		if err != nil {
+		if _, err := client.UpdateConnectionStringsSlot(ctx, resGroup, appServiceName, properties, slot); err != nil {
 			return fmt.Errorf("Error updating Connection Strings for App Service Slot %q/%q: %+v", appServiceName, slot, err)
 		}
 	}

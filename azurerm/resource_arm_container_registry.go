@@ -172,8 +172,7 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error creating Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for creation of Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -261,8 +260,7 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error updating Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for update of Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -461,8 +459,7 @@ func resourceArmContainerRegistryDelete(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error issuing Azure ARM delete request of Container Registry '%s': %+v", name, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}

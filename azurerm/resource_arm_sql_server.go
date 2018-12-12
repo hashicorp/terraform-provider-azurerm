@@ -96,8 +96,7 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 
 		if response.WasConflict(future.Response()) {
 			return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use.", name)

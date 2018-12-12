@@ -30,12 +30,6 @@ func Provider() terraform.ResourceProvider {
 				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_ID", ""),
 			},
 
-			"client_secret": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_SECRET", ""),
-			},
-
 			"tenant_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -48,6 +42,39 @@ func Provider() terraform.ResourceProvider {
 				DefaultFunc: schema.EnvDefaultFunc("ARM_ENVIRONMENT", "public"),
 			},
 
+			// Client Certificate specific fields
+			"client_certificate_password": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_CERTIFICATE_PASSWORD", ""),
+			},
+
+			"client_certificate_path": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_CERTIFICATE_PATH", ""),
+			},
+
+			// Client Secret specific fields
+			"client_secret": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_SECRET", ""),
+			},
+
+			// Managed Service Identity specific fields
+			"use_msi": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_USE_MSI", false),
+			},
+			"msi_endpoint": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_MSI_ENDPOINT", ""),
+			},
+
+			// Advanced feature flags
 			"skip_credentials_validation": {
 				Type:        schema.TypeBool,
 				Optional:    true,
@@ -58,16 +85,6 @@ func Provider() terraform.ResourceProvider {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_SKIP_PROVIDER_REGISTRATION", false),
-			},
-			"use_msi": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_USE_MSI", false),
-			},
-			"msi_endpoint": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_MSI_ENDPOINT", ""),
 			},
 		},
 
@@ -214,6 +231,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_logic_app_trigger_http_request":         resourceArmLogicAppTriggerHttpRequest(),
 			"azurerm_logic_app_trigger_recurrence":           resourceArmLogicAppTriggerRecurrence(),
 			"azurerm_logic_app_workflow":                     resourceArmLogicAppWorkflow(),
+			"azurerm_mariadb_database":                       resourceArmMariaDbDatabase(),
 			"azurerm_mariadb_server":                         resourceArmMariaDbServer(),
 			"azurerm_managed_disk":                           resourceArmManagedDisk(),
 			"azurerm_management_lock":                        resourceArmManagementLock(),
@@ -317,14 +335,17 @@ func Provider() terraform.ResourceProvider {
 func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 	return func(d *schema.ResourceData) (interface{}, error) {
 		builder := &authentication.Builder{
-			SubscriptionID: d.Get("subscription_id").(string),
-			ClientID:       d.Get("client_id").(string),
-			ClientSecret:   d.Get("client_secret").(string),
-			TenantID:       d.Get("tenant_id").(string),
-			Environment:    d.Get("environment").(string),
-			MsiEndpoint:    d.Get("msi_endpoint").(string),
+			SubscriptionID:     d.Get("subscription_id").(string),
+			ClientID:           d.Get("client_id").(string),
+			ClientSecret:       d.Get("client_secret").(string),
+			TenantID:           d.Get("tenant_id").(string),
+			Environment:        d.Get("environment").(string),
+			MsiEndpoint:        d.Get("msi_endpoint").(string),
+			ClientCertPassword: d.Get("client_certificate_password").(string),
+			ClientCertPath:     d.Get("client_certificate_path").(string),
 
 			// Feature Toggles
+			SupportsClientCertAuth:         true,
 			SupportsClientSecretAuth:       true,
 			SupportsManagedServiceIdentity: d.Get("use_msi").(bool),
 			SupportsAzureCliToken:          true,
