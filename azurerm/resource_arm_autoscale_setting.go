@@ -18,9 +18,9 @@ import (
 
 func resourceArmAutoScaleSetting() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAutoScaleSettingCreateOrUpdate,
+		Create: resourceArmAutoScaleSettingCreateUpdate,
 		Read:   resourceArmAutoScaleSettingRead,
-		Update: resourceArmAutoScaleSettingCreateOrUpdate,
+		Update: resourceArmAutoScaleSettingCreateUpdate,
 		Delete: resourceArmAutoScaleSettingDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -339,7 +339,7 @@ func resourceArmAutoScaleSetting() *schema.Resource {
 	}
 }
 
-func resourceArmAutoScaleSettingCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).autoscaleSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 

@@ -18,9 +18,9 @@ import (
 
 func resourceArmMonitorActivityLogAlert() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMonitorActivityLogAlertCreateOrUpdate,
+		Create: resourceArmMonitorActivityLogAlertCreateUpdate,
 		Read:   resourceArmMonitorActivityLogAlertRead,
-		Update: resourceArmMonitorActivityLogAlertCreateOrUpdate,
+		Update: resourceArmMonitorActivityLogAlertCreateUpdate,
 		Delete: resourceArmMonitorActivityLogAlertDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -152,7 +152,7 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 	}
 }
 
-func resourceArmMonitorActivityLogAlertCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMonitorActivityLogAlertCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).monitorActivityLogAlertsClient
 	ctx := meta.(*ArmClient).StopContext
 

@@ -17,9 +17,9 @@ import (
 
 func resourceArmMonitorMetricAlert() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMonitorMetricAlertCreateOrUpdate,
+		Create: resourceArmMonitorMetricAlertCreateUpdate,
 		Read:   resourceArmMonitorMetricAlertRead,
-		Update: resourceArmMonitorMetricAlertCreateOrUpdate,
+		Update: resourceArmMonitorMetricAlertCreateUpdate,
 		Delete: resourceArmMonitorMetricAlertDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -206,7 +206,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 	}
 }
 
-func resourceArmMonitorMetricAlertCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).monitorMetricAlertsClient
 	ctx := meta.(*ArmClient).StopContext
 

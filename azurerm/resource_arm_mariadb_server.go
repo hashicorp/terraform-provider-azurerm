@@ -18,9 +18,9 @@ import (
 
 func resourceArmMariaDbServer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMariaDbServerCreateOrUpdate,
+		Create: resourceArmMariaDbServerCreateUpdate,
 		Read:   resourceArmMariaDbServerRead,
-		Update: resourceArmMariaDbServerCreateOrUpdate,
+		Update: resourceArmMariaDbServerCreateUpdate,
 		Delete: resourceArmMariaDbServerDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -171,7 +171,7 @@ func resourceArmMariaDbServer() *schema.Resource {
 	}
 }
 
-func resourceArmMariaDbServerCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMariaDbServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).mariadbServersClient
 	ctx := meta.(*ArmClient).StopContext
 
