@@ -39,6 +39,7 @@ BUG FIXES:
 * `azurerm_mssql_elasticpool` - relaxed validation of the `name` property [GH-2398]
 * `azurerm_recovery_services_protection_policy_vm` - added the `timezone` property [GH-2404]
 * `azurerm_route_table` - validation updated to prevent empty and blank `property` values from causing a panic [GH-2467]
+* `azurerm_sql_server` - only updating the `admin_login_password` when it's changed, allowing this to be managed outside of Terraform [GH-2263]
 * `azurerm_virtual_machine` - nil-checking properties prior to accessing [GH-2365]
 
 ## 1.19.0 (November 15, 2018)
