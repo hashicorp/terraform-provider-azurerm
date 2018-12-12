@@ -26,12 +26,14 @@ func resourceArmBatchPool() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validateAzureRMBatchPoolName,
 			},
 			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
 			"account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validateAzureRMBatchAccountName,
 			},
 			"display_name": {
@@ -150,6 +152,10 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 	if scaleMode == azure.BatchPoolAutoScale {
 		autoScaleEvaluationInterval := d.Get("autoscale_evaluation_interval").(string)
 		autoScaleFormula := d.Get("autoscale_formula").(string)
+
+		if autoScaleFormula == "" {
+			return fmt.Errorf("Error: when scale mode is set to Auto, auto_scale formula cannot be empty")
+		}
 
 		parameters.PoolProperties.ScaleSettings = &batch.ScaleSettings{
 			AutoScale: &batch.AutoScaleSettings{
@@ -323,4 +329,25 @@ func validateAzureRMBatchPoolName(v interface{}, k string) (warnings []string, e
 	}
 
 	return warnings, errors
+}
+
+func flattenAzureRmBatchPoolImageReference(image *batch.ImageReference) []interface{} {
+	result := make(map[string]interface{})
+	if image.Publisher != nil {
+		result["publisher"] = *image.Publisher
+	}
+	if image.Offer != nil {
+		result["offer"] = *image.Offer
+	}
+	if image.Sku != nil {
+		result["sku"] = *image.Sku
+	}
+	if image.Version != nil {
+		result["version"] = *image.Version
+	}
+	if image.ID != nil {
+		result["id"] = *image.ID
+	}
+
+	return []interface{}{result}
 }

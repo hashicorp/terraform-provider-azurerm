@@ -127,7 +127,6 @@ func dataSourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("name", name)
 	d.Set("account_name", accountName)
 	d.Set("resource_group_name", resourceGroup)
-	d.Set("display_name", resp.DisplayName)
 	d.Set("vm_size", resp.VMSize)
 
 	if resp.ScaleSettings != nil {
@@ -148,14 +147,12 @@ func dataSourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error 
 		resp.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference != nil {
 
 		imageReference := resp.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference
-		storageImageRef := schema.Set{F: resourceArmVirtualMachineStorageImageReferenceHash}
-		storageImageRef.Add(
-			map[string]string{
-				"publisher": *imageReference.Publisher,
-				"offer":     *imageReference.Offer,
-				"sku":       *imageReference.Sku,
-				"version":   *imageReference.Version,
-			})
+
+		if err := d.Set("storage_image_reference", schema.NewSet(resourceArmVirtualMachineStorageImageReferenceHash, flattenAzureRmBatchPoolImageReference(imageReference))); err != nil {
+			return fmt.Errorf("[DEBUG] Error setting AzureRM Batch Pool Image Reference: %#v", err)
+		}
+
+		d.Set("node_agent_sku_id", resp.DeploymentConfiguration.VirtualMachineConfiguration.NodeAgentSkuID)
 	}
 
 	return nil
