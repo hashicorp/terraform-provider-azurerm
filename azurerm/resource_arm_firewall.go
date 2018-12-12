@@ -256,7 +256,6 @@ func expandArmFirewallIPConfigurations(d *schema.ResourceData) (*[]network.Azure
 		name := data["name"].(string)
 		subnetId := data["subnet_id"].(string)
 
-		exist := false
 		pubID, exist := data["internal_public_ip_address_id"].(string)
 		if !exist || pubID == "" {
 			pubID, exist = data["public_ip_address_id"].(string)
