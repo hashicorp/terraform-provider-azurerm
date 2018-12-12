@@ -554,8 +554,7 @@ func testCheckAndStopAzureRMVirtualMachine(vm *compute.VirtualMachine) resource.
 			return fmt.Errorf("Failed stopping virtual machine %q: %+v", resourceGroup, err)
 		}
 
-		err = future.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("Failed long polling for the stop of virtual machine %q: %+v", resourceGroup, err)
 		}
 
@@ -2094,8 +2093,7 @@ func testLookupAzureRMVirtualMachineManagedDiskID(vm *compute.VirtualMachine, di
 }
 
 func findAzureRMVirtualMachineManagedDiskID(md *compute.ManagedDiskParameters) (string, error) {
-	_, err := parseAzureResourceID(*md.ID)
-	if err != nil {
+	if _, err := parseAzureResourceID(*md.ID); err != nil {
 		return "", err
 	}
 	return *md.ID, nil

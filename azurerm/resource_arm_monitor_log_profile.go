@@ -9,8 +9,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -29,7 +29,7 @@ func resourceArmMonitorLogProfile() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 			"storage_account_id": {
 				Type:         schema.TypeString,
@@ -259,8 +259,7 @@ func retryLogProfilesClientGet(name string, meta interface{}) func() *resource.R
 		client := meta.(*ArmClient).monitorLogProfilesClient
 		ctx := meta.(*ArmClient).StopContext
 
-		_, err := client.Get(ctx, name)
-		if err != nil {
+		if _, err := client.Get(ctx, name); err != nil {
 			return resource.RetryableError(err)
 		}
 

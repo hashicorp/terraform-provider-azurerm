@@ -562,8 +562,7 @@ func testCheckAzureRMStorageAccountDisappears(name string) resource.TestCheckFun
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		conn := testAccProvider.Meta().(*ArmClient).storageServiceClient
 
-		_, err := conn.Delete(ctx, resourceGroup, storageAccount)
-		if err != nil {
+		if _, err := conn.Delete(ctx, resourceGroup, storageAccount); err != nil {
 			return fmt.Errorf("Bad: Delete on storageServiceClient: %+v", err)
 		}
 

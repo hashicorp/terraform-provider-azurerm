@@ -277,8 +277,7 @@ func testCheckAzureRMLocalNetworkGatewayDisappears(name string) resource.TestChe
 			return fmt.Errorf("Error deleting the state of local network gateway %q: %+v", localNetName, err)
 		}
 
-		err = future.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("Error waiting for deletion of the local network gateway %q to complete: %+v", localNetName, err)
 		}
 

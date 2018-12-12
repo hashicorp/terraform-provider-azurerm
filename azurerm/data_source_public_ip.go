@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -15,7 +15,7 @@ func dataSourceArmPublicIP() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"resource_group_name": resourceGroupNameForDataSourceSchema(),
@@ -67,28 +67,22 @@ func dataSourceArmPublicIPRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.SetId(*resp.ID)
 
+	//ensure values are at least set to "", d.Set() is a noop on a nil
+	d.Set("fqdn", "")
+	d.Set("domain_name_label", "")
+	d.Set("ip_address", "")
+	d.Set("ip_version", "")
+	d.Set("idle_timeout_in_minutes", 0)
+
 	if props := resp.PublicIPAddressPropertiesFormat; props != nil {
 		if dnsSettings := props.DNSSettings; dnsSettings != nil {
-			if v := dnsSettings.Fqdn; v != nil && *v != "" {
-				d.Set("fqdn", v)
-			}
-
-			if v := dnsSettings.DomainNameLabel; v != nil && *v != "" {
-				d.Set("domain_name_label", v)
-			}
+			d.Set("fqdn", dnsSettings.Fqdn)
+			d.Set("domain_name_label", dnsSettings.DomainNameLabel)
 		}
 
-		if ipVersion := props.PublicIPAddressVersion; string(ipVersion) != "" {
-			d.Set("ip_version", string(ipVersion))
-		}
-
-		if v := props.IPAddress; v != nil && *v != "" {
-			d.Set("ip_address", v)
-		}
-
-		if v := props.IdleTimeoutInMinutes; v != nil {
-			d.Set("idle_timeout_in_minutes", *resp.PublicIPAddressPropertiesFormat.IdleTimeoutInMinutes)
-		}
+		d.Set("ip_address", props.IPAddress)
+		d.Set("ip_version", string(props.PublicIPAddressVersion))
+		d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
 	}
 
 	flattenAndSetTags(d, resp.Tags)

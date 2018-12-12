@@ -9,17 +9,25 @@
 
             <li<%= sidebar_current("docs-azurerm-index") %>>
               <a href="/docs/providers/azurerm/index.html">Azure Provider</a>
+            </li>
+
+            <li<%= sidebar_current("docs-azurerm-authentication") %>>
+              <a href="#">Authentication</a>
               <ul class="nav nav-visible">
-                <li<%= sidebar_current("docs-azurerm-index-authentication-azure-cli") %>>
-                    <a href="/docs/providers/azurerm/authenticating_via_azure_cli.html">Authenticating via the Azure CLI</a>
+                <li<%= sidebar_current("docs-azurerm-authentication-azure-cli") %>>
+                    <a href="/docs/providers/azurerm/auth/azure_cli.html">Authenticating using the Azure CLI</a>
                 </li>
 
-                <li<%= sidebar_current("docs-azurerm-index-authentication-service-principal") %>>
-                    <a href="/docs/providers/azurerm/authenticating_via_service_principal.html">Authenticating via a Service Principal (Shared Account)</a>
+                <li<%= sidebar_current("docs-azurerm-authentication-managed-service-identity") %>>
+                    <a href="/docs/providers/azurerm/auth/managed_service_identity.html">Authenticating using Managed Service Identity</a>
                 </li>
 
-                <li<%= sidebar_current("docs-azurerm-index-authentication-msi") %>>
-                    <a href="/docs/providers/azurerm/authenticating_via_msi.html">Authenticating via Managed Service Identity</a>
+                <li<%= sidebar_current("docs-azurerm-authentication-service-principal-client-certificate") %>>
+                    <a href="/docs/providers/azurerm/auth/service_principal_client_certificate.html">Authenticating using a Service Principal with a Client Certificate</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-authentication-service-principal-client-secret") %>>
+                    <a href="/docs/providers/azurerm/auth/service_principal_client_secret.html">Authenticating using a Service Principal with a Client Secret</a>
                 </li>
               </ul>
             </li>
@@ -134,6 +142,10 @@
 
                 <li<%= sidebar_current("docs-azurerm-datasource-management-group") %>>
                     <a href="/docs/providers/azurerm/d/management_group.html">azurerm_management_group</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-datasource-monitor-action-group") %>>
+                    <a href="/docs/providers/azurerm/d/monitor_action_group.html">azurerm_monitor_action_group</a>
                 </li>
 
                 <li<%= sidebar_current("docs-azurerm-datasource-monitor-diagnostic-categories") %>>
@@ -462,6 +474,14 @@
             <li<%= sidebar_current("docs-azurerm-resource-database") %>>
               <a href="#">Database Resources</a>
               <ul class="nav nav-visible">
+
+                <li<%= sidebar_current("docs-azurerm-resource-database-mariadb-database") %>>
+                  <a href="/docs/providers/azurerm/r/mariadb_database.html">azurerm_mariadb_database</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-database-mariadb-server") %>>
+                  <a href="/docs/providers/azurerm/r/mariadb_server.html">azurerm_mariadb_server</a>
+                </li>
 
                 <li<%= sidebar_current("docs-azurerm-resource-database-mysql-configuration") %>>
                   <a href="/docs/providers/azurerm/r/mysql_configuration.html">azurerm_mysql_configuration</a>

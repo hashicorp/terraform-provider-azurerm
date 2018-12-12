@@ -145,16 +145,14 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 
 	if sourceUri != "" {
 		options := &storage.CopyOptions{}
-		err := blob.Copy(sourceUri, options)
-		if err != nil {
+		if err := blob.Copy(sourceUri, options); err != nil {
 			return fmt.Errorf("Error creating storage blob on Azure: %s", err)
 		}
 	} else {
 		switch strings.ToLower(blobType) {
 		case "block":
 			options := &storage.PutBlobOptions{}
-			err := blob.CreateBlockBlob(options)
-			if err != nil {
+			if err := blob.CreateBlockBlob(options); err != nil {
 				return fmt.Errorf("Error creating storage blob on Azure: %s", err)
 			}
 
@@ -182,8 +180,7 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 
 				blob.Properties.ContentLength = size
 				blob.Properties.ContentType = contentType
-				err := blob.PutPageBlob(options)
-				if err != nil {
+				if err := blob.PutPageBlob(options); err != nil {
 					return fmt.Errorf("Error creating storage blob on Azure: %s", err)
 				}
 			}
@@ -502,8 +499,7 @@ func resourceArmStorageBlobBlockUploadWorker(ctx resourceArmStorageBlobBlockUplo
 			container := ctx.client.GetContainerReference(ctx.container)
 			blob := container.GetBlobReference(ctx.name)
 			options := &storage.PutBlockOptions{}
-			err = blob.PutBlock(block.id, buffer, options)
-			if err == nil {
+			if err = blob.PutBlock(block.id, buffer, options); err == nil {
 				break
 			}
 		}

@@ -241,8 +241,7 @@ func testCheckAzureRMLoadBalancerProbeDisappears(addressPoolName string, lb *net
 			return fmt.Errorf("Error Creating/Updating LoadBalancer: %+v", err)
 		}
 
-		err = future.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("Error waiting for completion for LoadBalancer: %+v", err)
 		}
 

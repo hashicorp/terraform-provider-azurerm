@@ -74,8 +74,7 @@ func resourceArmEventHubConsumerGroupCreateUpdate(d *schema.ResourceData, meta i
 		},
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resGroup, namespaceName, eventHubName, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, namespaceName, eventHubName, name, parameters); err != nil {
 		return err
 	}
 

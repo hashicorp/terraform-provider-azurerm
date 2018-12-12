@@ -70,8 +70,7 @@ func resourceArmSqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta interfa
 		},
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, parameters); err != nil {
 		return fmt.Errorf("Error creating SQL Firewall Rule: %+v", err)
 	}
 

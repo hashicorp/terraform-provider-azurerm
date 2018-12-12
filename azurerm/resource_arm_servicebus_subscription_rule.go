@@ -158,8 +158,7 @@ func resourceArmServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, m
 		}
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, topicName, subscriptionName, name, rule)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, topicName, subscriptionName, name, rule); err != nil {
 		return err
 	}
 

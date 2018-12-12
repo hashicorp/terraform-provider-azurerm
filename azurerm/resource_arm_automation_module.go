@@ -6,7 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -26,14 +26,14 @@ func resourceArmAutomationModule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"automation_account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
@@ -90,8 +90,7 @@ func resourceArmAutomationModuleCreateUpdate(d *schema.ResourceData, meta interf
 		},
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resGroup, accName, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, accName, name, parameters); err != nil {
 		return err
 	}
 

@@ -58,7 +58,7 @@ func resourceArmDevTestPolicy() *schema.Resource {
 			"threshold": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"evaluator_type": {
@@ -115,8 +115,7 @@ func resourceArmDevTestPolicyCreateUpdate(d *schema.ResourceData, meta interface
 		},
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, labName, policySetName, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, labName, policySetName, name, parameters); err != nil {
 		return fmt.Errorf("Error creating/updating DevTest Policy %q (Policy Set %q / Lab %q / Resource Group %q): %+v", name, policySetName, labName, resourceGroup, err)
 	}
 

@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -25,7 +26,7 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
@@ -50,12 +51,12 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"email_address": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
@@ -69,17 +70,17 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"country_code": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"phone_number": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
@@ -93,12 +94,12 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"service_uri": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
@@ -138,8 +139,7 @@ func resourceArmMonitorActionGroupCreateOrUpdate(d *schema.ResourceData, meta in
 		Tags: expandedTags,
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, name, parameters); err != nil {
 		return fmt.Errorf("Error creating or updating action group %q (resource group %q): %+v", name, resGroup, err)
 	}
 

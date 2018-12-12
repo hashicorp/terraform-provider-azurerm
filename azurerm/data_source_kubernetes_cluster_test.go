@@ -26,13 +26,16 @@ func TestAccDataSourceAzureRMKubernetesCluster_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(dataSourceName),
-					resource.TestCheckResourceAttr(dataSourceName, "role_based_access_control.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceName, "role_based_access_control.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "role_based_access_control.0.enabled", "false"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "kube_config.0.client_key"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "kube_config.0.client_certificate"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "kube_config.0.cluster_ca_certificate"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "kube_config.0.host"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "kube_config.0.username"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "kube_config.0.password"),
+					resource.TestCheckResourceAttr(dataSourceName, "kube_admin_config.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceName, "kube_admin_config_raw", ""),
 				),
 			},
 		},
@@ -40,6 +43,33 @@ func TestAccDataSourceAzureRMKubernetesCluster_basic(t *testing.T) {
 }
 
 func TestAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControl(t *testing.T) {
+	dataSourceName := "data.azurerm_kubernetes_cluster.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControl(ri, location, clientId, clientSecret),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(dataSourceName),
+					resource.TestCheckResourceAttr(dataSourceName, "role_based_access_control.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "role_based_access_control.0.enabled", "true"),
+					resource.TestCheckResourceAttr(dataSourceName, "role_based_access_control.0.azure_active_directory.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceName, "kube_admin_config.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceName, "kube_admin_config_raw", ""),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
 	dataSourceName := "data.azurerm_kubernetes_cluster.test"
 	ri := acctest.RandInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -53,14 +83,17 @@ func TestAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControl(t *testing
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControl(ri, location, clientId, clientSecret, tenantId),
+				Config: testAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControlAAD(ri, location, clientId, clientSecret, tenantId),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(dataSourceName),
 					resource.TestCheckResourceAttr(dataSourceName, "role_based_access_control.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "role_based_access_control.0.enabled", "true"),
 					resource.TestCheckResourceAttr(dataSourceName, "role_based_access_control.0.azure_active_directory.#", "1"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "role_based_access_control.0.azure_active_directory.0.client_app_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "role_based_access_control.0.azure_active_directory.0.server_app_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "role_based_access_control.0.azure_active_directory.0.tenant_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "kube_admin_config.#", "1"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "kube_admin_config_raw"),
 				),
 			},
 		},
@@ -273,8 +306,20 @@ data "azurerm_kubernetes_cluster" "test" {
 `, r)
 }
 
-func testAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControl(rInt int, location, clientId, clientSecret, tenantId string) string {
-	resource := testAccAzureRMKubernetesCluster_roleBasedAccessControl(rInt, location, clientId, clientSecret, tenantId)
+func testAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControl(rInt int, location, clientId, clientSecret string) string {
+	resource := testAccAzureRMKubernetesCluster_roleBasedAccessControl(rInt, location, clientId, clientSecret)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = "${azurerm_kubernetes_cluster.test.name}"
+  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+}
+`, resource)
+}
+
+func testAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControlAAD(rInt int, location, clientId, clientSecret, tenantId string) string {
+	resource := testAccAzureRMKubernetesCluster_roleBasedAccessControlAAD(rInt, location, clientId, clientSecret, tenantId)
 	return fmt.Sprintf(`
 %s
 

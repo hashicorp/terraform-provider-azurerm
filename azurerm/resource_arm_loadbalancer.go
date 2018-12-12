@@ -46,7 +46,7 @@ func resourceArmLoadBalancer() *schema.Resource {
 					string(network.LoadBalancerSkuNameBasic),
 					string(network.LoadBalancerSkuNameStandard),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"frontend_ip_configuration": {
@@ -58,7 +58,7 @@ func resourceArmLoadBalancer() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"subnet_id": {
@@ -99,7 +99,7 @@ func resourceArmLoadBalancer() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: validation.NoZeroValues,
+								ValidateFunc: validate.NoEmptyStrings,
 							},
 							Set: schema.HashString,
 						},
@@ -109,7 +109,7 @@ func resourceArmLoadBalancer() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: validation.NoZeroValues,
+								ValidateFunc: validate.NoEmptyStrings,
 							},
 							Set: schema.HashString,
 						},
@@ -170,8 +170,7 @@ func resourceArmLoadBalancerCreate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
@@ -270,8 +269,7 @@ func resourceArmLoadBalancerDelete(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error deleting Load Balancer %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for the deleting Load Balancer %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 

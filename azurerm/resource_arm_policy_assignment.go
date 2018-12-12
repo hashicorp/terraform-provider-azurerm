@@ -99,8 +99,7 @@ func resourceArmPolicyAssignmentCreate(d *schema.ResourceData, meta interface{})
 		assignment.AssignmentProperties.Parameters = &expandedParams
 	}
 
-	_, err := client.Create(ctx, scope, name, assignment)
-	if err != nil {
+	if _, err := client.Create(ctx, scope, name, assignment); err != nil {
 		return err
 	}
 
@@ -114,7 +113,7 @@ func resourceArmPolicyAssignmentCreate(d *schema.ResourceData, meta interface{})
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 10,
 	}
-	if _, err = stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Policy Assignment %q to become available: %s", name, err)
 	}
 

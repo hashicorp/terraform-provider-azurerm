@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -38,13 +39,13 @@ func resourceArmAutomationDscConfiguration() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"content_embedded": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
@@ -96,8 +97,7 @@ func resourceArmAutomationDscConfigurationCreateUpdate(d *schema.ResourceData, m
 		Location: utils.String(location),
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resGroup, accName, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, accName, name, parameters); err != nil {
 		return err
 	}
 

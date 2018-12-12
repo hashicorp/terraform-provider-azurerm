@@ -243,6 +243,14 @@
 			"versionExact": "v21.3.0"
 		},
 		{
+			"checksumSHA1": "fnApqrMFYSd4sVvZbgQhpbn5Tm8=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/preview/mariadb/mgmt/2018-06-01-preview/mariadb",
+			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
+			"revisionTime": "2018-10-19T17:11:53Z",
+			"version": "v21.3.0",
+			"versionExact": "v21.3.0"
+		},
+		{
 			"checksumSHA1": "NTKrqzjgDA3tOouG/avprOJuw0M=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights",
 			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
@@ -844,36 +852,36 @@
 			"revisionTime": "2018-07-15T04:49:06Z"
 		},
 		{
-			"checksumSHA1": "6wvg4jOPIzX4P41T0BQidyhCZuo=",
+			"checksumSHA1": "KG4MV3InkM8++ldg5RP/P8GYPkk=",
 			"path": "github.com/hashicorp/go-azure-helpers/authentication",
-			"revision": "ec113df69f49ef0d7ce828c6433022c61fa474eb",
-			"revisionTime": "2018-11-26T13:55:26Z",
-			"version": "0.2.0",
-			"versionExact": "0.2.0"
+			"revision": "38db96513363e6bd8832cae8918dbdf27b8af21d",
+			"revisionTime": "2018-12-11T12:13:09Z",
+			"version": "0.3.1",
+			"versionExact": "0.3.1"
 		},
 		{
 			"checksumSHA1": "QwsnT5sLpT2jJ/1qJQRvqU8xl14=",
 			"path": "github.com/hashicorp/go-azure-helpers/resourceproviders",
-			"revision": "ec113df69f49ef0d7ce828c6433022c61fa474eb",
-			"revisionTime": "2018-11-26T13:55:26Z",
-			"version": "0.2.0",
-			"versionExact": "0.2.0"
+			"revision": "38db96513363e6bd8832cae8918dbdf27b8af21d",
+			"revisionTime": "2018-12-11T12:13:09Z",
+			"version": "0.3.1",
+			"versionExact": "0.3.1"
 		},
 		{
 			"checksumSHA1": "ip//Px6kdSuCH6OKEJUSMIgI3ng=",
 			"path": "github.com/hashicorp/go-azure-helpers/response",
-			"revision": "ec113df69f49ef0d7ce828c6433022c61fa474eb",
-			"revisionTime": "2018-11-26T13:55:26Z",
-			"version": "0.2.0",
-			"versionExact": "0.2.0"
+			"revision": "38db96513363e6bd8832cae8918dbdf27b8af21d",
+			"revisionTime": "2018-12-11T12:13:09Z",
+			"version": "0.3.1",
+			"versionExact": "0.3.1"
 		},
 		{
-			"checksumSHA1": "Ji4mcyJSLYqsL5LWgYWVairiOpQ=",
+			"checksumSHA1": "o819WNmGrxKtld9Sfqa7G+4ixQU=",
 			"path": "github.com/hashicorp/go-azure-helpers/storage",
-			"revision": "ec113df69f49ef0d7ce828c6433022c61fa474eb",
-			"revisionTime": "2018-11-26T13:55:26Z",
-			"version": "0.2.0",
-			"versionExact": "0.2.0"
+			"revision": "38db96513363e6bd8832cae8918dbdf27b8af21d",
+			"revisionTime": "2018-12-11T12:13:09Z",
+			"version": "0.3.1",
+			"versionExact": "0.3.1"
 		},
 		{
 			"checksumSHA1": "b8F628srIitj5p7Y130xc9k0QWs=",

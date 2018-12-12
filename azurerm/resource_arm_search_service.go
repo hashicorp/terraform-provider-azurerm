@@ -102,8 +102,7 @@ func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface
 		properties.ServiceProperties.PartitionCount = utils.Int32(partitionCount)
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroupName, name, properties, nil)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroupName, name, properties, nil); err != nil {
 		return err
 	}
 
