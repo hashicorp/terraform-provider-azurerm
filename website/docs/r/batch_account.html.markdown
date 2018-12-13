@@ -61,3 +61,7 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The Batch account ID.
+
+* `pool_allocation_mode` - (Optional) Specifies the mode to use for pool allocation. Possible values are `BatchService` or `UserSubscription`. Defaults to `BatchService`.
+
+* `storage_account_id` - (Optional) Specifies the storage account to use for the Batch account. If not specified, Azure Batch will manage the storage.
