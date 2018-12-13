@@ -30,25 +30,27 @@ func TestValidateBatchAccountName(t *testing.T) {
 		if test.shouldError && len(es) == 0 {
 			t.Fatalf("Expected validating name %q to fail", test.input)
 		}
+
+		if !test.shouldError && len(es) > 1 {
+			t.Fatalf("Expected validating name %q to fail", test.input)
+		}
 	}
 }
 
-func TestAccAzureRMBatchAccount_basic(t *testing.T) {
+func TestAccAzureRMBatchAccount_complete(t *testing.T) {
 	resourceName := "azurerm_batch_account.test"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
-	rs2 := acctest.RandString(4)
 	location := testLocation()
 
-	config := testAccAzureRMBatchAccount_basic(ri, rs, rs, location)
-	configUpdate := testAccAzureRMBatchAccount_basicUpdate(ri, rs2, rs, location)
+	config := testAccAzureRMBatchAccount_complete(ri, rs, location)
+	configUpdate := testAccAzureRMBatchAccount_completeUpdated(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMBatchAccountDestroy,
 		Steps: []resource.TestStep{
-			// Create
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
@@ -58,7 +60,6 @@ func TestAccAzureRMBatchAccount_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.env", "test"),
 				),
 			},
-			// Update
 			{
 				Config: configUpdate,
 				Check: resource.ComposeTestCheckFunc(
@@ -73,27 +74,24 @@ func TestAccAzureRMBatchAccount_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMBatchAccount_noStorageAccount(t *testing.T) {
+func TestAccAzureRMBatchAccount_noStorageAccount_basic(t *testing.T) {
 	resourceName := "azurerm_batch_account.test"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
 
-	config := testAccAzureRMBatchAccount_noStorageAccount(ri, rs, location)
+	config := testAccAzureRMBatchAccount_noStorageAccount_basic(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMBatchAccountDestroy,
 		Steps: []resource.TestStep{
-			// Create
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBatchAccountExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "pool_allocation_mode", "BatchService"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.env", "test"),
 				),
 			},
 		},
@@ -153,7 +151,7 @@ func testCheckAzureRMBatchAccountDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMBatchAccount_basic(rInt int, storageSuffix string, batchAccountSuffix string, location string) string {
+func testAccAzureRMBatchAccount_complete(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "testaccbatch%d"
@@ -179,10 +177,10 @@ resource "azurerm_batch_account" "test" {
     env = "test"
   }
 }
-`, rInt, location, storageSuffix, batchAccountSuffix)
+`, rInt, location, rString, rString)
 }
 
-func testAccAzureRMBatchAccount_basicUpdate(rInt int, storageSuffix string, batchAccountSuffix string, location string) string {
+func testAccAzureRMBatchAccount_completeUpdated(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "testaccbatch%d"
@@ -190,7 +188,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-	name                     = "testaccsa%s"
+	name                     = "testaccsa%s2"
 	resource_group_name      = "${azurerm_resource_group.test.name}"
 	location                 = "${azurerm_resource_group.test.location}"
 	account_tier             = "Standard"
@@ -205,14 +203,14 @@ resource "azurerm_batch_account" "test" {
   storage_account_id   = "${azurerm_storage_account.test.id}"
 
   tags {
-	env = "test"
+	env 	= "test"
 	version = "2"
   }
 }
-`, rInt, location, storageSuffix, batchAccountSuffix)
+`, rInt, location, rString, rString)
 }
 
-func testAccAzureRMBatchAccount_noStorageAccount(rInt int, batchAccountSuffix string, location string) string {
+func testAccAzureRMBatchAccount_noStorageAccount_basic(rInt int, batchAccountSuffix string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "testaccbatch%d"
@@ -224,10 +222,6 @@ resource "azurerm_batch_account" "test" {
   resource_group_name  = "${azurerm_resource_group.test.name}"
   location             = "${azurerm_resource_group.test.location}"
   pool_allocation_mode = "BatchService"
-
-  tags {
-    env = "test"
-  }
 }
 `, rInt, location, batchAccountSuffix)
 }

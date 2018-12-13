@@ -3,13 +3,13 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -84,8 +84,7 @@ func resourceArmBatchAccountCreate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error creating Batch account %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for creation of Batch account %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 
@@ -168,8 +167,7 @@ func resourceArmBatchAccountUpdate(d *schema.ResourceData, meta interface{}) err
 		Tags: expandTags(tags),
 	}
 
-	_, err = client.Update(ctx, resourceGroupName, name, parameters)
-	if err != nil {
+	if _, err = client.Update(ctx, resourceGroupName, name, parameters); err != nil {
 		return fmt.Errorf("Error updating Batch account %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 
@@ -203,10 +201,10 @@ func resourceArmBatchAccountDelete(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error deleting Batch account %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	// if the error is not that the Batch account was not found
-	if err != nil && future.Response().StatusCode != http.StatusNotFound {
-		return fmt.Errorf("Error waiting for deletion of Batch account %q (Resource Group %q): %+v", name, resourceGroupName, err)
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		if !response.WasNotFound(future.Response()) {
+			return fmt.Errorf("Error waiting for deletion of Batch account %q (Resource Group %q): %+v", name, resourceGroupName, err)
+		}
 	}
 
 	return nil
@@ -215,8 +213,7 @@ func resourceArmBatchAccountDelete(d *schema.ResourceData, meta interface{}) err
 func validateAzureRMBatchAccountName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^[a-z0-9]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"lowercase letters and numbers only are allowed in %q: %q", k, value))
+		errors = append(errors, fmt.Errorf("lowercase letters and numbers only are allowed in %q: %q", k, value))
 	}
 
 	if 3 > len(value) {
