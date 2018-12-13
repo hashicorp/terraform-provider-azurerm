@@ -1,6 +1,10 @@
 # Configure the Microsoft Azure Provider
 provider "azurerm" {
-  # if you're using a Service Principal (shared account) then either set the environment variables, or fill these in:  # subscription_id = "..."  # client_id       = "..."  # client_secret   = "..."  # tenant_id       = "..."
+  # if you're using a Service Principal (shared account) then either set the environment variables, or fill these in: 
+  # subscription_id = "..."
+  # client_id       = "..." 
+  # client_secret   = "..."
+  # tenant_id       = "..."
 }
 
 resource "azurerm_resource_group" "rg" {
@@ -26,12 +30,4 @@ resource "azurerm_batch_account" "batch" {
   resource_group_name      = "${azurerm_resource_group.rg.name}"
   location                 = "${azurerm_resource_group.rg.location}"
   storage_account_name     = "${azurerm_storage_account.stor.name}"
-}
-
-resource "azurerm_batch_pool" "pool" {
-  id                    = "pool${random_integer.ri.result}"
-  vm_size               = "${var.batch_pool_nodes_vm_size}"
-  target_dedicated_node = "${var.batch_pool_nodes_count}"
-  vm_image              = "${var.batch_pool_nodes_vm_image}"
-  node_agent_sku_id     = "${var.batch.pool_nodes_agent_sku_id}"
 }
