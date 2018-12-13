@@ -31,3 +31,47 @@ resource "azurerm_batch_account" "batch" {
   location                 = "${azurerm_resource_group.rg.location}"
   storage_account_name     = "${azurerm_storage_account.stor.name}"
 }
+
+resource "azurerm_batch_pool" "fixedpool" {
+  name                   = "myfixedpool"
+  resource_group_name    = "${azurerm_resource_group.rg.name}"
+  account_name 		       = "${azurerm_batch_account.batch.name}"
+  display_name		       = "Fixed Scale Pool"
+  vm_size				         = "Standard_A1"
+  scale_mode			       = "Fixed"
+  target_dedicated_nodes = 2
+  resize_timeout         = "PT15M"
+  node_agent_sku_id	     = "batch.node.ubuntu 16.04"
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04.0-LTS"
+    version   = "latest"
+  }
+}
+
+resource "azurerm_batch_pool" "autopool" {
+  name                   = "myautopool"
+  resource_group_name    = "${azurerm_resource_group.rg.name}"
+  account_name 		       = "${azurerm_batch_account.batch.name}"
+  display_name		       = "Auto Scale Pool"
+  vm_size				         = "Standard_A1"
+  scale_mode			       = "Auto"
+  autoscale_evaluation_interval = "PT15M"
+	autoscale_formula			  = <<EOF
+	startingNumberOfVMs = 1;
+	maxNumberofVMs = 25;
+	pendingTaskSamplePercent = $PendingTasks.GetSamplePercent(180 * TimeInterval_Second);
+	pendingTaskSamples = pendingTaskSamplePercent < 70 ? startingNumberOfVMs : avg($PendingTasks.GetSample(180 * TimeInterval_Second));
+	$TargetDedicatedNodes=min(maxNumberofVMs, pendingTaskSamples);
+	EOF
+  node_agent_sku_id	     = "batch.node.ubuntu 16.04"
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04.0-LTS"
+    version   = "latest"
+  }
+}
