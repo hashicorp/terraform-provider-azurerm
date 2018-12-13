@@ -278,7 +278,7 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 		}
 
 		log.Printf("[INFO] stopping the pending resize operation on this pool...")
-		if _, err := client.StopResize(ctx, resourceGroup, accountName, poolName); err != nil {
+		if _, err = client.StopResize(ctx, resourceGroup, accountName, poolName); err != nil {
 			return fmt.Errorf("Error stopping resize operation for Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
 		}
 
