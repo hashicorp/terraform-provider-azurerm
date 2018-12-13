@@ -153,7 +153,7 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
-	if requireResourcesToBeImported {
+	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

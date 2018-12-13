@@ -156,7 +156,7 @@ func resourceArmAppServiceSlotCreate(d *schema.ResourceData, meta interface{}) e
 	resGroup := d.Get("resource_group_name").(string)
 	appServiceName := d.Get("app_service_name").(string)
 
-	if requireResourcesToBeImported {
+	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.GetSlot(ctx, resGroup, appServiceName, slot)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

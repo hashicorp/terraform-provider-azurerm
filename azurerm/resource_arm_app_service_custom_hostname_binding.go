@@ -52,7 +52,7 @@ func resourceArmAppServiceCustomHostnameBindingCreate(d *schema.ResourceData, me
 	azureRMLockByName(appServiceName, appServiceCustomHostnameBindingResourceName)
 	defer azureRMUnlockByName(appServiceName, appServiceCustomHostnameBindingResourceName)
 
-	if requireResourcesToBeImported {
+	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.GetHostNameBinding(ctx, resourceGroup, appServiceName, hostname)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
