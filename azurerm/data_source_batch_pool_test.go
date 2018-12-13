@@ -8,12 +8,12 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccDataSourceAzureRMBatchPool_basic(t *testing.T) {
+func TestAccDataSourceAzureRMBatchPool_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_batch_pool.test"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
-	config := testAccDataSourceAzureRMBatchPool_basic(ri, rs, location)
+	config := testAccDataSourceAzureRMBatchPool_complete(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -29,17 +29,13 @@ func TestAccDataSourceAzureRMBatchPool_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "target_dedicated_nodes", "2"),
 					resource.TestCheckResourceAttr(dataSourceName, "resize_timeout", "PT15M"),
 					resource.TestCheckResourceAttr(dataSourceName, "node_agent_sku_id", "batch.node.ubuntu 16.04"),
-					// resource.TestCheckResourceAttr(dataSourceName, "storage_image_reference.0.publisher", "Canonical"),
-					// resource.TestCheckResourceAttr(dataSourceName, "storage_image_reference.0.offer", "UbuntuServer"),
-					// resource.TestCheckResourceAttr(dataSourceName, "storage_image_reference.0.sku", "16.04.0-LTS"),
-					// resource.TestCheckResourceAttr(dataSourceName, "storage_image_reference.0.version", "latest"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceAzureRMBatchPool_basic(rInt int, rString string, location string) string {
+func testAccDataSourceAzureRMBatchPool_complete(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 	resource "azurerm_resource_group" "test" {
 		name     = "testaccbatch%d"
