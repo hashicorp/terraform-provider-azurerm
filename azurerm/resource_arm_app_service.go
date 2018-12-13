@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -188,6 +189,21 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	log.Printf("[INFO] preparing arguments for AzureRM App Service creation.")
 
 	name := d.Get("name").(string)
+	resGroup := d.Get("resource_group_name").(string)
+
+	if requireResourcesToBeImported {
+		existing, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing App Service %q (Resource Group %q): %s", name, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_app_service", *existing.ID)
+		}
+	}
+
 	availabilityRequest := web.ResourceNameAvailabilityRequest{
 		Name: utils.String(name),
 		Type: web.CheckNameResourceTypesMicrosoftWebsites,
@@ -201,7 +217,6 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("The name %q used for the App Service needs to be globally unique and isn't available: %s", name, *available.Message)
 	}
 
-	resGroup := d.Get("resource_group_name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	appServicePlanId := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
