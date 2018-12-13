@@ -36,6 +36,35 @@ func TestAccAzureRMAutomationModule_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAutomationModule_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_automation_module.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAutomationModuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAutomationModule_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAutomationModuleExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMAutomationModule_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_automation_module"),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMAutomationModuleDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).automationModuleClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -131,4 +160,22 @@ resource "azurerm_automation_module" "test" {
   }
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMAutomationModule_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMAutomationModule_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+
+resource "azurerm_automation_module" "import" {
+  name                    = "${azurerm_automation_module.test.name}"
+  resource_group_name     = "${azurerm_automation_module.test.resource_group_name}"
+  automation_account_name = "${azurerm_automation_module.test.automation_account_name}"
+
+  module_link = {
+    uri = "https://devopsgallerystorage.blob.core.windows.net/packages/xactivedirectory.2.19.0.nupkg"
+  }
+}
+`, template)
 }
