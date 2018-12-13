@@ -10,7 +10,7 @@ import (
 
 func dataSourceArmVirtualMachine() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmVMRead,
+		Read: dataSourceArmVirtualMachineRead,
 		Schema: map[string]*schema.Schema{
 			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 
@@ -23,7 +23,7 @@ func dataSourceArmVirtualMachine() *schema.Resource {
 	}
 }
 
-func dataSourceArmVMRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).vmClient
 	ctx := meta.(*ArmClient).StopContext
 
