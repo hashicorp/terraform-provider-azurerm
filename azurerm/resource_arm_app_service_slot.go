@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -147,13 +148,28 @@ func resourceArmAppServiceSlot() *schema.Resource {
 
 func resourceArmAppServiceSlotCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).appServicesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM App Service Slot creation.")
 
 	slot := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
 	appServiceName := d.Get("app_service_name").(string)
+
+	if requireResourcesToBeImported {
+		existing, err := client.GetSlot(ctx, resGroup, appServiceName, slot)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Slot %q (App Service %q / Resource Group %q): %s", slot, appServiceName, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_app_service_slot", *existing.ID)
+		}
+	}
+
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	appServicePlanId := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
@@ -180,9 +196,6 @@ func resourceArmAppServiceSlotCreate(d *schema.ResourceData, meta interface{}) e
 		enabled := v.(bool)
 		siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(enabled)
 	}
-
-	// NOTE: these seem like sensible defaults, in lieu of any better documentation.
-	ctx := meta.(*ArmClient).StopContext
 
 	resp, err := client.Get(ctx, resGroup, appServiceName)
 	if err != nil {
