@@ -1,4 +1,10 @@
 ## 1.21.0 (Unreleased)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_batch_account` [GH-2428]
+* **New Resource:** `azurerm_batch_account` [GH-2428]
+
 ## 1.20.0 (December 12, 2018)
 
 FEATURES:
