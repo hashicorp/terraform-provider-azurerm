@@ -600,11 +600,11 @@ func flattenRedisConfiguration(input map[string]*string) ([]interface{}, error) 
 		}
 		outputs["maxmemory_reserved"] = i
 	}
-	
+
 	if v := input["maxmemory-policy"]; v != nil {
 		outputs["maxmemory_policy"] = *v
 	} else {
-		outputs["maxmemory_policy"] = "volatile-lru";
+		outputs["maxmemory_policy"] = "volatile-lru"
 	}
 
 	// delta, reserved, enabled, frequency,, count,
