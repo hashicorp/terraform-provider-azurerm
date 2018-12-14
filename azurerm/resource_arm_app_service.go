@@ -160,6 +160,10 @@ func resourceArmAppService() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"possible_outbound_ip_addresses": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"source_control": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -436,6 +440,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("https_only", props.HTTPSOnly)
 		d.Set("default_site_hostname", props.DefaultHostName)
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
+		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
 	}
 
 	if err := d.Set("app_settings", flattenAppServiceAppSettings(appSettingsResp.Properties)); err != nil {
