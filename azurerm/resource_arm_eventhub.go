@@ -162,8 +162,7 @@ func resourceArmEventHubCreate(d *schema.ResourceData, meta interface{}) error {
 		parameters.Properties.CaptureDescription = captureDescription
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters); err != nil {
 		return err
 	}
 

@@ -44,6 +44,10 @@ The following attributes are exported:
 
 * `fqdn` - The FQDN of the Azure Kubernetes Managed Cluster.
 
+* `kube_admin_config` - A `kube_admin_config` block as defined below. This is only available when Role Based Access Control with Azure Active Directory is enabled.
+
+* `kube_admin_config_raw` - Raw Kubernetes config for the admin account to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools. This is only available when Role Based Access Control with Azure Active Directory is enabled.
+
 * `kube_config` - A `kube_config` block as defined below.
 
 * `kube_config_raw` - Base64 encoded Kubernetes configuration.
@@ -90,7 +94,6 @@ A `agent_pool_profile` block exports the following:
 
 * `vnet_subnet_id` - The ID of the Subnet where the Agents in the Pool are provisioned.
 
-
 ---
 
 A `azure_active_directory` block exports the following:
@@ -100,6 +103,7 @@ A `azure_active_directory` block exports the following:
 * `server_app_id` - The Server ID of an Azure Active Directory Application.
 
 * `tenant_id` - The Tenant ID used for Azure Active Directory Application.
+
 ---
 
 A `http_application_routing` block exports the following:
@@ -110,7 +114,7 @@ A `http_application_routing` block exports the following:
 
 ---
 
-A `kube_config` block exports the following:
+The `kube_admin_config` and `kube_config` blocks exports the following:
 
 * `client_key` - Base64 encoded private key used by clients to authenticate to the Kubernetes cluster.
 
@@ -172,6 +176,8 @@ A `oms_agent` block exports the following:
 A `role_based_access_control` block exports the following:
 
 * `azure_active_directory` - A `azure_active_directory` block as documented above.
+
+* `enabled` - Is Role Based Access Control enabled?
 
 ---
 

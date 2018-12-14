@@ -121,8 +121,7 @@ func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) erro
 		Tags:    expandTags(tags),
 	}
 
-	_, err := client.CreateKey(ctx, keyVaultBaseUrl, name, parameters)
-	if err != nil {
+	if _, err := client.CreateKey(ctx, keyVaultBaseUrl, name, parameters); err != nil {
 		return fmt.Errorf("Error Creating Key: %+v", err)
 	}
 
@@ -218,7 +217,6 @@ func resourceArmKeyVaultKeyDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	_, err = client.DeleteKey(ctx, id.KeyVaultBaseUrl, id.Name)
-
 	return err
 }
 

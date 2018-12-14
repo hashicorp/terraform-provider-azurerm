@@ -14,9 +14,9 @@ import (
 
 func resourceArmDnsMxRecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDnsMxRecordCreateOrUpdate,
+		Create: resourceArmDnsMxRecordCreateUpdate,
 		Read:   resourceArmDnsMxRecordRead,
-		Update: resourceArmDnsMxRecordCreateOrUpdate,
+		Update: resourceArmDnsMxRecordCreateUpdate,
 		Delete: resourceArmDnsMxRecordDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -66,7 +66,7 @@ func resourceArmDnsMxRecord() *schema.Resource {
 	}
 }
 
-func resourceArmDnsMxRecordCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDnsMxRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dnsClient
 	ctx := meta.(*ArmClient).StopContext
 

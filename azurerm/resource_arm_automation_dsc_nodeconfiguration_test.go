@@ -37,6 +37,30 @@ func TestAccAzureRMAutomationDscNodeConfiguration_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAutomationDscNodeConfiguration_requiresImport(t *testing.T) {
+	resourceName := "azurerm_automation_dsc_nodeconfiguration.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAutomationDscNodeConfigurationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAutomationDscNodeConfiguration_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAutomationDscNodeConfigurationExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMAutomationDscNodeConfiguration_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_automation_dsc_nodeconfiguration"),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMAutomationDscNodeConfigurationDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).automationDscNodeConfigurationClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -161,4 +185,18 @@ instance of OMI_ConfigurationDocument
 mofcontent
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMAutomationDscNodeConfiguration_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMAutomationDscNodeConfiguration_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_automation_dsc_nodeconfiguration" "import" {
+  name                    = "${azurerm_automation_dsc_nodeconfiguration.test.name}"
+  resource_group_name     = "${azurerm_automation_dsc_nodeconfiguration.test.resource_group_name}"
+  automation_account_name = "${azurerm_automation_dsc_nodeconfiguration.test.automation_account_name}"
+  content_embedded        = "${azurerm_automation_dsc_nodeconfiguration.test.content_embedded}"
+}
+`, template)
 }
