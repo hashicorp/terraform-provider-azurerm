@@ -27,6 +27,14 @@
 			"versionExact": "v21.3.0"
 		},
 		{
+			"checksumSHA1": "wSU0j8sK/9pDbS+X4jxvExz44w8=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch",
+			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
+			"revisionTime": "2018-10-19T17:11:53Z",
+			"version": "v21.3.0",
+			"versionExact": "v21.3.0"
+		},
+		{
 			"checksumSHA1": "GZEKIkiC//1VgeihW1g/KU+JC8A=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-10-12/cdn",
 			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
