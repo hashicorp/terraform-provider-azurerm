@@ -36,6 +36,36 @@ func TestAccAzureRMApplicationInsights_basicWeb(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMApplicationInsights_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_application_insights.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApplicationInsights_basic(ri, location, "web"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationInsightsExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "application_type", "web"),
+				),
+			},
+			{
+				Config:      testAccAzureRMApplicationInsights_requiresImport(ri, location, "web"),
+				ExpectError: testRequiresImportError("azurerm_application_insights"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMApplicationInsights_basicJava(t *testing.T) {
 	resourceName := "azurerm_application_insights.test"
 	ri := acctest.RandInt()
@@ -262,4 +292,18 @@ resource "azurerm_application_insights" "test" {
   application_type    = "%s"
 }
 `, rInt, location, rInt, applicationType)
+}
+
+func testAccAzureRMApplicationInsights_requiresImport(rInt int, location string, applicationType string) string {
+	template := testAccAzureRMApplicationInsights_basic(rInt, location, applicationType)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_application_insights" "import" {
+  name                = "${azurerm_application_insights.test.name}"
+  location            = "${azurerm_application_insights.test.location}"
+  resource_group_name = "${azurerm_application_insights.test.resource_group_name}"
+  application_type    = "${azurerm_application_insights.test.application_type}"
+}
+`, template)
 }

@@ -76,6 +76,35 @@ func TestAccAzureRMAppService_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppService_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_app_service.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppService_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMAppService_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_app_service"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAppService_freeTier(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
 	ri := acctest.RandInt()
@@ -1186,6 +1215,20 @@ resource "azurerm_app_service" "test" {
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMAppService_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMAppService_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service" "import" {
+  name                = "${azurerm_app_service.test.name}"
+  location            = "${azurerm_app_service.test.location}"
+  resource_group_name = "${azurerm_app_service.test.resource_group_name}"
+  app_service_plan_id = "${azurerm_app_service.test.app_service_plan_id}"
+}
+`, template)
 }
 
 func testAccAzureRMAppService_freeTier(rInt int, location string) string {

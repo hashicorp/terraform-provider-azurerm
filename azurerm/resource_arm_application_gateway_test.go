@@ -99,6 +99,35 @@ func TestAccAzureRMApplicationGateway_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMApplicationGateway_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_application_gateway.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApplicationGateway_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationGatewayExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMApplicationGateway_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_application_gateway"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMApplicationGateway_authCertificate(t *testing.T) {
 	resourceName := "azurerm_application_gateway.test"
 	ri := acctest.RandInt()
@@ -390,6 +419,67 @@ resource "azurerm_application_gateway" "test" {
   }
 }
 `, template, rInt)
+}
+
+func testAccAzureRMApplicationGateway_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMApplicationGateway_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_application_gateway" "import" {
+  name                = "${azurerm_application_gateway.test.name}"
+  resource_group_name = "${azurerm_application_gateway.test.resource_group_name}"
+  location            = "${azurerm_application_gateway.test.location}"
+
+  sku {
+    name     = "Standard_Small"
+    tier     = "Standard"
+    capacity = 2
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = "${azurerm_subnet.test.id}"
+  }
+
+  frontend_port {
+    name = "${local.frontend_port_name}"
+    port = 80
+  }
+
+  frontend_ip_configuration {
+    name                 = "${local.frontend_ip_configuration_name}"
+    public_ip_address_id = "${azurerm_public_ip.test.id}"
+  }
+
+  backend_address_pool {
+    name = "${local.backend_address_pool_name}"
+  }
+
+  backend_http_settings {
+    name                  = "${local.http_setting_name}"
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 1
+  }
+
+  http_listener {
+    name                           = "${local.listener_name}"
+    frontend_ip_configuration_name = "${local.frontend_ip_configuration_name}"
+    frontend_port_name             = "${local.frontend_port_name}"
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                       = "${local.request_routing_rule_name}"
+    rule_type                  = "Basic"
+    http_listener_name         = "${local.listener_name}"
+    backend_address_pool_name  = "${local.backend_address_pool_name}"
+    backend_http_settings_name = "${local.http_setting_name}"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMApplicationGateway_authCertificate(rInt int, location string) string {

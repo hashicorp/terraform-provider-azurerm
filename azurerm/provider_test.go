@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/Azure/go-autorest/autorest/azure"
@@ -97,4 +98,9 @@ func testGetAzureConfig(t *testing.T) *authentication.Config {
 	}
 
 	return config
+}
+
+func testRequiresImportError(resourceName string) *regexp.Regexp {
+	message := "to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information."
+	return regexp.MustCompile(fmt.Sprintf(message, resourceName))
 }
