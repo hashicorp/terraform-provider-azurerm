@@ -31,7 +31,7 @@ func resourceArmLoadBalancerNatRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"location": deprecatedLocationSchema(),
@@ -78,7 +78,7 @@ func resourceArmLoadBalancerNatRule() *schema.Resource {
 			"frontend_ip_configuration_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"frontend_ip_configuration_id": {
@@ -138,8 +138,7 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *schema.ResourceData, meta int
 		return fmt.Errorf("Error Creating / Updating Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for completion of Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
 	}
 
@@ -267,8 +266,7 @@ func resourceArmLoadBalancerNatRuleDelete(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q) %+v", loadBalancerName, resGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for the completion of Load Balancer updates for %q (Resource Group %q) %+v", loadBalancerName, resGroup, err)
 	}
 

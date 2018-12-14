@@ -158,8 +158,7 @@ func testCheckAzureRMSqlElasticPoolDisappears(name string) resource.TestCheckFun
 		client := testAccProvider.Meta().(*ArmClient).sqlElasticPoolsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, err := client.Delete(ctx, resourceGroup, serverName, poolName)
-		if err != nil {
+		if _, err := client.Delete(ctx, resourceGroup, serverName, poolName); err != nil {
 			return fmt.Errorf("Bad: Delete on sqlElasticPoolsClient: %+v", err)
 		}
 

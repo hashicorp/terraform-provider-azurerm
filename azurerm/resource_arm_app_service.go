@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -188,6 +189,21 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	log.Printf("[INFO] preparing arguments for AzureRM App Service creation.")
 
 	name := d.Get("name").(string)
+	resGroup := d.Get("resource_group_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing App Service %q (Resource Group %q): %s", name, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_app_service", *existing.ID)
+		}
+	}
+
 	availabilityRequest := web.ResourceNameAvailabilityRequest{
 		Name: utils.String(name),
 		Type: web.CheckNameResourceTypesMicrosoftWebsites,
@@ -201,7 +217,6 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("The name %q used for the App Service needs to be globally unique and isn't available: %s", name, *available.Message)
 	}
 
-	resGroup := d.Get("resource_group_name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	appServicePlanId := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
@@ -289,8 +304,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 
@@ -300,8 +314,8 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		siteConfigResource := web.SiteConfigResource{
 			SiteConfig: &siteConfig,
 		}
-		_, err := client.CreateOrUpdateConfiguration(ctx, resGroup, name, siteConfigResource)
-		if err != nil {
+
+		if _, err := client.CreateOrUpdateConfiguration(ctx, resGroup, name, siteConfigResource); err != nil {
 			return fmt.Errorf("Error updating Configuration for App Service %q: %+v", name, err)
 		}
 	}
@@ -317,8 +331,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			},
 		}
 
-		_, err := client.Update(ctx, resGroup, name, sitePatchResource)
-		if err != nil {
+		if _, err := client.Update(ctx, resGroup, name, sitePatchResource); err != nil {
 			return fmt.Errorf("Error updating App Service ARR Affinity setting %q: %+v", name, err)
 		}
 	}
@@ -330,8 +343,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			Properties: appSettings,
 		}
 
-		_, err := client.UpdateApplicationSettings(ctx, resGroup, name, settings)
-		if err != nil {
+		if _, err := client.UpdateApplicationSettings(ctx, resGroup, name, settings); err != nil {
 			return fmt.Errorf("Error updating Application Settings for App Service %q: %+v", name, err)
 		}
 	}
@@ -343,8 +355,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			Properties: connectionStrings,
 		}
 
-		_, err := client.UpdateConnectionStrings(ctx, resGroup, name, properties)
-		if err != nil {
+		if _, err := client.UpdateConnectionStrings(ctx, resGroup, name, properties); err != nil {
 			return fmt.Errorf("Error updating Connection Strings for App Service %q: %+v", name, err)
 		}
 	}
@@ -364,9 +375,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			return fmt.Errorf("Error updating Managed Service Identity for App Service %q: %+v", name, err)
 		}
 
-		err = future.WaitForCompletionRef(ctx, client.Client)
-
-		if err != nil {
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("Error updating Managed Service Identity for App Service %q: %+v", name, err)
 		}
 	}
@@ -447,6 +456,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	if err := d.Set("app_settings", flattenAppServiceAppSettings(appSettingsResp.Properties)); err != nil {
 		return err
 	}
+
 	if err := d.Set("connection_string", flattenAppServiceConnectionStrings(connectionStringsResp.Properties)); err != nil {
 		return err
 	}

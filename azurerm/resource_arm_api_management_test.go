@@ -35,6 +35,35 @@ func TestAccAzureRMApiManagement_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMApiManagement_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_api_management.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagement_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMApiManagement_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_api_management"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMApiManagement_customProps(t *testing.T) {
 	resourceName := "azurerm_api_management.test"
 	ri := acctest.RandInt()
@@ -172,6 +201,26 @@ resource "azurerm_api_management" "test" {
   }
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMApiManagement_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMApiManagement_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management" "import" {
+  name                = "${azurerm_api_management.test.name}"
+  location            = "${azurerm_api_management.test.location}"
+  resource_group_name = "${azurerm_api_management.test.resource_group_name}"
+  publisher_name      = "${azurerm_api_management.test.publisher_name}"
+  publisher_email     = "${azurerm_api_management.test.publisher_email}"
+
+  sku {
+    name     = "Developer"
+    capacity = 1
+  }
+}
+`, template)
 }
 
 func testAccAzureRMApiManagement_customProps(rInt int, location string) string {

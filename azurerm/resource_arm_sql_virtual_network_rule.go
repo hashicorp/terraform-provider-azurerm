@@ -75,13 +75,12 @@ func resourceArmSqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta i
 		},
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, parameters); err != nil {
 		return fmt.Errorf("Error creating SQL Virtual Network Rule %q (SQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
 	}
 
 	//Wait for the provisioning state to become ready
-	log.Printf("[DEBUG] Waiting for SQL Virtual Network Rule %q (SQL Server: %q, Resource Group: %q) to become ready: %+v", name, serverName, resourceGroup, err)
+	log.Printf("[DEBUG] Waiting for SQL Virtual Network Rule %q (SQL Server: %q, Resource Group: %q) to become ready", name, serverName, resourceGroup)
 	stateConf := &resource.StateChangeConf{
 		Pending:                   []string{"Initializing", "InProgress", "Unknown", "ResponseNotFound"},
 		Target:                    []string{"Ready"},
@@ -91,7 +90,7 @@ func resourceArmSqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta i
 		ContinuousTargetOccurence: 5,
 	}
 
-	if _, err = stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for SQL Virtual Network Rule %q (SQL Server: %q, Resource Group: %q) to be created or updated: %+v", name, serverName, resourceGroup, err)
 	}
 
@@ -163,8 +162,7 @@ func resourceArmSqlVirtualNetworkRuleDelete(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error deleting SQL Virtual Network Rule %q (SQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}

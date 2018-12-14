@@ -37,6 +37,30 @@ func TestValidateBatchAccountName(t *testing.T) {
 	}
 }
 
+func TestAccAzureRMBatchAccount_basic(t *testing.T) {
+	resourceName := "azurerm_batch_account.test"
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	location := testLocation()
+
+	config := testAccAzureRMBatchAccount_basic(ri, rs, location)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMBatchAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMBatchAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "pool_allocation_mode", "BatchService"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMBatchAccount_complete(t *testing.T) {
 	resourceName := "azurerm_batch_account.test"
 	ri := acctest.RandInt()
@@ -68,30 +92,6 @@ func TestAccAzureRMBatchAccount_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "tags.env", "test"),
 					resource.TestCheckResourceAttr(resourceName, "tags.version", "2"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMBatchAccount_noStorageAccount_basic(t *testing.T) {
-	resourceName := "azurerm_batch_account.test"
-	ri := acctest.RandInt()
-	rs := acctest.RandString(4)
-	location := testLocation()
-
-	config := testAccAzureRMBatchAccount_noStorageAccount_basic(ri, rs, location)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMBatchAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBatchAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "pool_allocation_mode", "BatchService"),
 				),
 			},
 		},
@@ -151,11 +151,27 @@ func testCheckAzureRMBatchAccountDestroy(s *terraform.State) error {
 	return nil
 }
 
+func testAccAzureRMBatchAccount_basic(rInt int, batchAccountSuffix string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+	name     = "testaccbatch%d"
+	location = "%s"
+}
+
+resource "azurerm_batch_account" "test" {
+	name                 = "testaccbatch%s"
+	resource_group_name  = "${azurerm_resource_group.test.name}"
+	location             = "${azurerm_resource_group.test.location}"
+	pool_allocation_mode = "BatchService"
+}
+`, rInt, location, batchAccountSuffix)
+}
+
 func testAccAzureRMBatchAccount_complete(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "testaccbatch%d"
-  location = "%s"
+	name     = "testaccbatch%d"
+	location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
@@ -167,15 +183,15 @@ resource "azurerm_storage_account" "test" {
   }
 
 resource "azurerm_batch_account" "test" {
-  name                 = "testaccbatch%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_resource_group.test.location}"
-  pool_allocation_mode = "BatchService"
-  storage_account_id   = "${azurerm_storage_account.test.id}"
-
-  tags {
-    env = "test"
-  }
+	name                 = "testaccbatch%s"
+	resource_group_name  = "${azurerm_resource_group.test.name}"
+	location             = "${azurerm_resource_group.test.location}"
+	pool_allocation_mode = "BatchService"
+	storage_account_id   = "${azurerm_storage_account.test.id}"	
+	
+	tags {
+		env = "test"
+	}
 }
 `, rInt, location, rString, rString)
 }
@@ -183,8 +199,8 @@ resource "azurerm_batch_account" "test" {
 func testAccAzureRMBatchAccount_completeUpdated(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "testaccbatch%d"
-  location = "%s"
+	name     = "testaccbatch%d"
+	location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
@@ -193,35 +209,19 @@ resource "azurerm_storage_account" "test" {
 	location                 = "${azurerm_resource_group.test.location}"
 	account_tier             = "Standard"
 	account_replication_type = "LRS"
-  }
+}
 
 resource "azurerm_batch_account" "test" {
-  name                 = "testaccbatch%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_resource_group.test.location}"
-  pool_allocation_mode = "BatchService"
-  storage_account_id   = "${azurerm_storage_account.test.id}"
+	name                 = "testaccbatch%s"
+	resource_group_name  = "${azurerm_resource_group.test.name}"
+	location             = "${azurerm_resource_group.test.location}"
+	pool_allocation_mode = "BatchService"
+	storage_account_id   = "${azurerm_storage_account.test.id}"
 
-  tags {
-	env 	= "test"
-	version = "2"
-  }
+	tags {
+		env 	= "test"
+		version = "2"
+  	}
 }
 `, rInt, location, rString, rString)
-}
-
-func testAccAzureRMBatchAccount_noStorageAccount_basic(rInt int, batchAccountSuffix string, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "testaccbatch%d"
-  location = "%s"
-}
-
-resource "azurerm_batch_account" "test" {
-  name                 = "testaccbatch%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_resource_group.test.location}"
-  pool_allocation_mode = "BatchService"
-}
-`, rInt, location, batchAccountSuffix)
 }

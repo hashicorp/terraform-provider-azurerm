@@ -40,12 +40,14 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/preview/devspaces/mgmt/2018-06-01-preview/devspaces"
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
+	"github.com/Azure/azure-sdk-for-go/services/preview/mariadb/mgmt/2018-06-01-preview/mariadb"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi"
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/management"
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/2017-08-01-preview/security"
+	"github.com/Azure/azure-sdk-for-go/services/preview/signalr/mgmt/2018-03-01-preview/signalr"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	MsSql "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
@@ -174,6 +176,8 @@ type ArmClient struct {
 	devSpaceControllerClient devspaces.ControllersClient
 
 	// Databases
+	mariadbDatabasesClient                   mariadb.DatabasesClient
+	mariadbServersClient                     mariadb.ServersClient
 	mysqlConfigurationsClient                mysql.ConfigurationsClient
 	mysqlDatabasesClient                     mysql.DatabasesClient
 	mysqlFirewallRulesClient                 mysql.FirewallRulesClient
@@ -299,6 +303,9 @@ type ArmClient struct {
 
 	// Service Fabric
 	serviceFabricClustersClient servicefabric.ClustersClient
+
+	// SignalR
+	signalRClient signalr.Client
 
 	// Storage
 	storageServiceClient storage.AccountsClient
@@ -454,6 +461,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool) (*Arm
 	client.registerServiceBusClients(endpoint, c.SubscriptionID, auth)
 	client.registerServiceFabricClients(endpoint, c.SubscriptionID, auth)
 	client.registerSchedulerClients(endpoint, c.SubscriptionID, auth)
+	client.registerSignalRClients(endpoint, c.SubscriptionID, auth)
 	client.registerStorageClients(endpoint, c.SubscriptionID, auth)
 	client.registerTrafficManagerClients(endpoint, c.SubscriptionID, auth)
 	client.registerWebClients(endpoint, c.SubscriptionID, auth)
@@ -655,6 +663,14 @@ func (c *ArmClient) registerDatabricksClients(endpoint, subscriptionId string, a
 }
 
 func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	mariadbDBClient := mariadb.NewDatabasesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&mariadbDBClient.Client, auth)
+	c.mariadbDatabasesClient = mariadbDBClient
+
+	mariadbServersClient := mariadb.NewServersClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&mariadbServersClient.Client, auth)
+	c.mariadbServersClient = mariadbServersClient
+
 	// MySQL
 	mysqlConfigClient := mysql.NewConfigurationsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&mysqlConfigClient.Client, auth)
@@ -1102,6 +1118,12 @@ func (c *ArmClient) registerServiceFabricClients(endpoint, subscriptionId string
 	clustersClient := servicefabric.NewClustersClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&clustersClient.Client, auth)
 	c.serviceFabricClustersClient = clustersClient
+}
+
+func (c *ArmClient) registerSignalRClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	sc := signalr.NewClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&sc.Client, auth)
+	c.signalRClient = sc
 }
 
 func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth autorest.Authorizer) {

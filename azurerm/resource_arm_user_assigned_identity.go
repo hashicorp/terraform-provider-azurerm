@@ -63,8 +63,7 @@ func resourceArmUserAssignedIdentityCreateUpdate(d *schema.ResourceData, meta in
 		Tags:     expandTags(tags),
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resGroup, name, identity)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, name, identity); err != nil {
 		return fmt.Errorf("Error Creating/Updating User Assigned Identity %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
