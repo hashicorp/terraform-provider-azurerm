@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
+	resourcesprofile "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
 	appinsights "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
@@ -57,6 +57,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
 	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
@@ -274,7 +275,7 @@ type ArmClient struct {
 	// Resources
 	managementLocksClient locks.ManagementLocksClient
 	deploymentsClient     resources.DeploymentsClient
-	providersClient       resources.ProvidersClient
+	providersClient       resourcesprofile.ProvidersClient
 	resourcesClient       resources.Client
 	resourceGroupsClient  resources.GroupsClient
 	subscriptionsClient   subscriptions.Client
@@ -1042,13 +1043,14 @@ func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, au
 	c.configureClient(&resourceGroupsClient.Client, auth)
 	c.resourceGroupsClient = resourceGroupsClient
 
-	providersClient := resources.NewProvidersClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&providersClient.Client, auth)
-	c.providersClient = providersClient
-
 	subscriptionsClient := subscriptions.NewClientWithBaseURI(endpoint)
 	c.configureClient(&subscriptionsClient.Client, auth)
 	c.subscriptionsClient = subscriptionsClient
+
+	// this has to come from the Profile since this is shared with Stack
+	providersClient := resourcesprofile.NewProvidersClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&providersClient.Client, auth)
+	c.providersClient = providersClient
 }
 
 func (c *ArmClient) registerSchedulerClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
