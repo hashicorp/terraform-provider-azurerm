@@ -85,6 +85,35 @@ func TestAccAzureRMCdnProfile_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCdnProfile_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_cdn_profile.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCdnProfile_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCdnProfileExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMCdnProfile_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_cdn_profile"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMCdnProfile_withTags(t *testing.T) {
 	resourceName := "azurerm_cdn_profile.test"
 	ri := acctest.RandInt()
@@ -303,6 +332,20 @@ resource "azurerm_cdn_profile" "test" {
   sku                 = "Standard_Verizon"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMCdnProfile_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMCdnProfile_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_profile" "import" {
+  name                = "${azurerm_cdn_profile.test.name}"
+  location            = "${azurerm_cdn_profile.test.location}"
+  resource_group_name = "${azurerm_cdn_profile.test.resource_group_name}"
+  sku                 = "${azurerm_cdn_profile.test.sku}"
+}
+`, template)
 }
 
 func testAccAzureRMCdnProfile_withTags(rInt int, location string) string {

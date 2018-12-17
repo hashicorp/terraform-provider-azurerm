@@ -78,6 +78,7 @@ func resourceArmActiveDirectoryApplicationCreate(d *schema.ResourceData, meta in
 	client := meta.(*ArmClient).applicationsClient
 	ctx := meta.(*ArmClient).StopContext
 
+	// NOTE: name isn't the Resource ID here, so we don't check it exists
 	name := d.Get("name").(string)
 	availableToOtherTenants := d.Get("available_to_other_tenants").(bool)
 

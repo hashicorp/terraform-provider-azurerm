@@ -98,7 +98,7 @@ func TestAccAzureRMContainerRegistry_basicClassic(t *testing.T) {
 func TestAccAzureRMContainerRegistry_basicBasic(t *testing.T) {
 	resourceName := "azurerm_container_registry.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Basic")
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -106,7 +106,7 @@ func TestAccAzureRMContainerRegistry_basicBasic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMContainerRegistry_basicManaged(ri, location, "Basic"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerRegistryExists(resourceName),
 				),
@@ -115,6 +115,35 @@ func TestAccAzureRMContainerRegistry_basicBasic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMContainerRegistry_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_container_registry.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMContainerRegistry_basicManaged(ri, location, "Basic"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerRegistryExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMContainerRegistry_requiresImport(ri, location, "Basic"),
+				ExpectError: testRequiresImportError("azurerm_container_registry"),
 			},
 		},
 	})
@@ -442,6 +471,20 @@ resource "azurerm_container_registry" "test" {
   sku                 = "%s"
 }
 `, rInt, location, rInt, sku)
+}
+
+func testAccAzureRMContainerRegistry_requiresImport(rInt int, location string, sku string) string {
+	template := testAccAzureRMContainerRegistry_basicManaged(rInt, location, sku)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_registry" "import" {
+  name                = "${azurerm_container_registry.test.name}"
+  resource_group_name = "${azurerm_container_registry.test.resource_group_name}"
+  location            = "${azurerm_container_registry.test.location}"
+  sku                 = "${azurerm_container_registry.test.sku}"
+}
+`, template)
 }
 
 func testAccAzureRMContainerRegistry_basicUnmanaged(rInt int, rStr string, location string, sku string) string {
