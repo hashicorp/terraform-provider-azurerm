@@ -109,6 +109,8 @@ The following arguments are supported:
 
 ~> **Note:** if `os_type` is set to `Windows` currently only a single `container` block is supported.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 The `container` block supports:
 
 * `name` - (Required) Specifies the name of the Container. Changing this forces a new resource to be created.
