@@ -6,6 +6,12 @@ FEATURES:
 * **New Data Source:** `azurerm_virtual_machine` [GH-2463]
 * **New Resource:** `azurerm_batch_account` [GH-2428]
 
+BUG FIXES:
+
+* `azurerm_template_deployment` - fixing regression and supportting nested template deployments [GH-2514]
+
+
+
 ## 1.20.0 (December 12, 2018)
 
 FEATURES:
