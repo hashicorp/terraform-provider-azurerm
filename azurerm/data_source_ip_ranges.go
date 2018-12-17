@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"encoding/xml"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -119,5 +118,4 @@ func getLinkToPublicIpsXML(body io.Reader) (string, error) {
 			}
 		}
 	}
-	return "", errors.New("unable to find link")
 }
