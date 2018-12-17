@@ -95,7 +95,7 @@ DEPLOY
 }
 
 output "storageAccountName" {
-  value = "${azurerm_template_deployment.test.outputs["storageAccountName"]}"
+  value = "${lookup(azurerm_template_deployment.test.outputs, "storageAccountName")}"
 }
 ```
 
