@@ -291,7 +291,7 @@ func getBatchPoolScaleSettings(d *schema.ResourceData) (*batch.ScaleSettings, er
 
 	if autoScaleOk {
 		autoScale := autoScaleValue.([]interface{})
-		if autoScale == nil || len(autoScale) == 0 {
+		if len(autoScale) == 0 {
 			return nil, fmt.Errorf("Error: when scale mode is Auto, auto_scale block is required")
 		}
 
@@ -306,7 +306,7 @@ func getBatchPoolScaleSettings(d *schema.ResourceData) (*batch.ScaleSettings, er
 		}
 	} else if fixedScaleOk {
 		fixedScale := fixedScaleValue.([]interface{})
-		if fixedScale == nil || len(fixedScale) == 0 {
+		if len(fixedScale) == 0 {
 			return nil, fmt.Errorf("Error: when scale mode is Fixed, fixed_scale block is required")
 		}
 
