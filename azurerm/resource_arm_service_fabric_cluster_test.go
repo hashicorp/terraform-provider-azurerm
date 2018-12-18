@@ -29,6 +29,7 @@ func TestAccAzureRMServiceFabricCluster_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "add_on_features.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "certificate.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "client_certificate_thumbprint.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "azure_active_directory.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "diagnostics_config.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "node_type.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "node_type.0.instance_count", "3"),
@@ -220,6 +221,38 @@ func TestAccAzureRMServiceFabricCluster_readerAdminClientCertificateThumbprint(t
 					resource.TestCheckResourceAttr(resourceName, "client_certificate_thumbprint.0.is_admin", "true"),
 					resource.TestCheckResourceAttr(resourceName, "client_certificate_thumbprint.1.thumbprint", "33:41:DB:6C:F2:AF:72:C6:11:DF:3B:E3:72:1A:65:3A:F1:D4:3E:CD:50:F5:84:F8:28:79:3D:BE:91:03:C3:EE"),
 					resource.TestCheckResourceAttr(resourceName, "client_certificate_thumbprint.1.is_admin", "false"),
+					resource.TestCheckResourceAttr(resourceName, "fabric_settings.0.name", "Security"),
+					resource.TestCheckResourceAttr(resourceName, "fabric_settings.0.parameters.ClusterProtectionLevel", "EncryptAndSign"),
+					resource.TestCheckResourceAttr(resourceName, "management_endpoint", "https://example:80"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMServiceFabricCluster_azureActiveDirectory(t *testing.T) {
+	resourceName := "azurerm_service_fabric_cluster.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceFabricCluster_clientCertificateThumbprint(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceFabricClusterExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "azure_active_directory.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "azure_active_directory.tenant_id", "00000000-0000-0000-0000-00000000000"),
+					resource.TestCheckResourceAttr(resourceName, "azure_active_directory.cluster_application", "00000000-0000-0000-0000-000000000000"),
+					resource.TestCheckResourceAttr(resourceName, "azure_active_directory.client_application", "00000000-0000-0000-0000-000000000000"),
 					resource.TestCheckResourceAttr(resourceName, "fabric_settings.0.name", "Security"),
 					resource.TestCheckResourceAttr(resourceName, "fabric_settings.0.parameters.ClusterProtectionLevel", "EncryptAndSign"),
 					resource.TestCheckResourceAttr(resourceName, "management_endpoint", "https://example:80"),
@@ -701,6 +734,47 @@ resource "azurerm_service_fabric_cluster" "test" {
     thumbprint = "33:41:DB:6C:F2:AF:72:C6:11:DF:3B:E3:72:1A:65:3A:F1:D4:3E:CD:50:F5:84:F8:28:79:3D:BE:91:03:C3:EE"
     is_admin   = false
   }
+
+  fabric_settings {
+    name = "Security"
+
+    parameters {
+      "ClusterProtectionLevel" = "EncryptAndSign"
+    }
+  }
+
+  node_type {
+    name                 = "first"
+    instance_count       = 3
+    is_primary           = true
+    client_endpoint_port = 2020
+    http_endpoint_port   = 80
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMServiceFabricCluster_readerAdminClientCertificateThumbprint(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_service_fabric_cluster" "test" {
+  name                = "acctest-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  reliability_level   = "Bronze"
+  upgrade_mode        = "Automatic"
+  vm_image            = "Windows"
+  management_endpoint = "https://example:80"
+	
+	azure_active_directory {
+		tenant_id           = "00000000-0000-0000-0000-000000000000"
+		cluster_application = "00000000-0000-0000-0000-000000000000"
+		client_application  = "00000000-0000-0000-0000-000000000000"
+	}
 
   fabric_settings {
     name = "Security"

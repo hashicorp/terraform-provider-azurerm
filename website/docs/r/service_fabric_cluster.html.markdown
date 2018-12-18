@@ -65,6 +65,8 @@ The following arguments are supported:
 
 * `add_on_features` - (Optional) A List of one or more features which should be enabled, such as `DnsService`.
 
+* `azure_active_directory` - (Optional) `azure_active_directory` block as defined below. Changing this forces a new resource to be created.
+
 * `certificate` - (Optional) A `certificate` block as defined below.
 
 * `client_certificate_thumbprint` - (Optional) One or two `client_certificate_thumbprint` blocks as defined below.
@@ -76,6 +78,16 @@ The following arguments are supported:
 * `fabric_settings` - (Optional) One or more `fabric_settings` blocks as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+A `azure_active_directory` block supports the following:
+
+* `tenant_id` - (Required) The TenantID of the Azure Active Directory resource.
+
+* `cluster_application` - (Required) The GUID of the cluster application.
+
+* `client_application` - (Required) The GUID of the client application.
 
 ---
 

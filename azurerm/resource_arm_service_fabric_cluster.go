@@ -70,12 +70,37 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-
+			
 			"add_on_features": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,
+			},
+
+			"azure_active_directory": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+						},
+						"cluster_application": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+						},
+						"client_application": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+						},
+					},
+				},
 			},
 
 			"certificate": {
@@ -288,6 +313,9 @@ func resourceArmServiceFabricClusterCreate(d *schema.ResourceData, meta interfac
 	addOnFeaturesRaw := d.Get("add_on_features").(*schema.Set).List()
 	addOnFeatures := expandServiceFabricClusterAddOnFeatures(addOnFeaturesRaw)
 
+	azureActiveDirectoryRaw := d.Get("azure_active_directory").([]interface{})
+	azureActiveDirectory := expandServiceFabricClusterAzureActiveDirectory(azureActiveDirectoryRaw)
+
 	certificateRaw := d.Get("certificate").([]interface{})
 	certificate := expandServiceFabricClusterCertificate(certificateRaw)
 
@@ -308,6 +336,7 @@ func resourceArmServiceFabricClusterCreate(d *schema.ResourceData, meta interfac
 		Tags:     expandTags(tags),
 		ClusterProperties: &servicefabric.ClusterProperties{
 			AddOnFeatures:                   addOnFeatures,
+			AzureActiveDirectory:            azureActiveDirectory,
 			Certificate:                     certificate,
 			ClientCertificateThumbprints:    clientCertificateThumbprints,
 			DiagnosticsStorageAccountConfig: diagnostics,
@@ -445,6 +474,11 @@ func resourceArmServiceFabricClusterRead(d *schema.ResourceData, meta interface{
 			return fmt.Errorf("Error setting `add_on_features`: %+v", err)
 		}
 
+		azureActiveDirectory := flattenServiceFabricClusterAzureActiveDirectory(props.AzureActiveDirectory)
+		if err := d.Set("azure_active_directory", azureActiveDirectory); err != nil {
+			return fmt.Errorf("Error setting `azure_active_directory`: %+v", err)
+		}
+
 		certificate := flattenServiceFabricClusterCertificate(props.Certificate)
 		if err := d.Set("certificate", certificate); err != nil {
 			return fmt.Errorf("Error setting `certificate`: %+v", err)
@@ -507,6 +541,49 @@ func expandServiceFabricClusterAddOnFeatures(input []interface{}) *[]string {
 	}
 
 	return &output
+}
+
+func expandServiceFabricClusterAzureActiveDirectory(input []interface{}) *servicefabric.AzureActiveDirectory {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	tenantId := v["tenant_id"].(string)
+	clusterApplication := v["cluster_application"].(string)
+	clientApplication := v["client_application"].(string)
+
+	config := servicefabric.AzureActiveDirectory{
+		TenantID:           utils.String(tenantId),
+		ClusterApplication: utils.String(clusterApplication),
+		ClientApplication:  utils.String(clientApplication),
+	}
+	return &config
+}
+
+func flattenServiceFabricClusterAzureActiveDirectory(input *servicefabric.AzureActiveDirectory) []interface{} {
+	results := make([]interface{}, 0)
+
+	if v := input; v != nil {
+		output := make(map[string]interface{})
+
+		if name := v.TenantID; name != nil {
+			output["tenant_id"] = *name
+		}
+
+		if name := v.ClusterApplication; name != nil {
+			output["cluster_application"] = *name
+		}
+
+		if endpoint := v.ClientApplication; endpoint != nil {
+			output["client_application"] = *endpoint
+		}
+
+		results = append(results, output)
+	}
+
+	return results
 }
 
 func flattenServiceFabricClusterAddOnFeatures(input *[]string) []interface{} {
