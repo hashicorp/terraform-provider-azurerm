@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_policy_set_definition"
 sidebar_current: "docs-azurerm-resource-policy-set-definition"
 description: |-
-  Manages a policy set definition. Policy set definitions (also known as policy initiatives) do not take effect until they are assigned to a scope using a Policy Set Assignment.
+  Manages a policy set definition.
 ---
 
 # azurerm_policy_set_definition
