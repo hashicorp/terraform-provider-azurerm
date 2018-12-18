@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 func TestAccAzureRMFirewallNetworkRuleCollection_basic(t *testing.T) {
@@ -332,12 +331,6 @@ func testCheckAzureRMFirewallNetworkRuleCollectionDisappears(resourceName string
 		}
 
 		read.AzureFirewallPropertiesFormat.NetworkRuleCollections = &rules
-		ipConfigs, err := azure.FirewallFixIPConfiguration(read.AzureFirewallPropertiesFormat.IPConfigurations)
-		if err != nil {
-			return fmt.Errorf("Error fixing IP Configuration for Firewall: err")
-		}
-
-		read.AzureFirewallPropertiesFormat.IPConfigurations = ipConfigs
 
 		future, err := client.CreateOrUpdate(ctx, resourceGroup, firewallName, read)
 		if err != nil {
