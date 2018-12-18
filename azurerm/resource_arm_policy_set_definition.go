@@ -116,7 +116,7 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 	if metaDataString := d.Get("metadata").(string); metaDataString != "" {
 		metaData, err := structure.ExpandJsonFromString(metaDataString)
 		if err != nil {
-			return fmt.Errorf("unable to parse metadata: %s", err)
+			return fmt.Errorf("unable to expand metadata json: %s", err)
 		}
 		properties.Metadata = &metaData
 	}
