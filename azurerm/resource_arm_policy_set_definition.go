@@ -242,7 +242,6 @@ func resourceArmPolicySetDefinitionDelete(d *schema.ResourceData, meta interface
 	}
 
 	resp, err := client.Delete(ctx, name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil
