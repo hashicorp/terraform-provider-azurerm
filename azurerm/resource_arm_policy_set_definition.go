@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+
 	"time"
 
 	"strconv"
@@ -33,9 +35,10 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"policy_type": {
@@ -49,8 +52,9 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 				}, true)},
 
 			"display_name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"description": {
