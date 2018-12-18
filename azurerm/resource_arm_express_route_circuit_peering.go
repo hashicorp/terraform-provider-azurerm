@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -149,8 +149,7 @@ func resourceArmExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, m
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 
@@ -200,7 +199,7 @@ func resourceArmExpressRouteCircuitPeeringRead(d *schema.ResourceData, meta inte
 
 		config := flattenExpressRouteCircuitPeeringMicrosoftConfig(props.MicrosoftPeeringConfig)
 		if err := d.Set("microsoft_peering_config", config); err != nil {
-			return fmt.Errorf("Error flattening `microsoft_peering_config`: %+v", err)
+			return fmt.Errorf("Error setting `microsoft_peering_config`: %+v", err)
 		}
 	}
 
@@ -231,8 +230,7 @@ func resourceArmExpressRouteCircuitPeeringDelete(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error issuing delete request for Express Route Circuit Peering %q (Circuit %q / Resource Group %q): %+v", peeringType, circuitName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
@@ -261,12 +259,10 @@ func flattenExpressRouteCircuitPeeringMicrosoftConfig(input *network.ExpressRout
 		return []interface{}{}
 	}
 
-	config := make(map[string]interface{}, 0)
+	config := make(map[string]interface{})
 	prefixes := make([]string, 0)
 	if ps := input.AdvertisedPublicPrefixes; ps != nil {
-		for _, p := range *ps {
-			prefixes = append(prefixes, p)
-		}
+		prefixes = *ps
 	}
 
 	config["advertised_public_prefixes"] = prefixes

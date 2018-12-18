@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_policy_assignment"
 sidebar_current: "docs-azurerm-resource-policy-assignment"
 description: |-
-  Configured the specified Policy Definition at the specified Scope.
+  Configures the specified Policy Definition at the specified Scope.
 ---
 
 # azurerm_policy_assignment
 
-Configured the specified Policy Definition at the specified Scope.
+Configures the specified Policy Definition at the specified Scope.
 
 ## Example Usage
 
@@ -18,7 +18,8 @@ resource "azurerm_policy_definition" "test" {
   policy_type  = "Custom"
   mode         = "All"
   display_name = "acctestpol-%d"
-  policy_rule  = <<POLICY_RULE
+
+  policy_rule = <<POLICY_RULE
 	{
     "if": {
       "not": {
@@ -47,7 +48,7 @@ PARAMETERS
 }
 
 resource "azurerm_resource_group" "test" {
-  name = "test-resources"
+  name     = "test-resources"
   location = "West Europe"
 }
 
@@ -57,6 +58,7 @@ resource "azurerm_policy_assignment" "test" {
   policy_definition_id = "${azurerm_policy_definition.test.id}"
   description          = "Policy Assignment created via an Acceptance Test"
   display_name         = "Acceptance Test Run %d"
+
   parameters = <<PARAMETERS
 {
   "allowedLocations": {
@@ -73,7 +75,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Policy Assignment. Changing this forces a new resource to be created.
 
-* `scope`- (Required) The Scope at which the Policy Assignment should be applied. This can either be the Subscription (e.g. `/subscriptions/00000000-0000-0000-000000000000`) or a Resource Group (e.g.`/subscriptions/00000000-0000-0000-000000000000/resourceGroups/myResourceGroup`). Changing this forces a new resource to be created.
+* `scope`- (Required) The Scope at which the Policy Assignment should be applied, which must be a Resource ID (such as Subscription e.g. `/subscriptions/00000000-0000-0000-000000000000` or a Resource Group e.g.`/subscriptions/00000000-0000-0000-000000000000/resourceGroups/myResourceGroup`). Changing this forces a new resource to be created.
 
 * `policy_definition_id` - (Required) The ID of the Policy Definition to be applied at the specified Scope.
 

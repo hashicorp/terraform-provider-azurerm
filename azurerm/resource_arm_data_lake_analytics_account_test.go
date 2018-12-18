@@ -15,7 +15,7 @@ func TestAccAzureRMDataLakeAnalyticsAccount_basic(t *testing.T) {
 	resourceName := "azurerm_data_lake_analytics_account.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDataLakeAnalyticsAccountDestroy,
@@ -40,7 +40,7 @@ func TestAccAzureRMDataLakeAnalyticsAccount_tier(t *testing.T) {
 	resourceName := "azurerm_data_lake_analytics_account.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDataLakeAnalyticsAccountDestroy,
@@ -65,7 +65,7 @@ func TestAccAzureRMDataLakeAnalyticsAccount_withTags(t *testing.T) {
 	resourceName := "azurerm_data_lake_analytics_account.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDataLakeAnalyticsAccountDestroy,

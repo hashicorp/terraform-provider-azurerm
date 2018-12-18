@@ -12,14 +12,15 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmAutoScaleSetting() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAutoScaleSettingCreateOrUpdate,
+		Create: resourceArmAutoScaleSettingCreateUpdate,
 		Read:   resourceArmAutoScaleSettingRead,
-		Update: resourceArmAutoScaleSettingCreateOrUpdate,
+		Update: resourceArmAutoScaleSettingCreateUpdate,
 		Delete: resourceArmAutoScaleSettingDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -30,7 +31,7 @@ func resourceArmAutoScaleSetting() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
@@ -59,7 +60,7 @@ func resourceArmAutoScaleSetting() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"capacity": {
 							Type:     schema.TypeList,
@@ -100,7 +101,7 @@ func resourceArmAutoScaleSetting() *schema.Resource {
 												"metric_name": {
 													Type:         schema.TypeString,
 													Required:     true,
-													ValidateFunc: validation.NoZeroValues,
+													ValidateFunc: validate.NoEmptyStrings,
 												},
 												"metric_resource_id": {
 													Type:         schema.TypeString,
@@ -320,7 +321,7 @@ func resourceArmAutoScaleSetting() *schema.Resource {
 									"service_uri": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validation.NoZeroValues,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 									"properties": {
 										Type:     schema.TypeMap,
@@ -338,7 +339,7 @@ func resourceArmAutoScaleSetting() *schema.Resource {
 	}
 }
 
-func resourceArmAutoScaleSettingCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).autoscaleSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -371,7 +372,7 @@ func resourceArmAutoScaleSettingCreateOrUpdate(d *schema.ResourceData, meta inte
 		Tags: expandedTags,
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
+	if _, err = client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
 		return fmt.Errorf("Error creating AutoScale Setting %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -432,7 +433,9 @@ func resourceArmAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error setting `notification` of Autoscale Setting %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
+	// Return a new tag map filtered by the specified tag names.
+	tagMap := filterTags(resp.Tags, "$type")
+	flattenAndSetTags(d, tagMap)
 
 	return nil
 }
@@ -714,7 +717,7 @@ func flattenAzureRmAutoScaleSettingCapacity(input *insights.ScaleCapacity) ([]in
 	if minStr := input.Minimum; minStr != nil {
 		min, err := strconv.Atoi(*minStr)
 		if err != nil {
-			return nil, fmt.Errorf("Error converting Minimum Scale Capacity %q to an int: %+v", minStr, err)
+			return nil, fmt.Errorf("Error converting Minimum Scale Capacity %q to an int: %+v", *minStr, err)
 		}
 		result["minimum"] = min
 	}
@@ -722,7 +725,7 @@ func flattenAzureRmAutoScaleSettingCapacity(input *insights.ScaleCapacity) ([]in
 	if maxStr := input.Maximum; maxStr != nil {
 		max, err := strconv.Atoi(*maxStr)
 		if err != nil {
-			return nil, fmt.Errorf("Error converting Maximum Scale Capacity %q to an int: %+v", maxStr, err)
+			return nil, fmt.Errorf("Error converting Maximum Scale Capacity %q to an int: %+v", *maxStr, err)
 		}
 		result["maximum"] = max
 	}
@@ -730,7 +733,7 @@ func flattenAzureRmAutoScaleSettingCapacity(input *insights.ScaleCapacity) ([]in
 	if defaultCapacityStr := input.Default; defaultCapacityStr != nil {
 		defaultCapacity, err := strconv.Atoi(*defaultCapacityStr)
 		if err != nil {
-			return nil, fmt.Errorf("Error converting Default Scale Capacity %q to an int: %+v", defaultCapacityStr, err)
+			return nil, fmt.Errorf("Error converting Default Scale Capacity %q to an int: %+v", *defaultCapacityStr, err)
 		}
 		result["default"] = defaultCapacity
 	}
@@ -846,10 +849,8 @@ func flattenAzureRmAutoScaleSettingRecurrence(input *insights.Recurrence) []inte
 		}
 
 		days := make([]string, 0)
-		if schedule.Days != nil {
-			for _, v := range *schedule.Days {
-				days = append(days, v)
-			}
+		if s := schedule.Days; s != nil {
+			days = *s
 		}
 		result["days"] = days
 
@@ -885,14 +886,14 @@ func flattenAzureRmAutoScaleSettingNotification(notifications *[]insights.Autosc
 
 		emails := make([]interface{}, 0)
 		if email := notification.Email; email != nil {
-			result := make(map[string]interface{}, 0)
+			block := make(map[string]interface{})
 
 			if send := email.SendToSubscriptionAdministrator; send != nil {
-				result["send_to_subscription_administrator"] = *send
+				block["send_to_subscription_administrator"] = *send
 			}
 
 			if send := email.SendToSubscriptionCoAdministrators; send != nil {
-				result["send_to_subscription_co_administrator"] = *send
+				block["send_to_subscription_co_administrator"] = *send
 			}
 
 			customEmails := make([]interface{}, 0)
@@ -901,9 +902,9 @@ func flattenAzureRmAutoScaleSettingNotification(notifications *[]insights.Autosc
 					customEmails = append(customEmails, v)
 				}
 			}
-			result["custom_emails"] = customEmails
+			block["custom_emails"] = customEmails
 
-			emails = append(emails, result)
+			emails = append(emails, block)
 		}
 		result["email"] = emails
 

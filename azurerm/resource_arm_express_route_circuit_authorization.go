@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -67,8 +67,7 @@ func resourceArmExpressRouteCircuitAuthorizationCreateUpdate(d *schema.ResourceD
 		return fmt.Errorf("Error Creating/Updating Express Route Circuit Authorization %q (Circuit %q / Resource Group %q): %+v", name, circuitName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for Express Route Circuit Authorization %q (Circuit %q / Resource Group %q) to finish creating/updating: %+v", name, circuitName, resourceGroup, err)
 	}
 
@@ -141,8 +140,7 @@ func resourceArmExpressRouteCircuitAuthorizationDelete(d *schema.ResourceData, m
 		return fmt.Errorf("Error deleting Express Route Circuit Authorization %q (Circuit %q / Resource Group %q): %+v", name, circuitName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}

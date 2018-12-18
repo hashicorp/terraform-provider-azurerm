@@ -26,7 +26,7 @@ locals {
 }
 
 resource "azurerm_resource_group" "main" {
-  name = "${var.prefix}-resources"
+  name     = "${var.prefix}-resources"
   location = "West Europe"
 }
 
@@ -58,9 +58,9 @@ resource "azurerm_network_interface" "main" {
 
 resource "azurerm_virtual_machine" "test" {
   name                  = "${local.vm_name}"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  location              = "${azurerm_resource_group.main.location}"
+  resource_group_name   = "${azurerm_resource_group.main.name}"
+  network_interface_ids = ["${azurerm_network_interface.main.id}"]
   vm_size               = "Standard_F2"
 
   storage_image_reference {
@@ -90,8 +90,8 @@ resource "azurerm_virtual_machine" "test" {
 
 resource "azurerm_managed_disk" "test" {
   name                 = "${local.vm_name}-disk1"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = "${azurerm_resource_group.main.location}"
+  resource_group_name  = "${azurerm_resource_group.main.name}"
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = 10

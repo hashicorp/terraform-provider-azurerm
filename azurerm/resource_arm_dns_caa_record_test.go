@@ -16,7 +16,7 @@ func TestAccAzureRMDnsCaaRecord_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMDnsCaaRecord_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsCaaRecordDestroy,
@@ -26,6 +26,11 @@ func TestAccAzureRMDnsCaaRecord_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsCaaRecordExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -38,7 +43,7 @@ func TestAccAzureRMDnsCaaRecord_updateRecords(t *testing.T) {
 	preConfig := testAccAzureRMDnsCaaRecord_basic(ri, location)
 	postConfig := testAccAzureRMDnsCaaRecord_updateRecords(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsCaaRecordDestroy,
@@ -68,7 +73,7 @@ func TestAccAzureRMDnsCaaRecord_withTags(t *testing.T) {
 	preConfig := testAccAzureRMDnsCaaRecord_withTags(ri, location)
 	postConfig := testAccAzureRMDnsCaaRecord_withTagsUpdate(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsCaaRecordDestroy,
@@ -86,6 +91,11 @@ func TestAccAzureRMDnsCaaRecord_withTags(t *testing.T) {
 					testCheckAzureRMDnsCaaRecordExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -172,8 +182,8 @@ resource "azurerm_dns_caa_record" "test" {
     flags = 0
     tag   = "issue"
     value = "example.com"
-	}
-	
+  }
+
   record {
     flags = 0
     tag   = "issue"
@@ -184,13 +194,13 @@ resource "azurerm_dns_caa_record" "test" {
     flags = 1
     tag   = "issuewild"
     value = ";"
-	}
-	
+  }
+
   record {
     flags = 0
     tag   = "iodef"
     value = "mailto:terraform@nonexist.tld"
-	}
+  }
 }
 `, rInt, location, rInt, rInt)
 }
@@ -217,8 +227,8 @@ resource "azurerm_dns_caa_record" "test" {
     flags = 0
     tag   = "issue"
     value = "example.com"
-	}
-	
+  }
+
   record {
     flags = 0
     tag   = "issue"
@@ -229,19 +239,19 @@ resource "azurerm_dns_caa_record" "test" {
     flags = 1
     tag   = "issuewild"
     value = ";"
-	}
-	
+  }
+
   record {
     flags = 0
     tag   = "iodef"
     value = "mailto:terraform@nonexist.tld"
-	}
-		
-	record {
+  }
+
+  record {
     flags = 0
     tag   = "issue"
     value = "letsencrypt.org"
-	}
+  }
 }
 `, rInt, location, rInt, rInt)
 }
@@ -274,7 +284,7 @@ resource "azurerm_dns_caa_record" "test" {
     flags = 1
     tag   = "issuewild"
     value = ";"
-	}
+  }
 
   tags {
     environment = "Production"
@@ -312,7 +322,7 @@ resource "azurerm_dns_caa_record" "test" {
     flags = 1
     tag   = "issuewild"
     value = ";"
-	}
+  }
 
   tags {
     environment = "staging"

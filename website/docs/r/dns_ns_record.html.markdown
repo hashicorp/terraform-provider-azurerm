@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_ns_record"
 sidebar_current: "docs-azurerm-resource-dns-ns-record"
 description: |-
-  Create a DNS NS Record.
+  Manages a DNS NS Record.
 ---
 
 # azurerm_dns_ns_record
@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `zone_name` - (Required) Specifies the DNS Zone where the resource exists. Changing this forces a new resource to be created.
 
-* `ttl` - (Required) The Time To Live (TTL) of the DNS record.
+* `ttl` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
 * `records` - (Optional) A list of values that make up the NS record. *WARNING*: Either `records` or `record` is required.
 

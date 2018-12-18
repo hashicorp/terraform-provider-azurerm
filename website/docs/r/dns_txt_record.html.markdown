@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_txt_record"
 sidebar_current: "docs-azurerm-resource-dns-txt-record"
 description: |-
-  Create a DNS TXT Record.
+  Manages a DNS TXT Record.
 ---
 
 # azurerm_dns_txt_record
@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `zone_name` - (Required) Specifies the DNS Zone where the resource exists. Changing this forces a new resource to be created.
 
-* `ttl` - (Required) The Time To Live (TTL) of the DNS record.
+* `ttl` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
 * `record` - (Required) A list of values that make up the txt record. Each `record` block supports fields documented below.
 

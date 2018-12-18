@@ -11,11 +11,11 @@ import (
 )
 
 func TestAccAzureRMApplicationInsights_basicWeb(t *testing.T) {
-
+	resourceName := "azurerm_application_insights.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "web")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
@@ -23,20 +23,55 @@ func TestAccAzureRMApplicationInsights_basicWeb(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationInsightsExists("azurerm_application_insights.test"),
-					resource.TestCheckResourceAttr("azurerm_application_insights.test", "application_type", "web"),
+					testCheckAzureRMApplicationInsightsExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "application_type", "web"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMApplicationInsights_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_application_insights.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApplicationInsights_basic(ri, location, "web"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationInsightsExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "application_type", "web"),
+				),
+			},
+			{
+				Config:      testAccAzureRMApplicationInsights_requiresImport(ri, location, "web"),
+				ExpectError: testRequiresImportError("azurerm_application_insights"),
 			},
 		},
 	})
 }
 
 func TestAccAzureRMApplicationInsights_basicJava(t *testing.T) {
-
+	resourceName := "azurerm_application_insights.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "java")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
@@ -44,20 +79,51 @@ func TestAccAzureRMApplicationInsights_basicJava(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationInsightsExists("azurerm_application_insights.test"),
-					resource.TestCheckResourceAttr("azurerm_application_insights.test", "application_type", "java"),
+					testCheckAzureRMApplicationInsightsExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "application_type", "java"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMApplicationInsights_basicMobileCenter(t *testing.T) {
+	resourceName := "azurerm_application_insights.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "MobileCenter")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationInsightsExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "application_type", "MobileCenter"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func TestAccAzureRMApplicationInsights_basicOther(t *testing.T) {
-
+	resourceName := "azurerm_application_insights.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "other")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
@@ -65,20 +131,25 @@ func TestAccAzureRMApplicationInsights_basicOther(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationInsightsExists("azurerm_application_insights.test"),
-					resource.TestCheckResourceAttr("azurerm_application_insights.test", "application_type", "other"),
+					testCheckAzureRMApplicationInsightsExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "application_type", "other"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func TestAccAzureRMApplicationInsights_basicPhone(t *testing.T) {
-
+	resourceName := "azurerm_application_insights.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "phone")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
@@ -86,20 +157,25 @@ func TestAccAzureRMApplicationInsights_basicPhone(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationInsightsExists("azurerm_application_insights.test"),
-					resource.TestCheckResourceAttr("azurerm_application_insights.test", "application_type", "phone"),
+					testCheckAzureRMApplicationInsightsExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "application_type", "phone"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func TestAccAzureRMApplicationInsights_basicStore(t *testing.T) {
-
+	resourceName := "azurerm_application_insights.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "store")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
@@ -107,20 +183,25 @@ func TestAccAzureRMApplicationInsights_basicStore(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationInsightsExists("azurerm_application_insights.test"),
-					resource.TestCheckResourceAttr("azurerm_application_insights.test", "application_type", "store"),
+					testCheckAzureRMApplicationInsightsExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "application_type", "store"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func TestAccAzureRMApplicationInsights_basiciOS(t *testing.T) {
-
+	resourceName := "azurerm_application_insights.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "ios")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
@@ -128,9 +209,14 @@ func TestAccAzureRMApplicationInsights_basiciOS(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationInsightsExists("azurerm_application_insights.test"),
-					resource.TestCheckResourceAttr("azurerm_application_insights.test", "application_type", "ios"),
+					testCheckAzureRMApplicationInsightsExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "application_type", "ios"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -206,4 +292,18 @@ resource "azurerm_application_insights" "test" {
   application_type    = "%s"
 }
 `, rInt, location, rInt, applicationType)
+}
+
+func testAccAzureRMApplicationInsights_requiresImport(rInt int, location string, applicationType string) string {
+	template := testAccAzureRMApplicationInsights_basic(rInt, location, applicationType)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_application_insights" "import" {
+  name                = "${azurerm_application_insights.test.name}"
+  location            = "${azurerm_application_insights.test.location}"
+  resource_group_name = "${azurerm_application_insights.test.resource_group_name}"
+  application_type    = "${azurerm_application_insights.test.application_type}"
+}
+`, template)
 }

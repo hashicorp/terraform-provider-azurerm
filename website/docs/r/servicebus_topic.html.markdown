@@ -3,32 +3,27 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_topic"
 sidebar_current: "docs-azurerm-resource-messaging-servicebus-topic"
 description: |-
-  Create a ServiceBus Topic.
+  Manages a ServiceBus Topic.
 ---
 
 # azurerm_servicebus_topic
 
-Create a ServiceBus Topic.
+Manage a ServiceBus Topic.
 
 **Note** Topics can only be created in Namespaces with an SKU of `standard` or higher.
 
 ## Example Usage
 
 ```hcl
-variable "location" {
-  description = "Azure datacenter to deploy to."
-  default = "West US"
+resource "azurerm_resource_group" "example" {
+  name     = "tfex-servicebus-topic"
+  location = "West Europe"
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "terraform-servicebus"
-  location = "${var.location}"
-}
-
-resource "azurerm_servicebus_namespace" "test" {
-  name                = "${var.servicebus_name}"
-  location            = "${var.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_servicebus_namespace" "example" {
+  name                = "tfex_sevicebus_namespace"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   sku                 = "standard"
 
   tags {
@@ -36,10 +31,10 @@ resource "azurerm_servicebus_namespace" "test" {
   }
 }
 
-resource "azurerm_servicebus_topic" "test" {
-  name                = "testTopic"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+resource "azurerm_servicebus_topic" "example" {
+  name                = "tfex_sevicebus_topic"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
 
   enable_partitioning = true
 }
@@ -63,16 +58,14 @@ The following arguments are supported:
 
 * `status` - (Optional) The Status of the Service Bus Topic. Acceptable values are `Active` or `Disabled`. Defaults to `Active`.
 
-* `auto_delete_on_idle` - (Optional) The idle interval after which the
-    Topic is automatically deleted, minimum of 5 minutes. Provided in the [TimeSpan](#timespan-format)
-    format.
+* `auto_delete_on_idle` - (Optional) The ISO 8601 timespan duration of the idle interval after which the
+    Topic is automatically deleted, minimum of 5 minutes.
 
-* `default_message_ttl` - (Optional) The TTL of messages sent to this topic if no
-    TTL value is set on the message itself. Provided in the [TimeSpan](#timespan-format)
-    format.
+* `default_message_ttl` - (Optional) The ISO 8601 timespan duration of TTL of messages sent to this topic if no
+    TTL value is set on the message itself.
 
-* `duplicate_detection_history_time_window` - (Optional) The duration during which
-    duplicates can be detected. Provided in the [TimeSpan](#timespan-format) format. Defaults to 10 minutes (`00:10:00`)
+* `duplicate_detection_history_time_window` - (Optional) The ISO 8601 timespan duration during which
+    duplicates can be detected. Defaults to 10 minutes. (`PT10M`)
 
 * `enable_batched_operations` - (Optional) Boolean flag which controls if server-side
     batched operations are enabled. Defaults to false.
@@ -97,11 +90,6 @@ The following arguments are supported:
 
 * `support_ordering` - (Optional) Boolean flag which controls whether the Topic
     supports ordering. Defaults to false.
-
-### TimeSpan Format
-
-Some arguments for this resource are required in the TimeSpan format which is
-used to represent a lengh of time. The supported format is documented [here](https://msdn.microsoft.com/en-us/library/se73z7b9(v=vs.110).aspx#Anchor_2)
 
 ## Attributes Reference
 

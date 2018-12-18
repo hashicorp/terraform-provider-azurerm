@@ -8,6 +8,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -56,24 +58,27 @@ func resourceArmMySqlServer() *schema.Resource {
 								"GP_Gen5_8",
 								"GP_Gen5_16",
 								"GP_Gen5_32",
+								"GP_Gen5_64",
 								"MO_Gen5_2",
 								"MO_Gen5_4",
 								"MO_Gen5_8",
 								"MO_Gen5_16",
+								"MO_Gen5_32",
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"capacity": {
 							Type:     schema.TypeInt,
 							Required: true,
-							ValidateFunc: validateIntInSlice([]int{
+							ValidateFunc: validate.IntInSlice([]int{
 								1,
 								2,
 								4,
 								8,
 								16,
 								32,
+								64,
 							}),
 						},
 
@@ -85,7 +90,7 @@ func resourceArmMySqlServer() *schema.Resource {
 								string(mysql.GeneralPurpose),
 								string(mysql.MemoryOptimized),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"family": {
@@ -95,7 +100,7 @@ func resourceArmMySqlServer() *schema.Resource {
 								"Gen4",
 								"Gen5",
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
@@ -120,7 +125,7 @@ func resourceArmMySqlServer() *schema.Resource {
 					string(mysql.FiveFullStopSix),
 					string(mysql.FiveFullStopSeven),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ForceNew:         true,
 			},
 
@@ -133,7 +138,7 @@ func resourceArmMySqlServer() *schema.Resource {
 						"storage_mb": {
 							Type:         schema.TypeInt,
 							Required:     true,
-							ValidateFunc: validateIntBetweenDivisibleBy(5120, 4194304, 1024),
+							ValidateFunc: validate.IntBetweenAndDivisibleBy(5120, 4194304, 1024),
 						},
 						"backup_retention_days": {
 							Type:         schema.TypeInt,
@@ -147,7 +152,7 @@ func resourceArmMySqlServer() *schema.Resource {
 								"Enabled",
 								"Disabled",
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
@@ -160,7 +165,7 @@ func resourceArmMySqlServer() *schema.Resource {
 					string(mysql.SslEnforcementEnumDisabled),
 					string(mysql.SslEnforcementEnumEnabled),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"fqdn": {
@@ -224,8 +229,7 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error creating MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for creation of MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -275,8 +279,7 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error updating MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for MySQL Server %q (Resource Group %q) to finish updating: %+v", name, resourceGroup, err)
 	}
 
@@ -327,11 +330,11 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("ssl_enforcement", string(resp.SslEnforcement))
 
 	if err := d.Set("sku", flattenMySQLServerSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Error flattening `sku`: %+v", err)
+		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
 	if err := d.Set("storage_profile", flattenMySQLStorageProfile(resp.StorageProfile)); err != nil {
-		return fmt.Errorf("Error flattening `storage_profile`: %+v", err)
+		return fmt.Errorf("Error setting `storage_profile`: %+v", err)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -358,8 +361,7 @@ func resourceArmMySqlServerDelete(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error deleting MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for deletion of MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -429,7 +431,7 @@ func flattenMySQLStorageProfile(resp *mysql.StorageProfile) []interface{} {
 		values["backup_retention_days"] = *backupRetentionDays
 	}
 
-	values["geo_redundant_backup"] = mysql.GeoRedundantBackup(resp.GeoRedundantBackup)
+	values["geo_redundant_backup"] = string(resp.GeoRedundantBackup)
 
 	return []interface{}{values}
 }

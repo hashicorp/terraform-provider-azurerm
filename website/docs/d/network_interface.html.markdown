@@ -3,19 +3,19 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_interface"
 sidebar_current: "docs-azurerm-datasource-network-interface"
 description: |-
-  Get information about the specified Network Interface.
+  Gets information about an existing Network Interface.
 ---
 
 # Data Source: azurerm_network_interface
 
-Use this data source to access the properties of an Azure Network Interface.
+Use this data source to access information about an existing Network Interface.
 
 ## Example Usage
 
 ```hcl
 data "azurerm_network_interface" "test" {
-  name                 = "acctest-nic"
-  resource_group_name  = "networking"
+  name                = "acctest-nic"
+  resource_group_name = "networking"
 }
 
 output "network_interface_id" {
@@ -37,7 +37,6 @@ output "network_interface_id" {
 * `enable_ip_forwarding` - Indicate if IP forwarding is set on the specified Network Interface.
 * `dns_servers` - The list of DNS servers used by the specified Network Interface.
 * `internal_dns_name_label` - The internal dns name label of the specified Network Interface.
-* `internal_fqdn` - The internal FQDN associated to the specified Network Interface.
 * `ip_configuration` - One or more `ip_configuration` blocks as defined below.
 * `location` - The location of the specified Network Interface.
 * `mac_address` - The MAC address used by the specified Network Interface.
@@ -54,7 +53,7 @@ A `ip_configuration` block contains:
 * `name` - The name of the IP Configuration.
 * `subnet_id` - The ID of the Subnet which the Network Interface is connected to.
 * `private_ip_address` - The Private IP Address assigned to this Network Interface.
-* `private_ip_address_allocation` - The IP Address allocation type for the Private address, such as `Dynamic` or `Standard`.
+* `private_ip_address_allocation` - The IP Address allocation type for the Private address, such as `Dynamic` or `Static`.
 * `public_ip_address_id` - The ID of the Public IP Address which is connected to this Network Interface.
 * `application_gateway_backend_address_pools_ids` - A list of Backend Address Pool ID's within a Application Gateway that this Network Interface is connected to.
 * `load_balancer_backend_address_pools_ids` - A list of Backend Address Pool ID's within a Load Balancer that this Network Interface is connected to.

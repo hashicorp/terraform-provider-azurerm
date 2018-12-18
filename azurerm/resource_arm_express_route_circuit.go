@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 )
@@ -13,9 +13,9 @@ var expressRouteCircuitResourceName = "azurerm_express_route_circuit"
 
 func resourceArmExpressRouteCircuit() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmExpressRouteCircuitCreateOrUpdate,
+		Create: resourceArmExpressRouteCircuitCreateUpdate,
 		Read:   resourceArmExpressRouteCircuitRead,
-		Update: resourceArmExpressRouteCircuitCreateOrUpdate,
+		Update: resourceArmExpressRouteCircuitCreateUpdate,
 		Delete: resourceArmExpressRouteCircuitDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -102,7 +102,7 @@ func resourceArmExpressRouteCircuit() *schema.Resource {
 	}
 }
 
-func resourceArmExpressRouteCircuitCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).expressRouteCircuitClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -142,8 +142,7 @@ func resourceArmExpressRouteCircuitCreateOrUpdate(d *schema.ResourceData, meta i
 		return fmt.Errorf("Error Creating/Updating ExpressRouteCircuit %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error Creating/Updating ExpressRouteCircuit %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
@@ -181,7 +180,7 @@ func resourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}
 	if resp.Sku != nil {
 		sku := flattenExpressRouteCircuitSku(resp.Sku)
 		if err := d.Set("sku", sku); err != nil {
-			return fmt.Errorf("Error flattening `sku`: %+v", err)
+			return fmt.Errorf("Error setting `sku`: %+v", err)
 		}
 	}
 
@@ -217,12 +216,7 @@ func resourceArmExpressRouteCircuitDelete(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return future.WaitForCompletionRef(ctx, client.Client)
 }
 
 func expandExpressRouteCircuitSku(d *schema.ResourceData) *network.ExpressRouteCircuitSku {

@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_lake_analytics_account"
-sidebar_current: "docs-azurerm-resource-data-lake-analytics-account-x"
+sidebar_current: "docs-azurerm-resource-data-lake-analytics-account"
 description: |-
   Manage an Azure Data Lake Analytics Account.
 ---
@@ -14,24 +14,23 @@ Manage an Azure Data Lake Analytics Account.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "tfex-datalake-account"
   location = "northeurope"
 }
 
 resource "azurerm_data_lake_store" "example" {
-  name                = "consumptiondatalake"
+  name                = "tfexdatalakestore"
   resource_group_name = "${azurerm_resource_group.example.name}"
   location            = "${azurerm_resource_group.example.location}"
 }
 
 resource "azurerm_data_lake_analytics_account" "example" {
-  name                = "acctest%s"
+  name                = "tfexdatalakeaccount"
   resource_group_name = "${azurerm_resource_group.example.name}"
   location            = "${azurerm_resource_group.example.location}"
 
   default_store_account_name = "${azurerm_data_lake_store.example.name}"
 }
-
 ```
 
 ## Argument Reference

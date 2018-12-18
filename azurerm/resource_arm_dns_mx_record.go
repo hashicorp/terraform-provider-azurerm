@@ -14,9 +14,9 @@ import (
 
 func resourceArmDnsMxRecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDnsMxRecordCreateOrUpdate,
+		Create: resourceArmDnsMxRecordCreateUpdate,
 		Read:   resourceArmDnsMxRecordRead,
-		Update: resourceArmDnsMxRecordCreateOrUpdate,
+		Update: resourceArmDnsMxRecordCreateUpdate,
 		Delete: resourceArmDnsMxRecordDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -66,7 +66,7 @@ func resourceArmDnsMxRecord() *schema.Resource {
 	}
 }
 
-func resourceArmDnsMxRecordCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDnsMxRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dnsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -153,9 +153,9 @@ func resourceArmDnsMxRecordDelete(d *schema.ResourceData, meta interface{}) erro
 	name := id.Path["MX"]
 	zoneName := id.Path["dnszones"]
 
-	resp, error := client.Delete(ctx, resGroup, zoneName, name, dns.MX, "")
+	resp, err := client.Delete(ctx, resGroup, zoneName, name, dns.MX, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS MX Record %s: %+v", name, error)
+		return fmt.Errorf("Error deleting DNS MX Record %s: %+v", name, err)
 	}
 
 	return nil

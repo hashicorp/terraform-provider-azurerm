@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_recovery_services_vault"
 sidebar_current: "docs-azurerm-resource-recovery-services-vault"
 description: |-
-  Create an Recovery Services Vault.
+  Manages a Recovery Services Vault.
 ---
 
 # azurerm_recovery_services_vault
 
-Create an Recovery Services Vault.
+Manage an Recovery Services Vault.
 
 ## Example Usage
 
@@ -19,12 +19,11 @@ resource "azurerm_resource_group" "rg" {
 }
 
 resource "azurerm_recovery_services_vault" "vault" {
-    name                = "example_recovery_vault"
-    location            = "${azurerm_resource_group.rg.location}"
-    resource_group_name = "${azurerm_resource_group.rg.name}"
-    sku                 = "standard"
+  name                = "example_recovery_vault"
+  location            = "${azurerm_resource_group.rg.location}"
+  resource_group_name = "${azurerm_resource_group.rg.name}"
+  sku                 = "standard"
 }
-
 ```
 
 ## Argument Reference

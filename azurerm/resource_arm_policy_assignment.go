@@ -9,7 +9,7 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-12-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/structure"
@@ -99,8 +99,7 @@ func resourceArmPolicyAssignmentCreate(d *schema.ResourceData, meta interface{})
 		assignment.AssignmentProperties.Parameters = &expandedParams
 	}
 
-	_, err := client.Create(ctx, scope, name, assignment)
-	if err != nil {
+	if _, err := client.Create(ctx, scope, name, assignment); err != nil {
 		return err
 	}
 

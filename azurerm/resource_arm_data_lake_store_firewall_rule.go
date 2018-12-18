@@ -73,8 +73,7 @@ func resourceArmDateLakeStoreAccountFirewallRuleCreateUpdate(d *schema.ResourceD
 		},
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, accountName, name, dateLakeStore)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, accountName, name, dateLakeStore); err != nil {
 		return fmt.Errorf("Error issuing create request for Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 

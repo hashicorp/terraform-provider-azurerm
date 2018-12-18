@@ -17,7 +17,7 @@ func TestAccAzureRMAutoScaleSetting_basic(t *testing.T) {
 	location := testLocation()
 	config := testAccAzureRMAutoScaleSetting_basic(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
@@ -31,7 +31,13 @@ func TestAccAzureRMAutoScaleSetting_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "profile.0.name", "metricRules"),
 					resource.TestCheckResourceAttr(resourceName, "profile.0.rule.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "0"),
+					resource.TestCheckNoResourceAttr(resourceName, "tags.$type"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -44,7 +50,7 @@ func TestAccAzureRMAutoScaleSetting_multipleProfiles(t *testing.T) {
 	location := testLocation()
 	config := testAccAzureRMAutoScaleSetting_multipleProfiles(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
@@ -69,7 +75,7 @@ func TestAccAzureRMAutoScaleSetting_multipleRules(t *testing.T) {
 	rs := acctest.RandString(6)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
@@ -109,7 +115,7 @@ func TestAccAzureRMAutoScaleSetting_customEmails(t *testing.T) {
 	rs := acctest.RandString(6)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
@@ -146,7 +152,7 @@ func TestAccAzureRMAutoScaleSetting_recurrence(t *testing.T) {
 	location := testLocation()
 	config := testAccAzureRMAutoScaleSetting_recurrence(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
@@ -162,6 +168,11 @@ func TestAccAzureRMAutoScaleSetting_recurrence(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "1"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -172,7 +183,7 @@ func TestAccAzureRMAutoScaleSetting_recurrenceUpdate(t *testing.T) {
 	rs := acctest.RandString(6)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
@@ -214,7 +225,7 @@ func TestAccAzureRMAutoScaleSetting_fixedDate(t *testing.T) {
 	location := testLocation()
 	config := testAccAzureRMAutoScaleSetting_fixedDate(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
@@ -229,6 +240,11 @@ func TestAccAzureRMAutoScaleSetting_fixedDate(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "profile.0.fixed_date.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "0"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -763,6 +779,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     ip_configuration {
       name      = "TestIPConfiguration"
       subnet_id = "${azurerm_subnet.test.id}"
+      primary   = true
     }
   }
 

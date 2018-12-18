@@ -5,6 +5,9 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -13,9 +16,9 @@ import (
 
 func resourceArmApplicationInsights() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApplicationInsightsCreateOrUpdate,
+		Create: resourceArmApplicationInsightsCreateUpdate,
 		Read:   resourceArmApplicationInsightsRead,
-		Update: resourceArmApplicationInsightsCreateOrUpdate,
+		Update: resourceArmApplicationInsightsCreateUpdate,
 		Delete: resourceArmApplicationInsightsDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -36,14 +39,16 @@ func resourceArmApplicationInsights() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					"web",
 					"other",
 					"java",
+					"MobileCenter",
 					"phone",
 					"store",
 					"ios",
+					"Node.JS",
 				}, true),
 			},
 
@@ -63,7 +68,7 @@ func resourceArmApplicationInsights() *schema.Resource {
 	}
 }
 
-func resourceArmApplicationInsightsCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).appInsightsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -71,6 +76,20 @@ func resourceArmApplicationInsightsCreateOrUpdate(d *schema.ResourceData, meta i
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Application Insights %q (Resource Group %q): %s", name, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_application_insights", *existing.ID)
+		}
+	}
+
 	applicationType := d.Get("application_type").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
@@ -81,21 +100,26 @@ func resourceArmApplicationInsightsCreateOrUpdate(d *schema.ResourceData, meta i
 	}
 
 	insightProperties := insights.ApplicationInsightsComponent{
-		Name:     &name,
-		Location: &location,
-		Kind:     &applicationType,
+		Name:                                   &name,
+		Location:                               &location,
+		Kind:                                   &applicationType,
 		ApplicationInsightsComponentProperties: &applicationInsightsComponentProperties,
-		Tags: expandTags(tags),
+		Tags:                                   expandTags(tags),
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resGroup, name, insightProperties)
+	resp, err := client.CreateOrUpdate(ctx, resGroup, name, insightProperties)
 	if err != nil {
-		return err
+		// @tombuildsstuff - from 2018-08-14 the Create call started returning a 201 instead of 200
+		// which doesn't match the Swagger - this works around it until that's fixed
+		// BUG: https://github.com/Azure/azure-sdk-for-go/issues/2465
+		if resp.StatusCode != http.StatusCreated {
+			return fmt.Errorf("Error creating Application Insights %q (Resource Group %q): %+v", name, resGroup, err)
+		}
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving Application Insights %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read AzureRM Application Insights '%s' (Resource Group %s) ID", name, resGroup)

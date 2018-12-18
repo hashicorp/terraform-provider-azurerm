@@ -158,8 +158,7 @@ func resourceArmServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, m
 		}
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, topicName, subscriptionName, name, rule)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, topicName, subscriptionName, name, rule); err != nil {
 		return err
 	}
 
@@ -347,20 +346,4 @@ func flattenAzureRmServiceBusCorrelationFilter(input *servicebus.CorrelationFilt
 	}
 
 	return []interface{}{filter}
-}
-
-func validateArmServiceBusSubscriptionRule(name string, rule servicebus.Rule) error {
-	if rule.Ruleproperties.FilterType == servicebus.FilterTypeSQLFilter {
-		if rule.Ruleproperties.SQLFilter == nil {
-			return fmt.Errorf("Cannot create Service Bus Subscription Rule (%s). 'sql_filter' must be specified when 'filter_type' is set to 'SqlFilter'", name)
-		}
-	}
-
-	if rule.Ruleproperties.FilterType == servicebus.FilterTypeCorrelationFilter {
-		if rule.Ruleproperties.CorrelationFilter == nil {
-			return fmt.Errorf("Cannot create Service Bus Subscription Rule (%s). 'correlation_filter' must be specified when 'filter_type' is set to 'CorrelationFilter'", name)
-		}
-	}
-
-	return nil
 }

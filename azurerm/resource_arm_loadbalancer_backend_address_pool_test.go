@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -21,7 +21,7 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_basic(t *testing.T) {
 		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/backendAddressPools/%s",
 		subscriptionID, ri, ri, addressPoolName)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -35,6 +35,13 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_basic(t *testing.T) {
 						"azurerm_lb_backend_address_pool.test", "id", backendAddressPoolId),
 				),
 			},
+			{
+				ResourceName:      "azurerm_lb.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				// location is deprecated and was never actually used
+				ImportStateVerifyIgnore: []string{"location"},
+			},
 		},
 	})
 }
@@ -44,7 +51,7 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_removal(t *testing.T) {
 	ri := acctest.RandInt()
 	addressPoolName := fmt.Sprintf("%d-address-pool", ri)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -69,7 +76,7 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_reapply(t *testing.T) {
 		return s.Remove("azurerm_lb_backend_address_pool.test")
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -99,7 +106,7 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	addressPoolName := fmt.Sprintf("%d-address-pool", ri)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -160,12 +167,11 @@ func testCheckAzureRMLoadBalancerBackEndAddressPoolDisappears(addressPoolName st
 
 		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, *lb.Name, *lb)
 		if err != nil {
-			return fmt.Errorf("Error Creating/Updating LoadBalancer %+v", err)
+			return fmt.Errorf("Error Creating/Updating Load Balancer %+v", err)
 		}
 
-		err = future.WaitForCompletion(ctx, client.Client)
-		if err != nil {
-			return fmt.Errorf("Error Creating/Updating LoadBalancer %+v", err)
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Error Creating/Updating Load Balancer %+v", err)
 		}
 
 		_, err = client.Get(ctx, id.ResourceGroup, *lb.Name, "")
@@ -204,7 +210,6 @@ resource "azurerm_lb_backend_address_pool" "test" {
   loadbalancer_id     = "${azurerm_lb.test.id}"
   name                = "%s"
 }
-
 `, rInt, location, rInt, rInt, rInt, addressPoolName)
 }
 

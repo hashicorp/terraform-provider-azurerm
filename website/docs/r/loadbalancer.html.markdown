@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_lb"
 sidebar_current: "docs-azurerm-resource-loadbalancer-x"
 description: |-
-  Create a LoadBalancer Resource.
+  Manages a Load Balancer Resource.
 ---
 
 # azurerm_lb
 
-Create a LoadBalancer Resource.
+Manage a Load Balancer Resource.
 
 ## Example Usage
 
@@ -58,13 +58,13 @@ The following arguments are supported:
 * `public_ip_address_id` - (Optional) Reference to Public IP address to be associated with the Load Balancer.
 * `zones` - (Optional) A collection containing the availability zone to allocate the IP in.
 
--> **Please Note**: Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](http://aka.ms/azenroll).
+-> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The LoadBalancer ID.
+* `id` - The Load Balancer ID.
 * `private_ip_address` - The first private IP address assigned to the load balancer in `frontend_ip_configuration` blocks, if any.
 * `private_ip_addresses` - The list of private IP address assigned to the load balancer in `frontend_ip_configuration` blocks, if any.
 

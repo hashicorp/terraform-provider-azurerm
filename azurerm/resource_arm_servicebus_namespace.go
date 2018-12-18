@@ -3,13 +3,15 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"regexp"
 )
 
 // Default Authorization Rule/Policy created by Azure, used to populate the
@@ -60,7 +62,7 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 			"capacity": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntInSlice([]int{1, 2, 4}),
+				ValidateFunc: validate.IntInSlice([]int{1, 2, 4}),
 			},
 
 			"default_primary_connection_string": {
@@ -136,8 +138,7 @@ func resourceArmServiceBusNamespaceCreate(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 
@@ -212,9 +213,17 @@ func resourceArmServiceBusNamespaceDelete(d *schema.ResourceData, meta interface
 	resourceGroup := id.ResourceGroup
 	name := id.Path["namespaces"]
 
-	_, err = client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
 		return err
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		if response.WasNotFound(future.Response()) {
+			return nil
+		}
+
+		return fmt.Errorf("Error deleting Service Bus %q: %+v", name, err)
 	}
 
 	return nil

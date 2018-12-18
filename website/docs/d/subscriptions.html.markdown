@@ -8,7 +8,7 @@ description: |-
 
 # Data Source: azurerm_subscriptions
 
-Use this data source to access a list of all Azure subscriptions currently available.
+Use this data source to access information about all the Subscriptions currently available.
 
 ## Example Usage
 
@@ -26,7 +26,8 @@ output "first_available_subscription_display_name" {
 
 ## Argument Reference
 
-There are no arguments available for this data source.
+* `display_name_prefix` - (Optional) A case-insensitive prefix which can be used to filter on the `display_name` field
+* `display_name_contains` - (Optional) A case-insensitive value which must be contained within the `display_name` field, used to filter the results
 
 ## Attributes Reference
 

@@ -24,7 +24,7 @@ func TestAccAzureRMActiveDirectoryServicePrincipalPassword_basic(t *testing.T) {
 
 	config := testAccAzureRMActiveDirectoryServicePrincipalPassword_basic(applicationId, value)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryServicePrincipalDestroy,
@@ -38,6 +38,41 @@ func TestAccAzureRMActiveDirectoryServicePrincipalPassword_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "key_id"),
 					resource.TestCheckResourceAttr(resourceName, "end_date", "2020-01-01T01:02:03Z"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMActiveDirectoryServicePrincipalPassword_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_azuread_service_principal_password.test"
+	applicationId, err := uuid.GenerateUUID()
+	if err != nil {
+		t.Fatal(err)
+	}
+	value, err := uuid.GenerateUUID()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMActiveDirectoryServicePrincipalDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMActiveDirectoryServicePrincipalPassword_basic(applicationId, value),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMActiveDirectoryServicePrincipalPasswordExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMActiveDirectoryServicePrincipalPassword_requiresImport(applicationId, value),
+				ExpectError: testRequiresImportError("azurerm_azuread_service_principal_password"),
 			},
 		},
 	})
@@ -59,7 +94,7 @@ func TestAccAzureRMActiveDirectoryServicePrincipalPassword_customKeyId(t *testin
 	}
 	config := testAccAzureRMActiveDirectoryServicePrincipalPassword_customKeyId(applicationId, keyId, value)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryServicePrincipalDestroy,
@@ -135,6 +170,19 @@ resource "azurerm_azuread_service_principal_password" "test" {
   end_date             = "2020-01-01T01:02:03Z"
 }
 `, applicationId, value)
+}
+
+func testAccAzureRMActiveDirectoryServicePrincipalPassword_requiresImport(applicationId, value string) string {
+	template := testAccAzureRMActiveDirectoryServicePrincipalPassword_basic(applicationId, value)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_azuread_service_principal_password" "import" {
+  service_principal_id = "${azurerm_azuread_service_principal_password.test.service_principal_id}"
+  value                = "${azurerm_azuread_service_principal_password.test.value}"
+  end_date             = "${azurerm_azuread_service_principal_password.test.end_date}"
+}
+`, template)
 }
 
 func testAccAzureRMActiveDirectoryServicePrincipalPassword_customKeyId(applicationId, keyId, value string) string {

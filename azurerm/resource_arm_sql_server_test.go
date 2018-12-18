@@ -52,8 +52,7 @@ func testSweepSQLServer(region string) error {
 			return err
 		}
 
-		err = future.WaitForCompletion(ctx, client.Client)
-		if err != nil {
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return err
 		}
 	}
@@ -62,10 +61,11 @@ func testSweepSQLServer(region string) error {
 }
 
 func TestAccAzureRMSqlServer_basic(t *testing.T) {
+	resourceName := "azurerm_sql_server.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMSqlServer_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlServerDestroy,
@@ -73,8 +73,14 @@ func TestAccAzureRMSqlServer_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlServerExists("azurerm_sql_server.test"),
+					testCheckAzureRMSqlServerExists(resourceName),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"administrator_login_password"},
 			},
 		},
 	})
@@ -85,7 +91,7 @@ func TestAccAzureRMSqlServer_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSqlServer_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlServerDestroy,
@@ -109,7 +115,7 @@ func TestAccAzureRMSqlServer_withTags(t *testing.T) {
 	preConfig := testAccAzureRMSqlServer_withTags(ri, location)
 	postConfig := testAccAzureRMSqlServer_withTagsUpdated(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlServerDestroy,
@@ -127,6 +133,12 @@ func TestAccAzureRMSqlServer_withTags(t *testing.T) {
 					testCheckAzureRMSqlServerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"administrator_login_password"},
 			},
 		},
 	})
@@ -208,29 +220,24 @@ func testCheckAzureRMSqlServerDisappears(name string) resource.TestCheckFunc {
 			return err
 		}
 
-		err = future.WaitForCompletion(ctx, client.Client)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return future.WaitForCompletionRef(ctx, client.Client)
 	}
 }
 
 func testAccAzureRMSqlServer_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_sql_server" "test" {
-    name = "acctestsqlserver%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    version = "12.0"
-    administrator_login = "mradministrator"
-    administrator_login_password = "thisIsDog11"
+  name                         = "acctestsqlserver%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
 }
 `, rInt, location, rInt)
 }
@@ -238,22 +245,22 @@ resource "azurerm_sql_server" "test" {
 func testAccAzureRMSqlServer_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_sql_server" "test" {
-    name = "acctestsqlserver%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    version = "12.0"
-    administrator_login = "mradministrator"
-    administrator_login_password = "thisIsDog11"
+  name                         = "acctestsqlserver%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
 
-    tags {
-    	environment = "staging"
-    	database = "test"
-    }
+  tags {
+    environment = "staging"
+    database    = "test"
+  }
 }
 `, rInt, location, rInt)
 }
@@ -261,21 +268,21 @@ resource "azurerm_sql_server" "test" {
 func testAccAzureRMSqlServer_withTagsUpdated(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_sql_server" "test" {
-    name = "acctestsqlserver%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    version = "12.0"
-    administrator_login = "mradministrator"
-    administrator_login_password = "thisIsDog11"
+  name                         = "acctestsqlserver%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
 
-    tags {
-    	environment = "production"
-    }
+  tags {
+    environment = "production"
+  }
 }
 `, rInt, location, rInt)
 }

@@ -3,34 +3,25 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_queue"
 sidebar_current: "docs-azurerm-resource-messaging-servicebus-queue"
 description: |-
-  Create a ServiceBus Queue.
+  Manages a ServiceBus Queue.
 ---
 
 # azurerm_servicebus_queue
 
-Create and manage a ServiceBus Queue.
+Manage and manage a ServiceBus Queue.
 
 ## Example Usage
 
 ```hcl
-variable "location" {
-  description = "Azure datacenter to deploy to."
-  default = "West US"
-}
-
-variable "servicebus_name" {
-  description = "Input your unique Azure service bus name"
-}
-
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "terraform-servicebus"
-  location = "${var.location}"
+  location = "West Europe"
 }
 
-resource "azurerm_servicebus_namespace" "test" {
-  name                = "${var.servicebus_name}"
-  location            = "${var.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_servicebus_namespace" "example" {
+  name                = "tfex_sevicebus_namespace"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   sku                 = "standard"
 
   tags {
@@ -38,10 +29,10 @@ resource "azurerm_servicebus_namespace" "test" {
   }
 }
 
-resource "azurerm_servicebus_queue" "test" {
-  name                = "testQueue"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+resource "azurerm_servicebus_queue" "example" {
+  name                = "tfex_servicebus_queue"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
 
   enable_partitioning = true
 }
@@ -63,16 +54,14 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group in which to
     create the namespace. Changing this forces a new resource to be created.
 
-* `auto_delete_on_idle` - (Optional) The idle interval after which the
-    Queue is automatically deleted, minimum of 5 minutes. Provided in the [TimeSpan](#timespan-format)
-    format.
+* `auto_delete_on_idle` - (Optional) The ISO 8601 timespan duration of the idle interval after which the
+    Queue is automatically deleted, minimum of 5 minutes.
 
-* `default_message_ttl` - (Optional) The TTL of messages sent to this queue. This is the default value
-    used when TTL is not set on message itself. Provided in the [TimeSpan](#timespan-format)
-    format.
+* `default_message_ttl` - (Optional) The ISO 8601 timespan duration of the TTL of messages sent to this
+    queue. This is the default value used when TTL is not set on message itself.
 
-* `duplicate_detection_history_time_window` - (Optional) The duration during which
-    duplicates can be detected. Default value is 10 minutes. Provided in the [TimeSpan](#timespan-format) format.
+* `duplicate_detection_history_time_window` - (Optional) The ISO 8601 timespan duration during which
+    duplicates can be detected. Default value is 10 minutes. (`PT10M`)
 
 * `enable_express` - (Optional) Boolean flag which controls whether Express Entities
     are enabled. An express queue holds a message in memory temporarily before writing
@@ -98,17 +87,14 @@ The following arguments are supported:
     the Queue requires duplicate detection. Changing this forces
     a new resource to be created. Defaults to `false`.
 
-* `requires_session` - (Optional) Boolean flag which controls whether the Queue requires sessions. 
-    This will allow ordered handling of unbounded sequences of related messages. With sessions enabled 
-    a queue can guarantee first-in-first-out delivery of messages. 
+* `requires_session` - (Optional) Boolean flag which controls whether the Queue requires sessions.
+    This will allow ordered handling of unbounded sequences of related messages. With sessions enabled
+    a queue can guarantee first-in-first-out delivery of messages.
     Changing this forces a new resource to be created. Defaults to `false`.
 
 * `dead_lettering_on_message_expiration` - (Optional) Boolean flag which controls whether the Queue has dead letter support when a message expires. Defaults to `false`.
-    
-### TimeSpan Format
 
-Some arguments for this resource are required in the TimeSpan format which is
-used to represent a length of time. The supported format is documented [here](https://msdn.microsoft.com/en-us/library/se73z7b9(v=vs.110).aspx#Anchor_2)
+* `max_delivery_count` - (Optional) Integer value which controls when a message is automatically deadlettered. Defaults to `10`.
 
 ## Attributes Reference
 

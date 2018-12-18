@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -258,8 +258,7 @@ func resourceArmNetworkSecurityRuleCreate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error Creating/Updating Network Security Rule %q (NSG %q / Resource Group %q): %+v", name, nsgName, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for completion of Network Security Rule %q (NSG %q / Resource Group %q): %+v", name, nsgName, resGroup, err)
 	}
 
@@ -340,8 +339,7 @@ func resourceArmNetworkSecurityRuleDelete(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error Deleting Network Security Rule %q (NSG %q / Resource Group %q): %+v", sgRuleName, nsgName, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for the deletion of Network Security Rule %q (NSG %q / Resource Group %q): %+v", sgRuleName, nsgName, resGroup, err)
 	}
 

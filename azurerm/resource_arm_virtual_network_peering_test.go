@@ -17,7 +17,7 @@ func TestAccAzureRMVirtualNetworkPeering_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMVirtualNetworkPeering_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
@@ -31,6 +31,11 @@ func TestAccAzureRMVirtualNetworkPeering_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(secondResourceName, "allow_virtual_network_access", "true"),
 				),
 			},
+			{
+				ResourceName:      firstResourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -42,7 +47,7 @@ func TestAccAzureRMVirtualNetworkPeering_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMVirtualNetworkPeering_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
@@ -70,7 +75,7 @@ func TestAccAzureRMVirtualNetworkPeering_update(t *testing.T) {
 	preConfig := testAccAzureRMVirtualNetworkPeering_basic(ri, testLocation())
 	postConfig := testAccAzureRMVirtualNetworkPeering_basicUpdate(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
@@ -158,8 +163,7 @@ func testCheckAzureRMVirtualNetworkPeeringDisappears(name string) resource.TestC
 			return fmt.Errorf("Error deleting Peering %q (NW %q / RG %q): %+v", name, vnetName, resourceGroup, err)
 		}
 
-		err = future.WaitForCompletion(ctx, client.Client)
-		if err != nil {
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("Error waiting for deletion of Peering %q (NW %q / RG %q): %+v", name, vnetName, resourceGroup, err)
 		}
 
@@ -215,19 +219,19 @@ resource "azurerm_virtual_network" "test2" {
 }
 
 resource "azurerm_virtual_network_peering" "test1" {
-    name = "acctestpeer-1-%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_network_name = "${azurerm_virtual_network.test1.name}"
-    remote_virtual_network_id = "${azurerm_virtual_network.test2.id}"
-    allow_virtual_network_access = true
+  name                         = "acctestpeer-1-%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  virtual_network_name         = "${azurerm_virtual_network.test1.name}"
+  remote_virtual_network_id    = "${azurerm_virtual_network.test2.id}"
+  allow_virtual_network_access = true
 }
 
 resource "azurerm_virtual_network_peering" "test2" {
-    name = "acctestpeer-2-%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_network_name = "${azurerm_virtual_network.test2.name}"
-    remote_virtual_network_id = "${azurerm_virtual_network.test1.id}"
-    allow_virtual_network_access = true
+  name                         = "acctestpeer-2-%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  virtual_network_name         = "${azurerm_virtual_network.test2.name}"
+  remote_virtual_network_id    = "${azurerm_virtual_network.test1.id}"
+  allow_virtual_network_access = true
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
 }
@@ -254,21 +258,21 @@ resource "azurerm_virtual_network" "test2" {
 }
 
 resource "azurerm_virtual_network_peering" "test1" {
-    name = "acctestpeer-1-%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_network_name = "${azurerm_virtual_network.test1.name}"
-    remote_virtual_network_id = "${azurerm_virtual_network.test2.id}"
-    allow_forwarded_traffic = true
-    allow_virtual_network_access = true
+  name                         = "acctestpeer-1-%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  virtual_network_name         = "${azurerm_virtual_network.test1.name}"
+  remote_virtual_network_id    = "${azurerm_virtual_network.test2.id}"
+  allow_forwarded_traffic      = true
+  allow_virtual_network_access = true
 }
 
 resource "azurerm_virtual_network_peering" "test2" {
-    name = "acctestpeer-2-%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_network_name = "${azurerm_virtual_network.test2.name}"
-    remote_virtual_network_id = "${azurerm_virtual_network.test1.id}"
-    allow_forwarded_traffic = true
-    allow_virtual_network_access = true
+  name                         = "acctestpeer-2-%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  virtual_network_name         = "${azurerm_virtual_network.test2.name}"
+  remote_virtual_network_id    = "${azurerm_virtual_network.test1.id}"
+  allow_forwarded_traffic      = true
+  allow_virtual_network_access = true
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
 }

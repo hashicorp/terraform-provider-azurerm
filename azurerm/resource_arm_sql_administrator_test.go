@@ -16,7 +16,7 @@ func TestAccAzureRMSqlAdministrator_basic(t *testing.T) {
 	preConfig := testAccAzureRMSqlAdministrator_basic(ri, testLocation())
 	postConfig := testAccAzureRMSqlAdministrator_withUpdates(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlAdministratorDestroy,
@@ -27,6 +27,11 @@ func TestAccAzureRMSqlAdministrator_basic(t *testing.T) {
 					testCheckAzureRMSqlAdministratorExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "login", "sqladmin"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: postConfig,
@@ -44,7 +49,7 @@ func TestAccAzureRMSqlAdministrator_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSqlAdministrator_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlAdministratorDestroy,
@@ -75,11 +80,7 @@ func testCheckAzureRMSqlAdministratorExists(name string) resource.TestCheckFunc 
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		_, err := client.Get(ctx, resourceGroup, serverName)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 }
 
@@ -96,8 +97,7 @@ func testCheckAzureRMSqlAdministratorDisappears(name string) resource.TestCheckF
 		client := testAccProvider.Meta().(*ArmClient).sqlServerAzureADAdministratorsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, err := client.Delete(ctx, resourceGroup, serverName)
-		if err != nil {
+		if _, err := client.Delete(ctx, resourceGroup, serverName); err != nil {
 			return fmt.Errorf("Bad: Delete on sqlAdministratorClient: %+v", err)
 		}
 
@@ -137,25 +137,25 @@ func testAccAzureRMSqlAdministrator_basic(rInt int, location string) string {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_sql_server" "test" {
-  name = "acctestsqlserver%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location = "${azurerm_resource_group.test.location}"
-  version = "12.0"
-  administrator_login = "mradministrator"
+  name                         = "acctestsqlserver%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
 }
 
 resource "azurerm_sql_active_directory_administrator" "test" {
-    server_name = "${azurerm_sql_server.test.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    login = "sqladmin"
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.client_id}"
+  server_name         = "${azurerm_sql_server.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  login               = "sqladmin"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  object_id           = "${data.azurerm_client_config.current.client_id}"
 }
 `, rInt, location, rInt)
 }
@@ -165,25 +165,25 @@ func testAccAzureRMSqlAdministrator_withUpdates(rInt int, location string) strin
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_sql_server" "test" {
-  name = "acctestsqlserver%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location = "${azurerm_resource_group.test.location}"
-  version = "12.0"
-  administrator_login = "mradministrator"
+  name                         = "acctestsqlserver%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
 }
 
 resource "azurerm_sql_active_directory_administrator" "test" {
-  server_name = "${azurerm_sql_server.test.name}"
+  server_name         = "${azurerm_sql_server.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  login = "sqladmin2"
-  tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-  object_id = "${data.azurerm_client_config.current.client_id}"
+  login               = "sqladmin2"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  object_id           = "${data.azurerm_client_config.current.client_id}"
 }
 `, rInt, location, rInt)
 }

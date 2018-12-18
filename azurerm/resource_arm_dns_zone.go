@@ -149,7 +149,10 @@ func resourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	nameServers := flattenDnsZoneNameservers(resp.NameServers)
+	nameServers := make([]string, 0)
+	if s := resp.NameServers; s != nil {
+		nameServers = *s
+	}
 	if err := d.Set("name_servers", nameServers); err != nil {
 		return err
 	}
@@ -180,8 +183,7 @@ func resourceArmDnsZoneDelete(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error deleting DNS zone %s (resource group %s): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
@@ -241,16 +243,4 @@ func flattenDnsZoneResolutionVirtualNetworkIDs(input *[]dns.SubResource) []strin
 	}
 
 	return resolutionVirtualNetworks
-}
-
-func flattenDnsZoneNameservers(input *[]string) []string {
-	nameServers := make([]string, 0)
-
-	if input != nil {
-		for _, ns := range *input {
-			nameServers = append(nameServers, ns)
-		}
-	}
-
-	return nameServers
 }

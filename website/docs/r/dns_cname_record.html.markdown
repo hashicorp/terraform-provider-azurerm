@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_cname_record"
 sidebar_current: "docs-azurerm-resource-dns-cname-record"
 description: |-
-  Create a DNS CNAME Record.
+  Manages a DNS CNAME Record.
 ---
 
 # azurerm_dns_cname_record
@@ -42,7 +42,7 @@ The following arguments are supported:
 
 * `zone_name` - (Required) Specifies the DNS Zone where the resource exists. Changing this forces a new resource to be created.
 
-* `TTL` - (Required) The Time To Live (TTL) of the DNS record.
+* `TTL` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
 * `record` - (Required) The target of the CNAME.
 

@@ -10,9 +10,6 @@ import (
 func dataSourceAppServicePlan() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceAppServicePlanRead,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -108,15 +105,17 @@ func dataSourceAppServicePlanRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if props := resp.AppServicePlanProperties; props != nil {
-		d.Set("properties", flattenAppServiceProperties(props))
+		if err := d.Set("properties", flattenAppServiceProperties(props)); err != nil {
+			return fmt.Errorf("Error setting `properties`: %+v", err)
+		}
 
 		if props.MaximumNumberOfWorkers != nil {
 			d.Set("maximum_number_of_workers", int(*props.MaximumNumberOfWorkers))
 		}
 	}
 
-	if sku := resp.Sku; sku != nil {
-		d.Set("sku", flattenAppServicePlanSku(sku))
+	if err := d.Set("sku", flattenAppServicePlanSku(resp.Sku)); err != nil {
+		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
 	flattenAndSetTags(d, resp.Tags)

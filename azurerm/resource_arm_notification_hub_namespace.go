@@ -21,6 +21,7 @@ func resourceArmNotificationHubNamespace() *schema.Resource {
 		Read:   resourceArmNotificationHubNamespaceRead,
 		Update: resourceArmNotificationHubNamespaceCreateUpdate,
 		Delete: resourceArmNotificationHubNamespaceDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -106,8 +107,7 @@ func resourceArmNotificationHubNamespaceCreateUpdate(d *schema.ResourceData, met
 			Enabled:       utils.Bool(enabled),
 		},
 	}
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
 		return fmt.Errorf("Error creating/updating Notification Hub Namesapce %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -235,7 +235,10 @@ func notificationHubNamespaceStateRefreshFunc(ctx context.Context, client notifi
 		// Note: this exists as the Delete API only seems to work some of the time
 		// in this case we're going to try triggering the Deletion again, in-case it didn't work prior to this attepmpt
 		// Upstream Bug: https://github.com/Azure/azure-sdk-for-go/issues/2254
-		client.Delete(ctx, resourceGroupName, name)
+
+		if _, err := client.Delete(ctx, resourceGroupName, name); err != nil {
+			log.Printf("Error reissuing Notification Hub Namespace %q delete request (Resource Group %q): %+v", name, resourceGroupName, err)
+		}
 
 		return res, strconv.Itoa(res.StatusCode), nil
 	}

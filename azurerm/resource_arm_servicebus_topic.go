@@ -24,9 +24,10 @@ func resourceArmServiceBusTopic() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateServiceBusTopicName(),
 			},
 
 			"namespace_name": {
@@ -52,21 +53,24 @@ func resourceArmServiceBusTopic() *schema.Resource {
 			},
 
 			"auto_delete_on_idle": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateIso8601Duration(),
 			},
 
 			"default_message_ttl": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateIso8601Duration(),
 			},
 
 			"duplicate_detection_history_time_window": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateIso8601Duration(),
 			},
 
 			"enable_batched_operations": {
@@ -154,8 +158,7 @@ func resourceArmServiceBusTopicCreate(d *schema.ResourceData, meta interface{}) 
 		parameters.SBTopicProperties.DuplicateDetectionHistoryTimeWindow = utils.String(duplicateWindow)
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters); err != nil {
 		return err
 	}
 

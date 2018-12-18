@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -21,7 +21,7 @@ func TestAccAzureRMLoadBalancerNatRule_basic(t *testing.T) {
 		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/inboundNatRules/%s",
 		subscriptionID, ri, ri, natRuleName)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -35,6 +35,13 @@ func TestAccAzureRMLoadBalancerNatRule_basic(t *testing.T) {
 						"azurerm_lb_nat_rule.test", "id", natRuleId),
 				),
 			},
+			{
+				ResourceName:      "azurerm_lb.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				// location is deprecated and was never actually used
+				ImportStateVerifyIgnore: []string{"location"},
+			},
 		},
 	})
 }
@@ -44,7 +51,7 @@ func TestAccAzureRMLoadBalancerNatRule_removal(t *testing.T) {
 	ri := acctest.RandInt()
 	natRuleName := fmt.Sprintf("NatRule-%d", ri)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -73,7 +80,7 @@ func TestAccAzureRMLoadBalancerNatRule_update(t *testing.T) {
 	natRuleName := fmt.Sprintf("NatRule-%d", ri)
 	natRule2Name := fmt.Sprintf("NatRule-%d", acctest.RandInt())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -111,7 +118,7 @@ func TestAccAzureRMLoadBalancerNatRule_reapply(t *testing.T) {
 		return s.Remove("azurerm_lb_nat_rule.test")
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -141,7 +148,7 @@ func TestAccAzureRMLoadBalancerNatRule_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	natRuleName := fmt.Sprintf("NatRule-%d", ri)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -165,7 +172,7 @@ func TestAccAzureRMLoadBalancerNatRule_enableFloatingIP(t *testing.T) {
 	natRuleName := fmt.Sprintf("NatRule-%d", ri)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -187,7 +194,7 @@ func TestAccAzureRMLoadBalancerNatRule_disableFloatingIP(t *testing.T) {
 	natRuleName := fmt.Sprintf("NatRule-%d", ri)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
@@ -260,12 +267,11 @@ func testCheckAzureRMLoadBalancerNatRuleDisappears(natRuleName string, lb *netwo
 
 		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, *lb.Name, *lb)
 		if err != nil {
-			return fmt.Errorf("Error Creating/Updating LoadBalancer %+v", err)
+			return fmt.Errorf("Error Creating/Updating Load Balancer %+v", err)
 		}
 
-		err = future.WaitForCompletion(ctx, client.Client)
-		if err != nil {
-			return fmt.Errorf("Error waiting for the completion of LoadBalancer %q (Resource Group %q): %+v", *lb.Name, id.ResourceGroup, err)
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Error waiting for the completion of Load Balancer %q (Resource Group %q): %+v", *lb.Name, id.ResourceGroup, err)
 		}
 
 		_, err = client.Get(ctx, id.ResourceGroup, *lb.Name, "")

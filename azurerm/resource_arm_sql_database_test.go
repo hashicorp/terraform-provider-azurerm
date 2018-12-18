@@ -12,19 +12,25 @@ import (
 )
 
 func TestAccAzureRMSqlDatabase_basic(t *testing.T) {
+	resourceName := "azurerm_sql_database.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMSqlDatabase_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSqlDatabase_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlDatabaseExists("azurerm_sql_database.test"),
+					testCheckAzureRMSqlDatabaseExists(resourceName),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"create_mode"},
 			},
 		},
 	})
@@ -33,15 +39,14 @@ func TestAccAzureRMSqlDatabase_basic(t *testing.T) {
 func TestAccAzureRMSqlDatabase_disappears(t *testing.T) {
 	resourceName := "azurerm_sql_database.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMSqlDatabase_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSqlDatabase_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlDatabaseExists(resourceName),
 					testCheckAzureRMSqlDatabaseDisappears(resourceName),
@@ -55,19 +60,24 @@ func TestAccAzureRMSqlDatabase_disappears(t *testing.T) {
 func TestAccAzureRMSqlDatabase_elasticPool(t *testing.T) {
 	resourceName := "azurerm_sql_database.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMSqlDatabase_elasticPool(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSqlDatabase_elasticPool(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlDatabaseExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "elastic_pool_name", fmt.Sprintf("acctestep%d", ri)),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"create_mode"},
 			},
 		},
 	})
@@ -80,7 +90,7 @@ func TestAccAzureRMSqlDatabase_withTags(t *testing.T) {
 	preConfig := testAccAzureRMSqlDatabase_withTags(ri, location)
 	postConfig := testAccAzureRMSqlDatabase_withTagsUpdate(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
@@ -104,19 +114,25 @@ func TestAccAzureRMSqlDatabase_withTags(t *testing.T) {
 }
 
 func TestAccAzureRMSqlDatabase_dataWarehouse(t *testing.T) {
+	resourceName := "azurerm_sql_database.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMSqlDatabase_dataWarehouse(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSqlDatabase_dataWarehouse(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlDatabaseExists("azurerm_sql_database.test"),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"create_mode"},
 			},
 		},
 	})
@@ -131,13 +147,13 @@ func TestAccAzureRMSqlDatabase_restorePointInTime(t *testing.T) {
 	formattedTime := string(timeToRestore.UTC().Format(time.RFC3339))
 	postCongif := testAccAzureRMSqlDatabase_restorePointInTime(ri, formattedTime, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config:                    preConfig,
 				PreventPostDestroyRefresh: true,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlDatabaseExists(resourceName),
@@ -162,7 +178,7 @@ func TestAccAzureRMSqlDatabase_collation(t *testing.T) {
 	preConfig := testAccAzureRMSqlDatabase_basic(ri, location)
 	postConfig := testAccAzureRMSqlDatabase_collationUpdate(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
@@ -192,7 +208,7 @@ func TestAccAzureRMSqlDatabase_requestedServiceObjectiveName(t *testing.T) {
 	preConfig := testAccAzureRMSqlDatabase_requestedServiceObjectiveName(ri, location, "S0")
 	postConfig := testAccAzureRMSqlDatabase_requestedServiceObjectiveName(ri, location, "S1")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
@@ -209,6 +225,47 @@ func TestAccAzureRMSqlDatabase_requestedServiceObjectiveName(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlDatabaseExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "requested_service_objective_name", "S1"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMSqlDatabase_threatDetectionPolicy(t *testing.T) {
+	resourceName := "azurerm_sql_database.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+	preConfig := testAccAzureRMSqlDatabase_threatDetectionPolicy(ri, location, "Enabled")
+	postConfig := testAccAzureRMSqlDatabase_threatDetectionPolicy(ri, location, "Disabled")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlDatabaseExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.0.state", "Enabled"),
+					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.0.retention_days", "15"),
+					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.0.disabled_alerts.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.0.email_account_admins", "Enabled"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"create_mode", "threat_detection_policy.0.storage_account_access_key"},
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlDatabaseExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.0.state", "Disabled"),
 				),
 			},
 		},
@@ -286,8 +343,7 @@ func testCheckAzureRMSqlDatabaseDisappears(name string) resource.TestCheckFunc {
 		client := testAccProvider.Meta().(*ArmClient).sqlDatabasesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, err := client.Delete(ctx, resourceGroup, serverName, databaseName)
-		if err != nil {
+		if _, err := client.Delete(ctx, resourceGroup, serverName, databaseName); err != nil {
 			return fmt.Errorf("Bad: Delete on sqlDatabasesClient: %+v", err)
 		}
 
@@ -299,7 +355,7 @@ func TestAccAzureRMSqlDatabase_bacpac(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSqlDatabase_bacpac(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
@@ -317,28 +373,28 @@ func TestAccAzureRMSqlDatabase_bacpac(t *testing.T) {
 func testAccAzureRMSqlDatabase_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_sql_server" "test" {
-    name = "acctestsqlserver%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    version = "12.0"
-    administrator_login = "mradministrator"
-    administrator_login_password = "thisIsDog11"
+  name                         = "acctestsqlserver%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
 }
 
 resource "azurerm_sql_database" "test" {
-    name = "acctestdb%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    server_name = "${azurerm_sql_server.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    edition = "Standard"
-    collation = "SQL_Latin1_General_CP1_CI_AS"
-    max_size_bytes = "1073741824"
-    requested_service_objective_name = "S0"
+  name                             = "acctestdb%d"
+  resource_group_name              = "${azurerm_resource_group.test.name}"
+  server_name                      = "${azurerm_sql_server.test.name}"
+  location                         = "${azurerm_resource_group.test.location}"
+  edition                          = "Standard"
+  collation                        = "SQL_Latin1_General_CP1_CI_AS"
+  max_size_bytes                   = "1073741824"
+  requested_service_objective_name = "S0"
 }
 `, rInt, location, rInt, rInt)
 }
@@ -346,33 +402,33 @@ resource "azurerm_sql_database" "test" {
 func testAccAzureRMSqlDatabase_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_sql_server" "test" {
-    name = "acctestsqlserver%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    version = "12.0"
-    administrator_login = "mradministrator"
-    administrator_login_password = "thisIsDog11"
+  name                         = "acctestsqlserver%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
 }
 
 resource "azurerm_sql_database" "test" {
-    name = "acctestdb%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    server_name = "${azurerm_sql_server.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    edition = "Standard"
-    collation = "SQL_Latin1_General_CP1_CI_AS"
-    max_size_bytes = "1073741824"
-    requested_service_objective_name = "S0"
+  name                             = "acctestdb%d"
+  resource_group_name              = "${azurerm_resource_group.test.name}"
+  server_name                      = "${azurerm_sql_server.test.name}"
+  location                         = "${azurerm_resource_group.test.location}"
+  edition                          = "Standard"
+  collation                        = "SQL_Latin1_General_CP1_CI_AS"
+  max_size_bytes                   = "1073741824"
+  requested_service_objective_name = "S0"
 
-    tags {
-    	environment = "staging"
-    	database = "test"
-    }
+  tags {
+    environment = "staging"
+    database    = "test"
+  }
 }
 `, rInt, location, rInt, rInt)
 }
@@ -380,32 +436,32 @@ resource "azurerm_sql_database" "test" {
 func testAccAzureRMSqlDatabase_withTagsUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_sql_server" "test" {
-    name = "acctestsqlserver%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    version = "12.0"
-    administrator_login = "mradministrator"
-    administrator_login_password = "thisIsDog11"
+  name                         = "acctestsqlserver%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
 }
 
 resource "azurerm_sql_database" "test" {
-    name = "acctestdb%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    server_name = "${azurerm_sql_server.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    edition = "Standard"
-    collation = "SQL_Latin1_General_CP1_CI_AS"
-    max_size_bytes = "1073741824"
-    requested_service_objective_name = "S0"
+  name                             = "acctestdb%d"
+  resource_group_name              = "${azurerm_resource_group.test.name}"
+  server_name                      = "${azurerm_sql_server.test.name}"
+  location                         = "${azurerm_resource_group.test.location}"
+  edition                          = "Standard"
+  collation                        = "SQL_Latin1_General_CP1_CI_AS"
+  max_size_bytes                   = "1073741824"
+  requested_service_objective_name = "S0"
 
-    tags {
-    	environment = "production"
-    }
+  tags {
+    environment = "production"
+  }
 }
 `, rInt, location, rInt, rInt)
 }
@@ -413,27 +469,27 @@ resource "azurerm_sql_database" "test" {
 func testAccAzureRMSqlDatabase_dataWarehouse(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctest_rg_%d"
-    location = "%s"
+  name     = "acctest_rg_%d"
+  location = "%s"
 }
 
 resource "azurerm_sql_server" "test" {
-    name = "acctestsqlserver%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    version = "12.0"
-    administrator_login = "mradministrator"
-    administrator_login_password = "thisIsDog11"
+  name                         = "acctestsqlserver%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
 }
 
 resource "azurerm_sql_database" "test" {
-    name = "acctestdb%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    server_name = "${azurerm_sql_server.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    edition = "DataWarehouse"
-    collation = "SQL_Latin1_General_CP1_CI_AS"
-    requested_service_objective_name = "DW400"
+  name                             = "acctestdb%d"
+  resource_group_name              = "${azurerm_resource_group.test.name}"
+  server_name                      = "${azurerm_sql_server.test.name}"
+  location                         = "${azurerm_resource_group.test.location}"
+  edition                          = "DataWarehouse"
+  collation                        = "SQL_Latin1_General_CP1_CI_AS"
+  requested_service_objective_name = "DW400"
 }
 `, rInt, location, rInt, rInt)
 }
@@ -441,38 +497,38 @@ resource "azurerm_sql_database" "test" {
 func testAccAzureRMSqlDatabase_restorePointInTime(rInt int, formattedTime string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_sql_server" "test" {
-    name = "acctestsqlserver%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    version = "12.0"
-    administrator_login = "mradministrator"
-    administrator_login_password = "thisIsDog11"
+  name                         = "acctestsqlserver%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
 }
 
 resource "azurerm_sql_database" "test" {
-    name = "acctestdb%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    server_name = "${azurerm_sql_server.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    edition = "Standard"
-    collation = "SQL_Latin1_General_CP1_CI_AS"
-    max_size_bytes = "1073741824"
-    requested_service_objective_name = "S0"
+  name                             = "acctestdb%d"
+  resource_group_name              = "${azurerm_resource_group.test.name}"
+  server_name                      = "${azurerm_sql_server.test.name}"
+  location                         = "${azurerm_resource_group.test.location}"
+  edition                          = "Standard"
+  collation                        = "SQL_Latin1_General_CP1_CI_AS"
+  max_size_bytes                   = "1073741824"
+  requested_service_objective_name = "S0"
 }
 
 resource "azurerm_sql_database" "test_restore" {
-    name = "acctestdb_restore%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    server_name = "${azurerm_sql_server.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    create_mode = "PointInTimeRestore"
-    source_database_id = "${azurerm_sql_database.test.id}"
-    restore_point_in_time = "%s"
+  name                  = "acctestdb_restore%d"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  server_name           = "${azurerm_sql_server.test.name}"
+  location              = "${azurerm_resource_group.test.location}"
+  create_mode           = "PointInTimeRestore"
+  source_database_id    = "${azurerm_sql_database.test.id}"
+  restore_point_in_time = "%s"
 }
 `, rInt, location, rInt, rInt, rInt, formattedTime)
 }
@@ -480,39 +536,39 @@ resource "azurerm_sql_database" "test_restore" {
 func testAccAzureRMSqlDatabase_elasticPool(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_sql_server" "test" {
-    name = "acctestsqlserver%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    version = "12.0"
-    administrator_login = "mradministrator"
-    administrator_login_password = "thisIsDog11"
+  name                         = "acctestsqlserver%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
 }
 
 resource "azurerm_sql_elasticpool" "test" {
-    name = "acctestep%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    server_name = "${azurerm_sql_server.test.name}"
-    edition = "Basic"
-    dtu = 50
-    pool_size = 5000
+  name                = "acctestep%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  server_name         = "${azurerm_sql_server.test.name}"
+  edition             = "Basic"
+  dtu                 = 50
+  pool_size           = 5000
 }
 
 resource "azurerm_sql_database" "test" {
-    name = "acctestdb%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    server_name = "${azurerm_sql_server.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    edition = "${azurerm_sql_elasticpool.test.edition}"
-    collation = "SQL_Latin1_General_CP1_CI_AS"
-    max_size_bytes = "1073741824"
-    elastic_pool_name = "${azurerm_sql_elasticpool.test.name}"
-    requested_service_objective_name = "ElasticPool"
+  name                             = "acctestdb%d"
+  resource_group_name              = "${azurerm_resource_group.test.name}"
+  server_name                      = "${azurerm_sql_server.test.name}"
+  location                         = "${azurerm_resource_group.test.location}"
+  edition                          = "${azurerm_sql_elasticpool.test.edition}"
+  collation                        = "SQL_Latin1_General_CP1_CI_AS"
+  max_size_bytes                   = "1073741824"
+  elastic_pool_name                = "${azurerm_sql_elasticpool.test.name}"
+  requested_service_objective_name = "ElasticPool"
 }
 `, rInt, location, rInt, rInt, rInt)
 }
@@ -520,28 +576,28 @@ resource "azurerm_sql_database" "test" {
 func testAccAzureRMSqlDatabase_collationUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_sql_server" "test" {
-    name = "acctestsqlserver%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    version = "12.0"
-    administrator_login = "mradministrator"
-    administrator_login_password = "thisIsDog11"
+  name                         = "acctestsqlserver%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
 }
 
 resource "azurerm_sql_database" "test" {
-    name = "acctestdb%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    server_name = "${azurerm_sql_server.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    edition = "Standard"
-    collation = "Japanese_Bushu_Kakusu_100_CS_AS_KS_WS"
-    max_size_bytes = "1073741824"
-    requested_service_objective_name = "S0"
+  name                             = "acctestdb%d"
+  resource_group_name              = "${azurerm_resource_group.test.name}"
+  server_name                      = "${azurerm_sql_server.test.name}"
+  location                         = "${azurerm_resource_group.test.location}"
+  edition                          = "Standard"
+  collation                        = "Japanese_Bushu_Kakusu_100_CS_AS_KS_WS"
+  max_size_bytes                   = "1073741824"
+  requested_service_objective_name = "S0"
 }
 `, rInt, location, rInt, rInt)
 }
@@ -643,4 +699,50 @@ resource "azurerm_sql_database" "test" {
     requested_service_objective_name = %q
 }
 `, rInt, location, rInt, rInt, requestedServiceObjectiveName)
+}
+
+func testAccAzureRMSqlDatabase_threatDetectionPolicy(rInt int, location, state string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "test%d"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_sql_server" "test" {
+  name                         = "acctestsqlserver%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+}
+
+resource "azurerm_sql_database" "test" {
+  name                = "acctestdb%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  server_name         = "${azurerm_sql_server.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  edition             = "Standard"
+  collation           = "SQL_Latin1_General_CP1_CI_AS"
+  max_size_bytes      = "1073741824"
+
+  threat_detection_policy {
+    retention_days             = 15
+    state                      = "%s"
+    disabled_alerts            = ["Sql_Injection"]
+    email_account_admins       = "Enabled"
+    storage_account_access_key = "${azurerm_storage_account.test.primary_access_key}"
+    storage_endpoint           = "${azurerm_storage_account.test.primary_blob_endpoint}"
+    use_server_default         = "Disabled"
+  }
+}
+`, rInt, location, rInt, rInt, rInt, state)
 }

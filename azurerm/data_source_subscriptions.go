@@ -2,9 +2,10 @@ package azurerm
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/subscription"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 func dataSourceArmSubscriptions() *schema.Resource {
@@ -12,11 +13,19 @@ func dataSourceArmSubscriptions() *schema.Resource {
 		Read: dataSourceArmSubscriptionsRead,
 
 		Schema: map[string]*schema.Schema{
+			"display_name_prefix": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"display_name_contains": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"subscriptions": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
-					Schema: subscription.SubscriptionSchema(false),
+					Schema: azure.SchemaSubscription(false),
 				},
 			},
 		},
@@ -28,6 +37,9 @@ func dataSourceArmSubscriptionsRead(d *schema.ResourceData, meta interface{}) er
 	subClient := armClient.subscriptionsClient
 	ctx := armClient.StopContext
 
+	displayNamePrefix := strings.ToLower(d.Get("display_name_prefix").(string))
+	displayNameContains := strings.ToLower(d.Get("display_name_contains").(string))
+
 	//ListComplete returns an iterator struct
 	results, err := subClient.ListComplete(ctx)
 	if err != nil {
@@ -36,7 +48,7 @@ func dataSourceArmSubscriptionsRead(d *schema.ResourceData, meta interface{}) er
 
 	//iterate across each subscriptions and append them to slice
 	subscriptions := make([]map[string]interface{}, 0)
-	for err = nil; results.NotDone(); err = results.Next() {
+	for results.NotDone() {
 		val := results.Value()
 
 		s := make(map[string]interface{})
@@ -59,12 +71,32 @@ func dataSourceArmSubscriptionsRead(d *schema.ResourceData, meta interface{}) er
 			s["spending_limit"] = string(policies.SpendingLimit)
 		}
 
+		if err = results.Next(); err != nil {
+			return fmt.Errorf("Error going to next subscriptions value: %+v", err)
+		}
+
+		//check if the display name prefix matches the given input
+		if displayNamePrefix != "" {
+			if !strings.HasPrefix(strings.ToLower(s["display_name"].(string)), displayNamePrefix) {
+				//the display name does not match the given prefix
+				continue
+			}
+		}
+
+		//check if the display name matches the 'contains' comparison
+		if displayNameContains != "" {
+			if !strings.Contains(strings.ToLower(s["display_name"].(string)), displayNameContains) {
+				//the display name does not match the contains check
+				continue
+			}
+		}
+
 		subscriptions = append(subscriptions, s)
 	}
 
 	d.SetId("subscriptions-" + armClient.tenantId)
-	if err := d.Set("subscriptions", subscriptions); err != nil {
-		return fmt.Errorf("Error flattening `subscriptions`: %+v", err)
+	if err = d.Set("subscriptions", subscriptions); err != nil {
+		return fmt.Errorf("Error setting `subscriptions`: %+v", err)
 	}
 
 	return nil

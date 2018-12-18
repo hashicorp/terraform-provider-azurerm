@@ -13,9 +13,9 @@ import (
 
 func resourceArmDnsSrvRecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDnsSrvRecordCreateOrUpdate,
+		Create: resourceArmDnsSrvRecordCreateUpdate,
 		Read:   resourceArmDnsSrvRecordRead,
-		Update: resourceArmDnsSrvRecordCreateOrUpdate,
+		Update: resourceArmDnsSrvRecordCreateUpdate,
 		Delete: resourceArmDnsSrvRecordDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -74,7 +74,7 @@ func resourceArmDnsSrvRecord() *schema.Resource {
 	}
 }
 
-func resourceArmDnsSrvRecordCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDnsSrvRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dnsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -162,9 +162,9 @@ func resourceArmDnsSrvRecordDelete(d *schema.ResourceData, meta interface{}) err
 	name := id.Path["SRV"]
 	zoneName := id.Path["dnszones"]
 
-	resp, error := client.Delete(ctx, resGroup, zoneName, name, dns.SRV, "")
+	resp, err := client.Delete(ctx, resGroup, zoneName, name, dns.SRV, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS SRV Record %s: %+v", name, error)
+		return fmt.Errorf("Error deleting DNS SRV Record %s: %+v", name, err)
 	}
 
 	return nil

@@ -15,7 +15,7 @@ func TestAccAzureRMSearchService_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSearchService_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
@@ -27,6 +27,11 @@ func TestAccAzureRMSearchService_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -36,7 +41,7 @@ func TestAccAzureRMSearchService_complete(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSearchService_complete(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
@@ -47,7 +52,14 @@ func TestAccAzureRMSearchService_complete(t *testing.T) {
 					testCheckAzureRMSearchServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "replica_count", "2"),
+					resource.TestCheckResourceAttrSet(resourceName, "primary_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "secondary_key"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -68,7 +80,6 @@ func testCheckAzureRMSearchServiceExists(name string) resource.TestCheckFunc {
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, searchName, nil)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Search Service %q (resource group %q) was not found: %+v", searchName, resourceGroup, err)
@@ -94,7 +105,6 @@ func testCheckAzureRMSearchServiceDestroy(s *terraform.State) error {
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, searchName, nil)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
@@ -112,19 +122,19 @@ func testCheckAzureRMSearchServiceDestroy(s *terraform.State) error {
 func testAccAzureRMSearchService_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_search_service" "test" {
-    name = "acctestsearchservice%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    sku = "standard"
+  name                = "acctestsearchservice%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  sku                 = "standard"
 
-    tags {
-    	environment = "staging"
-    }
+  tags {
+    environment = "staging"
+  }
 }
 `, rInt, location, rInt)
 }
@@ -132,19 +142,20 @@ resource "azurerm_search_service" "test" {
 func testAccAzureRMSearchService_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
-resource "azurerm_search_service" "test" {
-    name = "acctestsearchservice%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    sku = "standard"
-    replica_count = 2
 
-    tags {
-    	environment = "production"
-    }
+resource "azurerm_search_service" "test" {
+  name                = "acctestsearchservice%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  sku                 = "standard"
+  replica_count       = 2
+
+  tags {
+    environment = "production"
+  }
 }
 `, rInt, location, rInt)
 }

@@ -3,31 +3,31 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_image"
 sidebar_current: "docs-azurerm-resource-compute-image"
 description: |-
-  Create a custom virtual machine image that can be used to create virtual machines.
+  Manages a custom virtual machine image that can be used to create virtual machines.
 ---
 
 # azurerm_image
 
-Create a custom virtual machine image that can be used to create virtual machines.
+Manage a custom virtual machine image that can be used to create virtual machines.
 
 ## Example Usage Creating from VHD
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name = "acctest"
+  name     = "acctest"
   location = "West US"
 }
 
 resource "azurerm_image" "test" {
-  name = "acctest"
-  location = "West US"
+  name                = "acctest"
+  location            = "West US"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   os_disk {
-    os_type = "Linux"
+    os_type  = "Linux"
     os_state = "Generalized"
     blob_uri = "{blob_uri}"
-    size_gb = 30
+    size_gb  = 30
   }
 }
 ```
@@ -36,14 +36,14 @@ resource "azurerm_image" "test" {
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name = "acctest"
+  name     = "acctest"
   location = "West US"
 }
 
 resource "azurerm_image" "test" {
-  name = "acctest"
-  location = "West US"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                      = "acctest"
+  location                  = "West US"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
   source_virtual_machine_id = "{vm_id}"
 }
 ```
@@ -70,6 +70,7 @@ The following arguments are supported:
 * `managed_disk_id` - (Optional) Specifies the ID of the managed disk resource that you want to use to create the image.
 * `blob_uri` - (Optional) Specifies the URI in Azure storage of the blob that you want to use to create the image.
 * `caching` - (Optional) Specifies the caching mode as `ReadWrite`, `ReadOnly`, or `None`. The default is `None`.
+* `size_gb` - (Optional) Specifies the size of the image to be created. The target size can't be smaller than the source size.
 
 `data_disk` supports the following:
 

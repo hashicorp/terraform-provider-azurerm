@@ -20,13 +20,13 @@ resource "azurerm_servicebus_namespace_authorization_rule" "example" {
   namespace_name      = "${azurerm_servicebus_namespace.example.name}"
   resource_group_name = "${azurerm_resource_group.example.name}"
 
-  send                = true
-  listen              = true
-  manage              = true
+  send   = true
+  listen = true
+  manage = true
 }
 
 resource "azurerm_servicebus_topic" "source" {
-  name                = "tfex_servicebus${random_integer.ri.result}_topic"
+  name                = "tfex_servicebus${random_integer.ri.result}~topic"
   resource_group_name = "${azurerm_resource_group.example.name}"
   namespace_name      = "${azurerm_servicebus_namespace.example.name}"
 
@@ -39,9 +39,9 @@ resource "azurerm_servicebus_topic_authorization_rule" "example" {
   topic_name          = "${azurerm_servicebus_topic.source.name}"
   resource_group_name = "${azurerm_resource_group.example.name}"
 
-  send                = true
-  listen              = true
-  manage              = true
+  send   = true
+  listen = true
+  manage = true
 }
 
 resource "azurerm_servicebus_topic" "forward_to" {
@@ -75,6 +75,6 @@ resource "azurerm_servicebus_queue_authorization_rule" "example" {
   queue_name          = "${azurerm_servicebus_queue.example.name}"
   resource_group_name = "${azurerm_resource_group.example.name}"
 
-  send                = true
-  listen              = true
+  send   = true
+  listen = true
 }

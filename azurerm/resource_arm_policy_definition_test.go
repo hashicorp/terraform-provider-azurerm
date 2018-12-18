@@ -15,7 +15,7 @@ func TestAccAzureRMPolicyDefinition_basic(t *testing.T) {
 
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
@@ -25,6 +25,11 @@ func TestAccAzureRMPolicyDefinition_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPolicyDefinitionExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -87,7 +92,8 @@ resource "azurerm_policy_definition" "test" {
   policy_type  = "Custom"
   mode         = "All"
   display_name = "acctestpol-%d"
-  policy_rule  = <<POLICY_RULE
+
+  policy_rule = <<POLICY_RULE
 	{
     "if": {
       "not": {

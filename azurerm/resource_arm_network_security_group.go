@@ -3,8 +3,8 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
-	multierror "github.com/hashicorp/go-multierror"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -188,8 +188,7 @@ func resourceArmNetworkSecurityGroupCreate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("Error creating/updating NSG %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for the completion of NSG %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
@@ -235,7 +234,7 @@ func resourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{
 	if props := resp.SecurityGroupPropertiesFormat; props != nil {
 		flattenedRules := flattenNetworkSecurityRules(props.SecurityRules)
 		if err := d.Set("security_rule", flattenedRules); err != nil {
-			return fmt.Errorf("Error flattening `security_rule`: %+v", err)
+			return fmt.Errorf("Error setting `security_rule`: %+v", err)
 		}
 	}
 
@@ -260,8 +259,7 @@ func resourceArmNetworkSecurityGroupDelete(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("Error deleting Network Security Group %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error deleting Network Security Group %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
@@ -363,7 +361,7 @@ func expandAzureRmSecurityRules(d *schema.ResourceData) ([]network.SecurityRule,
 		}
 
 		rules = append(rules, network.SecurityRule{
-			Name: &name,
+			Name:                         &name,
 			SecurityRulePropertiesFormat: &properties,
 		})
 	}

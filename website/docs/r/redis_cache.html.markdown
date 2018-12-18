@@ -103,6 +103,7 @@ resource "azurerm_redis_cache" "test" {
   family              = "P"
   sku_name            = "Premium"
   enable_non_ssl_port = false
+
   redis_configuration {
     rdb_backup_enabled            = true
     rdb_backup_frequency          = 60
@@ -144,6 +145,8 @@ The pricing group for the Redis Family - either "C" or "P" at present.
 
 * `subnet_id` - (Optional) The ID of the Subnet within which the Redis Cache should be deployed. Changing this forces a new resource to be created.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 ---
 
 * `redis_configuration` supports the following:
@@ -170,7 +173,7 @@ resource "azurerm_redis_cache" "test" {
 
 ```hcl
 redis_configuration {
-  maxmemory_reserve  = 10
+  maxmemory_reserved = 10
   maxmemory_delta    = 2
   maxmemory_policy   = "allkeys-lru"
 }

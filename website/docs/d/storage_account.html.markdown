@@ -3,20 +3,20 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_account"
 sidebar_current: "docs-azurerm-datasource-storage-account"
 description: |-
-  Gets information about the specified Storage Account.
+  Gets information about an existing Storage Account.
 
 ---
 
 # Data Source: azurerm_storage_account
 
-Gets information about the specified Storage Account.
+Use this data source to access information about an existing Storage Account.
 
 ## Example Usage
 
 ```hcl
 data "azurerm_storage_account" "test" {
-  name                 = "packerimages"
-  resource_group_name  = "packer-storage"
+  name                = "packerimages"
+  resource_group_name = "packer-storage"
 }
 
 output "storage_account_tier" {

@@ -17,7 +17,7 @@ func TestAccAzureRMTrafficManagerEndpoint_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMTrafficManagerEndpoint_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
@@ -31,6 +31,11 @@ func TestAccAzureRMTrafficManagerEndpoint_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(externalResourceName, "endpoint_status", "Enabled"),
 				),
 			},
+			{
+				ResourceName:      externalResourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -41,7 +46,7 @@ func TestAccAzureRMTrafficManagerEndpoint_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMTrafficManagerEndpoint_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
@@ -68,7 +73,7 @@ func TestAccAzureRMTrafficManagerEndpoint_basicDisableExternal(t *testing.T) {
 	preConfig := testAccAzureRMTrafficManagerEndpoint_basic(ri, testLocation())
 	postConfig := testAccAzureRMTrafficManagerEndpoint_basicDisableExternal(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
@@ -105,7 +110,7 @@ func TestAccAzureRMTrafficManagerEndpoint_updateWeight(t *testing.T) {
 	preConfig := testAccAzureRMTrafficManagerEndpoint_weight(ri, location)
 	postConfig := testAccAzureRMTrafficManagerEndpoint_updateWeight(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
@@ -142,7 +147,7 @@ func TestAccAzureRMTrafficManagerEndpoint_updatePriority(t *testing.T) {
 	preConfig := testAccAzureRMTrafficManagerEndpoint_priority(ri, location)
 	postConfig := testAccAzureRMTrafficManagerEndpoint_updatePriority(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
@@ -173,7 +178,7 @@ func TestAccAzureRMTrafficManagerEndpoint_nestedEndpoints(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMTrafficManagerEndpoint_nestedEndpoints(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
@@ -196,7 +201,7 @@ func TestAccAzureRMTrafficManagerEndpoint_location(t *testing.T) {
 	first := testAccAzureRMTrafficManagerEndpoint_location(ri, location)
 	second := testAccAzureRMTrafficManagerEndpoint_locationUpdated(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
@@ -224,7 +229,7 @@ func TestAccAzureRMTrafficManagerEndpoint_withGeoMappings(t *testing.T) {
 	first := testAccAzureRMTrafficManagerEndpoint_geoMappings(ri, location)
 	second := testAccAzureRMTrafficManagerEndpoint_geoMappingsUpdated(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
@@ -302,8 +307,8 @@ func testCheckAzureRMTrafficManagerEndpointDisappears(name string) resource.Test
 		// Ensure resource group/virtual network combination exists in API
 		conn := testAccProvider.Meta().(*ArmClient).trafficManagerEndpointsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		_, err := conn.Delete(ctx, resourceGroup, profileName, path.Base(endpointType), name)
-		if err != nil {
+
+		if _, err := conn.Delete(ctx, resourceGroup, profileName, path.Base(endpointType), name); err != nil {
 			return fmt.Errorf("Bad: Delete on trafficManagerEndpointsClient: %+v", err)
 		}
 
@@ -340,105 +345,104 @@ func testCheckAzureRMTrafficManagerEndpointDestroy(s *terraform.State) error {
 func testAccAzureRMTrafficManagerEndpoint_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_traffic_manager_profile" "test" {
-    name = "acctesttmp%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    traffic_routing_method = "Weighted"
+  name                   = "acctesttmp%d"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  traffic_routing_method = "Weighted"
 
-    dns_config {
-        relative_name = "acctesttmp%d"
-        ttl = 30
-    }
+  dns_config {
+    relative_name = "acctesttmp%d"
+    ttl           = 30
+  }
 
-    monitor_config {
-        protocol = "https"
-        port = 443
-        path = "/"
-    }
+  monitor_config {
+    protocol = "https"
+    port     = 443
+    path     = "/"
+  }
 }
 
 resource "azurerm_public_ip" "test" {
-    name = "acctestpublicip-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    public_ip_address_allocation = "static"
-    domain_name_label = "acctestpublicip-%d"
+  name                         = "acctestpublicip-%d"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "static"
+  domain_name_label            = "acctestpublicip-%d"
 }
 
 resource "azurerm_traffic_manager_endpoint" "testAzure" {
-    name = "acctestend-azure%d"
-    type = "azureEndpoints"
-    target_resource_id = "${azurerm_public_ip.test.id}"
-    weight = 3
-    profile_name = "${azurerm_traffic_manager_profile.test.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestend-azure%d"
+  type                = "azureEndpoints"
+  target_resource_id  = "${azurerm_public_ip.test.id}"
+  weight              = 3
+  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_traffic_manager_endpoint" "testExternal" {
-    name = "acctestend-external%d"
-    type = "externalEndpoints"
-    target = "terraform.io"
-    weight = 3
-    profile_name = "${azurerm_traffic_manager_profile.test.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestend-external%d"
+  type                = "externalEndpoints"
+  target              = "terraform.io"
+  weight              = 3
+  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
-
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMTrafficManagerEndpoint_basicDisableExternal(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_traffic_manager_profile" "test" {
-    name = "acctesttmp%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    traffic_routing_method = "Weighted"
+  name                   = "acctesttmp%d"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  traffic_routing_method = "Weighted"
 
-    dns_config {
-        relative_name = "acctesttmp%d"
-        ttl = 30
-    }
+  dns_config {
+    relative_name = "acctesttmp%d"
+    ttl           = 30
+  }
 
-    monitor_config {
-        protocol = "https"
-        port = 443
-        path = "/"
-    }
+  monitor_config {
+    protocol = "https"
+    port     = 443
+    path     = "/"
+  }
 }
 
 resource "azurerm_public_ip" "test" {
-    name = "acctestpublicip-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    public_ip_address_allocation = "static"
-    domain_name_label = "acctestpublicip-%d"
+  name                         = "acctestpublicip-%d"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "static"
+  domain_name_label            = "acctestpublicip-%d"
 }
 
 resource "azurerm_traffic_manager_endpoint" "testAzure" {
-    name = "acctestend-azure%d"
-    type = "azureEndpoints"
-    target_resource_id = "${azurerm_public_ip.test.id}"
-    weight = 3
-    profile_name = "${azurerm_traffic_manager_profile.test.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestend-azure%d"
+  type                = "azureEndpoints"
+  target_resource_id  = "${azurerm_public_ip.test.id}"
+  weight              = 3
+  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_traffic_manager_endpoint" "testExternal" {
-    name = "acctestend-external%d"
-    endpoint_status = "Disabled"
-    type = "externalEndpoints"
-    target = "terraform.io"
-    weight = 3
-    profile_name = "${azurerm_traffic_manager_profile.test.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestend-external%d"
+  endpoint_status     = "Disabled"
+  type                = "externalEndpoints"
+  target              = "terraform.io"
+  weight              = 3
+  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
 }
@@ -446,43 +450,43 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
 func testAccAzureRMTrafficManagerEndpoint_weight(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_traffic_manager_profile" "test" {
-    name = "acctesttmp%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    traffic_routing_method = "Weighted"
+  name                   = "acctesttmp%d"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  traffic_routing_method = "Weighted"
 
-    dns_config {
-        relative_name = "acctesttmp%d"
-        ttl = 30
-    }
+  dns_config {
+    relative_name = "acctesttmp%d"
+    ttl           = 30
+  }
 
-    monitor_config {
-        protocol = "https"
-        port = 443
-        path = "/"
-    }
+  monitor_config {
+    protocol = "https"
+    port     = 443
+    path     = "/"
+  }
 }
 
 resource "azurerm_traffic_manager_endpoint" "testExternal" {
-    name = "acctestend-external%d"
-    type = "externalEndpoints"
-    target = "terraform.io"
-    weight = 50
-    profile_name = "${azurerm_traffic_manager_profile.test.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestend-external%d"
+  type                = "externalEndpoints"
+  target              = "terraform.io"
+  weight              = 50
+  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
-    name = "acctestend-external%d-2"
-    type = "externalEndpoints"
-    target = "www.terraform.io"
-    weight = 50
-    profile_name = "${azurerm_traffic_manager_profile.test.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestend-external%d-2"
+  type                = "externalEndpoints"
+  target              = "www.terraform.io"
+  weight              = 50
+  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
 }
@@ -490,86 +494,86 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 func testAccAzureRMTrafficManagerEndpoint_updateWeight(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_traffic_manager_profile" "test" {
-    name = "acctesttmp%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    traffic_routing_method = "Weighted"
+  name                   = "acctesttmp%d"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  traffic_routing_method = "Weighted"
 
-    dns_config {
-        relative_name = "acctesttmp%d"
-        ttl = 30
-    }
+  dns_config {
+    relative_name = "acctesttmp%d"
+    ttl           = 30
+  }
 
-    monitor_config {
-        protocol = "https"
-        port = 443
-        path = "/"
-    }
+  monitor_config {
+    protocol = "https"
+    port     = 443
+    path     = "/"
+  }
 }
 
 resource "azurerm_traffic_manager_endpoint" "testExternal" {
-    name = "acctestend-external%d"
-    type = "externalEndpoints"
-    target = "terraform.io"
-    weight = 25
-    profile_name = "${azurerm_traffic_manager_profile.test.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestend-external%d"
+  type                = "externalEndpoints"
+  target              = "terraform.io"
+  weight              = 25
+  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
-    name = "acctestend-external%d-2"
-    type = "externalEndpoints"
-    target = "www.terraform.io"
-    weight = 75
-    profile_name = "${azurerm_traffic_manager_profile.test.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestend-external%d-2"
+  type                = "externalEndpoints"
+  target              = "www.terraform.io"
+  weight              = 75
+  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
 }
 func testAccAzureRMTrafficManagerEndpoint_priority(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_traffic_manager_profile" "test" {
-    name = "acctesttmp%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    traffic_routing_method = "Priority"
+  name                   = "acctesttmp%d"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  traffic_routing_method = "Priority"
 
-    dns_config {
-        relative_name = "acctesttmp%d"
-        ttl = 30
-    }
+  dns_config {
+    relative_name = "acctesttmp%d"
+    ttl           = 30
+  }
 
-    monitor_config {
-        protocol = "https"
-        port = 443
-        path = "/"
-    }
+  monitor_config {
+    protocol = "https"
+    port     = 443
+    path     = "/"
+  }
 }
 
 resource "azurerm_traffic_manager_endpoint" "testExternal" {
-    name = "acctestend-external%d"
-    type = "externalEndpoints"
-    target = "terraform.io"
-    priority = 1
-    profile_name = "${azurerm_traffic_manager_profile.test.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestend-external%d"
+  type                = "externalEndpoints"
+  target              = "terraform.io"
+  priority            = 1
+  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
-    name = "acctestend-external%d-2"
-    type = "externalEndpoints"
-    target = "www.terraform.io"
-    priority = 2
-    profile_name = "${azurerm_traffic_manager_profile.test.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestend-external%d-2"
+  type                = "externalEndpoints"
+  target              = "www.terraform.io"
+  priority            = 2
+  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
 }
@@ -577,43 +581,43 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 func testAccAzureRMTrafficManagerEndpoint_updatePriority(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_traffic_manager_profile" "test" {
-    name = "acctesttmp%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    traffic_routing_method = "Priority"
+  name                   = "acctesttmp%d"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  traffic_routing_method = "Priority"
 
-    dns_config {
-        relative_name = "acctesttmp%d"
-        ttl = 30
-    }
+  dns_config {
+    relative_name = "acctesttmp%d"
+    ttl           = 30
+  }
 
-    monitor_config {
-        protocol = "https"
-        port = 443
-        path = "/"
-    }
+  monitor_config {
+    protocol = "https"
+    port     = 443
+    path     = "/"
+  }
 }
 
 resource "azurerm_traffic_manager_endpoint" "testExternal" {
-    name = "acctestend-external%d"
-    type = "externalEndpoints"
-    target = "terraform.io"
-    priority = 3
-    profile_name = "${azurerm_traffic_manager_profile.test.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestend-external%d"
+  type                = "externalEndpoints"
+  target              = "terraform.io"
+  priority            = 3
+  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
-    name = "acctestend-external%d-2"
-    type = "externalEndpoints"
-    target = "www.terraform.io"
-    priority = 2
-    profile_name = "${azurerm_traffic_manager_profile.test.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestend-external%d-2"
+  type                = "externalEndpoints"
+  target              = "www.terraform.io"
+  priority            = 2
+  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
 }
@@ -621,97 +625,96 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 func testAccAzureRMTrafficManagerEndpoint_nestedEndpoints(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_traffic_manager_profile" "parent" {
-    name = "acctesttmpparent%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    traffic_routing_method = "Priority"
+  name                   = "acctesttmpparent%d"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  traffic_routing_method = "Priority"
 
-    dns_config {
-        relative_name = "acctestparent%d"
-        ttl = 30
-    }
+  dns_config {
+    relative_name = "acctestparent%d"
+    ttl           = 30
+  }
 
-    monitor_config {
-        protocol = "https"
-        port = 443
-        path = "/"
-    }
+  monitor_config {
+    protocol = "https"
+    port     = 443
+    path     = "/"
+  }
 }
 
 resource "azurerm_traffic_manager_profile" "child" {
-    name = "acctesttmpchild%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    traffic_routing_method = "Priority"
+  name                   = "acctesttmpchild%d"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  traffic_routing_method = "Priority"
 
-    dns_config {
-        relative_name = "acctesttmpchild%d"
-        ttl = 30
-    }
+  dns_config {
+    relative_name = "acctesttmpchild%d"
+    ttl           = 30
+  }
 
-    monitor_config {
-        protocol = "https"
-        port = 443
-        path = "/"
-    }
+  monitor_config {
+    protocol = "https"
+    port     = 443
+    path     = "/"
+  }
 }
 
 resource "azurerm_traffic_manager_endpoint" "nested" {
-    name = "acctestend-parent%d"
-    type = "nestedEndpoints"
-    target_resource_id = "${azurerm_traffic_manager_profile.child.id}"
-    priority = 1
-    profile_name = "${azurerm_traffic_manager_profile.parent.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    min_child_endpoints = 1
+  name                = "acctestend-parent%d"
+  type                = "nestedEndpoints"
+  target_resource_id  = "${azurerm_traffic_manager_profile.child.id}"
+  priority            = 1
+  profile_name        = "${azurerm_traffic_manager_profile.parent.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  min_child_endpoints = 1
 }
 
 resource "azurerm_traffic_manager_endpoint" "externalChild" {
-    name = "acctestend-child%d"
-    type = "externalEndpoints"
-    target = "terraform.io"
-    priority = 1
-    profile_name = "${azurerm_traffic_manager_profile.child.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestend-child%d"
+  type                = "externalEndpoints"
+  target              = "terraform.io"
+  priority            = 1
+  profile_name        = "${azurerm_traffic_manager_profile.child.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMTrafficManagerEndpoint_location(rInt int, location string) string {
 	return fmt.Sprintf(`
-
 resource "azurerm_resource_group" "test" {
-    name     = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_traffic_manager_profile" "test" {
-    name                   = "acctesttmpparent%d"
-    resource_group_name    = "${azurerm_resource_group.test.name}"
-    traffic_routing_method = "Performance"
+  name                   = "acctesttmpparent%d"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  traffic_routing_method = "Performance"
 
-    dns_config {
-        relative_name = "acctestparent%d"
-        ttl = 30
-    }
+  dns_config {
+    relative_name = "acctestparent%d"
+    ttl           = 30
+  }
 
-    monitor_config {
-        protocol = "https"
-        port = 443
-        path = "/"
-    }
+  monitor_config {
+    protocol = "https"
+    port     = 443
+    path     = "/"
+  }
 }
 
 resource "azurerm_traffic_manager_endpoint" "test" {
-    name                = "acctestend-external%d"
-    type                = "externalEndpoints"
-    target              = "terraform.io"
-    endpoint_location   = "${azurerm_resource_group.test.location}"
-    profile_name        = "${azurerm_traffic_manager_profile.test.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestend-external%d"
+  type                = "externalEndpoints"
+  target              = "terraform.io"
+  endpoint_location   = "${azurerm_resource_group.test.location}"
+  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt, rInt, rInt)
 }
@@ -719,34 +722,34 @@ resource "azurerm_traffic_manager_endpoint" "test" {
 func testAccAzureRMTrafficManagerEndpoint_locationUpdated(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name     = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_traffic_manager_profile" "test" {
-    name                   = "acctesttmpparent%d"
-    resource_group_name    = "${azurerm_resource_group.test.name}"
-    traffic_routing_method = "Performance"
+  name                   = "acctesttmpparent%d"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  traffic_routing_method = "Performance"
 
-    dns_config {
-        relative_name = "acctestparent%d"
-        ttl = 30
-    }
+  dns_config {
+    relative_name = "acctestparent%d"
+    ttl           = 30
+  }
 
-    monitor_config {
-        protocol = "https"
-        port = 443
-        path = "/"
-    }
+  monitor_config {
+    protocol = "https"
+    port     = 443
+    path     = "/"
+  }
 }
 
 resource "azurerm_traffic_manager_endpoint" "test" {
-    name                = "acctestend-external%d"
-    type                = "externalEndpoints"
-    target              = "terraform.io"
-    endpoint_location   = "${azurerm_resource_group.test.location}"
-    profile_name        = "${azurerm_traffic_manager_profile.test.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestend-external%d"
+  type                = "externalEndpoints"
+  target              = "terraform.io"
+  endpoint_location   = "${azurerm_resource_group.test.location}"
+  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt, rInt, rInt)
 }

@@ -11,9 +11,9 @@ import (
 
 func resourceArmDnsAAAARecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDnsAaaaRecordCreateOrUpdate,
+		Create: resourceArmDnsAaaaRecordCreateUpdate,
 		Read:   resourceArmDnsAaaaRecordRead,
-		Update: resourceArmDnsAaaaRecordCreateOrUpdate,
+		Update: resourceArmDnsAaaaRecordCreateUpdate,
 		Delete: resourceArmDnsAaaaRecordDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -50,7 +50,7 @@ func resourceArmDnsAAAARecord() *schema.Resource {
 	}
 }
 
-func resourceArmDnsAaaaRecordCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDnsAaaaRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dnsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -138,9 +138,9 @@ func resourceArmDnsAaaaRecordDelete(d *schema.ResourceData, meta interface{}) er
 	name := id.Path["AAAA"]
 	zoneName := id.Path["dnszones"]
 
-	resp, error := dnsClient.Delete(ctx, resGroup, zoneName, name, dns.AAAA, "")
+	resp, err := dnsClient.Delete(ctx, resGroup, zoneName, name, dns.AAAA, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS AAAA Record %s: %+v", name, error)
+		return fmt.Errorf("Error deleting DNS AAAA Record %s: %+v", name, err)
 	}
 
 	return nil

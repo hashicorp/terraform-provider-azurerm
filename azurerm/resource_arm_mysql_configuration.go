@@ -65,8 +65,7 @@ func resourceArmMySQLConfigurationCreate(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 
@@ -144,10 +143,5 @@ func resourceArmMySQLConfigurationDelete(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return future.WaitForCompletionRef(ctx, client.Client)
 }

@@ -5,10 +5,11 @@ import (
 	"net/http"
 	"testing"
 
+	"strconv"
+
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"strconv"
 )
 
 func TestAccAzureRMDataLakeStoreFirewallRule_basic(t *testing.T) {
@@ -17,7 +18,7 @@ func TestAccAzureRMDataLakeStoreFirewallRule_basic(t *testing.T) {
 	startIP := "1.1.1.1"
 	endIP := "2.2.2.2"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDataLakeStoreFirewallRuleDestroy,
@@ -43,7 +44,7 @@ func TestAccAzureRMDataLakeStoreFirewallRule_update(t *testing.T) {
 	resourceName := "azurerm_data_lake_store_firewall_rule.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDataLakeStoreFirewallRuleDestroy,
@@ -73,7 +74,7 @@ func TestAccAzureRMDataLakeStoreFirewallRule_azureServices(t *testing.T) {
 	ri := acctest.RandInt()
 	azureServicesIP := "0.0.0.0"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDataLakeStoreFirewallRuleDestroy,

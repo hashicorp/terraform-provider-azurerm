@@ -71,7 +71,7 @@ func TestAccAzureRMMetricAlertRule_virtualMachineCpu(t *testing.T) {
 	preConfig := testAccAzureRMMetricAlertRule_virtualMachineCpu(ri, testLocation(), true)
 	postConfig := testAccAzureRMMetricAlertRule_virtualMachineCpu(ri, testLocation(), false)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMetricAlertRuleDestroy,
@@ -92,6 +92,15 @@ func TestAccAzureRMMetricAlertRule_virtualMachineCpu(t *testing.T) {
 					resource.TestCheckNoResourceAttr(resourceName, "tags.$type"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMetricAlertRuleExists(resourceName),
+					resource.TestCheckNoResourceAttr(resourceName, "tags.$type"),
+				),
+			},
 		},
 	})
 }
@@ -101,7 +110,7 @@ func TestAccAzureRMMetricAlertRule_sqlDatabaseStorage(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMMetricAlertRule_sqlDatabaseStorage(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMetricAlertRuleDestroy,

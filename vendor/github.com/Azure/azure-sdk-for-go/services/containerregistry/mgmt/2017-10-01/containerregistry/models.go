@@ -56,6 +56,21 @@ func PossiblePasswordNameValues() []PasswordName {
 	return []PasswordName{Password, Password2}
 }
 
+// PolicyStatus enumerates the values for policy status.
+type PolicyStatus string
+
+const (
+	// Disabled ...
+	Disabled PolicyStatus = "disabled"
+	// Enabled ...
+	Enabled PolicyStatus = "enabled"
+)
+
+// PossiblePolicyStatusValues returns an array of possible values for the PolicyStatus const type.
+func PossiblePolicyStatusValues() []PolicyStatus {
+	return []PolicyStatus{Disabled, Enabled}
+}
+
 // ProvisioningState enumerates the values for provisioning state.
 type ProvisioningState string
 
@@ -132,6 +147,19 @@ func PossibleSkuTierValues() []SkuTier {
 	return []SkuTier{SkuTierBasic, SkuTierClassic, SkuTierPremium, SkuTierStandard}
 }
 
+// TrustPolicyType enumerates the values for trust policy type.
+type TrustPolicyType string
+
+const (
+	// Notary ...
+	Notary TrustPolicyType = "Notary"
+)
+
+// PossibleTrustPolicyTypeValues returns an array of possible values for the TrustPolicyType const type.
+func PossibleTrustPolicyTypeValues() []TrustPolicyType {
+	return []TrustPolicyType{Notary}
+}
+
 // WebhookAction enumerates the values for webhook action.
 type WebhookAction string
 
@@ -140,26 +168,28 @@ const (
 	Delete WebhookAction = "delete"
 	// Push ...
 	Push WebhookAction = "push"
+	// Quarantine ...
+	Quarantine WebhookAction = "quarantine"
 )
 
 // PossibleWebhookActionValues returns an array of possible values for the WebhookAction const type.
 func PossibleWebhookActionValues() []WebhookAction {
-	return []WebhookAction{Delete, Push}
+	return []WebhookAction{Delete, Push, Quarantine}
 }
 
 // WebhookStatus enumerates the values for webhook status.
 type WebhookStatus string
 
 const (
-	// Disabled ...
-	Disabled WebhookStatus = "disabled"
-	// Enabled ...
-	Enabled WebhookStatus = "enabled"
+	// WebhookStatusDisabled ...
+	WebhookStatusDisabled WebhookStatus = "disabled"
+	// WebhookStatusEnabled ...
+	WebhookStatusEnabled WebhookStatus = "enabled"
 )
 
 // PossibleWebhookStatusValues returns an array of possible values for the WebhookStatus const type.
 func PossibleWebhookStatusValues() []WebhookStatus {
-	return []WebhookStatus{Disabled, Enabled}
+	return []WebhookStatus{WebhookStatusDisabled, WebhookStatusEnabled}
 }
 
 // Actor the agent that initiated the event. For most situations, this could be from the authorization context of
@@ -411,8 +441,12 @@ type ImportImageParameters struct {
 
 // ImportSource ...
 type ImportSource struct {
-	// ResourceID - The resource identifier of the target Azure Container Registry.
+	// ResourceID - The resource identifier of the source Azure Container Registry.
 	ResourceID *string `json:"resourceId,omitempty"`
+	// RegistryURI - The address of the source registry (e.g. 'mcr.microsoft.com').
+	RegistryURI *string `json:"registryUri,omitempty"`
+	// Credentials - Credentials used when importing from a registry uri.
+	Credentials *ImportSourceCredentials `json:"credentials,omitempty"`
 	// SourceImage - Repository name of the source image.
 	// Specify an image by repository ('hello-world'). This will use the 'latest' tag.
 	// Specify an image by tag ('hello-world:latest').
@@ -420,12 +454,93 @@ type ImportSource struct {
 	SourceImage *string `json:"sourceImage,omitempty"`
 }
 
+// ImportSourceCredentials ...
+type ImportSourceCredentials struct {
+	// Username - The username to authenticate with the source registry.
+	Username *string `json:"username,omitempty"`
+	// Password - The password used to authenticate with the source registry.
+	Password *string `json:"password,omitempty"`
+}
+
 // OperationDefinition the definition of a container registry operation.
 type OperationDefinition struct {
+	// Origin - The origin information of the container registry operation.
+	Origin *string `json:"origin,omitempty"`
 	// Name - Operation name: {provider}/{resource}/{operation}.
 	Name *string `json:"name,omitempty"`
 	// Display - The display information for the container registry operation.
 	Display *OperationDisplayDefinition `json:"display,omitempty"`
+	// OperationPropertiesDefinition - The properties information for the container registry operation.
+	*OperationPropertiesDefinition `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OperationDefinition.
+func (od OperationDefinition) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if od.Origin != nil {
+		objectMap["origin"] = od.Origin
+	}
+	if od.Name != nil {
+		objectMap["name"] = od.Name
+	}
+	if od.Display != nil {
+		objectMap["display"] = od.Display
+	}
+	if od.OperationPropertiesDefinition != nil {
+		objectMap["properties"] = od.OperationPropertiesDefinition
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for OperationDefinition struct.
+func (od *OperationDefinition) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "origin":
+			if v != nil {
+				var origin string
+				err = json.Unmarshal(*v, &origin)
+				if err != nil {
+					return err
+				}
+				od.Origin = &origin
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				od.Name = &name
+			}
+		case "display":
+			if v != nil {
+				var display OperationDisplayDefinition
+				err = json.Unmarshal(*v, &display)
+				if err != nil {
+					return err
+				}
+				od.Display = &display
+			}
+		case "properties":
+			if v != nil {
+				var operationPropertiesDefinition OperationPropertiesDefinition
+				err = json.Unmarshal(*v, &operationPropertiesDefinition)
+				if err != nil {
+					return err
+				}
+				od.OperationPropertiesDefinition = &operationPropertiesDefinition
+			}
+		}
+	}
+
+	return nil
 }
 
 // OperationDisplayDefinition the display information for a container registry operation.
@@ -542,6 +657,40 @@ func (page OperationListResultPage) Values() []OperationDefinition {
 	return *page.olr.Value
 }
 
+// OperationMetricSpecificationDefinition the definition of Azure Monitoring metric.
+type OperationMetricSpecificationDefinition struct {
+	// Name - Metric name.
+	Name *string `json:"name,omitempty"`
+	// DisplayName - Metric display name.
+	DisplayName *string `json:"displayName,omitempty"`
+	// DisplayDescription - Metric description.
+	DisplayDescription *string `json:"displayDescription,omitempty"`
+	// Unit - Metric unit.
+	Unit *string `json:"unit,omitempty"`
+	// AggregationType - Metric aggregation type.
+	AggregationType *string `json:"aggregationType,omitempty"`
+	// InternalMetricName - Internal metric name.
+	InternalMetricName *string `json:"internalMetricName,omitempty"`
+}
+
+// OperationPropertiesDefinition the definition of Azure Monitoring properties.
+type OperationPropertiesDefinition struct {
+	// ServiceSpecification - The definition of Azure Monitoring service.
+	ServiceSpecification *OperationServiceSpecificationDefinition `json:"serviceSpecification,omitempty"`
+}
+
+// OperationServiceSpecificationDefinition the definition of Azure Monitoring metrics list.
+type OperationServiceSpecificationDefinition struct {
+	// MetricSpecifications - A list of Azure Monitoring metrics definition.
+	MetricSpecifications *[]OperationMetricSpecificationDefinition `json:"metricSpecifications,omitempty"`
+}
+
+// QuarantinePolicy an object that represents quarantine policy for a container registry.
+type QuarantinePolicy struct {
+	// Status - The value that indicates whether the policy is enabled or not. Possible values include: 'Enabled', 'Disabled'
+	Status PolicyStatus `json:"status,omitempty"`
+}
+
 // RegenerateCredentialParameters the parameters used to regenerate the login credential.
 type RegenerateCredentialParameters struct {
 	// Name - Specifies name of the password which should be regenerated -- password or password2. Possible values include: 'Password', 'Password2'
@@ -649,11 +798,42 @@ func (future *RegistriesUpdateFuture) Result(client RegistriesClient) (r Registr
 	return
 }
 
+// RegistriesUpdatePoliciesFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type RegistriesUpdatePoliciesFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *RegistriesUpdatePoliciesFuture) Result(client RegistriesClient) (rp RegistryPolicies, err error) {
+	var done bool
+	done, err = future.Done(client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "containerregistry.RegistriesUpdatePoliciesFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("containerregistry.RegistriesUpdatePoliciesFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if rp.Response.Response, err = future.GetResult(sender); err == nil && rp.Response.Response.StatusCode != http.StatusNoContent {
+		rp, err = client.UpdatePoliciesResponder(rp.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "containerregistry.RegistriesUpdatePoliciesFuture", "Result", rp.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
 // Registry an object that represents a container registry.
 type Registry struct {
 	autorest.Response `json:"-"`
 	// Sku - The SKU of the container registry.
 	Sku *Sku `json:"sku,omitempty"`
+	// Identity - The identity of the container registry.
+	Identity *RegistryIdentity `json:"identity,omitempty"`
 	// RegistryProperties - The properties of the container registry.
 	*RegistryProperties `json:"properties,omitempty"`
 	// ID - The resource ID.
@@ -673,6 +853,9 @@ func (r Registry) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if r.Sku != nil {
 		objectMap["sku"] = r.Sku
+	}
+	if r.Identity != nil {
+		objectMap["identity"] = r.Identity
 	}
 	if r.RegistryProperties != nil {
 		objectMap["properties"] = r.RegistryProperties
@@ -712,6 +895,15 @@ func (r *Registry) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				r.Sku = &sku
+			}
+		case "identity":
+			if v != nil {
+				var identity RegistryIdentity
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				r.Identity = &identity
 			}
 		case "properties":
 			if v != nil {
@@ -771,6 +963,16 @@ func (r *Registry) UnmarshalJSON(body []byte) error {
 	}
 
 	return nil
+}
+
+// RegistryIdentity the identity of the container registry.
+type RegistryIdentity struct {
+	// Type - The type of identity used for the registry.
+	Type *string `json:"type,omitempty"`
+	// PrincipalID - The principal ID of registry identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// TenantID - The tenant ID associated with the registry.
+	TenantID *string `json:"tenantId,omitempty"`
 }
 
 // RegistryListCredentialsResult the response from the ListCredentials operation.
@@ -911,6 +1113,15 @@ type RegistryPassword struct {
 	Value *string `json:"value,omitempty"`
 }
 
+// RegistryPolicies an object that represents policies for a container registry.
+type RegistryPolicies struct {
+	autorest.Response `json:"-"`
+	// QuarantinePolicy - An object that represents quarantine policy for a container registry.
+	QuarantinePolicy *QuarantinePolicy `json:"quarantinePolicy,omitempty"`
+	// TrustPolicy - An object that represents content trust policy for a container registry.
+	TrustPolicy *TrustPolicy `json:"trustPolicy,omitempty"`
+}
+
 // RegistryProperties the properties of a container registry.
 type RegistryProperties struct {
 	// LoginServer - The URL that can be used to log into the container registry.
@@ -941,6 +1152,8 @@ type RegistryUpdateParameters struct {
 	Tags map[string]*string `json:"tags"`
 	// Sku - The SKU of the container registry.
 	Sku *Sku `json:"sku,omitempty"`
+	// Identity - The identity of the container registry.
+	Identity *RegistryIdentity `json:"identity,omitempty"`
 	// RegistryPropertiesUpdateParameters - The properties that the container registry will be updated with.
 	*RegistryPropertiesUpdateParameters `json:"properties,omitempty"`
 }
@@ -953,6 +1166,9 @@ func (rup RegistryUpdateParameters) MarshalJSON() ([]byte, error) {
 	}
 	if rup.Sku != nil {
 		objectMap["sku"] = rup.Sku
+	}
+	if rup.Identity != nil {
+		objectMap["identity"] = rup.Identity
 	}
 	if rup.RegistryPropertiesUpdateParameters != nil {
 		objectMap["properties"] = rup.RegistryPropertiesUpdateParameters
@@ -986,6 +1202,15 @@ func (rup *RegistryUpdateParameters) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				rup.Sku = &sku
+			}
+		case "identity":
+			if v != nil {
+				var identity RegistryIdentity
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				rup.Identity = &identity
 			}
 		case "properties":
 			if v != nil {
@@ -1435,6 +1660,14 @@ type Target struct {
 	Tag *string `json:"tag,omitempty"`
 }
 
+// TrustPolicy an object that represents content trust policy for a container registry.
+type TrustPolicy struct {
+	// Type - The type of trust policy. Possible values include: 'Notary'
+	Type TrustPolicyType `json:"type,omitempty"`
+	// Status - The value that indicates whether the policy is enabled or not. Possible values include: 'Enabled', 'Disabled'
+	Status PolicyStatus `json:"status,omitempty"`
+}
+
 // Webhook an object that represents a webhook for a container registry.
 type Webhook struct {
 	autorest.Response `json:"-"`
@@ -1716,7 +1949,7 @@ func (page WebhookListResultPage) Values() []Webhook {
 
 // WebhookProperties the properties of a webhook.
 type WebhookProperties struct {
-	// Status - The status of the webhook at the time the operation was called. Possible values include: 'Enabled', 'Disabled'
+	// Status - The status of the webhook at the time the operation was called. Possible values include: 'WebhookStatusEnabled', 'WebhookStatusDisabled'
 	Status WebhookStatus `json:"status,omitempty"`
 	// Scope - The scope of repositories where the event can be triggered. For example, 'foo:*' means events for all tags under repository 'foo'. 'foo:bar' means events for 'foo:bar' only. 'foo' is equivalent to 'foo:latest'. Empty means all events.
 	Scope *string `json:"scope,omitempty"`
@@ -1732,7 +1965,7 @@ type WebhookPropertiesCreateParameters struct {
 	ServiceURI *string `json:"serviceUri,omitempty"`
 	// CustomHeaders - Custom headers that will be added to the webhook notifications.
 	CustomHeaders map[string]*string `json:"customHeaders"`
-	// Status - The status of the webhook at the time the operation was called. Possible values include: 'Enabled', 'Disabled'
+	// Status - The status of the webhook at the time the operation was called. Possible values include: 'WebhookStatusEnabled', 'WebhookStatusDisabled'
 	Status WebhookStatus `json:"status,omitempty"`
 	// Scope - The scope of repositories where the event can be triggered. For example, 'foo:*' means events for all tags under repository 'foo'. 'foo:bar' means events for 'foo:bar' only. 'foo' is equivalent to 'foo:latest'. Empty means all events.
 	Scope *string `json:"scope,omitempty"`
@@ -1767,7 +2000,7 @@ type WebhookPropertiesUpdateParameters struct {
 	ServiceURI *string `json:"serviceUri,omitempty"`
 	// CustomHeaders - Custom headers that will be added to the webhook notifications.
 	CustomHeaders map[string]*string `json:"customHeaders"`
-	// Status - The status of the webhook at the time the operation was called. Possible values include: 'Enabled', 'Disabled'
+	// Status - The status of the webhook at the time the operation was called. Possible values include: 'WebhookStatusEnabled', 'WebhookStatusDisabled'
 	Status WebhookStatus `json:"status,omitempty"`
 	// Scope - The scope of repositories where the event can be triggered. For example, 'foo:*' means events for all tags under repository 'foo'. 'foo:bar' means events for 'foo:bar' only. 'foo' is equivalent to 'foo:latest'. Empty means all events.
 	Scope *string `json:"scope,omitempty"`

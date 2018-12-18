@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sql_virtual_network_rule"
 sidebar_current: "docs-azurerm-resource-database-sql-virtual-network-rule"
 description: |-
-  Create a SQL Virtual Network Rule.
+  Manages a SQL Virtual Network Rule.
 ---
 
 # azurerm_sql_virtual_network_rule
@@ -34,12 +34,12 @@ resource "azurerm_subnet" "subnet" {
 }
 
 resource "azurerm_sql_server" "sqlserver" {
-    name                         = "unqiueazuresqlserver"
-    resource_group_name          = "${azurerm_resource_group.example.name}"
-    location                     = "${azurerm_resource_group.example.location}"
-    version                      = "12.0"
-    administrator_login          = "4dm1n157r470r"
-    administrator_login_password = "4-v3ry-53cr37-p455w0rd"
+  name                         = "unqiueazuresqlserver"
+  resource_group_name          = "${azurerm_resource_group.example.name}"
+  location                     = "${azurerm_resource_group.example.location}"
+  version                      = "12.0"
+  administrator_login          = "4dm1n157r470r"
+  administrator_login_password = "4-v3ry-53cr37-p455w0rd"
 }
 
 resource "azurerm_sql_virtual_network_rule" "sqlvnetrule" {

@@ -15,34 +15,34 @@ import (
 func ValidateEventHubNamespaceName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{4,48}[a-zA-Z0-9]$"),
-		"The namespace name can contain only letters, numbers, and hyphens. The namespace must start with a letter, and it must end with a letter or number and be between 6 and 50 characters long.",
+		"The namespace name can contain only letters, numbers and hyphens. The namespace must start with a letter, and it must end with a letter or number and be between 6 and 50 characters long.",
 	)
 }
 
 func ValidateEventHubName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
-		regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{4,48}[a-zA-Z0-9]$"),
-		"The namespace name can contain only letters, numbers, and hyphens. The namespace must start with a letter, and it must end with a letter or number and be between 6 and 50 characters long.",
+		regexp.MustCompile("^[a-zA-Z0-9]([-._a-zA-Z0-9]{0,48}[a-zA-Z0-9])?$"),
+		"The event hub name can contain only letters, numbers, periods (.), hyphens (-),and underscores (_), up to 50 characters, and it must begin and end with a letter or number.",
 	)
 }
 
 func ValidateEventHubConsumerName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
-		regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{4,48}[a-zA-Z0-9]$"),
-		"The namespace name can contain only letters, numbers, and hyphens. The namespace must start with a letter, and it must end with a letter or number and be between 6 and 50 characters long.",
+		regexp.MustCompile("^[a-zA-Z0-9]([-._a-zA-Z0-9]{0,48}[a-zA-Z0-9])?$"),
+		"The consumer group name can contain only letters, numbers, periods (.), hyphens (-),and underscores (_), up to 50 characters, and it must begin and end with a letter or number.",
 	)
 }
 
 func ValidateEventHubAuthorizationRuleName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
-		regexp.MustCompile("^[a-zA-Z0-9][-._a-zA-Z0-9]{0,48}([a-zA-Z0-9])?$"),
-		"The name can contain only letters, numbers, periods, hyphens and underscores. The name must start and end with a letter or number and be less the 50 characters long.",
+		regexp.MustCompile("^[a-zA-Z0-9]([-._a-zA-Z0-9]{0,48}[a-zA-Z0-9])?$"),
+		"The authorization rule name can contain only letters, numbers, periods, hyphens and underscores. The name must start and end with a letter or number and be up to 50 characters long.",
 	)
 }
 
 //schema
 func ExpandEventHubAuthorizationRuleRights(d *schema.ResourceData) *[]eventhub.AccessRights {
-	rights := []eventhub.AccessRights{}
+	rights := make([]eventhub.AccessRights, 0)
 
 	if d.Get("listen").(bool) {
 		rights = append(rights, eventhub.Listen)
@@ -59,7 +59,7 @@ func ExpandEventHubAuthorizationRuleRights(d *schema.ResourceData) *[]eventhub.A
 	return &rights
 }
 
-func FlattenEventHubAuthorizationRuleRights(rights *[]eventhub.AccessRights) (listen bool, send bool, manage bool) {
+func FlattenEventHubAuthorizationRuleRights(rights *[]eventhub.AccessRights) (listen, send, manage bool) {
 	//zero (initial) value for a bool in go is false
 
 	if rights != nil {
@@ -77,7 +77,7 @@ func FlattenEventHubAuthorizationRuleRights(rights *[]eventhub.AccessRights) (li
 		}
 	}
 
-	return
+	return listen, send, manage
 }
 
 func EventHubAuthorizationRuleSchemaFrom(s map[string]*schema.Schema) map[string]*schema.Schema {

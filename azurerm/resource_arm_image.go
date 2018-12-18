@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -222,8 +222,7 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 
@@ -304,12 +303,7 @@ func resourceArmImageDelete(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return future.WaitForCompletionRef(ctx, client.Client)
 }
 
 func flattenAzureRmImageOSDisk(osDisk *compute.ImageOSDisk) []interface{} {
@@ -347,7 +341,7 @@ func flattenAzureRmImageDataDisks(diskImages *[]compute.ImageDataDisk) []interfa
 				l["size_gb"] = *disk.DiskSizeGB
 			}
 			l["lun"] = *disk.Lun
-			if disk.ManagedDisk != nil {
+			if disk.ManagedDisk != nil && disk.ManagedDisk.ID != nil {
 				l["managed_disk_id"] = *disk.ManagedDisk.ID
 			}
 

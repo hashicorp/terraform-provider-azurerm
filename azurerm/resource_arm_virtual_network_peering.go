@@ -5,7 +5,7 @@ import (
 	"log"
 	"sync"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -83,7 +83,7 @@ func resourceArmVirtualNetworkPeeringCreate(d *schema.ResourceData, meta interfa
 	resGroup := d.Get("resource_group_name").(string)
 
 	peer := network.VirtualNetworkPeering{
-		Name: &name,
+		Name:                                  &name,
 		VirtualNetworkPeeringPropertiesFormat: getVirtualNetworkPeeringProperties(d),
 	}
 
@@ -95,8 +95,7 @@ func resourceArmVirtualNetworkPeeringCreate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error Creating/Updating Virtual Network Peering %q (Network %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for completion of Virtual Network Peering %q (Network %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
 	}
 
@@ -169,8 +168,7 @@ func resourceArmVirtualNetworkPeeringDelete(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error deleting Virtual Network Peering %q (Network %q / RG %q): %+v", name, vnetName, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for deletion of Virtual Network Peering %q (Network %q / RG %q): %+v", name, vnetName, resGroup, err)
 	}
 

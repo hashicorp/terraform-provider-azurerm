@@ -3,13 +3,13 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_azuread_service_principal"
 sidebar_current: "docs-azurerm-datasource-azuread-service-principal"
 description: |-
-  Gets information about a Service Principal associated with an Application within Azure Active Directory.
+  Gets information about an existing Service Principal associated with an Application within Azure Active Directory.
 
 ---
 
 # Data Source: azurerm_azuread_service_principal
 
-Gets information about a Service Principal associated with an Application within Azure Active Directory.
+Gets information about an existing Service Principal associated with an Application within Azure Active Directory.
 
 -> **NOTE:** If you're authenticating using a Service Principal then it must have permissions to both `Read and write all applications` and `Sign in and read user profile` within the `Windows Azure Active Directory` API.
 
@@ -19,6 +19,7 @@ Gets information about a Service Principal associated with an Application within
 data "azurerm_azuread_service_principal" "test" {
   display_name = "my-awesome-application"
 }
+```
 
 ## Example Usage (by Application ID)
 

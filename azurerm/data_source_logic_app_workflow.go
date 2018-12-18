@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -11,9 +12,6 @@ import (
 func dataSourceArmLogicAppWorkflow() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmLogicAppWorkflowRead,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -75,17 +73,15 @@ func dataSourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{})
 	if props := resp.WorkflowProperties; props != nil {
 		parameters := flattenLogicAppDataSourceWorkflowParameters(props.Parameters)
 		if err := d.Set("parameters", parameters); err != nil {
-			return fmt.Errorf("Error flattening `parameters`: %+v", err)
+			return fmt.Errorf("Error setting `parameters`: %+v", err)
 		}
 
 		d.Set("access_endpoint", props.AccessEndpoint)
 
 		if definition := props.Definition; definition != nil {
 			if v, ok := definition.(map[string]interface{}); ok {
-				schema := v["$schema"].(string)
-				version := v["contentVersion"].(string)
-				d.Set("workflow_schema", schema)
-				d.Set("workflow_version", version)
+				d.Set("workflow_schema", v["$schema"].(string))
+				d.Set("workflow_version", v["contentVersion"].(string))
 			}
 		}
 	}
@@ -96,11 +92,17 @@ func dataSourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{})
 }
 
 func flattenLogicAppDataSourceWorkflowParameters(input map[string]*logic.WorkflowParameter) map[string]interface{} {
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 
 	for k, v := range input {
 		if v != nil {
-			output[k] = v.Value.(string)
+			// we only support string parameters at this time
+			val, ok := v.Value.(string)
+			if !ok {
+				log.Printf("[DEBUG] Skipping parameter %q since it's not a string", k)
+			}
+
+			output[k] = val
 		}
 	}
 

@@ -35,8 +35,8 @@ func ValidateServiceBusSubscriptionName() schema.SchemaValidateFunc {
 
 func ValidateServiceBusTopicName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
-		regexp.MustCompile("^[a-zA-Z][-._a-zA-Z0-9]{0,258}([a-zA-Z0-9])?$"),
-		"The topic name can contain only letters, numbers, periods, hyphens and underscores. The namespace must start with a letter, and it must end with a letter or number and be less then 260 characters long.",
+		regexp.MustCompile("^[a-zA-Z][-._~a-zA-Z0-9]{0,258}([a-zA-Z0-9])?$"),
+		"The topic name can contain only letters, numbers, periods, hyphens, tildas and underscores. The namespace must start with a letter, and it must end with a letter or number and be less then 260 characters long.",
 	)
 }
 
@@ -48,7 +48,7 @@ func ValidateServiceBusAuthorizationRuleName() schema.SchemaValidateFunc {
 }
 
 func ExpandServiceBusAuthorizationRuleRights(d *schema.ResourceData) *[]servicebus.AccessRights {
-	rights := []servicebus.AccessRights{}
+	rights := make([]servicebus.AccessRights, 0)
 
 	if d.Get("listen").(bool) {
 		rights = append(rights, servicebus.Listen)
@@ -65,7 +65,7 @@ func ExpandServiceBusAuthorizationRuleRights(d *schema.ResourceData) *[]serviceb
 	return &rights
 }
 
-func FlattenServiceBusAuthorizationRuleRights(rights *[]servicebus.AccessRights) (listen bool, send bool, manage bool) {
+func FlattenServiceBusAuthorizationRuleRights(rights *[]servicebus.AccessRights) (listen, send, manage bool) {
 	//zero (initial) value for a bool in go is false
 
 	if rights != nil {
@@ -83,7 +83,7 @@ func FlattenServiceBusAuthorizationRuleRights(rights *[]servicebus.AccessRights)
 		}
 	}
 
-	return
+	return listen, send, manage
 }
 
 //shared schema

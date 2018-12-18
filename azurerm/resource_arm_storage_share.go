@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strings"
+
+	"github.com/hashicorp/terraform/helper/validation"
 
 	"github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -13,8 +16,13 @@ func resourceArmStorageShare() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmStorageShareCreate,
 		Read:   resourceArmStorageShareRead,
-		Exists: resourceArmStorageShareExists,
+		Update: resourceArmStorageShareUpdate,
 		Delete: resourceArmStorageShareDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
+		SchemaVersion: 1,
+		MigrateState:  resourceStorageShareMigrateState,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -30,10 +38,10 @@ func resourceArmStorageShare() *schema.Resource {
 				ForceNew: true,
 			},
 			"quota": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				ForceNew: true,
-				Default:  0,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      5120,
+				ValidateFunc: validation.IntBetween(1, 5120),
 			},
 			"url": {
 				Type:     schema.TypeString,
@@ -64,18 +72,25 @@ func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) err
 	log.Printf("[INFO] Creating share %q in storage account %q", name, storageAccountName)
 	reference := fileClient.GetShareReference(name)
 	err = reference.Create(options)
+	if err != nil {
+		return fmt.Errorf("Error creating Storage Share %q reference (storage account: %q) : %+v", name, storageAccountName, err)
+	}
 
 	log.Printf("[INFO] Setting share %q metadata in storage account %q", name, storageAccountName)
 	reference.Metadata = metaData
-	reference.SetMetadata(options)
+	if err := reference.SetMetadata(options); err != nil {
+		return fmt.Errorf("Error setting metadata on Storage Share %q: %+v", name, err)
+	}
 
 	log.Printf("[INFO] Setting share %q properties in storage account %q", name, storageAccountName)
 	reference.Properties = storage.ShareProperties{
 		Quota: d.Get("quota").(int),
 	}
-	reference.SetProperties(options)
+	if err := reference.SetProperties(options); err != nil {
+		return fmt.Errorf("Error setting properties on Storage Share %q: %+v", name, err)
+	}
 
-	d.SetId(name)
+	d.SetId(fmt.Sprintf("%s/%s/%s", name, resourceGroupName, storageAccountName))
 	return resourceArmStorageShareRead(d, meta)
 }
 
@@ -83,8 +98,13 @@ func resourceArmStorageShareRead(d *schema.ResourceData, meta interface{}) error
 	armClient := meta.(*ArmClient)
 	ctx := armClient.StopContext
 
-	resourceGroupName := d.Get("resource_group_name").(string)
-	storageAccountName := d.Get("storage_account_name").(string)
+	id := strings.Split(d.Id(), "/")
+	if len(id) != 3 {
+		return fmt.Errorf("ID was not in the expected format - expected `{name}/{resourceGroup}/{storageAccountName}` got %q", id)
+	}
+	name := id[0]
+	resourceGroupName := id[1]
+	storageAccountName := id[2]
 
 	fileClient, accountExists, err := armClient.getFileServiceClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
@@ -96,68 +116,81 @@ func resourceArmStorageShareRead(d *schema.ResourceData, meta interface{}) error
 		return nil
 	}
 
-	exists, err := resourceArmStorageShareExists(d, meta)
-	if err != nil {
-		return err
-	}
-
-	if !exists {
-		// Exists already removed this from state
-		return nil
-	}
-
-	name := d.Get("name").(string)
-
-	reference := fileClient.GetShareReference(name)
-	url := reference.URL()
-	if url == "" {
-		log.Printf("[INFO] URL for %q is empty", name)
-	}
-	d.Set("url", url)
-
-	return nil
-}
-
-func resourceArmStorageShareExists(d *schema.ResourceData, meta interface{}) (bool, error) {
-	armClient := meta.(*ArmClient)
-	ctx := armClient.StopContext
-
-	resourceGroupName := d.Get("resource_group_name").(string)
-	storageAccountName := d.Get("storage_account_name").(string)
-
-	fileClient, accountExists, err := armClient.getFileServiceClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
-	if err != nil {
-		return false, err
-	}
-	if !accountExists {
-		log.Printf("[DEBUG] Storage account %q not found, removing share %q from state", storageAccountName, d.Id())
-		d.SetId("")
-		return false, nil
-	}
-
-	name := d.Get("name").(string)
-
-	log.Printf("[INFO] Checking for existence of share %q.", name)
 	reference := fileClient.GetShareReference(name)
 	exists, err := reference.Exists()
 	if err != nil {
-		return false, fmt.Errorf("Error testing existence of share %q: %s", name, err)
+		return fmt.Errorf("Error testing existence of share %q: %s", name, err)
 	}
 
 	if !exists {
 		log.Printf("[INFO] Share %q no longer exists, removing from state...", name)
 		d.SetId("")
+		return nil
 	}
 
-	return exists, nil
+	url := reference.URL()
+	if url == "" {
+		log.Printf("[INFO] URL for %q is empty", name)
+	}
+	d.Set("name", name)
+	d.Set("resource_group_name", resourceGroupName)
+	d.Set("storage_account_name", storageAccountName)
+	d.Set("url", url)
+
+	if err := reference.FetchAttributes(nil); err != nil {
+		return fmt.Errorf("Error fetching properties on Storage Share %q: %+v", name, err)
+	}
+	d.Set("quota", reference.Properties.Quota)
+
+	return nil
+}
+
+func resourceArmStorageShareUpdate(d *schema.ResourceData, meta interface{}) error {
+	armClient := meta.(*ArmClient)
+	ctx := armClient.StopContext
+
+	id := strings.Split(d.Id(), "/")
+	if len(id) != 3 {
+		return fmt.Errorf("ID was not in the expected format - expected `{name}/{resourceGroup}/{storageAccountName}` got %q", id)
+	}
+	name := id[0]
+	resourceGroupName := id[1]
+	storageAccountName := id[2]
+
+	fileClient, accountExists, err := armClient.getFileServiceClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
+	if err != nil {
+		return err
+	}
+	if !accountExists {
+		return fmt.Errorf("Storage Account %q Not Found", storageAccountName)
+	}
+
+	options := &storage.FileRequestOptions{}
+
+	reference := fileClient.GetShareReference(name)
+
+	log.Printf("[INFO] Setting share %q properties in storage account %q", name, storageAccountName)
+	reference.Properties = storage.ShareProperties{
+		Quota: d.Get("quota").(int),
+	}
+	if err := reference.SetProperties(options); err != nil {
+		return fmt.Errorf("Error setting properties on Storage Share %q: %+v", name, err)
+	}
+
+	return resourceArmStorageShareRead(d, meta)
 }
 
 func resourceArmStorageShareDelete(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
 	ctx := armClient.StopContext
 
-	resourceGroupName := d.Get("resource_group_name").(string)
-	storageAccountName := d.Get("storage_account_name").(string)
+	id := strings.Split(d.Id(), "/")
+	if len(id) != 3 {
+		return fmt.Errorf("ID was not in the expected format - expected `{name}/{resourceGroup}/{storageAccountName}` got %q", id)
+	}
+	name := id[0]
+	resourceGroupName := id[1]
+	storageAccountName := id[2]
 
 	fileClient, accountExists, err := armClient.getFileServiceClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
@@ -167,8 +200,6 @@ func resourceArmStorageShareDelete(d *schema.ResourceData, meta interface{}) err
 		log.Printf("[INFO]Storage Account %q doesn't exist so the file won't exist", storageAccountName)
 		return nil
 	}
-
-	name := d.Get("name").(string)
 
 	reference := fileClient.GetShareReference(name)
 	options := &storage.FileRequestOptions{}
@@ -182,7 +213,7 @@ func resourceArmStorageShareDelete(d *schema.ResourceData, meta interface{}) err
 }
 
 //Following the naming convention as laid out in the docs https://msdn.microsoft.com/library/azure/dn167011.aspx
-func validateArmStorageShareName(v interface{}, k string) (ws []string, errors []error) {
+func validateArmStorageShareName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^[0-9a-z-]+$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
@@ -201,5 +232,5 @@ func validateArmStorageShareName(v interface{}, k string) (ws []string, errors [
 		errors = append(errors, fmt.Errorf(
 			"%q does not allow consecutive hyphens: %q", k, value))
 	}
-	return
+	return warnings, errors
 }

@@ -3,9 +3,11 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -15,28 +17,32 @@ func resourceArmRoute() *schema.Resource {
 		Read:   resourceArmRouteRead,
 		Update: resourceArmRouteCreateUpdate,
 		Delete: resourceArmRouteDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"route_table_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"address_prefix": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"next_hop_type": {
@@ -49,13 +55,13 @@ func resourceArmRoute() *schema.Resource {
 					string(network.RouteNextHopTypeVirtualAppliance),
 					string(network.RouteNextHopTypeNone),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"next_hop_in_ip_address": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 		},
 	}
@@ -75,19 +81,16 @@ func resourceArmRouteCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 	azureRMLockByName(rtName, routeTableResourceName)
 	defer azureRMUnlockByName(rtName, routeTableResourceName)
 
-	properties := network.RoutePropertiesFormat{
-		AddressPrefix: &addressPrefix,
-		NextHopType:   network.RouteNextHopType(nextHopType),
+	route := network.Route{
+		Name: &name,
+		RoutePropertiesFormat: &network.RoutePropertiesFormat{
+			AddressPrefix: &addressPrefix,
+			NextHopType:   network.RouteNextHopType(nextHopType),
+		},
 	}
 
 	if v, ok := d.GetOk("next_hop_in_ip_address"); ok {
-		nextHopInIpAddress := v.(string)
-		properties.NextHopIPAddress = &nextHopInIpAddress
-	}
-
-	route := network.Route{
-		Name: &name,
-		RoutePropertiesFormat: &properties,
+		route.RoutePropertiesFormat.NextHopIPAddress = utils.String(v.(string))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, rtName, name, route)
@@ -95,8 +98,7 @@ func resourceArmRouteCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error Creating/Updating Route %q (Route Table %q / Resource Group %q): %+v", name, rtName, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for completion for Route %q (Route Table %q / Resource Group %q): %+v", name, rtName, resGroup, err)
 	}
 
@@ -140,10 +142,7 @@ func resourceArmRouteRead(d *schema.ResourceData, meta interface{}) error {
 	if props := resp.RoutePropertiesFormat; props != nil {
 		d.Set("address_prefix", props.AddressPrefix)
 		d.Set("next_hop_type", string(props.NextHopType))
-
-		if ip := props.NextHopIPAddress; ip != nil {
-			d.Set("next_hop_in_ip_address", props.NextHopIPAddress)
-		}
+		d.Set("next_hop_in_ip_address", props.NextHopIPAddress)
 	}
 
 	return nil
@@ -169,8 +168,7 @@ func resourceArmRouteDelete(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error deleting Route %q (Route Table %q / Resource Group %q): %+v", routeName, rtName, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for deletion of Route %q (Route Table %q / Resource Group %q): %+v", routeName, rtName, resGroup, err)
 	}
 

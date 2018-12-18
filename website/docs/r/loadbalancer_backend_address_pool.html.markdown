@@ -3,14 +3,14 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_lb_backend_address_pool"
 sidebar_current: "docs-azurerm-resource-loadbalancer-backend-address-pool"
 description: |-
-  Create a LoadBalancer Backend Address Pool.
+  Manages a Load Balancer Backend Address Pool.
 ---
 
 # azurerm_lb_backend_address_pool
 
-Create a LoadBalancer Backend Address Pool.
+Manage a Load Balancer Backend Address Pool.
 
-~> **NOTE:** When using this resource, the LoadBalancer needs to have a FrontEnd IP Configuration Attached
+~> **NOTE:** When using this resource, the Load Balancer needs to have a FrontEnd IP Configuration Attached
 
 ## Example Usage
 
@@ -51,13 +51,13 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Backend Address Pool.
 * `resource_group_name` - (Required) The name of the resource group in which to create the resource.
-* `loadbalancer_id` - (Required) The ID of the LoadBalancer in which to create the Backend Address Pool.
+* `loadbalancer_id` - (Required) The ID of the Load Balancer in which to create the Backend Address Pool.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The ID of the LoadBalancer to which the resource is attached.
+* `id` - The ID of the Load Balancer to which the resource is attached.
 
 ## Import
 

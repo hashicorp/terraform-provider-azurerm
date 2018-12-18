@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -59,8 +60,22 @@ func resourceArmCdnProfileCreate(d *schema.ResourceData, meta interface{}) error
 	log.Printf("[INFO] preparing arguments for Azure ARM CDN Profile creation.")
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing CDN Profile %q (Resource Group %q): %s", name, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_cdn_profile", *existing.ID)
+		}
+	}
+
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	sku := d.Get("sku").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -77,8 +92,7 @@ func resourceArmCdnProfileCreate(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 
@@ -116,8 +130,7 @@ func resourceArmCdnProfileUpdate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error issuing update request for CDN Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for the update of CDN Profile %q (Resource Group %q) to commplete: %+v", name, resourceGroup, err)
 	}
 
@@ -178,8 +191,7 @@ func resourceArmCdnProfileDelete(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error issuing delete request for CDN Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}

@@ -16,7 +16,7 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 	config := testAccAzureRMVirtualMachineDataDiskAttachment_basic(ri, location)
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
@@ -31,6 +31,11 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "caching", "None"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -41,7 +46,7 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(t *testing.T) 
 	ri := acctest.RandInt()
 	location := testLocation()
 	config := testAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(ri, location)
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
@@ -62,6 +67,16 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(t *testing.T) 
 					resource.TestCheckResourceAttr(secondResourceName, "caching", "ReadOnly"),
 				),
 			},
+			{
+				ResourceName:      firstResourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      secondResourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -70,7 +85,7 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_updatingCaching(t *testing.T
 	resourceName := "azurerm_virtual_machine_data_disk_attachment.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
@@ -104,7 +119,7 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_updatingWriteAccelerator(t *
 	resourceName := "azurerm_virtual_machine_data_disk_attachment.test"
 	ri := acctest.RandInt()
 	location := testAltLocation()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
@@ -128,6 +143,30 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_updatingWriteAccelerator(t *
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "write_accelerator_enabled", "false"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMVirtualMachineDataDiskAttachment_virtualMachineExtension(t *testing.T) {
+	resourceName := "azurerm_virtual_machine_data_disk_attachment.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualMachineDataDiskAttachment_virtualMachineExtensionPrep(ri, location),
+			},
+			{
+				Config: testAccAzureRMVirtualMachineDataDiskAttachment_virtualMachineExtensionComplete(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "virtual_machine_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "managed_disk_id"),
 				),
 			},
 		},
@@ -303,32 +342,32 @@ resource "azurerm_virtual_machine_data_disk_attachment" "test" {
 func testAccAzureRMVirtualMachineDataDiskAttachment_writeAccelerator(rInt int, location string, enabled bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name = "acctvn-%d"
-  address_space = ["10.0.0.0/16"]
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
-  name = "acctsub-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                 = "acctsub-%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix = "10.0.2.0/24"
+  address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
-  name = "acctni-%d"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctni-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   ip_configuration {
-    name = "testconfiguration1"
-    subnet_id = "${azurerm_subnet.test.id}"
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
     private_ip_address_allocation = "dynamic"
   }
 }
@@ -342,9 +381,9 @@ resource "azurerm_virtual_machine" "test" {
 
   storage_image_reference {
     publisher = "Canonical"
-    offer = "UbuntuServer"
-    sku = "16.04-LTS"
-    version = "latest"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
   }
 
   storage_os_disk {
@@ -355,7 +394,7 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   os_profile {
-    computer_name = "hn%d"
+    computer_name  = "hn%d"
     admin_username = "testadmin"
     admin_password = "Password1234!"
   }
@@ -381,39 +420,38 @@ resource "azurerm_virtual_machine_data_disk_attachment" "test" {
   caching                   = "None"
   write_accelerator_enabled = "%t"
 }
-
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, enabled)
 }
 
 func testAccAzureRMVirtualMachineDataDiskAttachment_template(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name = "acctvn-%d"
-  address_space = ["10.0.0.0/16"]
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
-  name = "acctsub-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                 = "acctsub-%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix = "10.0.2.0/24"
+  address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
-  name = "acctni-%d"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctni-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   ip_configuration {
-    name = "testconfiguration1"
-    subnet_id = "${azurerm_subnet.test.id}"
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
     private_ip_address_allocation = "dynamic"
   }
 }
@@ -427,9 +465,9 @@ resource "azurerm_virtual_machine" "test" {
 
   storage_image_reference {
     publisher = "Canonical"
-    offer = "UbuntuServer"
-    sku = "16.04-LTS"
-    version = "latest"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
   }
 
   storage_os_disk {
@@ -440,7 +478,7 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   os_profile {
-    computer_name = "hn%d"
+    computer_name  = "hn%d"
     admin_username = "testadmin"
     admin_password = "Password1234!"
   }
@@ -459,4 +497,129 @@ resource "azurerm_managed_disk" "test" {
   disk_size_gb         = 10
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMVirtualMachineDataDiskAttachment_virtualMachineExtensionPrep(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctsub"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                         = "acctestpip%d"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "static"
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctestni%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
+    public_ip_address_id          = "${azurerm_public_ip.test.id}"
+  }
+}
+
+resource "azurerm_virtual_machine" "test" {
+  name                  = "acctestvm%d"
+  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  vm_size               = "Standard_F4"
+
+  delete_os_disk_on_termination    = true
+  delete_data_disks_on_termination = true
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_profile {
+    computer_name  = "testvm"
+    admin_username = "tfuser123"
+    admin_password = "Password1234!"
+  }
+
+  storage_os_disk {
+    name              = "myosdisk1"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
+
+  tags {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_virtual_machine_extension" "test" {
+  name                 = "random-script"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_machine_name = "${azurerm_virtual_machine.test.name}"
+  publisher            = "Microsoft.Azure.Extensions"
+  type                 = "CustomScript"
+  type_handler_version = "2.0"
+
+  settings = <<SETTINGS
+	{
+		"commandToExecute": "hostname"
+	}
+SETTINGS
+
+  tags {
+    environment = "Production"
+  }
+}
+`, rInt, location, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMVirtualMachineDataDiskAttachment_virtualMachineExtensionComplete(rInt int, location string) string {
+	template := testAccAzureRMVirtualMachineDataDiskAttachment_virtualMachineExtensionPrep(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "acctest%d"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 10
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "test" {
+  managed_disk_id    = "${azurerm_managed_disk.test.id}"
+  virtual_machine_id = "${azurerm_virtual_machine.test.id}"
+  lun                = "11"
+  caching            = "ReadWrite"
+}
+`, template, rInt)
 }

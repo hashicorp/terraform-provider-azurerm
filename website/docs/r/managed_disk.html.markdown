@@ -3,28 +3,28 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_managed_disk"
 sidebar_current: "docs-azurerm-resource-compute-managed-disk"
 description: |-
-  Create a Managed Disk.
+  Manages a Managed Disk.
 ---
 
 # azurerm_managed_disk
 
-Create a managed disk.
+Manage a managed disk.
 
 ## Example Usage with Create Empty
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG"
+  name     = "acctestRG"
   location = "West US 2"
 }
 
 resource "azurerm_managed_disk" "test" {
-  name = "acctestmd"
-  location = "West US 2"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                 = "acctestmd"
+  location             = "West US 2"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_type = "Standard_LRS"
-  create_option = "Empty"
-  disk_size_gb = "1"
+  create_option        = "Empty"
+  disk_size_gb         = "1"
 
   tags {
     environment = "staging"
@@ -36,17 +36,17 @@ resource "azurerm_managed_disk" "test" {
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG"
+  name     = "acctestRG"
   location = "West US 2"
 }
 
 resource "azurerm_managed_disk" "source" {
-  name = "acctestmd1"
-  location = "West US 2"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                 = "acctestmd1"
+  location             = "West US 2"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_type = "Standard_LRS"
-  create_option = "Empty"
-  disk_size_gb = "1"
+  create_option        = "Empty"
+  disk_size_gb         = "1"
 
   tags {
     environment = "staging"
@@ -54,13 +54,13 @@ resource "azurerm_managed_disk" "source" {
 }
 
 resource "azurerm_managed_disk" "copy" {
-  name = "acctestmd2"
-  location = "West US 2"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                 = "acctestmd2"
+  location             = "West US 2"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_type = "Standard_LRS"
-  create_option = "Copy"
-  source_resource_id = "${azurerm_managed_disk.source.id}"
-  disk_size_gb = "1"
+  create_option        = "Copy"
+  source_resource_id   = "${azurerm_managed_disk.source.id}"
+  disk_size_gb         = "1"
 
   tags {
     environment = "staging"
@@ -82,7 +82,7 @@ The following arguments are supported:
     Changing this forces a new resource to be created.
 
 * `storage_account_type` - (Required) The type of storage to use for the managed disk.
-    Allowable values are `Standard_LRS` or `Premium_LRS`.
+    Allowable values are `Standard_LRS`, `Premium_LRS`, `StandardSSD_LRS` or `UltraSSD_LRS`.
 
 * `create_option` - (Required) The method to use when creating the managed disk. Possible values include:
  * `Import` - Import a VHD file in to the managed disk (VHD specified with `source_uri`).
@@ -108,7 +108,7 @@ The following arguments are supported:
 
 * `zones` - (Optional) A collection containing the availability zone to allocate the Managed Disk in.
 
--> **Please Note**: Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](http://aka.ms/azenroll).
+-> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).
 
 For more information on managed disks, such as sizing options and pricing, please check out the
 [azure documentation](https://docs.microsoft.com/en-us/azure/storage/storage-managed-disks-overview).

@@ -83,16 +83,15 @@ func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{})
 			Definition: &map[string]interface{}{
 				"$schema":        workflowSchema,
 				"contentVersion": workflowVersion,
-				"actions":        make(map[string]interface{}, 0),
-				"triggers":       make(map[string]interface{}, 0),
+				"actions":        make(map[string]interface{}),
+				"triggers":       make(map[string]interface{}),
 			},
 			Parameters: parameters,
 		},
 		Tags: expandTags(tags),
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties); err != nil {
 		return fmt.Errorf("[ERROR] Error creating Logic App Workflow %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -152,8 +151,7 @@ func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{})
 		Tags: expandTags(tags),
 	}
 
-	_, err = client.CreateOrUpdate(ctx, resourceGroup, name, properties)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, resourceGroup, name, properties); err != nil {
 		return fmt.Errorf("Error updating Logic App Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -191,17 +189,15 @@ func resourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) e
 	if props := resp.WorkflowProperties; props != nil {
 		parameters := flattenLogicAppWorkflowParameters(props.Parameters)
 		if err := d.Set("parameters", parameters); err != nil {
-			return fmt.Errorf("Error flattening `parameters`: %+v", err)
+			return fmt.Errorf("Error setting `parameters`: %+v", err)
 		}
 
 		d.Set("access_endpoint", props.AccessEndpoint)
 
 		if definition := props.Definition; definition != nil {
 			if v, ok := definition.(map[string]interface{}); ok {
-				schema := v["$schema"].(string)
-				version := v["contentVersion"].(string)
-				d.Set("workflow_schema", schema)
-				d.Set("workflow_version", version)
+				d.Set("workflow_schema", v["$schema"].(string))
+				d.Set("workflow_version", v["contentVersion"].(string))
 			}
 		}
 	}
@@ -239,7 +235,7 @@ func resourceArmLogicAppWorkflowDelete(d *schema.ResourceData, meta interface{})
 }
 
 func expandLogicAppWorkflowParameters(input map[string]interface{}) map[string]*logic.WorkflowParameter {
-	output := make(map[string]*logic.WorkflowParameter, 0)
+	output := make(map[string]*logic.WorkflowParameter)
 
 	for k, v := range input {
 		output[k] = &logic.WorkflowParameter{
@@ -252,11 +248,17 @@ func expandLogicAppWorkflowParameters(input map[string]interface{}) map[string]*
 }
 
 func flattenLogicAppWorkflowParameters(input map[string]*logic.WorkflowParameter) map[string]interface{} {
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 
 	for k, v := range input {
 		if v != nil {
-			output[k] = v.Value.(string)
+			// we only support string parameters at this time
+			val, ok := v.Value.(string)
+			if !ok {
+				log.Printf("[DEBUG] Skipping parameter %q since it's not a string", k)
+			}
+
+			output[k] = val
 		}
 	}
 

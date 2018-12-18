@@ -3,11 +3,11 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -18,19 +18,17 @@ func resourceArmSqlServer() *schema.Resource {
 		Read:   resourceArmSqlServerRead,
 		Update: resourceArmSqlServerCreateUpdate,
 		Delete: resourceArmSqlServerDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile("^[-a-z0-9]{3,50}$"),
-					"SQL server name must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
-				),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateMsSqlServerName,
 			},
 
 			"location": locationSchema(),
@@ -77,7 +75,6 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	resGroup := d.Get("resource_group_name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	adminUsername := d.Get("administrator_login").(string)
-	adminPassword := d.Get("administrator_login_password").(string)
 	version := d.Get("version").(string)
 
 	tags := d.Get("tags").(map[string]interface{})
@@ -87,10 +84,14 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		Location: utils.String(location),
 		Tags:     metadata,
 		ServerProperties: &sql.ServerProperties{
-			Version:                    utils.String(version),
-			AdministratorLogin:         utils.String(adminUsername),
-			AdministratorLoginPassword: utils.String(adminPassword),
+			Version:            utils.String(version),
+			AdministratorLogin: utils.String(adminUsername),
 		},
+	}
+
+	if d.HasChange("administrator_login_password") {
+		adminPassword := d.Get("administrator_login_password").(string)
+		parameters.ServerProperties.AdministratorLoginPassword = utils.String(adminPassword)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
@@ -98,8 +99,7 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 
 		if response.WasConflict(future.Response()) {
 			return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use.", name)
@@ -175,10 +175,5 @@ func resourceArmSqlServerDelete(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error deleting SQL Server %s: %+v", name, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return future.WaitForCompletionRef(ctx, client.Client)
 }

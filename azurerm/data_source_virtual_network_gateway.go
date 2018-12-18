@@ -5,9 +5,10 @@ import (
 
 	"bytes"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -17,8 +18,9 @@ func dataSourceArmVirtualNetworkGateway() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"resource_group_name": resourceGroupNameForDataSourceSchema(),
@@ -59,14 +61,17 @@ func dataSourceArmVirtualNetworkGateway() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+
 						"private_ip_address_allocation": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+
 						"subnet_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+
 						"public_ip_address_id": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -87,6 +92,7 @@ func dataSourceArmVirtualNetworkGateway() *schema.Resource {
 								Type: schema.TypeString,
 							},
 						},
+
 						"root_certificate": {
 							Type:     schema.TypeSet,
 							Computed: true,
@@ -96,6 +102,7 @@ func dataSourceArmVirtualNetworkGateway() *schema.Resource {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
+
 									"public_cert_data": {
 										Type:     schema.TypeString,
 										Computed: true,
@@ -104,6 +111,7 @@ func dataSourceArmVirtualNetworkGateway() *schema.Resource {
 							},
 							Set: hashVirtualNetworkGatewayDataSourceRootCert,
 						},
+
 						"revoked_certificate": {
 							Type:     schema.TypeSet,
 							Computed: true,
@@ -113,6 +121,7 @@ func dataSourceArmVirtualNetworkGateway() *schema.Resource {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
+
 									"thumbprint": {
 										Type:     schema.TypeString,
 										Computed: true,
@@ -121,14 +130,17 @@ func dataSourceArmVirtualNetworkGateway() *schema.Resource {
 							},
 							Set: hashVirtualNetworkGatewayDataSourceRevokedCert,
 						},
+
 						"radius_server_address": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+
 						"radius_server_secret": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+
 						"vpn_client_protocols": {
 							Type:     schema.TypeSet,
 							Computed: true,
@@ -149,10 +161,12 @@ func dataSourceArmVirtualNetworkGateway() *schema.Resource {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
+
 						"peering_address": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+
 						"peer_weight": {
 							Type:     schema.TypeInt,
 							Computed: true,

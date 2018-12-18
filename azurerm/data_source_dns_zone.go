@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -128,9 +128,7 @@ func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 
 		nameServers := make([]string, 0)
 		if ns := props.NameServers; ns != nil {
-			for _, ns := range *ns {
-				nameServers = append(nameServers, ns)
-			}
+			nameServers = *ns
 		}
 		if err := d.Set("name_servers", nameServers); err != nil {
 			return err
