@@ -20,12 +20,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-	name                     = "testaccsa"
-	resource_group_name      = "${azurerm_resource_group.test.name}"
-	location                 = "${azurerm_resource_group.test.location}"
-	account_tier             = "Standard"
-	account_replication_type = "LRS"
-  }
+  name                     = "testaccsa"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
 
 resource "azurerm_batch_account" "test" {
   name                 = "testaccbatch"
@@ -40,28 +40,30 @@ resource "azurerm_batch_account" "test" {
 }
 
 resource "azurerm_batch_pool" "test" {
-	name                   		    = "testaccpool"
-	resource_group_name           = "${azurerm_resource_group.test.name}"
-	account_name 		   		        = "${azurerm_batch_account.test.name}"
-	display_name		   		        = "Test Acc Pool Auto"
-	vm_size				   		          = "Standard_A1"
-	node_agent_sku_id			        = "batch.node.ubuntu 16.04"
-	scale_mode			   		        = "Auto"
-	autoscale_evaluation_interval = "PT15M"
-	autoscale_formula			        = <<EOF
-	startingNumberOfVMs = 1;
-	maxNumberofVMs = 25;
-	pendingTaskSamplePercent = $PendingTasks.GetSamplePercent(180 * TimeInterval_Second);
-	pendingTaskSamples = pendingTaskSamplePercent < 70 ? startingNumberOfVMs : avg($PendingTasks.GetSample(180 * TimeInterval_Second));
-	$TargetDedicatedNodes=min(maxNumberofVMs, pendingTaskSamples);
-	EOF
-
-	storage_image_reference {
-        publisher = "Canonical"
-        offer     = "UbuntuServer"
-        sku       = "16.04.0-LTS"
-        version   = "latest"
-	}
+  name                = "testaccpool"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  account_name        = "${azurerm_batch_account.test.name}"
+  display_name        = "Test Acc Pool Auto"
+  vm_size             = "Standard_A1"
+  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  
+  auto_scale {
+    evaluation_interval = "PT15M"
+    formula             = <<EOF
+      startingNumberOfVMs = 1;
+      maxNumberofVMs = 25;
+      pendingTaskSamplePercent = $PendingTasks.GetSamplePercent(180 * TimeInterval_Second);
+      pendingTaskSamples = pendingTaskSamplePercent < 70 ? startingNumberOfVMs : avg($PendingTasks.GetSample(180 *   TimeInterval_Second));
+      $TargetDedicatedNodes=min(maxNumberofVMs, pendingTaskSamples);
+      EOF
+  }
+  
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04.0-LTS"
+    version   = "latest"
+  }
 }
 ```
 
@@ -83,38 +85,32 @@ The following arguments are supported:
 
 * `vm_size` - (Optional) Specifies the size of the VM created in the Batch pool. Defaults to `Standard_A1`.
 
-* `scale_mode` - (Optional) Specifies the mode to use for scaling of the Batch pool. Possible values are `Fixed` or `Auto`. Defaults to `Fixed`.
+* `fixed_scale` - (Optional) A `fixed_scale` block that describes the scale settings when using fixed scale.
 
-* `target_dedicated_nodes` - (Optional) Specifies the number of nodes to be created in the Batch pool when using scale mode `Fixed`. Defaults to 1.
+* `auto_scale` - (Optional) A `auto_scale` block that describes the scale settings when using auto scale.
 
-* `target_low_priority_nodes` - (Optional) Specifies the target number of low priority nodes wanted in the Batch pool when using scale mode `Fixed`. Defaults to 0.
+~> **Please Note:** `fixed_scale` and `auto_scale` blocks cannot be used both at the same time.
 
-* `resize_timeout` - (Optional) Specifies the time in minutes for the resize operation to timeout. Defaults to `PT15M` (15 minutes).
+---
 
-* `autoscale_evaluation_interval` - (Optional) Specifies a time interval at which to automatically adjust the pool size according to the autoscale formula when using scale mode `Auto`. Defaults to `PT15M` (15 minutes).
+A `fixed_scale` block supports the following:
 
-* `autoscale_formula` - (Optional) Specifies the formula used to autoscale the pool. The formula is required when using scale mode `Auto`.
+* `target_dedicated_nodes` - The number of nodes in the Batch pool
+
+* `target_low_priority_nodes` - The number of low priority nodes in the Batch pool
+
+* `resize_timeout` - The timeout for resize operations
+
+--- 
+
+A `auto_scale` block supports the following:
+
+* `evaluation_interval` - The interval to wait before evaluating if the pool needs to be scaled
+
+* `formula` - The autoscale formula that needs to be used for scaling the Batch pool
 
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The Batch pool ID.
-
-* `node_agent_sku_id` - The Sku of the node agents in the Batch pool.
-
-* `vm_size` - The size of the VM created in the Batch pool.
-
-* `scale_mode` - The mode to use for scaling of the Batch pool. Possible values are `Fixed` or `Auto`.
-
-* `target_dedicated_nodes` - The number of nodes to be created in the Batch pool when using scale mode `Fixed`.
-
-* `target_low_priority_nodes` - The target number of low priority nodes wanted in the Batch pool when using scale mode `Fixed`.
-
-* `resize_timeout` - The time in minutes for the resize operation to timeout.
-
-* `autoscale_evaluation_interval` - A time interval at which to automatically adjust the pool size according to the autoscale formula when using scale mode `Auto`.
-
-* `autoscale_formula` - The formula used to autoscale the pool when using scale mode `Auto`.
-
-* `storage_image_reference` - The reference of the storage image used by the nodes in the Batch pool.

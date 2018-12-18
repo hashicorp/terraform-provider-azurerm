@@ -16,12 +16,13 @@ Use this data source to access information about an existing Batch pool
 ```hcl
 data "azurerm_batch_pool "test" {
   name                = "testbatchpool"
-  account_name		  = "testbatchaccount"
+  account_name        = "testbatchaccount"
   resource_group_name = "test"
-}
 
-output "autoscale_mode" {
-  value = "${data.azurerm_batch_pool.test.resource_group_name}"
+  fixed_scale {
+    target_dedicated_nodes = 2
+    resize_timeout         = "PT15M"
+  }
 }
 ```
 
@@ -39,16 +40,26 @@ The following attributes are exported:
 
 * `vm_size` - The size of the VM created in the Batch pool.
 
-* `scale_mode` - The mode to use for scaling of the Batch pool. Possible values are `Fixed` or `Auto`.
+* `fixed_scale` - A `fixed_scale` block that describes the scale settings when using fixed scale.
 
-* `target_dedicated_nodes` - The number of nodes to be created in the Batch pool when using scale mode `Fixed`.
-
-* `target_low_priority_nodes` - The target number of low priority nodes wanted in the Batch pool when using scale mode `Fixed`.
-
-* `resize_timeout` - The time in minutes for the resize operation to timeout.
-
-* `autoscale_evaluation_interval` - A time interval at which to automatically adjust the pool size according to the autoscale formula when using scale mode `Auto`.
-
-* `autoscale_formula` - The formula used to autoscale the pool when using scale mode `Auto`.
+* `auto_scale` - A `auto_scale` block that describes the scale settings when using auto scale.
 
 * `storage_image_reference` - The reference of the storage image used by the nodes in the Batch pool.
+
+---
+
+A `fixed_scale` block exports the following:
+
+* `target_dedicated_nodes` - The number of nodes in the Batch pool
+
+* `target_low_priority_nodes` - The number of low priority nodes in the Batch pool
+
+* `resize_timeout` - The timeout for resize operations
+
+--- 
+
+A `auto_scale` block exports the following:
+
+* `evaluation_interval` - The interval to wait before evaluating if the pool needs to be scaled
+
+* `formula` - The autoscale formula that needs to be used for scaling the Batch pool
