@@ -124,7 +124,7 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 	if parametersString := d.Get("parameters").(string); parametersString != "" {
 		parameters, err := structure.ExpandJsonFromString(parametersString)
 		if err != nil {
-			return fmt.Errorf("unable to parse parameters: %s", err)
+			return fmt.Errorf("unable to expand parameters json: %s", err)
 		}
 		properties.Parameters = &parameters
 	}
