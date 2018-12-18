@@ -6,11 +6,14 @@ FEATURES:
 * **New Data Source:** `azurerm_virtual_machine` [GH-2463]
 * **New Resource:** `azurerm_batch_account` [GH-2428]
 
+IMPROVEMENTS:
+
+* dependencies: upgrading the `network` SDK to `2018-08-01` [GH-2433]
+* `azurerm_firewall` - renaming the `public_ip_address_id` property to `ip_address_id` [GH-2433]
+
 BUG FIXES:
 
 * `azurerm_template_deployment` - fixing regression and supportting nested template deployments [GH-2514]
-
-
 
 ## 1.20.0 (December 12, 2018)
 
