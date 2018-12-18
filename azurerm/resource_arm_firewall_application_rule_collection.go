@@ -113,7 +113,6 @@ func resourceArmFirewallApplicationRuleCollection() *schema.Resource {
 									},
 								},
 							},
-							// Set: resourceArmFirewallApplicationRuleCollectionRuleProtocolHash,
 							// ConflictsWith: []string{"fqdn_tags"},
 						},
 					},
