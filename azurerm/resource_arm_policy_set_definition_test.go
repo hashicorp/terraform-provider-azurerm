@@ -2,9 +2,10 @@ package azurerm
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/terraform"
 	"net/http"
 	"testing"
+
+	"github.com/hashicorp/terraform/terraform"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
