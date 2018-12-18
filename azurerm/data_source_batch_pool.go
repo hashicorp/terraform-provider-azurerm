@@ -16,7 +16,7 @@ func dataSourceArmBatchPool() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateAzureRMBatchPoolName,
+				ValidateFunc: azure.ValidateAzureRMBatchPoolName,
 			},
 			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
 			"account_name": {
@@ -32,76 +32,14 @@ func dataSourceArmBatchPool() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"scale_mode": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"target_dedicated_nodes": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-			"target_low_priority_nodes": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-			"resize_timeout": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"autoscale_evaluation_interval": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"autoscale_formula": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"storage_image_reference": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
-						},
-
-						"publisher": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
-						},
-
-						"offer": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
-						},
-
-						"sku": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
-						},
-
-						"version": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-							ForceNew: true,
-						},
-					},
-				},
-				Set: resourceArmVirtualMachineStorageImageReferenceHash,
-			},
+			"fixed_scale":             azure.SchemaBatchPoolFixedScaleForDataSource(),
+			"auto_scale":              azure.SchemaBatchPoolAutoScaleForDataSource(),
+			"storage_image_reference": azure.SchemaBatchPoolImageReferenceForDataSource(),
 			"node_agent_sku_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"start_task": azure.SchemaBatchPoolStartTaskForDataSource(),
 		},
 	}
 }
@@ -131,14 +69,9 @@ func dataSourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error 
 
 	if resp.ScaleSettings != nil {
 		if resp.ScaleSettings.AutoScale != nil {
-			d.Set("scale_mode", azure.BatchPoolAutoScale)
-			d.Set("autoscale_evaluation_interval", resp.ScaleSettings.AutoScale.EvaluationInterval)
-			d.Set("autoscale_formula", resp.ScaleSettings.AutoScale.Formula)
+			d.Set("auto_scale", azure.FlattenBatchPoolAutoScaleSettings(resp.ScaleSettings.AutoScale))
 		} else if resp.ScaleSettings.FixedScale != nil {
-			d.Set("scale_mode", azure.BatchPoolFixedScale)
-			d.Set("target_dedicated_nodes", resp.ScaleSettings.FixedScale.TargetDedicatedNodes)
-			d.Set("target_low_priority_nodes", resp.ScaleSettings.FixedScale.TargetLowPriorityNodes)
-			d.Set("resize_timeout", resp.ScaleSettings.FixedScale.ResizeTimeout)
+			d.Set("fixed_scale", azure.FlattenBatchPoolFixedScaleSettings(resp.ScaleSettings.FixedScale))
 		}
 	}
 
@@ -146,13 +79,13 @@ func dataSourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error 
 		resp.DeploymentConfiguration.VirtualMachineConfiguration != nil &&
 		resp.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference != nil {
 
-		imageReference := resp.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference
+		vmCfg := resp.DeploymentConfiguration.VirtualMachineConfiguration
 
-		if err := d.Set("storage_image_reference", schema.NewSet(resourceArmVirtualMachineStorageImageReferenceHash, flattenAzureRmBatchPoolImageReference(imageReference))); err != nil {
-			return fmt.Errorf("[DEBUG] Error setting AzureRM Batch Pool Image Reference: %#v", err)
+		if err := d.Set("storage_image_reference", azure.FlattenBatchPoolImageReference(vmCfg.ImageReference)); err != nil {
+			return fmt.Errorf("Error setting AzureRM Batch Pool Image Reference: %#v", err)
 		}
 
-		d.Set("node_agent_sku_id", resp.DeploymentConfiguration.VirtualMachineConfiguration.NodeAgentSkuID)
+		d.Set("node_agent_sku_id", vmCfg.NodeAgentSkuID)
 	}
 
 	return nil

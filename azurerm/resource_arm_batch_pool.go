@@ -3,12 +3,10 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -29,7 +27,7 @@ func resourceArmBatchPool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMBatchPoolName,
+				ValidateFunc: azure.ValidateAzureRMBatchPoolName,
 			},
 			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
 			"account_name": {
@@ -50,80 +48,9 @@ func resourceArmBatchPool() *schema.Resource {
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				ForceNew:         true,
 			},
-			"scale_mode": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  string(azure.BatchPoolFixedScale),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(azure.BatchPoolFixedScale),
-					string(azure.BatchPoolAutoScale),
-				}, false),
-			},
-			"target_dedicated_nodes": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  1,
-			},
-			"target_low_priority_nodes": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  0,
-			},
-			"resize_timeout": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "PT15M",
-			},
-			"autoscale_evaluation_interval": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "PT15M",
-			},
-			"autoscale_formula": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"storage_image_reference": {
-				Type:     schema.TypeSet,
-				Required: true,
-				ForceNew: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
-						},
-
-						"publisher": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
-						},
-
-						"offer": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
-						},
-
-						"sku": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
-						},
-
-						"version": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-							ForceNew: true,
-						},
-					},
-				},
-				Set: resourceArmVirtualMachineStorageImageReferenceHash,
-			},
+			"fixed_scale":             azure.SchemaBatchPoolFixedScale(),
+			"auto_scale":              azure.SchemaBatchPoolAutoScale(),
+			"storage_image_reference": azure.SchemaBatchPoolImageReference(),
 			"node_agent_sku_id": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -134,6 +61,7 @@ func resourceArmBatchPool() *schema.Resource {
 				Optional: true,
 				Default:  false,
 			},
+			"start_task": azure.SchemaBatchPoolStartTask(),
 		},
 	}
 }
@@ -157,76 +85,24 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 		},
 	}
 
-	scaleMode := azure.BatchPoolScaleMode(d.Get("scale_mode").(string))
-
-	if scaleMode == azure.BatchPoolAutoScale {
-		autoScaleEvaluationInterval := d.Get("autoscale_evaluation_interval").(string)
-		autoScaleFormula := d.Get("autoscale_formula").(string)
-
-		if autoScaleFormula == "" {
-			return fmt.Errorf("Error: when scale mode is set to Auto, auto_scale formula cannot be empty")
-		}
-
-		parameters.PoolProperties.ScaleSettings = &batch.ScaleSettings{
-			AutoScale: &batch.AutoScaleSettings{
-				EvaluationInterval: &autoScaleEvaluationInterval,
-				Formula:            &autoScaleFormula,
-			},
-		}
-	} else if scaleMode == azure.BatchPoolFixedScale {
-		targetDedicatedNodes := int32(d.Get("target_dedicated_nodes").(int))
-		targetLowPriorityNodes := int32(d.Get("target_low_priority_nodes").(int))
-		resizeTimeout := d.Get("resize_timeout").(string)
-
-		parameters.PoolProperties.ScaleSettings = &batch.ScaleSettings{
-			FixedScale: &batch.FixedScaleSettings{
-				ResizeTimeout:          &resizeTimeout,
-				TargetDedicatedNodes:   &targetDedicatedNodes,
-				TargetLowPriorityNodes: &targetLowPriorityNodes,
-			},
-		}
-	} else {
-		return fmt.Errorf("Error: scale mode should be either AutoScale of FixedScale")
+	scaleSettings, err := getBatchPoolScaleSettings(d)
+	if err != nil {
+		return fmt.Errorf("Error: scale settings: %+v", err)
 	}
+
+	parameters.ScaleSettings = scaleSettings
 
 	nodeAgentSkuID := d.Get("node_agent_sku_id").(string)
 	storageImageReferenceSet := d.Get("storage_image_reference").(*schema.Set)
-
-	if storageImageReferenceSet == nil || storageImageReferenceSet.Len() == 0 {
-		return fmt.Errorf("Error: storage image reference should be defined")
-	}
-
-	storageImageRef := storageImageReferenceSet.List()[0].(map[string]interface{})
-
-	storageImageRefOffer, storageImageRefOfferOk := storageImageRef["offer"].(string)
-	if !storageImageRefOfferOk {
-		return fmt.Errorf("Error: storage image reference offer should be defined")
-	}
-
-	storageImageRefPublisher, storageImageRefPublisherOK := storageImageRef["publisher"].(string)
-	if !storageImageRefPublisherOK {
-		return fmt.Errorf("Error: storage image reference publisher should be defined")
-	}
-
-	storageImageRefSku, storageImageRefSkuOK := storageImageRef["sku"].(string)
-	if !storageImageRefSkuOK {
-		return fmt.Errorf("Error: storage image reference sku should be defined")
-	}
-
-	storageImageRefVersion, storageImageRefVersionOK := storageImageRef["version"].(string)
-	if !storageImageRefVersionOK {
-		return fmt.Errorf("Error: storage image reference version should be defined")
+	imageReference, err := azure.ExpandBatchPoolImageReference(storageImageReferenceSet)
+	if err != nil {
+		return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 
 	parameters.DeploymentConfiguration = &batch.DeploymentConfiguration{
 		VirtualMachineConfiguration: &batch.VirtualMachineConfiguration{
 			NodeAgentSkuID: &nodeAgentSkuID,
-			ImageReference: &batch.ImageReference{
-				Offer:     &storageImageRefOffer,
-				Publisher: &storageImageRefPublisher,
-				Sku:       &storageImageRefSku,
-				Version:   &storageImageRefVersion,
-			},
+			ImageReference: imageReference,
 		},
 	}
 
@@ -274,7 +150,7 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 		log.Printf("[INFO] there is a pending resize operation on this pool...")
 		stopPendingResizeOperation := d.Get("stop_pending_resize_operation").(bool)
 		if !stopPendingResizeOperation {
-			return fmt.Errorf("Error updating the Batch pool %q (Resource Group %q) because of pending resize operation. Set flag `stop_pending_resize_operation` to true to force update.", poolName, resourceGroup)
+			return fmt.Errorf("Error updating the Batch pool %q (Resource Group %q) because of pending resize operation. Set flag `stop_pending_resize_operation` to true to force update", poolName, resourceGroup)
 		}
 
 		log.Printf("[INFO] stopping the pending resize operation on this pool...")
@@ -301,36 +177,12 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 		PoolProperties: &batch.PoolProperties{},
 	}
 
-	scaleMode := azure.BatchPoolScaleMode(d.Get("scale_mode").(string))
-	if scaleMode == azure.BatchPoolAutoScale {
-		autoScaleEvaluationInterval := d.Get("autoscale_evaluation_interval").(string)
-		autoScaleFormula := d.Get("autoscale_formula").(string)
-
-		if autoScaleFormula == "" {
-			return fmt.Errorf("Error: when scale mode is set to Auto, auto_scale formula cannot be empty")
-		}
-
-		parameters.PoolProperties.ScaleSettings = &batch.ScaleSettings{
-			AutoScale: &batch.AutoScaleSettings{
-				EvaluationInterval: &autoScaleEvaluationInterval,
-				Formula:            &autoScaleFormula,
-			},
-		}
-	} else if scaleMode == azure.BatchPoolFixedScale {
-		targetDedicatedNodes := int32(d.Get("target_dedicated_nodes").(int))
-		targetLowPriorityNodes := int32(d.Get("target_low_priority_nodes").(int))
-		resizeTimeout := d.Get("resize_timeout").(string)
-
-		parameters.PoolProperties.ScaleSettings = &batch.ScaleSettings{
-			FixedScale: &batch.FixedScaleSettings{
-				ResizeTimeout:          &resizeTimeout,
-				TargetDedicatedNodes:   &targetDedicatedNodes,
-				TargetLowPriorityNodes: &targetLowPriorityNodes,
-			},
-		}
-	} else {
-		return fmt.Errorf("Error: scale mode should be either AutoScale of FixedScale")
+	scaleSettings, err := getBatchPoolScaleSettings(d)
+	if err != nil {
+		return fmt.Errorf("Error: scale settings: %+v", err)
 	}
+
+	parameters.ScaleSettings = scaleSettings
 
 	if _, err = client.Update(ctx, resourceGroup, accountName, poolName, parameters, ""); err != nil {
 		return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
@@ -348,31 +200,6 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 	d.SetId(*read.ID)
 
 	return resourceArmBatchPoolRead(d, meta)
-}
-
-func resourceArmBatchPoolDelete(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).batchPoolClient
-
-	id, err := parseAzureResourceID(d.Id())
-	if err != nil {
-		return err
-	}
-	resourceGroup := id.ResourceGroup
-	poolName := id.Path["pools"]
-	accountName := id.Path["batchAccounts"]
-
-	future, err := client.Delete(ctx, resourceGroup, accountName, poolName)
-	if err != nil {
-		return fmt.Errorf("Error deleting Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deletion of Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
-		}
-	}
-	return nil
 }
 
 func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
@@ -404,14 +231,9 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 
 	if resp.ScaleSettings != nil {
 		if resp.ScaleSettings.AutoScale != nil {
-			d.Set("scale_mode", azure.BatchPoolAutoScale)
-			d.Set("autoscale_evaluation_interval", resp.ScaleSettings.AutoScale.EvaluationInterval)
-			d.Set("autoscale_formula", resp.ScaleSettings.AutoScale.Formula)
+			d.Set("auto_scale", azure.FlattenBatchPoolAutoScaleSettings(resp.ScaleSettings.AutoScale))
 		} else if resp.ScaleSettings.FixedScale != nil {
-			d.Set("scale_mode", azure.BatchPoolFixedScale)
-			d.Set("target_dedicated_nodes", resp.ScaleSettings.FixedScale.TargetDedicatedNodes)
-			d.Set("target_low_priority_nodes", resp.ScaleSettings.FixedScale.TargetLowPriorityNodes)
-			d.Set("resize_timeout", resp.ScaleSettings.FixedScale.ResizeTimeout)
+			d.Set("fixed_scale", azure.FlattenBatchPoolFixedScaleSettings(resp.ScaleSettings.FixedScale))
 		}
 	}
 
@@ -420,57 +242,88 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 		resp.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference != nil {
 
 		imageReference := resp.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference
-		storageImageRef := &schema.Set{F: resourceArmVirtualMachineStorageImageReferenceHash}
-		storageImageRef.Add(
-			map[string]string{
-				"publisher": *imageReference.Publisher,
-				"offer":     *imageReference.Offer,
-				"sku":       *imageReference.Sku,
-				"version":   *imageReference.Version,
-			})
 
-		d.Set("storage_image_reference", storageImageRef)
+		d.Set("storage_image_reference", azure.FlattenBatchPoolImageReference(imageReference))
 		d.Set("node_agent_sku_id", resp.DeploymentConfiguration.VirtualMachineConfiguration.NodeAgentSkuID)
 	}
 
 	return nil
 }
 
-func validateAzureRMBatchPoolName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-	if !regexp.MustCompile(`^[a-zA-Z0-9_-]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"any combination of alphanumeric characters including hyphens and underscores are allowed in %q: %q", k, value))
+func resourceArmBatchPoolDelete(d *schema.ResourceData, meta interface{}) error {
+	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).batchPoolClient
+
+	id, err := parseAzureResourceID(d.Id())
+	if err != nil {
+		return err
+	}
+	resourceGroup := id.ResourceGroup
+	poolName := id.Path["pools"]
+	accountName := id.Path["batchAccounts"]
+
+	future, err := client.Delete(ctx, resourceGroup, accountName, poolName)
+	if err != nil {
+		return fmt.Errorf("Error deleting Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
 	}
 
-	if 1 > len(value) {
-		errors = append(errors, fmt.Errorf("%q cannot be less than 1 character: %q", k, value))
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		if !response.WasNotFound(future.Response()) {
+			return fmt.Errorf("Error waiting for deletion of Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
+		}
 	}
-
-	if len(value) > 64 {
-		errors = append(errors, fmt.Errorf("%q cannot be longer than 64 characters: %q %d", k, value, len(value)))
-	}
-
-	return warnings, errors
+	return nil
 }
 
-func flattenAzureRmBatchPoolImageReference(image *batch.ImageReference) []interface{} {
-	result := make(map[string]interface{})
-	if image.Publisher != nil {
-		result["publisher"] = *image.Publisher
-	}
-	if image.Offer != nil {
-		result["offer"] = *image.Offer
-	}
-	if image.Sku != nil {
-		result["sku"] = *image.Sku
-	}
-	if image.Version != nil {
-		result["version"] = *image.Version
-	}
-	if image.ID != nil {
-		result["id"] = *image.ID
+func getBatchPoolScaleSettings(d *schema.ResourceData) (*batch.ScaleSettings, error) {
+	scaleSettings := &batch.ScaleSettings{}
+
+	autoScaleValue, autoScaleOk := d.GetOk("auto_scale")
+	fixedScaleValue, fixedScaleOk := d.GetOk("fixed_scale")
+
+	if !autoScaleOk && !fixedScaleOk {
+		return nil, fmt.Errorf("Error: auto_scale block or fixed_scale block need to be specified")
 	}
 
-	return []interface{}{result}
+	if autoScaleOk && fixedScaleOk {
+		return nil, fmt.Errorf("Error: auto_scale and fixed_scale blocks cannot be specified at the same time")
+	}
+
+	if autoScaleOk {
+		autoScale := autoScaleValue.([]interface{})
+		if autoScale == nil || len(autoScale) == 0 {
+			return nil, fmt.Errorf("Error: when scale mode is Auto, auto_scale block is required")
+		}
+
+		autoScaleSettings := autoScale[0].(map[string]interface{})
+
+		autoScaleEvaluationInterval := autoScaleSettings["evaluation_interval"].(string)
+		autoScaleFormula := autoScaleSettings["formula"].(string)
+
+		scaleSettings.AutoScale = &batch.AutoScaleSettings{
+			EvaluationInterval: &autoScaleEvaluationInterval,
+			Formula:            &autoScaleFormula,
+		}
+	} else if fixedScaleOk {
+		fixedScale := fixedScaleValue.([]interface{})
+		if fixedScale == nil || len(fixedScale) == 0 {
+			return nil, fmt.Errorf("Error: when scale mode is Fixed, fixed_scale block is required")
+		}
+
+		fixedScaleSettings := fixedScale[0].(map[string]interface{})
+
+		targetDedicatedNodes := int32(fixedScaleSettings["target_dedicated_nodes"].(int))
+		targetLowPriorityNodes := int32(fixedScaleSettings["target_low_priority_nodes"].(int))
+		resizeTimeout := fixedScaleSettings["resize_timeout"].(string)
+
+		scaleSettings.FixedScale = &batch.FixedScaleSettings{
+			ResizeTimeout:          &resizeTimeout,
+			TargetDedicatedNodes:   &targetDedicatedNodes,
+			TargetLowPriorityNodes: &targetLowPriorityNodes,
+		}
+	} else {
+		return nil, fmt.Errorf("Error: scale mode should be either AutoScale of FixedScale")
+	}
+
+	return scaleSettings, nil
 }
