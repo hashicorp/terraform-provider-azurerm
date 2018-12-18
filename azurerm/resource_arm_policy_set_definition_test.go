@@ -109,7 +109,6 @@ func testCheckAzureRMPolicySetDefinitionDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 
 		resp, err := client.Get(ctx, name)
-
 		if err != nil {
 			return nil
 		}
