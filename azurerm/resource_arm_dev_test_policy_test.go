@@ -36,6 +36,36 @@ func TestAccAzureRMDevTestPolicy_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMDevTestPolicy_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_dev_test_policy.test"
+	rInt := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDevTestPolicyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDevTestPolicy_basic(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDevTestPolicyExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+				),
+			},
+			{
+				Config:      testAccAzureRMDevTestPolicy_requiresImport(rInt, location),
+				ExpectError: testRequiresImportError("azurerm_dev_test_policy"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMDevTestPolicy_complete(t *testing.T) {
 	resourceName := "azurerm_dev_test_policy.test"
 	rInt := acctest.RandInt()
@@ -144,6 +174,22 @@ resource "azurerm_dev_test_policy" "test" {
   evaluator_type      = "MaxValuePolicy"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMDevTestPolicy_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMDevTestPolicy_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_dev_test_policy" "import" {
+  name                = "${azurerm_dev_test_policy.test.name}"
+  policy_set_name     = "$[azurerm_dev_test_policy.test.policy_set_name}"
+  lab_name            = "${azurerm_dev_test_policy.test.lab_name}"
+  resource_group_name = "${azurerm_dev_test_policy.test.resource_group_name}"
+  threshold           = "999"
+  evaluator_type      = "MaxValuePolicy"
+}
+`, template)
 }
 
 func testAccAzureRMDevTestPolicy_complete(rInt int, location string) string {
