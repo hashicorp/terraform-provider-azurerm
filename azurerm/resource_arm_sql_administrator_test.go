@@ -97,8 +97,7 @@ func testCheckAzureRMSqlAdministratorDisappears(name string) resource.TestCheckF
 		client := testAccProvider.Meta().(*ArmClient).sqlServerAzureADAdministratorsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, err := client.Delete(ctx, resourceGroup, serverName)
-		if err != nil {
+		if _, err := client.Delete(ctx, resourceGroup, serverName); err != nil {
 			return fmt.Errorf("Bad: Delete on sqlAdministratorClient: %+v", err)
 		}
 

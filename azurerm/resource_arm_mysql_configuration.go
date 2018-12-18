@@ -65,8 +65,7 @@ func resourceArmMySQLConfigurationCreate(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 

@@ -145,6 +145,8 @@ The pricing group for the Redis Family - either "C" or "P" at present.
 
 * `subnet_id` - (Optional) The ID of the Subnet within which the Redis Cache should be deployed. Changing this forces a new resource to be created.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 ---
 
 * `redis_configuration` supports the following:

@@ -7,8 +7,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -45,7 +45,7 @@ func resourceArmFirewall() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"subnet_id": {
 							Type:         schema.TypeString,
@@ -117,8 +117,7 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error creating/updating Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for creation/update of Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -239,8 +238,7 @@ func resourceArmFirewallDelete(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error deleting Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for the deletion of Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -258,13 +256,12 @@ func expandArmFirewallIPConfigurations(d *schema.ResourceData) (*[]network.Azure
 		name := data["name"].(string)
 		subnetId := data["subnet_id"].(string)
 
-		exist := false
 		pubID, exist := data["internal_public_ip_address_id"].(string)
-		if !exist {
+		if !exist || pubID == "" {
 			pubID, exist = data["public_ip_address_id"].(string)
 		}
 
-		if !exist {
+		if !exist || pubID == "" {
 			return nil, nil, nil, fmt.Errorf("one of `ip_configuration.0.internal_public_ip_address_id` or `ip_configuration.0.public_ip_address_id` must be set")
 		}
 

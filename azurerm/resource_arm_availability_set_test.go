@@ -38,6 +38,37 @@ func TestAccAzureRMAvailabilitySet_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAvailabilitySet_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_availability_set.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAvailabilitySet_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAvailabilitySetExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "platform_update_domain_count", "5"),
+					resource.TestCheckResourceAttr(resourceName, "platform_fault_domain_count", "3"),
+				),
+			},
+			{
+				Config:      testAccAzureRMAvailabilitySet_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_availability_set"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAvailabilitySet_disappears(t *testing.T) {
 	resourceName := "azurerm_availability_set.test"
 	ri := acctest.RandInt()
@@ -248,6 +279,19 @@ resource "azurerm_availability_set" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMAvailabilitySet_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMAvailabilitySet_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_availability_set" "import" {
+  name                = "${azurerm_availability_set.test.name}"
+  location            = "${azurerm_availability_set.test.location}"
+  resource_group_name = "${azurerm_availability_set.test.resource_group_name}"
+}
+`, template)
 }
 
 func testAccAzureRMAvailabilitySet_withTags(rInt int, location string) string {

@@ -189,8 +189,7 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("ServiceBus Queue (%s) does not support Express Entities in Premium SKU and must be disabled", name)
 	}
 
-	_, err = client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters); err != nil {
 		return err
 	}
 

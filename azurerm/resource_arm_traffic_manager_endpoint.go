@@ -130,8 +130,8 @@ func resourceArmTrafficManagerEndpointCreate(d *schema.ResourceData, meta interf
 	}
 
 	ctx := meta.(*ArmClient).StopContext
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, profileName, endpointType, name, params)
-	if err != nil {
+
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, profileName, endpointType, name, params); err != nil {
 		return err
 	}
 

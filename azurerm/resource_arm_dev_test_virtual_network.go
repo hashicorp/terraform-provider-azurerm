@@ -115,8 +115,7 @@ func resourceArmDevTestVirtualNetworkCreateUpdate(d *schema.ResourceData, meta i
 		return fmt.Errorf("Error creating/updating DevTest Virtual Network %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for creation/update of DevTest Virtual Network %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
 	}
 
@@ -206,8 +205,7 @@ func resourceArmDevTestVirtualNetworkDelete(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error deleting DevTest Virtual Network %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for the deletion of DevTest Virtual Network %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
 	}
 

@@ -92,8 +92,7 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error creating Management Group %q: %+v", groupId, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for creation of Management Group %q: %+v", groupId, err)
 	}
 

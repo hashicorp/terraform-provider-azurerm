@@ -1020,8 +1020,7 @@ func testCheckAzureRMVirtualMachineScaleSetDisappears(name string) resource.Test
 			return fmt.Errorf("Bad: Delete on vmScaleSetClient: %+v", err)
 		}
 
-		err = future.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("Bad: Delete on vmScaleSetClient: %+v", err)
 		}
 
@@ -2654,7 +2653,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   os_profile {
     computer_name_prefix = "prefix"
     admin_username       = "ubuntu"
-    admin_password       = "password"
     custom_data          = "updated custom data!"
   }
 
@@ -3711,7 +3709,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   os_profile {
     computer_name_prefix = "testvm-%[1]d"
     admin_username       = "myadmin"
-    admin_password       = "Passwword1234"
   }
 
   os_profile_linux_config {
@@ -3824,7 +3821,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   os_profile {
     computer_name_prefix = "testvm-%[1]d"
     admin_username       = "myadmin"
-    admin_password       = "Passwword1234"
   }
 
   os_profile_linux_config {

@@ -30,12 +30,6 @@ func Provider() terraform.ResourceProvider {
 				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_ID", ""),
 			},
 
-			"client_secret": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_SECRET", ""),
-			},
-
 			"tenant_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -48,6 +42,39 @@ func Provider() terraform.ResourceProvider {
 				DefaultFunc: schema.EnvDefaultFunc("ARM_ENVIRONMENT", "public"),
 			},
 
+			// Client Certificate specific fields
+			"client_certificate_password": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_CERTIFICATE_PASSWORD", ""),
+			},
+
+			"client_certificate_path": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_CERTIFICATE_PATH", ""),
+			},
+
+			// Client Secret specific fields
+			"client_secret": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_SECRET", ""),
+			},
+
+			// Managed Service Identity specific fields
+			"use_msi": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_USE_MSI", false),
+			},
+			"msi_endpoint": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_MSI_ENDPOINT", ""),
+			},
+
+			// Advanced feature flags
 			"skip_credentials_validation": {
 				Type:        schema.TypeBool,
 				Optional:    true,
@@ -59,16 +86,6 @@ func Provider() terraform.ResourceProvider {
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_SKIP_PROVIDER_REGISTRATION", false),
 			},
-			"use_msi": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_USE_MSI", false),
-			},
-			"msi_endpoint": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_MSI_ENDPOINT", ""),
-			},
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -78,6 +95,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_application_security_group":            dataSourceArmApplicationSecurityGroup(),
 			"azurerm_app_service":                           dataSourceArmAppService(),
 			"azurerm_app_service_plan":                      dataSourceAppServicePlan(),
+			"azurerm_batch_account":                         dataSourceArmBatchAccount(),
 			"azurerm_builtin_role_definition":               dataSourceArmBuiltInRoleDefinition(),
 			"azurerm_cdn_profile":                           dataSourceArmCdnProfile(),
 			"azurerm_client_config":                         dataSourceArmClientConfig(),
@@ -97,6 +115,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_logic_app_workflow":                    dataSourceArmLogicAppWorkflow(),
 			"azurerm_managed_disk":                          dataSourceArmManagedDisk(),
 			"azurerm_management_group":                      dataSourceArmManagementGroup(),
+			"azurerm_monitor_action_group":                  dataSourceArmMonitorActionGroup(),
 			"azurerm_monitor_diagnostic_categories":         dataSourceArmMonitorDiagnosticCategories(),
 			"azurerm_monitor_log_profile":                   dataSourceArmMonitorLogProfile(),
 			"azurerm_network_interface":                     dataSourceArmNetworkInterface(),
@@ -121,6 +140,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_subscription":                          dataSourceArmSubscription(),
 			"azurerm_subscriptions":                         dataSourceArmSubscriptions(),
 			"azurerm_traffic_manager_geographical_location": dataSourceArmTrafficManagerGeographicalLocation(),
+			"azurerm_virtual_machine":                       dataSourceArmVirtualMachine(),
 			"azurerm_virtual_network":                       dataSourceArmVirtualNetwork(),
 			"azurerm_virtual_network_gateway":               dataSourceArmVirtualNetworkGateway(),
 		},
@@ -147,6 +167,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_automation_schedule":                    resourceArmAutomationSchedule(),
 			"azurerm_autoscale_setting":                      resourceArmAutoScaleSetting(),
 			"azurerm_availability_set":                       resourceArmAvailabilitySet(),
+			"azurerm_batch_account":                          resourceArmBatchAccount(),
 			"azurerm_cdn_endpoint":                           resourceArmCdnEndpoint(),
 			"azurerm_cdn_profile":                            resourceArmCdnProfile(),
 			"azurerm_cognitive_account":                      resourceArmCognitiveAccount(),
@@ -214,6 +235,8 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_logic_app_trigger_http_request":         resourceArmLogicAppTriggerHttpRequest(),
 			"azurerm_logic_app_trigger_recurrence":           resourceArmLogicAppTriggerRecurrence(),
 			"azurerm_logic_app_workflow":                     resourceArmLogicAppWorkflow(),
+			"azurerm_mariadb_database":                       resourceArmMariaDbDatabase(),
+			"azurerm_mariadb_server":                         resourceArmMariaDbServer(),
 			"azurerm_managed_disk":                           resourceArmManagedDisk(),
 			"azurerm_management_lock":                        resourceArmManagementLock(),
 			"azurerm_management_group":                       resourceArmManagementGroup(),
@@ -274,6 +297,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_shared_image":                                                           resourceArmSharedImage(),
 			"azurerm_shared_image_gallery":                                                   resourceArmSharedImageGallery(),
 			"azurerm_shared_image_version":                                                   resourceArmSharedImageVersion(),
+			"azurerm_signalr_service":                                                        resourceArmSignalRService(),
 			"azurerm_snapshot":                                                               resourceArmSnapshot(),
 			"azurerm_scheduler_job":                                                          resourceArmSchedulerJob(),
 			"azurerm_scheduler_job_collection":                                               resourceArmSchedulerJobCollection(),
@@ -316,14 +340,17 @@ func Provider() terraform.ResourceProvider {
 func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 	return func(d *schema.ResourceData) (interface{}, error) {
 		builder := &authentication.Builder{
-			SubscriptionID: d.Get("subscription_id").(string),
-			ClientID:       d.Get("client_id").(string),
-			ClientSecret:   d.Get("client_secret").(string),
-			TenantID:       d.Get("tenant_id").(string),
-			Environment:    d.Get("environment").(string),
-			MsiEndpoint:    d.Get("msi_endpoint").(string),
+			SubscriptionID:     d.Get("subscription_id").(string),
+			ClientID:           d.Get("client_id").(string),
+			ClientSecret:       d.Get("client_secret").(string),
+			TenantID:           d.Get("tenant_id").(string),
+			Environment:        d.Get("environment").(string),
+			MsiEndpoint:        d.Get("msi_endpoint").(string),
+			ClientCertPassword: d.Get("client_certificate_password").(string),
+			ClientCertPath:     d.Get("client_certificate_path").(string),
 
 			// Feature Toggles
+			SupportsClientCertAuth:         true,
 			SupportsClientSecretAuth:       true,
 			SupportsManagedServiceIdentity: d.Get("use_msi").(bool),
 			SupportsAzureCliToken:          true,

@@ -157,13 +157,10 @@ resource "azurerm_autoscale_setting" "test" {
 
     recurrence {
       frequency = "Week"
-
-      schedule {
-        timezone = "Pacific Standard Time"
-        days     = ["Saturday", "Sunday"]
-        hours    = [12]
-        minutes  = [0]
-      }
+      timezone  = "Pacific Standard Time"
+      days      = ["Saturday", "Sunday"]
+      hours     = [12]
+      minutes   = [0]
     }
   }
 

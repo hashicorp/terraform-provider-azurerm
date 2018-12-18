@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 func TestAccAzureRMFirewallNetworkRuleCollection_basic(t *testing.T) {
@@ -332,20 +331,13 @@ func testCheckAzureRMFirewallNetworkRuleCollectionDisappears(resourceName string
 		}
 
 		read.AzureFirewallPropertiesFormat.NetworkRuleCollections = &rules
-		ipConfigs, err := azure.FirewallFixIPConfiguration(read.AzureFirewallPropertiesFormat.IPConfigurations)
-		if err != nil {
-			return fmt.Errorf("Error fixing IP Configuration for Firewall: err")
-		}
-
-		read.AzureFirewallPropertiesFormat.IPConfigurations = ipConfigs
 
 		future, err := client.CreateOrUpdate(ctx, resourceGroup, firewallName, read)
 		if err != nil {
 			return fmt.Errorf("Error removing Network Rule Collection from Firewall: %+v", err)
 		}
 
-		err = future.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("Error waiting for the removal of Network Rule Collection from Firewall: %+v", err)
 		}
 

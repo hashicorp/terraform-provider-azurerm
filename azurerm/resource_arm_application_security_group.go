@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -42,6 +43,20 @@ func resourceArmApplicationSecurityGroupCreateUpdate(d *schema.ResourceData, met
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Application Security Group %q (Resource Group %q): %s", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_application_security_group", *existing.ID)
+		}
+	}
+
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -54,8 +69,7 @@ func resourceArmApplicationSecurityGroupCreateUpdate(d *schema.ResourceData, met
 		return fmt.Errorf("Error creating Application Security Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for the Application Security Group %q (Resource Group %q) to finish creating: %+v", name, resourceGroup, err)
 	}
 
@@ -123,8 +137,7 @@ func resourceArmApplicationSecurityGroupDelete(d *schema.ResourceData, meta inte
 		}
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("Error waiting for deletion of Application Security Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}

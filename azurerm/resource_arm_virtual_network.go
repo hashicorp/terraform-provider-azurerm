@@ -10,7 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -31,7 +31,7 @@ func resourceArmVirtualNetwork() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
@@ -44,7 +44,7 @@ func resourceArmVirtualNetwork() *schema.Resource {
 				MinItems: 1,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validation.NoZeroValues,
+					ValidateFunc: validate.NoEmptyStrings,
 				},
 			},
 
@@ -53,7 +53,7 @@ func resourceArmVirtualNetwork() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validation.NoZeroValues,
+					ValidateFunc: validate.NoEmptyStrings,
 				},
 			},
 
@@ -66,12 +66,12 @@ func resourceArmVirtualNetwork() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"address_prefix": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"security_group": {
 							Type:     schema.TypeString,
@@ -135,8 +135,7 @@ func resourceArmVirtualNetworkCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error Creating/Updating Virtual Network %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for completion of Virtual Network %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
@@ -225,8 +224,7 @@ func resourceArmVirtualNetworkDelete(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error deleting Virtual Network %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for deletion of Virtual Network %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 

@@ -6,7 +6,7 @@ description: |-
   Manages an Recovery Services VM Protection Policy.
 ---
 
-# azurerm_recovery_services_protection_policy
+# azurerm_recovery_services_protection_policy_vm
 
 Manages an Recovery Services VM Protection Policy.
 
@@ -82,6 +82,8 @@ The following arguments are supported:
 * `retention_monthly` - (Optional) Configures the policy monthly retention as documented in the `retention_monthly` block below.
 
 * `retention_yearly` - (Optional) Configures the policy yearly retention as documented in the `retention_yearly` block below.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
