@@ -114,7 +114,7 @@ func testCheckAzureRMPolicySetDefinitionDestroy(s *terraform.State) error {
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("policy set still exists:%s", *resp.Name)
+			return fmt.Errorf("policy set still exists: %s", *resp.Name)
 		}
 	}
 
