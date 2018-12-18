@@ -263,6 +263,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_packet_capture":                                                         resourceArmPacketCapture(),
 			"azurerm_policy_assignment":                                                      resourceArmPolicyAssignment(),
 			"azurerm_policy_definition":                                                      resourceArmPolicyDefinition(),
+			"azurerm_policy_set_definition":                                                  resourceArmPolicySetDefinition(),
 			"azurerm_postgresql_configuration":                                               resourceArmPostgreSQLConfiguration(),
 			"azurerm_postgresql_database":                                                    resourceArmPostgreSQLDatabase(),
 			"azurerm_postgresql_firewall_rule":                                               resourceArmPostgreSQLFirewallRule(),
