@@ -133,7 +133,7 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 		var policyDefinitions []policy.DefinitionReference
 		err := json.Unmarshal([]byte(policyDefinitionsString), &policyDefinitions)
 		if err != nil {
-			return fmt.Errorf("unable to parse parameters: %s", err)
+			return fmt.Errorf("unable to expand parameters json: %s", err)
 		}
 		properties.PolicyDefinitions = &policyDefinitions
 	}
