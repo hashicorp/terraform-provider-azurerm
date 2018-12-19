@@ -165,7 +165,6 @@ func TestAccAzureRMServiceFabricCluster_certificate(t *testing.T) {
 	})
 }
 
-
 func TestAccAzureRMServiceFabricCluster_reverseProxyCertificate(t *testing.T) {
 	resourceName := "azurerm_service_fabric_cluster.test"
 	ri := acctest.RandInt()
