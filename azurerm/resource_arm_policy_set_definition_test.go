@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccAzureRMPolicySetDefinition_basic(t *testing.T) {
+func TestAccAzureRMPolicySetDefinition_built_in_policy(t *testing.T) {
 	resourceName := "azurerm_policy_set_definition.test"
 
 	ri := acctest.RandInt()
@@ -22,7 +22,7 @@ func TestAccAzureRMPolicySetDefinition_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMPolicySetDefinition_basic(ri),
+				Config: testAzureRMPolicySetDefinition_built_in_policy(ri),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPolicySetDefinitionExists(resourceName),
 				),
@@ -36,7 +36,32 @@ func TestAccAzureRMPolicySetDefinition_basic(t *testing.T) {
 	})
 }
 
-func testAzureRMPolicySetDefinition_basic(ri int) string {
+func TestAccAzureRMPolicySetDefinition_custom_policy(t *testing.T) {
+	resourceName := "azurerm_policy_set_definition.test"
+
+	ri := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAzureRMPolicySetDefinition_custom_policy(ri),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPolicySetDefinitionExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testAzureRMPolicySetDefinition_built_in_policy(ri int) string {
 	return fmt.Sprintf(`
 resource "azurerm_policy_set_definition" "test" {
   name         = "acctestpolset-%d"
@@ -70,6 +95,76 @@ PARAMETERS
 POLICY_DEFINITIONS
 }
 `, ri, ri)
+}
+
+func testAzureRMPolicySetDefinition_custom_policy(ri int) string {
+	return fmt.Sprintf(`
+resource "azurerm_policy_definition" "test" {
+  name         = "acctestpol-%d"
+  policy_type  = "Custom"
+  mode         = "All"
+  display_name = "acctestpol-%d"
+
+  policy_rule = <<POLICY_RULE
+	{
+    "if": {
+      "not": {
+        "field": "location",
+        "in": "[parameters('allowedLocations')]"
+      }
+    },
+    "then": {
+      "effect": "audit"
+    }
+  }
+POLICY_RULE
+
+  parameters = <<PARAMETERS
+	{
+    "allowedLocations": {
+      "type": "Array",
+      "metadata": {
+        "description": "The list of allowed locations for resources.",
+        "displayName": "Allowed locations",
+        "strongType": "location"
+      }
+    }
+  }
+PARAMETERS
+}
+
+resource "azurerm_policy_set_definition" "test" {
+  name         = "acctestpolset-%d"
+  policy_type  = "Custom"
+  display_name = "acctestpolset-%d"
+
+  parameters = <<PARAMETERS
+    {
+        "allowedLocations": {
+            "type": "Array",
+            "metadata": {
+                "description": "The list of allowed locations for resources.",
+                "displayName": "Allowed locations",
+                "strongType": "location"
+            }
+        }
+    }
+PARAMETERS
+
+  policy_definitions = <<POLICY_DEFINITIONS
+    [
+        {
+            "parameters": {
+                "allowedLocations": {
+                    "value": "[parameters('allowedLocations')]"
+                }
+            },
+            "policyDefinitionId": "${azurerm_policy_definition.test.id}"
+        }
+    ]
+POLICY_DEFINITIONS
+}
+`, ri, ri, ri, ri)
 }
 
 func testCheckAzureRMPolicySetDefinitionExists(name string) resource.TestCheckFunc {
