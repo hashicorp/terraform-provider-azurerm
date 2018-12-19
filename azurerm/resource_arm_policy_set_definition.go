@@ -148,7 +148,7 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, name, definition); err != nil {
-		return err
+		return fmt.Errorf("Error creating/updating Policy Set Definition %q: %s", name, err)
 	}
 
 	// Policy Definitions are eventually consistent; wait for them to stabilize
