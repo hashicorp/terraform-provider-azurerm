@@ -192,7 +192,7 @@ func resourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface{}
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Policy Definition %+v", err)
+		return fmt.Errorf("Error reading Policy Set Definition %+v", err)
 	}
 
 	d.Set("name", resp.Name)
