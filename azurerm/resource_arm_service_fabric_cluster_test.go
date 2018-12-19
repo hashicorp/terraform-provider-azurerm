@@ -176,7 +176,7 @@ func TestAccAzureRMServiceFabricCluster_reverseProxyCertificate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceFabricCluster_certificates(ri, location),
+				Config: testAccAzureRMServiceFabricCluster_reverseProxyCertificates(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceFabricClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "certificate.#", "1"),
