@@ -71,8 +71,8 @@ func resourceArmPolicyAssignment() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"None",
-					"SystemAssigned",
+					string(policy.None),
+					string(policy.SystemAssigned),
 				}, false),
 			},
 
