@@ -187,12 +187,12 @@ func resourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface{}
 	resp, err := client.Get(ctx, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading Policy Definition %q - removing from state", d.Id())
+			log.Printf("[INFO] Error reading Policy Set Definition %q - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Policy Definition %+v", err)
+		return fmt.Errorf("Error reading Policy Set Definition %+v", err)
 	}
 
 	d.Set("name", resp.Name)
