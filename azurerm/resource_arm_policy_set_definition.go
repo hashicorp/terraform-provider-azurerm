@@ -251,7 +251,7 @@ func resourceArmPolicySetDefinitionDelete(d *schema.ResourceData, meta interface
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting Policy Definition %q: %+v", name, err)
+		return fmt.Errorf("Error deleting Policy Set Definition %q: %+v", name, err)
 	}
 
 	return nil
