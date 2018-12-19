@@ -94,7 +94,7 @@ func policyDefinitionsDiffSuppressFunc(k, old, new string, d *schema.ResourceDat
 	}
 
 	var newPolicyDefinitions []policy.DefinitionReference
-	errNew := json.Unmarshal([]byte(old), &newPolicyDefinitions)
+	errNew := json.Unmarshal([]byte(new), &newPolicyDefinitions)
 	if errNew != nil {
 		return false
 	}
