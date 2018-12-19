@@ -167,7 +167,7 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 
 	resp, err := client.Get(ctx, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving Policy Set Definition %q: %s", name, err)
 	}
 
 	d.SetId(*resp.ID)
