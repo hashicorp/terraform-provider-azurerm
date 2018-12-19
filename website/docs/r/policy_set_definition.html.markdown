@@ -75,7 +75,7 @@ The following attributes are exported:
 
 ## Import
 
-Policy Set Definitions can be imported using the `policy set name`, e.g.
+Policy Set Definitions can be imported using the Resource ID, e.g.
 
 ```shell
 terraform import azurerm_policy_set_definition.test  /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/policySetDefinitions/testPolicySet
