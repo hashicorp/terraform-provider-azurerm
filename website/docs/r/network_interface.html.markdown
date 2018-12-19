@@ -80,11 +80,13 @@ The `ip_configuration` block supports:
 
 * `name` - (Required) User-defined name of the IP.
 
-* `subnet_id` - (Required) Reference to a subnet in which this NIC has been created.
+* `subnet_id` - (Optional) Reference to a subnet in which this NIC has been created. Required when `private_ip_address_version` is IPv4.
 
 * `private_ip_address` - (Optional) Static IP Address.
 
 * `private_ip_address_allocation` - (Required) Defines how a private IP address is assigned. Options are Static or Dynamic.
+
+* `private_ip_address_version` - (Optional) The IP Version to use, IPv6 or IPv4. Defaults to IPv4.
 
 * `public_ip_address_id` - (Optional) Reference to a Public IP Address to associate with this NIC
 

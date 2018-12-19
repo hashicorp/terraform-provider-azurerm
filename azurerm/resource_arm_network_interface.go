@@ -71,7 +71,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 
 						"subnet_id": {
 							Type:             schema.TypeString,
-							Required:         true,
+							Optional:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     azure.ValidateResourceID,
 						},
@@ -79,6 +79,17 @@ func resourceArmNetworkInterface() *schema.Resource {
 						"private_ip_address": {
 							Type:     schema.TypeString,
 							Optional: true,
+						},
+
+						"private_ip_address_version": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  string(network.IPv4),
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.IPv4),
+								string(network.IPv6),
+							}, true),
 						},
 
 						"private_ip_address_allocation": {
@@ -360,12 +371,16 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 		if configs[0].InterfaceIPConfigurationPropertiesFormat != nil {
 			privateIPAddress := configs[0].InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress
 			d.Set("private_ip_address", *privateIPAddress)
+			privateIPAddressVersion := configs[0].InterfaceIPConfigurationPropertiesFormat.PrivateIPAddressVersion
+			d.Set("private_ip_address_version", string(privateIPAddressVersion))
 		}
 
 		addresses := make([]interface{}, 0)
 		for _, config := range configs {
 			if config.InterfaceIPConfigurationPropertiesFormat != nil {
-				addresses = append(addresses, *config.InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress)
+				if config.InterfaceIPConfigurationPropertiesFormat.PrivateIPAddressVersion == network.IPv4 {
+					addresses = append(addresses, *config.InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress)
+				}
 			}
 		}
 
@@ -456,18 +471,20 @@ func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{})
 		data := configRaw.(map[string]interface{})
 
 		subnet_id := data["subnet_id"].(string)
-		subnetId, err2 := parseAzureResourceID(subnet_id)
-		if err2 != nil {
-			return err2
-		}
-		subnetName := subnetId.Path["subnets"]
-		if !sliceContainsValue(subnetNamesToLock, subnetName) {
-			subnetNamesToLock = append(subnetNamesToLock, subnetName)
-		}
+		if subnet_id != "" {
+			subnetId, err2 := parseAzureResourceID(subnet_id)
+			if err2 != nil {
+				return err2
+			}
+			subnetName := subnetId.Path["subnets"]
+			if !sliceContainsValue(subnetNamesToLock, subnetName) {
+				subnetNamesToLock = append(subnetNamesToLock, subnetName)
+			}
 
-		virtualNetworkName := subnetId.Path["virtualNetworks"]
-		if !sliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
-			virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, virtualNetworkName)
+			virtualNetworkName := subnetId.Path["virtualNetworks"]
+			if !sliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
+				virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, virtualNetworkName)
+			}
 		}
 	}
 
@@ -497,11 +514,19 @@ func flattenNetworkInterfaceIPConfigurations(ipConfigs *[]network.InterfaceIPCon
 		props := ipConfig.InterfaceIPConfigurationPropertiesFormat
 
 		niIPConfig["name"] = *ipConfig.Name
-		niIPConfig["subnet_id"] = *props.Subnet.ID
+
+		if props.Subnet != nil {
+			niIPConfig["subnet_id"] = *props.Subnet.ID
+		}
+
 		niIPConfig["private_ip_address_allocation"] = strings.ToLower(string(props.PrivateIPAllocationMethod))
 
 		if props.PrivateIPAllocationMethod == network.Static {
 			niIPConfig["private_ip_address"] = *props.PrivateIPAddress
+		}
+
+		if props.PrivateIPAddressVersion != "" {
+			niIPConfig["private_ip_address_version"] = props.PrivateIPAddressVersion
 		}
 
 		if props.PublicIPAddress != nil {
@@ -560,29 +585,38 @@ func expandAzureRmNetworkInterfaceIpConfigurations(d *schema.ResourceData) ([]ne
 
 		subnet_id := data["subnet_id"].(string)
 		private_ip_allocation_method := data["private_ip_address_allocation"].(string)
+		private_ip_address_version := network.IPVersion(data["private_ip_address_version"].(string))
 
 		allocationMethod := network.IPAllocationMethod(private_ip_allocation_method)
 		properties := network.InterfaceIPConfigurationPropertiesFormat{
-			Subnet: &network.Subnet{
-				ID: &subnet_id,
-			},
 			PrivateIPAllocationMethod: allocationMethod,
+			PrivateIPAddressVersion:   private_ip_address_version,
 		}
 
-		subnetId, err := parseAzureResourceID(subnet_id)
-		if err != nil {
-			return []network.InterfaceIPConfiguration{}, nil, nil, err
+		if private_ip_address_version == network.IPv4 && subnet_id == "" {
+			return nil, nil, nil, fmt.Errorf("Required field `ip_configuration`, `subnet_id` must be specified when using IPv4.")
 		}
 
-		subnetName := subnetId.Path["subnets"]
-		virtualNetworkName := subnetId.Path["virtualNetworks"]
+		if subnet_id != "" {
+			properties.Subnet = &network.Subnet{
+				ID: &subnet_id,
+			}
 
-		if !sliceContainsValue(subnetNamesToLock, subnetName) {
-			subnetNamesToLock = append(subnetNamesToLock, subnetName)
-		}
+			subnetId, err := parseAzureResourceID(subnet_id)
+			if err != nil {
+				return []network.InterfaceIPConfiguration{}, nil, nil, err
+			}
 
-		if !sliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
-			virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, virtualNetworkName)
+			subnetName := subnetId.Path["subnets"]
+			virtualNetworkName := subnetId.Path["virtualNetworks"]
+
+			if !sliceContainsValue(subnetNamesToLock, subnetName) {
+				subnetNamesToLock = append(subnetNamesToLock, subnetName)
+			}
+
+			if !sliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
+				virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, virtualNetworkName)
+			}
 		}
 
 		if v := data["private_ip_address"].(string); v != "" {

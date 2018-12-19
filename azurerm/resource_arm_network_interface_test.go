@@ -366,6 +366,26 @@ func TestAccAzureRMNetworkInterface_IPAddressesBug1286(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMNetworkInterface_IPAddressesFeature2543(t *testing.T) {
+	resourceName := "azurerm_network_interface.test"
+	rInt := acctest.RandInt()
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkInterface_withIPv6Addresses(rInt, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkInterfaceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "ip_configuration.0.private_ip_address_version", "IPv4"),
+					resource.TestCheckResourceAttr(resourceName, "ip_configuration.1.private_ip_address_version", "IPv6"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMNetworkInterface_bug7986(t *testing.T) {
 	rInt := acctest.RandInt()
 	resource.ParallelTest(t, resource.TestCase{
@@ -906,6 +926,56 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMNetworkInterface_withIPv6Addresses(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-rg-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "testsubnet"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                         = "test-%d"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "static"
+  domain_name_label            = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctestni-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
+    primary                       = true
+  }
+
+  ip_configuration {
+    name                          = "testconfiguration2"
+    private_ip_address_version    = "IPv6"
     private_ip_address_allocation = "dynamic"
   }
 }
