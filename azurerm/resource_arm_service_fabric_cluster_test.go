@@ -251,8 +251,8 @@ func TestAccAzureRMServiceFabricCluster_azureActiveDirectory(t *testing.T) {
 					testCheckAzureRMServiceFabricClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "azure_active_directory.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "azure_active_directory.tenant_id", "00000000-0000-0000-0000-00000000000"),
-					resource.TestCheckResourceAttr(resourceName, "azure_active_directory.cluster_application", "00000000-0000-0000-0000-000000000000"),
-					resource.TestCheckResourceAttr(resourceName, "azure_active_directory.client_application", "00000000-0000-0000-0000-000000000000"),
+					resource.TestCheckResourceAttr(resourceName, "azure_active_directory.cluster_application_id", "00000000-0000-0000-0000-000000000000"),
+					resource.TestCheckResourceAttr(resourceName, "azure_active_directory.client_application_id", "00000000-0000-0000-0000-000000000000"),
 					resource.TestCheckResourceAttr(resourceName, "fabric_settings.0.name", "Security"),
 					resource.TestCheckResourceAttr(resourceName, "fabric_settings.0.parameters.ClusterProtectionLevel", "EncryptAndSign"),
 					resource.TestCheckResourceAttr(resourceName, "management_endpoint", "https://example:80"),
@@ -771,9 +771,9 @@ resource "azurerm_service_fabric_cluster" "test" {
   management_endpoint = "https://example:80"
 	
 	azure_active_directory {
-		tenant_id           = "00000000-0000-0000-0000-000000000000"
-		cluster_application = "00000000-0000-0000-0000-000000000000"
-		client_application  = "00000000-0000-0000-0000-000000000000"
+		tenant_id              = "00000000-0000-0000-0000-000000000000"
+		cluster_application_id = "00000000-0000-0000-0000-000000000000"
+		client_application_id  = "00000000-0000-0000-0000-000000000000"
 	}
 
   fabric_settings {
