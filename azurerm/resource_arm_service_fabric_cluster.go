@@ -89,12 +89,12 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 							Required: true,
 							ForceNew: true,
 						},
-						"cluster_application": {
+						"cluster_application_id": {
 							Type:     schema.TypeString,
 							Required: true,
 							ForceNew: true,
 						},
-						"client_application": {
+						"client_application_id": {
 							Type:     schema.TypeString,
 							Required: true,
 							ForceNew: true,
@@ -551,8 +551,8 @@ func expandServiceFabricClusterAzureActiveDirectory(input []interface{}) *servic
 	v := input[0].(map[string]interface{})
 
 	tenantId := v["tenant_id"].(string)
-	clusterApplication := v["cluster_application"].(string)
-	clientApplication := v["client_application"].(string)
+	clusterApplication := v["cluster_application_id"].(string)
+	clientApplication := v["client_application_id"].(string)
 
 	config := servicefabric.AzureActiveDirectory{
 		TenantID:           utils.String(tenantId),
@@ -573,11 +573,11 @@ func flattenServiceFabricClusterAzureActiveDirectory(input *servicefabric.AzureA
 		}
 
 		if name := v.ClusterApplication; name != nil {
-			output["cluster_application"] = *name
+			output["cluster_application_id"] = *name
 		}
 
 		if endpoint := v.ClientApplication; endpoint != nil {
-			output["client_application"] = *endpoint
+			output["client_application_id"] = *endpoint
 		}
 
 		results = append(results, output)

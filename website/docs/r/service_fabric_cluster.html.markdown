@@ -85,9 +85,9 @@ A `azure_active_directory` block supports the following:
 
 * `tenant_id` - (Required) The TenantID of the Azure Active Directory resource.
 
-* `cluster_application` - (Required) The GUID of the cluster application.
+* `cluster_application_id` - (Required) The GUID of the cluster application.
 
-* `client_application` - (Required) The GUID of the client application.
+* `client_application_id` - (Required) The GUID of the client application.
 
 ---
 
