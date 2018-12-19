@@ -223,7 +223,7 @@ func resourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface{}
 		}
 
 		if policyDefinitions := props.PolicyDefinitions; policyDefinitions != nil {
-			policyDefinitionsRes, err := json.Marshal(props.PolicyDefinitions)
+			policyDefinitionsRes, err := json.Marshal(policyDefinitions)
 			if err != nil {
 				return fmt.Errorf("unable to flatten JSON for `policy_defintions`: %s", err)
 			}
