@@ -54,7 +54,8 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the policy set definition. Changing this forces a new resource to be created.
 
-* `policy_type` - (Required) The policy set type. The value can be `BuiltIn`, `Custom` or "NotSpecified". Changing this forces a new resource to be created.
+* `policy_type` - (Required) The policy set type. The value can be `BuiltIn`, `Custom` or `NotSpecified`
+. Changing this forces a new resource to be created.
 
 * `display_name` - (Required) The display set name of the policy definition.
 
