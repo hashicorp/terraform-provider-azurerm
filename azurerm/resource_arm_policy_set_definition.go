@@ -49,7 +49,7 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 					string(policy.TypeBuiltIn),
 					string(policy.TypeCustom),
 					string(policy.TypeNotSpecified),
-				}, true)},
+				}, false)},
 
 			"display_name": {
 				Type:         schema.TypeString,
