@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_policy_assignment
 
-Configures the specified Policy Definition at the specified Scope.
+Configures the specified Policy Definition at the specified Scope. Also, Policy Set Definitions are supported.
 
 ## Example Usage
 
@@ -79,6 +79,10 @@ The following arguments are supported:
 
 * `policy_definition_id` - (Required) The ID of the Policy Definition to be applied at the specified Scope.
 
+* `identity_type` - (Optional) The managed identity type associated with the policy assignment. Either `None` or `SystemAssigned`. Change forces a new resource. Will be mandatory if you assign a policy with `deployIfNotExists` effect.
+
+* `location` - (Optional) The location of the policy assignment. Only required when utilizing managed identity. Change forces a new resource.
+
 * `description` - (Optional) A description to use for this Policy Assignment. Changing this forces a new resource to be created.
 
 * `display_name` - (Optional) A friendly display name to use for this Policy Assignment. Changing this forces a new resource to be created.
@@ -92,6 +96,10 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The Policy Assignment id.
+
+* `identity_principal_id` - The principal ID of the resource identity. Only relevant if using `SystemAssigned` as `identity_type`.
+
+* `identity_tenant_id` - The tenant ID of the resource identity. Only relevant if using `SystemAssigned` as `identity_type`.
 
 ## Import
 

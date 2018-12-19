@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/structure"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -57,6 +58,34 @@ func resourceArmPolicyAssignment() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"location": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				StateFunc:        azure.NormalizeLocation,
+				DiffSuppressFunc: azure.SuppressLocationDiff,
+			},
+
+			"identity_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"None",
+					"SystemAssigned",
+				}, false),
+			},
+
+			"identity_principal_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"identity_tenant_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"parameters": {
 				Type:             schema.TypeString,
 				Optional:         true,
@@ -88,6 +117,15 @@ func resourceArmPolicyAssignmentCreate(d *schema.ResourceData, meta interface{})
 
 	if v := d.Get("description").(string); v != "" {
 		assignment.AssignmentProperties.Description = utils.String(v)
+	}
+
+	if v := d.Get("identity_type").(string); v != "" {
+		assignment.Identity = &policy.Identity{}
+		assignment.Identity.Type = policy.ResourceIdentityType(*(utils.String(v)))
+	}
+
+	if v := d.Get("location").(string); v != "" {
+		assignment.Location = utils.String(v)
 	}
 
 	if v := d.Get("parameters").(string); v != "" {
@@ -145,6 +183,16 @@ func resourceArmPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	d.Set("name", resp.Name)
+
+	if identity := resp.Identity; identity != nil {
+		d.Set("identity_type", resp.Identity.Type)
+		d.Set("identity_principal_id", resp.Identity.PrincipalID)
+		d.Set("identity_tenant_id", resp.Identity.TenantID)
+	}
+
+	if location := resp.Location; location != nil {
+		d.Set("location", location)
+	}
 
 	if props := resp.AssignmentProperties; props != nil {
 		d.Set("scope", props.Scope)
