@@ -213,7 +213,7 @@ func resourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface{}
 		}
 
 		if parameters := props.Parameters; parameters != nil {
-			paramsVal := props.Parameters.(map[string]interface{})
+			paramsVal := parameters.(map[string]interface{})
 			parametersStr, err := structure.FlattenJsonToString(paramsVal)
 			if err != nil {
 				return fmt.Errorf("unable to flatten JSON for `parameters`: %s", err)
