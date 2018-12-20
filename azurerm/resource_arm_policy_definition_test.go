@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
-	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -22,7 +21,7 @@ func TestAccAzureRMPolicyDefinition_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMPolicyDefinition_basic(ri, false),
+				Config: testAzureRMPolicyDefinition_basic(ri),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPolicyDefinitionExists(resourceName),
 				),
@@ -48,7 +47,7 @@ func TestAccAzureRMPolicyDefinitionAtMgmtGroup_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMPolicyDefinition_basic(ri, true),
+				Config: testAzureRMPolicyDefinition_ManagementGroup(ri),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPolicyDefinitionExistsInMgmtGroup(resourceName, mgmtGroupName),
 				),
@@ -70,13 +69,7 @@ func testCheckAzureRMPolicyDefinitionExistsInMgmtGroup(policyName string, manage
 		}
 
 		policyName := rs.Primary.Attributes["name"]
-
-		rs, ok = s.RootModule().Resources[managementGroupName]
-		if !ok {
-			return fmt.Errorf("not found: %s", managementGroupName)
-		}
-
-		managementGroupID := rs.Primary.Attributes["group_id"]
+		managementGroupID := rs.Primary.Attributes["management_group_id"]
 
 		client := testAccProvider.Meta().(*ArmClient).policyDefinitionsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -144,29 +137,14 @@ func testCheckAzureRMPolicyDefinitionDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAzureRMPolicyDefinition_basic(ri int, managementGroup bool) string {
-	var builder strings.Builder
-
-	if managementGroup {
-		builder.WriteString(fmt.Sprintf(`
-resource "azurerm_management_group" "test" {
-  display_name = "acctestmg-%d"
-}
-`, ri))
-	}
-
-	builder.WriteString(fmt.Sprintf(`
+func testAzureRMPolicyDefinition_basic(ri int) string {
+	return fmt.Sprintf(`
 resource "azurerm_policy_definition" "test" {
   name         = "acctestpol-%d"
   policy_type  = "Custom"
   mode         = "All"
-  display_name = "acctestpol-%d"`, ri, ri))
+  display_name = "acctestpol-%d"
 
-	if managementGroup {
-		builder.WriteString(fmt.Sprintf(`management_group_id = "${azurerm_management_group.test.group_id}"`))
-	}
-
-	builder.WriteString(fmt.Sprintf(`
   policy_rule = <<POLICY_RULE
 	{
     "if": {
@@ -194,7 +172,48 @@ POLICY_RULE
   }
 PARAMETERS
 }
-`))
+`, ri, ri)
+}
 
-	return builder.String()
+func testAzureRMPolicyDefinition_ManagementGroup(ri int) string {
+	return fmt.Sprintf(`
+resource "azurerm_management_group" "test" {
+	display_name = "acctestmg-%d"
+}
+
+resource "azurerm_policy_definition" "test" {
+  name         = "acctestpol-%d"
+  policy_type  = "Custom"
+  mode         = "All"
+  display_name = "acctestpol-%d"
+  management_group_id = "${azurerm_management_group.test.group_id}"
+
+  policy_rule = <<POLICY_RULE
+	{
+    "if": {
+      "not": {
+        "field": "location",
+        "in": "[parameters('allowedLocations')]"
+      }
+    },
+    "then": {
+      "effect": "audit"
+    }
+  }
+POLICY_RULE
+
+  parameters = <<PARAMETERS
+	{
+    "allowedLocations": {
+      "type": "Array",
+      "metadata": {
+        "description": "The list of allowed locations for resources.",
+        "displayName": "Allowed locations",
+        "strongType": "location"
+      }
+    }
+  }
+PARAMETERS
+}
+`, ri, ri, ri)
 }

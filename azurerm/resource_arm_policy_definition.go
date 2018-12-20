@@ -61,6 +61,7 @@ func resourceArmPolicyDefinition() *schema.Resource {
 			"management_group_id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 			},
 
 			"display_name": {
@@ -170,7 +171,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error waiting for Policy Definition %q to become available: %s", name, err)
 	}
 
-	resp, err := getPolicy(ctx, client, name, managementGroupID)
+	resp, err := getPolicyDefinition(ctx, client, name, managementGroupID)
 	if err != nil {
 		return err
 	}
@@ -189,9 +190,9 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	managementGroupID := d.Get("management_group_id").(string)
+	managementGroupID := parseManagementGroupIdFromPolicyId(d.Id())
 
-	resp, err := getPolicy(ctx, client, name, managementGroupID)
+	resp, err := getPolicyDefinition(ctx, client, name, managementGroupID)
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -255,7 +256,7 @@ func resourceArmPolicyDefinitionDelete(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	managementGroupID := d.Get("management_group_id").(string)
+	managementGroupID := parseManagementGroupIdFromPolicyId(d.Id())
 
 	var resp autorest.Response
 	if managementGroupID == "" {
@@ -285,9 +286,20 @@ func parsePolicyDefinitionNameFromId(id string) (string, error) {
 	return components[len(components)-1], nil
 }
 
+func parseManagementGroupIdFromPolicyId(id string) string {
+	r, _ := regexp.Compile("managementgroups/(.+)/providers/.*$")
+
+	if r.MatchString(id) {
+		parms := r.FindAllStringSubmatch(id, -1)[0]
+		return parms[1]
+	}
+
+	return ""
+}
+
 func policyDefinitionRefreshFunc(ctx context.Context, client policy.DefinitionsClient, name string, managementGroupID string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := getPolicy(ctx, client, name, managementGroupID)
+		res, err := getPolicyDefinition(ctx, client, name, managementGroupID)
 
 		if err != nil {
 			return nil, strconv.Itoa(res.StatusCode), fmt.Errorf("Error issuing read request in policyAssignmentRefreshFunc for Policy Assignment %q: %s", name, err)
@@ -298,20 +310,21 @@ func policyDefinitionRefreshFunc(ctx context.Context, client policy.DefinitionsC
 }
 
 func resourceArmPolicyDefinitionImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	r, _ := regexp.Compile("managementgroups/(.+)/providers/.*/policyDefinitions/(.+)$")
-	if r.MatchString(d.Id()) {
-		parms := r.FindAllStringSubmatch(d.Id(), -1)[0]
-		d.Set("management_group_id", parms[1])
-		d.Set("name", parms[2])
+	if managementGroupID := parseManagementGroupIdFromPolicyId(d.Id()); managementGroupID != "" {
+		d.Set("management_group_id", managementGroupID)
+
+		if name, _ := parsePolicyDefinitionNameFromId(d.Id()); name != "" {
+			d.Set("name", name)
+		}
 
 		return []*schema.ResourceData{d}, nil
-	} else {
-		//import a subscription based policy as before
-		return schema.ImportStatePassthrough(d, meta)
 	}
+
+	//import a subscription based policy as before
+	return schema.ImportStatePassthrough(d, meta)
 }
 
-func getPolicy(ctx context.Context, client policy.DefinitionsClient, name string, managementGroupID string) (res policy.Definition, err error) {
+func getPolicyDefinition(ctx context.Context, client policy.DefinitionsClient, name string, managementGroupID string) (res policy.Definition, err error) {
 	if managementGroupID == "" {
 		res, err = client.Get(ctx, name)
 	} else {

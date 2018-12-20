@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of the policy definition.
 
-* `management_group_id` - (Optional) the management group id (IE: `${data.azurerm_management_group.test.group_id`) where where to define this policy
+* `management_group_id` - (Optional) The Group ID (IE: `${data.azurerm_management_group.test.group_id`) of the Management Group where this policy should be defined. Changing this forces a new resource to be created.
 
 * `policy_rule` - (Optional) The policy rule for the policy definition. This
     is a json object representing the rule that contains an if and
