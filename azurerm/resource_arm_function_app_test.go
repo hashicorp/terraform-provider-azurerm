@@ -2,7 +2,7 @@ package azurerm
 
 import (
 	"fmt"
-	"regexp"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"strings"
 	"testing"
 
@@ -398,8 +398,6 @@ func TestAccAzureRMFunctionApp_createIdentity(t *testing.T) {
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMFunctionApp_basicIdentity(ri, rs, testLocation())
 
-	uuidMatch := regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -411,8 +409,8 @@ func TestAccAzureRMFunctionApp_createIdentity(t *testing.T) {
 					testCheckAzureRMFunctionAppExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "identity.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", uuidMatch),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", uuidMatch),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", validate.UUIDRegExp),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", validate.UUIDRegExp),
 				),
 			},
 		},
@@ -426,8 +424,6 @@ func TestAccAzureRMFunctionApp_updateIdentity(t *testing.T) {
 
 	preConfig := testAccAzureRMFunctionApp_basic(ri, rs, testLocation())
 	postConfig := testAccAzureRMFunctionApp_basicIdentity(ri, rs, testLocation())
-
-	uuidMatch := regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -447,8 +443,8 @@ func TestAccAzureRMFunctionApp_updateIdentity(t *testing.T) {
 					testCheckAzureRMFunctionAppExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "identity.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", uuidMatch),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", uuidMatch),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", validate.UUIDRegExp),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", validate.UUIDRegExp),
 				),
 			},
 		},

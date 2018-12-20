@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"net/http"
 	"regexp"
 	"testing"
@@ -631,7 +632,7 @@ func TestAccAzureRMVirtualMachineScaleSet_SystemAssignedMSI(t *testing.T) {
 					testCheckAzureRMVirtualMachineScaleSetExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
 					resource.TestCheckResourceAttr(resourceName, "identity.0.identity_ids.#", "0"),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", regexp.MustCompile(".+")),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", validate.UUIDRegExp),
 				),
 			},
 		},
@@ -677,7 +678,7 @@ func TestAccAzureRMVirtualMachineScaleSet_multipleAssignedMSI(t *testing.T) {
 					testCheckAzureRMVirtualMachineScaleSetExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned, UserAssigned"),
 					resource.TestCheckResourceAttr(resourceName, "identity.0.identity_ids.#", "1"),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", regexp.MustCompile(".+")),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", validate.UUIDRegExp),
 				),
 			},
 		},
