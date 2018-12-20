@@ -10,6 +10,8 @@ FEATURES:
 IMPROVEMENTS:
 
 * dependencies: upgrading the `network` SDK to `2018-08-01` [GH-2433]
+* Data Source: `azurerm_app_service` - exporting the `possible_outbound_ip_addresses` [GH-2513]
+* `azurerm_app_service` - exporting the `possible_outbound_ip_addresses` [GH-2513]
 * `azurerm_firewall` - renaming the `public_ip_address_id` property to `ip_address_id` [GH-2433]
 
 BUG FIXES:
