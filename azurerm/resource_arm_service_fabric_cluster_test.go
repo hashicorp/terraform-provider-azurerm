@@ -246,7 +246,7 @@ func TestAccAzureRMServiceFabricCluster_azureActiveDirectory(t *testing.T) {
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceFabricCluster_clientCertificateThumbprint(ri, location),
+				Config: testAccAzureRMServiceFabricCluster_azureActiveDirectory(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceFabricClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "azure_active_directory.#", "1"),
