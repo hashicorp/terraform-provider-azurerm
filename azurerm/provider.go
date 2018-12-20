@@ -152,6 +152,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_api_management":                         resourceArmApiManagementService(),
 			"azurerm_application_gateway":                    resourceArmApplicationGateway(),
 			"azurerm_application_insights":                   resourceArmApplicationInsights(),
+			"azurerm_application_insights_api_key":           resourceArmApplicationInsightsAPIKey(),
 			"azurerm_application_security_group":             resourceArmApplicationSecurityGroup(),
 			"azurerm_app_service":                            resourceArmAppService(),
 			"azurerm_app_service_plan":                       resourceArmAppServicePlan(),
