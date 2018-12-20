@@ -38,6 +38,11 @@ func TestAccAzureRMAutomationDscNodeConfiguration_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAutomationDscNodeConfiguration_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
 	resourceName := "azurerm_automation_dsc_nodeconfiguration.test"
 	ri := acctest.RandInt()
 	location := testLocation()
