@@ -54,8 +54,7 @@ func resourceArmIotHubConsumerGroupCreate(d *schema.ResourceData, meta interface
 	endpointName := d.Get("eventhub_endpoint_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	_, err := client.CreateEventHubConsumerGroup(ctx, resourceGroup, iotHubName, endpointName, name)
-	if err != nil {
+	if _, err := client.CreateEventHubConsumerGroup(ctx, resourceGroup, iotHubName, endpointName, name); err != nil {
 		return err
 	}
 

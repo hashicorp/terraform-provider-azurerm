@@ -38,8 +38,7 @@ func testSweepMonitorLogProfiles(region string) error {
 			continue
 		}
 
-		_, err := client.Delete(ctx, name)
-		if err != nil {
+		if _, err := client.Delete(ctx, name); err != nil {
 			return fmt.Errorf("Error deleting Log Profile %q: %+v", name, err)
 		}
 	}
@@ -228,8 +227,7 @@ func testCheckAzureRMLogProfileDisappears(name string) resource.TestCheckFunc {
 		client := testAccProvider.Meta().(*ArmClient).monitorLogProfilesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, err := client.Delete(ctx, name)
-		if err != nil {
+		if _, err := client.Delete(ctx, name); err != nil {
 			return fmt.Errorf("Error deleting Log Profile %q: %+v", name, err)
 		}
 

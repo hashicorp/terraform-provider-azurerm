@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -40,6 +41,27 @@ func resourceArmActiveDirectoryServicePrincipalCreate(d *schema.ResourceData, me
 	ctx := meta.(*ArmClient).StopContext
 
 	applicationId := d.Get("application_id").(string)
+
+	apps, err := client.ListComplete(ctx, "")
+	if err != nil {
+		return fmt.Errorf("Error checking for existence of Service Principal %q: %+v", applicationId, err)
+	}
+
+	for apps.NotDone() {
+		a := apps.Value()
+		if a.AppID == nil || a.ObjectID == nil {
+			continue
+		}
+
+		if *a.AppID == applicationId {
+			return tf.ImportAsExistsError("azurerm_azuread_service_principal", *a.ObjectID)
+		}
+
+		e := apps.Next()
+		if e != nil {
+			return e
+		}
+	}
 
 	properties := graphrbac.ServicePrincipalCreateParameters{
 		AppID: utils.String(applicationId),

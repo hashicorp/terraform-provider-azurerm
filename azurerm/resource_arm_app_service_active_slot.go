@@ -70,8 +70,7 @@ func resourceArmAppServiceActiveSlotCreate(d *schema.ResourceData, meta interfac
 	if err != nil {
 		return fmt.Errorf("Error swapping App Service Slot %q/%q: %+v", appServiceName, targetSlot, err)
 	}
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error swapping App Service Slot %q/%q: %+v", appServiceName, targetSlot, err)
 	}
 	d.SetId(*resp.ID)

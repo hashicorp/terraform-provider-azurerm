@@ -37,6 +37,35 @@ func TestAccAzureRMAppServiceSlot_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppServiceSlot_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppServiceSlot_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMAppServiceSlot_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_app_service_slot"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAppServiceSlot_32Bit(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
 	ri := acctest.RandInt()
@@ -906,6 +935,21 @@ resource "azurerm_app_service_slot" "test" {
   app_service_name    = "${azurerm_app_service.test.name}"
 }
 `, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMAppServiceSlot_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMAppServiceSlot_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_slot" "import" {
+  name                = "${azurerm_app_service_slot.test.name}"
+  location            = "${azurerm_app_service_slot.test.location}"
+  resource_group_name = "${azurerm_app_service_slot.test.resource_group_name}"
+  app_service_plan_id = "${azurerm_app_service_slot.test.app_service_plan_id}"
+  app_service_name    = "${azurerm_app_service_slot.test.app_service_name}"
+}
+`, template)
 }
 
 func testAccAzureRMAppServiceSlot_32Bit(rInt int, location string) string {

@@ -343,8 +343,7 @@ func testCheckAzureRMSqlDatabaseDisappears(name string) resource.TestCheckFunc {
 		client := testAccProvider.Meta().(*ArmClient).sqlDatabasesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, err := client.Delete(ctx, resourceGroup, serverName, databaseName)
-		if err != nil {
+		if _, err := client.Delete(ctx, resourceGroup, serverName, databaseName); err != nil {
 			return fmt.Errorf("Bad: Delete on sqlDatabasesClient: %+v", err)
 		}
 

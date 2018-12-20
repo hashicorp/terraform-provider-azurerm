@@ -167,7 +167,9 @@ A `oms_agent` block supports the following:
 
 A `role_based_access_control` block supports the following:
 
-* `azure_active_directory` - (Required) An `azure_active_directory` block. Changing this forces a new resource to be created.
+* `azure_active_directory` - (Optional) An `azure_active_directory` block. Changing this forces a new resource to be created.
+
+* `enabled` - (Required) Is Role Based Access Control Enabled? Changing this forces a new resource to be created.
 
 ---
 
@@ -192,11 +194,15 @@ The following attributes are exported:
 
 * `fqdn` - The FQDN of the Azure Kubernetes Managed Cluster.
 
+* `kube_admin_config` - A `kube_admin_config` block as defined below. This is only available when Role Based Access Control with Azure Active Directory is enabled.
+
+* `kube_admin_config_raw` - Raw Kubernetes config for the admin account to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools. This is only available when Role Based Access Control with Azure Active Directory is enabled.
+
+* `kube_config` - A `kube_config` block as defined below.
+
 * `kube_config_raw` - Raw Kubernetes config to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools
 
 * `http_application_routing` - A `http_application_routing` block as defined below.
-
-* `kube_config` - A `kube_config` block as defined below.
 
 * `node_resource_group` - The auto-generated Resource Group which contains the resources for this Managed Kubernetes Cluster.
 
@@ -208,7 +214,7 @@ A `http_application_routing` block exports the following:
 
 ---
 
-A `kube_config` exports the following::
+The `kube_admin_config` and `kube_config` blocks export the following::
 
 * `client_key` - Base64 encoded private key used by clients to authenticate to the Kubernetes cluster.
 

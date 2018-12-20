@@ -133,7 +133,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   os_profile {
     computer_name_prefix = "testvm"
     admin_username       = "myadmin"
-    admin_password       = "Passwword1234"
   }
 
   os_profile_linux_config {
@@ -220,7 +219,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   os_profile {
     computer_name_prefix = "testvm"
     admin_username       = "myadmin"
-    admin_password       = "Passwword1234"
   }
 
   os_profile_linux_config {
@@ -413,7 +411,7 @@ output "principal_id" {
 
 `os_profile_linux_config` supports the following:
 
-* `disable_password_authentication` - (Required) Specifies whether password authentication should be disabled. Changing this forces a new resource to be created.
+* `disable_password_authentication` - (Optional) Specifies whether password authentication should be disabled. Defaults to `false`. Changing this forces a new resource to be created.
 * `ssh_keys` - (Optional) Specifies a collection of `path` and `key_data` to be placed on the virtual machine.
 
 ~> _**Note:** Please note that the only allowed `path` is `/home/<username>/.ssh/authorized_keys` due to a limitation of Azure_

@@ -7,7 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -62,7 +62,7 @@ func resourceArmFirewallNetworkRuleCollection() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"description": {
 							Type:     schema.TypeString,
@@ -93,7 +93,7 @@ func resourceArmFirewallNetworkRuleCollection() *schema.Resource {
 								Type: schema.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
 									string(network.Any),
-									"ICMP", // TODO(metacpp): update it when SDK is upgraded to v22.0.
+									"ICMP", // TODO(metacpp): update it after v22.0.
 									string(network.TCP),
 									string(network.UDP),
 								}, false),
@@ -132,12 +132,6 @@ func resourceArmFirewallNetworkRuleCollectionCreateUpdate(d *schema.ResourceData
 		return fmt.Errorf("Error expanding Firewall %q (Resource Group %q): `properties.NetworkRuleCollections` was nil.", firewallName, resourceGroup)
 	}
 	ruleCollections := *props.NetworkRuleCollections
-
-	ipConfigurations, err := azure.FirewallFixIPConfiguration(props.IPConfigurations)
-	if err != nil {
-		return fmt.Errorf("Error fixing IP Configurations for Firewall %q (Resource Group %q): %+v", firewallName, resourceGroup, err)
-	}
-	firewall.AzureFirewallPropertiesFormat.IPConfigurations = ipConfigurations
 
 	networkRules := expandArmFirewallNetworkRules(d.Get("rule").(*schema.Set))
 	priority := d.Get("priority").(int)
@@ -181,8 +175,7 @@ func resourceArmFirewallNetworkRuleCollectionCreateUpdate(d *schema.ResourceData
 		return fmt.Errorf("Error creating/updating Network Rule Collection %q in Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for creation/update of Network Rule Collection %q of Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
 	}
 
@@ -333,19 +326,12 @@ func resourceArmFirewallNetworkRuleCollectionDelete(d *schema.ResourceData, meta
 	}
 	props.NetworkRuleCollections = &networkRules
 
-	ipConfigs, err := azure.FirewallFixIPConfiguration(props.IPConfigurations)
-	if err != nil {
-		return fmt.Errorf("Error fixing IP Configuration for Firewall %q (Resource Group %q): %+v", firewallName, resourceGroup, err)
-	}
-	props.IPConfigurations = ipConfigs
-
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, firewallName, firewall)
 	if err != nil {
 		return fmt.Errorf("Error deleting Network Rule Collection %q from Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for deletion of Network Rule Collection %q from Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
 	}
 

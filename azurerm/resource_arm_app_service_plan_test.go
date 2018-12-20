@@ -108,6 +108,35 @@ func TestAccAzureRMAppServicePlan_basicLinux(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppServicePlan_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_app_service_plan.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppServicePlan_basicLinux(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServicePlanExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMAppServicePlan_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_app_service_plan"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAppServicePlan_standardWindows(t *testing.T) {
 	resourceName := "azurerm_app_service_plan.test"
 	ri := acctest.RandInt()
@@ -343,6 +372,29 @@ resource "azurerm_app_service_plan" "test" {
   }
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMAppServicePlan_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMAppServicePlan_basicLinux(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_plan" "import" {
+  name                = "${azurerm_app_service_plan.test.name}"
+  location            = "${azurerm_app_service_plan.test.location}"
+  resource_group_name = "${azurerm_app_service_plan.test.resource_group_name}"
+  kind                = "${azurerm_app_service_plan.test.kind}"
+
+  sku {
+    tier = "Basic"
+    size = "B1"
+  }
+
+  properties {
+    reserved = true
+  }
+}
+`, template)
 }
 
 func testAccAzureRMAppServicePlan_basicLinuxNew(rInt int, location string) string {

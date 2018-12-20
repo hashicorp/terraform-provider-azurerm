@@ -75,7 +75,6 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	resGroup := d.Get("resource_group_name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	adminUsername := d.Get("administrator_login").(string)
-	adminPassword := d.Get("administrator_login_password").(string)
 	version := d.Get("version").(string)
 
 	tags := d.Get("tags").(map[string]interface{})
@@ -85,10 +84,14 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		Location: utils.String(location),
 		Tags:     metadata,
 		ServerProperties: &sql.ServerProperties{
-			Version:                    utils.String(version),
-			AdministratorLogin:         utils.String(adminUsername),
-			AdministratorLoginPassword: utils.String(adminPassword),
+			Version:            utils.String(version),
+			AdministratorLogin: utils.String(adminUsername),
 		},
+	}
+
+	if d.HasChange("administrator_login_password") {
+		adminPassword := d.Get("administrator_login_password").(string)
+		parameters.ServerProperties.AdministratorLoginPassword = utils.String(adminPassword)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
@@ -96,8 +99,7 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 
 		if response.WasConflict(future.Response()) {
 			return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use.", name)

@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -107,6 +108,16 @@ func resourceArmActiveDirectoryServicePrincipalPasswordCreate(d *schema.Resource
 
 	updatedCredentials := make([]graphrbac.PasswordCredential, 0)
 	if existingCredentials.Value != nil {
+		for _, v := range *existingCredentials.Value {
+			if v.KeyID == nil {
+				continue
+			}
+
+			if *v.KeyID == keyId {
+				return tf.ImportAsExistsError("azurerm_azuread_service_principal_password", fmt.Sprintf("%s/%s", objectId, keyId))
+			}
+		}
+
 		updatedCredentials = *existingCredentials.Value
 	}
 

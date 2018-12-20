@@ -133,8 +133,7 @@ func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interfa
 	}
 
 	ctx := meta.(*ArmClient).StopContext
-	_, err := client.CreateOrUpdate(ctx, resGroup, name, profile)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, name, profile); err != nil {
 		return err
 	}
 
