@@ -36,6 +36,35 @@ func TestAccAzureRMDnsTxtRecord_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMDnsTxtRecord_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_dns_txt_record.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDnsTxtRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDnsTxtRecord_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDnsTxtRecordExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMDnsTxtRecord_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_dns_txt_record"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMDnsTxtRecord_updateRecords(t *testing.T) {
 	resourceName := "azurerm_dns_txt_record.test"
 	ri := acctest.RandInt()
@@ -185,6 +214,28 @@ resource "azurerm_dns_txt_record" "test" {
   }
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMDnsTxtRecord_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMDnsTxtRecord_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_dns_txt_record" "import" {
+  name                = "${azurerm_dns_txt_record.test.name}"
+  resource_group_name = "${azurerm_dns_txt_record.test.resource_group_name}"
+  zone_name           = "${azurerm_dns_txt_record.test.zone_name}"
+  ttl                 = 300
+
+  record {
+    value = "Quick brown fox"
+  }
+
+  record {
+    value = "Another test txt string"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMDnsTxtRecord_updateRecords(rInt int, location string) string {

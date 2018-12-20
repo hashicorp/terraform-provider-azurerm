@@ -36,6 +36,35 @@ func TestAccAzureRMDataLakeAnalyticsAccount_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMDataLakeAnalyticsAccount_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_data_lake_analytics_account.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDataLakeAnalyticsAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDataLakeAnalyticsAccount_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataLakeAnalyticsAccountExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMDataLakeAnalyticsAccount_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_data_lake_analytics_account"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMDataLakeAnalyticsAccount_tier(t *testing.T) {
 	resourceName := "azurerm_data_lake_analytics_account.test"
 	ri := acctest.RandInt()
@@ -151,6 +180,7 @@ func testCheckAzureRMDataLakeAnalyticsAccountDestroy(s *terraform.State) error {
 }
 
 func testAccAzureRMDataLakeAnalyticsAccount_basic(rInt int, location string) string {
+	template := testAccAzureRMDataLakeStore_basic(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -161,10 +191,25 @@ resource "azurerm_data_lake_analytics_account" "test" {
 
   default_store_account_name = "${azurerm_data_lake_store.test.name}"
 }
-`, testAccAzureRMDataLakeStore_basic(rInt, location), strconv.Itoa(rInt)[0:15])
+`, template, strconv.Itoa(rInt)[0:15])
+}
+
+func testAccAzureRMDataLakeAnalyticsAccount_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMDataLakeAnalyticsAccount_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_lake_analytics_account" "import" {
+  name                       = "${azurerm_data_lake_analytics_account.test.name}"
+  resource_group_name        = "${azurerm_data_lake_analytics_account.test.resource_group_name}"
+  location                   = "${azurerm_data_lake_analytics_account.test.location}"
+  default_store_account_name = "${azurerm_data_lake_analytics_account.test.default_store_account_name}"
+}
+`, template)
 }
 
 func testAccAzureRMDataLakeAnalyticsAccount_tier(rInt int, location string) string {
+	template := testAccAzureRMDataLakeStore_basic(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -177,10 +222,11 @@ resource "azurerm_data_lake_analytics_account" "test" {
 
   default_store_account_name = "${azurerm_data_lake_store.test.name}"
 }
-`, testAccAzureRMDataLakeStore_basic(rInt, location), strconv.Itoa(rInt)[0:15])
+`, template, strconv.Itoa(rInt)[0:15])
 }
 
 func testAccAzureRMDataLakeAnalyticsAccount_withTags(rInt int, location string) string {
+	template := testAccAzureRMDataLakeStore_basic(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -196,10 +242,11 @@ resource "azurerm_data_lake_analytics_account" "test" {
     cost_center = "MSFT"
   }
 }
-`, testAccAzureRMDataLakeStore_basic(rInt, location), strconv.Itoa(rInt)[0:15])
+`, template, strconv.Itoa(rInt)[0:15])
 }
 
 func testAccAzureRMDataLakeAnalyticsAccount_withTagsUpdate(rInt int, location string) string {
+	template := testAccAzureRMDataLakeStore_basic(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -214,5 +261,5 @@ resource "azurerm_data_lake_analytics_account" "test" {
     environment = "staging"
   }
 }
-`, testAccAzureRMDataLakeStore_basic(rInt, location), strconv.Itoa(rInt)[0:15])
+`, template, strconv.Itoa(rInt)[0:15])
 }

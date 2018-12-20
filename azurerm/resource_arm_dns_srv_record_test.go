@@ -36,6 +36,35 @@ func TestAccAzureRMDnsSrvRecord_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMDnsSrvRecord_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_dns_srv_record.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDnsSrvRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDnsSrvRecord_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDnsSrvRecordExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMDnsSrvRecord_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("v"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMDnsSrvRecord_updateRecords(t *testing.T) {
 	resourceName := "azurerm_dns_srv_record.test"
 	ri := acctest.RandInt()
@@ -193,6 +222,34 @@ resource "azurerm_dns_srv_record" "test" {
   }
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMDnsSrvRecord_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMDnsSrvRecord_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_dns_srv_record" "import" {
+  name                = "${azurerm_dns_srv_record.test.name}"
+  resource_group_name = "${azurerm_dns_srv_record.test.resource_group_name}"
+  zone_name           = "${azurerm_dns_srv_record.test.zone_name}"
+  ttl                 = 300
+
+  record {
+    priority = 1
+    weight   = 5
+    port     = 8080
+    target   = "target1.contoso.com"
+  }
+
+  record {
+    priority = 2
+    weight   = 25
+    port     = 8080
+    target   = "target2.contoso.com"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMDnsSrvRecord_updateRecords(rInt int, location string) string {

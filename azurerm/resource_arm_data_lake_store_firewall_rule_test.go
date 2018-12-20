@@ -40,6 +40,39 @@ func TestAccAzureRMDataLakeStoreFirewallRule_basic(t *testing.T) {
 	})
 }
 
+//
+
+func TestAccAzureRMDataLakeStoreFirewallRule_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_data_lake_store_firewall_rule.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+	startIP := "1.1.1.1"
+	endIP := "2.2.2.2"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDataLakeStoreFirewallRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDataLakeStoreFirewallRule_basic(ri, location, startIP, endIP),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataLakeStoreFirewallRuleExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMDataLakeStoreFirewallRule_requiresImport(ri, location, startIP, endIP),
+				ExpectError: testRequiresImportError("azurerm_data_lake_store_firewall_rule"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMDataLakeStoreFirewallRule_update(t *testing.T) {
 	resourceName := "azurerm_data_lake_store_firewall_rule.test"
 	ri := acctest.RandInt()
@@ -176,4 +209,19 @@ resource "azurerm_data_lake_store_firewall_rule" "test" {
   end_ip_address      = "%s"
 }
 `, rInt, location, strconv.Itoa(rInt)[0:15], startIP, endIP)
+}
+
+func testAccAzureRMDataLakeStoreFirewallRule_requiresImport(rInt int, location, startIP, endIP string) string {
+	template := testAccAzureRMDataLakeStoreFirewallRule_basic(rInt, location, startIP, endIP)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_lake_store_firewall_rule" "import" {
+  name                = "${azurerm_data_lake_store_firewall_rule.test.name}"
+  account_name        = "${azurerm_data_lake_store_firewall_rule.test.account_name}"
+  resource_group_name = "${azurerm_data_lake_store_firewall_rule.test.resource_group_name}"
+  start_ip_address    = "${azurerm_data_lake_store_firewall_rule.test.start_ip_address}"
+  end_ip_address      = "${azurerm_data_lake_store_firewall_rule.test.end_ip_address}"
+}
+`, template)
 }

@@ -64,6 +64,36 @@ func TestAccAzureRMDevTestVirtualNetwork_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMDevTestVirtualNetwork_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_dev_test_virtual_network.test"
+	rInt := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDevTestVirtualNetworkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDevTestVirtualNetwork_basic(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDevTestVirtualNetworkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+				),
+			},
+			{
+				Config:      testAccAzureRMDevTestVirtualNetwork_requiresImport(rInt, location),
+				ExpectError: testRequiresImportError("azurerm_dev_test_virtual_network"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMDevTestVirtualNetwork_subnet(t *testing.T) {
 	resourceName := "azurerm_dev_test_virtual_network.test"
 	rInt := acctest.RandInt()
@@ -169,6 +199,19 @@ resource "azurerm_dev_test_virtual_network" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMDevTestVirtualNetwork_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMDevTestVirtualNetwork_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_dev_test_virtual_network" "import" {
+  name                = "${azurerm_dev_test_virtual_network.test.name}"
+  lab_name            = "${azurerm_dev_test_virtual_network.test.lab_name}"
+  resource_group_name = "${azurerm_dev_test_virtual_network.test.resource_group_name}"
+}
+`, template)
 }
 
 func testAccAzureRMDevTestVirtualNetwork_subnets(rInt int, location string) string {
