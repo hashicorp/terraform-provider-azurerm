@@ -101,6 +101,11 @@ func dataSourceArmAppService() *schema.Resource {
 				Computed: true,
 			},
 
+			"possible_outbound_ip_addresses": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"source_control": {
 				Type:     schema.TypeList,
 				Computed: true,
