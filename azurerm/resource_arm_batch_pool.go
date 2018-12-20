@@ -103,25 +103,25 @@ func resourceArmBatchPool() *schema.Resource {
 
 						"publisher": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Required: true,
 							ForceNew: true,
 						},
 
 						"offer": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Required: true,
 							ForceNew: true,
 						},
 
 						"sku": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Required: true,
 							ForceNew: true,
 						},
 
 						"version": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Required: true,
 							ForceNew: true,
 						},
 					},
@@ -379,8 +379,6 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 		}
 		return fmt.Errorf("Error making Read request on AzureRM Batch pool %q: %+v", poolName, err)
 	}
-
-	d.SetId(*resp.ID)
 
 	d.Set("name", poolName)
 	d.Set("account_name", accountName)
