@@ -321,8 +321,9 @@ type ArmClient struct {
 	appServicesClient     web.AppsClient
 
 	// Policy
-	policyAssignmentsClient policy.AssignmentsClient
-	policyDefinitionsClient policy.DefinitionsClient
+	policyAssignmentsClient    policy.AssignmentsClient
+	policyDefinitionsClient    policy.DefinitionsClient
+	policySetDefinitionsClient policy.SetDefinitionsClient
 }
 
 var (
@@ -1165,6 +1166,10 @@ func (c *ArmClient) registerPolicyClients(endpoint, subscriptionId string, auth 
 	policyDefinitionsClient := policy.NewDefinitionsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&policyDefinitionsClient.Client, auth)
 	c.policyDefinitionsClient = policyDefinitionsClient
+
+	policySetDefinitionsClient := policy.NewSetDefinitionsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&policySetDefinitionsClient.Client, auth)
+	c.policySetDefinitionsClient = policySetDefinitionsClient
 }
 
 func (c *ArmClient) registerManagementGroupClients(endpoint string, auth autorest.Authorizer) {
