@@ -65,6 +65,8 @@ func TestAccAzureRMAppService_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "outbound_ip_addresses"),
+					resource.TestCheckResourceAttrSet(resourceName, "possible_outbound_ip_addresses"),
 				),
 			},
 			{
