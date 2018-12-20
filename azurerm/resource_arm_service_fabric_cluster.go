@@ -70,7 +70,7 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			
+
 			"add_on_features": {
 				Type:     schema.TypeSet,
 				Optional: true,
