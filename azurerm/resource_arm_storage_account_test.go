@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"regexp"
 	"testing"
 
@@ -173,6 +174,11 @@ func TestAccAzureRMStorageAccount_blobConnectionString(t *testing.T) {
 }
 
 func TestAccAzureRMStorageAccount_blobEncryption(t *testing.T) {
+	_, exists := os.LookupEnv("TF_ACC_STORAGE_ENCRYPTION_DISABLE")
+	if !exists {
+		t.Skip("`TF_ACC_STORAGE_ENCRYPTION_DISABLE` isn't specified - skipping since disabling encryption is generally disabled")
+	}
+
 	resourceName := "azurerm_storage_account.testsa"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
@@ -209,6 +215,11 @@ func TestAccAzureRMStorageAccount_blobEncryption(t *testing.T) {
 }
 
 func TestAccAzureRMStorageAccount_fileEncryption(t *testing.T) {
+	_, exists := os.LookupEnv("TF_ACC_STORAGE_ENCRYPTION_DISABLE")
+	if !exists {
+		t.Skip("`TF_ACC_STORAGE_ENCRYPTION_DISABLE` isn't specified - skipping since disabling encryption is generally disabled")
+	}
+
 	resourceName := "azurerm_storage_account.testsa"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
