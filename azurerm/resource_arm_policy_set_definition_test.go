@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccAzureRMPolicySetDefinition_built_in_policy(t *testing.T) {
+func TestAccAzureRMPolicySetDefinition_builtIn(t *testing.T) {
 	resourceName := "azurerm_policy_set_definition.test"
 
 	ri := acctest.RandInt()
@@ -22,7 +22,7 @@ func TestAccAzureRMPolicySetDefinition_built_in_policy(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMPolicySetDefinition_built_in_policy(ri),
+				Config: testAzureRMPolicySetDefinition_builtIn(ri),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPolicySetDefinitionExists(resourceName),
 				),
@@ -36,7 +36,7 @@ func TestAccAzureRMPolicySetDefinition_built_in_policy(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPolicySetDefinition_custom_policy(t *testing.T) {
+func TestAccAzureRMPolicySetDefinition_custom(t *testing.T) {
 	resourceName := "azurerm_policy_set_definition.test"
 
 	ri := acctest.RandInt()
@@ -47,7 +47,7 @@ func TestAccAzureRMPolicySetDefinition_custom_policy(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMPolicySetDefinition_custom_policy(ri),
+				Config: testAzureRMPolicySetDefinition_custom(ri),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPolicySetDefinitionExists(resourceName),
 				),
@@ -61,7 +61,7 @@ func TestAccAzureRMPolicySetDefinition_custom_policy(t *testing.T) {
 	})
 }
 
-func testAzureRMPolicySetDefinition_built_in_policy(ri int) string {
+func testAzureRMPolicySetDefinition_builtIn(ri int) string {
 	return fmt.Sprintf(`
 resource "azurerm_policy_set_definition" "test" {
   name         = "acctestpolset-%d"
@@ -97,7 +97,7 @@ POLICY_DEFINITIONS
 `, ri, ri)
 }
 
-func testAzureRMPolicySetDefinition_custom_policy(ri int) string {
+func testAzureRMPolicySetDefinition_custom(ri int) string {
 	return fmt.Sprintf(`
 resource "azurerm_policy_definition" "test" {
   name         = "acctestpol-%d"
@@ -185,7 +185,7 @@ func testCheckAzureRMPolicySetDefinitionExists(name string) resource.TestCheckFu
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("policy set does not exist: %s", name)
+			return fmt.Errorf("policy set definition does not exist: %s", name)
 		}
 
 		return nil
@@ -209,7 +209,7 @@ func testCheckAzureRMPolicySetDefinitionDestroy(s *terraform.State) error {
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("policy set still exists: %s", *resp.Name)
+			return fmt.Errorf("policy set definition still exists: %s", *resp.Name)
 		}
 	}
 

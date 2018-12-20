@@ -54,18 +54,17 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the policy set definition. Changing this forces a new resource to be created.
 
-* `policy_type` - (Required) The policy set type. The value can be `BuiltIn`, `Custom` or `NotSpecified`
-. Changing this forces a new resource to be created.
+* `policy_type` - (Required) The policy set type. Possible values are `BuiltIn` or `Custom`. Changing this forces a new resource to be created.
 
-* `display_name` - (Required) The display set name of the policy definition.
+* `display_name` - (Required) The display name of the policy set definition.
 
 * `policy_definitions` - (Required) The policy definitions for the policy set definition. This is a json object representing the bundled policy definitions .
 
 * `description` - (Optional) The description of the policy set definition.
 
-* `metadata` - (Optional) The metadata for the policy definition. This is a json object representing additional metadata that should be stored with the policy definition.
+* `metadata` - (Optional) The metadata for the policy set definition. This is a json object representing additional metadata that should be stored with the policy definition.
 
-* `parameters` - (Optional) Parameters for the policy definition. This field is a json object that allows you to parameterize your policy definition.
+* `parameters` - (Optional) Parameters for the policy set definition. This field is a json object that allows you to parameterize your policy definition.
 
 ## Attributes Reference
 

@@ -2,24 +2,20 @@ package azurerm
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"reflect"
-	"strings"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
-
-	"time"
-
 	"strconv"
-
-	"encoding/json"
+	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/structure"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -48,8 +44,8 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(policy.TypeBuiltIn),
 					string(policy.TypeCustom),
-					string(policy.TypeNotSpecified),
-				}, false)},
+				}, false),
+			},
 
 			"display_name": {
 				Type:         schema.TypeString,
@@ -198,7 +194,7 @@ func resourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface{}
 	d.Set("name", resp.Name)
 
 	if props := resp.SetDefinitionProperties; props != nil {
-		d.Set("policy_type", props.PolicyType)
+		d.Set("policy_type", string(props.PolicyType))
 		d.Set("display_name", props.DisplayName)
 		d.Set("description", props.Description)
 
@@ -275,7 +271,7 @@ func policySetDefinitionRefreshFunc(ctx context.Context, client policy.SetDefini
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, name)
 		if err != nil {
-			return nil, strconv.Itoa(res.StatusCode), fmt.Errorf("Error issuing read request in policyAssignmentRefreshFunc for Policy Assignment %q: %s", name, err)
+			return nil, strconv.Itoa(res.StatusCode), fmt.Errorf("Error issuing read request in policySetDefinitionRefreshFunc for Policy Set Definition %q: %s", name, err)
 		}
 
 		return res, strconv.Itoa(res.StatusCode), nil
