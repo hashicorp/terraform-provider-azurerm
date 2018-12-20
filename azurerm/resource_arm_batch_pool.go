@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -29,7 +30,7 @@ func resourceArmBatchPool() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateAzureRMBatchPoolName,
 			},
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": resourceGroupNameSchema(),
 			"account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -42,15 +43,90 @@ func resourceArmBatchPool() *schema.Resource {
 				ForceNew: true,
 			},
 			"vm_size": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				Default:          "Standard_A1",
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-				ForceNew:         true,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
-			"fixed_scale":             azure.SchemaBatchPoolFixedScale(),
-			"auto_scale":              azure.SchemaBatchPoolAutoScale(),
-			"storage_image_reference": azure.SchemaBatchPoolImageReference(),
+			"fixed_scale": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"target_dedicated_nodes": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Default:  1,
+						},
+						"target_low_priority_nodes": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Default:  0,
+						},
+						"resize_timeout": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  "PT15M",
+						},
+					},
+				},
+			},
+			"auto_scale": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"evaluation_interval": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  "PT15M",
+						},
+						"formula": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
+			"storage_image_reference": {
+				Type:     schema.TypeList,
+				Required: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
+						"publisher": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
+						},
+
+						"offer": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
+						},
+
+						"sku": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
+						},
+
+						"version": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
+						},
+					},
+				},
+			},
 			"node_agent_sku_id": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -61,7 +137,77 @@ func resourceArmBatchPool() *schema.Resource {
 				Optional: true,
 				Default:  false,
 			},
-			"start_task": azure.SchemaBatchPoolStartTask(),
+			"start_task": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"command_line": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+
+						"max_task_retry_count": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Default:  1,
+						},
+
+						"wait_for_success": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"environment": {
+							Type:     schema.TypeMap,
+							Optional: true,
+						},
+
+						"user_identity": {
+							Type:     schema.TypeList,
+							Required: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"user_name": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"auto_user": {
+										Type:     schema.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"elevation_level": {
+													Type:     schema.TypeString,
+													Optional: true,
+													Default:  string(batch.NonAdmin),
+													ValidateFunc: validation.StringInSlice([]string{
+														string(batch.NonAdmin),
+														string(batch.Admin),
+													}, false),
+												},
+												"scope": {
+													Type:     schema.TypeString,
+													Optional: true,
+													Default:  string(batch.AutoUserScopeTask),
+													ValidateFunc: validation.StringInSlice([]string{
+														string(batch.AutoUserScopeTask),
+														string(batch.AutoUserScopePool),
+													}, false),
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -85,21 +231,33 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 		},
 	}
 
-	scaleSettings, err := getBatchPoolScaleSettings(d)
+	scaleSettings, err := expandBatchPoolScaleSettings(d)
 	if err != nil {
-		return fmt.Errorf("Error: scale settings: %+v", err)
+		return fmt.Errorf("Error expanding scale settings: %+v", err)
 	}
 
-	parameters.ScaleSettings = scaleSettings
+	parameters.PoolProperties.ScaleSettings = scaleSettings
 
 	nodeAgentSkuID := d.Get("node_agent_sku_id").(string)
-	storageImageReferenceSet := d.Get("storage_image_reference").(*schema.Set)
+
+	storageImageReferenceSet := d.Get("storage_image_reference").([]interface{})
 	imageReference, err := azure.ExpandBatchPoolImageReference(storageImageReferenceSet)
 	if err != nil {
 		return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 
-	parameters.DeploymentConfiguration = &batch.DeploymentConfiguration{
+	if startTaskValue, startTaskOk := d.GetOk("start_task"); startTaskOk {
+		startTaskList := startTaskValue.([]interface{})
+		startTask, startTaskErr := azure.ExpandBatchPoolStartTask(startTaskList)
+
+		if startTaskErr != nil {
+			return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): %+v", name, resourceGroupName, startTaskErr)
+		}
+
+		parameters.PoolProperties.StartTask = startTask
+	}
+
+	parameters.PoolProperties.DeploymentConfiguration = &batch.DeploymentConfiguration{
 		VirtualMachineConfiguration: &batch.VirtualMachineConfiguration{
 			NodeAgentSkuID: &nodeAgentSkuID,
 			ImageReference: imageReference,
@@ -146,7 +304,7 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error retrieving the Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
 	}
 
-	if resp.AllocationState != batch.Steady {
+	if resp.PoolProperties.AllocationState != batch.Steady {
 		log.Printf("[INFO] there is a pending resize operation on this pool...")
 		stopPendingResizeOperation := d.Get("stop_pending_resize_operation").(bool)
 		if !stopPendingResizeOperation {
@@ -167,7 +325,7 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 				return fmt.Errorf("Error retrieving the Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
 			}
 
-			isSteady = resp.AllocationState == batch.Steady
+			isSteady = resp.PoolProperties.AllocationState == batch.Steady
 			time.Sleep(time.Minute * 2)
 			log.Printf("[INFO] waiting for the pending resize operation on this pool to be stopped... New try in 2 minutes...")
 		}
@@ -177,27 +335,27 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 		PoolProperties: &batch.PoolProperties{},
 	}
 
-	scaleSettings, err := getBatchPoolScaleSettings(d)
+	scaleSettings, err := expandBatchPoolScaleSettings(d)
 	if err != nil {
-		return fmt.Errorf("Error: scale settings: %+v", err)
+		return fmt.Errorf("Error expanding scale settings: %+v", err)
 	}
 
-	parameters.ScaleSettings = scaleSettings
+	parameters.PoolProperties.ScaleSettings = scaleSettings
+
+	if startTaskValue, startTaskOk := d.GetOk("start_task"); startTaskOk {
+		startTaskList := startTaskValue.([]interface{})
+		startTask, startTaskErr := azure.ExpandBatchPoolStartTask(startTaskList)
+
+		if startTaskErr != nil {
+			return fmt.Errorf("Error updating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, startTaskErr)
+		}
+
+		parameters.PoolProperties.StartTask = startTask
+	}
 
 	if _, err = client.Update(ctx, resourceGroup, accountName, poolName, parameters, ""); err != nil {
-		return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
+		return fmt.Errorf("Error updating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
 	}
-
-	read, err := client.Get(ctx, resourceGroup, accountName, poolName)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Batch pool %q (resource group %q) ID", poolName, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
 
 	return resourceArmBatchPoolRead(d, meta)
 }
@@ -227,24 +385,32 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", poolName)
 	d.Set("account_name", accountName)
 	d.Set("resource_group_name", resourceGroup)
-	d.Set("vm_size", resp.VMSize)
 
-	if resp.ScaleSettings != nil {
-		if resp.ScaleSettings.AutoScale != nil {
-			d.Set("auto_scale", azure.FlattenBatchPoolAutoScaleSettings(resp.ScaleSettings.AutoScale))
-		} else if resp.ScaleSettings.FixedScale != nil {
-			d.Set("fixed_scale", azure.FlattenBatchPoolFixedScaleSettings(resp.ScaleSettings.FixedScale))
+	if props := resp.PoolProperties; props != nil {
+		d.Set("vm_size", props.VMSize)
+
+		if scaleSettings := props.ScaleSettings; scaleSettings != nil {
+			if err := d.Set("auto_scale", azure.FlattenBatchPoolAutoScaleSettings(scaleSettings.AutoScale)); err != nil {
+				return fmt.Errorf("Error flattening `auto_scale`: %+v", err)
+			}
+			if err := d.Set("fixed_scale", azure.FlattenBatchPoolFixedScaleSettings(scaleSettings.FixedScale)); err != nil {
+				return fmt.Errorf("Error flattening `fixed_scale `: %+v", err)
+			}
 		}
-	}
 
-	if resp.DeploymentConfiguration != nil &&
-		resp.DeploymentConfiguration.VirtualMachineConfiguration != nil &&
-		resp.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference != nil {
+		if props.DeploymentConfiguration != nil &&
+			props.DeploymentConfiguration.VirtualMachineConfiguration != nil &&
+			props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference != nil {
 
-		imageReference := resp.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference
+			imageReference := props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference
 
-		d.Set("storage_image_reference", azure.FlattenBatchPoolImageReference(imageReference))
-		d.Set("node_agent_sku_id", resp.DeploymentConfiguration.VirtualMachineConfiguration.NodeAgentSkuID)
+			d.Set("storage_image_reference", azure.FlattenBatchPoolImageReference(imageReference))
+			d.Set("node_agent_sku_id", props.DeploymentConfiguration.VirtualMachineConfiguration.NodeAgentSkuID)
+		}
+
+		if props.StartTask != nil {
+			d.Set("start_task", azure.FlattenBatchPoolStartTask(props.StartTask))
+		}
 	}
 
 	return nil
@@ -275,7 +441,7 @@ func resourceArmBatchPoolDelete(d *schema.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func getBatchPoolScaleSettings(d *schema.ResourceData) (*batch.ScaleSettings, error) {
+func expandBatchPoolScaleSettings(d *schema.ResourceData) (*batch.ScaleSettings, error) {
 	scaleSettings := &batch.ScaleSettings{}
 
 	autoScaleValue, autoScaleOk := d.GetOk("auto_scale")
@@ -321,8 +487,6 @@ func getBatchPoolScaleSettings(d *schema.ResourceData) (*batch.ScaleSettings, er
 			TargetDedicatedNodes:   &targetDedicatedNodes,
 			TargetLowPriorityNodes: &targetLowPriorityNodes,
 		}
-	} else {
-		return nil, fmt.Errorf("Error: scale mode should be either AutoScale of FixedScale")
 	}
 
 	return scaleSettings, nil

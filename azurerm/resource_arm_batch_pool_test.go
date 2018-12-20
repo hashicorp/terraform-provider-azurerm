@@ -304,7 +304,7 @@ resource "azurerm_batch_pool" "test" {
       pendingTaskSamplePercent = $PendingTasks.GetSamplePercent(180 * TimeInterval_Second);
       pendingTaskSamples = pendingTaskSamplePercent < 70 ? startingNumberOfVMs : avg($PendingTasks.GetSample(180 * TimeInterval_Second));
       $TargetDedicatedNodes=min(maxNumberofVMs, pendingTaskSamples);
-      EOF
+EOF
   }
 
   storage_image_reference {
@@ -335,6 +335,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   account_name        = "${azurerm_batch_account.test.name}"
   node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  vm_size             = "Standard_A1"
 
   fixed_scale {
     target_dedicated_nodes = 1
@@ -368,6 +369,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   account_name        = "${azurerm_batch_account.test.name}"
   node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  vm_size             = "Standard_A1"
 
   fixed_scale {
     target_dedicated_nodes = 1

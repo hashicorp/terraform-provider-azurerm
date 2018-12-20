@@ -25,9 +25,23 @@ func TestAccDataSourceAzureRMBatchPool_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "name", fmt.Sprintf("testaccpool%s", rs)),
 					resource.TestCheckResourceAttr(dataSourceName, "account_name", fmt.Sprintf("testaccbatch%s", rs)),
 					resource.TestCheckResourceAttr(dataSourceName, "vm_size", "STANDARD_A1"),
+					resource.TestCheckResourceAttr(dataSourceName, "storage_image_reference.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "storage_image_reference.0.publisher", "Canonical"),
+					resource.TestCheckResourceAttr(dataSourceName, "storage_image_reference.0.sku", "16.04.0-LTS"),
+					resource.TestCheckResourceAttr(dataSourceName, "storage_image_reference.0.offer", "UbuntuServer"),
+					resource.TestCheckResourceAttr(dataSourceName, "fixed_scale.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "fixed_scale.0.target_dedicated_nodes", "2"),
 					resource.TestCheckResourceAttr(dataSourceName, "fixed_scale.0.resize_timeout", "PT15M"),
+					resource.TestCheckResourceAttr(dataSourceName, "fixed_scale.0.target_low_priority_nodes", "0"),
 					resource.TestCheckResourceAttr(dataSourceName, "node_agent_sku_id", "batch.node.ubuntu 16.04"),
+					resource.TestCheckResourceAttr(dataSourceName, "start_task.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "start_task.0.max_task_retry_count", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "start_task.0.environment.%", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "start_task.0.environment.env", "TEST"),
+					resource.TestCheckResourceAttr(dataSourceName, "start_task.0.user_identity.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "start_task.0.user_identity.0.auto_user.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "start_task.0.user_identity.0.auto_user.0.scope", "Task"),
+					resource.TestCheckResourceAttr(dataSourceName, "start_task.0.user_identity.0.auto_user.0.elevation_level", "NonAdmin"),
 				),
 			},
 		},
@@ -71,6 +85,7 @@ resource "azurerm_batch_pool" "test" {
 
   fixed_scale {
     target_dedicated_nodes = 2
+    resize_timeout         = "PT15M"
   }
 
   storage_image_reference {
@@ -78,6 +93,23 @@ resource "azurerm_batch_pool" "test" {
     offer     = "UbuntuServer"
     sku       = "16.04.0-LTS"
     version   = "latest"
+  }
+
+  start_task {
+    command_line         = "echo 'Hello World from $env'"
+    max_task_retry_count = 1
+    wait_for_success     = true
+
+    environment {
+      env = "TEST"
+    }
+
+    user_identity {
+      auto_user {
+        elevation_level = "NonAdmin"
+        scope           = "Task"
+      }
+    }
   }
 }
 

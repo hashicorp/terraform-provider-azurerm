@@ -1,6 +1,10 @@
 # Configure the Microsoft Azure Provider
 provider "azurerm" {
-  # if you're using a Service Principal (shared account) then either set the environment variables, or fill these in:   # subscription_id = "..."  # client_id       = "..."   # client_secret   = "..."  # tenant_id       = "..."
+  # if you're using a Service Principal (shared account) then either set the environment variables, or fill these in:
+  # subscription_id = "..." 
+  # client_id       = "..."
+  # client_secret   = "..."
+  # tenant_id       = "..."
 }
 
 resource "azurerm_resource_group" "rg" {
@@ -65,7 +69,7 @@ resource "azurerm_batch_pool" "autopool" {
       pendingTaskSamplePercent = $PendingTasks.GetSamplePercent(180 * TimeInterval_Second);
       pendingTaskSamples = pendingTaskSamplePercent < 70 ? startingNumberOfVMs : avg($PendingTasks.GetSample(180 * TimeInterval_Second));
       $TargetDedicatedNodes=min(maxNumberofVMs, pendingTaskSamples);
-      EOF
+EOF
   }
 
   storage_image_reference {

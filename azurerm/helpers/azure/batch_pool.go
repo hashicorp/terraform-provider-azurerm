@@ -1,274 +1,31 @@
 package azure
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
-	"github.com/hashicorp/terraform/helper/hashcode"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
 )
-
-// SchemaBatchPoolImageReference returns the schema for a Batch pool image reference
-func SchemaBatchPoolImageReference() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeSet,
-		Required: true,
-		ForceNew: true,
-		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"id": {
-					Type:     schema.TypeString,
-					Optional: true,
-					ForceNew: true,
-				},
-
-				"publisher": {
-					Type:     schema.TypeString,
-					Optional: true,
-					ForceNew: true,
-				},
-
-				"offer": {
-					Type:     schema.TypeString,
-					Optional: true,
-					ForceNew: true,
-				},
-
-				"sku": {
-					Type:     schema.TypeString,
-					Optional: true,
-					ForceNew: true,
-				},
-
-				"version": {
-					Type:     schema.TypeString,
-					Optional: true,
-					Computed: true,
-					ForceNew: true,
-				},
-			},
-		},
-		Set: resourceArmBatchPoolImageReferenceHash,
-	}
-}
-
-// SchemaBatchPoolImageReferenceForDataSource returns the schema for a Batch pool image reference data source
-func SchemaBatchPoolImageReferenceForDataSource() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeSet,
-		Computed: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"id": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-
-				"publisher": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-
-				"offer": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-
-				"sku": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-
-				"version": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-			},
-		},
-		Set: resourceArmBatchPoolImageReferenceHash,
-	}
-}
-
-// SchemaBatchPoolFixedScale returns the schema for the Batch pool fixed scale settings
-func SchemaBatchPoolFixedScale() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
-		Optional: true,
-		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"target_dedicated_nodes": {
-					Type:     schema.TypeInt,
-					Optional: true,
-					Default:  1,
-				},
-				"target_low_priority_nodes": {
-					Type:     schema.TypeInt,
-					Optional: true,
-					Default:  0,
-				},
-				"resize_timeout": {
-					Type:     schema.TypeString,
-					Optional: true,
-					Default:  "PT15M",
-				},
-			},
-		},
-	}
-}
-
-// SchemaBatchPoolFixedScaleForDataSource returns the schema for the Batch pool fixed scale settings data source
-func SchemaBatchPoolFixedScaleForDataSource() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
-		Computed: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"target_dedicated_nodes": {
-					Type:     schema.TypeInt,
-					Computed: true,
-				},
-				"target_low_priority_nodes": {
-					Type:     schema.TypeInt,
-					Computed: true,
-				},
-				"resize_timeout": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-			},
-		},
-	}
-}
-
-// SchemaBatchPoolAutoScale returns the schema for the Batch pool auto scale settings
-func SchemaBatchPoolAutoScale() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
-		Optional: true,
-		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"evaluation_interval": {
-					Type:     schema.TypeString,
-					Optional: true,
-					Default:  "PT15M",
-				},
-				"formula": {
-					Type:     schema.TypeString,
-					Required: true,
-				},
-			},
-		},
-	}
-}
-
-// SchemaBatchPoolAutoScaleForDataSource returns the schema for the Batch pool auto scale settings data source
-func SchemaBatchPoolAutoScaleForDataSource() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
-		Computed: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"evaluation_interval": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-				"formula": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-			},
-		},
-	}
-}
-
-// SchemaBatchPoolStartTask returns the schema for a Batch pool start task
-func SchemaBatchPoolStartTask() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeSet,
-		Optional: true,
-		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"command_line": {
-					Type:     schema.TypeString,
-					Required: true,
-				},
-
-				"max_task_retry_count": {
-					Type:     schema.TypeInt,
-					Optional: true,
-					Default:  1,
-				},
-
-				"wait_for_success": {
-					Type:     schema.TypeBool,
-					Optional: true,
-					Default:  false,
-				},
-
-				"environment": {
-					Type:     schema.TypeMap,
-					Optional: true,
-				},
-
-				"user_identity": schemaBatchPoolStartTaskUserIdentity(),
-			},
-		},
-	}
-}
-
-// SchemaBatchPoolStartTaskForDataSource returns the schema for a Batch pool start task
-func SchemaBatchPoolStartTaskForDataSource() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeSet,
-		Optional: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"command_line": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-
-				"max_task_retry_count": {
-					Type:     schema.TypeInt,
-					Computed: true,
-				},
-
-				"wait_for_success": {
-					Type:     schema.TypeBool,
-					Computed: true,
-				},
-
-				"environment": {
-					Type:     schema.TypeMap,
-					Computed: true,
-				},
-
-				"user_identity": schemaBatchPoolStartTaskUserIdentityForDataSource(),
-			},
-		},
-	}
-}
 
 // FlattenBatchPoolAutoScaleSettings flattens the auto scale settings for a Batch pool
 func FlattenBatchPoolAutoScaleSettings(settings *batch.AutoScaleSettings) []interface{} {
 	results := make([]interface{}, 0)
-	result := make(map[string]interface{})
 
 	if settings == nil {
 		log.Printf("[DEBUG] settings is nil")
 		return results
 	}
 
-	result["evaluation_interval"] = settings.EvaluationInterval
-	result["formula"] = settings.Formula
+	result := make(map[string]interface{})
+
+	if settings.EvaluationInterval != nil {
+		result["evaluation_interval"] = *settings.EvaluationInterval
+	}
+
+	if settings.Formula != nil {
+		result["formula"] = *settings.Formula
+	}
 
 	return append(results, result)
 }
@@ -276,18 +33,194 @@ func FlattenBatchPoolAutoScaleSettings(settings *batch.AutoScaleSettings) []inte
 // FlattenBatchPoolFixedScaleSettings flattens the fixed scale settings for a Batch pool
 func FlattenBatchPoolFixedScaleSettings(settings *batch.FixedScaleSettings) []interface{} {
 	results := make([]interface{}, 0)
-	result := make(map[string]interface{})
 
 	if settings == nil {
 		log.Printf("[DEBUG] settings is nil")
 		return results
 	}
 
-	result["target_dedicated_nodes"] = settings.TargetDedicatedNodes
-	result["target_low_priority_nodes"] = settings.TargetLowPriorityNodes
-	result["resize_timeout"] = settings.ResizeTimeout
+	result := make(map[string]interface{})
+
+	if settings.TargetDedicatedNodes != nil {
+		result["target_dedicated_nodes"] = *settings.TargetDedicatedNodes
+	}
+
+	if settings.TargetLowPriorityNodes != nil {
+		result["target_low_priority_nodes"] = *settings.TargetLowPriorityNodes
+	}
+
+	if settings.ResizeTimeout != nil {
+		result["resize_timeout"] = *settings.ResizeTimeout
+	}
 
 	return append(results, result)
+}
+
+// FlattenBatchPoolImageReference flattens the Batch pool image reference
+func FlattenBatchPoolImageReference(image *batch.ImageReference) []interface{} {
+	results := make([]interface{}, 0)
+	if image == nil {
+		log.Printf("[DEBUG] image is nil")
+		return results
+	}
+
+	result := make(map[string]interface{})
+	if image.Publisher != nil {
+		result["publisher"] = *image.Publisher
+	}
+	if image.Offer != nil {
+		result["offer"] = *image.Offer
+	}
+	if image.Sku != nil {
+		result["sku"] = *image.Sku
+	}
+	if image.Version != nil {
+		result["version"] = *image.Version
+	}
+	if image.ID != nil {
+		result["id"] = *image.ID
+	}
+
+	return append(results, result)
+}
+
+// FlattenBatchPoolStartTask flattens a Batch pool start task
+func FlattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
+	results := make([]interface{}, 0)
+
+	if startTask == nil {
+		log.Printf("[DEBUG] startTask is nil")
+		return results
+	}
+
+	result := make(map[string]interface{})
+	if startTask.CommandLine != nil {
+		result["command_line"] = *startTask.CommandLine
+	}
+	if startTask.WaitForSuccess != nil {
+		result["wait_for_success"] = *startTask.WaitForSuccess
+	}
+	if startTask.MaxTaskRetryCount != nil {
+		result["max_task_retry_count"] = *startTask.MaxTaskRetryCount
+	}
+
+	if startTask.UserIdentity != nil {
+		userIdentity := make(map[string]interface{})
+		if startTask.UserIdentity.AutoUser != nil {
+			autoUser := make(map[string]interface{})
+
+			elevationLevel := string(startTask.UserIdentity.AutoUser.ElevationLevel)
+			scope := string(startTask.UserIdentity.AutoUser.Scope)
+
+			autoUser["elevation_level"] = elevationLevel
+			autoUser["scope"] = scope
+
+			userIdentity["auto_user"] = []interface{}{autoUser}
+		} else {
+			userIdentity["user_name"] = *startTask.UserIdentity.UserName
+		}
+
+		result["user_identity"] = []interface{}{userIdentity}
+	}
+
+	if startTask.EnvironmentSettings != nil {
+		environment := make(map[string]interface{})
+		for _, envSetting := range *startTask.EnvironmentSettings {
+			environment[*envSetting.Name] = *envSetting.Value
+		}
+
+		result["environment"] = environment
+	}
+
+	return append(results, result)
+}
+
+// ExpandBatchPoolImageReference expands Batch pool image reference
+func ExpandBatchPoolImageReference(list []interface{}) (*batch.ImageReference, error) {
+	if len(list) == 0 {
+		return nil, fmt.Errorf("Error: storage image reference should be defined")
+	}
+
+	storageImageRef := list[0].(map[string]interface{})
+
+	storageImageRefOffer := storageImageRef["offer"].(string)
+	storageImageRefPublisher := storageImageRef["publisher"].(string)
+	storageImageRefSku := storageImageRef["sku"].(string)
+	storageImageRefVersion := storageImageRef["version"].(string)
+
+	imageRef := &batch.ImageReference{
+		Offer:     &storageImageRefOffer,
+		Publisher: &storageImageRefPublisher,
+		Sku:       &storageImageRefSku,
+		Version:   &storageImageRefVersion,
+	}
+
+	return imageRef, nil
+}
+
+// ExpandBatchPoolStartTask expands Batch pool start task
+func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
+	if len(list) == 0 {
+		return nil, fmt.Errorf("Error: batch pool start task should be defined")
+	}
+
+	startTaskValue := list[0].(map[string]interface{})
+
+	startTaskCmdLine := startTaskValue["command_line"].(string)
+	maxTaskRetryCount := int32(startTaskValue["max_task_retry_count"].(int))
+	waitForSuccess := startTaskValue["wait_for_success"].(bool)
+
+	userIdentityList := startTaskValue["user_identity"].([]interface{})
+	if len(userIdentityList) == 0 {
+		return nil, fmt.Errorf("Error: batch pool start task user identity should be defined")
+	}
+
+	userIdentityValue := userIdentityList[0].(map[string]interface{})
+	userIdentity := batch.UserIdentity{}
+
+	if autoUserValue, ok := userIdentityValue["auto_user"]; ok {
+		autoUser := autoUserValue.([]interface{})
+		if len(autoUser) != 0 {
+			autoUserMap := autoUser[0].(map[string]interface{})
+			userIdentity.AutoUser = &batch.AutoUserSpecification{
+				ElevationLevel: batch.ElevationLevel(autoUserMap["elevation_level"].(string)),
+				Scope:          batch.AutoUserScope(autoUserMap["scope"].(string)),
+			}
+
+		}
+	} else if userNameValue, ok := userIdentityValue["username"]; ok {
+		userName := userNameValue.(string)
+		userIdentity.UserName = &userName
+	} else {
+		return nil, fmt.Errorf("Error: either auto_user or user_name should be speicfied for Batch pool start task")
+	}
+
+	startTask := &batch.StartTask{
+		CommandLine:       &startTaskCmdLine,
+		MaxTaskRetryCount: &maxTaskRetryCount,
+		WaitForSuccess:    &waitForSuccess,
+		UserIdentity:      &userIdentity,
+	}
+
+	// populate environment settings, if defined
+	if environment := startTaskValue["environment"]; environment != nil {
+		envMap := environment.(map[string]interface{})
+		envSettings := make([]batch.EnvironmentSetting, 0)
+
+		for k, v := range envMap {
+			envValue := v.(string)
+			envSetting := batch.EnvironmentSetting{
+				Name:  &k,
+				Value: &envValue,
+			}
+
+			envSettings = append(envSettings, envSetting)
+		}
+
+		startTask.EnvironmentSettings = &envSettings
+	}
+
+	return startTask, nil
 }
 
 // ValidateAzureRMBatchPoolName validates the name of a Batch pool
@@ -307,162 +240,4 @@ func ValidateAzureRMBatchPoolName(v interface{}, k string) (warnings []string, e
 	}
 
 	return warnings, errors
-}
-
-// FlattenBatchPoolImageReference flattens the Batch pool image reference
-func FlattenBatchPoolImageReference(image *batch.ImageReference) *schema.Set {
-	result := make(map[string]interface{})
-	if image.Publisher != nil {
-		result["publisher"] = *image.Publisher
-	}
-	if image.Offer != nil {
-		result["offer"] = *image.Offer
-	}
-	if image.Sku != nil {
-		result["sku"] = *image.Sku
-	}
-	if image.Version != nil {
-		result["version"] = *image.Version
-	}
-	if image.ID != nil {
-		result["id"] = *image.ID
-	}
-
-	return schema.NewSet(resourceArmBatchPoolImageReferenceHash, []interface{}{result})
-}
-
-// ExpandBatchPoolImageReference expands a Set into an image reference
-func ExpandBatchPoolImageReference(set *schema.Set) (*batch.ImageReference, error) {
-	if set == nil || set.Len() == 0 {
-		return nil, fmt.Errorf("Error: storage image reference should be defined")
-	}
-
-	storageImageRef := set.List()[0].(map[string]interface{})
-
-	storageImageRefOffer, storageImageRefOfferOk := storageImageRef["offer"].(string)
-	if !storageImageRefOfferOk {
-		return nil, fmt.Errorf("Error: storage image reference offer should be defined")
-	}
-
-	storageImageRefPublisher, storageImageRefPublisherOK := storageImageRef["publisher"].(string)
-	if !storageImageRefPublisherOK {
-		return nil, fmt.Errorf("Error: storage image reference publisher should be defined")
-	}
-
-	storageImageRefSku, storageImageRefSkuOK := storageImageRef["sku"].(string)
-	if !storageImageRefSkuOK {
-		return nil, fmt.Errorf("Error: storage image reference sku should be defined")
-	}
-
-	storageImageRefVersion, storageImageRefVersionOK := storageImageRef["version"].(string)
-	if !storageImageRefVersionOK {
-		return nil, fmt.Errorf("Error: storage image reference version should be defined")
-	}
-
-	imageRef := &batch.ImageReference{
-		Offer:     &storageImageRefOffer,
-		Publisher: &storageImageRefPublisher,
-		Sku:       &storageImageRefSku,
-		Version:   &storageImageRefVersion,
-	}
-
-	return imageRef, nil
-}
-
-func schemaBatchPoolStartTaskUserIdentity() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
-		Required: true,
-		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"user_name": {
-					Type:     schema.TypeString,
-					Optional: true,
-				},
-				"auto_user": {
-					Type:     schema.TypeSet,
-					Optional: true,
-					MaxItems: 1,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							"elevation_level": {
-								Type:     schema.TypeString,
-								Optional: true,
-								Default:  string(batch.NonAdmin),
-								ValidateFunc: validation.StringInSlice([]string{
-									string(batch.NonAdmin),
-									string(batch.Admin),
-								}, false),
-							},
-							"scope": {
-								Type:     schema.TypeString,
-								Optional: true,
-								Default:  string(batch.AutoUserScopeTask),
-								ValidateFunc: validation.StringInSlice([]string{
-									string(batch.AutoUserScopeTask),
-									string(batch.AutoUserScopePool),
-								}, false),
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-}
-
-func schemaBatchPoolStartTaskUserIdentityForDataSource() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
-		Computed: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"user_name": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-				"auto_user": {
-					Type:     schema.TypeSet,
-					Computed: true,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							"elevation_level": {
-								Type:     schema.TypeString,
-								Computed: true,
-							},
-							"scope": {
-								Type:     schema.TypeString,
-								Computed: true,
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-}
-
-func resourceArmBatchPoolImageReferenceHash(v interface{}) int {
-	var buf bytes.Buffer
-
-	if m, ok := v.(map[string]interface{}); ok {
-		if v, ok := m["publisher"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
-		}
-		if v, ok := m["offer"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
-		}
-		if v, ok := m["sku"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
-		}
-		if v, ok := m["id"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
-		}
-		if v, ok := m["version"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
-		}
-	}
-
-	return hashcode.String(buf.String())
 }

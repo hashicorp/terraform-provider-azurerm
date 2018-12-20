@@ -18,7 +18,7 @@ func dataSourceArmBatchPool() *schema.Resource {
 				Required:     true,
 				ValidateFunc: azure.ValidateAzureRMBatchPoolName,
 			},
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 			"account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -32,14 +32,137 @@ func dataSourceArmBatchPool() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"fixed_scale":             azure.SchemaBatchPoolFixedScaleForDataSource(),
-			"auto_scale":              azure.SchemaBatchPoolAutoScaleForDataSource(),
-			"storage_image_reference": azure.SchemaBatchPoolImageReferenceForDataSource(),
+			"fixed_scale": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"target_dedicated_nodes": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"target_low_priority_nodes": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"resize_timeout": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"auto_scale": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"evaluation_interval": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"formula": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"storage_image_reference": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"publisher": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"offer": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"sku": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 			"node_agent_sku_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"start_task": azure.SchemaBatchPoolStartTaskForDataSource(),
+			"start_task": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"command_line": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+
+						"max_task_retry_count": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Default:  1,
+						},
+
+						"wait_for_success": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"environment": {
+							Type:     schema.TypeMap,
+							Optional: true,
+						},
+
+						"user_identity": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"user_name": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"auto_user": {
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"elevation_level": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+												"scope": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -65,27 +188,32 @@ func dataSourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("name", name)
 	d.Set("account_name", accountName)
 	d.Set("resource_group_name", resourceGroup)
-	d.Set("vm_size", resp.VMSize)
 
-	if resp.ScaleSettings != nil {
-		if resp.ScaleSettings.AutoScale != nil {
-			d.Set("auto_scale", azure.FlattenBatchPoolAutoScaleSettings(resp.ScaleSettings.AutoScale))
-		} else if resp.ScaleSettings.FixedScale != nil {
-			d.Set("fixed_scale", azure.FlattenBatchPoolFixedScaleSettings(resp.ScaleSettings.FixedScale))
-		}
-	}
+	if props := resp.PoolProperties; props != nil {
+		d.Set("vm_size", props.VMSize)
 
-	if resp.DeploymentConfiguration != nil &&
-		resp.DeploymentConfiguration.VirtualMachineConfiguration != nil &&
-		resp.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference != nil {
-
-		vmCfg := resp.DeploymentConfiguration.VirtualMachineConfiguration
-
-		if err := d.Set("storage_image_reference", azure.FlattenBatchPoolImageReference(vmCfg.ImageReference)); err != nil {
-			return fmt.Errorf("Error setting AzureRM Batch Pool Image Reference: %#v", err)
+		if scaleSettings := props.ScaleSettings; scaleSettings != nil {
+			if err := d.Set("auto_scale", azure.FlattenBatchPoolAutoScaleSettings(scaleSettings.AutoScale)); err != nil {
+				return fmt.Errorf("Error flattening `auto_scale`: %+v", err)
+			}
+			if err := d.Set("fixed_scale", azure.FlattenBatchPoolFixedScaleSettings(scaleSettings.FixedScale)); err != nil {
+				return fmt.Errorf("Error flattening `fixed_scale `: %+v", err)
+			}
 		}
 
-		d.Set("node_agent_sku_id", vmCfg.NodeAgentSkuID)
+		if props.DeploymentConfiguration != nil &&
+			props.DeploymentConfiguration.VirtualMachineConfiguration != nil &&
+			props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference != nil {
+
+			imageReference := props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference
+
+			d.Set("storage_image_reference", azure.FlattenBatchPoolImageReference(imageReference))
+			d.Set("node_agent_sku_id", props.DeploymentConfiguration.VirtualMachineConfiguration.NodeAgentSkuID)
+		}
+
+		if props.StartTask != nil {
+			d.Set("start_task", azure.FlattenBatchPoolStartTask(props.StartTask))
+		}
 	}
 
 	return nil
