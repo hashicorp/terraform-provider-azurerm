@@ -5,6 +5,7 @@ FEATURES:
 * **New Data Source:** `azurerm_batch_account` [GH-2428]
 * **New Data Source:** `azurerm_virtual_machine` [GH-2463]
 * **New Resource:** `azurerm_batch_account` [GH-2428]
+* **New Resource:** `azurerm_policy_set_definition` [GH-2535]
 
 IMPROVEMENTS:
 
