@@ -51,19 +51,19 @@ resource "azurerm_application_insights_api_key" "full_permissions" {
 }
 
 output "read_telemetry_api_key" {
-  value = "${azurerm_application_insights.read_telemetry.api_key}"
+  value = "${azurerm_application_insights_api_key.read_telemetry.api_key}"
 }
 
 output "write_annotations_api_key" {
-  value = "${azurerm_application_insights.write_annotations.app_id}"
+  value = "${azurerm_application_insights_api_key.write_annotations.app_id}"
 }
 
 output "authenticate_sdk_control_channel" {
-  value = "${azurerm_application_insights.authenticate_sdk_control_channel.app_id}"
+  value = "${azurerm_application_insights_api_key.authenticate_sdk_control_channel.app_id}"
 }
 
 output "full_permissions_api_key" {
-  value = "${azurerm_application_insights.full_permissions.app_id}"
+  value = "${azurerm_application_insights_api_key.full_permissions.app_id}"
 }
 ```
 
