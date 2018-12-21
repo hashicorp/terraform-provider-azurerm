@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `add_on_features` - (Optional) A List of one or more features which should be enabled, such as `DnsService`.
 
-* `azure_active_directory` - (Optional) `azure_active_directory` block as defined below. Changing this forces a new resource to be created.
+* `azure_active_directory` - (Optional) An `azure_active_directory` block as defined below. Changing this forces a new resource to be created.
 
 * `certificate` - (Optional) A `certificate` block as defined below.
 
