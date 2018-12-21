@@ -51,6 +51,23 @@ resource "azurerm_batch_pool" "fixedpool" {
     sku       = "16.04.0-LTS"
     version   = "latest"
   }
+
+  start_task {
+    command_line         = "echo 'Hello World from $env'"
+    max_task_retry_count = 1
+    wait_for_success     = true
+
+    environment {
+      env = "TEST"
+    }
+
+    user_identity {
+      auto_user {
+        elevation_level = "NonAdmin"
+        scope           = "Task"
+      }
+    }
+  }
 }
 
 resource "azurerm_batch_pool" "autopool" {
