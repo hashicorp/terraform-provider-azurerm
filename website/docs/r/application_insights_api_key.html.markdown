@@ -26,25 +26,25 @@ resource "azurerm_application_insights" "test" {
 }
 
 resource "azurerm_application_insights_api_key" "read_telemetry" {
-  name                    = "tf-test-appinsights-api-key"
+  name                    = "tf-test-appinsights-read-telemetry-api-key"
   application_insights_id = "${azurerm_application_insights.test.id}"
   read_permissions        = ["aggregate", "api", "draft", "extendqueries", "search"]
 }
 
 resource "azurerm_application_insights_api_key" "write_annotations" {
-  name                    = "tf-test-appinsights-api-key"
+  name                    = "tf-test-appinsights-write-annotations-api-key"
   application_insights_id = "${azurerm_application_insights.test.id}"
   write_permissions       = ["annotations"]
 }
 
 resource "azurerm_application_insights_api_key" "authenticate_sdk_control_channel" {
-  name                    = "tf-test-appinsights-api-key"
+  name                    = "tf-test-appinsights-authenticate-sdk-control-channel-api-key"
   application_insights_id = "${azurerm_application_insights.test.id}"
   read_permissions        = ["agentconfig"]
 }
 
 resource "azurerm_application_insights_api_key" "full_permissions" {
-  name                    = "tf-test-appinsights-api-key"
+  name                    = "tf-test-appinsights-full-permissions-api-key"
   application_insights_id = "${azurerm_application_insights.test.id}"
   read_permissions        = ["agentconfig", "aggregate", "api", "draft", "extendqueries", "search"]
   write_permissions       = ["annotations"]
