@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net/http"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -135,9 +134,10 @@ func resourceArmApplicationInsightsAPIKeyRead(d *schema.ResourceData, meta inter
 	appInsightsName := id.Path["components"]
 	keyID := id.Path["apikeys"]
 
-	resp, err := client.Get(ctx, resGroup, appInsightsName, keyID)
+	result, err := client.Get(ctx, resGroup, appInsightsName, keyID)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(result.Response) {
+			log.Printf("[WARN] AzureRM Application Insights API key '%s' not found, removing from state", id)
 			d.SetId("")
 			return nil
 		}
@@ -146,12 +146,12 @@ func resourceArmApplicationInsightsAPIKeyRead(d *schema.ResourceData, meta inter
 
 	d.Set("application_insights_id", fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/components/%s", client.SubscriptionID, resGroup, appInsightsName))
 
-	d.Set("name", resp.Name)
-	readProps := azure.FlattenApplicationInsightsAPIKeyLinkedProperties(resp.LinkedReadProperties)
+	d.Set("name", result.Name)
+	readProps := azure.FlattenApplicationInsightsAPIKeyLinkedProperties(result.LinkedReadProperties)
 	if err := d.Set("read_permissions", readProps); err != nil {
 		return fmt.Errorf("Error flattening `read_permissions `: %s", err)
 	}
-	writeProps := azure.FlattenApplicationInsightsAPIKeyLinkedProperties(resp.LinkedWriteProperties)
+	writeProps := azure.FlattenApplicationInsightsAPIKeyLinkedProperties(result.LinkedWriteProperties)
 	if err := d.Set("write_permissions", writeProps); err != nil {
 		return fmt.Errorf("Error flattening `write_permissions `: %s", err)
 	}
@@ -173,9 +173,9 @@ func resourceArmApplicationInsightsAPIKeyDelete(d *schema.ResourceData, meta int
 
 	log.Printf("[DEBUG] Deleting AzureRM Application Insights API key '%s' (resource group '%s')", keyID, resGroup)
 
-	resp, err := client.Delete(ctx, resGroup, appInsightsName, keyID)
+	result, err := client.Delete(ctx, resGroup, appInsightsName, keyID)
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if utils.ResponseWasNotFound(result.Response) {
 			return nil
 		}
 		return fmt.Errorf("Error issuing AzureRM delete request for Application Insights API key '%s': %+v", keyID, err)
