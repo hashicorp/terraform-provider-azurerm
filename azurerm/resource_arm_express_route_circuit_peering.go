@@ -18,6 +18,7 @@ func resourceArmExpressRouteCircuitPeering() *schema.Resource {
 		Read:   resourceArmExpressRouteCircuitPeeringRead,
 		Update: resourceArmExpressRouteCircuitPeeringCreateUpdate,
 		Delete: resourceArmExpressRouteCircuitPeeringDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
