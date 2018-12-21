@@ -191,10 +191,14 @@ func testCheckAzureRMApplicationInsightsAPIKeyDestroy(s *terraform.State) error 
 		}
 
 		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		appInsightsName := rs.Primary.Attributes["application_insights_name"]
+		id, err := parseAzureResourceID(rs.Primary.Attributes["id"])
+		if err != nil {
+			return err
+		}
+		resGroup := id.ResourceGroup
+		appInsightsName := id.Path["components"]
 
-		resp, err := conn.Get(ctx, resourceGroup, appInsightsName, name)
+		resp, err := conn.Get(ctx, resGroup, appInsightsName, name)
 
 		if err != nil {
 			return nil
@@ -221,26 +225,19 @@ func testCheckAzureRMApplicationInsightsAPIKeyExists(name string) resource.TestC
 			return err
 		}
 		keyID := id.Path["APIKeys"]
-
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for App Insights API Key: %s", name)
-		}
-		appInsightsName, hasAppInsightsName := rs.Primary.Attributes["application_insights_name"]
-		if !hasAppInsightsName {
-			return fmt.Errorf("Bad: no Application Insights resource found in state for App Insights API Key: %s", name)
-		}
+		resGroup := id.ResourceGroup
+		appInsightsName := id.Path["components"]
 
 		conn := testAccProvider.Meta().(*ArmClient).appInsightsAPIKeyClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(ctx, resourceGroup, appInsightsName, keyID)
+		resp, err := conn.Get(ctx, resGroup, appInsightsName, keyID)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on appInsightsAPIKeyClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Application Insights API Key '%q' (resource group: '%q') does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: Application Insights API Key '%q' (resource group: '%q') does not exist", name, resGroup)
 		}
 
 		return nil
@@ -262,11 +259,10 @@ resource "azurerm_application_insights" "test" {
 }
 
 resource "azurerm_application_insights_api_key" "test" {
-  name                      = "acctestappinsightsapikey-%d"
-  application_insights_name = "${azurerm_application_insights.test.name}"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  read_permissions          = %s
-  write_permissions         = %s
+  name                    = "acctestappinsightsapikey-%d"
+  application_insights_id = "${azurerm_application_insights.test.id}"
+  read_permissions        = %s
+  write_permissions       = %s
 }
 `, rInt, location, rInt, rInt, readPerms, writePerms)
 }
@@ -277,11 +273,10 @@ func testAccAzureRMApplicationInsightsAPIKey_requiresImport(rInt int, location, 
 %s
 
 resource "azurerm_application_insights_api_key" "import" {
-  name                      = "${azurerm_application_insights_api_key.test.name}"
-  application_insights_name = "${azurerm_application_insights_api_key.test.application_insights_name}"
-  resource_group_name       = "${azurerm_application_insights_api_key.test.resource_group_name}"
-  read_permissions          = "${azurerm_application_insights_api_key.test.read_permissions}"
-  write_permissions         = "${azurerm_application_insights_api_key.test.write_permissions}"
+  name                    = "${azurerm_application_insights_api_key.test.name}"
+  application_insights_id = "${azurerm_application_insights_api_key.test.application_insights_id}"
+  read_permissions        = "${azurerm_application_insights_api_key.test.read_permissions}"
+  write_permissions       = "${azurerm_application_insights_api_key.test.write_permissions}"
 }
 `, template)
 }

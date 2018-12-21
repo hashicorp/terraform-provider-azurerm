@@ -36,13 +36,11 @@ func resourceArmApplicationInsightsAPIKey() *schema.Resource {
 				Sensitive: true,
 			},
 
-			"application_insights_name": {
+			"application_insights_id": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
-
-			"resource_group_name": resourceGroupNameSchema(),
 
 			"read_permissions": {
 				Type:     schema.TypeSet,
@@ -76,8 +74,15 @@ func resourceArmApplicationInsightsAPIKeyCreate(d *schema.ResourceData, meta int
 	log.Printf("[INFO] preparing arguments for AzureRM Application Insights API key creation.")
 
 	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
-	appInsightsName := d.Get("application_insights_name").(string)
+	appInsightsID := d.Get("application_insights_id").(string)
+
+	id, err := parseAzureResourceID(appInsightsID)
+	if err != nil {
+		return err
+	}
+
+	resGroup := id.ResourceGroup
+	appInsightsName := id.Path["components"]
 
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, appInsightsName, name)
@@ -94,8 +99,8 @@ func resourceArmApplicationInsightsAPIKeyCreate(d *schema.ResourceData, meta int
 
 	apiKeyProperties := insights.APIKeyRequest{
 		Name:                  &name,
-		LinkedReadProperties:  azure.ExpandApplicationInsightsAPIKeyLinkedProperties(d.Get("read_permissions").(*schema.Set), client.SubscriptionID, resGroup, appInsightsName),
-		LinkedWriteProperties: azure.ExpandApplicationInsightsAPIKeyLinkedProperties(d.Get("write_permissions").(*schema.Set), client.SubscriptionID, resGroup, appInsightsName),
+		LinkedReadProperties:  azure.ExpandApplicationInsightsAPIKeyLinkedProperties(d.Get("read_permissions").(*schema.Set), appInsightsID),
+		LinkedWriteProperties: azure.ExpandApplicationInsightsAPIKeyLinkedProperties(d.Get("write_permissions").(*schema.Set), appInsightsID),
 	}
 
 	result, err := client.Create(ctx, resGroup, appInsightsName, apiKeyProperties)
@@ -143,8 +148,7 @@ func resourceArmApplicationInsightsAPIKeyRead(d *schema.ResourceData, meta inter
 		return fmt.Errorf("Error making Read request on AzureRM Application Insights API key '%s': %+v", keyID, err)
 	}
 
-	d.Set("resource_group_name", resGroup)
-	d.Set("application_insights_name", appInsightsName)
+	d.Set("application_insights_id", fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/components/%s", client.SubscriptionID, resGroup, appInsightsName))
 
 	d.Set("name", resp.Name)
 	readProps := azure.FlattenApplicationInsightsAPIKeyLinkedProperties(resp.LinkedReadProperties)

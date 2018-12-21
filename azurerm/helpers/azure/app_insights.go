@@ -7,16 +7,14 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-func ExpandApplicationInsightsAPIKeyLinkedProperties(v *schema.Set, subscriptionID, resGroup, appInsightsName string) *[]string {
+func ExpandApplicationInsightsAPIKeyLinkedProperties(v *schema.Set, appInsightsId string) *[]string {
 	if v == nil {
 		return nil
 	}
 
-	baseLinkedProperty := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/components/%s", subscriptionID, resGroup, appInsightsName)
-
 	result := make([]string, v.Len())
 	for i, prop := range v.List() {
-		result[i] = fmt.Sprintf("%s/%s", baseLinkedProperty, prop)
+		result[i] = fmt.Sprintf("%s/%s", appInsightsId, prop)
 	}
 	return &result
 }
