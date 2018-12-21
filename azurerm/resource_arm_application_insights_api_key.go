@@ -108,10 +108,6 @@ func resourceArmApplicationInsightsAPIKeyCreate(d *schema.ResourceData, meta int
 		return fmt.Errorf("Error creating Application Insights API key %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	if result.Response.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error creating Application Insights API key %q (Resource Group %q): %+v", name, resGroup, result.Response)
-	}
-
 	if result.APIKey == nil {
 		return fmt.Errorf("Error creating Application Insights API key %q (Resource Group %q): got empty API key", name, resGroup)
 	}
