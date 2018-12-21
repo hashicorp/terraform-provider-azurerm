@@ -16,6 +16,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_network_security_rule` - the properties `source_application_security_group_ids` and `destination_application_security_group_ids` are now correctly read & imported [GH-2558]
 * `azurerm_template_deployment` - fixing regression and supportting nested template deployments [GH-2514]
 
 ## 1.20.0 (December 12, 2018)
