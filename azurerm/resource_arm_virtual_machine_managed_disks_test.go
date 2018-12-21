@@ -8,6 +8,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -341,7 +343,7 @@ func TestAccAzureRMVirtualMachine_multipleNICs(t *testing.T) {
 
 func TestAccAzureRMVirtualMachine_managedServiceIdentity(t *testing.T) {
 	var vm compute.VirtualMachine
-	match := regexp.MustCompile(`^(\\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\\}{0,1})$`)
+
 	resourceName := "azurerm_virtual_machine.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMVirtualMachine_withManagedServiceIdentity(ri, testLocation())
@@ -355,8 +357,8 @@ func TestAccAzureRMVirtualMachine_managedServiceIdentity(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(resourceName, &vm),
 					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", match),
-					resource.TestMatchOutput("principal_id", match),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", validate.UUIDRegExp),
+					resource.TestMatchOutput("principal_id", validate.UUIDRegExp),
 				),
 			},
 		},
