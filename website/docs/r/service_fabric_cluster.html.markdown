@@ -83,7 +83,7 @@ The following arguments are supported:
 
 A `azure_active_directory` block supports the following:
 
-* `tenant_id` - (Required) The TenantID of the Azure Active Directory resource.
+* `tenant_id` - (Required) The Azure Active Directory Tenant ID. Changing this forces a new resource to be created.
 
 * `cluster_application_id` - (Required) The GUID of the cluster application.
 
