@@ -18,17 +18,3 @@ func NoEmptyStrings(i interface{}, k string) ([]string, []error) {
 
 	return nil, nil
 }
-
-// LowercaseString validates that the string is all lower case characters
-func LowercaseString(i interface{}, k string) ([]string, []error) {
-	v, ok := i.(string)
-	if !ok {
-		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
-	}
-
-	if v != strings.ToLower(v) {
-		return nil, []error{fmt.Errorf("%q must not be lower case", k)}
-	}
-
-	return nil, nil
-}

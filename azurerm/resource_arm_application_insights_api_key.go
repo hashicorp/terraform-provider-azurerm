@@ -6,10 +6,10 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -48,7 +48,7 @@ func resourceArmApplicationInsightsAPIKey() *schema.Resource {
 				Set:      schema.HashString,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validate.LowercaseString,
+					ValidateFunc: validation.StringInSlice([]string{"agentconfig", "aggregate", "api", "draft", "extendqueries", "search"}, false),
 				},
 			},
 
@@ -59,7 +59,7 @@ func resourceArmApplicationInsightsAPIKey() *schema.Resource {
 				Set:      schema.HashString,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validate.LowercaseString,
+					ValidateFunc: validation.StringInSlice([]string{"annotations"}, false),
 				},
 			},
 		},
