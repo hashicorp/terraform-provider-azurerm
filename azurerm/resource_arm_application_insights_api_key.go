@@ -175,5 +175,5 @@ func resourceArmApplicationInsightsAPIKeyDelete(d *schema.ResourceData, meta int
 		return fmt.Errorf("Error issuing AzureRM delete request for Application Insights API key '%s': %+v", keyID, err)
 	}
 
-	return err
+	return nil
 }
