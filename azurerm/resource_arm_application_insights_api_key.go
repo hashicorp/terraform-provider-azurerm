@@ -147,8 +147,14 @@ func resourceArmApplicationInsightsAPIKeyRead(d *schema.ResourceData, meta inter
 	d.Set("application_insights_name", appInsightsName)
 
 	d.Set("name", resp.Name)
-	d.Set("read_permissions", azure.FlattenApplicationInsightsAPIKeyLinkedProperties(resp.LinkedReadProperties))
-	d.Set("write_permissions", azure.FlattenApplicationInsightsAPIKeyLinkedProperties(resp.LinkedWriteProperties))
+	readProps := azure.FlattenApplicationInsightsAPIKeyLinkedProperties(resp.LinkedReadProperties)
+	if err := d.Set("read_permissions", readProps); err != nil {
+		return fmt.Errorf("Error flattening `read_permissions `: %s", err)
+	}
+	writeProps := azure.FlattenApplicationInsightsAPIKeyLinkedProperties(resp.LinkedWriteProperties)
+	if err := d.Set("write_permissions", writeProps); err != nil {
+		return fmt.Errorf("Error flattening `write_permissions `: %s", err)
+	}
 
 	return nil
 }
