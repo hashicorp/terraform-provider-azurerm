@@ -771,9 +771,9 @@ resource "azurerm_service_fabric_cluster" "test" {
   management_endpoint = "https://example:80"
 	
   azure_active_directory {
-	  tenant_id              = "00000000-0000-0000-0000-000000000000"
-	  cluster_application_id = "00000000-0000-0000-0000-000000000000"
-	  client_application_id  = "00000000-0000-0000-0000-000000000000"
+    tenant_id              = "00000000-0000-0000-0000-000000000000"
+    cluster_application_id = "00000000-0000-0000-0000-000000000000"
+    client_application_id  = "00000000-0000-0000-0000-000000000000"
   }
 
   fabric_settings {
