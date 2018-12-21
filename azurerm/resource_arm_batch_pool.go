@@ -1,9 +1,12 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -43,9 +46,10 @@ func resourceArmBatchPool() *schema.Resource {
 				ForceNew: true,
 			},
 			"vm_size": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 			"fixed_scale": {
 				Type:     schema.TypeList,
@@ -114,9 +118,10 @@ func resourceArmBatchPool() *schema.Resource {
 						},
 
 						"sku": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
+							Type:             schema.TypeString,
+							Required:         true,
+							ForceNew:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"version": {
@@ -218,9 +223,9 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 
 	log.Printf("[INFO] preparing arguments for Azure Batch pool creation.")
 
-	resourceGroupName := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 	accountName := d.Get("account_name").(string)
-	name := d.Get("name").(string)
+	poolName := d.Get("name").(string)
 	displayName := d.Get("display_name").(string)
 	vmSize := d.Get("vm_size").(string)
 
@@ -243,7 +248,7 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 	storageImageReferenceSet := d.Get("storage_image_reference").([]interface{})
 	imageReference, err := azure.ExpandBatchPoolImageReference(storageImageReferenceSet)
 	if err != nil {
-		return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
 	}
 
 	if startTaskValue, startTaskOk := d.GetOk("start_task"); startTaskOk {
@@ -251,7 +256,7 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 		startTask, startTaskErr := azure.ExpandBatchPoolStartTask(startTaskList)
 
 		if startTaskErr != nil {
-			return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): %+v", name, resourceGroupName, startTaskErr)
+			return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, startTaskErr)
 		}
 
 		parameters.PoolProperties.StartTask = startTask
@@ -264,25 +269,32 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 		},
 	}
 
-	future, err := client.Create(ctx, resourceGroupName, accountName, name, parameters, "", "")
+	future, err := client.Create(ctx, resourceGroup, accountName, poolName, parameters, "", "")
 	if err != nil {
-		return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Batch pool %q (Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("Error waiting for creation of Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroupName, accountName, name)
+	read, err := client.Get(ctx, resourceGroup, accountName, poolName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Batch pool %q (Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("Error retrieving Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Batch pool %q (resource group %q) ID", name, resourceGroupName)
+		return fmt.Errorf("Cannot read Batch pool %q (resource group %q) ID", poolName, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
+
+	// if the pool is not Steady after the create operation, wait for it to be Steady
+	if props := read.PoolProperties; props != nil && props.AllocationState != batch.Steady {
+		if err = waitForBatchPoolPendingResizeOperation(ctx, client, resourceGroup, accountName, poolName); err != nil {
+			return fmt.Errorf("Error waiting for Batch pool %q (resource group %q) being ready", poolName, resourceGroup)
+		}
+	}
 
 	return resourceArmBatchPoolRead(d, meta)
 }
@@ -317,17 +329,8 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 		}
 
 		// waiting for the pool to be in steady state
-		log.Printf("[INFO] waiting for the pending resize operation on this pool to be stopped...")
-		isSteady := false
-		for !isSteady {
-			resp, err = client.Get(ctx, resourceGroup, accountName, poolName)
-			if err != nil {
-				return fmt.Errorf("Error retrieving the Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
-			}
-
-			isSteady = resp.PoolProperties.AllocationState == batch.Steady
-			time.Sleep(time.Minute * 2)
-			log.Printf("[INFO] waiting for the pending resize operation on this pool to be stopped... New try in 2 minutes...")
+		if err = waitForBatchPoolPendingResizeOperation(ctx, client, resourceGroup, accountName, poolName); err != nil {
+			return fmt.Errorf("Error waiting for Batch pool %q (resource group %q) being ready", poolName, resourceGroup)
 		}
 	}
 
@@ -353,8 +356,16 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 		parameters.PoolProperties.StartTask = startTask
 	}
 
-	if _, err = client.Update(ctx, resourceGroup, accountName, poolName, parameters, ""); err != nil {
+	result, err := client.Update(ctx, resourceGroup, accountName, poolName, parameters, "")
+	if err != nil {
 		return fmt.Errorf("Error updating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
+	}
+
+	// if the pool is not Steady after the update, wait for it to be Steady
+	if props := result.PoolProperties; props != nil && props.AllocationState != batch.Steady {
+		if err := waitForBatchPoolPendingResizeOperation(ctx, client, resourceGroup, accountName, poolName); err != nil {
+			return fmt.Errorf("Error waiting for Batch pool %q (resource group %q) being ready", poolName, resourceGroup)
+		}
 	}
 
 	return resourceArmBatchPoolRead(d, meta)
@@ -406,9 +417,7 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("node_agent_sku_id", props.DeploymentConfiguration.VirtualMachineConfiguration.NodeAgentSkuID)
 		}
 
-		if props.StartTask != nil {
-			d.Set("start_task", azure.FlattenBatchPoolStartTask(props.StartTask))
-		}
+		d.Set("start_task", azure.FlattenBatchPoolStartTask(props.StartTask))
 	}
 
 	return nil
@@ -488,4 +497,22 @@ func expandBatchPoolScaleSettings(d *schema.ResourceData) (*batch.ScaleSettings,
 	}
 
 	return scaleSettings, nil
+}
+
+func waitForBatchPoolPendingResizeOperation(ctx context.Context, client batch.PoolClient, resourceGroup string, accountName string, poolName string) error {
+	// waiting for the pool to be in steady state
+	log.Printf("[INFO] waiting for the pending resize operation on this pool to be stopped...")
+	isSteady := false
+	for !isSteady {
+		resp, err := client.Get(ctx, resourceGroup, accountName, poolName)
+		if err != nil {
+			return fmt.Errorf("Error retrieving the Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
+		}
+
+		isSteady = resp.PoolProperties.AllocationState == batch.Steady
+		time.Sleep(time.Second * 30)
+		log.Printf("[INFO] waiting for the pending resize operation on this pool to be stopped... New try in 30 seconds...")
+	}
+
+	return nil
 }

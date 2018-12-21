@@ -211,9 +211,7 @@ func dataSourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error 
 			d.Set("node_agent_sku_id", props.DeploymentConfiguration.VirtualMachineConfiguration.NodeAgentSkuID)
 		}
 
-		if props.StartTask != nil {
-			d.Set("start_task", azure.FlattenBatchPoolStartTask(props.StartTask))
-		}
+		d.Set("start_task", azure.FlattenBatchPoolStartTask(props.StartTask))
 	}
 
 	return nil
