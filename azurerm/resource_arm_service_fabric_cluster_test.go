@@ -770,11 +770,11 @@ resource "azurerm_service_fabric_cluster" "test" {
   vm_image            = "Windows"
   management_endpoint = "https://example:80"
 	
-	azure_active_directory {
-		tenant_id              = "00000000-0000-0000-0000-000000000000"
-		cluster_application_id = "00000000-0000-0000-0000-000000000000"
-		client_application_id  = "00000000-0000-0000-0000-000000000000"
-	}
+  azure_active_directory {
+	  tenant_id              = "00000000-0000-0000-0000-000000000000"
+	  cluster_application_id = "00000000-0000-0000-0000-000000000000"
+	  client_application_id  = "00000000-0000-0000-0000-000000000000"
+  }
 
   fabric_settings {
     name = "Security"
