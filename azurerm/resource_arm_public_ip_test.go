@@ -397,7 +397,7 @@ func TestAccAzureRMPublicIpStatic_canLabelBe63(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIpExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
-					resource.TestCheckResourceAttr(resourceName, "public_ip_address_allocation", "static"),
+					resource.TestCheckResourceAttr(resourceName, "public_ip_address_allocation", "Static"),
 				),
 			},
 			{
