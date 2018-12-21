@@ -55,15 +55,15 @@ output "read_telemetry_api_key" {
 }
 
 output "write_annotations_api_key" {
-  value = "${azurerm_application_insights_api_key.write_annotations.app_id}"
+  value = "${azurerm_application_insights_api_key.write_annotations.api_key}"
 }
 
 output "authenticate_sdk_control_channel" {
-  value = "${azurerm_application_insights_api_key.authenticate_sdk_control_channel.app_id}"
+  value = "${azurerm_application_insights_api_key.authenticate_sdk_control_channel.api_key}"
 }
 
 output "full_permissions_api_key" {
-  value = "${azurerm_application_insights_api_key.full_permissions.app_id}"
+  value = "${azurerm_application_insights_api_key.full_permissions.api_key}"
 }
 ```
 
