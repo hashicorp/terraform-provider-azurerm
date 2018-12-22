@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/structure"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -58,13 +57,7 @@ func resourceArmPolicyAssignment() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				ForceNew:         true,
-				StateFunc:        azure.NormalizeLocation,
-				DiffSuppressFunc: azure.SuppressLocationDiff,
-			},
+			"location": locationSchemaOptional(),
 
 			"identity_type": {
 				Type:     schema.TypeString,
