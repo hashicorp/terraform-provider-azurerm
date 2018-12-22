@@ -20,7 +20,7 @@ func SchemaLocation() *schema.Schema {
 func SchemaLocationOptional() *schema.Schema {
 	return &schema.Schema{
 		Type:             schema.TypeString,
-		Required:         false,
+		Optional:         true,
 		ForceNew:         true,
 		StateFunc:        NormalizeLocation,
 		DiffSuppressFunc: SuppressLocationDiff,
