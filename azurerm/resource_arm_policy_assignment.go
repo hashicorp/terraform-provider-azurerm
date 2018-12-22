@@ -19,7 +19,8 @@ import (
 
 func resourceArmPolicyAssignment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPolicyAssignmentCreate,
+		Create: resourceArmPolicyAssignmentCreateOrUpdate,
+		Update: resourceArmPolicyAssignmentCreateOrUpdate,
 		Read:   resourceArmPolicyAssignmentRead,
 		Delete: resourceArmPolicyAssignmentDelete,
 		Importer: &schema.ResourceImporter{
@@ -48,35 +49,41 @@ func resourceArmPolicyAssignment() *schema.Resource {
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 
 			"display_name": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 
 			"location": locationSchemaOptional(),
 
-			"identity_type": {
-				Type:     schema.TypeString,
+			"identity": {
+				Type:     schema.TypeList,
 				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(policy.None),
-					string(policy.SystemAssigned),
-				}, false),
-			},
-
-			"identity_principal_id": {
-				Type:     schema.TypeString,
 				Computed: true,
-			},
-
-			"identity_tenant_id": {
-				Type:     schema.TypeString,
-				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(policy.None),
+								string(policy.SystemAssigned),
+							}, false),
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"parameters": {
@@ -90,7 +97,7 @@ func resourceArmPolicyAssignment() *schema.Resource {
 	}
 }
 
-func resourceArmPolicyAssignmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmPolicyAssignmentCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).policyAssignmentsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -112,13 +119,13 @@ func resourceArmPolicyAssignmentCreate(d *schema.ResourceData, meta interface{})
 		assignment.AssignmentProperties.Description = utils.String(v)
 	}
 
-	if v := d.Get("identity_type").(string); v != "" {
-		assignment.Identity = &policy.Identity{}
-		assignment.Identity.Type = policy.ResourceIdentityType(*(utils.String(v)))
+	if _, ok := d.GetOk("identity"); ok {
+		policyIdentity := expandAzureRmPolicyIdentity(d)
+		assignment.Identity = policyIdentity
 	}
 
 	if v := d.Get("location").(string); v != "" {
-		assignment.Location = utils.String(v)
+		assignment.Location = utils.String(azureRMNormalizeLocation(v))
 	}
 
 	if v := d.Get("parameters").(string); v != "" {
@@ -177,14 +184,12 @@ func resourceArmPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) e
 
 	d.Set("name", resp.Name)
 
-	if identity := resp.Identity; identity != nil {
-		d.Set("identity_type", resp.Identity.Type)
-		d.Set("identity_principal_id", resp.Identity.PrincipalID)
-		d.Set("identity_tenant_id", resp.Identity.TenantID)
+	if err := d.Set("identity", flattenAzureRmPolicyIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("Error setting `identity`: %+v", err)
 	}
 
 	if location := resp.Location; location != nil {
-		d.Set("location", location)
+		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
 	if props := resp.AssignmentProperties; props != nil {
@@ -234,4 +239,36 @@ func policyAssignmentRefreshFunc(ctx context.Context, client policy.AssignmentsC
 
 		return res, strconv.Itoa(res.StatusCode), nil
 	}
+}
+
+func expandAzureRmPolicyIdentity(d *schema.ResourceData) *policy.Identity {
+	v := d.Get("identity")
+	identities := v.([]interface{})
+	identity := identities[0].(map[string]interface{})
+
+	identityType := policy.ResourceIdentityType(identity["type"].(string))
+
+	policyIdentity := policy.Identity{
+		Type: identityType,
+	}
+
+	return &policyIdentity
+}
+
+func flattenAzureRmPolicyIdentity(identity *policy.Identity) []interface{} {
+	if identity == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	result["type"] = string(identity.Type)
+	if identity.PrincipalID != nil {
+		result["principal_id"] = *identity.PrincipalID
+	}
+
+	if identity.TenantID != nil {
+		result["tenant_id"] = *identity.TenantID
+	}
+
+	return []interface{}{result}
 }

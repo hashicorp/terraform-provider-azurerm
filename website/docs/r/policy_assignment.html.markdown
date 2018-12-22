@@ -79,9 +79,9 @@ The following arguments are supported:
 
 * `policy_definition_id` - (Required) The ID of the Policy Definition to be applied at the specified Scope.
 
-* `identity_type` - (Optional) The managed identity type associated with the policy assignment. Either `None` or `SystemAssigned`. Change forces a new resource. Will be mandatory if you assign a policy with `deployIfNotExists` effect.
+* `identity` - (Optional) An `identity` block.
 
-* `location` - (Optional) The location of the policy assignment. Only required when utilizing managed identity. Change forces a new resource.
+* `location` - (Optional) The Azure location where this policy assignment should exist. This is required when an Identity is assigned. Changing this forces a new resource to be created.
 
 * `description` - (Optional) A description to use for this Policy Assignment. Changing this forces a new resource to be created.
 
@@ -91,15 +91,36 @@ The following arguments are supported:
 
 ~> **NOTE:** This value is required when the specified Policy Definition contains the `parameters` field.
 
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) The Managed Service Identity Type of this Policy Assignment. Possible values are `SystemAssigned` (where Azure will generate a Service Principal for you), or `None` (no use of a Managed Service Identity).
+
+~> **NOTE:** When `type` is set to `SystemAssigned`, identity the Principal ID can be retrieved after the policy has been assigned.
+
+* `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned to the VM. Required if `type` is `UserAssigned`.
+
+---
+
+
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The Policy Assignment id.
 
-* `identity_principal_id` - The principal ID of the resource identity. Only relevant if using `SystemAssigned` as `identity_type`.
+* `identity` - An `identity` block.
 
-* `identity_tenant_id` - The tenant ID of the resource identity. Only relevant if using `SystemAssigned` as `identity_type`.
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID of this Policy Assignment if `type` is `SystemAssigned`.
+
+* `tenant_id` - The Tenant ID of this Policy Assignment if `type` is `SystemAssigned`.
+
+---
 
 ## Import
 
