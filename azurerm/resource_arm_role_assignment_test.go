@@ -42,7 +42,6 @@ func TestAccAzureRMRoleAssignment(t *testing.T) {
 
 func testAccAzureRMRoleAssignment_emptyName(t *testing.T) {
 	resourceName := "azurerm_role_assignment.test"
-	config := testAccAzureRMRoleAssignment_emptyNameConfig()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -50,7 +49,7 @@ func testAccAzureRMRoleAssignment_emptyName(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMRoleAssignment_emptyNameConfig(),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRoleAssignmentExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
@@ -68,7 +67,6 @@ func testAccAzureRMRoleAssignment_emptyName(t *testing.T) {
 func testAccAzureRMRoleAssignment_roleName(t *testing.T) {
 	resourceName := "azurerm_role_assignment.test"
 	id := uuid.New().String()
-	config := testAccAzureRMRoleAssignment_roleNameConfig(id)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -76,10 +74,11 @@ func testAccAzureRMRoleAssignment_roleName(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMRoleAssignment_roleNameConfig(id),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRoleAssignmentExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "role_definition_id"),
+					resource.TestCheckResourceAttr(resourceName, "role_definition_name", "Log Analytics Reader"),
 				),
 			},
 			{
@@ -94,7 +93,6 @@ func testAccAzureRMRoleAssignment_roleName(t *testing.T) {
 func testAccAzureRMRoleAssignment_dataActions(t *testing.T) {
 	id := uuid.New().String()
 	resourceName := "azurerm_role_assignment.test"
-	config := testAccAzureRMRoleAssignment_dataActionsConfig(id)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -102,7 +100,7 @@ func testAccAzureRMRoleAssignment_dataActions(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMRoleAssignment_dataActionsConfig(id),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRoleAssignmentExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "role_definition_id"),
@@ -120,7 +118,6 @@ func testAccAzureRMRoleAssignment_dataActions(t *testing.T) {
 func testAccAzureRMRoleAssignment_builtin(t *testing.T) {
 	resourceName := "azurerm_role_assignment.test"
 	id := uuid.New().String()
-	config := testAccAzureRMRoleAssignment_builtinConfig(id)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -128,7 +125,7 @@ func testAccAzureRMRoleAssignment_builtin(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMRoleAssignment_builtinConfig(id),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRoleAssignmentExists(resourceName),
 				),
@@ -147,7 +144,6 @@ func testAccAzureRMRoleAssignment_custom(t *testing.T) {
 	roleDefinitionId := uuid.New().String()
 	roleAssignmentId := uuid.New().String()
 	rInt := acctest.RandInt()
-	config := testAccAzureRMRoleAssignment_customConfig(roleDefinitionId, roleAssignmentId, rInt)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -155,7 +151,7 @@ func testAccAzureRMRoleAssignment_custom(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMRoleAssignment_customConfig(roleDefinitionId, roleAssignmentId, rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRoleAssignmentExists(resourceName),
 				),
@@ -226,7 +222,6 @@ func testAccAzureRMActiveDirectoryServicePrincipal_roleAssignment(t *testing.T) 
 
 	ri := acctest.RandInt()
 	id := uuid.New().String()
-	config := testAccAzureRMActiveDirectoryServicePrincipal_roleAssignmentConfig(ri, id)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -234,7 +229,7 @@ func testAccAzureRMActiveDirectoryServicePrincipal_roleAssignment(t *testing.T) 
 		CheckDestroy: testCheckAzureRMActiveDirectoryServicePrincipalDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMActiveDirectoryServicePrincipal_roleAssignmentConfig(ri, id),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryServicePrincipalExists(resourceName),
 					testCheckAzureRMRoleAssignmentExists("azurerm_role_assignment.test"),
