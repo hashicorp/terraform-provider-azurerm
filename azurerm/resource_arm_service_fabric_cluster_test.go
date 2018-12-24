@@ -249,6 +249,9 @@ func TestAccAzureRMServiceFabricCluster_azureActiveDirectory(t *testing.T) {
 				Config: testAccAzureRMServiceFabricCluster_azureActiveDirectory(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceFabricClusterExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "certificate.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "certificate.0.thumbprint", "33:41:DB:6C:F2:AF:72:C6:11:DF:3B:E3:72:1A:65:3A:F1:D4:3E:CD:50:F5:84:F8:28:79:3D:BE:91:03:C3:EE"),
+					resource.TestCheckResourceAttr(resourceName, "certificate.0.x509_store_name", "My"),
 					resource.TestCheckResourceAttr(resourceName, "azure_active_directory.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "azure_active_directory.tenant_id", "00000000-0000-0000-0000-00000000000"),
 					resource.TestCheckResourceAttr(resourceName, "azure_active_directory.cluster_application_id", "00000000-0000-0000-0000-000000000000"),
@@ -770,6 +773,11 @@ resource "azurerm_service_fabric_cluster" "test" {
   vm_image            = "Windows"
   management_endpoint = "https://example:80"
 	
+	client_certificate_thumbprint {
+    thumbprint = "33:41:DB:6C:F2:AF:72:C6:11:DF:3B:E3:72:1A:65:3A:F1:D4:3E:CD:50:F5:84:F8:28:79:3D:BE:91:03:C3:EE"
+    is_admin   = true
+  }
+
   azure_active_directory {
     tenant_id              = "00000000-0000-0000-0000-000000000000"
     cluster_application_id = "00000000-0000-0000-0000-000000000000"
