@@ -67,12 +67,12 @@ The following arguments are supported:
 
 * `service_endpoints` - (Optional) The list of Service endpoints to associate with the subnet. Possible values include: `Microsoft.AzureActiveDirectory`, `Microsoft.AzureCosmosDB`, `Microsoft.EventHub`, `Microsoft.KeyVault`, `Microsoft.ServiceBus`, `Microsoft.Sql` and `Microsoft.Storage`.
 
-* `delegations` - (Optional) The list of `delegation` blocks to associate with subnet.
+* `delegation` - (Optional) One or more `delegation` blocks as defined below.
 
 ---
 A `delegation` block supports the following:
-* `name` (Required) The name of delegation.
-* `service_delegation` (Required) A service delegation block.
+* `name` (Required) A name for this delegation.
+* `service_delegation` (Required) A `service_delegation` block as defined below.
 
 ---
 A `service_delegation` block supports the following:

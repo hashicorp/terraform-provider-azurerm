@@ -67,7 +67,7 @@ func resourceArmSubnet() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
-			"delegations": {
+			"delegation": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
@@ -337,7 +337,7 @@ func flattenSubnetIPConfigurations(ipConfigurations *[]network.IPConfiguration) 
 }
 
 func expandSubnetDelegations(d *schema.ResourceData) []network.Delegation {
-	delegations := d.Get("delegations").([]interface{})
+	delegations := d.Get("delegation").([]interface{})
 	retDelegations := make([]network.Delegation, 0)
 
 	for _, deleValue := range delegations {

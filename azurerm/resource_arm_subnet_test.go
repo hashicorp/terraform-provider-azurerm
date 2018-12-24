@@ -38,10 +38,10 @@ func TestAccAzureRMSubnet_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSubnet_delegations(t *testing.T) {
+func TestAccAzureRMSubnet_delegation(t *testing.T) {
 	resourceName := "azurerm_subnet.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMSubnet_delegations(ri, testLocation())
+	config := testAccAzureRMSubnet_delegation(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -52,7 +52,7 @@ func TestAccAzureRMSubnet_delegations(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSubnetExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "delegations.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "delegation.#", "1"),
 				),
 			},
 		},
@@ -404,7 +404,7 @@ resource "azurerm_subnet" "test" {
 `, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMSubnet_delegations(rInt int, location string) string {
+func testAccAzureRMSubnet_delegation(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -423,8 +423,8 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.2.0/24"
-  delegations {
-     name = "acctestdelegations"
+  delegation {
+     name = "acctestdelegation"
      service_delegation {
        service_name = "Microsoft.ContainerInstance/containerGroups"
        actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
