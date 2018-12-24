@@ -98,4 +98,4 @@ Application Insights API keys can be imported using the `resource id`, e.g.
 terraform import azurerm_application_insights_api_key.my_key/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.insights/components/instance1/apikeys/00000000-0000-0000-0000-000000000000
 ```
 
--> **Note:** The secret `api_key` cannot be retrieved after creation. You will need to edit the state by hand to set the secret value if you happen to have it backed up somewhere.
+-> **Note:** The secret `api_key` cannot be retrieved during an import. You will need to edit the state by hand to set the secret value if you happen to have it backed up somewhere.
