@@ -21,6 +21,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -49,6 +50,16 @@ func NewManagedInstanceKeysClientWithBaseURI(baseURI string, subscriptionID stri
 // keyName - the name of the managed instance key to be operated on (updated or created).
 // parameters - the requested managed instance key resource state.
 func (client ManagedInstanceKeysClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, managedInstanceName string, keyName string, parameters ManagedInstanceKey) (result ManagedInstanceKeysCreateOrUpdateFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedInstanceKeysClient.CreateOrUpdate")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, managedInstanceName, keyName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceKeysClient", "CreateOrUpdate", nil, "Failure preparing request")
@@ -97,10 +108,6 @@ func (client ManagedInstanceKeysClient) CreateOrUpdateSender(req *http.Request) 
 	if err != nil {
 		return
 	}
-	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted))
-	if err != nil {
-		return
-	}
 	future.Future, err = azure.NewFutureFromResponse(resp)
 	return
 }
@@ -125,6 +132,16 @@ func (client ManagedInstanceKeysClient) CreateOrUpdateResponder(resp *http.Respo
 // managedInstanceName - the name of the managed instance.
 // keyName - the name of the managed instance key to be deleted.
 func (client ManagedInstanceKeysClient) Delete(ctx context.Context, resourceGroupName string, managedInstanceName string, keyName string) (result ManagedInstanceKeysDeleteFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedInstanceKeysClient.Delete")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeletePreparer(ctx, resourceGroupName, managedInstanceName, keyName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceKeysClient", "Delete", nil, "Failure preparing request")
@@ -171,10 +188,6 @@ func (client ManagedInstanceKeysClient) DeleteSender(req *http.Request) (future 
 	if err != nil {
 		return
 	}
-	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent))
-	if err != nil {
-		return
-	}
 	future.Future, err = azure.NewFutureFromResponse(resp)
 	return
 }
@@ -198,6 +211,16 @@ func (client ManagedInstanceKeysClient) DeleteResponder(resp *http.Response) (re
 // managedInstanceName - the name of the managed instance.
 // keyName - the name of the managed instance key to be retrieved.
 func (client ManagedInstanceKeysClient) Get(ctx context.Context, resourceGroupName string, managedInstanceName string, keyName string) (result ManagedInstanceKey, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedInstanceKeysClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetPreparer(ctx, resourceGroupName, managedInstanceName, keyName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceKeysClient", "Get", nil, "Failure preparing request")
@@ -268,6 +291,16 @@ func (client ManagedInstanceKeysClient) GetResponder(resp *http.Response) (resul
 // managedInstanceName - the name of the managed instance.
 // filter - an OData filter expression that filters elements in the collection.
 func (client ManagedInstanceKeysClient) ListByInstance(ctx context.Context, resourceGroupName string, managedInstanceName string, filter string) (result ManagedInstanceKeyListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedInstanceKeysClient.ListByInstance")
+		defer func() {
+			sc := -1
+			if result.miklr.Response.Response != nil {
+				sc = result.miklr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.fn = client.listByInstanceNextResults
 	req, err := client.ListByInstancePreparer(ctx, resourceGroupName, managedInstanceName, filter)
 	if err != nil {
@@ -335,8 +368,8 @@ func (client ManagedInstanceKeysClient) ListByInstanceResponder(resp *http.Respo
 }
 
 // listByInstanceNextResults retrieves the next set of results, if any.
-func (client ManagedInstanceKeysClient) listByInstanceNextResults(lastResults ManagedInstanceKeyListResult) (result ManagedInstanceKeyListResult, err error) {
-	req, err := lastResults.managedInstanceKeyListResultPreparer()
+func (client ManagedInstanceKeysClient) listByInstanceNextResults(ctx context.Context, lastResults ManagedInstanceKeyListResult) (result ManagedInstanceKeyListResult, err error) {
+	req, err := lastResults.managedInstanceKeyListResultPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "sql.ManagedInstanceKeysClient", "listByInstanceNextResults", nil, "Failure preparing next results request")
 	}
@@ -357,6 +390,16 @@ func (client ManagedInstanceKeysClient) listByInstanceNextResults(lastResults Ma
 
 // ListByInstanceComplete enumerates all values, automatically crossing page boundaries as required.
 func (client ManagedInstanceKeysClient) ListByInstanceComplete(ctx context.Context, resourceGroupName string, managedInstanceName string, filter string) (result ManagedInstanceKeyListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedInstanceKeysClient.ListByInstance")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.page, err = client.ListByInstance(ctx, resourceGroupName, managedInstanceName, filter)
 	return
 }

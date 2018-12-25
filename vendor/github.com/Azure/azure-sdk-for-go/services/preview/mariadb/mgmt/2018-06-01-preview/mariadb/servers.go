@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -47,6 +48,16 @@ func NewServersClientWithBaseURI(baseURI string, subscriptionID string) ServersC
 // serverName - the name of the server.
 // parameters - the required parameters for creating or updating a server.
 func (client ServersClient) Create(ctx context.Context, resourceGroupName string, serverName string, parameters ServerForCreate) (result ServersCreateFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ServersClient.Create")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.Sku", Name: validation.Null, Rule: false,
@@ -105,10 +116,6 @@ func (client ServersClient) CreateSender(req *http.Request) (future ServersCreat
 	if err != nil {
 		return
 	}
-	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted))
-	if err != nil {
-		return
-	}
 	future.Future, err = azure.NewFutureFromResponse(resp)
 	return
 }
@@ -132,6 +139,16 @@ func (client ServersClient) CreateResponder(resp *http.Response) (result Server,
 // from the Azure Resource Manager API or the portal.
 // serverName - the name of the server.
 func (client ServersClient) Delete(ctx context.Context, resourceGroupName string, serverName string) (result ServersDeleteFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ServersClient.Delete")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeletePreparer(ctx, resourceGroupName, serverName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.ServersClient", "Delete", nil, "Failure preparing request")
@@ -177,10 +194,6 @@ func (client ServersClient) DeleteSender(req *http.Request) (future ServersDelet
 	if err != nil {
 		return
 	}
-	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent))
-	if err != nil {
-		return
-	}
 	future.Future, err = azure.NewFutureFromResponse(resp)
 	return
 }
@@ -203,6 +216,16 @@ func (client ServersClient) DeleteResponder(resp *http.Response) (result autores
 // from the Azure Resource Manager API or the portal.
 // serverName - the name of the server.
 func (client ServersClient) Get(ctx context.Context, resourceGroupName string, serverName string) (result Server, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ServersClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetPreparer(ctx, resourceGroupName, serverName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.ServersClient", "Get", nil, "Failure preparing request")
@@ -267,6 +290,16 @@ func (client ServersClient) GetResponder(resp *http.Response) (result Server, er
 
 // List list all the servers in a given subscription.
 func (client ServersClient) List(ctx context.Context) (result ServerListResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ServersClient.List")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.ListPreparer(ctx)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.ServersClient", "List", nil, "Failure preparing request")
@@ -332,6 +365,16 @@ func (client ServersClient) ListResponder(resp *http.Response) (result ServerLis
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
 func (client ServersClient) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result ServerListResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ServersClient.ListByResourceGroup")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.ListByResourceGroupPreparer(ctx, resourceGroupName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.ServersClient", "ListByResourceGroup", nil, "Failure preparing request")
@@ -401,6 +444,16 @@ func (client ServersClient) ListByResourceGroupResponder(resp *http.Response) (r
 // serverName - the name of the server.
 // parameters - the required parameters for updating a server.
 func (client ServersClient) Update(ctx context.Context, resourceGroupName string, serverName string, parameters ServerUpdateParameters) (result ServersUpdateFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ServersClient.Update")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.UpdatePreparer(ctx, resourceGroupName, serverName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.ServersClient", "Update", nil, "Failure preparing request")
@@ -445,10 +498,6 @@ func (client ServersClient) UpdateSender(req *http.Request) (future ServersUpdat
 	var resp *http.Response
 	resp, err = autorest.SendWithSender(client, req,
 		azure.DoRetryWithRegistration(client.Client))
-	if err != nil {
-		return
-	}
-	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted))
 	if err != nil {
 		return
 	}

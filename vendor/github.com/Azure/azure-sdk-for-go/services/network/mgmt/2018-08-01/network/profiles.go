@@ -21,6 +21,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -45,6 +46,16 @@ func NewProfilesClientWithBaseURI(baseURI string, subscriptionID string) Profile
 // networkProfileName - the name of the network profile.
 // parameters - parameters supplied to the create or update network profile operation.
 func (client ProfilesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, networkProfileName string, parameters Profile) (result Profile, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ProfilesClient.CreateOrUpdate")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, networkProfileName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ProfilesClient", "CreateOrUpdate", nil, "Failure preparing request")
@@ -114,6 +125,16 @@ func (client ProfilesClient) CreateOrUpdateResponder(resp *http.Response) (resul
 // resourceGroupName - the name of the resource group.
 // networkProfileName - the name of the NetworkProfile.
 func (client ProfilesClient) Delete(ctx context.Context, resourceGroupName string, networkProfileName string) (result autorest.Response, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ProfilesClient.Delete")
+		defer func() {
+			sc := -1
+			if result.Response != nil {
+				sc = result.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeletePreparer(ctx, resourceGroupName, networkProfileName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ProfilesClient", "Delete", nil, "Failure preparing request")
@@ -181,6 +202,16 @@ func (client ProfilesClient) DeleteResponder(resp *http.Response) (result autore
 // networkProfileName - the name of the PublicIPPrefx.
 // expand - expands referenced resources.
 func (client ProfilesClient) Get(ctx context.Context, resourceGroupName string, networkProfileName string, expand string) (result Profile, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ProfilesClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetPreparer(ctx, resourceGroupName, networkProfileName, expand)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ProfilesClient", "Get", nil, "Failure preparing request")
@@ -250,6 +281,16 @@ func (client ProfilesClient) GetResponder(resp *http.Response) (result Profile, 
 // Parameters:
 // resourceGroupName - the name of the resource group.
 func (client ProfilesClient) List(ctx context.Context, resourceGroupName string) (result ProfileListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ProfilesClient.List")
+		defer func() {
+			sc := -1
+			if result.plr.Response.Response != nil {
+				sc = result.plr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx, resourceGroupName)
 	if err != nil {
@@ -313,8 +354,8 @@ func (client ProfilesClient) ListResponder(resp *http.Response) (result ProfileL
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client ProfilesClient) listNextResults(lastResults ProfileListResult) (result ProfileListResult, err error) {
-	req, err := lastResults.profileListResultPreparer()
+func (client ProfilesClient) listNextResults(ctx context.Context, lastResults ProfileListResult) (result ProfileListResult, err error) {
+	req, err := lastResults.profileListResultPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "network.ProfilesClient", "listNextResults", nil, "Failure preparing next results request")
 	}
@@ -335,12 +376,32 @@ func (client ProfilesClient) listNextResults(lastResults ProfileListResult) (res
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
 func (client ProfilesClient) ListComplete(ctx context.Context, resourceGroupName string) (result ProfileListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ProfilesClient.List")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.page, err = client.List(ctx, resourceGroupName)
 	return
 }
 
 // ListAll gets all the network profiles in a subscription.
 func (client ProfilesClient) ListAll(ctx context.Context) (result ProfileListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ProfilesClient.ListAll")
+		defer func() {
+			sc := -1
+			if result.plr.Response.Response != nil {
+				sc = result.plr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.fn = client.listAllNextResults
 	req, err := client.ListAllPreparer(ctx)
 	if err != nil {
@@ -403,8 +464,8 @@ func (client ProfilesClient) ListAllResponder(resp *http.Response) (result Profi
 }
 
 // listAllNextResults retrieves the next set of results, if any.
-func (client ProfilesClient) listAllNextResults(lastResults ProfileListResult) (result ProfileListResult, err error) {
-	req, err := lastResults.profileListResultPreparer()
+func (client ProfilesClient) listAllNextResults(ctx context.Context, lastResults ProfileListResult) (result ProfileListResult, err error) {
+	req, err := lastResults.profileListResultPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "network.ProfilesClient", "listAllNextResults", nil, "Failure preparing next results request")
 	}
@@ -425,6 +486,16 @@ func (client ProfilesClient) listAllNextResults(lastResults ProfileListResult) (
 
 // ListAllComplete enumerates all values, automatically crossing page boundaries as required.
 func (client ProfilesClient) ListAllComplete(ctx context.Context) (result ProfileListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ProfilesClient.ListAll")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.page, err = client.ListAll(ctx)
 	return
 }
@@ -435,6 +506,16 @@ func (client ProfilesClient) ListAllComplete(ctx context.Context) (result Profil
 // networkProfileName - the name of the network profile.
 // parameters - parameters supplied to update network profile tags.
 func (client ProfilesClient) UpdateTags(ctx context.Context, resourceGroupName string, networkProfileName string, parameters TagsObject) (result Profile, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ProfilesClient.UpdateTags")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.UpdateTagsPreparer(ctx, resourceGroupName, networkProfileName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ProfilesClient", "UpdateTags", nil, "Failure preparing request")

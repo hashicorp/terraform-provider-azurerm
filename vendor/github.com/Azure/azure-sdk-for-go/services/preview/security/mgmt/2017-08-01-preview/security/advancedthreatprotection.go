@@ -21,6 +21,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -44,6 +45,16 @@ func NewAdvancedThreatProtectionClientWithBaseURI(baseURI string, subscriptionID
 // resourceID - the identifier of the resource.
 // advancedThreatProtectionSetting - advanced Threat Protection Settings
 func (client AdvancedThreatProtectionClient) Create(ctx context.Context, resourceID string, advancedThreatProtectionSetting AdvancedThreatProtectionSetting) (result AdvancedThreatProtectionSetting, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AdvancedThreatProtectionClient.Create")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.CreatePreparer(ctx, resourceID, advancedThreatProtectionSetting)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AdvancedThreatProtectionClient", "Create", nil, "Failure preparing request")
@@ -111,6 +122,16 @@ func (client AdvancedThreatProtectionClient) CreateResponder(resp *http.Response
 // Parameters:
 // resourceID - the identifier of the resource.
 func (client AdvancedThreatProtectionClient) Get(ctx context.Context, resourceID string) (result AdvancedThreatProtectionSetting, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AdvancedThreatProtectionClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetPreparer(ctx, resourceID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AdvancedThreatProtectionClient", "Get", nil, "Failure preparing request")
