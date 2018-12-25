@@ -67,6 +67,8 @@ The following arguments are supported:
 
 * `certificate` - (Optional) A `certificate` block as defined below.
 
+* `reverse_proxy_certificate` - (Optional) A `reverse_proxy_certificate` block as defined below.
+
 * `client_certificate_thumbprint` - (Optional) One or two `client_certificate_thumbprint` blocks as defined below.
 
 -> **NOTE:** If Client Certificates are enabled then at a Certificate must be configured on the cluster.
@@ -80,6 +82,16 @@ The following arguments are supported:
 ---
 
 A `certificate` block supports the following:
+
+* `thumbprint` - (Required) The Thumbprint of the Certificate.
+
+* `thumbprint_secondary` - (Required) The Secondary Thumbprint of the Certificate.
+
+* `x509_store_name` - (Required) The X509 Store where the Certificate Exists, such as `My`.
+
+---
+
+A `reverse_proxy_certificate` block supports the following:
 
 * `thumbprint` - (Required) The Thumbprint of the Certificate.
 
@@ -136,6 +148,8 @@ A `node_type` block supports the following:
 * `application_ports` - (Optional) A `application_ports` block as defined below.
 
 * `ephemeral_ports` - (Optional) A `ephemeral_ports` block as defined below.
+
+* `reverse_proxy_endpoint_port` - (Optional) The Port used for the Reverse Proxy Endpoint  for this Node Type. Changing this will upgrade the cluster.
 
 ---
 
