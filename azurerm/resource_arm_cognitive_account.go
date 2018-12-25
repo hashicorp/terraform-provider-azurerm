@@ -76,17 +76,7 @@ func resourceArmCognitiveAccount() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(cognitiveservices.F0),
-								string(cognitiveservices.S0),
-								string(cognitiveservices.S1),
-								string(cognitiveservices.S2),
-								string(cognitiveservices.S3),
-								string(cognitiveservices.S4),
-								string(cognitiveservices.S5),
-								string(cognitiveservices.S6),
-								string(cognitiveservices.P0),
-								string(cognitiveservices.P1),
-								string(cognitiveservices.P2),
+								"F0", "S0", "S1", "S2", "S3", "S4", "S5", "S6", "P0", "P1", "P2",
 							}, false),
 						},
 
@@ -139,7 +129,7 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 	sku := expandCognitiveAccountSku(d)
 
 	properties := cognitiveservices.AccountCreateParameters{
-		Kind:       cognitiveservices.Kind(kind),
+		Kind:       utils.String(kind),
 		Location:   utils.String(location),
 		Sku:        sku,
 		Properties: &cognitiveServicesPropertiesStruct{},
@@ -258,7 +248,7 @@ func expandCognitiveAccountSku(d *schema.ResourceData) *cognitiveservices.Sku {
 	sku := skus[0].(map[string]interface{})
 
 	return &cognitiveservices.Sku{
-		Name: cognitiveservices.SkuName(sku["name"].(string)),
+		Name: utils.String(sku["name"].(string)),
 		Tier: cognitiveservices.SkuTier(sku["tier"].(string)),
 	}
 }
@@ -268,10 +258,13 @@ func flattenCognitiveAccountSku(input *cognitiveservices.Sku) []interface{} {
 		return []interface{}{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"name": string(input.Name),
-			"tier": string(input.Tier),
-		},
+	m := map[string]interface{}{
+		"tier": string(input.Tier),
 	}
+
+	if v := input.Name; v != nil {
+		m["name"] = *v
+	}
+
+	return []interface{}{m}
 }

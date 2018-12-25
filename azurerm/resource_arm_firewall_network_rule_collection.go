@@ -93,7 +93,7 @@ func resourceArmFirewallNetworkRuleCollection() *schema.Resource {
 								Type: schema.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
 									string(network.Any),
-									"ICMP", // TODO(metacpp): update it after v22.0.
+									string(network.ICMP),
 									string(network.TCP),
 									string(network.UDP),
 								}, false),
