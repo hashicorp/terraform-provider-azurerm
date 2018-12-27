@@ -31,9 +31,10 @@ func resourceArmApplicationInsightsAPIKey() *schema.Resource {
 			},
 
 			"application_insights_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"read_permissions": {
