@@ -36,11 +36,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "test"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  allocation_method = "Static"
-  domain_name_label            = "${azurerm_resource_group.test.name}"
+  name                = "test"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
+  domain_name_label   = "${azurerm_resource_group.test.name}"
 
   tags {
     environment = "staging"
@@ -92,6 +92,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   # automatic rolling upgrade
   automatic_os_upgrade = true
   upgrade_policy_mode  = "Rolling"
+
   rolling_upgrade_policy {
     max_batch_instance_percent              = 20
     max_unhealthy_instance_percent          = 20
@@ -101,7 +102,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   # required when using rolling upgrade policy
   health_probe_id = "${azurerm_lb_probe.test.id}"
-
 
   sku {
     name     = "Standard_F2"

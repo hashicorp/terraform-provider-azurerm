@@ -19,10 +19,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acceptanceTestPublicIp1"
-  location                     = "West US"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  allocation_method = "Static"
+  name                = "acceptanceTestPublicIp1"
+  location            = "West US"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
 
   tags {
     environment = "Production"

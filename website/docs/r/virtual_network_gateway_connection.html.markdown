@@ -46,10 +46,10 @@ resource "azurerm_local_network_gateway" "onpremise" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "test"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  allocation_method = "Dynamic"
+  name                = "test"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -110,10 +110,10 @@ resource "azurerm_subnet" "us_gateway" {
 }
 
 resource "azurerm_public_ip" "us" {
-  name                         = "us"
-  location                     = "${azurerm_resource_group.us.location}"
-  resource_group_name          = "${azurerm_resource_group.us.name}"
-  allocation_method = "Dynamic"
+  name                = "us"
+  location            = "${azurerm_resource_group.us.location}"
+  resource_group_name = "${azurerm_resource_group.us.name}"
+  allocation_method   = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "us" {
@@ -152,10 +152,10 @@ resource "azurerm_subnet" "europe_gateway" {
 }
 
 resource "azurerm_public_ip" "europe" {
-  name                         = "europe"
-  location                     = "${azurerm_resource_group.europe.location}"
-  resource_group_name          = "${azurerm_resource_group.europe.name}"
-  allocation_method = "Dynamic"
+  name                = "europe"
+  location            = "${azurerm_resource_group.europe.location}"
+  resource_group_name = "${azurerm_resource_group.europe.name}"
+  allocation_method   = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "europe" {
