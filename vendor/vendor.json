@@ -1975,12 +1975,6 @@
 			"revisionTime": "2018-12-22T00:55:49Z"
 		},
 		{
-			"checksumSHA1": "2NbY9kmMweE4VUsruRsvmViVnNg=",
-			"path": "google.golang.org/grpc/grpclb/grpc_lb_v1",
-			"revision": "7657092a1303cc5a6fa3fee988d57c665683a4da",
-			"revisionTime": "2017-08-09T21:16:03Z"
-		},
-		{
 			"checksumSHA1": "ZPPSFisPDz2ANO4FBZIft+fRxyk=",
 			"path": "google.golang.org/grpc/grpclog",
 			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
@@ -2111,12 +2105,6 @@
 			"path": "google.golang.org/grpc/tap",
 			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
 			"revisionTime": "2018-12-22T00:55:49Z"
-		},
-		{
-			"checksumSHA1": "S0qdJtlMimKlOrJ4aZ/pxO5uVwg=",
-			"path": "google.golang.org/grpc/transport",
-			"revision": "7657092a1303cc5a6fa3fee988d57c665683a4da",
-			"revisionTime": "2017-08-09T21:16:03Z"
 		},
 		{
 			"checksumSHA1": "AnKBN2Q4AWaSNb0JyINBQbnpxGM=",
