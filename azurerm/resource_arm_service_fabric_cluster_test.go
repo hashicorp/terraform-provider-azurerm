@@ -764,6 +764,8 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_service_fabric_cluster" "test" {
   name                = "acctest-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -779,7 +781,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   }
 
   azure_active_directory {
-    tenant_id              = "00000000-0000-0000-0000-000000000000"
+    tenant_id              = "${azurerm_client_config.current.tenant_id}"
     cluster_application_id = "00000000-0000-0000-0000-000000000000"
     client_application_id  = "00000000-0000-0000-0000-000000000000"
   }
