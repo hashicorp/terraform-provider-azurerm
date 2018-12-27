@@ -45,8 +45,8 @@ resource "azurerm_key_vault" "test" {
   }
 
   network_acls {
-    default_action             = "Deny"
-    bypass                     = "AzureServices"
+    default_action = "Deny"
+    bypass         = "AzureServices"
   }
 
   tags {

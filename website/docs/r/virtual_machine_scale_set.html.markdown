@@ -92,6 +92,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   # automatic rolling upgrade
   automatic_os_upgrade = true
   upgrade_policy_mode  = "Rolling"
+
   rolling_upgrade_policy {
     max_batch_instance_percent              = 20
     max_unhealthy_instance_percent          = 20
@@ -101,7 +102,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
   # required when using rolling upgrade policy
   health_probe_id = "${azurerm_lb_probe.test.id}"
-
 
   sku {
     name     = "Standard_F2"

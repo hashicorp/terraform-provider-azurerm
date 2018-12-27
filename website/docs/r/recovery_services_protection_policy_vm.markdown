@@ -29,7 +29,7 @@ resource "azurerm_recovery_services_protection_policy_vm" "test" {
   name                = "tfex-recovery-vault-policy"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
-  
+
   timezone = "UTC"
 
   backup = {
