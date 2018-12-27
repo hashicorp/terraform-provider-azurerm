@@ -9,7 +9,7 @@ import (
 
 func ExpandApplicationInsightsAPIKeyLinkedProperties(v *schema.Set, appInsightsId string) *[]string {
 	if v == nil {
-		return nil
+		return &[]string{}
 	}
 
 	result := make([]string, v.Len())
@@ -21,7 +21,7 @@ func ExpandApplicationInsightsAPIKeyLinkedProperties(v *schema.Set, appInsightsI
 
 func FlattenApplicationInsightsAPIKeyLinkedProperties(props *[]string) *[]string {
 	if props == nil {
-		return nil
+		return &[]string{}
 	}
 
 	result := make([]string, len(*props))
