@@ -360,7 +360,7 @@ resource "azurerm_automation_schedule" "test" {
   automation_account_name = "${azurerm_automation_account.test.name}"
   frequency               = "OneTime"
   start_time              = "%s"
-  timezone                = "Central Europe Standard Time" 
+  timezone                = "Central Europe Standard Time"
   description             = "This is an automation schedule"
 }
 `, testAccAzureRMAutomationSchedule_prerequisites(rInt, location), rInt, startTime)
@@ -417,7 +417,7 @@ resource "azurerm_automation_schedule" "test" {
   frequency               = "Week"
   interval                = "1"
   week_days               = ["%s"]
-}	
+}
 `, testAccAzureRMAutomationSchedule_prerequisites(rInt, location), rInt, weekDay)
 }
 
@@ -477,10 +477,10 @@ resource "azurerm_automation_schedule" "test" {
   interval                = "1"
 
   monthly_occurrence {
-	day        = "%s"
-	occurrence = "%d"
+    day        = "%s"
+    occurrence = "%d"
   }
-}	
+}
 `, testAccAzureRMAutomationSchedule_prerequisites(rInt, location), rInt, weekDay, weekDayOccurrence)
 }
 

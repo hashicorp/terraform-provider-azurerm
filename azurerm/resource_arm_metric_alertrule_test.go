@@ -233,9 +233,9 @@ func testAccAzureRMMetricAlertRule_sqlDatabaseStorage(rInt int, location string)
 %s
 
 resource "azurerm_metric_alertrule" "test" {
-  name = "${azurerm_sql_database.test.name}-storage"
+  name                = "${azurerm_sql_database.test.name}-storage"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location = "${azurerm_resource_group.test.location}"
+  location            = "${azurerm_resource_group.test.location}"
 
   description = "An alert rule to watch the metric Storage"
 
@@ -243,13 +243,14 @@ resource "azurerm_metric_alertrule" "test" {
 
   resource_id = "${azurerm_sql_database.test.id}"
   metric_name = "storage"
-  operator = "GreaterThan"
-  threshold = 1073741824
+  operator    = "GreaterThan"
+  threshold   = 1073741824
   aggregation = "Maximum"
-  period = "PT10M"
+  period      = "PT10M"
 
   email_action {
     send_to_service_owners = false
+
     custom_emails = [
       "support@azure.microsoft.com",
     ]
@@ -257,10 +258,11 @@ resource "azurerm_metric_alertrule" "test" {
 
   webhook_action {
     service_uri = "https://requestb.in/18jamc41"
-      properties = {
-        severity = "incredible"
-        acceptance_test = "true"
-      }
+
+    properties = {
+      severity        = "incredible"
+      acceptance_test = "true"
+    }
   }
 }
 `, basicSqlServerDatabase)

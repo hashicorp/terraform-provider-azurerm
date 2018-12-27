@@ -344,7 +344,7 @@ func testAccAzureRMActiveDirectoryServicePrincipal_roleAssignmentConfig(rInt int
 data "azurerm_subscription" "current" {}
 
 resource "azurerm_azuread_application" "test" {
-  name     = "acctestspa-%d"
+  name = "acctestspa-%d"
 }
 
 resource "azurerm_azuread_service_principal" "test" {

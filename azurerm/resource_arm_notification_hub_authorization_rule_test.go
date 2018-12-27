@@ -203,7 +203,7 @@ func testAzureRMNotificationHubAuthorizationRule_listen(ri int, location string)
 resource "azurerm_notification_hub_authorization_rule" "test" {
   name                  = "acctestrule-%d"
   notification_hub_name = "${azurerm_notification_hub.test.name}"
-  namespace_name        = "${azurerm_notification_hub_namespace.test.name}" 
+  namespace_name        = "${azurerm_notification_hub_namespace.test.name}"
   resource_group_name   = "${azurerm_resource_group.test.name}"
   listen                = true
 }
@@ -218,7 +218,7 @@ func testAzureRMNotificationHubAuthorizationRule_send(ri int, location string) s
 resource "azurerm_notification_hub_authorization_rule" "test" {
   name                  = "acctestrule-%d"
   notification_hub_name = "${azurerm_notification_hub.test.name}"
-  namespace_name        = "${azurerm_notification_hub_namespace.test.name}" 
+  namespace_name        = "${azurerm_notification_hub_namespace.test.name}"
   resource_group_name   = "${azurerm_resource_group.test.name}"
   send                  = true
   listen                = true
@@ -234,7 +234,7 @@ func testAzureRMNotificationHubAuthorizationRule_manage(ri int, location string)
 resource "azurerm_notification_hub_authorization_rule" "test" {
   name                  = "acctestrule-%d"
   notification_hub_name = "${azurerm_notification_hub.test.name}"
-  namespace_name        = "${azurerm_notification_hub_namespace.test.name}" 
+  namespace_name        = "${azurerm_notification_hub_namespace.test.name}"
   resource_group_name   = "${azurerm_resource_group.test.name}"
   manage                = true
   send                  = true

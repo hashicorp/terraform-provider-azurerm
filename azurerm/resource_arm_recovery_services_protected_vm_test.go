@@ -294,7 +294,6 @@ resource "azurerm_recovery_services_protected_vm" "test" {
   source_vm_id        = "${azurerm_virtual_machine.test.id}"
   backup_policy_id    = "${azurerm_recovery_services_protection_policy_vm.test.id}"
 }
-
 `, testAccAzureRMRecoveryServicesProtectedVm_base(rInt, location))
 }
 
@@ -342,6 +341,5 @@ resource "azurerm_recovery_services_protected_vm" "test" {
   backup_policy_id    = "${azurerm_recovery_services_protection_policy_vm.test2.id}"
   source_vm_id        = "${azurerm_virtual_machine.test.id}"
 }
-
 `, testAccAzureRMRecoveryServicesProtectedVm_additionalVault(rInt, location))
 }

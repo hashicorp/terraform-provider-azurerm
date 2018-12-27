@@ -1210,6 +1210,7 @@ resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%[1]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
   sku {
     tier = "Standard"
     size = "S1"
@@ -1223,5 +1224,6 @@ resource "azurerm_function_app" "test" {
   app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
   storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
   enable_builtin_logging    = false
-}`, rInt, location, storage)
+}
+`, rInt, location, storage)
 }

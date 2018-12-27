@@ -167,7 +167,6 @@ func testAccAzureRMAutomationModule_requiresImport(rInt int, location string) st
 	return fmt.Sprintf(`
 %s
 
-
 resource "azurerm_automation_module" "import" {
   name                    = "${azurerm_automation_module.test.name}"
   resource_group_name     = "${azurerm_automation_module.test.resource_group_name}"

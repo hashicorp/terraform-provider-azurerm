@@ -746,9 +746,9 @@ resource "azurerm_virtual_network_gateway" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  type       = "ExpressRoute"
-  vpn_type   = "PolicyBased"
-  sku        = "Standard"
+  type     = "ExpressRoute"
+  vpn_type = "PolicyBased"
+  sku      = "Standard"
 
   ip_configuration {
     public_ip_address_id          = "${azurerm_public_ip.test.id}"

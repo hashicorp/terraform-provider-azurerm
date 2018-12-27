@@ -327,14 +327,14 @@ resource "azurerm_autoscale_setting" "test" {
 
     rule {
       metric_trigger {
-        metric_name          = "Percentage CPU"
-        metric_resource_id   = "${azurerm_virtual_machine_scale_set.test.id}"
-        time_grain           = "PT1M"
-        statistic            = "Average"
-        time_window          = "PT5M"
-        time_aggregation     = "Average"
-        operator             = "GreaterThan"
-        threshold            = 75
+        metric_name        = "Percentage CPU"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "GreaterThan"
+        threshold          = 75
       }
 
       scale_action {
@@ -371,14 +371,14 @@ resource "azurerm_autoscale_setting" "test" {
 
     rule {
       metric_trigger {
-        metric_name          = "Percentage CPU"
-        metric_resource_id   = "${azurerm_virtual_machine_scale_set.test.id}"
-        time_grain           = "PT1M"
-        statistic            = "Average"
-        time_window          = "PT5M"
-        time_aggregation     = "Average"
-        operator             = "GreaterThan"
-        threshold            = 75
+        metric_name        = "Percentage CPU"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "GreaterThan"
+        threshold          = 75
       }
 
       scale_action {
@@ -391,14 +391,14 @@ resource "azurerm_autoscale_setting" "test" {
 
     rule {
       metric_trigger {
-        metric_name          = "Percentage CPU"
-        metric_resource_id   = "${azurerm_virtual_machine_scale_set.test.id}"
-        time_grain           = "PT1M"
-        statistic            = "Average"
-        time_window          = "PT5M"
-        time_aggregation     = "Average"
-        operator             = "GreaterThan"
-        threshold            = 75
+        metric_name        = "Percentage CPU"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "GreaterThan"
+        threshold          = 75
       }
 
       scale_action {
@@ -420,14 +420,16 @@ resource "azurerm_autoscale_setting" "test" {
     }
 
     recurrence {
-      timezone  = "Pacific Standard Time"
-      days      = [
+      timezone = "Pacific Standard Time"
+
+      days = [
         "Monday",
         "Wednesday",
-        "Friday"
+        "Friday",
       ]
-      hours     = [ 18 ]
-      minutes   = [ 0 ]
+
+      hours   = [18]
+      minutes = [0]
     }
   }
 }
@@ -521,14 +523,14 @@ resource "azurerm_autoscale_setting" "test" {
 
     rule {
       metric_trigger {
-        metric_name          = "Percentage CPU"
-        metric_resource_id   = "${azurerm_virtual_machine_scale_set.test.id}"
-        time_grain           = "PT1M"
-        statistic            = "Average"
-        time_window          = "PT5M"
-        time_aggregation     = "Average"
-        operator             = "GreaterThan"
-        threshold            = 75
+        metric_name        = "Percentage CPU"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "GreaterThan"
+        threshold          = 75
       }
 
       scale_action {
@@ -573,14 +575,14 @@ resource "azurerm_autoscale_setting" "test" {
 
     rule {
       metric_trigger {
-        metric_name          = "Percentage CPU"
-        metric_resource_id   = "${azurerm_virtual_machine_scale_set.test.id}"
-        time_grain           = "PT1M"
-        statistic            = "Average"
-        time_window          = "PT5M"
-        time_aggregation     = "Average"
-        operator             = "GreaterThan"
-        threshold            = 75
+        metric_name        = "Percentage CPU"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "GreaterThan"
+        threshold          = 75
       }
 
       scale_action {
@@ -624,14 +626,16 @@ resource "azurerm_autoscale_setting" "test" {
     }
 
     recurrence {
-      timezone  = "Pacific Standard Time"
-      days      = [
+      timezone = "Pacific Standard Time"
+
+      days = [
         "Monday",
         "Wednesday",
-        "Friday"
+        "Friday",
       ]
-      hours     = [ 18 ]
-      minutes   = [ 0 ]
+
+      hours   = [18]
+      minutes = [0]
     }
   }
 
@@ -666,14 +670,16 @@ resource "azurerm_autoscale_setting" "test" {
     }
 
     recurrence {
-      timezone  = "Pacific Standard Time"
-      days      = [
+      timezone = "Pacific Standard Time"
+
+      days = [
         "Monday",
         "Tuesday",
-        "Wednesday"
+        "Wednesday",
       ]
-      hours     = [ 20 ]
-      minutes   = [ 15 ]
+
+      hours   = [20]
+      minutes = [15]
     }
   }
 

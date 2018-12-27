@@ -530,7 +530,7 @@ resource "azurerm_app_service_plan" "test" {
   }
 
   per_site_scaling = true
-  reserved         = false 
+  reserved         = false
 
   tags {
     environment = "Test"
