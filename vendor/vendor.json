@@ -1843,10 +1843,10 @@
 			"revisionTime": "2018-09-24T18:15:43Z"
 		},
 		{
-			"checksumSHA1": "tY+5thYxjKDUQyQXYcBqogmMS5U=",
+			"checksumSHA1": "XmZ1a+WnKZSyE4XWvsnPl4QBOLY=",
 			"path": "golang.org/x/sys/unix",
-			"revision": "314a259e304ff91bd6985da2a7149bbf91237993",
-			"revisionTime": "2017-07-19T03:44:26Z"
+			"revision": "b4a75ba826a64a70990f11a225237acd6ef35c9f",
+			"revisionTime": "2018-12-21T10:19:52Z"
 		},
 		{
 			"checksumSHA1": "JGxWXCzR7rwOsuQCK1UGd6yuS90=",
