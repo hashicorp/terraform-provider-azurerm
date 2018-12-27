@@ -274,11 +274,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctestpip%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  allocation_method = "Static"
-  sku                          = "Standard"
+  name                = "acctestpip%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_firewall" "test" {
@@ -317,11 +317,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctestpip%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  allocation_method = "Static"
-  sku                          = "Standard"
+  name                = "acctestpip%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_firewall" "test" {
@@ -330,9 +330,9 @@ resource "azurerm_firewall" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   ip_configuration {
-    name                          = "configuration"
-    subnet_id                     = "${azurerm_subnet.test.id}"
-    public_ip_address_id          = "${azurerm_public_ip.test.id}"
+    name                 = "configuration"
+    subnet_id            = "${azurerm_subnet.test.id}"
+    public_ip_address_id = "${azurerm_public_ip.test.id}"
   }
 }
 `, rInt, location, rInt, rInt, rInt)
@@ -360,11 +360,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctestpip%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  allocation_method = "Static"
-  sku                          = "Standard"
+  name                = "acctestpip%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_firewall" "test" {
@@ -373,9 +373,9 @@ resource "azurerm_firewall" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   ip_configuration {
-    name                          = "configuration"
-    subnet_id                     = "${azurerm_subnet.test.id}"
-    public_ip_address_id          = "${azurerm_public_ip.test.id}"
+    name                 = "configuration"
+    subnet_id            = "${azurerm_subnet.test.id}"
+    public_ip_address_id = "${azurerm_public_ip.test.id}"
   }
 
   tags {
@@ -408,11 +408,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctestpip%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  allocation_method = "Static"
-  sku                          = "Standard"
+  name                = "acctestpip%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_firewall" "test" {
@@ -421,9 +421,9 @@ resource "azurerm_firewall" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   ip_configuration {
-    name                          = "configuration"
-    subnet_id                     = "${azurerm_subnet.test.id}"
-    public_ip_address_id          = "${azurerm_public_ip.test.id}"
+    name                 = "configuration"
+    subnet_id            = "${azurerm_subnet.test.id}"
+    public_ip_address_id = "${azurerm_public_ip.test.id}"
   }
 
   tags {

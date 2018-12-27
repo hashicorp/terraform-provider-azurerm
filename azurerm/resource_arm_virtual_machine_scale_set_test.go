@@ -2379,10 +2379,10 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctestpip-%[1]d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
-  allocation_method = "Static"
+  name                = "acctestpip-%[1]d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  allocation_method   = "Static"
 }
 
 resource "azurerm_lb" "test" {
@@ -2496,10 +2496,10 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctestpip-%[1]d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
-  allocation_method = "Static"
+  name                = "acctestpip-%[1]d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  allocation_method   = "Static"
 }
 
 resource "azurerm_lb" "test" {
@@ -2617,10 +2617,10 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctestpip-%[1]d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
-  allocation_method = "Static"
+  name                = "acctestpip-%[1]d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  allocation_method   = "Static"
 }
 
 resource "azurerm_lb" "test" {
@@ -3073,10 +3073,10 @@ resource "azurerm_subnet" "gwtest" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctest-pubip-%[1]d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  allocation_method = "Dynamic"
+  name                = "acctest-pubip-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -4338,11 +4338,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctpip-%[1]d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  allocation_method = "Dynamic"
-  domain_name_label            = "%[3]s"
+  name                = "acctpip-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
+  domain_name_label   = "%[3]s"
 }
 
 resource "azurerm_network_interface" "testsource" {
@@ -4595,11 +4595,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctestpip-%[1]d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  allocation_method = "Dynamic"
-  idle_timeout_in_minutes      = 4
+  name                    = "acctestpip-%[1]d"
+  location                = "${azurerm_resource_group.test.location}"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  allocation_method       = "Dynamic"
+  idle_timeout_in_minutes = 4
 }
 
 resource "azurerm_lb" "test" {
@@ -4897,7 +4897,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   identity {
-    type     = "SystemAssigned, UserAssigned"
+    type         = "SystemAssigned, UserAssigned"
     identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
   }
 
@@ -4932,6 +4932,5 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-
 `, rInt, location, rString)
 }

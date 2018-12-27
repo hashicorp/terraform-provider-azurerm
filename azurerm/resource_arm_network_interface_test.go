@@ -846,11 +846,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "test-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  allocation_method = "Static"
-  domain_name_label            = "${azurerm_resource_group.test.name}"
+  name                = "test-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
+  domain_name_label   = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_network_interface" "test" {
@@ -891,11 +891,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "test-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  allocation_method = "Static"
-  domain_name_label            = "${azurerm_resource_group.test.name}"
+  name                = "test-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
+  domain_name_label   = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_network_interface" "test" {
@@ -934,10 +934,10 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "testext" {
-  name                         = "acctestpip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  allocation_method = "Static"
+  name                = "acctestpip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
 }
 
 resource "azurerm_lb" "testext" {
@@ -970,10 +970,10 @@ resource "azurerm_lb_nat_rule" "testext" {
 }
 
 resource "azurerm_public_ip" "testint" {
-  name                         = "testpublicipint"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  allocation_method = "Static"
+  name                = "testpublicipint"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
 }
 
 resource "azurerm_lb" "testint" {
@@ -1073,10 +1073,10 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctest-pubip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  allocation_method = "Dynamic"
+  name                = "acctest-pubip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -1202,10 +1202,10 @@ resource "azurerm_network_security_rule" "test2" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctest-%d-pip"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  allocation_method = "Dynamic"
+  name                = "acctest-%d-pip"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
 
   tags {
     environment = "Production"
@@ -1282,10 +1282,10 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "testext" {
-  name                         = "acctestip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  allocation_method = "Static"
+  name                = "acctestip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
 }
 
 resource "azurerm_network_interface" "test" {
