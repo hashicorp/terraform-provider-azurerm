@@ -57,7 +57,7 @@ func testAccDataSourceVirtualMachine_basic(rInt int, location string) string {
 		ip_configuration {
 			name                          = "testconfiguration1"
 			subnet_id                     = "${azurerm_subnet.test.id}"
-			private_ip_address_allocation = "dynamic"
+			private_ip_address_allocation = "Dynamic"
 		}
 	}
 

@@ -52,7 +52,7 @@ resource "azurerm_public_ip" "test" {
   name                         = "locked-publicip"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
+  allocation_method = "Static"
   idle_timeout_in_minutes      = 30
 }
 

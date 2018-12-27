@@ -318,14 +318,14 @@ resource "azurerm_public_ip" "test" {
     name = "test-ip-%d"
     location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    public_ip_address_allocation = "static"
+    allocation_method = "Static"
 }
 
 resource "azurerm_public_ip" "test1" {
     name = "another-test-ip-%d"
     location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    public_ip_address_allocation = "static"
+    allocation_method = "Static"
 }
 
 resource "azurerm_lb" "test" {
@@ -356,14 +356,14 @@ resource "azurerm_public_ip" "test" {
     name = "test-ip-%d"
     location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    public_ip_address_allocation = "static"
+    allocation_method = "Static"
 }
 
 resource "azurerm_public_ip" "test1" {
     name = "another-test-ip-%d"
     location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    public_ip_address_allocation = "static"
+    allocation_method = "Static"
 }
 
 resource "azurerm_lb" "test" {
@@ -389,7 +389,7 @@ resource "azurerm_public_ip" "test" {
     name = "test-ip-%d"
     location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    public_ip_address_allocation = "static"
+    allocation_method = "Static"
 }
 
 resource "azurerm_lb" "test" {

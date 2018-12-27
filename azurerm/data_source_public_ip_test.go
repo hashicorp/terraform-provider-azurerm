@@ -78,7 +78,7 @@ resource "azurerm_public_ip" "test" {
   name                         = "%s"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
+  allocation_method = "Static"
   domain_name_label            = "acctest-%d"
   idle_timeout_in_minutes      = 30
 
@@ -105,7 +105,7 @@ resource "azurerm_public_ip" "test" {
   name                         = "acctestpublicip-%d"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "dynamic"
+  allocation_method = "Dynamic"
 
   ip_version = "%s"
 

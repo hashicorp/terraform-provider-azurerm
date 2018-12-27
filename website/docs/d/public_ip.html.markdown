@@ -54,7 +54,7 @@ resource "azurerm_public_ip" "test" {
   name                         = "test-pip"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
+  allocation_method = "Dynamic"
   idle_timeout_in_minutes      = 30
 
   tags {
@@ -70,7 +70,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "static"
+    private_ip_address_allocation = "Static"
     private_ip_address            = "10.0.2.5"
     public_ip_address_id          = "${azurerm_public_ip.test.id}"
   }

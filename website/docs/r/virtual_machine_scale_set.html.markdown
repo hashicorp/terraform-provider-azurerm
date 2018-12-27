@@ -39,7 +39,7 @@ resource "azurerm_public_ip" "test" {
   name                         = "test"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
+  allocation_method = "Static"
   domain_name_label            = "${azurerm_resource_group.test.name}"
 
   tags {

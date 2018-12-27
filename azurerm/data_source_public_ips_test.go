@@ -113,7 +113,7 @@ resource "azurerm_public_ip" "test" {
   name                         = "acctestpip%s-${count.index}"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
+  allocation_method = "Static"
   idle_timeout_in_minutes      = 30
 
   tags {
@@ -164,7 +164,7 @@ resource "azurerm_public_ip" "test" {
   name                         = "acctestpipb%s-${count.index}"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
+  allocation_method = "Static"
   idle_timeout_in_minutes      = 30
 
   tags {
@@ -177,7 +177,7 @@ resource "azurerm_public_ip" "test2" {
   name                         = "acctestpipa%s-${count.index}"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
+  allocation_method = "Static"
   idle_timeout_in_minutes      = 30
 
   tags {
@@ -211,7 +211,7 @@ resource "azurerm_public_ip" "dynamic" {
   name                         = "acctestpipd%s-${count.index}"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "dynamic"
+  allocation_method = "Dynamic"
   idle_timeout_in_minutes      = 30
 
   tags {
@@ -224,7 +224,7 @@ resource "azurerm_public_ip" "static" {
   name                         = "acctestpips%s-${count.index}"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
+  allocation_method = "Static"
   idle_timeout_in_minutes      = 30
 
   tags {

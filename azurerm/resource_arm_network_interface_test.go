@@ -540,7 +540,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 `, rInt, location, rInt, rInt)
@@ -582,7 +582,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 `, rInt, location, rInt, rInt, rInt)
@@ -617,14 +617,14 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
     primary                       = true
   }
 
   ip_configuration {
     name                          = "testconfiguration2"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 `, rInt, location, rInt, rInt)
@@ -659,14 +659,14 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration2"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
     primary                       = true
   }
 
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 `, rInt, location, rInt, rInt)
@@ -702,7 +702,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 `, rInt, location, rInt, rInt)
@@ -739,7 +739,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 `, rInt, location, rInt, rInt)
@@ -774,7 +774,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 
   tags {
@@ -814,7 +814,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 
   tags {
@@ -849,7 +849,7 @@ resource "azurerm_public_ip" "test" {
   name                         = "test-%d"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
+  allocation_method = "Static"
   domain_name_label            = "${azurerm_resource_group.test.name}"
 }
 
@@ -861,7 +861,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "static"
+    private_ip_address_allocation = "Static"
     private_ip_address            = "10.0.2.9"
     public_ip_address_id          = "${azurerm_public_ip.test.id}"
   }
@@ -894,7 +894,7 @@ resource "azurerm_public_ip" "test" {
   name                         = "test-%d"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
+  allocation_method = "Static"
   domain_name_label            = "${azurerm_resource_group.test.name}"
 }
 
@@ -906,7 +906,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 `, rInt, location, rInt, rInt, rInt)
@@ -937,7 +937,7 @@ resource "azurerm_public_ip" "testext" {
   name                         = "acctestpip-%d"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
+  allocation_method = "Static"
 }
 
 resource "azurerm_lb" "testext" {
@@ -973,7 +973,7 @@ resource "azurerm_public_ip" "testint" {
   name                         = "testpublicipint"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
+  allocation_method = "Static"
 }
 
 resource "azurerm_lb" "testint" {
@@ -1015,7 +1015,7 @@ resource "azurerm_network_interface" "test1" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
 
     load_balancer_backend_address_pools_ids = [
       "${azurerm_lb_backend_address_pool.testext.id}",
@@ -1033,7 +1033,7 @@ resource "azurerm_network_interface" "test2" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
 
     load_balancer_inbound_nat_rules_ids = [
       "${azurerm_lb_nat_rule.testext.id}",
@@ -1076,7 +1076,7 @@ resource "azurerm_public_ip" "test" {
   name                         = "acctest-pubip-%d"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "dynamic"
+  allocation_method = "Dynamic"
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -1146,7 +1146,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
 
     application_gateway_backend_address_pools_ids = [
       "${azurerm_application_gateway.test.backend_address_pool.0.id}",
@@ -1205,7 +1205,7 @@ resource "azurerm_public_ip" "test" {
   name                         = "acctest-%d-pip"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
+  allocation_method = "Dynamic"
 
   tags {
     environment = "Production"
@@ -1234,7 +1234,7 @@ resource "azurerm_network_interface" "test1" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 
   tags {
@@ -1250,7 +1250,7 @@ resource "azurerm_network_interface" "test2" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 
   tags {
@@ -1285,7 +1285,7 @@ resource "azurerm_public_ip" "testext" {
   name                         = "acctestip-%d"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
+  allocation_method = "Static"
 }
 
 resource "azurerm_network_interface" "test" {
@@ -1296,7 +1296,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = "${azurerm_public_ip.testext.id}"
   }
 }
@@ -1338,7 +1338,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                           = "testconfiguration1"
     subnet_id                      = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation  = "dynamic"
+    private_ip_address_allocation  = "Dynamic"
     application_security_group_ids = ["${azurerm_application_security_group.test.id}"]
   }
 }

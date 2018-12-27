@@ -231,7 +231,7 @@ resource "azurerm_public_ip" "bastion_pip" {
   name                         = "bastionpip"
   resource_group_name          = "${azurerm_resource_group.rg.name}"
   location                     = "${azurerm_resource_group.rg.location}"
-  public_ip_address_allocation = "Static"
+  allocation_method = "Static"
   domain_name_label            = "${var.openshift_cluster_prefix}-bastion"
 }
 
@@ -239,7 +239,7 @@ resource "azurerm_public_ip" "openshift_master_pip" {
   name                         = "masterpip"
   resource_group_name          = "${azurerm_resource_group.rg.name}"
   location                     = "${azurerm_resource_group.rg.location}"
-  public_ip_address_allocation = "Static"
+  allocation_method = "Static"
   domain_name_label            = "${var.openshift_cluster_prefix}"
 }
 
@@ -247,7 +247,7 @@ resource "azurerm_public_ip" "infra_lb_pip" {
   name                         = "infraip"
   resource_group_name          = "${azurerm_resource_group.rg.name}"
   location                     = "${azurerm_resource_group.rg.location}"
-  public_ip_address_allocation = "Static"
+  allocation_method = "Static"
   domain_name_label            = "${var.openshift_cluster_prefix}infrapip"
 }
 

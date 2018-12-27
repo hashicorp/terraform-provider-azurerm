@@ -327,7 +327,7 @@ resource "azurerm_public_ip" "test" {
   name                         = "acctestpip-%d"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
+  allocation_method = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -373,7 +373,7 @@ resource "azurerm_public_ip" "test" {
   name                         = "acctestpip-%d"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
+  allocation_method = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -419,7 +419,7 @@ resource "azurerm_public_ip" "test" {
   name                         = "acctestpip-%d"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
+  allocation_method = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -466,7 +466,7 @@ resource "azurerm_public_ip" "first" {
   name                         = "acctestpip1-%d"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
+  allocation_method = "Dynamic"
 }
 
 resource "azurerm_public_ip" "second" {
@@ -474,7 +474,7 @@ resource "azurerm_public_ip" "second" {
 
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
+  allocation_method = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -538,7 +538,7 @@ resource "azurerm_public_ip" "test" {
   name                         = "acctestpip-%d"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
+  allocation_method = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -593,7 +593,7 @@ resource "azurerm_public_ip" "test" {
   name                         = "acctestpip-%d"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
+  allocation_method = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -645,7 +645,7 @@ resource "azurerm_public_ip" "test" {
   name                         = "acctestpip-%d"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
+  allocation_method = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -691,7 +691,7 @@ resource "azurerm_public_ip" "test" {
   name                         = "acctestpip1-%d"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
+  allocation_method = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -738,7 +738,7 @@ resource "azurerm_public_ip" "test" {
   name                         = "acctestpip1-%d"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
+  allocation_method = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
