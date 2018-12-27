@@ -193,9 +193,9 @@ func testAccAzureRMMetricAlertRule_virtualMachineCpu(rInt int, location string, 
 %s
 
 resource "azurerm_metric_alertrule" "test" {
-  name = "${azurerm_virtual_machine.test.name}-cpu"
+  name                = "${azurerm_virtual_machine.test.name}-cpu"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location = "${azurerm_resource_group.test.location}"
+  location            = "${azurerm_resource_group.test.location}"
 
   description = "An alert rule to watch the metric Percentage CPU"
 
@@ -203,13 +203,14 @@ resource "azurerm_metric_alertrule" "test" {
 
   resource_id = "${azurerm_virtual_machine.test.id}"
   metric_name = "Percentage CPU"
-  operator = "GreaterThan"
-  threshold = 75
+  operator    = "GreaterThan"
+  threshold   = 75
   aggregation = "Average"
-  period = "PT5M"
+  period      = "PT5M"
 
   email_action {
     send_to_service_owners = false
+
     custom_emails = [
       "support@azure.microsoft.com",
     ]
@@ -217,10 +218,11 @@ resource "azurerm_metric_alertrule" "test" {
 
   webhook_action {
     service_uri = "https://requestb.in/18jamc41"
-      properties = {
-        severity = "incredible"
-        acceptance_test = "true"
-      }
+
+    properties = {
+      severity        = "incredible"
+      acceptance_test = "true"
+    }
   }
 }
 `, basicLinuxMachine, enabledString)

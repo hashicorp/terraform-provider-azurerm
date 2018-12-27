@@ -653,9 +653,9 @@ resource "azurerm_cdn_endpoint" "test" {
   name                = "acctestcdnend%d"
   profile_name        = "${azurerm_cdn_profile.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	is_http_allowed			= %s
-	is_https_allowed		= %s
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  is_http_allowed     = %s
+  is_https_allowed    = %s
 
   origin {
     name       = "acceptanceTestCdnOrigin1"

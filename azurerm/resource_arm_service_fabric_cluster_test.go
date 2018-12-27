@@ -541,7 +541,7 @@ func testCheckAzureRMServiceFabricClusterExists(name string) resource.TestCheckF
 func testAccAzureRMServiceFabricCluster_basic(rInt int, location string, count int) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

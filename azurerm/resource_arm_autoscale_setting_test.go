@@ -695,7 +695,9 @@ resource "azurerm_autoscale_setting" "test" {
 
 func testAccAzureRMAutoScaleSetting_fixedDate(rInt int, rString string, location string) string {
 	template := testAccAzureRMAutoScaleSetting_template(rInt, rString, location)
-	return fmt.Sprintf(`%s
+	return fmt.Sprintf(`
+%s
+
 resource "azurerm_autoscale_setting" "test" {
   name                = "acctestautoscale-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -713,11 +715,12 @@ resource "azurerm_autoscale_setting" "test" {
 
     fixed_date {
       timezone = "Pacific Standard Time"
-      start     = "2020-06-18T00:00:00Z"
-      end       = "2020-06-18T23:59:59Z"
+      start    = "2020-06-18T00:00:00Z"
+      end      = "2020-06-18T23:59:59Z"
     }
   }
-}`, template, rInt)
+}
+`, template, rInt)
 }
 
 func testAccAzureRMAutoScaleSetting_template(rInt int, rString string, location string) string {
