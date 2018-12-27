@@ -30,12 +30,6 @@ func resourceArmApplicationInsightsAPIKey() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
-			"api_key": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
 			"application_insights_id": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -62,6 +56,12 @@ func resourceArmApplicationInsightsAPIKey() *schema.Resource {
 					Type:         schema.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{"annotations"}, false),
 				},
+			},
+
+			"api_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 		},
 	}
