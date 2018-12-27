@@ -290,8 +290,8 @@ func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
 	ri := acctest.RandInt()
 	containerRegistryName := fmt.Sprintf("testacccr%d", ri)
 	resourceGroupName := fmt.Sprintf("testAccRg-%d", ri)
-	config := testAccAzureRMContainerRegistry_geoReplication(ri, testLocation(), skuPremium, `"eastus", "westus"`)
-	updatedConfig := testAccAzureRMContainerRegistry_geoReplication(ri, testLocation(), skuPremium, `"centralus", "eastus"`)
+	config := testAccAzureRMContainerRegistry_geoReplication(ri, testLocation(), skuPremium, `eastus", "westus`)
+	updatedConfig := testAccAzureRMContainerRegistry_geoReplication(ri, testLocation(), skuPremium, `centralus", "eastus`)
 	updatedConfigWithNoLocation := testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation(ri, testLocation(), skuPremium)
 	updatedConfigBasicSku := testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation(ri, testLocation(), skuBasic)
 

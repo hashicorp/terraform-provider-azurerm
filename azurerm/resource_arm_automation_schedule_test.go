@@ -445,8 +445,8 @@ resource "azurerm_automation_schedule" "test" {
   automation_account_name = "${azurerm_automation_account.test.name}"
   frequency               = "Month"
   interval                = "1"
-  month_days              = [%d]
-}	
+  month_days              = ["%d"]
+}
 `, testAccAzureRMAutomationSchedule_prerequisites(rInt, location), rInt, monthDay)
 }
 

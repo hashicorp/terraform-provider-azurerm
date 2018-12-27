@@ -327,7 +327,6 @@ resource "azurerm_recovery_services_protection_policy_vm" "test2" {
     count = 10
   }
 }
-
 `, testAccAzureRMRecoveryServicesProtectedVm_base(rInt, location), rInt, location)
 }
 

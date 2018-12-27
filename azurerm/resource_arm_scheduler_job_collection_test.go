@@ -132,7 +132,7 @@ resource "azurerm_scheduler_job_collection" "test" {
   location            = "${azurerm_resource_group.test.location}" 
   resource_group_name = "${azurerm_resource_group.test.name}" 
   sku                 = "Standard" 
-%s 
+%s
 } 
 `, rInt, location, rInt, additional)
 }

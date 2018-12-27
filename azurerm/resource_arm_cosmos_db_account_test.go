@@ -604,6 +604,7 @@ resource "azurerm_cosmosdb_account" "test" {
 
   consistency_policy {
     consistency_level = "%s"
+
     %s
   }
 
@@ -612,8 +613,7 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 0
   }
 
-%s
-
+  %s
 }
 `, rInt, location, rInt, consistency, consistencyOptions, additional)
 }
@@ -631,6 +631,7 @@ resource "azurerm_cosmosdb_account" "import" {
 
   consistency_policy {
     consistency_level = "%s"
+
     %s
   }
 
@@ -639,8 +640,7 @@ resource "azurerm_cosmosdb_account" "import" {
     failover_priority = 0
   }
 
-%s
-
+  %s
 }
 `, template, consistency, consistencyOptions, additional)
 }
