@@ -1,4 +1,4 @@
-# Deploy a VM from Azure Marketplace
+# Deploy a virtual appliance VM from Azure Marketplace
 
 deploy a VM from Azure Marketplace. In order to enable deployment in a programatic way (such as with Terrafrom), you first need to enable it in Azure. This is a one time action per Subscription per Solution.
 
