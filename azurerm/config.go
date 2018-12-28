@@ -126,7 +126,8 @@ type ArmClient struct {
 	apiManagementServiceClient apimanagement.ServiceClient
 
 	// Application Insights
-	appInsightsClient appinsights.ComponentsClient
+	appInsightsClient       appinsights.ComponentsClient
+	appInsightsAPIKeyClient appinsights.APIKeysClient
 
 	// Authentication
 	roleAssignmentsClient   authorization.RoleAssignmentsClient
@@ -480,6 +481,10 @@ func (c *ArmClient) registerAppInsightsClients(endpoint, subscriptionId string, 
 	ai := appinsights.NewComponentsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&ai.Client, auth)
 	c.appInsightsClient = ai
+
+	aiak := appinsights.NewAPIKeysClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&aiak.Client, auth)
+	c.appInsightsAPIKeyClient = aiak
 }
 
 func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
