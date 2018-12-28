@@ -45,14 +45,12 @@ func dataSourceNotificationHubNamespace() *schema.Resource {
 				Computed: true,
 			},
 
-			// NOTE: skipping tags as there's a bug in the API where the Keys for Tags are returned in lower-case
-			// Azure Rest API Specs issue: https://github.com/Azure/azure-sdk-for-go/issues/2239
-			//"tags": tagsForDataSourceSchema(),
-
 			"servicebus_endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"tags": tagsForDataSourceSchema(),
 		},
 	}
 }
@@ -92,6 +90,7 @@ func resourceArmDataSourceNotificationHubNamespaceRead(d *schema.ResourceData, m
 		d.Set("servicebus_endpoint", props.ServiceBusEndpoint)
 	}
 
+	flattenAndSetTags(d, resp.Tags)
 	return nil
 }
 

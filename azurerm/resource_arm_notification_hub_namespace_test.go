@@ -14,7 +14,6 @@ func TestAccAzureRMNotificationHubNamespace_free(t *testing.T) {
 	resourceName := "azurerm_notification_hub_namespace.test"
 
 	ri := acctest.RandInt()
-	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -22,9 +21,50 @@ func TestAccAzureRMNotificationHubNamespace_free(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNotificationHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNotificationHubNamespace_free(ri, location),
+				Config: testAccAzureRMNotificationHubNamespace_free(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNotificationHubNamespaceExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMNotificationHubNamespace_withTags(t *testing.T) {
+	resourceName := "azurerm_notification_hub_namespace.test"
+
+	ri := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNotificationHubNamespaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNotificationHubNamespace_withTags(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNotificationHubNamespaceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "test"),
+					resource.TestCheckResourceAttr(resourceName, "tags.company", "hashicorp"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAzureRMNotificationHubNamespace_withTagsUpdated(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNotificationHubNamespaceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "production"),
 				),
 			},
 			{
@@ -102,6 +142,55 @@ resource "azurerm_notification_hub_namespace" "test" {
 
   sku {
     name = "Free"
+  }
+}
+`, ri, location, ri)
+}
+
+func testAccAzureRMNotificationHubNamespace_withTags(ri int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_notification_hub_namespace" "test" {
+  name                = "acctestnhn-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  namespace_type      = "NotificationHub"
+
+  sku {
+    name = "Free"
+  }
+
+  tags {
+    environment = "test"
+    company     = "hashicorp"
+  }
+}
+`, ri, location, ri)
+}
+
+func testAccAzureRMNotificationHubNamespace_withTagsUpdated(ri int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_notification_hub_namespace" "test" {
+  name                = "acctestnhn-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  namespace_type      = "NotificationHub"
+
+  sku {
+    name = "Free"
+  }
+
+  tags {
+    environment = "production"
   }
 }
 `, ri, location, ri)

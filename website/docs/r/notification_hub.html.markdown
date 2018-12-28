@@ -35,6 +35,10 @@ resource "azurerm_notification_hub" "test" {
   namespace_name      = "${azurerm_notification_hub_namespace.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
+  
+  tags {
+    environment = "Production"
+  }
 }
 ```
 
@@ -57,6 +61,8 @@ The following arguments are supported:
 * `gcm_credential` - (Optional) A `gcm_credential` block as defined below.
 
 ~> **NOTE:** Removing the `gcm_credential` block will currently force a recreation of this resource [due to this bug in the Azure SDK for Go](https://github.com/Azure/azure-sdk-for-go/issues/2246) - we'll remove this limitation when the SDK bug is fixed.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 

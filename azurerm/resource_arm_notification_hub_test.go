@@ -14,7 +14,6 @@ func TestAccAzureRMNotificationHub_basic(t *testing.T) {
 	resourceName := "azurerm_notification_hub.test"
 
 	ri := acctest.RandInt()
-	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -22,11 +21,56 @@ func TestAccAzureRMNotificationHub_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNotificationHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNotificationHub_basic(ri, location),
+				Config: testAccAzureRMNotificationHub_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNotificationHubExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "apns_credential.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "gcm_credential.#", "0"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMNotificationHub_withTags(t *testing.T) {
+	resourceName := "azurerm_notification_hub.test"
+
+	ri := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNotificationHubDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNotificationHub_withTags(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNotificationHubExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "apns_credential.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "gcm_credential.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "test"),
+					resource.TestCheckResourceAttr(resourceName, "tags.company", "hashicorp"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAzureRMNotificationHub_withTagsUpdated(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNotificationHubExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "apns_credential.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "gcm_credential.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "production"),
 				),
 			},
 			{
@@ -92,7 +136,7 @@ func testCheckAzureRMNotificationHubDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMNotificationHub_basic(ri int, location string) string {
+func testAccAzureRMNotificationHub_preReqs(ri int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRGpol-%d"
@@ -109,6 +153,12 @@ resource "azurerm_notification_hub_namespace" "test" {
     name = "Free"
   }
 }
+`, ri, location, ri)
+}
+
+func testAccAzureRMNotificationHub_basic(ri int, location string) string {
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_notification_hub" "test" {
   name                = "acctestnh-%d"
@@ -116,5 +166,40 @@ resource "azurerm_notification_hub" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
 }
-`, ri, location, ri, ri)
+`, testAccAzureRMNotificationHub_preReqs(ri, location), ri)
+}
+
+func testAccAzureRMNotificationHub_withTags(ri int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_notification_hub" "test" {
+  name                = "acctestnh-%d"
+  namespace_name      = "${azurerm_notification_hub_namespace.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  tags {
+    environment = "test"
+    company     = "hashicorp"
+  }
+}
+`, testAccAzureRMNotificationHub_preReqs(ri, location), ri)
+}
+
+func testAccAzureRMNotificationHub_withTagsUpdated(ri int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_notification_hub" "test" {
+  name                = "acctestnh-%d"
+  namespace_name      = "${azurerm_notification_hub_namespace.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  tags {
+    environment = "production"
+  }
+}
+`, testAccAzureRMNotificationHub_preReqs(ri, location), ri)
 }

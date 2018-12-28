@@ -73,14 +73,12 @@ func resourceArmNotificationHubNamespace() *schema.Resource {
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
-			// NOTE: skipping tags as there's a bug in the API where the Keys for Tags are returned in lower-case
-			// Azure Rest API Specs issue: https://github.com/Azure/azure-sdk-for-go/issues/2239
-			//"tags": tagsSchema(),
-
 			"servicebus_endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -106,7 +104,9 @@ func resourceArmNotificationHubNamespaceCreateUpdate(d *schema.ResourceData, met
 			NamespaceType: notificationhubs.NamespaceType(namespaceType),
 			Enabled:       utils.Bool(enabled),
 		},
+		Tags: expandTags(d.Get("tags").(map[string]interface{})),
 	}
+
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
 		return fmt.Errorf("Error creating/updating Notification Hub Namesapce %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -163,6 +163,7 @@ func resourceArmNotificationHubNamespaceRead(d *schema.ResourceData, meta interf
 		d.Set("servicebus_endpoint", props.ServiceBusEndpoint)
 	}
 
+	flattenAndSetTags(d, resp.Tags)
 	return nil
 }
 

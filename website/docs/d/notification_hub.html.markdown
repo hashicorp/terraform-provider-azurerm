@@ -42,6 +42,8 @@ output "id" {
 
 * `gcm_credential` - A `gcm_credential` block as defined below.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 ---
 
 A `apns_credential` block exports:

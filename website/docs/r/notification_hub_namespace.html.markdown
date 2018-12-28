@@ -28,6 +28,10 @@ resource "azurerm_notification_hub_namespace" "test" {
   sku {
     name = "Free"
   }
+  
+  tags {
+    environment = "Production"
+  }
 }
 ```
 
@@ -46,6 +50,8 @@ The following arguments are supported:
 * `sku` - (Required) A `sku` block as defined below.
 
 * `enabled` - (Optional) Is this Notification Hub Namespace enabled? Defaults to `true`.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 

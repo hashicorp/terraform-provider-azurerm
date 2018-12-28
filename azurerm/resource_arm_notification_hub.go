@@ -116,9 +116,7 @@ func resourceArmNotificationHub() *schema.Resource {
 				},
 			},
 
-			// NOTE: skipping tags as there's a bug in the API where the Keys for Tags are returned in lower-case
-			// Azure Rest API Specs issue: https://github.com/Azure/azure-sdk-for-go/issues/2239
-			//"tags": tagsSchema(),
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -150,6 +148,7 @@ func resourceArmNotificationHubCreateUpdate(d *schema.ResourceData, meta interfa
 			ApnsCredential: apnsCredential,
 			GcmCredential:  gcmCredentials,
 		},
+		Tags: expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters); err != nil {
@@ -216,6 +215,7 @@ func resourceArmNotificationHubRead(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
+	flattenAndSetTags(d, resp.Tags)
 	return nil
 }
 
