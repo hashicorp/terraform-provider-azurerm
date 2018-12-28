@@ -254,7 +254,7 @@ func TestAccAzureRMServiceFabricCluster_azureActiveDirectory(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "certificate.0.x509_store_name", "My"),
 					resource.TestCheckResourceAttr(resourceName, "azure_active_directory.#", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "azure_active_directory.tenant_id"),
-					resource.TestCheckResourceAttr(resourceName, "azure_active_directory.cluster_application_id", "00000000-0000-0000-0000-000000000000"),
+					resource.TestCheckResourceAttrSet(resourceName, "azure_active_directory.cluster_application_id"),
 					resource.TestCheckResourceAttr(resourceName, "azure_active_directory.client_application_id", "00000000-0000-0000-0000-000000000000"),
 					resource.TestCheckResourceAttr(resourceName, "fabric_settings.0.name", "Security"),
 					resource.TestCheckResourceAttr(resourceName, "fabric_settings.0.parameters.ClusterProtectionLevel", "EncryptAndSign"),
