@@ -767,7 +767,7 @@ resource "azurerm_resource_group" "test" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_azuread_application" "test" {
-  name                       = "acctestAAD-%d"
+  name                       = "${azurerm_resource_group.test.name}-AAD"
   homepage                   = "https://example:80/Explorer/index.html"
   identifier_uris            = ["https://acctestAAD-app"]
   reply_urls                 = ["https://example"]
