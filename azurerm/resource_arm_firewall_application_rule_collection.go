@@ -80,17 +80,12 @@ func resourceArmFirewallApplicationRuleCollection() *schema.Resource {
 							Optional: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 							Set:      schema.HashString,
-							// ConflictsWith: []string{
-							// 	"target_fqdns",
-							// 	"protocol",
-							// },
 						},
 						"target_fqdns": {
 							Type:     schema.TypeSet,
 							Optional: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 							Set:      schema.HashString,
-							// ConflictsWith: []string{"fqdn_tags"},
 						},
 						"protocol": {
 							Type:     schema.TypeList,
@@ -113,7 +108,6 @@ func resourceArmFirewallApplicationRuleCollection() *schema.Resource {
 									},
 								},
 							},
-							// ConflictsWith: []string{"fqdn_tags"},
 						},
 					},
 				},
@@ -129,6 +123,10 @@ func resourceArmFirewallApplicationRuleCollectionCreateUpdate(d *schema.Resource
 	name := d.Get("name").(string)
 	firewallName := d.Get("azure_firewall_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+	applicationRules, err := expandArmFirewallApplicationRules(d.Get("rule").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("Error expanding Firewall Application Rules: %+v", err)
+	}
 
 	azureRMLockByName(firewallName, azureFirewallResourceName)
 	defer azureRMUnlockByName(firewallName, azureFirewallResourceName)
@@ -148,7 +146,6 @@ func resourceArmFirewallApplicationRuleCollectionCreateUpdate(d *schema.Resource
 	}
 	ruleCollections := *props.ApplicationRuleCollections
 
-	applicationRules := expandArmFirewallApplicationRules(d.Get("rule").([]interface{}))
 	priority := d.Get("priority").(int)
 	newRuleCollection := network.AzureFirewallApplicationRuleCollection{
 		Name: utils.String(name),
@@ -355,7 +352,7 @@ func resourceArmFirewallApplicationRuleCollectionDelete(d *schema.ResourceData, 
 	return nil
 }
 
-func expandArmFirewallApplicationRules(inputs []interface{}) []network.AzureFirewallApplicationRule {
+func expandArmFirewallApplicationRules(inputs []interface{}) ([]network.AzureFirewallApplicationRule, error) {
 	outputs := make([]network.AzureFirewallApplicationRule, 0)
 
 	for _, input := range inputs {
@@ -399,10 +396,15 @@ func expandArmFirewallApplicationRules(inputs []interface{}) []network.AzureFire
 			ruleProtocols = append(ruleProtocols, ruleProtocol)
 		}
 		output.Protocols = &ruleProtocols
+		if len(*output.FqdnTags) > 0 {
+			if len(*output.TargetFqdns) > 0 || len(*output.Protocols) > 0 {
+				return outputs, fmt.Errorf("`fqdn_tags` cannot be used with `target_fqdns` or `protocol`")
+			}
+		}
 		outputs = append(outputs, output)
 	}
 
-	return outputs
+	return outputs, nil
 }
 
 func flattenFirewallApplicationRuleCollectionRules(rules *[]network.AzureFirewallApplicationRule) []map[string]interface{} {
