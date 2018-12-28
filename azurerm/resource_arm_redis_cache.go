@@ -44,7 +44,7 @@ func resourceArmRedisCache() *schema.Resource {
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
-
+			"zones":               singleZonesSchema(),
 			"capacity": {
 				Type:     schema.TypeInt,
 				Required: true,
@@ -249,6 +249,11 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 		parameters.SubnetID = utils.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("zones"); ok {
+		zones := expandZones(v.([]interface{}))
+		parameters.Zones = zones
+	}
+
 	future, err := client.Create(ctx, resGroup, name, parameters)
 	if err != nil {
 		return err
@@ -421,6 +426,9 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
+	}
+	if zones := resp.Zones; zones != nil {
+		d.Set("zones", zones)
 	}
 
 	if sku := resp.Sku; sku != nil {
