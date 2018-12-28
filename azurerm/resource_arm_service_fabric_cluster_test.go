@@ -766,6 +766,15 @@ resource "azurerm_resource_group" "test" {
 
 data "azurerm_client_config" "current" {}
 
+resource "azurerm_azuread_application" "test" {
+  name                       = "acctestAAD-%d"
+  homepage                   = "https://example:80/Explorer/index.html"
+  identifier_uris            = ["https://acctestAAD-app"]
+  reply_urls                 = ["https://example"]
+  available_to_other_tenants = false
+  oauth2_allow_implicit_flow = true
+}
+
 resource "azurerm_service_fabric_cluster" "test" {
   name                = "acctest-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -782,7 +791,7 @@ resource "azurerm_service_fabric_cluster" "test" {
 
   azure_active_directory {
     tenant_id              = "${data.azurerm_client_config.current.tenant_id}"
-    cluster_application_id = "00000000-0000-0000-0000-000000000000"
+    cluster_application_id = "${azurerm_azuread_application.test.application_id}"
     client_application_id  = "00000000-0000-0000-0000-000000000000"
   }
 
