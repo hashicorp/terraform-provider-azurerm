@@ -174,9 +174,9 @@ resource "azurerm_servicebus_namespace_authorization_rule" "test" {
   namespace_name      = "${azurerm_servicebus_namespace.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  listen              = %[3]t
-  send                = %[4]t
-  manage              = %[5]t
+  listen = %[3]t
+  send   = %[4]t
+  manage = %[5]t
 }
 `, rInt, location, listen, send, manage)
 }

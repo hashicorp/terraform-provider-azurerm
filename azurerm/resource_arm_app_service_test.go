@@ -1486,7 +1486,7 @@ func testAccAzureRMAppService_clientAffinityDisabled(rInt int, location string) 
 func testAccAzureRMAppService_clientAffinity(rInt int, location string, clientAffinity bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

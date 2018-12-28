@@ -120,11 +120,11 @@ func testCheckAzureRMSecurityCenterContactDestroy(s *terraform.State) error {
 func testAccAzureRMSecurityCenterContact_template(email, phone string, notifications, adminAlerts bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_security_center_contact" "test" {
-    email = "%s"
-    phone = "%s"
+  email = "%s"
+  phone = "%s"
 
-    alert_notifications = %t
-    alerts_to_admins    = %t
+  alert_notifications = %t
+  alerts_to_admins    = %t
 }
 `, email, phone, notifications, adminAlerts)
 }

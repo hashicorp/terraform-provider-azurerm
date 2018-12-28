@@ -35,7 +35,7 @@ func testAccDataSourceKeyVaultKey_complete(rString string, location string) stri
 %s
 
 data "azurerm_key_vault_key" "test" {
-  name 		= "${azurerm_key_vault_key.test.name}"
+  name      = "${azurerm_key_vault_key.test.name}"
   vault_uri = "${azurerm_key_vault_key.test.vault_uri}"
 }
 `, testAccAzureRMKeyVaultKey_complete(rString, location))

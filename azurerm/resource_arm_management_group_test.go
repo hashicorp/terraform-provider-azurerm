@@ -236,8 +236,7 @@ func testCheckAzureRMManagementGroupDestroy(s *terraform.State) error {
 
 func testAzureRMManagementGroup_basic() string {
 	return fmt.Sprintf(`
-resource "azurerm_management_group" "test" {
-}
+resource "azurerm_management_group" "test" {}
 `)
 }
 

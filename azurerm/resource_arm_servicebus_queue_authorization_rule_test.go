@@ -186,9 +186,9 @@ resource "azurerm_servicebus_queue_authorization_rule" "test" {
   queue_name          = "${azurerm_servicebus_queue.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  listen              = %[3]t
-  send                = %[4]t
-  manage              = %[5]t
+  listen = %[3]t
+  send   = %[4]t
+  manage = %[5]t
 }
 `, rInt, location, listen, send, manage)
 }

@@ -166,7 +166,7 @@ resource "azurerm_eventhub_namespace" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku                 = "Standard"
+  sku = "Standard"
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
@@ -174,9 +174,9 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  listen              = %[3]t
-  send                = %[4]t
-  manage              = %[5]t
+  listen = %[3]t
+  send   = %[4]t
+  manage = %[5]t
 }
 `, rInt, location, listen, send, manage)
 }

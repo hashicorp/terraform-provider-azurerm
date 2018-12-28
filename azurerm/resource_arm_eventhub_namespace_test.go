@@ -435,18 +435,17 @@ resource "azurerm_eventhub_namespace" "test" {
 
 func testAccAzureRMEventHubNamespace_capacity(rInt int, location string, capacity int) string {
 	return fmt.Sprintf(`
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_eventhub_namespace" "test" {
-  name                     = "acctesteventhubnamespace-%d"
-  location                 = "${azurerm_resource_group.test.location}"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  sku                      = "Basic"
-  capacity                 = %d
+  name                = "acctesteventhubnamespace-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Basic"
+  capacity            = %d
 }
 `, rInt, location, rInt, capacity)
 }

@@ -40,6 +40,7 @@ func testAccAzureRMLogicAppActionCustom_basic(rInt int, location string) string 
 resource "azurerm_logic_app_action_custom" "test" {
   name         = "action%d"
   logic_app_id = "${azurerm_logic_app_workflow.test.id}"
+
   body = <<BODY
 {
     "description": "A variable to configure the auto expiration age in days. Configured in negative number. Default is -30 (30 days old).",

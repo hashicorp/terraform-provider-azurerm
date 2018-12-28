@@ -290,8 +290,8 @@ func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
 	ri := acctest.RandInt()
 	containerRegistryName := fmt.Sprintf("testacccr%d", ri)
 	resourceGroupName := fmt.Sprintf("testAccRg-%d", ri)
-	config := testAccAzureRMContainerRegistry_geoReplication(ri, testLocation(), skuPremium, `"eastus", "westus"`)
-	updatedConfig := testAccAzureRMContainerRegistry_geoReplication(ri, testLocation(), skuPremium, `"centralus", "eastus"`)
+	config := testAccAzureRMContainerRegistry_geoReplication(ri, testLocation(), skuPremium, `eastus", "westus`)
+	updatedConfig := testAccAzureRMContainerRegistry_geoReplication(ri, testLocation(), skuPremium, `centralus", "eastus`)
 	updatedConfigWithNoLocation := testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation(ri, testLocation(), skuPremium)
 	updatedConfigBasicSku := testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation(ri, testLocation(), skuBasic)
 
@@ -580,11 +580,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_container_registry" "test" {
-  name                   = "testacccr%d"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  location               = "${azurerm_resource_group.test.location}"
-  sku                    = "%s"
-  georeplication_locations = [%s]
+  name                     = "testacccr%d"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  sku                      = "%s"
+  georeplication_locations = ["%s"]
 }
 `, rInt, location, rInt, sku, georeplicationLocations)
 }
@@ -597,10 +597,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_container_registry" "test" {
-  name                   = "testacccr%d"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  location               = "${azurerm_resource_group.test.location}"
-  sku                    = "%s"
+  name                = "testacccr%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  sku                 = "%s"
 }
 `, rInt, location, rInt, sku)
 }

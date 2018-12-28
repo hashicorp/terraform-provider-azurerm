@@ -4786,13 +4786,11 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  upgrade_policy_mode  = "%[3]s"
-  health_probe_id      = "${azurerm_lb_probe.test.id}"
-  depends_on           = ["azurerm_lb_rule.test"]
+  upgrade_policy_mode = "%[3]s"
+  health_probe_id     = "${azurerm_lb_probe.test.id}"
+  depends_on          = ["azurerm_lb_rule.test"]
 
-  %[4]s
-
-  sku {
+  %[4]s#_#" sku {
     name     = "Standard_F2"
     tier     = "Standard"
     capacity = 1
@@ -4807,7 +4805,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   network_profile {
     name    = "TestNetworkProfile"
     primary = true
-    
+
     ip_configuration {
       name                                   = "TestIPConfiguration"
       subnet_id                              = "${azurerm_subnet.test.id}"
@@ -4824,7 +4822,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_data_disk {
-    lun 		          = 0
+    lun               = 0
     caching           = "ReadWrite"
     create_option     = "Empty"
     disk_size_gb      = 10
@@ -4897,7 +4895,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   identity {
-    type     = "SystemAssigned, UserAssigned"
+    type         = "SystemAssigned, UserAssigned"
     identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
   }
 
@@ -4932,6 +4930,5 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-
 `, rInt, location, rString)
 }

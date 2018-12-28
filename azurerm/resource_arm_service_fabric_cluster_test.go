@@ -541,7 +541,7 @@ func testCheckAzureRMServiceFabricClusterExists(name string) resource.TestCheckF
 func testAccAzureRMServiceFabricCluster_basic(rInt int, location string, count int) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -682,7 +682,7 @@ resource "azurerm_service_fabric_cluster" "test" {
     x509_store_name = "My"
   }
 
-	reverse_proxy_certificate {
+  reverse_proxy_certificate {
     thumbprint      = "33:41:DB:6C:F2:AF:72:C6:11:DF:3B:E3:72:1A:65:3A:F1:D4:3E:CD:50:F5:84:F8:28:79:3D:BE:91:03:C3:EE"
     x509_store_name = "My"
   }
@@ -696,12 +696,12 @@ resource "azurerm_service_fabric_cluster" "test" {
   }
 
   node_type {
-    name                 				= "first"
-    instance_count       				= 3
-    is_primary           				= true
-    client_endpoint_port 			  = 2020
-		http_endpoint_port   			  = 80
-		reverse_proxy_endpoint_port	= 19081
+    name                        = "first"
+    instance_count              = 3
+    is_primary                  = true
+    client_endpoint_port        = 2020
+    http_endpoint_port          = 80
+    reverse_proxy_endpoint_port = 19081
   }
 }
 `, rInt, location, rInt)

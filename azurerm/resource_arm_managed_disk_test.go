@@ -484,21 +484,24 @@ resource "azurerm_managed_disk" "test" {
 func testAccAzureRMManagedDiskNonStandardCasing(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
+
 resource "azurerm_managed_disk" "test" {
-    name = "acctestd-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    storage_account_type = "standard_lrs"
-    create_option = "Empty"
-    disk_size_gb = "1"
-    tags {
-        environment = "acctest"
-        cost-center = "ops"
-    }
-}`, rInt, location, rInt)
+  name                 = "acctestd-%d"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_type = "standard_lrs"
+  create_option        = "Empty"
+  disk_size_gb         = "1"
+
+  tags {
+    environment = "acctest"
+    cost-center = "ops"
+  }
+}
+`, rInt, location, rInt)
 }
 
 func testAccAzureRMManagedDisk_platformImage(rInt int, location string) string {
@@ -511,16 +514,17 @@ data "azurerm_platform_image" "test" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
+
 resource "azurerm_managed_disk" "test" {
-  name = "acctestd-%d"
-  location = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  os_type = "Linux"
-  create_option = "FromImage"
-  image_reference_id = "${data.azurerm_platform_image.test.id}"
+  name                 = "acctestd-%d"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  os_type              = "Linux"
+  create_option        = "FromImage"
+  image_reference_id   = "${data.azurerm_platform_image.test.id}"
   storage_account_type = "Standard_LRS"
 }
 `, location, rInt, location, rInt)

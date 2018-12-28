@@ -623,8 +623,8 @@ resource "azurerm_application_gateway" "test" {
   }
 
   authentication_certificate {
-    name     = "${local.auth_cert_name}"
-    data     = "${file("testdata/application_gateway_test_2.crt")}"
+    name = "${local.auth_cert_name}"
+    data = "${file("testdata/application_gateway_test_2.crt")}"
   }
 
   http_listener {

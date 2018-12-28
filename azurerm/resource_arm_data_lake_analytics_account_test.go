@@ -218,7 +218,7 @@ resource "azurerm_data_lake_analytics_account" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
 
-  tier                = "Commitment_100AUHours"
+  tier = "Commitment_100AUHours"
 
   default_store_account_name = "${azurerm_data_lake_store.test.name}"
 }
@@ -234,7 +234,7 @@ resource "azurerm_data_lake_analytics_account" "test" {
   name                = "acctest%s"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  
+
   default_store_account_name = "${azurerm_data_lake_store.test.name}"
 
   tags {
@@ -254,7 +254,7 @@ resource "azurerm_data_lake_analytics_account" "test" {
   name                = "acctest%s"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  
+
   default_store_account_name = "${azurerm_data_lake_store.test.name}"
 
   tags {

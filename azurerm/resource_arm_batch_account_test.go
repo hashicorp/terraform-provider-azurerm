@@ -154,15 +154,15 @@ func testCheckAzureRMBatchAccountDestroy(s *terraform.State) error {
 func testAccAzureRMBatchAccount_basic(rInt int, batchAccountSuffix string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "testaccbatch%d"
-	location = "%s"
+  name     = "testaccbatch%d"
+  location = "%s"
 }
 
 resource "azurerm_batch_account" "test" {
-	name                 = "testaccbatch%s"
-	resource_group_name  = "${azurerm_resource_group.test.name}"
-	location             = "${azurerm_resource_group.test.location}"
-	pool_allocation_mode = "BatchService"
+  name                 = "testaccbatch%s"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = "${azurerm_resource_group.test.location}"
+  pool_allocation_mode = "BatchService"
 }
 `, rInt, location, batchAccountSuffix)
 }
@@ -170,28 +170,28 @@ resource "azurerm_batch_account" "test" {
 func testAccAzureRMBatchAccount_complete(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "testaccbatch%d"
-	location = "%s"
+  name     = "testaccbatch%d"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
-	name                     = "testaccsa%s"
-	resource_group_name      = "${azurerm_resource_group.test.name}"
-	location                 = "${azurerm_resource_group.test.location}"
-	account_tier             = "Standard"
-	account_replication_type = "LRS"
-  }
+  name                     = "testaccsa%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
 
 resource "azurerm_batch_account" "test" {
-	name                 = "testaccbatch%s"
-	resource_group_name  = "${azurerm_resource_group.test.name}"
-	location             = "${azurerm_resource_group.test.location}"
-	pool_allocation_mode = "BatchService"
-	storage_account_id   = "${azurerm_storage_account.test.id}"	
-	
-	tags {
-		env = "test"
-	}
+  name                 = "testaccbatch%s"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = "${azurerm_resource_group.test.location}"
+  pool_allocation_mode = "BatchService"
+  storage_account_id   = "${azurerm_storage_account.test.id}"
+
+  tags {
+    env = "test"
+  }
 }
 `, rInt, location, rString, rString)
 }
@@ -199,29 +199,29 @@ resource "azurerm_batch_account" "test" {
 func testAccAzureRMBatchAccount_completeUpdated(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "testaccbatch%d"
-	location = "%s"
+  name     = "testaccbatch%d"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
-	name                     = "testaccsa%s2"
-	resource_group_name      = "${azurerm_resource_group.test.name}"
-	location                 = "${azurerm_resource_group.test.location}"
-	account_tier             = "Standard"
-	account_replication_type = "LRS"
+  name                     = "testaccsa%s2"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_batch_account" "test" {
-	name                 = "testaccbatch%s"
-	resource_group_name  = "${azurerm_resource_group.test.name}"
-	location             = "${azurerm_resource_group.test.location}"
-	pool_allocation_mode = "BatchService"
-	storage_account_id   = "${azurerm_storage_account.test.id}"
+  name                 = "testaccbatch%s"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = "${azurerm_resource_group.test.location}"
+  pool_allocation_mode = "BatchService"
+  storage_account_id   = "${azurerm_storage_account.test.id}"
 
-	tags {
-		env 	= "test"
-		version = "2"
-  	}
+  tags {
+    env     = "test"
+    version = "2"
+  }
 }
 `, rInt, location, rString, rString)
 }
