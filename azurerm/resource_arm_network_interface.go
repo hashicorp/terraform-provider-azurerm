@@ -89,7 +89,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.IPv4),
 								string(network.IPv6),
-							}, true),
+							}, false),
 						},
 
 						"private_ip_address_allocation": {
@@ -515,7 +515,7 @@ func flattenNetworkInterfaceIPConfigurations(ipConfigs *[]network.InterfaceIPCon
 
 		niIPConfig["name"] = *ipConfig.Name
 
-		if props.Subnet != nil {
+		if props.Subnet != nil && props.Subnet.ID != nil {
 			niIPConfig["subnet_id"] = *props.Subnet.ID
 		}
 
@@ -526,7 +526,7 @@ func flattenNetworkInterfaceIPConfigurations(ipConfigs *[]network.InterfaceIPCon
 		}
 
 		if props.PrivateIPAddressVersion != "" {
-			niIPConfig["private_ip_address_version"] = props.PrivateIPAddressVersion
+			niIPConfig["private_ip_address_version"] = string(props.PrivateIPAddressVersion)
 		}
 
 		if props.PublicIPAddress != nil {
@@ -594,7 +594,7 @@ func expandAzureRmNetworkInterfaceIpConfigurations(d *schema.ResourceData) ([]ne
 		}
 
 		if private_ip_address_version == network.IPv4 && subnet_id == "" {
-			return nil, nil, nil, fmt.Errorf("Required field `ip_configuration`, `subnet_id` must be specified when using IPv4.")
+			return nil, nil, nil, fmt.Errorf("A Subnet ID must be specified for an IPv4 Network Interface.")
 		}
 
 		if subnet_id != "" {
