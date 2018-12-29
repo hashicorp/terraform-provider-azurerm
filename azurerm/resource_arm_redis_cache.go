@@ -44,7 +44,9 @@ func resourceArmRedisCache() *schema.Resource {
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
+
 			"zones":               singleZonesSchema(),
+
 			"capacity": {
 				Type:     schema.TypeInt,
 				Required: true,
@@ -250,8 +252,7 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if v, ok := d.GetOk("zones"); ok {
-		zones := expandZones(v.([]interface{}))
-		parameters.Zones = zones
+		parameters.Zones = expandZones(v.([]interface{}))
 	}
 
 	future, err := client.Create(ctx, resGroup, name, parameters)
