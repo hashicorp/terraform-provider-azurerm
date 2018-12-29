@@ -6,14 +6,14 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMDataLakeAnalyticsAccount_basic(t *testing.T) {
 	resourceName := "azurerm_data_lake_analytics_account.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -43,7 +43,7 @@ func TestAccAzureRMDataLakeAnalyticsAccount_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_data_lake_analytics_account.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -67,7 +67,7 @@ func TestAccAzureRMDataLakeAnalyticsAccount_requiresImport(t *testing.T) {
 
 func TestAccAzureRMDataLakeAnalyticsAccount_tier(t *testing.T) {
 	resourceName := "azurerm_data_lake_analytics_account.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -92,7 +92,7 @@ func TestAccAzureRMDataLakeAnalyticsAccount_tier(t *testing.T) {
 
 func TestAccAzureRMDataLakeAnalyticsAccount_withTags(t *testing.T) {
 	resourceName := "azurerm_data_lake_analytics_account.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

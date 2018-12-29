@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMMySQLDatabase_basic(t *testing.T) {
 	resourceName := "azurerm_mysql_database.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMMySQLDatabase_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -37,7 +37,7 @@ func TestAccAzureRMMySQLDatabase_basic(t *testing.T) {
 
 func TestAccAzureRMMySQLDatabase_charsetUppercase(t *testing.T) {
 	resourceName := "azurerm_mysql_database.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMMySQLDatabase_charsetUppercase(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -63,7 +63,7 @@ func TestAccAzureRMMySQLDatabase_charsetUppercase(t *testing.T) {
 
 func TestAccAzureRMMySQLDatabase_charsetMixedcase(t *testing.T) {
 	resourceName := "azurerm_mysql_database.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMMySQLDatabase_charsetMixedcase(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{

@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMManagedDisk_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_managed_disk.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	name := fmt.Sprintf("acctestmanageddisk-%d", ri)
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", ri)

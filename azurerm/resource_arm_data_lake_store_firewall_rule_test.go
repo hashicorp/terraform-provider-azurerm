@@ -7,14 +7,14 @@ import (
 
 	"strconv"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMDataLakeStoreFirewallRule_basic(t *testing.T) {
 	resourceName := "azurerm_data_lake_store_firewall_rule.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	startIP := "1.1.1.1"
 	endIP := "2.2.2.2"
 
@@ -49,7 +49,7 @@ func TestAccAzureRMDataLakeStoreFirewallRule_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_data_lake_store_firewall_rule.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	startIP := "1.1.1.1"
 	endIP := "2.2.2.2"
@@ -75,7 +75,7 @@ func TestAccAzureRMDataLakeStoreFirewallRule_requiresImport(t *testing.T) {
 
 func TestAccAzureRMDataLakeStoreFirewallRule_update(t *testing.T) {
 	resourceName := "azurerm_data_lake_store_firewall_rule.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -104,7 +104,7 @@ func TestAccAzureRMDataLakeStoreFirewallRule_update(t *testing.T) {
 
 func TestAccAzureRMDataLakeStoreFirewallRule_azureServices(t *testing.T) {
 	resourceName := "azurerm_data_lake_store_firewall_rule.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	azureServicesIP := "0.0.0.0"
 
 	resource.ParallelTest(t, resource.TestCase{

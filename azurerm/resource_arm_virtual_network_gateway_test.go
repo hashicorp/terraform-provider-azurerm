@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMVirtualNetworkGateway_basic(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_virtual_network_gateway.test"
 	config := testAccAzureRMVirtualNetworkGateway_basic(ri, testLocation())
 
@@ -37,7 +37,7 @@ func TestAccAzureRMVirtualNetworkGateway_basic(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualNetworkGateway_lowerCaseSubnetName(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_virtual_network_gateway.test"
 	config := testAccAzureRMVirtualNetworkGateway_lowerCaseSubnetName(ri, testLocation())
 
@@ -63,7 +63,7 @@ func TestAccAzureRMVirtualNetworkGateway_lowerCaseSubnetName(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualNetworkGateway_vpnGw1(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualNetworkGateway_vpnGw1(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -82,7 +82,7 @@ func TestAccAzureRMVirtualNetworkGateway_vpnGw1(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualNetworkGateway_activeActive(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualNetworkGateway_activeActive(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -102,7 +102,7 @@ func TestAccAzureRMVirtualNetworkGateway_activeActive(t *testing.T) {
 
 func TestAccAzureRMVirtualNetworkGateway_standard(t *testing.T) {
 	resourceName := "azurerm_virtual_network_gateway.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualNetworkGateway_sku(ri, testLocation(), "Standard")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -123,7 +123,7 @@ func TestAccAzureRMVirtualNetworkGateway_standard(t *testing.T) {
 
 func TestAccAzureRMVirtualNetworkGateway_vpnGw2(t *testing.T) {
 	resourceName := "azurerm_virtual_network_gateway.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualNetworkGateway_sku(ri, testLocation(), "VpnGw2")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -144,7 +144,7 @@ func TestAccAzureRMVirtualNetworkGateway_vpnGw2(t *testing.T) {
 
 func TestAccAzureRMVirtualNetworkGateway_vpnGw3(t *testing.T) {
 	resourceName := "azurerm_virtual_network_gateway.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualNetworkGateway_sku(ri, testLocation(), "VpnGw3")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -164,7 +164,7 @@ func TestAccAzureRMVirtualNetworkGateway_vpnGw3(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualNetworkGateway_vpnClientConfig(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_virtual_network_gateway.test"
 	config := testAccAzureRMVirtualNetworkGateway_vpnClientConfig(ri, testLocation())
 
@@ -186,7 +186,7 @@ func TestAccAzureRMVirtualNetworkGateway_vpnClientConfig(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualNetworkGateway_vpnClientConfigOpenVPN(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_virtual_network_gateway.test"
 	config := testAccAzureRMVirtualNetworkGateway_vpnClientConfigOpenVPN(ri, testLocation())
 
@@ -207,7 +207,7 @@ func TestAccAzureRMVirtualNetworkGateway_vpnClientConfigOpenVPN(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualNetworkGateway_enableBgp(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_virtual_network_gateway.test"
 	config := testAccAzureRMVirtualNetworkGateway_enableBgp(ri, testLocation())
 
@@ -229,7 +229,7 @@ func TestAccAzureRMVirtualNetworkGateway_enableBgp(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualNetworkGateway_expressRoute(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_virtual_network_gateway.test"
 	config := testAccAzureRMVirtualNetworkGateway_expressRoute(ri, testLocation())
 

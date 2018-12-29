@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMEventHubPartitionCount_validation(t *testing.T) {
@@ -166,7 +167,7 @@ func TestAccAzureRMEventHubArchiveNameFormat_validation(t *testing.T) {
 
 func TestAccAzureRMEventHub_basic(t *testing.T) {
 	resourceName := "azurerm_eventhub.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -190,7 +191,7 @@ func TestAccAzureRMEventHub_basic(t *testing.T) {
 
 func TestAccAzureRMEventHub_partitionCountUpdate(t *testing.T) {
 	resourceName := "azurerm_eventhub.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	preConfig := testAccAzureRMEventHub_basic(ri, testLocation())
 	postConfig := testAccAzureRMEventHub_partitionCountUpdate(ri, testLocation())
 
@@ -219,7 +220,7 @@ func TestAccAzureRMEventHub_partitionCountUpdate(t *testing.T) {
 
 func TestAccAzureRMEventHub_standard(t *testing.T) {
 	resourceName := "azurerm_eventhub.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -243,7 +244,7 @@ func TestAccAzureRMEventHub_standard(t *testing.T) {
 
 func TestAccAzureRMEventHub_captureDescription(t *testing.T) {
 	resourceName := "azurerm_eventhub.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -269,7 +270,7 @@ func TestAccAzureRMEventHub_captureDescription(t *testing.T) {
 
 func TestAccAzureRMEventHub_captureDescriptionDisabled(t *testing.T) {
 	resourceName := "azurerm_eventhub.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
 	location := testLocation()
 
@@ -301,7 +302,7 @@ func TestAccAzureRMEventHub_captureDescriptionDisabled(t *testing.T) {
 
 func TestAccAzureRMEventHub_messageRetentionUpdate(t *testing.T) {
 	resourceName := "azurerm_eventhub.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	preConfig := testAccAzureRMEventHub_standard(ri, testLocation())
 	postConfig := testAccAzureRMEventHub_messageRetentionUpdate(ri, testLocation())
 

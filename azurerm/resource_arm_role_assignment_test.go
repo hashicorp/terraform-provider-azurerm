@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -143,7 +143,7 @@ func testAccAzureRMRoleAssignment_custom(t *testing.T) {
 	resourceName := "azurerm_role_assignment.test"
 	roleDefinitionId := uuid.New().String()
 	roleAssignmentId := uuid.New().String()
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -220,7 +220,7 @@ func testCheckAzureRMRoleAssignmentDestroy(s *terraform.State) error {
 func testAccAzureRMActiveDirectoryServicePrincipal_roleAssignment(t *testing.T) {
 	resourceName := "azurerm_azuread_service_principal.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	id := uuid.New().String()
 
 	resource.Test(t, resource.TestCase{

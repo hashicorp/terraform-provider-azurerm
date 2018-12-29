@@ -5,15 +5,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMSqlDatabase_basic(t *testing.T) {
 	resourceName := "azurerm_sql_database.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -38,7 +38,7 @@ func TestAccAzureRMSqlDatabase_basic(t *testing.T) {
 
 func TestAccAzureRMSqlDatabase_disappears(t *testing.T) {
 	resourceName := "azurerm_sql_database.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -59,7 +59,7 @@ func TestAccAzureRMSqlDatabase_disappears(t *testing.T) {
 
 func TestAccAzureRMSqlDatabase_elasticPool(t *testing.T) {
 	resourceName := "azurerm_sql_database.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -85,7 +85,7 @@ func TestAccAzureRMSqlDatabase_elasticPool(t *testing.T) {
 
 func TestAccAzureRMSqlDatabase_withTags(t *testing.T) {
 	resourceName := "azurerm_sql_database.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMSqlDatabase_withTags(ri, location)
 	postConfig := testAccAzureRMSqlDatabase_withTagsUpdate(ri, location)
@@ -115,7 +115,7 @@ func TestAccAzureRMSqlDatabase_withTags(t *testing.T) {
 
 func TestAccAzureRMSqlDatabase_dataWarehouse(t *testing.T) {
 	resourceName := "azurerm_sql_database.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -140,7 +140,7 @@ func TestAccAzureRMSqlDatabase_dataWarehouse(t *testing.T) {
 
 func TestAccAzureRMSqlDatabase_restorePointInTime(t *testing.T) {
 	resourceName := "azurerm_sql_database.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMSqlDatabase_basic(ri, location)
 	timeToRestore := time.Now().Add(15 * time.Minute)
@@ -173,7 +173,7 @@ func TestAccAzureRMSqlDatabase_restorePointInTime(t *testing.T) {
 
 func TestAccAzureRMSqlDatabase_collation(t *testing.T) {
 	resourceName := "azurerm_sql_database.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMSqlDatabase_basic(ri, location)
 	postConfig := testAccAzureRMSqlDatabase_collationUpdate(ri, location)
@@ -203,7 +203,7 @@ func TestAccAzureRMSqlDatabase_collation(t *testing.T) {
 
 func TestAccAzureRMSqlDatabase_requestedServiceObjectiveName(t *testing.T) {
 	resourceName := "azurerm_sql_database.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMSqlDatabase_requestedServiceObjectiveName(ri, location, "S0")
 	postConfig := testAccAzureRMSqlDatabase_requestedServiceObjectiveName(ri, location, "S1")
@@ -233,7 +233,7 @@ func TestAccAzureRMSqlDatabase_requestedServiceObjectiveName(t *testing.T) {
 
 func TestAccAzureRMSqlDatabase_threatDetectionPolicy(t *testing.T) {
 	resourceName := "azurerm_sql_database.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMSqlDatabase_threatDetectionPolicy(ri, location, "Enabled")
 	postConfig := testAccAzureRMSqlDatabase_threatDetectionPolicy(ri, location, "Disabled")
@@ -352,7 +352,7 @@ func testCheckAzureRMSqlDatabaseDisappears(name string) resource.TestCheckFunc {
 }
 
 func TestAccAzureRMSqlDatabase_bacpac(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSqlDatabase_bacpac(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{

@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMDnsZone_basic(t *testing.T) {
 	resourceName := "azurerm_dns_zone.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDnsZone_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -42,7 +42,7 @@ func TestAccAzureRMDnsZone_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_dns_zone.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -66,7 +66,7 @@ func TestAccAzureRMDnsZone_requiresImport(t *testing.T) {
 
 func TestAccAzureRMDnsZone_withVNets(t *testing.T) {
 	resourceName := "azurerm_dns_zone.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDnsZone_withVNets(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -91,7 +91,7 @@ func TestAccAzureRMDnsZone_withVNets(t *testing.T) {
 
 func TestAccAzureRMDnsZone_withTags(t *testing.T) {
 	resourceName := "azurerm_dns_zone.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMDnsZone_withTags(ri, location)
 	postConfig := testAccAzureRMDnsZone_withTagsUpdate(ri, location)

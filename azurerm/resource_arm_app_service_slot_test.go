@@ -6,15 +6,15 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMAppServiceSlot_basic(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -44,7 +44,7 @@ func TestAccAzureRMAppServiceSlot_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -68,7 +68,7 @@ func TestAccAzureRMAppServiceSlot_requiresImport(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_32Bit(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_32Bit(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -94,7 +94,7 @@ func TestAccAzureRMAppServiceSlot_32Bit(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_alwaysOn(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_alwaysOn(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -120,7 +120,7 @@ func TestAccAzureRMAppServiceSlot_alwaysOn(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_appCommandLine(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_appCommandLine(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -146,7 +146,7 @@ func TestAccAzureRMAppServiceSlot_appCommandLine(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_appSettings(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_appSettings(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -172,7 +172,7 @@ func TestAccAzureRMAppServiceSlot_appSettings(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_clientAffinityEnabled(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_clientAffinityEnabled(ri, testLocation(), true)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -193,7 +193,7 @@ func TestAccAzureRMAppServiceSlot_clientAffinityEnabled(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_clientAffinityEnabledUpdate(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_clientAffinityEnabled(ri, testLocation(), true)
 	updatedConfig := testAccAzureRMAppServiceSlot_clientAffinityEnabled(ri, testLocation(), false)
 
@@ -222,7 +222,7 @@ func TestAccAzureRMAppServiceSlot_clientAffinityEnabledUpdate(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_connectionStrings(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_connectionStrings(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -245,7 +245,7 @@ func TestAccAzureRMAppServiceSlot_connectionStrings(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_defaultDocuments(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_defaultDocuments(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -268,7 +268,7 @@ func TestAccAzureRMAppServiceSlot_defaultDocuments(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_enabled(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_enabled(ri, testLocation(), false)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -289,7 +289,7 @@ func TestAccAzureRMAppServiceSlot_enabled(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_enabledUpdate(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_enabled(ri, testLocation(), false)
 	updatedConfig := testAccAzureRMAppServiceSlot_enabled(ri, testLocation(), true)
 
@@ -318,7 +318,7 @@ func TestAccAzureRMAppServiceSlot_enabledUpdate(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_httpsOnly(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_httpsOnly(ri, testLocation(), true)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -339,7 +339,7 @@ func TestAccAzureRMAppServiceSlot_httpsOnly(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_httpsOnlyUpdate(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_httpsOnly(ri, testLocation(), true)
 	updatedConfig := testAccAzureRMAppServiceSlot_httpsOnly(ri, testLocation(), false)
 
@@ -368,7 +368,7 @@ func TestAccAzureRMAppServiceSlot_httpsOnlyUpdate(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_http2Enabled(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_http2Enabled(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -389,7 +389,7 @@ func TestAccAzureRMAppServiceSlot_http2Enabled(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_oneIpRestriction(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_oneIpRestriction(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -411,7 +411,7 @@ func TestAccAzureRMAppServiceSlot_oneIpRestriction(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_manyIpRestrictions(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_manyIpRestrictions(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -439,7 +439,7 @@ func TestAccAzureRMAppServiceSlot_manyIpRestrictions(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_localMySql(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_localMySql(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -460,7 +460,7 @@ func TestAccAzureRMAppServiceSlot_localMySql(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_managedPipelineMode(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_managedPipelineMode(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -481,7 +481,7 @@ func TestAccAzureRMAppServiceSlot_managedPipelineMode(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_tagsUpdate(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_tags(ri, testLocation())
 	updatedConfig := testAccAzureRMAppServiceSlot_tagsUpdated(ri, testLocation())
 
@@ -513,7 +513,7 @@ func TestAccAzureRMAppServiceSlot_tagsUpdate(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_remoteDebugging(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_remoteDebugging(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -535,7 +535,7 @@ func TestAccAzureRMAppServiceSlot_remoteDebugging(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_virtualNetwork(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -563,7 +563,7 @@ func TestAccAzureRMAppServiceSlot_virtualNetwork(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_windowsDotNet2(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_windowsDotNet(ri, testLocation(), "v2.0")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -584,7 +584,7 @@ func TestAccAzureRMAppServiceSlot_windowsDotNet2(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_windowsDotNet4(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_windowsDotNet(ri, testLocation(), "v4.0")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -605,7 +605,7 @@ func TestAccAzureRMAppServiceSlot_windowsDotNet4(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_windowsDotNetUpdate(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_windowsDotNet(ri, testLocation(), "v2.0")
 	updatedConfig := testAccAzureRMAppServiceSlot_windowsDotNet(ri, testLocation(), "v4.0")
 
@@ -634,7 +634,7 @@ func TestAccAzureRMAppServiceSlot_windowsDotNetUpdate(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_windowsJava7Jetty(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_windowsJava(ri, testLocation(), "1.7", "JETTY", "9.3")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -657,7 +657,7 @@ func TestAccAzureRMAppServiceSlot_windowsJava7Jetty(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_windowsJava8Jetty(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_windowsJava(ri, testLocation(), "1.8", "JETTY", "9.3")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -679,7 +679,7 @@ func TestAccAzureRMAppServiceSlot_windowsJava8Jetty(t *testing.T) {
 }
 func TestAccAzureRMAppServiceSlot_windowsJava7Tomcat(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_windowsJava(ri, testLocation(), "1.7", "TOMCAT", "9.0")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -702,7 +702,7 @@ func TestAccAzureRMAppServiceSlot_windowsJava7Tomcat(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_windowsJava8Tomcat(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_windowsJava(ri, testLocation(), "1.8", "TOMCAT", "9.0")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -725,7 +725,7 @@ func TestAccAzureRMAppServiceSlot_windowsJava8Tomcat(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_windowsPHP7(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_windowsPHP(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -746,7 +746,7 @@ func TestAccAzureRMAppServiceSlot_windowsPHP7(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_windowsPython(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_windowsPython(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -767,7 +767,7 @@ func TestAccAzureRMAppServiceSlot_windowsPython(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_webSockets(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_webSockets(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -788,7 +788,7 @@ func TestAccAzureRMAppServiceSlot_webSockets(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_enableManageServiceIdentity(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_enableManageServiceIdentity(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -811,7 +811,7 @@ func TestAccAzureRMAppServiceSlot_enableManageServiceIdentity(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_minTls(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceSlot_minTls(ri, testLocation(), "1.0")
 	updatedConfig := testAccAzureRMAppServiceSlot_minTls(ri, testLocation(), "1.1")
 

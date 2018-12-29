@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMRoute_basic(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMRoute_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -37,7 +37,7 @@ func TestAccAzureRMRoute_basic(t *testing.T) {
 
 func TestAccAzureRMRoute_update(t *testing.T) {
 	resourceName := "azurerm_route.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -73,7 +73,7 @@ func TestAccAzureRMRoute_update(t *testing.T) {
 }
 
 func TestAccAzureRMRoute_disappears(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMRoute_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -94,7 +94,7 @@ func TestAccAzureRMRoute_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMRoute_multipleRoutes(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMRoute_basic(ri, location)
 	postConfig := testAccAzureRMRoute_multipleRoutes(ri, location)

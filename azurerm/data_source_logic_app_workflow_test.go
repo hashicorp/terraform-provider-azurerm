@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMLogicAppWorkflow_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_logic_app_workflow.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccDataSourceAzureRMLogicAppWorkflow_basic(ri, location)
 
@@ -33,7 +33,7 @@ func TestAccDataSourceAzureRMLogicAppWorkflow_basic(t *testing.T) {
 
 func TestAccDataSourceAzureRMLogicAppWorkflow_tags(t *testing.T) {
 	dataSourceName := "data.azurerm_logic_app_workflow.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccDataSourceAzureRMLogicAppWorkflow_tags(ri, location)
 

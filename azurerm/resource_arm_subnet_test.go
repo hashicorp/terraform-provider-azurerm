@@ -6,16 +6,16 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMSubnet_basic(t *testing.T) {
 	resourceName := "azurerm_subnet.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSubnet_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -39,7 +39,7 @@ func TestAccAzureRMSubnet_basic(t *testing.T) {
 }
 
 func TestAccAzureRMSubnet_routeTableUpdate(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	initConfig := testAccAzureRMSubnet_routeTable(ri, location)
 	updatedConfig := testAccAzureRMSubnet_updatedRouteTable(ri, location)
@@ -68,7 +68,7 @@ func TestAccAzureRMSubnet_routeTableUpdate(t *testing.T) {
 
 func TestAccAzureRMSubnet_routeTableRemove(t *testing.T) {
 	resourceName := "azurerm_subnet.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	initConfig := testAccAzureRMSubnet_routeTable(ri, location)
 	updatedConfig := testAccAzureRMSubnet_routeTableUnlinked(ri, location)
@@ -103,7 +103,7 @@ func TestAccAzureRMSubnet_routeTableRemove(t *testing.T) {
 
 func TestAccAzureRMSubnet_removeNetworkSecurityGroup(t *testing.T) {
 	resourceName := "azurerm_subnet.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	initConfig := testAccAzureRMSubnet_networkSecurityGroup(ri, location)
 	updatedConfig := testAccAzureRMSubnet_networkSecurityGroupDetached(ri, location)
@@ -137,7 +137,7 @@ func TestAccAzureRMSubnet_removeNetworkSecurityGroup(t *testing.T) {
 }
 
 func TestAccAzureRMSubnet_bug7986(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	initConfig := testAccAzureRMSubnet_bug7986(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -157,7 +157,7 @@ func TestAccAzureRMSubnet_bug7986(t *testing.T) {
 }
 
 func TestAccAzureRMSubnet_bug15204(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	initConfig := testAccAzureRMSubnet_bug15204(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -176,7 +176,7 @@ func TestAccAzureRMSubnet_bug15204(t *testing.T) {
 }
 
 func TestAccAzureRMSubnet_disappears(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSubnet_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -339,7 +339,7 @@ func testCheckAzureRMSubnetDestroy(s *terraform.State) error {
 
 func TestAccAzureRMSubnet_serviceEndpoints(t *testing.T) {
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSubnet_serviceEndpoints(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{

@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_requiredOnly(t *testing.T) {
 	resourceName := "azurerm_log_analytics_workspace_linked_service.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMLogAnalyticsWorkspaceLinkedServiceRequiredOnly(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -35,7 +35,7 @@ func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_requiredOnly(t *testing.T)
 
 func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_optionalArguments(t *testing.T) {
 	resourceName := "azurerm_log_analytics_workspace_linked_service.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMLogAnalyticsWorkspaceLinkedServiceOptionalArguments(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -121,7 +121,7 @@ func testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceExists(name string) resou
 func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_importRequiredOnly(t *testing.T) {
 	resourceName := "azurerm_log_analytics_workspace_linked_service.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMLogAnalyticsWorkspaceLinkedServiceRequiredOnly(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -145,7 +145,7 @@ func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_importRequiredOnly(t *test
 func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_importOptionalArguments(t *testing.T) {
 	resourceName := "azurerm_log_analytics_workspace_linked_service.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMLogAnalyticsWorkspaceLinkedServiceOptionalArguments(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{

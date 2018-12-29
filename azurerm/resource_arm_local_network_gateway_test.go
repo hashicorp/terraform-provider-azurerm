@@ -4,17 +4,17 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMLocalNetworkGateway_basic(t *testing.T) {
 	resourceName := "azurerm_local_network_gateway.test"
 
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -39,7 +39,7 @@ func TestAccAzureRMLocalNetworkGateway_basic(t *testing.T) {
 
 func TestAccAzureRMLocalNetworkGateway_disappears(t *testing.T) {
 	resourceName := "azurerm_local_network_gateway.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -63,7 +63,7 @@ func TestAccAzureRMLocalNetworkGateway_disappears(t *testing.T) {
 func TestAccAzureRMLocalNetworkGateway_tags(t *testing.T) {
 	resourceName := "azurerm_local_network_gateway.test"
 
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -88,7 +88,7 @@ func TestAccAzureRMLocalNetworkGateway_tags(t *testing.T) {
 
 func TestAccAzureRMLocalNetworkGateway_bgpSettings(t *testing.T) {
 	resourceName := "azurerm_local_network_gateway.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -116,7 +116,7 @@ func TestAccAzureRMLocalNetworkGateway_bgpSettings(t *testing.T) {
 
 func TestAccAzureRMLocalNetworkGateway_bgpSettingsDisable(t *testing.T) {
 	resourceName := "azurerm_local_network_gateway.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -150,7 +150,7 @@ func TestAccAzureRMLocalNetworkGateway_bgpSettingsDisable(t *testing.T) {
 
 func TestAccAzureRMLocalNetworkGateway_bgpSettingsEnable(t *testing.T) {
 	resourceName := "azurerm_local_network_gateway.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -184,7 +184,7 @@ func TestAccAzureRMLocalNetworkGateway_bgpSettingsEnable(t *testing.T) {
 
 func TestAccAzureRMLocalNetworkGateway_bgpSettingsComplete(t *testing.T) {
 	resourceName := "azurerm_local_network_gateway.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{

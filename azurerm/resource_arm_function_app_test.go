@@ -10,12 +10,13 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMFunctionApp_basic(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMFunctionApp_basic(ri, rs, testLocation())
 
@@ -43,7 +44,7 @@ func TestAccAzureRMFunctionApp_basic(t *testing.T) {
 
 func TestAccAzureRMFunctionApp_tags(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMFunctionApp_tags(ri, rs, testLocation())
 
@@ -71,7 +72,7 @@ func TestAccAzureRMFunctionApp_tags(t *testing.T) {
 
 func TestAccAzureRMFunctionApp_tagsUpdate(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMFunctionApp_tags(ri, rs, testLocation())
 	updatedConfig := testAccAzureRMFunctionApp_tagsUpdated(ri, rs, testLocation())
@@ -104,7 +105,7 @@ func TestAccAzureRMFunctionApp_tagsUpdate(t *testing.T) {
 
 func TestAccAzureRMFunctionApp_appSettings(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMFunctionApp_basic(ri, rs, testLocation())
 	updatedConfig := testAccAzureRMFunctionApp_appSettings(ri, rs, testLocation())
@@ -148,7 +149,7 @@ func TestAccAzureRMFunctionApp_appSettings(t *testing.T) {
 
 func TestAccAzureRMFunctionApp_siteConfig(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMFunctionApp_alwaysOn(ri, rs, testLocation())
 
@@ -175,7 +176,7 @@ func TestAccAzureRMFunctionApp_siteConfig(t *testing.T) {
 
 func TestAccAzureRMFunctionApp_connectionStrings(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMFunctionApp_connectionStrings(ri, rs, testLocation())
 
@@ -204,7 +205,7 @@ func TestAccAzureRMFunctionApp_connectionStrings(t *testing.T) {
 
 func TestAccAzureRMFunctionApp_siteConfigMulti(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	configBase := testAccAzureRMFunctionApp_basic(ri, rs, testLocation())
 	configUpdate1 := testAccAzureRMFunctionApp_appSettings(ri, rs, testLocation())
@@ -258,7 +259,7 @@ func TestAccAzureRMFunctionApp_siteConfigMulti(t *testing.T) {
 
 func TestAccAzureRMFunctionApp_updateVersion(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	preConfig := testAccAzureRMFunctionApp_version(ri, rs, testLocation(), "~1")
 	postConfig := testAccAzureRMFunctionApp_version(ri, rs, testLocation(), "~2")
@@ -288,7 +289,7 @@ func TestAccAzureRMFunctionApp_updateVersion(t *testing.T) {
 
 func TestAccAzureRMFunctionApp_3264bit(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	location := testLocation()
 	config := testAccAzureRMFunctionApp_basic(ri, rs, location)
@@ -319,7 +320,7 @@ func TestAccAzureRMFunctionApp_3264bit(t *testing.T) {
 
 func TestAccAzureRMFunctionApp_httpsOnly(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	location := testLocation()
 	config := testAccAzureRMFunctionApp_httpsOnly(ri, rs, location)
@@ -342,7 +343,7 @@ func TestAccAzureRMFunctionApp_httpsOnly(t *testing.T) {
 
 func TestAccAzureRMFunctionApp_consumptionPlan(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	location := testLocation()
 	config := testAccAzureRMFunctionApp_consumptionPlan(ri, rs, location)
@@ -366,7 +367,7 @@ func TestAccAzureRMFunctionApp_consumptionPlan(t *testing.T) {
 
 func TestAccAzureRMFunctionApp_consumptionPlanUppercaseName(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	location := testLocation()
 	config := testAccAzureRMFunctionApp_consumptionPlanUppercaseName(ri, rs, location)
@@ -395,7 +396,7 @@ func TestAccAzureRMFunctionApp_consumptionPlanUppercaseName(t *testing.T) {
 
 func TestAccAzureRMFunctionApp_createIdentity(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMFunctionApp_basicIdentity(ri, rs, testLocation())
 
@@ -420,7 +421,7 @@ func TestAccAzureRMFunctionApp_createIdentity(t *testing.T) {
 
 func TestAccAzureRMFunctionApp_updateIdentity(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 
 	preConfig := testAccAzureRMFunctionApp_basic(ri, rs, testLocation())
@@ -454,7 +455,7 @@ func TestAccAzureRMFunctionApp_updateIdentity(t *testing.T) {
 
 func TestAccAzureRMFunctionApp_loggingDisabled(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMFunctionApp_loggingDisabled(ri, rs, testLocation())
 
@@ -482,7 +483,7 @@ func TestAccAzureRMFunctionApp_loggingDisabled(t *testing.T) {
 
 func TestAccAzureRMFunctionApp_updateLogging(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	location := testLocation()
 

@@ -6,9 +6,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAzureRMKubernetesCluster_agentPoolName(t *testing.T) {
@@ -71,7 +71,7 @@ func TestAzureRMKubernetesCluster_agentPoolName(t *testing.T) {
 
 func TestAccAzureRMKubernetesCluster_basic(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	config := testAccAzureRMKubernetesCluster_basic(ri, clientId, clientSecret, testLocation())
@@ -110,7 +110,7 @@ func TestAccAzureRMKubernetesCluster_basic(t *testing.T) {
 
 func TestAccAzureRMKubernetesCluster_roleBasedAccessControl(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
@@ -142,7 +142,7 @@ func TestAccAzureRMKubernetesCluster_roleBasedAccessControl(t *testing.T) {
 
 func TestAccAzureRMKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
@@ -194,7 +194,7 @@ func TestAccAzureRMKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
 
 func TestAccAzureRMKubernetesCluster_linuxProfile(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	config := testAccAzureRMKubernetesCluster_linuxProfile(ri, clientId, clientSecret, testLocation())
@@ -229,7 +229,7 @@ func TestAccAzureRMKubernetesCluster_linuxProfile(t *testing.T) {
 
 func TestAccAzureRMKubernetesCluster_addAgent(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	initConfig := testAccAzureRMKubernetesCluster_basic(ri, clientId, clientSecret, testLocation())
@@ -258,7 +258,7 @@ func TestAccAzureRMKubernetesCluster_addAgent(t *testing.T) {
 
 func TestAccAzureRMKubernetesCluster_upgradeConfig(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
@@ -288,7 +288,7 @@ func TestAccAzureRMKubernetesCluster_upgradeConfig(t *testing.T) {
 
 func TestAccAzureRMKubernetesCluster_internalNetwork(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	config := testAccAzureRMKubernetesCluster_internalNetwork(ri, clientId, clientSecret, testLocation())
@@ -311,7 +311,7 @@ func TestAccAzureRMKubernetesCluster_internalNetwork(t *testing.T) {
 
 func TestAccAzureRMKubernetesCluster_addonProfileOMS(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	config := testAccAzureRMKubernetesCluster_addonProfileOMS(ri, clientId, clientSecret, testLocation())
@@ -337,7 +337,7 @@ func TestAccAzureRMKubernetesCluster_addonProfileOMS(t *testing.T) {
 
 func TestAccAzureRMKubernetesCluster_addonProfileRouting(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	config := testAccAzureRMKubernetesCluster_addonProfileRouting(ri, clientId, clientSecret, testLocation())
@@ -363,7 +363,7 @@ func TestAccAzureRMKubernetesCluster_addonProfileRouting(t *testing.T) {
 
 func TestAccAzureRMKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	config := testAccAzureRMKubernetesCluster_advancedNetworking(ri, clientId, clientSecret, testLocation(), "kubenet")
@@ -386,7 +386,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
 
 func TestAccAzureRMKubernetesCluster_advancedNetworkingKubenetComplete(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	config := testAccAzureRMKubernetesCluster_advancedNetworkingComplete(ri, clientId, clientSecret, testLocation(), "kubenet")
@@ -409,7 +409,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingKubenetComplete(t *testin
 
 func TestAccAzureRMKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	config := testAccAzureRMKubernetesCluster_advancedNetworking(ri, clientId, clientSecret, testLocation(), "azure")
@@ -432,7 +432,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 
 func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureComplete(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	config := testAccAzureRMKubernetesCluster_advancedNetworkingComplete(ri, clientId, clientSecret, testLocation(), "azure")

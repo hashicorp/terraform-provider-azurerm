@@ -5,15 +5,15 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMNotificationHubAuthorizationRule_listen(t *testing.T) {
 	resourceName := "azurerm_notification_hub_authorization_rule.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -44,7 +44,7 @@ func TestAccAzureRMNotificationHubAuthorizationRule_listen(t *testing.T) {
 func TestAccAzureRMNotificationHubAuthorizationRule_manage(t *testing.T) {
 	resourceName := "azurerm_notification_hub_authorization_rule.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -75,7 +75,7 @@ func TestAccAzureRMNotificationHubAuthorizationRule_manage(t *testing.T) {
 func TestAccAzureRMNotificationHubAuthorizationRule_send(t *testing.T) {
 	resourceName := "azurerm_notification_hub_authorization_rule.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -106,7 +106,7 @@ func TestAccAzureRMNotificationHubAuthorizationRule_send(t *testing.T) {
 func TestAccAzureRMNotificationHubAuthorizationRule_updated(t *testing.T) {
 	resourceName := "azurerm_notification_hub_authorization_rule.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{

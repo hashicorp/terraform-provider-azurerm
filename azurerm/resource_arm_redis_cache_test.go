@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMRedisCacheFamily_validation(t *testing.T) {
@@ -105,7 +106,7 @@ func TestAccAzureRMRedisCacheBackupFrequency_validation(t *testing.T) {
 
 func TestAccAzureRMRedisCache_basic(t *testing.T) {
 	resourceName := "azurerm_redis_cache.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMRedisCache_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -130,7 +131,7 @@ func TestAccAzureRMRedisCache_basic(t *testing.T) {
 
 func TestAccAzureRMRedisCache_standard(t *testing.T) {
 	resourceName := "azurerm_redis_cache.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMRedisCache_standard(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -155,7 +156,7 @@ func TestAccAzureRMRedisCache_standard(t *testing.T) {
 
 func TestAccAzureRMRedisCache_premium(t *testing.T) {
 	resourceName := "azurerm_redis_cache.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMRedisCache_premium(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -180,7 +181,7 @@ func TestAccAzureRMRedisCache_premium(t *testing.T) {
 
 func TestAccAzureRMRedisCache_premiumSharded(t *testing.T) {
 	resourceName := "azurerm_redis_cache.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMRedisCache_premiumSharded(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -205,7 +206,7 @@ func TestAccAzureRMRedisCache_premiumSharded(t *testing.T) {
 
 func TestAccAzureRMRedisCache_premiumShardedScaling(t *testing.T) {
 	resourceName := "azurerm_redis_cache.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMRedisCache_premiumSharded(ri, testLocation())
 	config_scaled := testAccAzureRMRedisCache_premiumShardedScaled(ri, testLocation())
 
@@ -232,7 +233,7 @@ func TestAccAzureRMRedisCache_premiumShardedScaling(t *testing.T) {
 
 func TestAccAzureRMRedisCache_NonStandardCasing(t *testing.T) {
 	resourceName := "azurerm_redis_cache.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMRedisCacheNonStandardCasing(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -258,7 +259,7 @@ func TestAccAzureRMRedisCache_NonStandardCasing(t *testing.T) {
 
 func TestAccAzureRMRedisCache_BackupDisabled(t *testing.T) {
 	resourceName := "azurerm_redis_cache.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMRedisCacheBackupDisabled(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -278,7 +279,7 @@ func TestAccAzureRMRedisCache_BackupDisabled(t *testing.T) {
 
 func TestAccAzureRMRedisCache_BackupEnabled(t *testing.T) {
 	resourceName := "azurerm_redis_cache.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	config := testAccAzureRMRedisCacheBackupEnabled(ri, rs, testLocation())
 
@@ -310,7 +311,7 @@ func TestAccAzureRMRedisCache_BackupEnabled(t *testing.T) {
 
 func TestAccAzureRMRedisCache_BackupEnabledDisabled(t *testing.T) {
 	resourceName := "azurerm_redis_cache.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
 	config := testAccAzureRMRedisCacheBackupEnabled(ri, rs, location)
@@ -349,7 +350,7 @@ func TestAccAzureRMRedisCache_BackupEnabledDisabled(t *testing.T) {
 
 func TestAccAzureRMRedisCache_PatchSchedule(t *testing.T) {
 	resourceName := "azurerm_redis_cache.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMRedisCachePatchSchedule(ri, location)
 
@@ -375,7 +376,7 @@ func TestAccAzureRMRedisCache_PatchSchedule(t *testing.T) {
 
 func TestAccAzureRMRedisCache_PatchScheduleUpdated(t *testing.T) {
 	resourceName := "azurerm_redis_cache.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMRedisCachePatchSchedule(ri, location)
 	updatedConfig := testAccAzureRMRedisCache_premium(ri, location)
@@ -403,7 +404,7 @@ func TestAccAzureRMRedisCache_PatchScheduleUpdated(t *testing.T) {
 
 func TestAccAzureRMRedisCache_InternalSubnet(t *testing.T) {
 	resourceName := "azurerm_redis_cache.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMRedisCache_internalSubnet(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -428,7 +429,7 @@ func TestAccAzureRMRedisCache_InternalSubnet(t *testing.T) {
 
 func TestAccAzureRMRedisCache_InternalSubnetStaticIP(t *testing.T) {
 	resourceName := "azurerm_redis_cache.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMRedisCache_internalSubnetStaticIP(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -509,7 +510,7 @@ func testCheckAzureRMRedisCacheDestroy(s *terraform.State) error {
 
 func TestAccAzureRMRedisCache_SubscribeAllEvents(t *testing.T) {
 	resourceName := "azurerm_redis_cache.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	config := testAccAzureRMRedisCacheSubscribeAllEvents(ri, rs, testLocation())
 

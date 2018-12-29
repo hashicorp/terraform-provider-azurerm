@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRmLogAnalyticsWorkspaceName_validation(t *testing.T) {
@@ -53,7 +54,7 @@ func TestAccAzureRmLogAnalyticsWorkspaceName_validation(t *testing.T) {
 
 func TestAccAzureRMLogAnalyticsWorkspace_requiredOnly(t *testing.T) {
 	resourceName := "azurerm_log_analytics_workspace.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMLogAnalyticsWorkspace_requiredOnly(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -78,7 +79,7 @@ func TestAccAzureRMLogAnalyticsWorkspace_requiredOnly(t *testing.T) {
 
 func TestAccAzureRMLogAnalyticsWorkspace_retentionInDaysComplete(t *testing.T) {
 	resourceName := "azurerm_log_analytics_workspace.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMLogAnalyticsWorkspace_retentionInDaysComplete(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{

@@ -7,14 +7,14 @@ import (
 
 	"github.com/hashicorp/terraform/terraform"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMPolicySetDefinition_builtIn(t *testing.T) {
 	resourceName := "azurerm_policy_set_definition.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -39,7 +39,7 @@ func TestAccAzureRMPolicySetDefinition_builtIn(t *testing.T) {
 func TestAccAzureRMPolicySetDefinition_custom(t *testing.T) {
 	resourceName := "azurerm_policy_set_definition.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

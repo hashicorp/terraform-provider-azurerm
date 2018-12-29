@@ -6,10 +6,10 @@ import (
 
 	"log"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -73,7 +73,7 @@ func testSweepApplicationGateways(region string) error {
 
 func TestAccAzureRMApplicationGateway_basic(t *testing.T) {
 	resourceName := "azurerm_application_gateway.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -106,7 +106,7 @@ func TestAccAzureRMApplicationGateway_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_application_gateway.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -130,7 +130,7 @@ func TestAccAzureRMApplicationGateway_requiresImport(t *testing.T) {
 
 func TestAccAzureRMApplicationGateway_authCertificate(t *testing.T) {
 	resourceName := "azurerm_application_gateway.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -176,7 +176,7 @@ func TestAccAzureRMApplicationGateway_authCertificate(t *testing.T) {
 
 func TestAccAzureRMApplicationGateway_pathBasedRouting(t *testing.T) {
 	resourceName := "azurerm_application_gateway.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -200,7 +200,7 @@ func TestAccAzureRMApplicationGateway_pathBasedRouting(t *testing.T) {
 
 func TestAccAzureRMApplicationGateway_probes(t *testing.T) {
 	resourceName := "azurerm_application_gateway.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -224,7 +224,7 @@ func TestAccAzureRMApplicationGateway_probes(t *testing.T) {
 
 func TestAccAzureRMApplicationGateway_sslCertificate(t *testing.T) {
 	resourceName := "azurerm_application_gateway.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -269,7 +269,7 @@ func TestAccAzureRMApplicationGateway_sslCertificate(t *testing.T) {
 
 func TestAccAzureRMApplicationGateway_webApplicationFirewall(t *testing.T) {
 	resourceName := "azurerm_application_gateway.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

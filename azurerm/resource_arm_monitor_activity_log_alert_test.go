@@ -9,11 +9,12 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMMonitorActivityLogAlert_basic(t *testing.T) {
 	resourceName := "azurerm_monitor_activity_log_alert.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMMonitorActivityLogAlert_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -43,7 +44,7 @@ func TestAccAzureRMMonitorActivityLogAlert_basic(t *testing.T) {
 
 func TestAccAzureRMMonitorActivityLogAlert_singleResource(t *testing.T) {
 	resourceName := "azurerm_monitor_activity_log_alert.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMMonitorActivityLogAlert_singleResource(ri, rs, testLocation())
 
@@ -76,7 +77,7 @@ func TestAccAzureRMMonitorActivityLogAlert_singleResource(t *testing.T) {
 
 func TestAccAzureRMMonitorActivityLogAlert_complete(t *testing.T) {
 	resourceName := "azurerm_monitor_activity_log_alert.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMMonitorActivityLogAlert_complete(ri, rs, testLocation())
 
@@ -116,7 +117,7 @@ func TestAccAzureRMMonitorActivityLogAlert_complete(t *testing.T) {
 
 func TestAccAzureRMMonitorActivityLogAlert_basicAndCompleteUpdate(t *testing.T) {
 	resourceName := "azurerm_monitor_activity_log_alert.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	location := testLocation()
 	basicConfig := testAccAzureRMMonitorActivityLogAlert_basic(ri, location)

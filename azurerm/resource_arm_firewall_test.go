@@ -7,9 +7,8 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
-	"github.com/hashicorp/terraform/helper/acctest"
 )
 
 func TestValidateFirewallName(t *testing.T) {
@@ -50,7 +49,7 @@ func TestValidateFirewallName(t *testing.T) {
 
 func TestAccAzureRMFirewall_basicOld(t *testing.T) {
 	resourceName := "azurerm_firewall.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -85,7 +84,7 @@ func TestAccAzureRMFirewall_basicOld(t *testing.T) {
 
 func TestAccAzureRMFirewall_basic(t *testing.T) {
 	resourceName := "azurerm_firewall.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -112,7 +111,7 @@ func TestAccAzureRMFirewall_basic(t *testing.T) {
 
 func TestAccAzureRMFirewall_withTags(t *testing.T) {
 	resourceName := "azurerm_firewall.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -148,7 +147,7 @@ func TestAccAzureRMFirewall_withTags(t *testing.T) {
 
 func TestAccAzureRMFirewall_disappears(t *testing.T) {
 	resourceName := "azurerm_firewall.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{

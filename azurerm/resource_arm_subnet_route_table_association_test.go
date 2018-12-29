@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMSubnetRouteTableAssociation_basic(t *testing.T) {
 	resourceName := "azurerm_subnet_route_table_association.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -38,7 +38,7 @@ func TestAccAzureRMSubnetRouteTableAssociation_basic(t *testing.T) {
 
 func TestAccAzureRMSubnetRouteTableAssociation_deleted(t *testing.T) {
 	resourceName := "azurerm_subnet_route_table_association.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{

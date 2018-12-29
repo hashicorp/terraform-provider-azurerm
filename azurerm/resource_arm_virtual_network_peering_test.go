@@ -5,16 +5,16 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMVirtualNetworkPeering_basic(t *testing.T) {
 	firstResourceName := "azurerm_virtual_network_peering.test1"
 	secondResourceName := "azurerm_virtual_network_peering.test2"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualNetworkPeering_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -44,7 +44,7 @@ func TestAccAzureRMVirtualNetworkPeering_disappears(t *testing.T) {
 	firstResourceName := "azurerm_virtual_network_peering.test1"
 	secondResourceName := "azurerm_virtual_network_peering.test2"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualNetworkPeering_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -71,7 +71,7 @@ func TestAccAzureRMVirtualNetworkPeering_update(t *testing.T) {
 	firstResourceName := "azurerm_virtual_network_peering.test1"
 	secondResourceName := "azurerm_virtual_network_peering.test2"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	preConfig := testAccAzureRMVirtualNetworkPeering_basic(ri, testLocation())
 	postConfig := testAccAzureRMVirtualNetworkPeering_basicUpdate(ri, testLocation())
 

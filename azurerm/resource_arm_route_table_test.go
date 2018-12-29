@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMRouteTable_basic(t *testing.T) {
 	resourceName := "azurerm_route_table.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -34,7 +34,7 @@ func TestAccAzureRMRouteTable_basic(t *testing.T) {
 
 func TestAccAzureRMRouteTable_complete(t *testing.T) {
 	resourceName := "azurerm_route_table.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -55,7 +55,7 @@ func TestAccAzureRMRouteTable_complete(t *testing.T) {
 
 func TestAccAzureRMRouteTable_update(t *testing.T) {
 	resourceName := "azurerm_route_table.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -92,7 +92,7 @@ func TestAccAzureRMRouteTable_update(t *testing.T) {
 
 func TestAccAzureRMRouteTable_singleRoute(t *testing.T) {
 	resourceName := "azurerm_route_table.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMRouteTable_singleRoute(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -117,7 +117,7 @@ func TestAccAzureRMRouteTable_singleRoute(t *testing.T) {
 
 func TestAccAzureRMRouteTable_removeRoute(t *testing.T) {
 	resourceName := "azurerm_route_table.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMRouteTable_singleRoute(ri, testLocation())
 	updatedConfig := testAccAzureRMRouteTable_singleRouteRemoved(ri, testLocation())
 
@@ -146,7 +146,7 @@ func TestAccAzureRMRouteTable_removeRoute(t *testing.T) {
 
 func TestAccAzureRMRouteTable_disappears(t *testing.T) {
 	resourceName := "azurerm_route_table.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMRouteTable_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -168,7 +168,7 @@ func TestAccAzureRMRouteTable_disappears(t *testing.T) {
 
 func TestAccAzureRMRouteTable_withTags(t *testing.T) {
 	resourceName := "azurerm_route_table.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	preConfig := testAccAzureRMRouteTable_withTags(ri, testLocation())
 	postConfig := testAccAzureRMRouteTable_withTagsUpdate(ri, testLocation())
 
@@ -200,7 +200,7 @@ func TestAccAzureRMRouteTable_withTags(t *testing.T) {
 
 func TestAccAzureRMRouteTable_multipleRoutes(t *testing.T) {
 	resourceName := "azurerm_route_table.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	preConfig := testAccAzureRMRouteTable_singleRoute(ri, testLocation())
 	postConfig := testAccAzureRMRouteTable_multipleRoutes(ri, testLocation())
 
@@ -242,7 +242,7 @@ func TestAccAzureRMRouteTable_multipleRoutes(t *testing.T) {
 }
 
 func TestAccAzureRMRouteTable_withTagsSubnet(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	configSetup := testAccAzureRMRouteTable_withTagsSubnet(ri, testLocation())
 	configTest := testAccAzureRMRouteTable_withAddTagsSubnet(ri, testLocation())
 

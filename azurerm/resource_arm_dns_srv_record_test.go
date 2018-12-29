@@ -6,14 +6,14 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMDnsSrvRecord_basic(t *testing.T) {
 	resourceName := "azurerm_dns_srv_record.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDnsSrvRecord_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -43,7 +43,7 @@ func TestAccAzureRMDnsSrvRecord_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_dns_srv_record.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -67,7 +67,7 @@ func TestAccAzureRMDnsSrvRecord_requiresImport(t *testing.T) {
 
 func TestAccAzureRMDnsSrvRecord_updateRecords(t *testing.T) {
 	resourceName := "azurerm_dns_srv_record.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMDnsSrvRecord_basic(ri, location)
 	postConfig := testAccAzureRMDnsSrvRecord_updateRecords(ri, location)
@@ -97,7 +97,7 @@ func TestAccAzureRMDnsSrvRecord_updateRecords(t *testing.T) {
 
 func TestAccAzureRMDnsSrvRecord_withTags(t *testing.T) {
 	resourceName := "azurerm_dns_srv_record.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMDnsSrvRecord_withTags(ri, location)
 	postConfig := testAccAzureRMDnsSrvRecord_withTagsUpdate(ri, location)

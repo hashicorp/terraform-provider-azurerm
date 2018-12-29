@@ -6,14 +6,14 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMDnsCNameRecord_basic(t *testing.T) {
 	resourceName := "azurerm_dns_cname_record.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDnsCNameRecord_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -43,7 +43,7 @@ func TestAccAzureRMDnsCNameRecord_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_dns_cname_record.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -67,7 +67,7 @@ func TestAccAzureRMDnsCNameRecord_requiresImport(t *testing.T) {
 
 func TestAccAzureRMDnsCNameRecord_subdomain(t *testing.T) {
 	resourceName := "azurerm_dns_cname_record.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDnsCNameRecord_subdomain(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -93,7 +93,7 @@ func TestAccAzureRMDnsCNameRecord_subdomain(t *testing.T) {
 
 func TestAccAzureRMDnsCNameRecord_updateRecords(t *testing.T) {
 	resourceName := "azurerm_dns_cname_record.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMDnsCNameRecord_basic(ri, location)
 	postConfig := testAccAzureRMDnsCNameRecord_updateRecords(ri, location)
@@ -121,7 +121,7 @@ func TestAccAzureRMDnsCNameRecord_updateRecords(t *testing.T) {
 
 func TestAccAzureRMDnsCNameRecord_withTags(t *testing.T) {
 	resourceName := "azurerm_dns_cname_record.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMDnsCNameRecord_withTags(ri, location)
 	postConfig := testAccAzureRMDnsCNameRecord_withTagsUpdate(ri, location)

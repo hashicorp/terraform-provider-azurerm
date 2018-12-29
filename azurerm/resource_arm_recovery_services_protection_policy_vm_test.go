@@ -5,15 +5,15 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMRecoveryServicesProtectionPolicyVm_basicDaily(t *testing.T) {
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -35,7 +35,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_basicDaily(t *testing.T) {
 
 func TestAccAzureRMRecoveryServicesProtectionPolicyVm_basicWeekly(t *testing.T) {
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -57,7 +57,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_basicWeekly(t *testing.T) 
 
 func TestAccAzureRMRecoveryServicesProtectionPolicyVm_completeDaily(t *testing.T) {
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -79,7 +79,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_completeDaily(t *testing.T
 
 func TestAccAzureRMRecoveryServicesProtectionPolicyVm_completeWeekly(t *testing.T) {
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -101,7 +101,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_completeWeekly(t *testing.
 
 func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateDaily(t *testing.T) {
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -127,7 +127,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateDaily(t *testing.T) 
 
 func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateWeekly(t *testing.T) {
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -153,7 +153,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateWeekly(t *testing.T)
 
 func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateDailyToWeekly(t *testing.T) {
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -178,7 +178,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateDailyToWeekly(t *tes
 
 func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateWeeklyToDaily(t *testing.T) {
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -203,7 +203,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateWeeklyToDaily(t *tes
 
 func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateWeeklyToPartial(t *testing.T) {
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

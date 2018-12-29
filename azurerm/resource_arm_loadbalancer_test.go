@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestResourceAzureRMLoadBalancerPrivateIpAddressAllocation_validation(t *testing.T) {
@@ -49,7 +49,7 @@ func TestResourceAzureRMLoadBalancerPrivateIpAddressAllocation_validation(t *tes
 
 func TestAccAzureRMLoadBalancer_basic(t *testing.T) {
 	var lb network.LoadBalancer
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -73,7 +73,7 @@ func TestAccAzureRMLoadBalancer_basic(t *testing.T) {
 
 func TestAccAzureRMLoadBalancer_standard(t *testing.T) {
 	var lb network.LoadBalancer
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -98,7 +98,7 @@ func TestAccAzureRMLoadBalancer_standard(t *testing.T) {
 func TestAccAzureRMLoadBalancer_frontEndConfig(t *testing.T) {
 	var lb network.LoadBalancer
 	resourceName := "azurerm_lb.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -139,7 +139,7 @@ func TestAccAzureRMLoadBalancer_frontEndConfig(t *testing.T) {
 func TestAccAzureRMLoadBalancer_tags(t *testing.T) {
 	var lb network.LoadBalancer
 	resourceName := "azurerm_lb.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -171,7 +171,7 @@ func TestAccAzureRMLoadBalancer_tags(t *testing.T) {
 func TestAccAzureRMLoadBalancer_emptyPrivateIP(t *testing.T) {
 	resourceName := "azurerm_lb.test"
 	var lb network.LoadBalancer
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

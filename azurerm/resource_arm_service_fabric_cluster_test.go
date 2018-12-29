@@ -8,11 +8,12 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMServiceFabricCluster_basic(t *testing.T) {
 	resourceName := "azurerm_service_fabric_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMServiceFabricCluster_basic(ri, location, 3)
 
@@ -47,7 +48,7 @@ func TestAccAzureRMServiceFabricCluster_basic(t *testing.T) {
 
 func TestAccAzureRMServiceFabricCluster_manualClusterCodeVersion(t *testing.T) {
 	resourceName := "azurerm_service_fabric_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -82,7 +83,7 @@ func TestAccAzureRMServiceFabricCluster_manualClusterCodeVersion(t *testing.T) {
 
 func TestAccAzureRMServiceFabricCluster_manualLatest(t *testing.T) {
 	resourceName := "azurerm_service_fabric_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -109,7 +110,7 @@ func TestAccAzureRMServiceFabricCluster_manualLatest(t *testing.T) {
 
 func TestAccAzureRMServiceFabricCluster_addOnFeatures(t *testing.T) {
 	resourceName := "azurerm_service_fabric_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMServiceFabricCluster_addOnFeatures(ri, location)
 
@@ -136,7 +137,7 @@ func TestAccAzureRMServiceFabricCluster_addOnFeatures(t *testing.T) {
 
 func TestAccAzureRMServiceFabricCluster_certificate(t *testing.T) {
 	resourceName := "azurerm_service_fabric_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -167,7 +168,7 @@ func TestAccAzureRMServiceFabricCluster_certificate(t *testing.T) {
 
 func TestAccAzureRMServiceFabricCluster_reverseProxyCertificate(t *testing.T) {
 	resourceName := "azurerm_service_fabric_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -201,7 +202,7 @@ func TestAccAzureRMServiceFabricCluster_reverseProxyCertificate(t *testing.T) {
 
 func TestAccAzureRMServiceFabricCluster_clientCertificateThumbprint(t *testing.T) {
 	resourceName := "azurerm_service_fabric_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -235,7 +236,7 @@ func TestAccAzureRMServiceFabricCluster_clientCertificateThumbprint(t *testing.T
 
 func TestAccAzureRMServiceFabricCluster_readerAdminClientCertificateThumbprint(t *testing.T) {
 	resourceName := "azurerm_service_fabric_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -271,7 +272,7 @@ func TestAccAzureRMServiceFabricCluster_readerAdminClientCertificateThumbprint(t
 
 func TestAccAzureRMServiceFabricCluster_diagnosticsConfig(t *testing.T) {
 	resourceName := "azurerm_service_fabric_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
 	config := testAccAzureRMServiceFabricCluster_diagnosticsConfig(ri, rs, location)
@@ -304,7 +305,7 @@ func TestAccAzureRMServiceFabricCluster_diagnosticsConfig(t *testing.T) {
 
 func TestAccAzureRMServiceFabricCluster_fabricSettings(t *testing.T) {
 	resourceName := "azurerm_service_fabric_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMServiceFabricCluster_fabricSettings(ri, location)
 
@@ -334,7 +335,7 @@ func TestAccAzureRMServiceFabricCluster_fabricSettings(t *testing.T) {
 
 func TestAccAzureRMServiceFabricCluster_fabricSettingsRemove(t *testing.T) {
 	resourceName := "azurerm_service_fabric_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -362,7 +363,7 @@ func TestAccAzureRMServiceFabricCluster_fabricSettingsRemove(t *testing.T) {
 
 func TestAccAzureRMServiceFabricCluster_nodeTypeCustomPorts(t *testing.T) {
 	resourceName := "azurerm_service_fabric_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMServiceFabricCluster_nodeTypeCustomPorts(ri, location)
 
@@ -395,7 +396,7 @@ func TestAccAzureRMServiceFabricCluster_nodeTypeCustomPorts(t *testing.T) {
 
 func TestAccAzureRMServiceFabricCluster_nodeTypesMultiple(t *testing.T) {
 	resourceName := "azurerm_service_fabric_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMServiceFabricCluster_nodeTypeMultiple(ri, location)
 
@@ -428,7 +429,7 @@ func TestAccAzureRMServiceFabricCluster_nodeTypesMultiple(t *testing.T) {
 
 func TestAccAzureRMServiceFabricCluster_nodeTypesUpdate(t *testing.T) {
 	resourceName := "azurerm_service_fabric_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -456,7 +457,7 @@ func TestAccAzureRMServiceFabricCluster_nodeTypesUpdate(t *testing.T) {
 
 func TestAccAzureRMServiceFabricCluster_tags(t *testing.T) {
 	resourceName := "azurerm_service_fabric_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMServiceFabricCluster_tags(ri, location)
 

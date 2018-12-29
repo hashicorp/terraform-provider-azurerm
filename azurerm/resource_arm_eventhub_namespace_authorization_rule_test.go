@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -36,7 +36,7 @@ func testAccAzureRMEventHubNamespaceAuthorizationRule(t *testing.T, listen, send
 		CheckDestroy: testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubNamespaceAuthorizationRule_base(acctest.RandInt(), testLocation(), listen, send, manage),
+				Config: testAccAzureRMEventHubNamespaceAuthorizationRule_base(tf.AccRandTimeInt(), testLocation(), listen, send, manage),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
@@ -68,7 +68,7 @@ func TestAccAzureRMEventHubNamespaceAuthorizationRule_rightsUpdate(t *testing.T)
 		CheckDestroy: testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubNamespaceAuthorizationRule_base(acctest.RandInt(), testLocation(), true, false, false),
+				Config: testAccAzureRMEventHubNamespaceAuthorizationRule_base(tf.AccRandTimeInt(), testLocation(), true, false, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "listen", "true"),
@@ -77,7 +77,7 @@ func TestAccAzureRMEventHubNamespaceAuthorizationRule_rightsUpdate(t *testing.T)
 				),
 			},
 			{
-				Config: testAccAzureRMEventHubNamespaceAuthorizationRule_base(acctest.RandInt(), testLocation(), true, true, true),
+				Config: testAccAzureRMEventHubNamespaceAuthorizationRule_base(tf.AccRandTimeInt(), testLocation(), true, true, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),

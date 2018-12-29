@@ -7,9 +7,9 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func init() {
@@ -64,7 +64,7 @@ func testSweepServiceBusNamespace(region string) error {
 
 func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
 	resourceName := "azurerm_servicebus_namespace.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMServiceBusNamespace_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -89,7 +89,7 @@ func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
 
 func TestAccAzureRMServiceBusNamespace_readDefaultKeys(t *testing.T) {
 	resourceName := "azurerm_servicebus_namespace.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMServiceBusNamespace_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -118,7 +118,7 @@ func TestAccAzureRMServiceBusNamespace_readDefaultKeys(t *testing.T) {
 func TestAccAzureRMServiceBusNamespace_NonStandardCasing(t *testing.T) {
 	resourceName := "azurerm_servicebus_namespace.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMServiceBusNamespaceNonStandardCasing(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -148,7 +148,7 @@ func TestAccAzureRMServiceBusNamespace_NonStandardCasing(t *testing.T) {
 
 func TestAccAzureRMServiceBusNamespace_premium(t *testing.T) {
 	resourceName := "azurerm_servicebus_namespace.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMServiceBusNamespace_premium(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{

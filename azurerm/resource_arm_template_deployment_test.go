@@ -6,13 +6,13 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMTemplateDeployment_basic(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMTemplateDeployment_basicMultiple(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -30,7 +30,7 @@ func TestAccAzureRMTemplateDeployment_basic(t *testing.T) {
 }
 
 func TestAccAzureRMTemplateDeployment_disappears(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMTemplateDeployment_basicSingle(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -50,7 +50,7 @@ func TestAccAzureRMTemplateDeployment_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMTemplateDeployment_nestedTemplate(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMTemplateDeployment_nestedTemplate(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -68,7 +68,7 @@ func TestAccAzureRMTemplateDeployment_nestedTemplate(t *testing.T) {
 }
 
 func TestAccAzureRMTemplateDeployment_withParams(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMTemplateDeployment_withParams(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -87,7 +87,7 @@ func TestAccAzureRMTemplateDeployment_withParams(t *testing.T) {
 }
 
 func TestAccAzureRMTemplateDeployment_withParamsBody(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testaccAzureRMTemplateDeployment_withParamsBody(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -107,7 +107,7 @@ func TestAccAzureRMTemplateDeployment_withParamsBody(t *testing.T) {
 }
 
 func TestAccAzureRMTemplateDeployment_withOutputs(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMTemplateDeployment_withOutputs(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -135,7 +135,7 @@ func TestAccAzureRMTemplateDeployment_withOutputs(t *testing.T) {
 }
 
 func TestAccAzureRMTemplateDeployment_withError(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMTemplateDeployment_withError(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

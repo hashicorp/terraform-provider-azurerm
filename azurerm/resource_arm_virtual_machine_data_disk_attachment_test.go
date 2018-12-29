@@ -5,15 +5,15 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMVirtualMachineDataDiskAttachment_basic(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_data_disk_attachment.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMVirtualMachineDataDiskAttachment_basic(ri, location)
 	resource.ParallelTest(t, resource.TestCase{
@@ -43,7 +43,7 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_basic(t *testing.T) {
 func TestAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(t *testing.T) {
 	firstResourceName := "azurerm_virtual_machine_data_disk_attachment.first"
 	secondResourceName := "azurerm_virtual_machine_data_disk_attachment.second"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(ri, location)
 	resource.ParallelTest(t, resource.TestCase{
@@ -83,7 +83,7 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(t *testing.T) 
 
 func TestAccAzureRMVirtualMachineDataDiskAttachment_updatingCaching(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_data_disk_attachment.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -117,7 +117,7 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_updatingCaching(t *testing.T
 
 func TestAccAzureRMVirtualMachineDataDiskAttachment_updatingWriteAccelerator(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_data_disk_attachment.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testAltLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -151,7 +151,7 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_updatingWriteAccelerator(t *
 
 func TestAccAzureRMVirtualMachineDataDiskAttachment_virtualMachineExtension(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_data_disk_attachment.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

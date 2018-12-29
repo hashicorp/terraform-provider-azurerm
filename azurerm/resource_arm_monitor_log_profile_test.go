@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -82,7 +83,7 @@ func TestAccAzureRMMonitorLogProfile(t *testing.T) {
 
 func testAccAzureRMMonitorLogProfile_basic(t *testing.T) {
 	resourceName := "azurerm_monitor_log_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(10)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -107,7 +108,7 @@ func testAccAzureRMMonitorLogProfile_basic(t *testing.T) {
 
 func testAccAzureRMMonitorLogProfile_servicebus(t *testing.T) {
 	resourceName := "azurerm_monitor_log_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(10)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -127,7 +128,7 @@ func testAccAzureRMMonitorLogProfile_servicebus(t *testing.T) {
 
 func testAccAzureRMMonitorLogProfile_complete(t *testing.T) {
 	resourceName := "azurerm_monitor_log_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(10)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -147,7 +148,7 @@ func testAccAzureRMMonitorLogProfile_complete(t *testing.T) {
 
 func testAccAzureRMMonitorLogProfile_disappears(t *testing.T) {
 	resourceName := "azurerm_monitor_log_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(10)
 	config := testAccAzureRMMonitorLogProfile_basicConfig(ri, rs, testLocation())
 

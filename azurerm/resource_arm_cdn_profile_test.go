@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func init() {
@@ -62,7 +62,7 @@ func testSweepCDNProfiles(region string) error {
 
 func TestAccAzureRMCdnProfile_basic(t *testing.T) {
 	resourceName := "azurerm_cdn_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMCdnProfile_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -92,7 +92,7 @@ func TestAccAzureRMCdnProfile_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_cdn_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -116,7 +116,7 @@ func TestAccAzureRMCdnProfile_requiresImport(t *testing.T) {
 
 func TestAccAzureRMCdnProfile_withTags(t *testing.T) {
 	resourceName := "azurerm_cdn_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMCdnProfile_withTags(ri, location)
 	postConfig := testAccAzureRMCdnProfile_withTagsUpdate(ri, location)
@@ -158,7 +158,7 @@ func TestAccAzureRMCdnProfile_withTags(t *testing.T) {
 }
 
 func TestAccAzureRMCdnProfile_NonStandardCasing(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMCdnProfileNonStandardCasing(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -183,7 +183,7 @@ func TestAccAzureRMCdnProfile_NonStandardCasing(t *testing.T) {
 
 func TestAccAzureRMCdnProfile_basicToStandardAkamai(t *testing.T) {
 	resourceName := "azurerm_cdn_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	preConfig := testAccAzureRMCdnProfile_basic(ri, testLocation())
 	postConfig := testAccAzureRMCdnProfile_standardAkamai(ri, testLocation())
 
@@ -212,7 +212,7 @@ func TestAccAzureRMCdnProfile_basicToStandardAkamai(t *testing.T) {
 
 func TestAccAzureRMCdnProfile_standardAkamai(t *testing.T) {
 	resourceName := "azurerm_cdn_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMCdnProfile_standardAkamai(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -238,7 +238,7 @@ func TestAccAzureRMCdnProfile_standardAkamai(t *testing.T) {
 
 func TestAccAzureRMCdnProfile_standardMicrosoft(t *testing.T) {
 	resourceName := "azurerm_cdn_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMCdnProfile_standardMicrosoft(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{

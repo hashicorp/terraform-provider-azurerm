@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -36,7 +36,7 @@ func testAccAzureRMServiceBusTopicAuthorizationRule(t *testing.T, listen, send, 
 		CheckDestroy: testCheckAzureRMServiceBusTopicAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceBusTopicAuthorizationRule_base(acctest.RandInt(), testLocation(), listen, send, manage),
+				Config: testAccAzureRMServiceBusTopicAuthorizationRule_base(tf.AccRandTimeInt(), testLocation(), listen, send, manage),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusTopicAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
@@ -68,7 +68,7 @@ func TestAccAzureRMServiceBusTopicAuthorizationRule_rightsUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMServiceBusTopicAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceBusTopicAuthorizationRule_base(acctest.RandInt(), testLocation(), true, false, false),
+				Config: testAccAzureRMServiceBusTopicAuthorizationRule_base(tf.AccRandTimeInt(), testLocation(), true, false, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusTopicAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "listen", "true"),
@@ -77,7 +77,7 @@ func TestAccAzureRMServiceBusTopicAuthorizationRule_rightsUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMServiceBusTopicAuthorizationRule_base(acctest.RandInt(), testLocation(), true, true, true),
+				Config: testAccAzureRMServiceBusTopicAuthorizationRule_base(tf.AccRandTimeInt(), testLocation(), true, true, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusTopicAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),

@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMAvailabilitySet_basic(t *testing.T) {
 	resourceName := "azurerm_availability_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAvailabilitySet_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -45,7 +45,7 @@ func TestAccAzureRMAvailabilitySet_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_availability_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -71,7 +71,7 @@ func TestAccAzureRMAvailabilitySet_requiresImport(t *testing.T) {
 
 func TestAccAzureRMAvailabilitySet_disappears(t *testing.T) {
 	resourceName := "azurerm_availability_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAvailabilitySet_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -95,7 +95,7 @@ func TestAccAzureRMAvailabilitySet_disappears(t *testing.T) {
 
 func TestAccAzureRMAvailabilitySet_withTags(t *testing.T) {
 	resourceName := "azurerm_availability_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMAvailabilitySet_withTags(ri, location)
 	postConfig := testAccAzureRMAvailabilitySet_withUpdatedTags(ri, location)
@@ -133,7 +133,7 @@ func TestAccAzureRMAvailabilitySet_withTags(t *testing.T) {
 
 func TestAccAzureRMAvailabilitySet_withDomainCounts(t *testing.T) {
 	resourceName := "azurerm_availability_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAvailabilitySet_withDomainCounts(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -160,7 +160,7 @@ func TestAccAzureRMAvailabilitySet_withDomainCounts(t *testing.T) {
 
 func TestAccAzureRMAvailabilitySet_managed(t *testing.T) {
 	resourceName := "azurerm_availability_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAvailabilitySet_managed(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{

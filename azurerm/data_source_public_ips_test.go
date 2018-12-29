@@ -6,11 +6,12 @@ import (
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMPublicIPs_namePrefix(t *testing.T) {
 	dataSourceName := "data.azurerm_public_ips.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
 	location := testLocation()
 
@@ -40,7 +41,7 @@ func TestAccDataSourceAzureRMPublicIPs_namePrefix(t *testing.T) {
 func TestAccDataSourceAzureRMPublicIPs_assigned(t *testing.T) {
 	attachedDataSourceName := "data.azurerm_public_ips.attached"
 	unattachedDataSourceName := "data.azurerm_public_ips.unattached"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
 	location := testLocation()
 
@@ -72,7 +73,7 @@ func TestAccDataSourceAzureRMPublicIPs_assigned(t *testing.T) {
 func TestAccDataSourceAzureRMPublicIPs_allocationType(t *testing.T) {
 	staticDataSourceName := "data.azurerm_public_ips.static"
 	dynamicDataSourceName := "data.azurerm_public_ips.dynamic"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
 	location := testLocation()
 

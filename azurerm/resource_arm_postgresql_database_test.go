@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMPostgreSQLDatabase_basic(t *testing.T) {
 	resourceName := "azurerm_postgresql_database.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMPostgreSQLDatabase_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -34,7 +34,7 @@ func TestAccAzureRMPostgreSQLDatabase_basic(t *testing.T) {
 
 func TestAccAzureRMPostgreSQLDatabase_charsetLowercase(t *testing.T) {
 	resourceName := "azurerm_postgresql_database.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMPostgreSQLDatabase_charsetLowercase(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -56,7 +56,7 @@ func TestAccAzureRMPostgreSQLDatabase_charsetLowercase(t *testing.T) {
 
 func TestAccAzureRMPostgreSQLDatabase_charsetMixedcase(t *testing.T) {
 	resourceName := "azurerm_postgresql_database.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMPostgreSQLDatabase_charsetMixedcase(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{

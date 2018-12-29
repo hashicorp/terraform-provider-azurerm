@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMPublicIP_static(t *testing.T) {
 	dataSourceName := "data.azurerm_public_ip.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	name := fmt.Sprintf("acctestpublicip-%d", ri)
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", ri)
@@ -40,7 +40,7 @@ func TestAccDataSourceAzureRMPublicIP_static(t *testing.T) {
 
 func TestAccDataSourceAzureRMPublicIP_dynamic(t *testing.T) {
 	dataSourceName := "data.azurerm_public_ip.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	name := fmt.Sprintf("acctestpublicip-%d", ri)
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", ri)

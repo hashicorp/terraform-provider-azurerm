@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAzureRMDatabrickWorkspaceName(t *testing.T) {
@@ -69,7 +69,7 @@ func TestAzureRMDatabrickWorkspaceName(t *testing.T) {
 
 func TestAccAzureRMDatabricksWorkspace_basic(t *testing.T) {
 	resourceName := "azurerm_databricks_workspace.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -99,7 +99,7 @@ func TestAccAzureRMDatabricksWorkspace_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_databricks_workspace.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -123,7 +123,7 @@ func TestAccAzureRMDatabricksWorkspace_requiresImport(t *testing.T) {
 
 func TestAccAzureRMDatabricksWorkspace_complete(t *testing.T) {
 	resourceName := "azurerm_databricks_workspace.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{

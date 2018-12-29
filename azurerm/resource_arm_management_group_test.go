@@ -6,9 +6,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMManagementGroup_basic(t *testing.T) {
@@ -106,7 +106,7 @@ func TestAccAzureRMManagementGroup_multiLevelUpdated(t *testing.T) {
 
 func TestAccAzureRMManagementGroup_withName(t *testing.T) {
 	resourceName := "azurerm_management_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -125,7 +125,7 @@ func TestAccAzureRMManagementGroup_withName(t *testing.T) {
 
 func TestAccAzureRMManagementGroup_updateName(t *testing.T) {
 	resourceName := "azurerm_management_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

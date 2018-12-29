@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -57,7 +57,7 @@ func testSweepResourceGroups(region string) error {
 
 func TestAccAzureRMResourceGroup_basic(t *testing.T) {
 	resourceName := "azurerm_resource_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMResourceGroup_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -82,7 +82,7 @@ func TestAccAzureRMResourceGroup_basic(t *testing.T) {
 
 func TestAccAzureRMResourceGroup_disappears(t *testing.T) {
 	resourceName := "azurerm_resource_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMResourceGroup_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -104,7 +104,7 @@ func TestAccAzureRMResourceGroup_disappears(t *testing.T) {
 
 func TestAccAzureRMResourceGroup_withTags(t *testing.T) {
 	resourceName := "azurerm_resource_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMResourceGroup_withTags(ri, location)
 	postConfig := testAccAzureRMResourceGroup_withTagsUpdated(ri, location)

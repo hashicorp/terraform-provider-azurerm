@@ -6,13 +6,13 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMApplicationInsightsAPIKey_no_permission(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMApplicationInsightsAPIKey_basic(ri, testLocation(), "[]", "[]")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -35,7 +35,7 @@ func TestAccAzureRMApplicationInsightsAPIKey_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_application_insights_api_key.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -61,7 +61,7 @@ func TestAccAzureRMApplicationInsightsAPIKey_requiresImport(t *testing.T) {
 
 func TestAccAzureRMApplicationInsightsAPIKey_read_telemetry_permissions(t *testing.T) {
 	resourceName := "azurerm_application_insights_api_key.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMApplicationInsightsAPIKey_basic(ri, testLocation(), `["aggregate", "api", "draft", "extendqueries", "search"]`, "[]")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -91,7 +91,7 @@ func TestAccAzureRMApplicationInsightsAPIKey_read_telemetry_permissions(t *testi
 
 func TestAccAzureRMApplicationInsightsAPIKey_write_annotations_permission(t *testing.T) {
 	resourceName := "azurerm_application_insights_api_key.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMApplicationInsightsAPIKey_basic(ri, testLocation(), "[]", `["annotations"]`)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -121,7 +121,7 @@ func TestAccAzureRMApplicationInsightsAPIKey_write_annotations_permission(t *tes
 
 func TestAccAzureRMApplicationInsightsAPIKey_authenticate_permission(t *testing.T) {
 	resourceName := "azurerm_application_insights_api_key.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMApplicationInsightsAPIKey_basic(ri, testLocation(), `["agentconfig"]`, "[]")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -152,7 +152,7 @@ func TestAccAzureRMApplicationInsightsAPIKey_authenticate_permission(t *testing.
 
 func TestAccAzureRMApplicationInsightsAPIKey_full_permissions(t *testing.T) {
 	resourceName := "azurerm_application_insights_api_key.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMApplicationInsightsAPIKey_basic(ri, testLocation(), `["agentconfig", "aggregate", "api", "draft", "extendqueries", "search"]`, `["annotations"]`)
 
 	resource.ParallelTest(t, resource.TestCase{

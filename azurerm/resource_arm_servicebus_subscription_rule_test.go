@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(t *testing.T) {
 	resourceName := "azurerm_servicebus_subscription_rule.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -32,7 +32,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(t *testing.T) {
 
 func TestAccAzureRMServiceBusSubscriptionRule_basicCorrelationFilter(t *testing.T) {
 	resourceName := "azurerm_servicebus_subscription_rule.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMServiceBusSubscriptionRule_basicCorrelationFilter(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -52,7 +52,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_basicCorrelationFilter(t *testing.
 
 func TestAccAzureRMServiceBusSubscriptionRule_sqlFilterWithAction(t *testing.T) {
 	resourceName := "azurerm_servicebus_subscription_rule.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMServiceBusSubscriptionRule_sqlFilterWithAction(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -72,7 +72,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_sqlFilterWithAction(t *testing.T) 
 
 func TestAccAzureRMServiceBusSubscriptionRule_correlationFilterWithAction(t *testing.T) {
 	resourceName := "azurerm_servicebus_subscription_rule.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMServiceBusSubscriptionRule_correlationFilterWithAction(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -92,7 +92,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_correlationFilterWithAction(t *tes
 
 func TestAccAzureRMServiceBusSubscriptionRule_sqlFilterUpdated(t *testing.T) {
 	resourceName := "azurerm_servicebus_subscription_rule.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(ri, location)
 	updatedConfig := testAccAzureRMServiceBusSubscriptionRule_basicSqlFilterUpdated(ri, location)
@@ -122,7 +122,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_sqlFilterUpdated(t *testing.T) {
 
 func TestAccAzureRMServiceBusSubscriptionRule_correlationFilterUpdated(t *testing.T) {
 	resourceName := "azurerm_servicebus_subscription_rule.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMServiceBusSubscriptionRule_correlationFilter(ri, location)
 	updatedConfig := testAccAzureRMServiceBusSubscriptionRule_correlationFilterUpdated(ri, location)
@@ -154,7 +154,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_correlationFilterUpdated(t *testin
 
 func TestAccAzureRMServiceBusSubscriptionRule_updateSqlFilterToCorrelationFilter(t *testing.T) {
 	resourceName := "azurerm_servicebus_subscription_rule.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(ri, location)
 	updatedConfig := testAccAzureRMServiceBusSubscriptionRule_basicCorrelationFilter(ri, location)

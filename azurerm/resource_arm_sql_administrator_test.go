@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMSqlAdministrator_basic(t *testing.T) {
 	resourceName := "azurerm_sql_active_directory_administrator.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	preConfig := testAccAzureRMSqlAdministrator_basic(ri, testLocation())
 	postConfig := testAccAzureRMSqlAdministrator_withUpdates(ri, testLocation())
 
@@ -46,7 +46,7 @@ func TestAccAzureRMSqlAdministrator_basic(t *testing.T) {
 
 func TestAccAzureRMSqlAdministrator_disappears(t *testing.T) {
 	resourceName := "azurerm_sql_active_directory_administrator.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSqlAdministrator_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{

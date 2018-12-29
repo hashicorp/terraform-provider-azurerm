@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMMonitorActionGroup_basic(t *testing.T) {
 	resourceName := "azurerm_monitor_action_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMMonitorActionGroup_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -41,7 +41,7 @@ func TestAccAzureRMMonitorActionGroup_basic(t *testing.T) {
 
 func TestAccAzureRMMonitorActionGroup_emailReceiver(t *testing.T) {
 	resourceName := "azurerm_monitor_action_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMMonitorActionGroup_emailReceiver(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -71,7 +71,7 @@ func TestAccAzureRMMonitorActionGroup_emailReceiver(t *testing.T) {
 
 func TestAccAzureRMMonitorActionGroup_smsReceiver(t *testing.T) {
 	resourceName := "azurerm_monitor_action_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMMonitorActionGroup_smsReceiver(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -102,7 +102,7 @@ func TestAccAzureRMMonitorActionGroup_smsReceiver(t *testing.T) {
 
 func TestAccAzureRMMonitorActionGroup_webhookReceiver(t *testing.T) {
 	resourceName := "azurerm_monitor_action_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMMonitorActionGroup_webhookReceiver(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -132,7 +132,7 @@ func TestAccAzureRMMonitorActionGroup_webhookReceiver(t *testing.T) {
 
 func TestAccAzureRMMonitorActionGroup_complete(t *testing.T) {
 	resourceName := "azurerm_monitor_action_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMMonitorActionGroup_complete(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -169,7 +169,7 @@ func TestAccAzureRMMonitorActionGroup_complete(t *testing.T) {
 
 func TestAccAzureRMMonitorActionGroup_disabledUpdate(t *testing.T) {
 	resourceName := "azurerm_monitor_action_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMMonitorActionGroup_disabledBasic(ri, location)
 	postConfig := testAccAzureRMMonitorActionGroup_basic(ri, location)
@@ -206,7 +206,7 @@ func TestAccAzureRMMonitorActionGroup_disabledUpdate(t *testing.T) {
 
 func TestAccAzureRMMonitorActionGroup_singleReceiverUpdate(t *testing.T) {
 	resourceName := "azurerm_monitor_action_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	emailConfig := testAccAzureRMMonitorActionGroup_emailReceiver(ri, location)
 	smsConfig := testAccAzureRMMonitorActionGroup_smsReceiver(ri, location)
@@ -257,7 +257,7 @@ func TestAccAzureRMMonitorActionGroup_singleReceiverUpdate(t *testing.T) {
 
 func TestAccAzureRMMonitorActionGroup_multipleReceiversUpdate(t *testing.T) {
 	resourceName := "azurerm_monitor_action_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	basicConfig := testAccAzureRMMonitorActionGroup_basic(ri, location)
 	completeConfig := testAccAzureRMMonitorActionGroup_complete(ri, location)

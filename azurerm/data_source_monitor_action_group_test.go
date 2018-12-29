@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceArmMonitorActionGroup_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_monitor_action_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccDataSourceArmMonitorActionGroup_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -34,7 +34,7 @@ func TestAccDataSourceArmMonitorActionGroup_basic(t *testing.T) {
 
 func TestAccDataSourceArmMonitorActionGroup_disabledBasic(t *testing.T) {
 	dataSourceName := "data.azurerm_monitor_action_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccDataSourceArmMonitorActionGroup_disabledBasic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -58,7 +58,7 @@ func TestAccDataSourceArmMonitorActionGroup_disabledBasic(t *testing.T) {
 
 func TestAccDataSourceArmMonitorActionGroup_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_monitor_action_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccDataSourceArmMonitorActionGroup_complete(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{

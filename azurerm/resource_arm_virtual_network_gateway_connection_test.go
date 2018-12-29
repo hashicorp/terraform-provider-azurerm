@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
 	resourceName := "azurerm_virtual_network_gateway_connection.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualNetworkGatewayConnection_sitetosite(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -39,8 +39,8 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_vnettonet(t *testing.T) {
 	firstResourceName := "azurerm_virtual_network_gateway_connection.test_1"
 	secondResourceName := "azurerm_virtual_network_gateway_connection.test_2"
 
-	ri := acctest.RandInt()
-	ri2 := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+	ri2 := tf.AccRandTimeInt()
 	sharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 	config := testAccAzureRMVirtualNetworkGatewayConnection_vnettovnet(ri, ri2, sharedKey, testLocation(), testAltLocation())
 
@@ -63,7 +63,7 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_vnettonet(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualNetworkGatewayConnection_ipsecpolicy(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualNetworkGatewayConnection_ipsecpolicy(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -85,8 +85,8 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_updatingSharedKey(t *testing.
 	firstResourceName := "azurerm_virtual_network_gateway_connection.test_1"
 	secondResourceName := "azurerm_virtual_network_gateway_connection.test_2"
 
-	ri := acctest.RandInt()
-	ri2 := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+	ri2 := tf.AccRandTimeInt()
 	loc1 := testLocation()
 	loc2 := testAltLocation()
 

@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMSignalRService_basic(t *testing.T) {
 	resourceName := "azurerm_signalr_service.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSignalRService_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -43,7 +43,7 @@ func TestAccAzureRMSignalRService_basic(t *testing.T) {
 
 func TestAccAzureRMSignalRService_standard(t *testing.T) {
 	resourceName := "azurerm_signalr_service.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSignalRService_standardWithCapacity(ri, testLocation(), 1)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -74,7 +74,7 @@ func TestAccAzureRMSignalRService_standard(t *testing.T) {
 
 func TestAccAzureRMSignalRService_standardWithCap2(t *testing.T) {
 	resourceName := "azurerm_signalr_service.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSignalRService_standardWithCapacity(ri, testLocation(), 2)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -105,7 +105,7 @@ func TestAccAzureRMSignalRService_standardWithCap2(t *testing.T) {
 
 func TestAccAzureRMSignalRService_skuUpdate(t *testing.T) {
 	resourceName := "azurerm_signalr_service.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	freeConfig := testAccAzureRMSignalRService_basic(ri, location)
 	standardConfig := testAccAzureRMSignalRService_standardWithCapacity(ri, location, 1)
@@ -157,7 +157,7 @@ func TestAccAzureRMSignalRService_skuUpdate(t *testing.T) {
 
 func TestAccAzureRMSignalRService_capacityUpdate(t *testing.T) {
 	resourceName := "azurerm_signalr_service.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	standardConfig := testAccAzureRMSignalRService_standardWithCapacity(ri, location, 1)
 	standardCap5Config := testAccAzureRMSignalRService_standardWithCapacity(ri, location, 5)
@@ -209,7 +209,7 @@ func TestAccAzureRMSignalRService_capacityUpdate(t *testing.T) {
 
 func TestAccAzureRMSignalRService_skuAndCapacityUpdate(t *testing.T) {
 	resourceName := "azurerm_signalr_service.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	freeConfig := testAccAzureRMSignalRService_basic(ri, location)
 	standardConfig := testAccAzureRMSignalRService_standardWithCapacity(ri, location, 2)
