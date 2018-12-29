@@ -62,6 +62,10 @@ The following arguments are supported:
 
 * `security` - (Optional) A `security` block as defined below.
 
+* `virtual_network_type` - (Optional) Specifies the Virtual Network Integration for the API Management Service. Possible values include: `None`, `External`, and `Internal`.
+
+* `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below.
+
 * `tags` - (Optional) A mapping of tags assigned to the resource.
 
 ---
@@ -117,6 +121,12 @@ A `security` block supports the following:
 * `disable_triple_des_chipers` - (Optional) Should the `TLS_RSA_WITH_3DES_EDE_CBC_SHA` cipher be disabled for alL TLS versions (1.0, 1.1 and 1.2)? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168` field
+
+---
+
+A `virtual_network_configuration` block supports the following:
+
+* `subnet_id` - (Required) Specifies the resource id of the subnet to integrate the API management service with.
 
 ---
 
