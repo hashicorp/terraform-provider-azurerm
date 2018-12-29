@@ -17,6 +17,7 @@ Added Service Fabric Reverse Proxy Certificate and Endpoint in Nodetype #2544
 * `azurerm_app_service` - exporting the `possible_outbound_ip_addresses` [GH-2513]
 * `azurerm_firewall` - renaming the `public_ip_address_id` property to `ip_address_id` [GH-2433]
 * `azurerm_policy_definition` - polices can now be assigned to a management group [GH-2490]
+* `azurerm_redis_cache` - add availability zone support [GH-2580]
 * `azurerm_service_fabric_cluster` - adding the `reverse_proxy_certificate` and `reverse_proxy_endpoint_port` properties [GH-2544]
 
 BUG FIXES:
