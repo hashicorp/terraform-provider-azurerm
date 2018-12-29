@@ -45,7 +45,7 @@ func resourceArmRedisCache() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameSchema(),
 
-			"zones":               singleZonesSchema(),
+			"zones": singleZonesSchema(),
 
 			"capacity": {
 				Type:     schema.TypeInt,
