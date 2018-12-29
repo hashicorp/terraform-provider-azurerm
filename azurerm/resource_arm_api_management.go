@@ -460,8 +460,8 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 
 		d.Set("virtual_network_type", props.VirtualNetworkType)
 
-		if err := d.Set("virtual_network_coniguration", flattenApiManagementVirtualNetworkConfiguration(props.VirtualNetworkConfiguration)); err != nil {
-			return fmt.Errorf("Error setting `virtual_network_coniguration`: %+v", err)
+		if err := d.Set("virtual_network_configuration", flattenApiManagementVirtualNetworkConfiguration(props.VirtualNetworkConfiguration)); err != nil {
+			return fmt.Errorf("Error setting `virtual_network_configuration`: %+v", err)
 		}
 
 		if err := d.Set("additional_location", flattenApiManagementAdditionalLocations(props.AdditionalLocations)); err != nil {
