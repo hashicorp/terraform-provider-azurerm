@@ -99,8 +99,6 @@ An `identity` block supports the following:
 
 ~> **NOTE:** When `type` is set to `SystemAssigned`, identity the Principal ID can be retrieved after the policy has been assigned.
 
-* `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned to the VM. Required if `type` is `UserAssigned`.
-
 ---
 
 
