@@ -59,6 +59,7 @@ func resourceArmCognitiveAccount() *schema.Resource {
 					"Recommendations",
 					"SpeakerRecognition",
 					"Speech",
+					"SpeechServices",
 					"SpeechTranslation",
 					"TextAnalytics",
 					"TextTranslation",
