@@ -263,6 +263,7 @@ func resourceArmApiManagementService() *schema.Resource {
 			"virtual_network_type": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Default:  string(apimanagement.VirtualNetworkTypeNone),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(apimanagement.VirtualNetworkTypeInternal),
 					string(apimanagement.VirtualNetworkTypeExternal),
@@ -350,19 +351,14 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 	certificates := expandAzureRmApiManagementCertificates(d)
 	hostnameConfigurations := expandAzureRmApiManagementHostnameConfigurations(d)
 
-	virtualNetworkType := apimanagement.VirtualNetworkType(d.Get("virtual_network_type").(string))
-	virtualNetworkConfiguration := expandAzureRmApiManagementVirtualNetworkConfiguration(d)
-
 	properties := apimanagement.ServiceResource{
 		Location: utils.String(location),
 		ServiceProperties: &apimanagement.ServiceProperties{
-			PublisherName:               utils.String(publisherName),
-			PublisherEmail:              utils.String(publisherEmail),
-			CustomProperties:            customProperties,
-			Certificates:                certificates,
-			HostnameConfigurations:      hostnameConfigurations,
-			VirtualNetworkType:          virtualNetworkType,
-			VirtualNetworkConfiguration: virtualNetworkConfiguration,
+			PublisherName:          utils.String(publisherName),
+			PublisherEmail:         utils.String(publisherEmail),
+			CustomProperties:       customProperties,
+			Certificates:           certificates,
+			HostnameConfigurations: hostnameConfigurations,
 		},
 		Tags: expandTags(tags),
 		Sku:  sku,
@@ -370,6 +366,14 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 
 	if _, ok := d.GetOk("identity"); ok {
 		properties.Identity = expandAzureRmApiManagementIdentity(d)
+	}
+
+	if _, ok := d.GetOk("virtual_network_type"); ok {
+		properties.ServiceProperties.VirtualNetworkType = apimanagement.VirtualNetworkType(d.Get("virtual_network_type").(string))
+	}
+
+	if _, ok := d.GetOk("virtual_network_configuration"); ok {
+		properties.ServiceProperties.VirtualNetworkConfiguration = expandAzureRmApiManagementVirtualNetworkConfiguration(d)
 	}
 
 	if _, ok := d.GetOk("additional_location"); ok {
