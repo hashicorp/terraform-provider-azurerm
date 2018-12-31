@@ -88,7 +88,7 @@ func testCheckAzureRMStorageQueueExists(resourceName string) resource.TestCheckF
 		storageAccountName := rs.Primary.Attributes["storage_account_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for storage queue: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for storage queue: %s", name)
 		}
 
 		armClient := testAccProvider.Meta().(*ArmClient)

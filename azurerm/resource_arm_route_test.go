@@ -163,7 +163,7 @@ func testCheckAzureRMRouteDisappears(resourceName string) resource.TestCheckFunc
 		rtName := rs.Primary.Attributes["route_table_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for route: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for route: %s", name)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).routesClient

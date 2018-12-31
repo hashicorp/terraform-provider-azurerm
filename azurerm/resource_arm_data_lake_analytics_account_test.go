@@ -133,7 +133,7 @@ func testCheckAzureRMDataLakeAnalyticsAccountExists(resourceName string) resourc
 		accountName := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for data lake store: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for data lake store: %s", accountName)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).dataLakeAnalyticsAccountClient

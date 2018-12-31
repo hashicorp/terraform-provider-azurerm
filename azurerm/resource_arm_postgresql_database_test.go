@@ -88,7 +88,7 @@ func testCheckAzureRMPostgreSQLDatabaseExists(resourceName string) resource.Test
 		serverName := rs.Primary.Attributes["server_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for PostgreSQL Database: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for PostgreSQL Database: %s", name)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).postgresqlDatabasesClient

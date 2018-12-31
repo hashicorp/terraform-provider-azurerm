@@ -137,7 +137,7 @@ func testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(resourceName str
 		namespaceName := rs.Primary.Attributes["namespace_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for ServiceBus Namespace: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for ServiceBus Namespace: %s", name)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).serviceBusNamespacesClient

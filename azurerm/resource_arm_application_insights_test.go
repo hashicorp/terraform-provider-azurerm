@@ -259,7 +259,7 @@ func testCheckAzureRMApplicationInsightsExists(resourceName string) resource.Tes
 		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for App Insights: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for App Insights: %s", name)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).appInsightsClient

@@ -333,21 +333,21 @@ func testCheckAzureRMMonitorMetricAlertExists(resourceName string) resource.Test
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		resourceName := rs.Primary.Attributes["name"]
+		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Metric Alert Instance: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for Metric Alert Instance: %s", name)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).monitorMetricAlertsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(ctx, resourceGroup, resourceName)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on monitorMetricAlertsClient: %+v", err)
 		}
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Metric Alert Instance %q (resource group: %q) does not exist", resourceName, resourceGroup)
+			return fmt.Errorf("Bad: Metric Alert Instance %q (resource group: %q) does not exist", name, resourceGroup)
 		}
 
 		return nil

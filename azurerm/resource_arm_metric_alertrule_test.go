@@ -137,7 +137,7 @@ func testCheckAzureRMMetricAlertRuleExists(resourceName string) resource.TestChe
 		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Alert Rule: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for Alert Rule: %s", name)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).monitorAlertRulesClient

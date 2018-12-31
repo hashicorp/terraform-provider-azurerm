@@ -119,7 +119,7 @@ func testCheckAzureRMVirtualNetworkPeeringExists(resourceName string) resource.T
 		vnetName := rs.Primary.Attributes["virtual_network_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for virtual network peering: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for virtual network peering: %s", name)
 		}
 
 		// Ensure resource group/virtual network peering combination exists in API
@@ -151,7 +151,7 @@ func testCheckAzureRMVirtualNetworkPeeringDisappears(resourceName string) resour
 		vnetName := rs.Primary.Attributes["virtual_network_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for virtual network peering: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for virtual network peering: %s", name)
 		}
 
 		// Ensure resource group/virtual network peering combination exists in API

@@ -294,7 +294,7 @@ func testCheckAzureRMTrafficManagerProfileExists(resourceName string) resource.T
 		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Traffic Manager Profile: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for Traffic Manager Profile: %s", name)
 		}
 
 		// Ensure resource group/virtual network combination exists in API

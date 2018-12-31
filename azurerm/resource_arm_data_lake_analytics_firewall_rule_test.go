@@ -141,7 +141,7 @@ func testCheckAzureRMDataLakeAnalyticsFirewallRuleExists(resourceName string) re
 		accountName := rs.Primary.Attributes["account_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for data lake store firewall rule: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for data lake store firewall rule: %s", firewallRuleName)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).dataLakeAnalyticsFirewallRulesClient

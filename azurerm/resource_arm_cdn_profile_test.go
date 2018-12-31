@@ -273,7 +273,7 @@ func testCheckAzureRMCdnProfileExists(resourceName string) resource.TestCheckFun
 		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for cdn profile: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for cdn profile: %s", name)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).cdnProfilesClient

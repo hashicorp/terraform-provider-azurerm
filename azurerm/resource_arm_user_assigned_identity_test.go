@@ -51,7 +51,7 @@ func testCheckAzureRMUserAssignedIdentityExists(resourceName string) resource.Te
 		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for virtual machine: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for virtual machine: %s", name)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).userAssignedIdentitiesClient

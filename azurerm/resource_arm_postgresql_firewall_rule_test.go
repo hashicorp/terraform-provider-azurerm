@@ -49,7 +49,7 @@ func testCheckAzureRMPostgreSQLFirewallRuleExists(resourceName string) resource.
 		serverName := rs.Primary.Attributes["server_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for PostgreSQL Firewall Rule: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for PostgreSQL Firewall Rule: %s", name)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).postgresqlFirewallRulesClient

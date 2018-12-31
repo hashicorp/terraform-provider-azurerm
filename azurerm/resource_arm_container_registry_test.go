@@ -398,7 +398,7 @@ func testCheckAzureRMContainerRegistryExists(resourceName string) resource.TestC
 		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Container Registry: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for Container Registry: %s", name)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).containerRegistryClient
@@ -428,7 +428,7 @@ func testCheckAzureRMContainerRegistryGeoreplications(resourceName string, sku s
 		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Container Registry: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for Container Registry: %s", name)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).containerRegistryReplicationsClient

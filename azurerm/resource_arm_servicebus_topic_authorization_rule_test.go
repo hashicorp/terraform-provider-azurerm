@@ -138,7 +138,7 @@ func testCheckAzureRMServiceBusTopicAuthorizationRuleExists(resourceName string)
 		topicName := rs.Primary.Attributes["topic_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for ServiceBus Topic: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for ServiceBus Topic: %s", name)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).serviceBusTopicsClient

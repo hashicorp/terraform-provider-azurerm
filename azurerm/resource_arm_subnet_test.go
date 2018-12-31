@@ -210,7 +210,7 @@ func testCheckAzureRMSubnetExists(resourceName string) resource.TestCheckFunc {
 		vnetName := rs.Primary.Attributes["virtual_network_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for subnet: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for subnet: %s", name)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).subnetClient
@@ -243,7 +243,7 @@ func testCheckAzureRMSubnetRouteTableExists(resourceName string, routeTableId st
 		vnetName := rs.Primary.Attributes["virtual_network_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for subnet: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for subnet: %s", subnetName)
 		}
 
 		networksClient := testAccProvider.Meta().(*ArmClient).vnetClient
@@ -292,7 +292,7 @@ func testCheckAzureRMSubnetDisappears(resourceName string) resource.TestCheckFun
 		vnetName := rs.Primary.Attributes["virtual_network_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for subnet: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for subnet: %s", name)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).subnetClient

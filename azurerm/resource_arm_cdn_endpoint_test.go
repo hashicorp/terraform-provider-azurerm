@@ -275,7 +275,7 @@ func testCheckAzureRMCdnEndpointExists(resourceName string) resource.TestCheckFu
 		profileName := rs.Primary.Attributes["profile_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for cdn endpoint: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for cdn endpoint: %s", name)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).cdnEndpointsClient
@@ -306,7 +306,7 @@ func testCheckAzureRMCdnEndpointDisappears(resourceName string) resource.TestChe
 		profileName := rs.Primary.Attributes["profile_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for cdn endpoint: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for cdn endpoint: %s", name)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).cdnEndpointsClient

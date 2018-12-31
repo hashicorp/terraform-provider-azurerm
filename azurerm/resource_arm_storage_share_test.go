@@ -108,7 +108,7 @@ func testCheckAzureRMStorageShareExists(resourceName string, sS *storage.Share) 
 		storageAccountName := rs.Primary.Attributes["storage_account_name"]
 		resourceGroupName, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for share: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for share: %s", name)
 		}
 
 		armClient := testAccProvider.Meta().(*ArmClient)

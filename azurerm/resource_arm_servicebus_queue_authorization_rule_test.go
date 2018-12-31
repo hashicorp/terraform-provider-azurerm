@@ -139,7 +139,7 @@ func testCheckAzureRMServiceBusQueueAuthorizationRuleExists(resourceName string)
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for ServiceBus Queue Authorization Rule: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for ServiceBus Queue Authorization Rule: %s", name)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).serviceBusQueuesClient

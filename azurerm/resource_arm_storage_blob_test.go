@@ -260,7 +260,7 @@ func testCheckAzureRMStorageBlobExists(resourceName string) resource.TestCheckFu
 		storageContainerName := rs.Primary.Attributes["storage_container_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for storage blob: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for storage blob: %s", name)
 		}
 
 		armClient := testAccProvider.Meta().(*ArmClient)
@@ -301,7 +301,7 @@ func testCheckAzureRMStorageBlobDisappears(resourceName string) resource.TestChe
 		storageContainerName := rs.Primary.Attributes["storage_container_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for storage blob: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for storage blob: %s", name)
 		}
 
 		armClient := testAccProvider.Meta().(*ArmClient)
@@ -335,7 +335,7 @@ func testCheckAzureRMStorageBlobMatchesFile(resourceName string, kind storage.Bl
 		storageContainerName := rs.Primary.Attributes["storage_container_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for storage blob: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for storage blob: %s", name)
 		}
 
 		armClient := testAccProvider.Meta().(*ArmClient)

@@ -482,22 +482,22 @@ func testCheckAzureRMMonitorActionGroupExists(resourceName string) resource.Test
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		resourceName := rs.Primary.Attributes["name"]
+		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Action Group Instance: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for Action Group Instance: %s", name)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).monitorActionGroupsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(ctx, resourceGroup, resourceName)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on monitorActionGroupsClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Action Group Instance %q (resource group: %q) does not exist", resourceName, resourceGroup)
+			return fmt.Errorf("Bad: Action Group Instance %q (resource group: %q) does not exist", name, resourceGroup)
 		}
 
 		return nil

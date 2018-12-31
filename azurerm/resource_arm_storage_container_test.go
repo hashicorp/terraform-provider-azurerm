@@ -144,7 +144,7 @@ func testCheckAzureRMStorageContainerExists(resourceName string, c *storage.Cont
 		storageAccountName := rs.Primary.Attributes["storage_account_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for storage container: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for storage container: %s", name)
 		}
 
 		armClient := testAccProvider.Meta().(*ArmClient)

@@ -99,7 +99,7 @@ func testCheckAzureRMMySQLDatabaseExists(resourceName string) resource.TestCheck
 		serverName := rs.Primary.Attributes["server_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for MySQL Database: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for MySQL Database: %s", name)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).mysqlDatabasesClient

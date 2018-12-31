@@ -329,21 +329,21 @@ func testCheckAzureRMSignalRServiceExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		resourceName := rs.Primary.Attributes["name"]
+		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for SignalR service: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for SignalR service: %s", name)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).signalRClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(ctx, resourceGroup, resourceName)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on signalRClient: %+v", err)
 		}
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: SignalR service %q (resource group: %q) does not exist", resourceName, resourceGroup)
+			return fmt.Errorf("Bad: SignalR service %q (resource group: %q) does not exist", name, resourceGroup)
 		}
 
 		return nil
