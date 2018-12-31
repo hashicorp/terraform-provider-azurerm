@@ -36,11 +36,11 @@ func TestAccAzureRMNotificationHubNamespace_free(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMNotificationHubNamespaceExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMNotificationHubNamespaceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("not found: %s", name)
+			return fmt.Errorf("not found: %s", resourceName)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).notificationNamespacesClient
@@ -55,7 +55,7 @@ func testCheckAzureRMNotificationHubNamespaceExists(name string) resource.TestCh
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Notification Hub Namespace does not exist: %s", name)
+			return fmt.Errorf("Notification Hub Namespace does not exist: %s", namespaceName)
 		}
 
 		return nil

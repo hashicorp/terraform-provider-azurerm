@@ -212,12 +212,12 @@ func testCheckAzureRMApplicationInsightsAPIKeyDestroy(s *terraform.State) error 
 	return nil
 }
 
-func testCheckAzureRMApplicationInsightsAPIKeyExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMApplicationInsightsAPIKeyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		id, err := parseAzureResourceID(rs.Primary.Attributes["id"])
@@ -237,7 +237,7 @@ func testCheckAzureRMApplicationInsightsAPIKeyExists(name string) resource.TestC
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Application Insights API Key '%q' (resource group: '%q') does not exist", name, resGroup)
+			return fmt.Errorf("Bad: Application Insights API Key '%q' (resource group: '%q') does not exist", keyID, resGroup)
 		}
 
 		return nil

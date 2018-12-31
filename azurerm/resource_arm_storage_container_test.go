@@ -132,19 +132,19 @@ func TestAccAzureRMStorageContainer_root(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMStorageContainerExists(name string, c *storage.Container) resource.TestCheckFunc {
+func testCheckAzureRMStorageContainerExists(resourceName string, c *storage.Container) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
 		storageAccountName := rs.Primary.Attributes["storage_account_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for storage container: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for storage container: %s", resourceName)
 		}
 
 		armClient := testAccProvider.Meta().(*ArmClient)
@@ -185,11 +185,11 @@ func testCheckAzureRMStorageContainerExists(name string, c *storage.Container) r
 	}
 }
 
-func testAccARMStorageContainerDisappears(name string, c *storage.Container) resource.TestCheckFunc {
+func testAccARMStorageContainerDisappears(resourceName string, c *storage.Container) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		armClient := testAccProvider.Meta().(*ArmClient)

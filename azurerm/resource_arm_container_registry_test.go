@@ -387,18 +387,18 @@ func testCheckAzureRMContainerRegistryDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMContainerRegistryExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMContainerRegistryExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Container Registry: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for Container Registry: %s", resourceName)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).containerRegistryClient
@@ -417,18 +417,18 @@ func testCheckAzureRMContainerRegistryExists(name string) resource.TestCheckFunc
 	}
 }
 
-func testCheckAzureRMContainerRegistryGeoreplications(registryName string, sku string, expectedLocations []string) resource.TestCheckFunc {
+func testCheckAzureRMContainerRegistryGeoreplications(resourceName string, sku string, expectedLocations []string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[registryName]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", registryName)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Container Registry: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for Container Registry: %s", resourceName)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).containerRegistryReplicationsClient

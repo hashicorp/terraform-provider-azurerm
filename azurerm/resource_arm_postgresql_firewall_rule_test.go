@@ -37,19 +37,19 @@ func TestAccAzureRMPostgreSQLFirewallRule_basic(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMPostgreSQLFirewallRuleExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMPostgreSQLFirewallRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for PostgreSQL Firewall Rule: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for PostgreSQL Firewall Rule: %s", resourceName)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).postgresqlFirewallRulesClient

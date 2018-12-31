@@ -73,14 +73,14 @@ func TestAccAzureRMSecurityCenterContact_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMSecurityCenterContactExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMSecurityCenterContactExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := testAccProvider.Meta().(*ArmClient).securityCenterContactsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		contactName := rs.Primary.Attributes["securityContacts"]

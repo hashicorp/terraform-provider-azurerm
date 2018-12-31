@@ -126,11 +126,11 @@ func testCheckAzureRMServiceBusQueueAuthorizationRuleDestroy(s *terraform.State)
 	return nil
 }
 
-func testCheckAzureRMServiceBusQueueAuthorizationRuleExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMServiceBusQueueAuthorizationRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -139,7 +139,7 @@ func testCheckAzureRMServiceBusQueueAuthorizationRuleExists(name string) resourc
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for ServiceBus Queue Authorization Rule: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for ServiceBus Queue Authorization Rule: %s", resourceName)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).serviceBusQueuesClient

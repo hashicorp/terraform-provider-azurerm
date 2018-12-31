@@ -76,19 +76,19 @@ func TestAccAzureRMStorageQueue_basic(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMStorageQueueExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMStorageQueueExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
 		storageAccountName := rs.Primary.Attributes["storage_account_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for storage queue: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for storage queue: %s", resourceName)
 		}
 
 		armClient := testAccProvider.Meta().(*ArmClient)

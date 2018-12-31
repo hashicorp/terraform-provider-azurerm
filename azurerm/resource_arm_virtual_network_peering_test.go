@@ -107,19 +107,19 @@ func TestAccAzureRMVirtualNetworkPeering_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMVirtualNetworkPeeringExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMVirtualNetworkPeeringExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
 		vnetName := rs.Primary.Attributes["virtual_network_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for virtual network peering: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for virtual network peering: %s", resourceName)
 		}
 
 		// Ensure resource group/virtual network peering combination exists in API
@@ -139,19 +139,19 @@ func testCheckAzureRMVirtualNetworkPeeringExists(name string) resource.TestCheck
 	}
 }
 
-func testCheckAzureRMVirtualNetworkPeeringDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMVirtualNetworkPeeringDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
 		vnetName := rs.Primary.Attributes["virtual_network_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for virtual network peering: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for virtual network peering: %s", resourceName)
 		}
 
 		// Ensure resource group/virtual network peering combination exists in API

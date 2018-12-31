@@ -223,14 +223,14 @@ func deprovisionVM(userName string, password string, hostName string, port strin
 	return nil
 }
 
-func testCheckAzureRMImageExists(name string, shouldExist bool) resource.TestCheckFunc {
+func testCheckAzureRMImageExists(resourceName string, shouldExist bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
 		log.Printf("[INFO] testing MANAGED IMAGE EXISTS - BEGIN.")
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		dName := rs.Primary.Attributes["name"]

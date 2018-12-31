@@ -121,12 +121,12 @@ func TestAccAzureRMRoute_multipleRoutes(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMRouteExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMRouteExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %q", name)
+			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -151,19 +151,19 @@ func testCheckAzureRMRouteExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testCheckAzureRMRouteDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMRouteDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
 		rtName := rs.Primary.Attributes["route_table_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for route: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for route: %s", resourceName)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).routesClient

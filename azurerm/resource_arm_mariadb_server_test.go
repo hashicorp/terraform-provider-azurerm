@@ -245,7 +245,7 @@ func testCheckAzureRMMariaDbServerExists(resourceName string) resource.TestCheck
 		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for MariaDB Server: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for MariaDB Server: %s", resourceName)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).mariadbServersClient

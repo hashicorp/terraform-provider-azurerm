@@ -124,7 +124,7 @@ func testCheckAzureRMMySQLConfigurationValue(resourceName string, value string) 
 		serverName := rs.Primary.Attributes["server_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for MySQL Configuration: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for MySQL Configuration: %s", resourceName)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).mysqlConfigurationsClient

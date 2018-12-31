@@ -96,19 +96,19 @@ func TestAccAzureRMStorageShare_updateQuota(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMStorageShareExists(name string, sS *storage.Share) resource.TestCheckFunc {
+func testCheckAzureRMStorageShareExists(resourceName string, sS *storage.Share) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
 		storageAccountName := rs.Primary.Attributes["storage_account_name"]
 		resourceGroupName, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for share: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for share: %s", resourceName)
 		}
 
 		armClient := testAccProvider.Meta().(*ArmClient)
@@ -149,11 +149,11 @@ func testCheckAzureRMStorageShareExists(name string, sS *storage.Share) resource
 	}
 }
 
-func testAccARMStorageShareDisappears(name string, sS *storage.Share) resource.TestCheckFunc {
+func testAccARMStorageShareDisappears(resourceName string, sS *storage.Share) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		armClient := testAccProvider.Meta().(*ArmClient)
@@ -178,11 +178,11 @@ func testAccARMStorageShareDisappears(name string, sS *storage.Share) resource.T
 		options := &storage.FileRequestOptions{}
 		err = reference.Create(options)
 		if err != nil {
-			return fmt.Errorf("Error creating Storage Share %q reference (storage account: %q) : %+v", name, storageAccountName, err)
+			return fmt.Errorf("Error creating Storage Share %q reference (storage account: %q) : %+v", sS.Name, storageAccountName, err)
 		}
 
 		if _, err = reference.DeleteIfExists(options); err != nil {
-			return fmt.Errorf("Error deleting storage file %q: %s", name, err)
+			return fmt.Errorf("Error deleting storage Share %q: %s", sS.Name, err)
 		}
 
 		return nil

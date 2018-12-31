@@ -98,12 +98,12 @@ func TestAccAzureRMBatchAccount_complete(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMBatchAccountExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMBatchAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		batchAccount := rs.Primary.Attributes["name"]
@@ -119,7 +119,7 @@ func testCheckAzureRMBatchAccountExists(name string) resource.TestCheckFunc {
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Batch account %q (resource group: %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: Batch account %q (resource group: %q) does not exist", batchAccount, resourceGroup)
 		}
 
 		return nil

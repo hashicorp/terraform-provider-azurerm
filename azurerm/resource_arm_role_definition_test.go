@@ -123,11 +123,11 @@ func TestAccAzureRMRoleDefinition_emptyName(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMRoleDefinitionExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMRoleDefinitionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %q", name)
+			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
 		scope := rs.Primary.Attributes["scope"]
@@ -139,7 +139,7 @@ func testCheckAzureRMRoleDefinitionExists(name string) resource.TestCheckFunc {
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Role Definition %q (Scope: %q) does not exist", name, scope)
+				return fmt.Errorf("Bad: Role Definition %q (Scope: %q) does not exist", roleDefinitionId, scope)
 			}
 			return fmt.Errorf("Bad: Get on roleDefinitionsClient: %+v", err)
 		}

@@ -62,11 +62,11 @@ func TestAccAzureRMPolicyAssignment_complete(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMPolicyAssignmentExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMPolicyAssignmentExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("not found: %s", name)
+			return fmt.Errorf("not found: %s", resourceName)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).policyAssignmentsClient
@@ -79,7 +79,7 @@ func testCheckAzureRMPolicyAssignmentExists(name string) resource.TestCheckFunc 
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Policy Assignment does not exist: %s", name)
+			return fmt.Errorf("Policy Assignment does not exist: %s", id)
 		}
 
 		return nil

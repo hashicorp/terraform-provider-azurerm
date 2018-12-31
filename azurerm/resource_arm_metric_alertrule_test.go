@@ -126,18 +126,18 @@ func TestAccAzureRMMetricAlertRule_sqlDatabaseStorage(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMMetricAlertRuleExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMMetricAlertRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Alert Rule: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for Alert Rule: %s", resourceName)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).monitorAlertRulesClient
