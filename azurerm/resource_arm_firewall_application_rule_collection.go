@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -187,8 +188,7 @@ func resourceArmFirewallApplicationRuleCollectionCreateUpdate(d *schema.Resource
 		return fmt.Errorf("Error creating/updating Application Rule Collection %q in Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for creation/update of Application Rule Collection %q of Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
 	}
 
@@ -344,8 +344,7 @@ func resourceArmFirewallApplicationRuleCollectionDelete(d *schema.ResourceData, 
 		return fmt.Errorf("Error deleting Application Rule Collection %q from Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for deletion of Application Rule Collection %q from Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
 	}
 
@@ -360,28 +359,16 @@ func expandArmFirewallApplicationRules(inputs []interface{}) ([]network.AzureFir
 
 		ruleName := rule["name"].(string)
 		ruleDescription := rule["description"].(string)
-
-		ruleSourceAddresses := make([]string, 0)
-		for _, v := range rule["source_addresses"].(*schema.Set).List() {
-			ruleSourceAddresses = append(ruleSourceAddresses, v.(string))
-		}
-
-		ruleFqdnTags := make([]string, 0)
-		for _, v := range rule["fqdn_tags"].(*schema.Set).List() {
-			ruleFqdnTags = append(ruleFqdnTags, v.(string))
-		}
-
-		ruleTargetFqdns := make([]string, 0)
-		for _, v := range rule["target_fqdns"].(*schema.Set).List() {
-			ruleTargetFqdns = append(ruleTargetFqdns, v.(string))
-		}
+		ruleSourceAddresses := rule["source_addresses"].(*schema.Set).List()
+		ruleFqdnTags := rule["fqdn_tags"].(*schema.Set).List()
+		ruleTargetFqdns := rule["target_fqdns"].(*schema.Set).List()
 
 		output := network.AzureFirewallApplicationRule{
 			Name:            utils.String(ruleName),
 			Description:     utils.String(ruleDescription),
-			SourceAddresses: &ruleSourceAddresses,
-			FqdnTags:        &ruleFqdnTags,
-			TargetFqdns:     &ruleTargetFqdns,
+			SourceAddresses: utils.ExpandStringArray(ruleSourceAddresses),
+			FqdnTags:        utils.ExpandStringArray(ruleFqdnTags),
+			TargetFqdns:     utils.ExpandStringArray(ruleTargetFqdns),
 		}
 
 		ruleProtocols := make([]network.AzureFirewallApplicationRuleProtocol, 0)
@@ -422,13 +409,13 @@ func flattenFirewallApplicationRuleCollectionRules(rules *[]network.AzureFirewal
 			output["description"] = *ruleDescription
 		}
 		if ruleSourceAddresses := rule.SourceAddresses; ruleSourceAddresses != nil {
-			output["source_addresses"] = sliceToSet(*ruleSourceAddresses)
+			output["source_addresses"] = set.FromStringSlice(*ruleSourceAddresses)
 		}
 		if ruleFqdnTags := rule.FqdnTags; ruleFqdnTags != nil {
-			output["fqdn_tags"] = sliceToSet(*ruleFqdnTags)
+			output["fqdn_tags"] = set.FromStringSlice(*ruleFqdnTags)
 		}
 		if ruleTargetFqdns := rule.TargetFqdns; ruleTargetFqdns != nil {
-			output["target_fqdns"] = sliceToSet(*ruleTargetFqdns)
+			output["target_fqdns"] = set.FromStringSlice(*ruleTargetFqdns)
 		}
 		protocols := make([]map[string]interface{}, 0)
 		if ruleProtocols := rule.Protocols; ruleProtocols != nil {
