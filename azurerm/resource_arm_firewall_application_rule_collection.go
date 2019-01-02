@@ -66,15 +66,15 @@ func resourceArmFirewallApplicationRuleCollection() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validation.NoZeroValues,
 						},
-						"description": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
 						"source_addresses": {
 							Type:     schema.TypeSet,
 							Required: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 							Set:      schema.HashString,
+						},
+						"description": {
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 						"fqdn_tags": {
 							Type:     schema.TypeSet,
@@ -94,11 +94,6 @@ func resourceArmFirewallApplicationRuleCollection() *schema.Resource {
 							MinItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"port": {
-										Type:         schema.TypeInt,
-										Optional:     true,
-										ValidateFunc: validate.PortNumber,
-									},
 									"type": {
 										Type:     schema.TypeString,
 										Required: true,
@@ -106,6 +101,11 @@ func resourceArmFirewallApplicationRuleCollection() *schema.Resource {
 											string(network.AzureFirewallApplicationRuleProtocolTypeHTTP),
 											string(network.AzureFirewallApplicationRuleProtocolTypeHTTPS),
 										}, false),
+									},
+									"port": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validate.PortNumber,
 									},
 								},
 							},
