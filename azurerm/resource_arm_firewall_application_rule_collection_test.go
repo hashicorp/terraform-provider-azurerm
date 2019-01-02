@@ -266,10 +266,10 @@ func TestAccAzureRMFirewallApplicationRuleCollection_multipleProtocols(t *testin
 					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "rule.0.protocol.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "rule.0.protocol.0.port", "8080"),
+					resource.TestCheckResourceAttr(resourceName, "rule.0.protocol.0.port", "8000"),
 					resource.TestCheckResourceAttr(resourceName, "rule.0.protocol.0.type", "Http"),
-					resource.TestCheckResourceAttr(resourceName, "rule.0.protocol.1.port", "8443"),
-					resource.TestCheckResourceAttr(resourceName, "rule.0.protocol.1.port", "Https"),
+					resource.TestCheckResourceAttr(resourceName, "rule.0.protocol.1.port", "8001"),
+					resource.TestCheckResourceAttr(resourceName, "rule.0.protocol.1.type", "Https"),
 				),
 			},
 			{
@@ -303,7 +303,7 @@ func TestAccAzureRMFirewallApplicationRuleCollection_updateProtocols(t *testing.
 					resource.TestCheckResourceAttr(resourceName, "rule.0.protocol.0.port", "8000"),
 					resource.TestCheckResourceAttr(resourceName, "rule.0.protocol.0.type", "Http"),
 					resource.TestCheckResourceAttr(resourceName, "rule.0.protocol.1.port", "8001"),
-					resource.TestCheckResourceAttr(resourceName, "rule.0.protocol.1.port", "Https"),
+					resource.TestCheckResourceAttr(resourceName, "rule.0.protocol.1.type", "Https"),
 				),
 			},
 			{
@@ -318,7 +318,7 @@ func TestAccAzureRMFirewallApplicationRuleCollection_updateProtocols(t *testing.
 					resource.TestCheckResourceAttr(resourceName, "rule.0.protocol.0.port", "9000"),
 					resource.TestCheckResourceAttr(resourceName, "rule.0.protocol.0.type", "Https"),
 					resource.TestCheckResourceAttr(resourceName, "rule.0.protocol.1.port", "9001"),
-					resource.TestCheckResourceAttr(resourceName, "rule.0.protocol.1.port", "Http"),
+					resource.TestCheckResourceAttr(resourceName, "rule.0.protocol.1.type", "Http"),
 				),
 			},
 			{
@@ -333,7 +333,7 @@ func TestAccAzureRMFirewallApplicationRuleCollection_updateProtocols(t *testing.
 					resource.TestCheckResourceAttr(resourceName, "rule.0.protocol.0.port", "8000"),
 					resource.TestCheckResourceAttr(resourceName, "rule.0.protocol.0.type", "Http"),
 					resource.TestCheckResourceAttr(resourceName, "rule.0.protocol.1.port", "8001"),
-					resource.TestCheckResourceAttr(resourceName, "rule.0.protocol.1.port", "Https"),
+					resource.TestCheckResourceAttr(resourceName, "rule.0.protocol.1.type", "Https"),
 				),
 			},
 		},
@@ -435,8 +435,7 @@ func testCheckAzureRMFirewallApplicationRuleCollectionDisappears(resourceName st
 			return fmt.Errorf("Error removing Application Rule Collection from Firewall: %+v", err)
 		}
 
-		err = future.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("Error waiting for the removal of Application Rule Collection from Firewall: %+v", err)
 		}
 
