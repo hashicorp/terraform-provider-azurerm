@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -147,25 +148,33 @@ func resourceArmFirewallNetworkRuleCollectionCreateUpdate(d *schema.ResourceData
 		},
 	}
 
-	if !d.IsNewResource() {
-		index := -1
-		for i, v := range ruleCollections {
-			if v.Name == nil {
-				continue
-			}
-
-			if *v.Name == name {
-				index = i
-				break
-			}
+	index := -1
+	var id string
+	// determine if this already exists
+	for i, v := range ruleCollections {
+		if v.Name == nil || v.ID == nil {
+			continue
 		}
 
+		if *v.Name == name {
+			index = i
+			id = *v.ID
+			break
+		}
+	}
+
+	if !d.IsNewResource() {
 		if index == -1 {
 			return fmt.Errorf("Error locating Network Rule Collection %q (Firewall %q / Resource Group %q)", name, firewallName, resourceGroup)
 		}
 
 		ruleCollections[index] = newRuleCollection
 	} else {
+		if index != -1 {
+			return tf.ImportAsExistsError("azurerm_firewall_network_rule_collection", id)
+		}
+
+		// first double check it doesn't already exist
 		ruleCollections = append(ruleCollections, newRuleCollection)
 	}
 
