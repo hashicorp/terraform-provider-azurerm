@@ -82,7 +82,7 @@ func resourceArmSubnet() *schema.Resource {
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"service_name": {
+									"name": {
 										Type:     schema.TypeString,
 										Required: true,
 									},
