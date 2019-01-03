@@ -17,7 +17,9 @@ IMPROVEMENTS:
 * `azurerm_policy_assignment` - support for Managed Service Identity [GH-2549]
 * `azurerm_policy_definition` - polices can now be assigned to a management group [GH-2490]
 * `azurerm_redis_cache` - add availability zone support [GH-2580]
-* `azurerm_service_fabric_cluster` - adding the `reverse_proxy_certificate` and `reverse_proxy_endpoint_port` properties [GH-2544]
+* `azurerm_service_fabric_cluster` - support for `azure_active_directory` [GH-2553]
+* `azurerm_service_fabric_cluster` - support for `reverse_proxy_certificate` [GH-2544]
+* `azurerm_service_fabric_cluster` - support for `reverse_proxy_endpoint_port` [GH-2544]
 
 BUG FIXES:
 
