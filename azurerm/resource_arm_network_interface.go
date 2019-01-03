@@ -368,18 +368,18 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 	if props.IPConfigurations != nil && len(*props.IPConfigurations) > 0 {
 		configs := *props.IPConfigurations
 
-		if configs[0].InterfaceIPConfigurationPropertiesFormat != nil {
-			privateIPAddress := configs[0].InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress
-			d.Set("private_ip_address", *privateIPAddress)
-			privateIPAddressVersion := configs[0].InterfaceIPConfigurationPropertiesFormat.PrivateIPAddressVersion
-			d.Set("private_ip_address_version", string(privateIPAddressVersion))
+		if ipProps := configs[0].InterfaceIPConfigurationPropertiesFormat; ipProps != nil {
+			if privateIPAddress := ipProps.PrivateIPAddress; privateIPAddress != nil {
+				d.Set("private_ip_address", *privateIPAddress)
+			}
+			d.Set("private_ip_address_version", string(ipProps.PrivateIPAddressVersion))
 		}
 
 		addresses := make([]interface{}, 0)
 		for _, config := range configs {
-			if config.InterfaceIPConfigurationPropertiesFormat != nil {
-				if config.InterfaceIPConfigurationPropertiesFormat.PrivateIPAddressVersion == network.IPv4 {
-					addresses = append(addresses, *config.InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress)
+			if ipProps := config.InterfaceIPConfigurationPropertiesFormat; ipProps != nil {
+				if ipProps.PrivateIPAddressVersion == network.IPv4 && ipProps.PrivateIPAddress != nil {
+					addresses = append(addresses, *ipProps.PrivateIPAddress)
 				}
 			}
 		}
