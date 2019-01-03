@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -215,6 +216,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 	log.Printf("[INFO] preparing arguments for AzureRM Function App creation.")
 
 	name := d.Get("name").(string)
+	resGroup := d.Get("resource_group_name").(string)
 
 	availabilityRequest := web.ResourceNameAvailabilityRequest{
 		Name: utils.String(name),
@@ -229,7 +231,19 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("The name %q used for the Function App needs to be globally unique and isn't available: %s", name, *available.Message)
 	}
 
-	resGroup := d.Get("resource_group_name").(string)
+	if requireResourcesToBeImported {
+		existing, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Function App %q (Resource Group %q): %s", name, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_function_app", *existing.ID)
+		}
+	}
+
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	kind := "functionapp"
 	appServicePlanID := d.Get("app_service_plan_id").(string)
