@@ -243,11 +243,11 @@ func TestAccAzureRMManagedDisk_importEmpty_withZone(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMManagedDiskExists(name string, d *compute.Disk, shouldExist bool) resource.TestCheckFunc {
+func testCheckAzureRMManagedDiskExists(resourceName string, d *compute.Disk, shouldExist bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		dName := rs.Primary.Attributes["name"]
@@ -303,11 +303,11 @@ func testCheckAzureRMManagedDiskDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testDeleteAzureRMVirtualMachine(name string) resource.TestCheckFunc {
+func testDeleteAzureRMVirtualMachine(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		vmName := rs.Primary.Attributes["name"]

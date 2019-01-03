@@ -167,11 +167,11 @@ POLICY_DEFINITIONS
 `, ri, ri, ri, ri)
 }
 
-func testCheckAzureRMPolicySetDefinitionExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMPolicySetDefinitionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("not found: %s", name)
+			return fmt.Errorf("not found: %s", resourceName)
 		}
 
 		policySetName := rs.Primary.Attributes["name"]
@@ -185,7 +185,7 @@ func testCheckAzureRMPolicySetDefinitionExists(name string) resource.TestCheckFu
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("policy set definition does not exist: %s", name)
+			return fmt.Errorf("policy set definition does not exist: %s", policySetName)
 		}
 
 		return nil

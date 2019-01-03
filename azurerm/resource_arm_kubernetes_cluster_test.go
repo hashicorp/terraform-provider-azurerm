@@ -453,30 +453,30 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureComplete(t *testing.
 	})
 }
 
-func testCheckAzureRMKubernetesClusterExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMKubernetesClusterExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		resourceName := rs.Primary.Attributes["name"]
+		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Managed Kubernetes Cluster: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for Managed Kubernetes Cluster: %s", name)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).kubernetesClustersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		aks, err := client.Get(ctx, resourceGroup, resourceName)
+		aks, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on kubernetesClustersClient: %+v", err)
 		}
 
 		if aks.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Managed Kubernetes Cluster %q (Resource Group: %q) does not exist", resourceName, resourceGroup)
+			return fmt.Errorf("Bad: Managed Kubernetes Cluster %q (Resource Group: %q) does not exist", name, resourceGroup)
 		}
 
 		return nil

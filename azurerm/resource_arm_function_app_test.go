@@ -545,12 +545,12 @@ func testCheckAzureRMFunctionAppDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMFunctionAppExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMFunctionAppExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		functionAppName := rs.Primary.Attributes["name"]
@@ -574,12 +574,12 @@ func testCheckAzureRMFunctionAppExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testCheckAzureRMFunctionAppHasContentShare(name string) resource.TestCheckFunc {
+func testCheckAzureRMFunctionAppHasContentShare(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		functionAppName := rs.Primary.Attributes["name"]
@@ -606,12 +606,12 @@ func testCheckAzureRMFunctionAppHasContentShare(name string) resource.TestCheckF
 	}
 }
 
-func testCheckAzureRMFunctionAppHasNoContentShare(name string) resource.TestCheckFunc {
+func testCheckAzureRMFunctionAppHasNoContentShare(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		functionAppName := rs.Primary.Attributes["name"]

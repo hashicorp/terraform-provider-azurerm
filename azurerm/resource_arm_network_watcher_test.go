@@ -134,12 +134,12 @@ func testAccAzureRMNetworkWatcher_disappears(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMNetworkWatcherExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMNetworkWatcherExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -163,12 +163,12 @@ func testCheckAzureRMNetworkWatcherExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testCheckAzureRMNetworkWatcherDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMNetworkWatcherDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %q", name)
+			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]

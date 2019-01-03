@@ -271,12 +271,12 @@ func TestAccAzureRMRouteTable_withTagsSubnet(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMRouteTableExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMRouteTableExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %q", name)
+			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -301,11 +301,11 @@ func testCheckAzureRMRouteTableExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testCheckAzureRMRouteTableDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMRouteTableDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %q", name)
+			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]

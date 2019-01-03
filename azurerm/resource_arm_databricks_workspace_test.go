@@ -161,11 +161,11 @@ func TestAccAzureRMDatabricksWorkspace_complete(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDatabricksWorkspaceExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDatabricksWorkspaceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Bad: Not found: %s", name)
+			return fmt.Errorf("Bad: Not found: %s", resourceName)
 		}
 
 		workspaceName := rs.Primary.Attributes["name"]

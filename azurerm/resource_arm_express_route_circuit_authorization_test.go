@@ -59,11 +59,11 @@ func testAccAzureRMExpressRouteCircuitAuthorization_multiple(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMExpressRouteCircuitAuthorizationExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMExpressRouteCircuitAuthorizationExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		authorizationName := rs.Primary.Attributes["name"]
@@ -79,7 +79,7 @@ func testCheckAzureRMExpressRouteCircuitAuthorizationExists(name string) resourc
 		resp, err := client.Get(ctx, resourceGroup, expressRouteCircuitName, authorizationName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Express Route Circuit Authorization %q (Circuit %q / Resource Group: %q) does not exist", name, expressRouteCircuitName, resourceGroup)
+				return fmt.Errorf("Bad: Express Route Circuit Authorization %q (Circuit %q / Resource Group: %q) does not exist", authorizationName, expressRouteCircuitName, resourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on expressRouteAuthsClient: %+v", err)

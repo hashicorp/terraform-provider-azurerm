@@ -189,11 +189,11 @@ func TestAccAzureRMLoadBalancer_emptyPrivateIP(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMLoadBalancerExists(name string, lb *network.LoadBalancer) resource.TestCheckFunc {
+func testCheckAzureRMLoadBalancerExists(resourceName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		loadBalancerName := rs.Primary.Attributes["name"]

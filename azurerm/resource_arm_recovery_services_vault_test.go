@@ -70,12 +70,12 @@ func testCheckAzureRMRecoveryServicesVaultDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMRecoveryServicesVaultExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMRecoveryServicesVaultExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %q", name)
+			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]

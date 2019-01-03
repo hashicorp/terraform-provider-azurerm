@@ -266,13 +266,12 @@ func testCheckAzureRMRecoveryServicesProtectionPolicyVmExists(resourceName strin
 			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Recovery Services Vault Policy: %q", resourceName)
-		}
-
 		vaultName := rs.Primary.Attributes["recovery_vault_name"]
 		policyName := rs.Primary.Attributes["name"]
+		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for Recovery Services Vault %q Policy: %q", vaultName, policyName)
+		}
 
 		resp, err := client.Get(ctx, vaultName, resourceGroup, policyName)
 		if err != nil {

@@ -69,12 +69,12 @@ func TestAccAzureRMDataLakeStoreFile_requiresimport(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDataLakeStoreFileExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDataLakeStoreFileExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		remoteFilePath := rs.Primary.Attributes["remote_file_path"]
