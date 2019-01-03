@@ -75,6 +75,7 @@ A `delegation` block supports the following:
 * `service_delegation` (Required) A `service_delegation` block as defined below.
 
 ---
+
 A `service_delegation` block supports the following:
 * `service_name` - (Required) The name of service to delegate to. Possible values include: `Microsoft.ContainerInstance/containerGroups`.
 * `actions` - (Optional) A list of Actions which should be delegated. Possible values include: `Microsoft.Network/virtualNetworks/subnets/action`.
