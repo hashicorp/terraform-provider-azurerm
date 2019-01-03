@@ -70,6 +70,7 @@ The following arguments are supported:
 * `delegation` - (Optional) One or more `delegation` blocks as defined below.
 
 ---
+
 A `delegation` block supports the following:
 * `name` (Required) A name for this delegation.
 * `service_delegation` (Required) A `service_delegation` block as defined below.
