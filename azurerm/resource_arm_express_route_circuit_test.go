@@ -33,8 +33,9 @@ func TestAccAzureRMExpressRouteCircuit(t *testing.T) {
 			"microsoftPeering": testAccAzureRMExpressRouteCircuitPeering_microsoftPeering,
 		},
 		"authorization": {
-			"basic":    testAccAzureRMExpressRouteCircuitAuthorization_basic,
-			"multiple": testAccAzureRMExpressRouteCircuitAuthorization_multiple,
+			"basic":          testAccAzureRMExpressRouteCircuitAuthorization_basic,
+			"multiple":       testAccAzureRMExpressRouteCircuitAuthorization_multiple,
+			"requiresImport": testAccAzureRMExpressRouteCircuitAuthorization_requiresImport,
 		},
 	}
 
