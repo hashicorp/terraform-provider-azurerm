@@ -85,6 +85,9 @@ func resourceArmSubnet() *schema.Resource {
 									"name": {
 										Type:     schema.TypeString,
 										Required: true,
+										ValidateFunc: validate.StringInSlice([]string{
+										  "Microsoft.ContainerInstance/containerGroups",
+										}, false)
 									},
 									"actions": {
 										Type:     schema.TypeList,
