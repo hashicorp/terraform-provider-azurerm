@@ -138,12 +138,12 @@ func resourceArmFirewallApplicationRuleCollectionCreateUpdate(d *schema.Resource
 	}
 
 	if firewall.AzureFirewallPropertiesFormat == nil {
-		return fmt.Errorf("Error expanding Firewall %q (Resource Group %q): `properties` was nil", firewallName, resourceGroup)
+		return fmt.Errorf("Error retrieving Application Rule Collection %q (Firewall %q / Resource Group %q): `properties` was nil", firewallName, resourceGroup)
 	}
 	props := *firewall.AzureFirewallPropertiesFormat
 
 	if props.ApplicationRuleCollections == nil {
-		return fmt.Errorf("Error expanding Firewall %q (Resource Group %q): `properties.ApplicationRuleCollections` was nil", firewallName, resourceGroup)
+		return fmt.Errorf("Error retrieving Application Rule Collection %q (Firewall %q / Resource Group %q): `properties.ApplicationRuleCollections` was nil", firewallName, resourceGroup)
 	}
 	ruleCollections := *props.ApplicationRuleCollections
 
