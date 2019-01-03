@@ -61,6 +61,36 @@ func TestAccAzureRMBatchAccount_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMBatchAccount_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_batch_account.test"
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMBatchAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMBatchAccount_basic(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMBatchAccountExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMBatchAccount_requiresImport(ri, rs, location),
+				ExpectError: testRequiresImportError("azurerm_batch_account"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMBatchAccount_complete(t *testing.T) {
 	resourceName := "azurerm_batch_account.test"
 	ri := acctest.RandInt()
@@ -165,6 +195,19 @@ resource "azurerm_batch_account" "test" {
   pool_allocation_mode = "BatchService"
 }
 `, rInt, location, batchAccountSuffix)
+}
+
+func testAccAzureRMBatchAccount_requiresImport(rInt int, batchAccountSuffix string, location string) string {
+	template := testAccAzureRMBatchAccount_basic(rInt, batchAccountSuffix, location)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_batch_account" "import" {
+  name                 = "${azurerm_batch_account.test.name}"
+  resource_group_name  = "${azurerm_batch_account.test.resource_group_name}"
+  location             = "${azurerm_batch_account.test.location}"
+  pool_allocation_mode = "${azurerm_batch_account.test.pool_allocation_mode}"
+}
+`, template)
 }
 
 func testAccAzureRMBatchAccount_complete(rInt int, rString string, location string) string {
