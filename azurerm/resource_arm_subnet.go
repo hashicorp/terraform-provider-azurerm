@@ -91,6 +91,9 @@ func resourceArmSubnet() *schema.Resource {
 										Optional: true,
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+											  "Microsoft.Network/virtualNetworks/subnets/action",
+											}, false),
 										},
 									},
 								},
