@@ -36,7 +36,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.1.0/24"
   delegation {
-    name = "acctestdelegations"
+    name = "acctestdelegation"
     service_delegation {
       name = "Microsoft.ContainerInstance/containerGroups"
       actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
