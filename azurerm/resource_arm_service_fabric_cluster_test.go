@@ -253,9 +253,9 @@ func TestAccAzureRMServiceFabricCluster_azureActiveDirectory(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "certificate.0.thumbprint", "33:41:DB:6C:F2:AF:72:C6:11:DF:3B:E3:72:1A:65:3A:F1:D4:3E:CD:50:F5:84:F8:28:79:3D:BE:91:03:C3:EE"),
 					resource.TestCheckResourceAttr(resourceName, "certificate.0.x509_store_name", "My"),
 					resource.TestCheckResourceAttr(resourceName, "azure_active_directory.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "azure_active_directory.tenant_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "azure_active_directory.cluster_application_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "azure_active_directory.client_application_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "azure_active_directory.0.tenant_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "azure_active_directory.0.cluster_application_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "azure_active_directory.0.client_application_id"),
 					resource.TestCheckResourceAttr(resourceName, "fabric_settings.0.name", "Security"),
 					resource.TestCheckResourceAttr(resourceName, "fabric_settings.0.parameters.ClusterProtectionLevel", "EncryptAndSign"),
 					resource.TestCheckResourceAttr(resourceName, "management_endpoint", "https://example:80"),
@@ -770,7 +770,7 @@ resource "azurerm_azuread_application" "test" {
   name                       = "${azurerm_resource_group.test.name}-AAD"
   homepage                   = "https://example:80/Explorer/index.html"
   identifier_uris            = ["https://acctestAAD-app"]
-  reply_urls                 = ["https://example"]
+  reply_urls                 = ["https://acctestAAD-app"]
   available_to_other_tenants = false
   oauth2_allow_implicit_flow = true
 }
