@@ -78,7 +78,7 @@ A `delegation` block supports the following:
 ---
 
 A `service_delegation` block supports the following:
-* `service_name` - (Required) The name of service to delegate to. Possible values include: `Microsoft.ContainerInstance/containerGroups`.
+* `name` - (Required) The name of service to delegate to. Possible values include: `Microsoft.ContainerInstance/containerGroups`.
 * `actions` - (Optional) A list of Actions which should be delegated. Possible values include: `Microsoft.Network/virtualNetworks/subnets/action`.
 
 [More information on Subnet Delegation can be found in the Azure CLI documentation](https://docs.microsoft.com/en-us/cli/azure/network/vnet/subnet?view=azure-cli-latest#az-network-vnet-subnet-list-available-delegations)
