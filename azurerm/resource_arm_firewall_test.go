@@ -110,6 +110,35 @@ func TestAccAzureRMFirewall_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMFirewall_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_firewall.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMFirewall_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFirewallExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMFirewall_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_firewall"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMFirewall_withTags(t *testing.T) {
 	resourceName := "azurerm_firewall.test"
 	ri := acctest.RandInt()
@@ -336,6 +365,25 @@ resource "azurerm_firewall" "test" {
   }
 }
 `, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMFirewall_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMFirewall_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_firewall" "import" {
+  name                = "${azurerm_firewall.test.name}"
+  location            = "${azurerm_firewall.test.location}"
+  resource_group_name = "${azurerm_firewall.test.resource_group_name}"
+
+  ip_configuration {
+    name                 = "configuration"
+    subnet_id            = "${azurerm_subnet.test.id}"
+    public_ip_address_id = "${azurerm_public_ip.test.id}"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMFirewall_withTags(rInt int, location string) string {
