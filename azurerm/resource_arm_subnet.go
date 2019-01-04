@@ -13,9 +13,9 @@ var subnetResourceName = "azurerm_subnet"
 
 func resourceArmSubnet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSubnetCreate,
+		Create: resourceArmSubnetCreateUpdate,
 		Read:   resourceArmSubnetRead,
-		Update: resourceArmSubnetCreate,
+		Update: resourceArmSubnetCreateUpdate,
 		Delete: resourceArmSubnetDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -70,7 +70,7 @@ func resourceArmSubnet() *schema.Resource {
 	}
 }
 
-func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).subnetClient
 	ctx := meta.(*ArmClient).StopContext
 

@@ -17,9 +17,9 @@ import (
 
 func resourceArmEventHub() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmEventHubCreate,
+		Create: resourceArmEventHubCreateUpdate,
 		Read:   resourceArmEventHubRead,
-		Update: resourceArmEventHubCreate,
+		Update: resourceArmEventHubCreateUpdate,
 		Delete: resourceArmEventHubDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -136,7 +136,7 @@ func resourceArmEventHub() *schema.Resource {
 	}
 }
 
-func resourceArmEventHubCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).eventHubClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ARM EventHub creation.")

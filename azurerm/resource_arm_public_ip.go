@@ -15,9 +15,9 @@ import (
 
 func resourceArmPublicIp() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPublicIpCreate,
+		Create: resourceArmPublicIpCreateUpdate,
 		Read:   resourceArmPublicIpRead,
-		Update: resourceArmPublicIpCreate,
+		Update: resourceArmPublicIpCreateUpdate,
 		Delete: resourceArmPublicIpDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -117,7 +117,7 @@ func resourceArmPublicIp() *schema.Resource {
 	}
 }
 
-func resourceArmPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmPublicIpCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).publicIPClient
 	ctx := meta.(*ArmClient).StopContext
 

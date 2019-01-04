@@ -20,9 +20,9 @@ import (
 
 func resourceArmVirtualMachineScaleSet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualMachineScaleSetCreate,
+		Create: resourceArmVirtualMachineScaleSetCreateUpdate,
 		Read:   resourceArmVirtualMachineScaleSetRead,
-		Update: resourceArmVirtualMachineScaleSetCreate,
+		Update: resourceArmVirtualMachineScaleSetCreateUpdate,
 		Delete: resourceArmVirtualMachineScaleSetDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -739,7 +739,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).vmScaleSetClient
 	ctx := meta.(*ArmClient).StopContext
 
