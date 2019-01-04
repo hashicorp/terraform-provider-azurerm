@@ -13,7 +13,6 @@ IMPROVEMENTS:
 
 * dependencies: upgrading the `network` SDK to `2018-08-01` [GH-2433]
 * Data Source: `azurerm_app_service` - exporting the `possible_outbound_ip_addresses` [GH-2513]
-* Data Source: `azurerm_managed_disk` - exposing the `create_option` field [GH-2597]
 * `azurerm_app_service` - exporting the `possible_outbound_ip_addresses` [GH-2513]
 * `azurerm_firewall` - renaming the `public_ip_address_id` property to `ip_address_id` [GH-2433]
 * `azurerm_policy_assignment` - support for Managed Service Identity [GH-2549]
@@ -25,6 +24,8 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* Data Source: `azurerm_managed_disk` - exposing the `create_option` field [GH-2597]
+* Data Source: `azurerm_snapshot` - ensuring `disk_size_gb` is set [GH-2596]
 * `azurerm_network_security_rule` - the properties `source_application_security_group_ids` and `destination_application_security_group_ids` are now correctly read & imported [GH-2558]
 * `azurerm_role_assignment` - retrieving the role definition name during import [GH-2565]
 * `azurerm_template_deployment` - fixing regression and supportting nested template deployments [GH-2514]
