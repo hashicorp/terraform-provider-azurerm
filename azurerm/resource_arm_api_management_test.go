@@ -251,10 +251,7 @@ resource "azurerm_api_management" "test" {
 }
 
 func testAccAzureRMApiManagement_complete(rInt int, location string, altLocation string) string {
-	template := testAccAzureRMApiManagement_template(rInt, location)
 	return fmt.Sprintf(`
-%s
-
 resource "azurerm_resource_group" "test1" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -265,6 +262,34 @@ resource "azurerm_resource_group" "test2" {
   location = "%s"
 }
 
+resource "azurerm_virtual_network" "test1" {
+  name                = "acctest-vnet-%d"
+  resource_group_name = "${azurerm_resource_group.test1.name}"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test1.location}"
+}
+
+resource "azurerm_subnet" "test1" {
+  name                 = "subnet-%d"
+  resource_group_name  = "${azurerm_resource_group.test1.name}"
+  virtual_network_name = "${azurerm_virtual_network.test1.name}"
+  address_prefix       = "10.0.0.0/24"
+}
+
+resource "azurerm_virtual_network" "test2" {
+  name                = "acctest-vnet-%d"
+  resource_group_name = "${azurerm_resource_group.test2.name}"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test2.location}"
+}
+
+resource "azurerm_subnet" "test2" {
+  name                 = "subnet-%d"
+  resource_group_name  = "${azurerm_resource_group.test2.name}"
+  virtual_network_name = "${azurerm_virtual_network.test2.name}"
+  address_prefix       = "10.0.0.0/24"
+}
+
 resource "azurerm_api_management" "test" {
   name                      = "acctestAM-%d"
   publisher_name            = "pub1"
@@ -272,7 +297,11 @@ resource "azurerm_api_management" "test" {
   notification_sender_email = "notification@email.com"
 
   additional_location {
-    location = "${azurerm_resource_group.test2.location}"
+		location = "${azurerm_resource_group.test2.location}"
+		
+		virtual_network_configuration {
+			subnet_id = "${azurerm_subnet.test2.id}"
+		}
   }
 
   certificate {
@@ -317,7 +346,7 @@ resource "azurerm_api_management" "test" {
 	virtual_network_type	= "External"
 
 	virtual_network_configuration {
-		subnet_id	= "${azurerm_subnet.test.id}"
+		subnet_id	= "${azurerm_subnet.test1.id}"
 	}
 
   sku {
@@ -332,28 +361,5 @@ resource "azurerm_api_management" "test" {
   location            = "${azurerm_resource_group.test1.location}"
   resource_group_name = "${azurerm_resource_group.test1.name}"
 }
-`, template, rInt, location, rInt, altLocation, rInt)
-}
-
-func testAccAzureRMApiManagement_template(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "subnet-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.0.0.0/24"
-}
-`, rInt, location, rInt, rInt)
+`, rInt, location, rInt, altLocation, rInt, rInt, rInt, rInt, rInt)
 }

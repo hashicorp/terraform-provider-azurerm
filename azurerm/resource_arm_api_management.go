@@ -53,6 +53,14 @@ func resourceArmApiManagementService() *schema.Resource {
 				},
 			},
 
+			"private_ip_addresses": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
 			"publisher_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -124,10 +132,17 @@ func resourceArmApiManagementService() *schema.Resource {
 			"additional_location": {
 				Type:     schema.TypeList,
 				Optional: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"location": locationSchema(),
+
+						"virtual_network_configuration": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: apiManagementResourceVirtualNetworkConfigurationSchema(),
+							},
+						},
 
 						"gateway_regional_url": {
 							Type:     schema.TypeString,
@@ -135,6 +150,14 @@ func resourceArmApiManagementService() *schema.Resource {
 						},
 
 						"public_ip_addresses": {
+							Type: schema.TypeList,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+							Computed: true,
+						},
+
+						"private_ip_addresses": {
 							Type: schema.TypeList,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
@@ -452,6 +475,7 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		d.Set("management_api_url", props.ManagementAPIURL)
 		d.Set("scm_url", props.ScmURL)
 		d.Set("public_ip_addresses", props.PublicIPAddresses)
+		d.Set("private_ip_addresses", props.PrivateIPAddresses)
 
 		if err := d.Set("security", flattenApiManagementCustomProperties(props.CustomProperties)); err != nil {
 			return fmt.Errorf("Error setting `security`: %+v", err)
@@ -680,6 +704,10 @@ func expandAzureRmApiManagementAdditionalLocations(d *schema.ResourceData, sku *
 			Sku:      sku,
 		}
 
+		if _, ok := config["virtual_network_configuration"]; ok {
+			additionalLocation.VirtualNetworkConfiguration = expandApiManagementVirtualNetworkConfiguration(config)
+		}
+
 		additionalLocations = append(additionalLocations, additionalLocation)
 	}
 
@@ -699,8 +727,16 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 			output["location"] = azureRMNormalizeLocation(*prop.Location)
 		}
 
+		if prop.VirtualNetworkConfiguration != nil {
+			output["virtual_network_configuration"] = flattenApiManagementVirtualNetworkConfiguration(prop.VirtualNetworkConfiguration)
+		}
+
 		if prop.PublicIPAddresses != nil {
 			output["public_ip_addresses"] = *prop.PublicIPAddresses
+		}
+
+		if prop.PrivateIPAddresses != nil {
+			output["private_ip_addresses"] = *prop.PrivateIPAddresses
 		}
 
 		if prop.GatewayRegionalURL != nil {
@@ -783,6 +819,23 @@ func flattenApiManagementServiceSku(input *apimanagement.ServiceSkuProperties) [
 func expandAzureRmApiManagementVirtualNetworkConfiguration(d *schema.ResourceData) *apimanagement.VirtualNetworkConfiguration {
 	vs := d.Get("virtual_network_configuration").([]interface{})
 	// guaranteed by MinItems in the schema
+	v := vs[0].(map[string]interface{})
+
+	subnetid := v["subnet_id"].(string)
+
+	vnetConfig := &apimanagement.VirtualNetworkConfiguration{
+		SubnetResourceID: utils.String(subnetid),
+	}
+
+	return vnetConfig
+}
+
+func expandApiManagementVirtualNetworkConfiguration(input map[string]interface{}) *apimanagement.VirtualNetworkConfiguration {
+	vs := input["virtual_network_configuration"].([]interface{})
+
+	if len(vs) == 0 {
+		return nil
+	}
 	v := vs[0].(map[string]interface{})
 
 	subnetid := v["subnet_id"].(string)
@@ -911,6 +964,16 @@ func apiManagementResourceHostnameProxySchema() map[string]*schema.Schema {
 	}
 
 	return hostnameSchema
+}
+
+func apiManagementResourceVirtualNetworkConfigurationSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"subnet_id": {
+			Type:         schema.TypeString,
+			Required:     true,
+			ValidateFunc: azure.ValidateResourceID,
+		},
+	}
 }
 
 func parseApiManagementNilableDictionary(input map[string]*string, key string) bool {

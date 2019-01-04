@@ -74,6 +74,8 @@ A `additional_location` block supports the following:
 
 * `location` - (Required) The name of the Azure Region in which the API Management Service should be expanded to.
 
+* `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below. Required when `virtual_network_type` is  `External` or `Internal`
+
 ---
 
 A `certificate` block supports the following:
@@ -204,6 +206,8 @@ In addition to all arguments above, the following attributes are exported:
 
 * `public_ip_addresses` - The Public IP addresses of the API Management Service.
 
+* `private_ip_addresses` - The Private IP addresses of the API Management Service if integrated in the Virtual Network.
+
 * `scm_url` - The URL for the SCM (Source Code Management) Endpoint associated with this API Management service.
 
 * `identity` - An `identity` block as defined below.
@@ -225,6 +229,8 @@ An `additional_location` block exports the following:
 * `gateway_regional_url` - The URL of the Regional Gateway for the API Management Service in the specified region.
 
 * `public_ip_addresses` - Public Static Load Balanced IP addresses of the API Management service in the additional location. Available only for Basic, Standard and Premium SKU.
+
+* `private_ip_addresses` - Private Static Load Balanced IP addresses of the API Management service in the virtual network of the additional locations. Available only for Basic, Standard and Premium SKU.
 
 ## Import
 
