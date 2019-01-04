@@ -6,6 +6,7 @@ FEATURES:
 * **New Data Source:** `azurerm_virtual_machine` [GH-2463]
 * **New Resource:** `azurerm_application_insights_api_key` [GH-2556]
 * **New Resource:** `azurerm_batch_account` [GH-2428]
+* **New Resource:** `azurerm_firewall_application_rule_collection` [GH-2532]
 * **New Resource:** `azurerm_policy_set_definition` [GH-2535]
 
 IMPROVEMENTS:
