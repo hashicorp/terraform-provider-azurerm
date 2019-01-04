@@ -209,6 +209,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_express_route_circuit_peering":          resourceArmExpressRouteCircuitPeering(),
 			"azurerm_firewall":                               resourceArmFirewall(),
 			"azurerm_firewall_network_rule_collection":       resourceArmFirewallNetworkRuleCollection(),
+			"azurerm_firewall_application_rule_collection":   resourceArmFirewallApplicationRuleCollection(),
 			"azurerm_function_app":                           resourceArmFunctionApp(),
 			"azurerm_image":                                  resourceArmImage(),
 			"azurerm_iothub":                                 resourceArmIotHub(),

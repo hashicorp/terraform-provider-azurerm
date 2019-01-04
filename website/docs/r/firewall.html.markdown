@@ -11,8 +11,6 @@ description: |-
 
 Manages an Azure Firewall.
 
--> **NOTE** Azure Firewall is currently in Public Preview.
-
 ## Example Usage
 
 ```hcl
