@@ -218,19 +218,6 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	availabilityRequest := web.ResourceNameAvailabilityRequest{
-		Name: utils.String(name),
-		Type: web.CheckNameResourceTypesMicrosoftWebsites,
-	}
-	available, err := client.CheckNameAvailability(ctx, availabilityRequest)
-	if err != nil {
-		return fmt.Errorf("Error checking if the name %q was available: %+v", name, err)
-	}
-
-	if !*available.NameAvailable {
-		return fmt.Errorf("The name %q used for the Function App needs to be globally unique and isn't available: %s", name, *available.Message)
-	}
-
 	if requireResourcesToBeImported {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
@@ -242,6 +229,19 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 		if existing.ID != nil && *existing.ID != "" {
 			return tf.ImportAsExistsError("azurerm_function_app", *existing.ID)
 		}
+	}
+
+	availabilityRequest := web.ResourceNameAvailabilityRequest{
+		Name: utils.String(name),
+		Type: web.CheckNameResourceTypesMicrosoftWebsites,
+	}
+	available, err := client.CheckNameAvailability(ctx, availabilityRequest)
+	if err != nil {
+		return fmt.Errorf("Error checking if the name %q was available: %+v", name, err)
+	}
+
+	if !*available.NameAvailable {
+		return fmt.Errorf("The name %q used for the Function App needs to be globally unique and isn't available: %s", name, *available.Message)
 	}
 
 	location := azureRMNormalizeLocation(d.Get("location").(string))
