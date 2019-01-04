@@ -31,12 +31,12 @@ func resourceArmDnsZone() *schema.Resource {
 			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
 
 			"number_of_record_sets": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 
 			"max_number_of_record_sets": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 
