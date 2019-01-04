@@ -85,7 +85,7 @@ func resourceArmApplicationInsightsAPIKeyCreate(d *schema.ResourceData, meta int
 	resGroup := id.ResourceGroup
 	appInsightsName := id.Path["components"]
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if requireResourcesToBeImported {
 		var existing insights.ApplicationInsightsComponentAPIKey
 		existing, err = client.Get(ctx, resGroup, appInsightsName, name)
 		if err != nil {

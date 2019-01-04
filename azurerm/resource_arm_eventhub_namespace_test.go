@@ -35,6 +35,35 @@ func TestAccAzureRMEventHubNamespace_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMEventHubNamespace_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_eventhub_namespace.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMEventHubNamespace_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventHubNamespaceExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMEventHubNamespace_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_eventhub_namespace"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMEventHubNamespace_standard(t *testing.T) {
 	resourceName := "azurerm_eventhub_namespace.test"
 	ri := acctest.RandInt()
@@ -359,6 +388,20 @@ resource "azurerm_eventhub_namespace" "test" {
   sku                 = "Basic"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMEventHubNamespace_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMEventHubNamespace_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_eventhub_namespace" "import" {
+  name                = "${azurerm_eventhub_namespace.test.name}"
+  location            = "${azurerm_eventhub_namespace.test.location}"
+  resource_group_name = "${azurerm_eventhub_namespace.test.resource_group_name}"
+  sku                 = "${azurerm_eventhub_namespace.test.sku}"
+}
+`, template)
 }
 
 func testAccAzureRMEventHubNamespace_standard(rInt int, location string) string {

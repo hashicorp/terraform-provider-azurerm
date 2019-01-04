@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
@@ -159,25 +160,33 @@ func resourceArmFirewallApplicationRuleCollectionCreateUpdate(d *schema.Resource
 		},
 	}
 
-	if !d.IsNewResource() {
-		index := -1
-		for i, v := range ruleCollections {
-			if v.Name == nil {
-				continue
-			}
-
-			if *v.Name == name {
-				index = i
-				break
-			}
+	index := -1
+	var id string
+	for i, v := range ruleCollections {
+		if v.Name == nil || v.ID == nil {
+			continue
 		}
 
+		if *v.Name == name {
+			index = i
+			id = *v.ID
+			break
+		}
+	}
+
+	if !d.IsNewResource() {
 		if index == -1 {
 			return fmt.Errorf("Error locating Application Rule Collection %q (Firewall %q / Resource Group %q)", name, firewallName, resourceGroup)
 		}
 
 		ruleCollections[index] = newRuleCollection
 	} else {
+		if requireResourcesToBeImported && d.IsNewResource() {
+			if index != -1 {
+				return tf.ImportAsExistsError("azurerm_firewall_application_rule_collection", id)
+			}
+		}
+
 		ruleCollections = append(ruleCollections, newRuleCollection)
 	}
 
