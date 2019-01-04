@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -43,6 +42,11 @@ func dataSourceArmManagedDisk() *schema.Resource {
 
 			"disk_size_gb": {
 				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
+			"create_option": {
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
