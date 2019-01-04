@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform/helper/validation"
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
@@ -85,9 +86,9 @@ func resourceArmSubnet() *schema.Resource {
 									"name": {
 										Type:     schema.TypeString,
 										Required: true,
-										ValidateFunc: validate.StringInSlice([]string{
-										  "Microsoft.ContainerInstance/containerGroups",
-										}, false)
+										ValidateFunc: validation.StringInSlice([]string{
+											"Microsoft.ContainerInstance/containerGroups",
+										}, false),
 									},
 									"actions": {
 										Type:     schema.TypeList,
@@ -95,7 +96,7 @@ func resourceArmSubnet() *schema.Resource {
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
-											  "Microsoft.Network/virtualNetworks/subnets/action",
+												"Microsoft.Network/virtualNetworks/subnets/action",
 											}, false),
 										},
 									},
@@ -164,7 +165,7 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 	serviceEndpoints := expandSubnetServiceEndpoints(d)
 	properties.ServiceEndpoints = &serviceEndpoints
 
-	delegations := expandSubnetDelegations(d)
+	delegations := expandSubnetDelegation(d)
 	properties.Delegations = &delegations
 
 	subnet := network.Subnet{
@@ -242,6 +243,11 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 
 		serviceEndpoints := flattenSubnetServiceEndpoints(props.ServiceEndpoints)
 		if err := d.Set("service_endpoints", serviceEndpoints); err != nil {
+			return err
+		}
+
+		delegation := flattenSubnetDelegation(props.Delegations)
+		if err := d.Set("delegation", delegation); err != nil {
 			return err
 		}
 	}
@@ -342,7 +348,7 @@ func flattenSubnetIPConfigurations(ipConfigurations *[]network.IPConfiguration) 
 	return ips
 }
 
-func expandSubnetDelegations(d *schema.ResourceData) []network.Delegation {
+func expandSubnetDelegation(d *schema.ResourceData) []network.Delegation {
 	delegations := d.Get("delegation").([]interface{})
 	retDelegations := make([]network.Delegation, 0)
 
@@ -372,4 +378,29 @@ func expandSubnetDelegations(d *schema.ResourceData) []network.Delegation {
 	}
 
 	return retDelegations
+}
+
+func flattenSubnetDelegation(delegations *[]network.Delegation) []interface{} {
+	if delegations == nil {
+		return []interface{}{}
+	}
+
+	retDeles := make([]interface{}, 0)
+
+	for _, dele := range *delegations {
+		retDele := make(map[string]interface{})
+		retDele["name"] = *dele.Name
+
+		svcDeles := make([]interface{}, 0)
+		svcDele := make(map[string]interface{})
+		svcDele["name"] = *dele.ServiceName
+		svcDele["actions"] = *dele.Actions
+		svcDeles = append(svcDeles, svcDele)
+
+		retDele["service_delegation"] = svcDeles
+
+		retDeles = append(retDeles, retDele)
+	}
+
+	return retDeles
 }
