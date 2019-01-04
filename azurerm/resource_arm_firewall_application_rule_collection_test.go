@@ -45,6 +45,35 @@ func TestAccAzureRMFirewallApplicationRuleCollection_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMFirewallApplicationRuleCollection_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_firewall_application_rule_collection.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMFirewallApplicationRuleCollection_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFirewallApplicationRuleCollectionExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMFirewallApplicationRuleCollection_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_firewall_application_rule_collection"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMFirewallApplicationRuleCollection_updatedName(t *testing.T) {
 	resourceName := "azurerm_firewall_application_rule_collection.test"
 	ri := acctest.RandInt()
@@ -453,6 +482,38 @@ resource "azurerm_firewall_application_rule_collection" "test" {
   name                = "acctestarc"
   azure_firewall_name = "${azurerm_firewall.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+  priority            = 100
+  action              = "Allow"
+
+  rule {
+    name = "rule1"
+
+    source_addresses = [
+      "10.0.0.0/16",
+    ]
+
+    target_fqdns = [
+      "*.google.com",
+    ]
+
+    protocol {
+      port = 443
+      type = "Https"
+    }
+  }
+}
+`, template)
+}
+
+func testAccAzureRMFirewallApplicationRuleCollection_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMFirewallApplicationRuleCollection_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_firewall_application_rule_collection" "import" {
+  name                = "${azurerm_firewall_application_rule_collection.test.name}"
+  azure_firewall_name = "${azurerm_firewall_application_rule_collection.test.azure_firewall_name}"
+  resource_group_name = "${azurerm_firewall_application_rule_collection.test.resource_group_name}"
   priority            = 100
   action              = "Allow"
 
