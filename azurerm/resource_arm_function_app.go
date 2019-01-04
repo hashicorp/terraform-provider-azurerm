@@ -216,13 +216,13 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 	log.Printf("[INFO] preparing arguments for AzureRM Function App creation.")
 
 	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 
 	if requireResourcesToBeImported {
-		existing, err := client.Get(ctx, resGroup, name)
+		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Function App %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Function App %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -280,7 +280,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	createFuture, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope)
+	createFuture, err := client.CreateOrUpdate(ctx, resourceGroup, name, siteEnvelope)
 	if err != nil {
 		return err
 	}
@@ -290,12 +290,12 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
+	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Function App %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read Function App %s (resource group %s) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
