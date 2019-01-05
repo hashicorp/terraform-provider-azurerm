@@ -10,10 +10,9 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_requiredOnly(t *testing.T) {
+func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_basic(t *testing.T) {
 	resourceName := "azurerm_log_analytics_workspace_linked_service.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMLogAnalyticsWorkspaceLinkedServiceRequiredOnly(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -21,22 +20,26 @@ func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_requiredOnly(t *testing.T)
 		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMLogAnalyticsWorkspaceLinkedService_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctestworkspace-%d/Automation", ri)),
-					resource.TestCheckResourceAttr(resourceName, "workspace_name", fmt.Sprintf("acctestworkspace-%d", ri)),
+					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctestlaw-%d/Automation", ri)),
+					resource.TestCheckResourceAttr(resourceName, "workspace_name", fmt.Sprintf("acctestlaw-%d", ri)),
 					resource.TestCheckResourceAttr(resourceName, "linked_service_name", "automation"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
-func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_optionalArguments(t *testing.T) {
+func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_complete(t *testing.T) {
 	resourceName := "azurerm_log_analytics_workspace_linked_service.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMLogAnalyticsWorkspaceLinkedServiceOptionalArguments(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -44,11 +47,16 @@ func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_optionalArguments(t *testi
 		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMLogAnalyticsWorkspaceLinkedService_complete(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "linked_service_name", "automation"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -68,11 +76,9 @@ func testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceDestroy(s *terraform.Stat
 		lsName := rs.Primary.Attributes["linked_service_name"]
 
 		resp, err := conn.Get(ctx, resourceGroup, workspaceName, lsName)
-
 		if err != nil {
 			return nil
 		}
-
 		if resp.ID == nil {
 			return nil
 		}
@@ -118,63 +124,15 @@ func testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceExists(resourceName strin
 	}
 }
 
-func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_importRequiredOnly(t *testing.T) {
-	resourceName := "azurerm_log_analytics_workspace_linked_service.test"
-
-	ri := acctest.RandInt()
-	config := testAccAzureRMLogAnalyticsWorkspaceLinkedServiceRequiredOnly(ri, testLocation())
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-			},
-
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_importOptionalArguments(t *testing.T) {
-	resourceName := "azurerm_log_analytics_workspace_linked_service.test"
-
-	ri := acctest.RandInt()
-	config := testAccAzureRMLogAnalyticsWorkspaceLinkedServiceOptionalArguments(ri, testLocation())
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-			},
-
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func testAccAzureRMLogAnalyticsWorkspaceLinkedServiceRequiredOnly(rInt int, location string) string {
+func testAccAzureRMLogAnalyticsWorkspaceLinkedService_prereqs(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestresourcegroup-%d"
-  location = "%v"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]v"
 }
 
 resource "azurerm_automation_account" "test" {
-  name                = "acctestautomation-%d"
+  name                = "acctestAutomation-%[1]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -183,17 +141,23 @@ resource "azurerm_automation_account" "test" {
   }
 
   tags {
-    environment = "development"
+    Environment = "Test"
   }
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctestworkspace-%d"
+  name                = "acctestLAW-%[1]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "PerGB2018"
   retention_in_days   = 30
 }
+`, rInt, location)
+}
+
+func testAccAzureRMLogAnalyticsWorkspaceLinkedService_basic(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_log_analytics_workspace_linked_service" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -203,37 +167,12 @@ resource "azurerm_log_analytics_workspace_linked_service" "test" {
     resource_id = "${azurerm_automation_account.test.id}"
   }
 }
-`, rInt, location, rInt, rInt)
+`, testAccAzureRMLogAnalyticsWorkspaceLinkedService_prereqs(rInt, location))
 }
 
-func testAccAzureRMLogAnalyticsWorkspaceLinkedServiceOptionalArguments(rInt int, location string) string {
+func testAccAzureRMLogAnalyticsWorkspaceLinkedService_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestresourcegroup-%d"
-  location = "%v"
-}
-
-resource "azurerm_automation_account" "test" {
-  name                = "acctestautomation-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  sku {
-    name = "Basic"
-  }
-
-  tags {
-    environment = "development"
-  }
-}
-
-resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctestworkspace-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "PerGB2018"
-  retention_in_days   = 30
-}
+%s
 
 resource "azurerm_log_analytics_workspace_linked_service" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -244,5 +183,5 @@ resource "azurerm_log_analytics_workspace_linked_service" "test" {
     resource_id = "${azurerm_automation_account.test.id}"
   }
 }
-`, rInt, location, rInt, rInt)
+`, testAccAzureRMLogAnalyticsWorkspaceLinkedService_prereqs(rInt, location))
 }
