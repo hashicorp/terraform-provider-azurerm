@@ -90,12 +90,12 @@ func testCheckAzureRMSchedulerJobCollectionDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMSchedulerJobCollectionExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMSchedulerJobCollectionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %q", name)
+			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -132,7 +132,7 @@ resource "azurerm_scheduler_job_collection" "test" {
   location            = "${azurerm_resource_group.test.location}" 
   resource_group_name = "${azurerm_resource_group.test.name}" 
   sku                 = "Standard" 
-%s 
+%s
 } 
 `, rInt, location, rInt, additional)
 }

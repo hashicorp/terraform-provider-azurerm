@@ -271,12 +271,12 @@ func TestAccAzureRMRouteTable_withTagsSubnet(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMRouteTableExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMRouteTableExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %q", name)
+			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -301,11 +301,11 @@ func testCheckAzureRMRouteTableExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testCheckAzureRMRouteTableDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMRouteTableDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %q", name)
+			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -324,8 +324,7 @@ func testCheckAzureRMRouteTableDisappears(name string) resource.TestCheckFunc {
 			}
 		}
 
-		err = future.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("Error waiting for deletion of Route Table %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
@@ -378,21 +377,21 @@ resource "azurerm_route_table" "test" {
 func testAccAzureRMRouteTable_basicAppliance(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name     = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_route_table" "test" {
-    name                = "acctestrt%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestrt%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    route {
-        name                   = "route1"
-        address_prefix         = "10.1.0.0/16"
-        next_hop_type          = "VirtualAppliance"
-        next_hop_in_ip_address = "192.168.0.1"
-    }
+  route {
+    name                   = "route1"
+    address_prefix         = "10.1.0.0/16"
+    next_hop_type          = "VirtualAppliance"
+    next_hop_in_ip_address = "192.168.0.1"
+  }
 }
 `, rInt, location, rInt)
 }

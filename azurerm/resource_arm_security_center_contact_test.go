@@ -73,14 +73,14 @@ func TestAccAzureRMSecurityCenterContact_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMSecurityCenterContactExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMSecurityCenterContactExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := testAccProvider.Meta().(*ArmClient).securityCenterContactsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		contactName := rs.Primary.Attributes["securityContacts"]
@@ -120,11 +120,11 @@ func testCheckAzureRMSecurityCenterContactDestroy(s *terraform.State) error {
 func testAccAzureRMSecurityCenterContact_template(email, phone string, notifications, adminAlerts bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_security_center_contact" "test" {
-    email = "%s"
-    phone = "%s"
+  email = "%s"
+  phone = "%s"
 
-    alert_notifications = %t
-    alerts_to_admins    = %t
+  alert_notifications = %t
+  alerts_to_admins    = %t
 }
 `, email, phone, notifications, adminAlerts)
 }

@@ -6,8 +6,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -36,7 +36,7 @@ func resourceArmLogAnalyticsWorkspaceLinkedService() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				Default:      "automation",
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"linked_service_properties": {
@@ -88,8 +88,7 @@ func resourceArmLogAnalyticsWorkspaceLinkedServiceCreateUpdate(d *schema.Resourc
 		},
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resGroup, workspaceName, lsName, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, workspaceName, lsName, parameters); err != nil {
 		return fmt.Errorf("Error issuing create request for Log Analytics Workspace Linked Service %q/%q (Resource Group %q): %+v", workspaceName, lsName, resGroup, err)
 	}
 

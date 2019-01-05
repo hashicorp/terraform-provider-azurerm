@@ -72,8 +72,7 @@ func resourceArmManagementLockCreateUpdate(d *schema.ResourceData, meta interfac
 		},
 	}
 
-	_, err := client.CreateOrUpdateByScope(ctx, scope, name, lock)
-	if err != nil {
+	if _, err := client.CreateOrUpdateByScope(ctx, scope, name, lock); err != nil {
 		return err
 	}
 

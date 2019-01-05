@@ -36,6 +36,35 @@ func TestAccAzureRMAutomationCredential_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAutomationCredential_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_automation_credential.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAutomationCredentialDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAutomationCredential_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAutomationCredentialExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMAutomationCredential_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_automation_credential"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAutomationCredential_complete(t *testing.T) {
 	resourceName := "azurerm_automation_credential.test"
 	ri := acctest.RandInt()
@@ -97,13 +126,13 @@ func testCheckAzureRMAutomationCredentialDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMAutomationCredentialExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMAutomationCredentialExists(resourceName string) resource.TestCheckFunc {
 
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -156,6 +185,21 @@ resource "azurerm_automation_credential" "test" {
   password            = "test_pwd"
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMAutomationCredential_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMAutomationCredential_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_automation_credential" "import" {
+  name                = "${azurerm_automation_credential.test.name}"
+  resource_group_name = "${azurerm_automation_credential.test.resource_group_name}"
+  account_name        = "${azurerm_automation_credential.test.account_name}"
+  username            = "${azurerm_automation_credential.test.username}"
+  password            = "${azurerm_automation_credential.test.password}"
+}
+`, template)
 }
 
 func testAccAzureRMAutomationCredential_complete(rInt int, location string) string {

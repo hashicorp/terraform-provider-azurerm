@@ -60,12 +60,12 @@ func TestAccAzureRMSubnetRouteTableAssociation_deleted(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMSubnetRouteTableAssociationExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMSubnetRouteTableAssociationExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		subnetId := rs.Primary.Attributes["subnet_id"]
@@ -102,12 +102,12 @@ func testCheckAzureRMSubnetRouteTableAssociationExists(name string) resource.Tes
 	}
 }
 
-func testCheckAzureRMSubnetRouteTableAssociationDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMSubnetRouteTableAssociationDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		subnetId := rs.Primary.Attributes["subnet_id"]
@@ -135,8 +135,7 @@ func testCheckAzureRMSubnetRouteTableAssociationDisappears(name string) resource
 		if err != nil {
 			return fmt.Errorf("Error updating Subnet %q (Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
 		}
-		err = future.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("Error waiting for completion of Subnet %q (Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
 		}
 
@@ -144,12 +143,12 @@ func testCheckAzureRMSubnetRouteTableAssociationDisappears(name string) resource
 	}
 }
 
-func testCheckAzureRMSubnetHasNoRouteTable(name string) resource.TestCheckFunc {
+func testCheckAzureRMSubnetHasNoRouteTable(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		subnetId := rs.Primary.Attributes["subnet_id"]

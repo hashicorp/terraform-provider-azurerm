@@ -274,15 +274,15 @@ func testCheckAzureRMAutomationScheduleDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMAutomationScheduleExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMAutomationScheduleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := testAccProvider.Meta().(*ArmClient).automationScheduleClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -360,7 +360,7 @@ resource "azurerm_automation_schedule" "test" {
   automation_account_name = "${azurerm_automation_account.test.name}"
   frequency               = "OneTime"
   start_time              = "%s"
-  timezone                = "Central Europe Standard Time" 
+  timezone                = "Central Europe Standard Time"
   description             = "This is an automation schedule"
 }
 `, testAccAzureRMAutomationSchedule_prerequisites(rInt, location), rInt, startTime)
@@ -417,7 +417,7 @@ resource "azurerm_automation_schedule" "test" {
   frequency               = "Week"
   interval                = "1"
   week_days               = ["%s"]
-}	
+}
 `, testAccAzureRMAutomationSchedule_prerequisites(rInt, location), rInt, weekDay)
 }
 
@@ -446,7 +446,7 @@ resource "azurerm_automation_schedule" "test" {
   frequency               = "Month"
   interval                = "1"
   month_days              = [%d]
-}	
+}
 `, testAccAzureRMAutomationSchedule_prerequisites(rInt, location), rInt, monthDay)
 }
 
@@ -477,10 +477,10 @@ resource "azurerm_automation_schedule" "test" {
   interval                = "1"
 
   monthly_occurrence {
-	day        = "%s"
-	occurrence = "%d"
+    day        = "%s"
+    occurrence = "%d"
   }
-}	
+}
 `, testAccAzureRMAutomationSchedule_prerequisites(rInt, location), rInt, weekDay, weekDayOccurrence)
 }
 

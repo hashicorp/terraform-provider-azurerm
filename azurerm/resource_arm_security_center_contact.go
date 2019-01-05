@@ -6,7 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/2017-08-01-preview/security"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -31,13 +31,13 @@ func resourceArmSecurityCenterContact() *schema.Resource {
 			"email": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"phone": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"alert_notifications": {
@@ -79,8 +79,8 @@ func resourceArmSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta i
 	}
 
 	if d.IsNewResource() {
-		_, err := client.Create(ctx, name, contact)
-		if err != nil {
+
+		if _, err := client.Create(ctx, name, contact); err != nil {
 			return fmt.Errorf("Error creating Security Center Contact: %+v", err)
 		}
 
@@ -94,8 +94,7 @@ func resourceArmSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta i
 
 		d.SetId(*resp.ID)
 	} else {
-		_, err := client.Update(ctx, name, contact)
-		if err != nil {
+		if _, err := client.Update(ctx, name, contact); err != nil {
 			return fmt.Errorf("Error updating Security Center Contact: %+v", err)
 		}
 	}

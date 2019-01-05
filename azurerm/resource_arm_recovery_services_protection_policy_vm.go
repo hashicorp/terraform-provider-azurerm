@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/backup"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2017-07-01/backup"
 
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -53,6 +53,12 @@ func resourceArmRecoveryServicesProtectionPolicyVm() *schema.Resource {
 					regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{1,49}$"),
 					"Recovery Service Vault name must be 2 - 50 characters long, start with a letter, contain only letters, numbers and hyphens.",
 				),
+			},
+
+			"timezone": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "UTC",
 			},
 
 			"backup": {
@@ -156,11 +162,11 @@ func resourceArmRecoveryServicesProtectionPolicyVm() *schema.Resource {
 								Type:             schema.TypeString,
 								DiffSuppressFunc: suppress.CaseDifference,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(backup.First),
-									string(backup.Second),
-									string(backup.Third),
-									string(backup.Fourth),
-									string(backup.Last),
+									string(backup.WeekOfMonthFirst),
+									string(backup.WeekOfMonthSecond),
+									string(backup.WeekOfMonthThird),
+									string(backup.WeekOfMonthFourth),
+									string(backup.WeekOfMonthLast),
 								}, true),
 							},
 						},
@@ -210,11 +216,11 @@ func resourceArmRecoveryServicesProtectionPolicyVm() *schema.Resource {
 								Type:             schema.TypeString,
 								DiffSuppressFunc: suppress.CaseDifference,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(backup.First),
-									string(backup.Second),
-									string(backup.Third),
-									string(backup.Fourth),
-									string(backup.Last),
+									string(backup.WeekOfMonthFirst),
+									string(backup.WeekOfMonthSecond),
+									string(backup.WeekOfMonthThird),
+									string(backup.WeekOfMonthFourth),
+									string(backup.WeekOfMonthLast),
 								}, true),
 							},
 						},
@@ -291,6 +297,7 @@ func resourceArmRecoveryServicesProtectionPolicyVmCreateUpdate(d *schema.Resourc
 	policy := backup.ProtectionPolicyResource{
 		Tags: expandTags(tags),
 		Properties: &backup.AzureIaaSVMProtectionPolicy{
+			TimeZone:             utils.String(d.Get("timezone").(string)),
 			BackupManagementType: backup.BackupManagementTypeAzureIaasVM,
 			SchedulePolicy:       expandArmRecoveryServicesProtectionPolicySchedule(d, times),
 			RetentionPolicy: &backup.LongTermRetentionPolicy{ //SimpleRetentionPolicy only has duration property ¯\_(ツ)_/¯
@@ -347,8 +354,10 @@ func resourceArmRecoveryServicesProtectionPolicyVmRead(d *schema.ResourceData, m
 	d.Set("recovery_vault_name", vaultName)
 
 	if properties, ok := resp.Properties.AsAzureIaaSVMProtectionPolicy(); ok && properties != nil {
-		if schedule, ok := properties.SchedulePolicy.AsSimpleSchedulePolicy(); ok && schedule != nil {
 
+		d.Set("timezone", properties.TimeZone)
+
+		if schedule, ok := properties.SchedulePolicy.AsSimpleSchedulePolicy(); ok && schedule != nil {
 			if err := d.Set("backup", flattenArmRecoveryServicesProtectionPolicySchedule(schedule)); err != nil {
 				return fmt.Errorf("Error setting `backup`: %+v", err)
 			}

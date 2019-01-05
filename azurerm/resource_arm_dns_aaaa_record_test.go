@@ -36,6 +36,35 @@ func TestAccAzureRMDnsAAAARecord_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMDnsAAAARecord_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_dns_aaaa_record.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDnsAaaaRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDnsAAAARecord_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDnsAaaaRecordExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMDnsAAAARecord_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_dns_aaaa_record"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMDnsAAAARecord_updateRecords(t *testing.T) {
 	resourceName := "azurerm_dns_aaaa_record.test"
 	ri := acctest.RandInt()
@@ -101,12 +130,12 @@ func TestAccAzureRMDnsAAAARecord_withTags(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDnsAaaaRecordExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDnsAaaaRecordExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		aaaaName := rs.Primary.Attributes["name"]
@@ -180,6 +209,21 @@ resource "azurerm_dns_aaaa_record" "test" {
   records             = ["2607:f8b0:4009:1803::1005", "2607:f8b0:4009:1803::1006"]
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMDnsAAAARecord_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMDnsAAAARecord_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_dns_aaaa_record" "import" {
+  name                = "${azurerm_dns_aaaa_record.test.name}"
+  resource_group_name = "${azurerm_dns_aaaa_record.test.resource_group_name}"
+  zone_name           = "${azurerm_dns_aaaa_record.test.zone_name}"
+  ttl                 = 300
+  records             = ["2607:f8b0:4009:1803::1005", "2607:f8b0:4009:1803::1006"]
+}
+`, template)
 }
 
 func testAccAzureRMDnsAAAARecord_updateRecords(rInt int, location string) string {

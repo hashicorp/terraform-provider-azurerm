@@ -68,8 +68,7 @@ func resourceLogicAppComponentUpdate(d *schema.ResourceData, meta interface{}, k
 		Tags: read.Tags,
 	}
 
-	_, err = client.CreateOrUpdate(ctx, resourceGroup, logicAppName, properties)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, resourceGroup, logicAppName, properties); err != nil {
 		return fmt.Errorf("Error updating Logic App Workspace %q (Resource Group %q) for %s %q: %+v", logicAppName, resourceGroup, kind, name, err)
 	}
 
@@ -130,8 +129,7 @@ func resourceLogicAppComponentRemove(d *schema.ResourceData, meta interface{}, k
 		Tags: read.Tags,
 	}
 
-	_, err = client.CreateOrUpdate(ctx, resourceGroup, logicAppName, properties)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, resourceGroup, logicAppName, properties); err != nil {
 		return fmt.Errorf("Error removing %s %q from Logic App Workspace %q (Resource Group %q): %+v", kind, name, logicAppName, resourceGroup, err)
 	}
 

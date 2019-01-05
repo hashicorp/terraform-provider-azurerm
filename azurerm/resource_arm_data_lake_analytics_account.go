@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -73,8 +74,22 @@ func resourceArmDateLakeAnalyticsAccountCreate(d *schema.ResourceData, meta inte
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	if requireResourcesToBeImported {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Data Lake Analytics Account %q (Resource Group %q): %s", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_data_lake_analytics_account", *existing.ID)
+		}
+	}
+
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	storeAccountName := d.Get("default_store_account_name").(string)
 	tier := d.Get("tier").(string)
 	tags := d.Get("tags").(map[string]interface{})
@@ -100,8 +115,7 @@ func resourceArmDateLakeAnalyticsAccountCreate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error issuing create request for Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error creating Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -145,8 +159,7 @@ func resourceArmDateLakeAnalyticsAccountUpdate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error issuing update request for Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for the update of Data Lake Analytics Account %q (Resource Group %q) to commplete: %+v", name, resourceGroup, err)
 	}
 
@@ -210,8 +223,7 @@ func resourceArmDateLakeAnalyticsAccountDelete(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error issuing delete request for Data Lake Analytics Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}

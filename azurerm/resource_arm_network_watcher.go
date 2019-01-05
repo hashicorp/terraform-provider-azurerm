@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -48,8 +48,8 @@ func resourceArmNetworkWatcherCreateUpdate(d *schema.ResourceData, meta interfac
 		Location: utils.String(location),
 		Tags:     expandTags(tags),
 	}
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, name, watcher)
-	if err != nil {
+
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, watcher); err != nil {
 		return err
 	}
 
@@ -115,8 +115,7 @@ func resourceArmNetworkWatcherDelete(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for the deletion of Network Watcher %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 

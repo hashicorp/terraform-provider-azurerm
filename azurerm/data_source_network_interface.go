@@ -90,6 +90,13 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 							Set:      schema.HashString,
 						},
 
+						"application_security_group_ids": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
+						},
+
 						"primary": {
 							Type:     schema.TypeBool,
 							Computed: true,
