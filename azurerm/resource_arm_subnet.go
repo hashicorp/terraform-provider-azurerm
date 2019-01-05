@@ -248,7 +248,7 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 
 		delegation := flattenSubnetDelegation(props.Delegations)
 		if err := d.Set("delegation", delegation); err != nil {
-			return err
+			return fmt.Errorf("Error flattening `delegation`: %+v", err)
 		}
 	}
 
