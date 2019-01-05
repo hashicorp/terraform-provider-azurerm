@@ -389,12 +389,18 @@ func flattenSubnetDelegation(delegations *[]network.Delegation) []interface{} {
 
 	for _, dele := range *delegations {
 		retDele := make(map[string]interface{})
-		retDele["name"] = *dele.Name
+		if dele.Name != nil {
+			retDele["name"] = *dele.Name
+		}
 
 		svcDeles := make([]interface{}, 0)
 		svcDele := make(map[string]interface{})
-		svcDele["name"] = *dele.ServiceName
-		svcDele["actions"] = *dele.Actions
+		if dele.ServiceDelegationPropertiesFormat != nil && dele.ServiceName != nil {
+			svcDele["name"] = *dele.ServiceName
+		}
+		if dele.ServiceDelegationPropertiesFormat != nil && dele.Actions != nil {
+			svcDele["actions"] = *dele.Actions
+		}
 		svcDeles = append(svcDeles, svcDele)
 
 		retDele["service_delegation"] = svcDeles
