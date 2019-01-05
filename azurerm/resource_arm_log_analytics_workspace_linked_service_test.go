@@ -23,8 +23,8 @@ func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_basic(t *testing.T) {
 				Config: testAccAzureRMLogAnalyticsWorkspaceLinkedService_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctestworkspace-%d/Automation", ri)),
-					resource.TestCheckResourceAttr(resourceName, "workspace_name", fmt.Sprintf("acctestworkspace-%d", ri)),
+					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctestlaw-%d/Automation", ri)),
+					resource.TestCheckResourceAttr(resourceName, "workspace_name", fmt.Sprintf("acctestlaw-%d", ri)),
 					resource.TestCheckResourceAttr(resourceName, "linked_service_name", "automation"),
 				),
 			},
@@ -141,12 +141,12 @@ resource "azurerm_automation_account" "test" {
   }
 
   tags {
-    environment = "development"
+    Environment = "Test"
   }
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctestWorkSpace-%[1]d"
+  name                = "acctestLAW-%[1]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "PerGB2018"
@@ -177,7 +177,7 @@ func testAccAzureRMLogAnalyticsWorkspaceLinkedService_complete(rInt int, locatio
 resource "azurerm_log_analytics_workspace_linked_service" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   workspace_name      = "${azurerm_log_analytics_workspace.test.name}"
-  linked_service_name = "Automation"
+  linked_service_name = "automation"
 
   linked_service_properties {
     resource_id = "${azurerm_automation_account.test.id}"
