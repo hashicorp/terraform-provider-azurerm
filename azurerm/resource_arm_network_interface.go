@@ -226,6 +226,11 @@ func resourceArmNetworkInterface() *schema.Resource {
 				Computed: true,
 			},
 
+			"private_ip_address_version": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"private_ip_addresses": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -375,16 +380,17 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 			d.Set("private_ip_address_version", string(ipProps.PrivateIPAddressVersion))
 		}
 
-		addresses := make([]interface{}, 0)
+		addressesIPv4 := make([]interface{}, 0)
+
 		for _, config := range configs {
-			if ipProps := config.InterfaceIPConfigurationPropertiesFormat; ipProps != nil {
-				if ipProps.PrivateIPAddressVersion == network.IPv4 && ipProps.PrivateIPAddress != nil {
-					addresses = append(addresses, *ipProps.PrivateIPAddress)
+			if ipProps := config.InterfaceIPConfigurationPropertiesFormat; ipProps != nil && ipProps.PrivateIPAddress != nil {
+				if ipProps.PrivateIPAddressVersion == network.IPv4 {
+					addressesIPv4 = append(addressesIPv4, *ipProps.PrivateIPAddress)
 				}
 			}
 		}
 
-		if err := d.Set("private_ip_addresses", addresses); err != nil {
+		if err := d.Set("private_ip_addresses", addressesIPv4); err != nil {
 			return err
 		}
 	}

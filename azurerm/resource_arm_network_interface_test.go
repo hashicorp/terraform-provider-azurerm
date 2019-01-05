@@ -380,6 +380,7 @@ func TestAccAzureRMNetworkInterface_IPAddressesFeature2543(t *testing.T) {
 					testCheckAzureRMNetworkInterfaceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "ip_configuration.0.private_ip_address_version", "IPv4"),
 					resource.TestCheckResourceAttr(resourceName, "ip_configuration.1.private_ip_address_version", "IPv6"),
+					resource.TestCheckResourceAttrSet(resourceName, "private_ip_address"),
 				),
 			},
 		},
