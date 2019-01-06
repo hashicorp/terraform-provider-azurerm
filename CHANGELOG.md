@@ -13,6 +13,7 @@ IMPROVEMENTS:
 
 * dependencies: upgrading the `network` SDK to `2018-08-01` [GH-2433]
 * Data Source: `azurerm_app_service` - exporting the `possible_outbound_ip_addresses` [GH-2513]
+* Data Source:  `azurerm_container_registry` - now exports `tags` [GH-2607]
 * `azurerm_app_service` - exporting the `possible_outbound_ip_addresses` [GH-2513]
 * `azurerm_firewall` - renaming the `public_ip_address_id` property to `ip_address_id` [GH-2433]
 * `azurerm_log_analytics_workspace_linked_service` - now correctly handels uppcase `workspace_name` values  [GH-2594]
