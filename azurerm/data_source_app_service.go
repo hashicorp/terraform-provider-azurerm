@@ -51,7 +51,7 @@ func dataSourceArmAppService() *schema.Resource {
 			},
 
 			"connection_string": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -60,8 +60,9 @@ func dataSourceArmAppService() *schema.Resource {
 							Computed: true,
 						},
 						"value": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:      schema.TypeString,
+							Sensitive: true,
+							Computed:  true,
 						},
 						"type": {
 							Type:     schema.TypeString,
