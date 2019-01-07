@@ -227,7 +227,6 @@ func resourceArmNetworkInterface() *schema.Resource {
 				Computed: true,
 			},
 
-
 			"private_ip_addresses": {
 				Type:     schema.TypeList,
 				Computed: true,

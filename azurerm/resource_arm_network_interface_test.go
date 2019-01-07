@@ -75,6 +75,26 @@ func testSweepNetworkInterfaces(region string) error {
 	return nil
 }
 
+func TestAccAzureRMNetworkInterface_disappears(t *testing.T) {
+	resourceName := "azurerm_network_interface.test"
+	rInt := acctest.RandInt()
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkInterface_basic(rInt, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkInterfaceExists(resourceName),
+					testCheckAzureRMNetworkInterfaceDisappears(resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMNetworkInterface_basic(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
 	rInt := acctest.RandInt()
@@ -93,26 +113,6 @@ func TestAccAzureRMNetworkInterface_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func TestAccAzureRMNetworkInterface_disappears(t *testing.T) {
-	resourceName := "azurerm_network_interface.test"
-	rInt := acctest.RandInt()
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkInterface_basic(rInt, testLocation()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists(resourceName),
-					testCheckAzureRMNetworkInterfaceDisappears(resourceName),
-				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
