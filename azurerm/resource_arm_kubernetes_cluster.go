@@ -73,9 +73,9 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"dns_prefix": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validateKubernetesClusterDnsPrefix(),
 			},
 
