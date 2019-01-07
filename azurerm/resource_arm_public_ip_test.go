@@ -444,12 +444,12 @@ func TestAccAzureRMPublicIpStatic_canLabelBe63(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMPublicIpExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMPublicIpExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		publicIPName := rs.Primary.Attributes["name"]
@@ -467,19 +467,19 @@ func testCheckAzureRMPublicIpExists(name string) resource.TestCheckFunc {
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Public IP %q (resource group: %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: Public IP %q (resource group: %q) does not exist", publicIPName, resourceGroup)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMPublicIpDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMPublicIpDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		publicIpName := rs.Primary.Attributes["name"]

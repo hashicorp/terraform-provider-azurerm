@@ -161,11 +161,11 @@ func TestAccAzureRMDatabricksWorkspace_complete(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDatabricksWorkspaceExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDatabricksWorkspaceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Bad: Not found: %s", name)
+			return fmt.Errorf("Bad: Not found: %s", resourceName)
 		}
 
 		workspaceName := rs.Primary.Attributes["name"]
@@ -247,8 +247,8 @@ resource "azurerm_databricks_workspace" "import" {
 func testAccAzureRMDatabricksWorkspace_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_databricks_workspace" "test" {
@@ -269,20 +269,20 @@ resource "azurerm_databricks_workspace" "test" {
 func testAccAzureRMDatabricksWorkspace_completeUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_databricks_workspace" "test" {
-	name                					= "acctestdbw-%d"
-	resource_group_name		 				= "${azurerm_resource_group.test.name}"
-	location            					= "${azurerm_resource_group.test.location}"
-	sku                 					= "standard"
-	managed_resource_group_name 	= "acctestRG-%d-managed"
+  name                        = "acctestdbw-%d"
+  resource_group_name         = "${azurerm_resource_group.test.name}"
+  location                    = "${azurerm_resource_group.test.location}"
+  sku                         = "standard"
+  managed_resource_group_name = "acctestRG-%d-managed"
 
-	tags {
-		pricing = "Standard"
-	}
+  tags {
+    pricing = "Standard"
+  }
 }
 `, rInt, location, rInt, rInt)
 }

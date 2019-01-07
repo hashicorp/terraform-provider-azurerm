@@ -196,7 +196,7 @@ resource "azurerm_key_vault_certificate" "test" {
     x509_certificate_properties {
       # Server Authentication = 1.3.6.1.5.5.7.3.1
       # Client Authentication = 1.3.6.1.5.5.7.3.2
-      extended_key_usage = [ "1.3.6.1.5.5.7.3.1" ]
+      extended_key_usage = ["1.3.6.1.5.5.7.3.1"]
 
       key_usage = [
         "cRLSign",

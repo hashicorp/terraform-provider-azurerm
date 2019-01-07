@@ -122,18 +122,18 @@ func TestAccAzureRMDataLakeAnalyticsAccount_withTags(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDataLakeAnalyticsAccountExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDataLakeAnalyticsAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		accountName := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for data lake store: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for data lake store: %s", accountName)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).dataLakeAnalyticsAccountClient
@@ -218,7 +218,7 @@ resource "azurerm_data_lake_analytics_account" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
 
-  tier                = "Commitment_100AUHours"
+  tier = "Commitment_100AUHours"
 
   default_store_account_name = "${azurerm_data_lake_store.test.name}"
 }
@@ -234,7 +234,7 @@ resource "azurerm_data_lake_analytics_account" "test" {
   name                = "acctest%s"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  
+
   default_store_account_name = "${azurerm_data_lake_store.test.name}"
 
   tags {
@@ -254,7 +254,7 @@ resource "azurerm_data_lake_analytics_account" "test" {
   name                = "acctest%s"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  
+
   default_store_account_name = "${azurerm_data_lake_store.test.name}"
 
   tags {

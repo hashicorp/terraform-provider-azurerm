@@ -1160,12 +1160,12 @@ func testCheckAzureRMAppServiceDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMAppServiceExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMAppServiceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		appServiceName := rs.Primary.Attributes["name"]
@@ -1486,7 +1486,7 @@ func testAccAzureRMAppService_clientAffinityDisabled(rInt int, location string) 
 func testAccAzureRMAppService_clientAffinity(rInt int, location string, clientAffinity bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

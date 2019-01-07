@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccDataSourceAzureRMSnapshot_importBasic(t *testing.T) {
+func TestAccDataSourceAzureRMSnapshot_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_snapshot.snapshot"
 	ri := acctest.RandInt()
 
@@ -27,7 +27,7 @@ func TestAccDataSourceAzureRMSnapshot_importBasic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMSnapshot_importEncryption(t *testing.T) {
+func TestAccDataSourceAzureRMSnapshot_encryption(t *testing.T) {
 	dataSourceName := "data.azurerm_snapshot.snapshot"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)

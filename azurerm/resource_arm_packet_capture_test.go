@@ -116,11 +116,11 @@ func testAccAzureRMPacketCapture_withFilters(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMPacketCaptureExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMPacketCaptureExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("not found: %s", name)
+			return fmt.Errorf("not found: %s", resourceName)
 		}
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
@@ -136,7 +136,7 @@ func testCheckAzureRMPacketCaptureExists(name string) resource.TestCheckFunc {
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Packet Capture does not exist: %s", name)
+			return fmt.Errorf("Packet Capture does not exist: %s", packetCaptureName)
 		}
 
 		return nil
@@ -291,14 +291,14 @@ resource "azurerm_packet_capture" "test" {
 
   filter {
     local_ip_address = "127.0.0.1"
-    local_port = "8080;9020;"
-    protocol = "TCP"
+    local_port       = "8080;9020;"
+    protocol         = "TCP"
   }
 
   filter {
     local_ip_address = "127.0.0.1"
-    local_port = "80;443;"
-    protocol = "UDP"
+    local_port       = "80;443;"
+    protocol         = "UDP"
   }
 
   depends_on = ["azurerm_virtual_machine_extension.test"]
@@ -312,10 +312,10 @@ func testAzureRMPacketCapture_storageAccountConfig(rInt int, rString string, loc
 %s
 
 resource "azurerm_storage_account" "test" {
-  name = "acctestsa%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location = "${azurerm_resource_group.test.location}"
-  account_tier = "Standard"
+  name                     = "acctestsa%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
@@ -340,10 +340,10 @@ func testAzureRMPacketCapture_storageAccountAndLocalDiskConfig(rInt int, rString
 %s
 
 resource "azurerm_storage_account" "test" {
-  name = "acctestsa%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location = "${azurerm_resource_group.test.location}"
-  account_tier = "Standard"
+  name                     = "acctestsa%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 

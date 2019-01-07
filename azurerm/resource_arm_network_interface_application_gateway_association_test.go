@@ -53,12 +53,12 @@ func TestAccAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssociati
 	})
 }
 
-func testCheckAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		nicID, err := parseAzureResourceID(rs.Primary.Attributes["network_interface_id"])
@@ -103,12 +103,12 @@ func testCheckAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssocia
 	}
 }
 
-func testCheckAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		nicID, err := parseAzureResourceID(rs.Primary.Attributes["network_interface_id"])

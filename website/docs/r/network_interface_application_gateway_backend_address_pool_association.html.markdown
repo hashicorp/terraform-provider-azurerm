@@ -123,7 +123,7 @@ resource "azurerm_network_interface" "test" {
   }
 }
 
-resource "azurerm_network_interface_backend_address_pool_association" "test" {
+resource "azurerm_network_interface_application_gateway_backend_address_pool_association" "test" {
   network_interface_id    = "${azurerm_network_interface.test.id}"
   ip_configuration_name   = "testconfiguration1"
   backend_address_pool_id = "${azurerm_application_gateway.test.backend_address_pool.0.id}"
@@ -152,7 +152,7 @@ Associations between Network Interfaces and Load Balancer Backend Address Pools 
 
 
 ```shell
-terraform import azurerm_network_interface_backend_address_pool_association.association1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.network/networkInterfaces/nic1/ipConfigurations/example|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/loadBalancers/lb1/backendAddressPools/pool1
+terraform import azurerm_network_interface_application_gateway_backend_address_pool_association.association1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.network/networkInterfaces/nic1/ipConfigurations/example|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/loadBalancers/lb1/backendAddressPools/pool1
 ```
 
 -> **NOTE:** This ID is specific to Terraform - and is of the format `{networkInterfaceId}/ipConfigurations/{ipConfigurationName}|{backendAddressPoolId}`.

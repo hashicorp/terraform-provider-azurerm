@@ -293,11 +293,11 @@ func TestAccAzureRMApplicationGateway_webApplicationFirewall(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMApplicationGatewayExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMApplicationGatewayExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %q", name)
+			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
 		gatewayName := rs.Primary.Attributes["name"]
@@ -623,8 +623,8 @@ resource "azurerm_application_gateway" "test" {
   }
 
   authentication_certificate {
-    name     = "${local.auth_cert_name}"
-    data     = "${file("testdata/application_gateway_test_2.crt")}"
+    name = "${local.auth_cert_name}"
+    data = "${file("testdata/application_gateway_test_2.crt")}"
   }
 
   http_listener {

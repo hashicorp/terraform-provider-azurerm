@@ -270,6 +270,7 @@ resource "azurerm_signalr_service" "test" {
   name                = "acctestSignalR-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
   sku {
     name     = "Free_F1"
     capacity = 1
@@ -289,6 +290,7 @@ resource "azurerm_signalr_service" "test" {
   name                = "acctestSignalR-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
   sku {
     name     = "Standard_S1"
     capacity = %d
@@ -319,29 +321,29 @@ func testCheckAzureRMSignalRServiceDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMSignalRServiceExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMSignalRServiceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		resourceName := rs.Primary.Attributes["name"]
+		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for SignalR service: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for SignalR service: %s", name)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).signalRClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(ctx, resourceGroup, resourceName)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on signalRClient: %+v", err)
 		}
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: SignalR service %q (resource group: %q) does not exist", resourceName, resourceGroup)
+			return fmt.Errorf("Bad: SignalR service %q (resource group: %q) does not exist", name, resourceGroup)
 		}
 
 		return nil

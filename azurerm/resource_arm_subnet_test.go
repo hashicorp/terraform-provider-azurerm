@@ -196,12 +196,12 @@ func TestAccAzureRMSubnet_disappears(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMSubnetExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMSubnetExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		log.Printf("[INFO] Checking Subnet addition.")
@@ -229,21 +229,21 @@ func testCheckAzureRMSubnetExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testCheckAzureRMSubnetRouteTableExists(subnetName string, routeTableId string) resource.TestCheckFunc {
+func testCheckAzureRMSubnetRouteTableExists(resourceName string, routeTableId string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[subnetName]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", subnetName)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		log.Printf("[INFO] Checking Subnet update.")
 
-		name := rs.Primary.Attributes["name"]
+		subnetName := rs.Primary.Attributes["name"]
 		vnetName := rs.Primary.Attributes["virtual_network_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for subnet: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for subnet: %s", subnetName)
 		}
 
 		networksClient := testAccProvider.Meta().(*ArmClient).vnetClient
@@ -259,7 +259,7 @@ func testCheckAzureRMSubnetRouteTableExists(subnetName string, routeTableId stri
 			return fmt.Errorf("Bad: Vnet %q (resource group: %q) does not have subnets after update", vnetName, resourceGroup)
 		}
 
-		resp, err := subnetsClient.Get(ctx, resourceGroup, vnetName, name, "")
+		resp, err := subnetsClient.Get(ctx, resourceGroup, vnetName, subnetName, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Subnet %q (resource group: %q) does not exist", subnetName, resourceGroup)
@@ -280,12 +280,12 @@ func testCheckAzureRMSubnetRouteTableExists(subnetName string, routeTableId stri
 	}
 }
 
-func testCheckAzureRMSubnetDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMSubnetDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]

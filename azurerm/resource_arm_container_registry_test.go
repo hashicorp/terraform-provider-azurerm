@@ -290,8 +290,8 @@ func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
 	ri := acctest.RandInt()
 	containerRegistryName := fmt.Sprintf("testacccr%d", ri)
 	resourceGroupName := fmt.Sprintf("testAccRg-%d", ri)
-	config := testAccAzureRMContainerRegistry_geoReplication(ri, testLocation(), skuPremium, `"eastus", "westus"`)
-	updatedConfig := testAccAzureRMContainerRegistry_geoReplication(ri, testLocation(), skuPremium, `"centralus", "eastus"`)
+	config := testAccAzureRMContainerRegistry_geoReplication(ri, testLocation(), skuPremium, `eastus", "westus`)
+	updatedConfig := testAccAzureRMContainerRegistry_geoReplication(ri, testLocation(), skuPremium, `centralus", "eastus`)
 	updatedConfigWithNoLocation := testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation(ri, testLocation(), skuPremium)
 	updatedConfigBasicSku := testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation(ri, testLocation(), skuBasic)
 
@@ -387,12 +387,12 @@ func testCheckAzureRMContainerRegistryDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMContainerRegistryExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMContainerRegistryExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -417,12 +417,12 @@ func testCheckAzureRMContainerRegistryExists(name string) resource.TestCheckFunc
 	}
 }
 
-func testCheckAzureRMContainerRegistryGeoreplications(registryName string, sku string, expectedLocations []string) resource.TestCheckFunc {
+func testCheckAzureRMContainerRegistryGeoreplications(resourceName string, sku string, expectedLocations []string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[registryName]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", registryName)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -580,11 +580,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_container_registry" "test" {
-  name                   = "testacccr%d"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  location               = "${azurerm_resource_group.test.location}"
-  sku                    = "%s"
-  georeplication_locations = [%s]
+  name                     = "testacccr%d"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  sku                      = "%s"
+  georeplication_locations = ["%s"]
 }
 `, rInt, location, rInt, sku, georeplicationLocations)
 }
@@ -597,10 +597,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_container_registry" "test" {
-  name                   = "testacccr%d"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  location               = "${azurerm_resource_group.test.location}"
-  sku                    = "%s"
+  name                = "testacccr%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  sku                 = "%s"
 }
 `, rInt, location, rInt, sku)
 }

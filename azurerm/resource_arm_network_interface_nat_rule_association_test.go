@@ -53,12 +53,12 @@ func TestAccAzureRMNetworkInterfaceNATRuleAssociation_deleted(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMNetworkInterfaceNATRuleAssociationExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMNetworkInterfaceNATRuleAssociationExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		nicID, err := parseAzureResourceID(rs.Primary.Attributes["network_interface_id"])
@@ -103,12 +103,12 @@ func testCheckAzureRMNetworkInterfaceNATRuleAssociationExists(name string) resou
 	}
 }
 
-func testCheckAzureRMNetworkInterfaceNATRuleAssociationDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMNetworkInterfaceNATRuleAssociationDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		nicID, err := parseAzureResourceID(rs.Primary.Attributes["network_interface_id"])

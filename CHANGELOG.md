@@ -4,21 +4,30 @@ FEATURES:
 
 * **New Data Source:** `azurerm_batch_account` [GH-2428]
 * **New Data Source:** `azurerm_virtual_machine` [GH-2463]
+* **New Resource:** `azurerm_application_insights_api_key` [GH-2556]
 * **New Resource:** `azurerm_batch_account` [GH-2428]
+* **New Resource:** `azurerm_firewall_application_rule_collection` [GH-2532]
 * **New Resource:** `azurerm_policy_set_definition` [GH-2535]
 
 IMPROVEMENTS:
-
-Added Service Fabric Reverse Proxy Certificate and Endpoint in Nodetype #2544
 
 * dependencies: upgrading the `network` SDK to `2018-08-01` [GH-2433]
 * Data Source: `azurerm_app_service` - exporting the `possible_outbound_ip_addresses` [GH-2513]
 * `azurerm_app_service` - exporting the `possible_outbound_ip_addresses` [GH-2513]
 * `azurerm_firewall` - renaming the `public_ip_address_id` property to `ip_address_id` [GH-2433]
-* `azurerm_service_fabric_cluster` - adding the `reverse_proxy_certificate` and `reverse_proxy_endpoint_port` properties [GH-2544]
+* `azurerm_policy_assignment` - support for Managed Service Identity [GH-2549]
+* `azurerm_policy_definition` - polices can now be assigned to a management group [GH-2490]
+* `azurerm_redis_cache` - add availability zone support [GH-2580]
+* `azurerm_service_fabric_cluster` - support for `azure_active_directory` [GH-2553]
+* `azurerm_service_fabric_cluster` - support for `reverse_proxy_certificate` [GH-2544]
+* `azurerm_service_fabric_cluster` - support for `reverse_proxy_endpoint_port` [GH-2544]
 
 BUG FIXES:
 
+* Data Source: `azurerm_managed_disk` - exposing the `create_option` field [GH-2597]
+* Data Source: `azurerm_network_interface` - exposing `application_security_group_ids` within the `ip_configuration` block [GH-2599]
+* Data Source: `azurerm_snapshot` - ensuring `disk_size_gb` is set [GH-2596]
+* Data Source: `azurerm_storage_account` - ensuring the `account_replication_type` field is set correctly [GH-2595]
 * `azurerm_network_security_rule` - the properties `source_application_security_group_ids` and `destination_application_security_group_ids` are now correctly read & imported [GH-2558]
 * `azurerm_role_assignment` - retrieving the role definition name during import [GH-2565]
 * `azurerm_template_deployment` - fixing regression and supportting nested template deployments [GH-2514]

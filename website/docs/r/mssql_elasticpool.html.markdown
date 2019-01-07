@@ -19,12 +19,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_sql_server" "test" {
-    name                         = "my-sql-server"
-    resource_group_name          = "${azurerm_resource_group.test.name}"
-    location                     = "${azurerm_resource_group.test.location}"
-    version                      = "12.0"
-    administrator_login          = "4dm1n157r470r"
-    administrator_login_password = "4-v3ry-53cr37-p455w0rd"
+  name                         = "my-sql-server"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "4dm1n157r470r"
+  administrator_login_password = "4-v3ry-53cr37-p455w0rd"
 }
 
 resource "azurerm_mssql_elasticpool" "test" {
