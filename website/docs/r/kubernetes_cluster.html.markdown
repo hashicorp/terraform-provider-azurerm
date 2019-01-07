@@ -67,7 +67,7 @@ The following arguments are supported:
 
 * `agent_pool_profile` - (Required) One or more `agent_pool_profile` blocks as documented below.
 
-* `dns_prefix` - (Required) DNS prefix specified when creating the managed cluster.
+* `dns_prefix` - (Required) DNS prefix specified when creating the managed cluster. Changing this forces a new resource to be created.
 
 * `service_principal` - (Required) A `service_principal` block as documented below.
 
