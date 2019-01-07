@@ -95,7 +95,7 @@ func resourceArmAppService() *schema.Resource {
 			},
 
 			"connection_string": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -549,7 +549,7 @@ func expandAppServiceAppSettings(d *schema.ResourceData) map[string]*string {
 }
 
 func expandAppServiceConnectionStrings(d *schema.ResourceData) map[string]*web.ConnStringValueTypePair {
-	input := d.Get("connection_string").([]interface{})
+	input := d.Get("connection_string").(*schema.Set).List()
 	output := make(map[string]*web.ConnStringValueTypePair, len(input))
 
 	for _, v := range input {
@@ -568,14 +568,16 @@ func expandAppServiceConnectionStrings(d *schema.ResourceData) map[string]*web.C
 	return output
 }
 
-func flattenAppServiceConnectionStrings(input map[string]*web.ConnStringValueTypePair) interface{} {
+func flattenAppServiceConnectionStrings(input map[string]*web.ConnStringValueTypePair) []interface{} {
 	results := make([]interface{}, 0)
 
 	for k, v := range input {
 		result := make(map[string]interface{})
 		result["name"] = k
 		result["type"] = string(v.Type)
-		result["value"] = *v.Value
+		if v.Value != nil {
+			result["value"] = *v.Value
+		}
 		results = append(results, result)
 	}
 

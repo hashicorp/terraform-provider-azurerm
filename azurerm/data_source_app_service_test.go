@@ -119,9 +119,12 @@ func TestAccDataSourceAzureRMAppService_connectionString(t *testing.T) {
 			{
 				Config: testAccDataSourceAppService_connectionStrings(rInt, location),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "connection_string.0.name", "Example"),
-					resource.TestCheckResourceAttr(dataSourceName, "connection_string.0.value", "some-postgresql-connection-string"),
-					resource.TestCheckResourceAttr(dataSourceName, "connection_string.0.type", "PostgreSQL"),
+					resource.TestCheckResourceAttr(dataSourceName, "connection_string.3173438943.name", "First"),
+					resource.TestCheckResourceAttr(dataSourceName, "connection_string.3173438943.value", "first-connection-string"),
+					resource.TestCheckResourceAttr(dataSourceName, "connection_string.3173438943.type", "Custom"),
+					resource.TestCheckResourceAttr(dataSourceName, "connection_string.2442860602.name", "Second"),
+					resource.TestCheckResourceAttr(dataSourceName, "connection_string.2442860602.value", "some-postgresql-connection-string"),
+					resource.TestCheckResourceAttr(dataSourceName, "connection_string.2442860602.type", "PostgreSQL"),
 				),
 			},
 		},
