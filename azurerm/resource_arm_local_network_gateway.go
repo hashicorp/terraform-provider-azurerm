@@ -11,9 +11,9 @@ import (
 
 func resourceArmLocalNetworkGateway() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLocalNetworkGatewayCreate,
+		Create: resourceArmLocalNetworkGatewayCreateUpdate,
 		Read:   resourceArmLocalNetworkGatewayRead,
-		Update: resourceArmLocalNetworkGatewayCreate,
+		Update: resourceArmLocalNetworkGatewayCreateUpdate,
 		Delete: resourceArmLocalNetworkGatewayDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -73,7 +73,7 @@ func resourceArmLocalNetworkGateway() *schema.Resource {
 	}
 }
 
-func resourceArmLocalNetworkGatewayCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLocalNetworkGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).localNetConnClient
 	ctx := meta.(*ArmClient).StopContext
 

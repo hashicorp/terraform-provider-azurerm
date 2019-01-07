@@ -24,9 +24,9 @@ var eventHubNamespaceDefaultAuthorizationRule = "RootManageSharedAccessKey"
 
 func resourceArmEventHubNamespace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmEventHubNamespaceCreate,
+		Create: resourceArmEventHubNamespaceCreateUpdate,
 		Read:   resourceArmEventHubNamespaceRead,
-		Update: resourceArmEventHubNamespaceCreate,
+		Update: resourceArmEventHubNamespaceCreateUpdate,
 		Delete: resourceArmEventHubNamespaceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -103,7 +103,7 @@ func resourceArmEventHubNamespace() *schema.Resource {
 	}
 }
 
-func resourceArmEventHubNamespaceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).eventHubNamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM EventHub Namespace creation.")

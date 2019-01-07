@@ -17,9 +17,9 @@ import (
 
 func resourceArmLoadBalancerNatPool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLoadBalancerNatPoolCreate,
+		Create: resourceArmLoadBalancerNatPoolCreateUpdate,
 		Read:   resourceArmLoadBalancerNatPoolRead,
-		Update: resourceArmLoadBalancerNatPoolCreate,
+		Update: resourceArmLoadBalancerNatPoolCreateUpdate,
 		Delete: resourceArmLoadBalancerNatPoolDelete,
 		Importer: &schema.ResourceImporter{
 			State: loadBalancerSubResourceStateImporter,
@@ -88,7 +88,7 @@ func resourceArmLoadBalancerNatPool() *schema.Resource {
 	}
 }
 
-func resourceArmLoadBalancerNatPoolCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerNatPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).loadBalancerClient
 	ctx := meta.(*ArmClient).StopContext
 

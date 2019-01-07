@@ -15,9 +15,9 @@ var networkSecurityGroupResourceName = "azurerm_network_security_group"
 
 func resourceArmNetworkSecurityGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetworkSecurityGroupCreate,
+		Create: resourceArmNetworkSecurityGroupCreateUpdate,
 		Read:   resourceArmNetworkSecurityGroupRead,
-		Update: resourceArmNetworkSecurityGroupCreate,
+		Update: resourceArmNetworkSecurityGroupCreateUpdate,
 		Delete: resourceArmNetworkSecurityGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -158,7 +158,7 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 	}
 }
 
-func resourceArmNetworkSecurityGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmNetworkSecurityGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).secGroupClient
 	ctx := meta.(*ArmClient).StopContext
 

@@ -80,11 +80,13 @@ The `ip_configuration` block supports:
 
 * `name` - (Required) User-defined name of the IP.
 
-* `subnet_id` - (Required) Reference to a subnet in which this NIC has been created.
+* `subnet_id` - (Optional) Reference to a subnet in which this NIC has been created. Required when `private_ip_address_version` is IPv4.
 
 * `private_ip_address` - (Optional) Static IP Address.
 
 * `private_ip_address_allocation` - (Required) Defines how a private IP address is assigned. Options are Static or Dynamic.
+
+* `private_ip_address_version` - (Optional) The IP Version to use. Possible values are `IPv4` or `IPv6`. Defaults to `IPv4`.
 
 * `public_ip_address_id` - (Optional) Reference to a Public IP Address to associate with this NIC
 
@@ -110,7 +112,8 @@ The following attributes are exported:
 
 * `id` - The Virtual Network Interface ID.
 * `mac_address` - The media access control (MAC) address of the network interface.
-* `private_ip_address` - The private ip address of the network interface.
+* `private_ip_address` - The first private IP address of the network interface.
+* `private_ip_addresses` - The private IP addresses of the network interface.
 * `virtual_machine_id` - Reference to a VM with which this NIC has been associated.
 * `applied_dns_servers` - If the VM that uses this NIC is part of an Availability Set, then this list will have the union of all DNS servers from all NICs that are part of the Availability Set
 

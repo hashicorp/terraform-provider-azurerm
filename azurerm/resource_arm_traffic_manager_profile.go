@@ -15,9 +15,9 @@ import (
 
 func resourceArmTrafficManagerProfile() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmTrafficManagerProfileCreate,
+		Create: resourceArmTrafficManagerProfileCreateUpdate,
 		Read:   resourceArmTrafficManagerProfileRead,
-		Update: resourceArmTrafficManagerProfileCreate,
+		Update: resourceArmTrafficManagerProfileCreateUpdate,
 		Delete: resourceArmTrafficManagerProfileDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -114,7 +114,7 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 	}
 }
 
-func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmTrafficManagerProfileCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).trafficManagerProfilesClient
 
 	log.Printf("[INFO] preparing arguments for Azure ARM virtual network creation.")

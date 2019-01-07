@@ -20,31 +20,40 @@ func dataSourceArmContainerRegistry() *schema.Resource {
 			},
 
 			"resource_group_name": resourceGroupNameForDataSourceSchema(),
-			"location":            locationForDataSourceSchema(),
+
+			"location": locationForDataSourceSchema(),
+
 			"admin_enabled": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
+
 			"admin_password": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"admin_username": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"login_server": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"sku": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"storage_account_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"tags": tagsForDataSourceSchema(),
 		},
 	}
 }

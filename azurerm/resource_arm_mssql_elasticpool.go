@@ -17,9 +17,9 @@ import (
 
 func resourceArmMsSqlElasticPool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMsSqlElasticPoolCreate,
+		Create: resourceArmMsSqlElasticPoolCreateUpdate,
 		Read:   resourceArmMsSqlElasticPoolRead,
-		Update: resourceArmMsSqlElasticPoolCreate,
+		Update: resourceArmMsSqlElasticPoolCreateUpdate,
 		Delete: resourceArmMsSqlElasticPoolDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -254,7 +254,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 	}
 }
 
-func resourceArmMsSqlElasticPoolCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).msSqlElasticPoolsClient
 	ctx := meta.(*ArmClient).StopContext
 
