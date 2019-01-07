@@ -112,8 +112,8 @@ The following attributes are exported:
 
 * `id` - The Virtual Network Interface ID.
 * `mac_address` - The media access control (MAC) address of the network interface.
-* `private_ip_address` - The private IP address of the network interface.
-* `private_ip_address_version` - The private IP address version.
+* `private_ip_address` - The first private IP address of the network interface.
+* `private_ip_addresses` - The private IP addresses of the network interface.
 * `virtual_machine_id` - Reference to a VM with which this NIC has been associated.
 * `applied_dns_servers` - If the VM that uses this NIC is part of an Availability Set, then this list will have the union of all DNS servers from all NICs that are part of the Availability Set
 
