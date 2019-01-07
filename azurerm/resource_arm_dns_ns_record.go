@@ -138,7 +138,7 @@ func resourceArmDnsNsRecordRead(d *schema.ResourceData, meta interface{}) error 
 
 	resGroup := id.ResourceGroup
 	name := id.Path["NS"]
-	zoneName := id.Path["dnszones"]
+	zoneName := id.Path["dnsZones"]
 
 	resp, err := dnsClient.Get(ctx, resGroup, zoneName, name, dns.NS)
 	if err != nil {
@@ -179,7 +179,7 @@ func resourceArmDnsNsRecordDelete(d *schema.ResourceData, meta interface{}) erro
 
 	resGroup := id.ResourceGroup
 	name := id.Path["NS"]
-	zoneName := id.Path["dnszones"]
+	zoneName := id.Path["dnsZones"]
 
 	resp, err := dnsClient.Delete(ctx, resGroup, zoneName, name, dns.NS, "")
 	if resp.StatusCode != http.StatusOK {

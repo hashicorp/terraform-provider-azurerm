@@ -127,7 +127,7 @@ func resourceArmDnsTxtRecordRead(d *schema.ResourceData, meta interface{}) error
 
 	resGroup := id.ResourceGroup
 	name := id.Path["TXT"]
-	zoneName := id.Path["dnszones"]
+	zoneName := id.Path["dnsZones"]
 
 	resp, err := client.Get(ctx, resGroup, zoneName, name, dns.TXT)
 	if err != nil {
@@ -162,7 +162,7 @@ func resourceArmDnsTxtRecordDelete(d *schema.ResourceData, meta interface{}) err
 
 	resGroup := id.ResourceGroup
 	name := id.Path["TXT"]
-	zoneName := id.Path["dnszones"]
+	zoneName := id.Path["dnsZones"]
 
 	resp, err := client.Delete(ctx, resGroup, zoneName, name, dns.TXT, "")
 	if resp.StatusCode != http.StatusOK {

@@ -121,7 +121,7 @@ func resourceArmDnsPtrRecordRead(d *schema.ResourceData, meta interface{}) error
 
 	resGroup := id.ResourceGroup
 	name := id.Path["PTR"]
-	zoneName := id.Path["dnszones"]
+	zoneName := id.Path["dnsZones"]
 
 	resp, err := dnsClient.Get(ctx, resGroup, zoneName, name, dns.PTR)
 	if err != nil {
@@ -158,7 +158,7 @@ func resourceArmDnsPtrRecordDelete(d *schema.ResourceData, meta interface{}) err
 
 	resGroup := id.ResourceGroup
 	name := id.Path["PTR"]
-	zoneName := id.Path["dnszones"]
+	zoneName := id.Path["dnsZones"]
 
 	resp, err := dnsClient.Delete(ctx, resGroup, zoneName, name, dns.PTR, "")
 	if err != nil {

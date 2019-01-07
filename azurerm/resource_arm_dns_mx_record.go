@@ -136,7 +136,7 @@ func resourceArmDnsMxRecordRead(d *schema.ResourceData, meta interface{}) error 
 
 	resGroup := id.ResourceGroup
 	name := id.Path["MX"]
-	zoneName := id.Path["dnszones"]
+	zoneName := id.Path["dnsZones"]
 
 	resp, err := client.Get(ctx, resGroup, zoneName, name, dns.MX)
 	if err != nil {
@@ -171,7 +171,7 @@ func resourceArmDnsMxRecordDelete(d *schema.ResourceData, meta interface{}) erro
 
 	resGroup := id.ResourceGroup
 	name := id.Path["MX"]
-	zoneName := id.Path["dnszones"]
+	zoneName := id.Path["dnsZones"]
 
 	resp, err := client.Delete(ctx, resGroup, zoneName, name, dns.MX, "")
 	if resp.StatusCode != http.StatusOK {

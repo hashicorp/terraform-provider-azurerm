@@ -142,7 +142,7 @@ func resourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	resGroup := id.ResourceGroup
-	name := id.Path["dnszones"]
+	name := id.Path["dnsZones"]
 
 	resp, err := zonesClient.Get(ctx, resGroup, name)
 	if err != nil {
@@ -192,7 +192,7 @@ func resourceArmDnsZoneDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	resGroup := id.ResourceGroup
-	name := id.Path["dnszones"]
+	name := id.Path["dnsZones"]
 
 	etag := ""
 	future, err := client.Delete(ctx, resGroup, name, etag)
