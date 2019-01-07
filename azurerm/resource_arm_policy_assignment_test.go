@@ -241,9 +241,9 @@ resource "azurerm_policy_assignment" "test" {
   scope                = "${azurerm_resource_group.test.id}"
   policy_definition_id = "${azurerm_policy_definition.test.id}"
   identity {
-     type        = "SystemAssigned"
+    type = "SystemAssigned"
   }
-  location             = "%s" 
+  location = "%s"
 }
 `, ri, ri, ri, location, ri, location)
 }
