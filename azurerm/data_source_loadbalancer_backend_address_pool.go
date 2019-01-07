@@ -24,26 +24,6 @@ func dataSourceArmLoadBalancerBackendAddressPool() *schema.Resource {
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
-
-			"backend_ip_configurations": {
-				Type:     schema.TypeSet,
-				Computed: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: validation.NoZeroValues,
-				},
-				Set: schema.HashString,
-			},
-
-			"load_balancing_rules": {
-				Type:     schema.TypeSet,
-				Computed: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: validation.NoZeroValues,
-				},
-				Set: schema.HashString,
-			},
 		},
 	}
 }
@@ -66,26 +46,6 @@ func dataSourceArmLoadBalancerBackendAddressPoolRead(d *schema.ResourceData, met
 	}
 
 	d.SetId(*config.ID)
-
-	var backendIpConfigurations []string
-	var loadBalancingRules []string
-
-	if props := config.BackendAddressPoolPropertiesFormat; props != nil {
-		if configs := props.BackendIPConfigurations; configs != nil {
-			for _, backendConfig := range *configs {
-				backendIpConfigurations = append(backendIpConfigurations, *backendConfig.ID)
-			}
-		}
-
-		if rules := props.LoadBalancingRules; rules != nil {
-			for _, rule := range *rules {
-				loadBalancingRules = append(loadBalancingRules, *rule.ID)
-			}
-		}
-	}
-
-	d.Set("backend_ip_configurations", backendIpConfigurations)
-	d.Set("load_balancing_rules", loadBalancingRules)
 
 	return nil
 }

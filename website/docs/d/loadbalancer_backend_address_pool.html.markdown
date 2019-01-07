@@ -40,7 +40,3 @@ output "backend_address_pool_id" {
 The following attributes are exported:
 
 * `id` - The ID of the Backend Address Pool.
-
-* `backend_ip_configurations` - The Backend IP Configurations associated with this Backend Address Pool.
-
-* `load_balancing_rules` - The Load Balancing Rules associated with this Backend Address Pool.

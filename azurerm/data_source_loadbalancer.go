@@ -3,8 +3,9 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -14,12 +15,13 @@ func dataSourceArmLoadBalancer() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 
 			"location": locationForDataSourceSchema(),
 
@@ -56,22 +58,6 @@ func dataSourceArmLoadBalancer() *schema.Resource {
 						"private_ip_address_allocation": {
 							Type:     schema.TypeString,
 							Computed: true,
-						},
-
-						"load_balancer_rules": {
-							Type:     schema.TypeSet,
-							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-
-						"inbound_nat_rules": {
-							Type:     schema.TypeSet,
-							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
 						},
 
 						"zones": zonesSchemaComputed(),
@@ -185,23 +171,6 @@ func flattenLoadBalancerDataSourceFrontendIpConfiguration(ipConfigs *[]network.F
 			if pip := props.PublicIPAddress; pip != nil {
 				ipConfig["public_ip_address_id"] = *pip.ID
 			}
-
-			loadBalancingRules := make([]interface{}, 0)
-			if rules := props.LoadBalancingRules; rules != nil {
-				for _, rule := range *rules {
-					loadBalancingRules = append(loadBalancingRules, *rule.ID)
-				}
-
-			}
-			ipConfig["load_balancer_rules"] = schema.NewSet(schema.HashString, loadBalancingRules)
-
-			inboundNatRules := make([]interface{}, 0)
-			if rules := props.InboundNatRules; rules != nil {
-				for _, rule := range *rules {
-					inboundNatRules = append(inboundNatRules, *rule.ID)
-				}
-			}
-			ipConfig["inbound_nat_rules"] = schema.NewSet(schema.HashString, inboundNatRules)
 		}
 
 		result = append(result, ipConfig)

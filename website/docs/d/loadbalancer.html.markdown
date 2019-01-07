@@ -40,6 +40,10 @@ The following attributes are exported:
 
 * `location` - The Azure location where the Load Balancer exists.
 
+* `private_ip_address` - The first private IP address assigned to the load balancer in `frontend_ip_configuration` blocks, if any.
+
+* `private_ip_addresses` - The list of private IP address assigned to the load balancer in `frontend_ip_configuration` blocks, if any.
+
 * `sku` - The SKU of the Load Balancer.
 
 * `tags` - A mapping of tags assigned to the resource.

@@ -22,8 +22,7 @@ func TestAccAzureRMDataSourceLoadBalancerBackEndAddressPool_basic(t *testing.T) 
 			{
 				Config: testAccAzureRMDataSourceLoadBalancerBackEndAddressPool_basic(ri, location, addressPoolName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "backend_ip_configurations.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "load_balancing_rules.#", "0"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "id"),
 				),
 			},
 		},
