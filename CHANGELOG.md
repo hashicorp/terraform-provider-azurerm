@@ -31,6 +31,8 @@ BUG FIXES:
 * Data Source: `azurerm_network_interface` - exposing `application_security_group_ids` within the `ip_configuration` block [GH-2599]
 * Data Source: `azurerm_snapshot` - ensuring `disk_size_gb` is set [GH-2596]
 * Data Source: `azurerm_storage_account` - ensuring the `account_replication_type` field is set correctly [GH-2595]
+* `azurerm_app_service` - handling connection strings being in any order [GH-2609]
+* `azurerm_app_service_slot` - handling connection strings being in any order [GH-2609]
 * `azurerm_network_security_rule` - the properties `source_application_security_group_ids` and `destination_application_security_group_ids` are now correctly read & imported [GH-2558]
 * `azurerm_role_assignment` - retrieving the role definition name during import [GH-2565]
 * `azurerm_template_deployment` - fixing regression and supportting nested template deployments [GH-2514]
