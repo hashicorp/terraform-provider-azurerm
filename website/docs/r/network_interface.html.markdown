@@ -86,7 +86,7 @@ The `ip_configuration` block supports:
 
 * `private_ip_address_allocation` - (Required) Defines how a private IP address is assigned. Options are Static or Dynamic.
 
-* `private_ip_address_version` - (Optional) The IP Version to use, IPv6 or IPv4. Defaults to IPv4.
+* `private_ip_address_version` - (Optional) The IP Version to use. Possible values are `IPv4` or `IPv6`. Defaults to `IPv4`.
 
 * `public_ip_address_id` - (Optional) Reference to a Public IP Address to associate with this NIC
 
