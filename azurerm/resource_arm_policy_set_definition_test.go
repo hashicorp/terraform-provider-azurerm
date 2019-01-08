@@ -2,7 +2,8 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"testing"
 
 	"github.com/hashicorp/terraform/terraform"
@@ -48,6 +49,31 @@ func TestAccAzureRMPolicySetDefinition_custom(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPolicySetDefinition_custom(ri),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPolicySetDefinitionExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMPolicySetDefinition_ManagementGroup(t *testing.T) {
+	resourceName := "azurerm_policy_set_definition.test"
+
+	ri := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAzureRMPolicySetDefinition_ManagementGroup(ri),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPolicySetDefinitionExists(resourceName),
 				),
@@ -167,6 +193,47 @@ POLICY_DEFINITIONS
 `, ri, ri, ri, ri)
 }
 
+func testAzureRMPolicySetDefinition_ManagementGroup(ri int) string {
+	return fmt.Sprintf(`
+resource "azurerm_management_group" "test" {
+	display_name = "acctestmg-%d"
+}
+
+resource "azurerm_policy_set_definition" "test" {
+  name                = "acctestpolset-%d"
+  policy_type         = "Custom"
+  display_name        = "acctestpolset-%d"
+  management_group_id = "${azurerm_management_group.test.group_id}"
+
+  parameters = <<PARAMETERS
+    {
+        "allowedLocations": {
+            "type": "Array",
+            "metadata": {
+                "description": "The list of allowed locations for resources.",
+                "displayName": "Allowed locations",
+                "strongType": "location"
+            }
+        }
+    }
+PARAMETERS
+
+  policy_definitions = <<POLICY_DEFINITIONS
+    [
+        {
+            "parameters": {
+                "listOfAllowedLocations": {
+                    "value": "[parameters('allowedLocations')]"
+                }
+            },
+            "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/e765b5de-1225-4ba3-bd56-1ac6695af988"
+        }
+    ]
+POLICY_DEFINITIONS
+}
+`, ri, ri, ri)
+}
+
 func testCheckAzureRMPolicySetDefinitionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -175,17 +242,25 @@ func testCheckAzureRMPolicySetDefinitionExists(resourceName string) resource.Tes
 		}
 
 		policySetName := rs.Primary.Attributes["name"]
+		managementGroupId := rs.Primary.Attributes["management_group_id"]
 
 		client := testAccProvider.Meta().(*ArmClient).policySetDefinitionsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(ctx, policySetName)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on policySetDefinitionsClient: %s", err)
+		var err error
+		var resp policy.SetDefinition
+		if managementGroupId != "" {
+			resp, err = client.GetAtManagementGroup(ctx, policySetName, managementGroupId)
+		} else {
+			resp, err = client.Get(ctx, policySetName)
 		}
 
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("policy set definition does not exist: %s", policySetName)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("policy set definition does not exist: %s", policySetName)
+			} else {
+				return fmt.Errorf("Bad: Get on policySetDefinitionsClient: %s", err)
+			}
 		}
 
 		return nil
@@ -201,15 +276,25 @@ func testCheckAzureRMPolicySetDefinitionDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
+		policySetName := rs.Primary.Attributes["name"]
+		managementGroupId := rs.Primary.Attributes["management_group_id"]
 
-		resp, err := client.Get(ctx, name)
-		if err != nil {
-			return nil
+		var err error
+		var resp policy.SetDefinition
+		if managementGroupId != "" {
+			resp, err = client.GetAtManagementGroup(ctx, policySetName, managementGroupId)
+		} else {
+			resp, err = client.Get(ctx, policySetName)
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
+		if err == nil {
 			return fmt.Errorf("policy set definition still exists: %s", *resp.Name)
+		}
+
+		if utils.ResponseWasNotFound(resp.Response) {
+			return nil
+		} else {
+			return err
 		}
 	}
 

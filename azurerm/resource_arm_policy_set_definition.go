@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/Azure/go-autorest/autorest"
 	"log"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -45,6 +47,12 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 					string(policy.TypeBuiltIn),
 					string(policy.TypeCustom),
 				}, false),
+			},
+
+			"management_group_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"display_name": {
@@ -106,6 +114,7 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 	policyType := d.Get("policy_type").(string)
 	displayName := d.Get("display_name").(string)
 	description := d.Get("description").(string)
+	managementGroupID := d.Get("management_group_id").(string)
 
 	properties := policy.SetDefinitionProperties{
 		PolicyType:  policy.Type(policyType),
@@ -143,7 +152,14 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 		SetDefinitionProperties: &properties,
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, name, definition); err != nil {
+	var err error
+	if managementGroupID == "" {
+		_, err = client.CreateOrUpdate(ctx, name, definition)
+	} else {
+		_, err = client.CreateOrUpdateAtManagementGroup(ctx, name, definition, managementGroupID)
+	}
+
+	if err != nil {
 		return fmt.Errorf("Error creating/updating Policy Set Definition %q: %s", name, err)
 	}
 
@@ -152,7 +168,7 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 	stateConf := &resource.StateChangeConf{
 		Pending:                   []string{"404"},
 		Target:                    []string{"200"},
-		Refresh:                   policySetDefinitionRefreshFunc(ctx, client, name),
+		Refresh:                   policySetDefinitionRefreshFunc(ctx, client, name, managementGroupID),
 		Timeout:                   5 * time.Minute,
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 10,
@@ -161,7 +177,7 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 		return fmt.Errorf("Error waiting for Policy Set Definition %q to become available: %s", name, err)
 	}
 
-	resp, err := client.Get(ctx, name)
+	resp, err := getPolicySetDefinition(ctx, client, name, managementGroupID)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Policy Set Definition %q: %s", name, err)
 	}
@@ -180,7 +196,10 @@ func resourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	resp, err := client.Get(ctx, name)
+	managementGroupID := parseManagementGroupIdFromPolicySetId(d.Id())
+
+	resp, err := getPolicySetDefinition(ctx, client, name, managementGroupID)
+
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading Policy Set Definition %q - removing from state", d.Id())
@@ -192,6 +211,7 @@ func resourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface{}
 	}
 
 	d.Set("name", resp.Name)
+	d.Set("management_group_id", managementGroupID)
 
 	if props := resp.SetDefinitionProperties; props != nil {
 		d.Set("policy_type", string(props.PolicyType))
@@ -241,7 +261,15 @@ func resourceArmPolicySetDefinitionDelete(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	resp, err := client.Delete(ctx, name)
+	managementGroupID := parseManagementGroupIdFromPolicySetId(d.Id())
+
+	var resp autorest.Response
+	if managementGroupID == "" {
+		resp, err = client.Delete(ctx, name)
+	} else {
+		resp, err = client.DeleteAtManagementGroup(ctx, name, managementGroupID)
+	}
+
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil
@@ -260,20 +288,37 @@ func parsePolicySetDefinitionNameFromId(id string) (string, error) {
 		return "", fmt.Errorf("Azure Policy Set Definition Id is empty or not formatted correctly: %s", id)
 	}
 
-	if len(components) != 7 {
-		return "", fmt.Errorf("Azure Policy Set Definition Id should have 6 segments, got %d: '%s'", len(components)-1, id)
-	}
-
-	return components[6], nil
+	return components[len(components)-1], nil
 }
 
-func policySetDefinitionRefreshFunc(ctx context.Context, client policy.SetDefinitionsClient, name string) resource.StateRefreshFunc {
+func parseManagementGroupIdFromPolicySetId(id string) string {
+	r, _ := regexp.Compile("managementgroups/(.+)/providers/.*$")
+
+	if r.MatchString(id) {
+		matches := r.FindAllStringSubmatch(id, -1)[0]
+		return matches[1]
+	}
+
+	return ""
+}
+
+func policySetDefinitionRefreshFunc(ctx context.Context, client policy.SetDefinitionsClient, name string, managementGroupId string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, name)
+		res, err := getPolicySetDefinition(ctx, client, name, managementGroupId)
 		if err != nil {
 			return nil, strconv.Itoa(res.StatusCode), fmt.Errorf("Error issuing read request in policySetDefinitionRefreshFunc for Policy Set Definition %q: %s", name, err)
 		}
 
 		return res, strconv.Itoa(res.StatusCode), nil
 	}
+}
+
+func getPolicySetDefinition(ctx context.Context, client policy.SetDefinitionsClient, name string, managementGroupID string) (res policy.SetDefinition, err error) {
+	if managementGroupID == "" {
+		res, err = client.Get(ctx, name)
+	} else {
+		res, err = client.GetAtManagementGroup(ctx, name, managementGroupID)
+	}
+
+	return res, err
 }
