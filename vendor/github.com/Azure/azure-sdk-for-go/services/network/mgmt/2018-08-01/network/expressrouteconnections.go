@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -47,6 +48,16 @@ func NewExpressRouteConnectionsClientWithBaseURI(baseURI string, subscriptionID 
 // connectionName - the name of the connection subresource.
 // putExpressRouteConnectionParameters - parameters required in an ExpressRouteConnection PUT operation.
 func (client ExpressRouteConnectionsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, expressRouteGatewayName string, connectionName string, putExpressRouteConnectionParameters ExpressRouteConnection) (result ExpressRouteConnectionsCreateOrUpdateFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExpressRouteConnectionsClient.CreateOrUpdate")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: putExpressRouteConnectionParameters,
 			Constraints: []validation.Constraint{{Target: "putExpressRouteConnectionParameters.ExpressRouteConnectionProperties", Name: validation.Null, Rule: false,
@@ -126,6 +137,16 @@ func (client ExpressRouteConnectionsClient) CreateOrUpdateResponder(resp *http.R
 // expressRouteGatewayName - the name of the ExpressRoute gateway.
 // connectionName - the name of the connection subresource.
 func (client ExpressRouteConnectionsClient) Delete(ctx context.Context, resourceGroupName string, expressRouteGatewayName string, connectionName string) (result ExpressRouteConnectionsDeleteFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExpressRouteConnectionsClient.Delete")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeletePreparer(ctx, resourceGroupName, expressRouteGatewayName, connectionName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ExpressRouteConnectionsClient", "Delete", nil, "Failure preparing request")
@@ -194,6 +215,16 @@ func (client ExpressRouteConnectionsClient) DeleteResponder(resp *http.Response)
 // expressRouteGatewayName - the name of the ExpressRoute gateway.
 // connectionName - the name of the ExpressRoute connection.
 func (client ExpressRouteConnectionsClient) Get(ctx context.Context, resourceGroupName string, expressRouteGatewayName string, connectionName string) (result ExpressRouteConnection, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExpressRouteConnectionsClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetPreparer(ctx, resourceGroupName, expressRouteGatewayName, connectionName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ExpressRouteConnectionsClient", "Get", nil, "Failure preparing request")
@@ -262,6 +293,16 @@ func (client ExpressRouteConnectionsClient) GetResponder(resp *http.Response) (r
 // resourceGroupName - the name of the resource group.
 // expressRouteGatewayName - the name of the ExpressRoute gateway.
 func (client ExpressRouteConnectionsClient) List(ctx context.Context, resourceGroupName string, expressRouteGatewayName string) (result ExpressRouteConnectionList, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExpressRouteConnectionsClient.List")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.ListPreparer(ctx, resourceGroupName, expressRouteGatewayName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ExpressRouteConnectionsClient", "List", nil, "Failure preparing request")

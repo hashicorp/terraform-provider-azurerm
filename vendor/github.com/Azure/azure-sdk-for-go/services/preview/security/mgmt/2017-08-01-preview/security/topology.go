@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -46,6 +47,16 @@ func NewTopologyClientWithBaseURI(baseURI string, subscriptionID string, ascLoca
 // insensitive.
 // topologyResourceName - name of a topology resources collection.
 func (client TopologyClient) Get(ctx context.Context, resourceGroupName string, topologyResourceName string) (result TopologyResource, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TopologyClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: client.SubscriptionID,
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}},
@@ -121,6 +132,16 @@ func (client TopologyClient) GetResponder(resp *http.Response) (result TopologyR
 
 // List gets a list that allows to build a topology view of a subscription.
 func (client TopologyClient) List(ctx context.Context) (result TopologyListPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TopologyClient.List")
+		defer func() {
+			sc := -1
+			if result.tl.Response.Response != nil {
+				sc = result.tl.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: client.SubscriptionID,
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}}}); err != nil {
@@ -189,8 +210,8 @@ func (client TopologyClient) ListResponder(resp *http.Response) (result Topology
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client TopologyClient) listNextResults(lastResults TopologyList) (result TopologyList, err error) {
-	req, err := lastResults.topologyListPreparer()
+func (client TopologyClient) listNextResults(ctx context.Context, lastResults TopologyList) (result TopologyList, err error) {
+	req, err := lastResults.topologyListPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "security.TopologyClient", "listNextResults", nil, "Failure preparing next results request")
 	}
@@ -211,12 +232,32 @@ func (client TopologyClient) listNextResults(lastResults TopologyList) (result T
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
 func (client TopologyClient) ListComplete(ctx context.Context) (result TopologyListIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TopologyClient.List")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.page, err = client.List(ctx)
 	return
 }
 
 // ListByHomeRegion gets a list that allows to build a topology view of a subscription and location.
 func (client TopologyClient) ListByHomeRegion(ctx context.Context) (result TopologyListPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TopologyClient.ListByHomeRegion")
+		defer func() {
+			sc := -1
+			if result.tl.Response.Response != nil {
+				sc = result.tl.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: client.SubscriptionID,
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}}}); err != nil {
@@ -286,8 +327,8 @@ func (client TopologyClient) ListByHomeRegionResponder(resp *http.Response) (res
 }
 
 // listByHomeRegionNextResults retrieves the next set of results, if any.
-func (client TopologyClient) listByHomeRegionNextResults(lastResults TopologyList) (result TopologyList, err error) {
-	req, err := lastResults.topologyListPreparer()
+func (client TopologyClient) listByHomeRegionNextResults(ctx context.Context, lastResults TopologyList) (result TopologyList, err error) {
+	req, err := lastResults.topologyListPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "security.TopologyClient", "listByHomeRegionNextResults", nil, "Failure preparing next results request")
 	}
@@ -308,6 +349,16 @@ func (client TopologyClient) listByHomeRegionNextResults(lastResults TopologyLis
 
 // ListByHomeRegionComplete enumerates all values, automatically crossing page boundaries as required.
 func (client TopologyClient) ListByHomeRegionComplete(ctx context.Context) (result TopologyListIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TopologyClient.ListByHomeRegion")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.page, err = client.ListByHomeRegion(ctx)
 	return
 }
