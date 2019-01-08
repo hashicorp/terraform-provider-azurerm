@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -272,6 +273,12 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 			return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, startTaskErr)
 		}
 
+		// start task should have a user identity defined
+		userIdentity := startTask.UserIdentity
+		if userIdentityError := validateUserIdentity(userIdentity); userIdentityError != nil {
+			return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, userIdentityError)
+		}
+
 		parameters.PoolProperties.StartTask = startTask
 	}
 
@@ -364,6 +371,12 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 
 		if startTaskErr != nil {
 			return fmt.Errorf("Error updating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, startTaskErr)
+		}
+
+		// start task should have a user identity defined
+		userIdentity := startTask.UserIdentity
+		if userIdentityError := validateUserIdentity(userIdentity); userIdentityError != nil {
+			return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, userIdentityError)
 		}
 
 		parameters.PoolProperties.StartTask = startTask
@@ -525,6 +538,24 @@ func waitForBatchPoolPendingResizeOperation(ctx context.Context, client batch.Po
 		isSteady = resp.PoolProperties.AllocationState == batch.Steady
 		time.Sleep(time.Second * 30)
 		log.Printf("[INFO] waiting for the pending resize operation on this pool to be stopped... New try in 30 seconds...")
+	}
+
+	return nil
+}
+
+// validateUserIdentity validates that the user identity for a start task has been well specified
+// it should have a auto_user block or a user_name defined, but not both at the same time.
+func validateUserIdentity(userIdentity *batch.UserIdentity) error {
+	if userIdentity == nil {
+		return errors.New("user_identity block needs to be specified")
+	}
+
+	if userIdentity.AutoUser == nil && userIdentity.UserName == nil {
+		return errors.New("auto_user or user_name needs to be specified in the user_identity block")
+	}
+
+	if userIdentity.AutoUser != nil && userIdentity.UserName != nil {
+		return errors.New("auto_user and user_name cannot be specified in the user_identity at the same time")
 	}
 
 	return nil
