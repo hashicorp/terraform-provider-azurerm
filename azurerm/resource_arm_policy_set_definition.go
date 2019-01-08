@@ -4,13 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/Azure/go-autorest/autorest"
 	"log"
 	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/Azure/go-autorest/autorest"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -173,11 +174,13 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 10,
 	}
-	if _, err := stateConf.WaitForState(); err != nil {
+
+	if _, err = stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Policy Set Definition %q to become available: %s", name, err)
 	}
 
-	resp, err := getPolicySetDefinition(ctx, client, name, managementGroupID)
+	var resp policy.SetDefinition
+	resp, err = getPolicySetDefinition(ctx, client, name, managementGroupID)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Policy Set Definition %q: %s", name, err)
 	}

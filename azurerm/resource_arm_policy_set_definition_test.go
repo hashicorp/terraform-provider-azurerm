@@ -2,9 +2,10 @@ package azurerm
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"testing"
 
 	"github.com/hashicorp/terraform/terraform"
 
