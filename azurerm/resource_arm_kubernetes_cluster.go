@@ -1127,7 +1127,7 @@ func validateKubernetesClusterAgentPoolName() schema.SchemaValidateFunc {
 
 func validateKubernetesClusterDnsPrefix() schema.SchemaValidateFunc {
 	return validation.StringMatch(
-		regexp.MustCompile("^[a-zA-Z][a-zA-Z0-9\\-]{0,43}[a-zA-Z0-9]$"),
+		regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{0,43}[a-zA-Z0-9]$"),
 		"The DNS name must contain between 3 and 45 characters. The name can contain only letters, numbers, and hyphens. The name must start with a letter and must end with a letter or a number.",
 	)
 }
