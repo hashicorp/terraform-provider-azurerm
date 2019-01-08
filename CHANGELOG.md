@@ -9,8 +9,8 @@ FEATURES:
 * **New Resource:** `azurerm_firewall_application_rule_collection` [GH-2532]
 * **New Resource:** `azurerm_policy_set_definition` [GH-2535]
 
-IMPROVEMEN
-
+IMPROVEMENTS:
+Add delegation support for Subnet #
 * dependencies: upgrading the `network` SDK to `2018-08-01` [GH-2433]
 * Data Source: `azurerm_app_service` - exporting the `possible_outbound_ip_addresses` [GH-2513]
 * Data Source:  `azurerm_container_registry` - now exports `tags` [GH-2607]
@@ -26,6 +26,7 @@ IMPROVEMEN
 * `azurerm_service_fabric_cluster` - support for `azure_active_directory` [GH-2553]
 * `azurerm_service_fabric_cluster` - support for `reverse_proxy_certificate` [GH-2544]
 * `azurerm_service_fabric_cluster` - support for `reverse_proxy_endpoint_port` [GH-2544]
+* `azurerm_subnet` - support for delegation [GH-2042]
 
 BUG FIXES:
 
