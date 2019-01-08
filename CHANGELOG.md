@@ -10,7 +10,8 @@ FEATURES:
 * **New Resource:** `azurerm_policy_set_definition` [GH-2535]
 
 IMPROVEMENTS:
-Add delegation support for Subnet #
+
+* dependencies: updating to `v24.0.0` of `Azure/azure-sdk-for-go` [GH-2572]
 * dependencies: upgrading the `network` SDK to `2018-08-01` [GH-2433]
 * Data Source: `azurerm_app_service` - exporting the `possible_outbound_ip_addresses` [GH-2513]
 * Data Source:  `azurerm_container_registry` - now exports `tags` [GH-2607]
