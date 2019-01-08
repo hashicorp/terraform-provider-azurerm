@@ -7,7 +7,7 @@ resource "azurerm_network_interface" "primary" {
   ip_configuration {
     name                          = "primary"
     subnet_id                     = "${var.subnet_id}"
-    private_ip_address_allocation = "static"
+    private_ip_address_allocation = "Static"
     private_ip_address            = "10.0.1.4"
   }
 }
