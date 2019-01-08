@@ -9,17 +9,19 @@ FEATURES:
 * **New Resource:** `azurerm_firewall_application_rule_collection` [GH-2532]
 * **New Resource:** `azurerm_policy_set_definition` [GH-2535]
 
-IMPROVEMENTS:
+IMPROVEMEN
 
 * dependencies: upgrading the `network` SDK to `2018-08-01` [GH-2433]
 * Data Source: `azurerm_app_service` - exporting the `possible_outbound_ip_addresses` [GH-2513]
 * Data Source:  `azurerm_container_registry` - now exports `tags` [GH-2607]
+* Data Source:  `azurerm_public_ip` - now exports `location`, `sku`, `allocation_method`, `reverse_fqdn` and `zones` [GH-2576]
 * `azurerm_app_service` - exporting the `possible_outbound_ip_addresses` [GH-2513]
 * `azurerm_firewall` - renaming the `public_ip_address_id` property to `ip_address_id` [GH-2433]
 * `azurerm_log_analytics_workspace_linked_service` - now correctly handels uppcase `workspace_name` values  [GH-2594]
 * `azurerm_network_interface` - support for IPv6 addresses [GH-2548]
 * `azurerm_policy_assignment` - support for Managed Service Identity [GH-2549]
 * `azurerm_policy_definition` - polices can now be assigned to a management group [GH-2490]
+* `azurerm_public_ip` - deprecated `public_ip_address_allocation` in favor of `allocation_method` to better match the SDK [GH-2576]
 * `azurerm_redis_cache` - add availability zone support [GH-2580]
 * `azurerm_service_fabric_cluster` - support for `azure_active_directory` [GH-2553]
 * `azurerm_service_fabric_cluster` - support for `reverse_proxy_certificate` [GH-2544]
