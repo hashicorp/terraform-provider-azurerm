@@ -256,12 +256,12 @@ func TestAccAzureRMTrafficManagerEndpoint_withGeoMappings(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMTrafficManagerEndpointExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMTrafficManagerEndpointExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -288,12 +288,12 @@ func testCheckAzureRMTrafficManagerEndpointExists(name string) resource.TestChec
 	}
 }
 
-func testCheckAzureRMTrafficManagerEndpointDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMTrafficManagerEndpointDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -307,8 +307,8 @@ func testCheckAzureRMTrafficManagerEndpointDisappears(name string) resource.Test
 		// Ensure resource group/virtual network combination exists in API
 		conn := testAccProvider.Meta().(*ArmClient).trafficManagerEndpointsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		_, err := conn.Delete(ctx, resourceGroup, profileName, path.Base(endpointType), name)
-		if err != nil {
+
+		if _, err := conn.Delete(ctx, resourceGroup, profileName, path.Base(endpointType), name); err != nil {
 			return fmt.Errorf("Bad: Delete on trafficManagerEndpointsClient: %+v", err)
 		}
 

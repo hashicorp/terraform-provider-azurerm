@@ -180,11 +180,11 @@ func TestAccAzureRMMsSqlElasticPool_resize_vCore(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMMsSqlElasticPoolExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMMsSqlElasticPoolExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
@@ -200,7 +200,7 @@ func testCheckAzureRMMsSqlElasticPoolExists(name string) resource.TestCheckFunc 
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: MsSql Elastic Pool %q on server: %q (resource group: %q) does not exist", name, serverName, resourceGroup)
+			return fmt.Errorf("Bad: MsSql Elastic Pool %q on server: %q (resource group: %q) does not exist", poolName, serverName, resourceGroup)
 		}
 
 		return nil
@@ -233,12 +233,12 @@ func testCheckAzureRMMsSqlElasticPoolDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMMsSqlElasticPoolDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMMsSqlElasticPoolDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]

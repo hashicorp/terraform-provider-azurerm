@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"regexp"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -32,6 +32,35 @@ func TestAccAzureRMAppServiceSlot_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppServiceSlot_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMAppServiceSlot_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_app_service_slot"),
 			},
 		},
 	})
@@ -762,8 +791,6 @@ func TestAccAzureRMAppServiceSlot_enableManageServiceIdentity(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServiceSlot_enableManageServiceIdentity(ri, testLocation())
 
-	uuidMatch := regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -774,8 +801,8 @@ func TestAccAzureRMAppServiceSlot_enableManageServiceIdentity(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceSlotExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", uuidMatch),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", uuidMatch),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", validate.UUIDRegExp),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", validate.UUIDRegExp),
 				),
 			},
 		},
@@ -906,6 +933,21 @@ resource "azurerm_app_service_slot" "test" {
   app_service_name    = "${azurerm_app_service.test.name}"
 }
 `, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMAppServiceSlot_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMAppServiceSlot_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_slot" "import" {
+  name                = "${azurerm_app_service_slot.test.name}"
+  location            = "${azurerm_app_service_slot.test.location}"
+  resource_group_name = "${azurerm_app_service_slot.test.resource_group_name}"
+  app_service_plan_id = "${azurerm_app_service_slot.test.app_service_plan_id}"
+  app_service_name    = "${azurerm_app_service_slot.test.app_service_name}"
+}
+`, template)
 }
 
 func testAccAzureRMAppServiceSlot_32Bit(rInt int, location string) string {
@@ -1067,7 +1109,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_clientAffinityEnabled(rInt int, location string, clientAffinityEnabled bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1187,7 +1229,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_enabled(rInt int, location string, enabled bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1215,7 +1257,7 @@ resource "azurerm_app_service_slot" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
   app_service_name    = "${azurerm_app_service.test.name}"
-  enabled = %t
+  enabled             = %t
 }
 `, rInt, location, rInt, rInt, rInt, enabled)
 }
@@ -1223,7 +1265,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_httpsOnly(rInt int, location string, httpsOnly bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

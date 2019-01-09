@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -17,6 +18,7 @@ func resourceArmLogAnalyticsWorkspaceLinkedService() *schema.Resource {
 		Read:   resourceArmLogAnalyticsWorkspaceLinkedServiceRead,
 		Update: resourceArmLogAnalyticsWorkspaceLinkedServiceCreateUpdate,
 		Delete: resourceArmLogAnalyticsWorkspaceLinkedServiceDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -25,10 +27,11 @@ func resourceArmLogAnalyticsWorkspaceLinkedService() *schema.Resource {
 			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
 
 			"workspace_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validateAzureRmLogAnalyticsWorkspaceName,
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc:     validateAzureRmLogAnalyticsWorkspaceName,
 			},
 
 			"linked_service_name": {
@@ -36,7 +39,7 @@ func resourceArmLogAnalyticsWorkspaceLinkedService() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				Default:      "automation",
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validation.StringInSlice([]string{"automation"}, false),
 			},
 
 			"linked_service_properties": {
@@ -55,13 +58,13 @@ func resourceArmLogAnalyticsWorkspaceLinkedService() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
-
 			// Exported properties
 			"name": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -69,10 +72,10 @@ func resourceArmLogAnalyticsWorkspaceLinkedService() *schema.Resource {
 func resourceArmLogAnalyticsWorkspaceLinkedServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).linkedServicesClient
 	ctx := meta.(*ArmClient).StopContext
+
 	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics linked services creation.")
 
 	resGroup := d.Get("resource_group_name").(string)
-
 	workspaceName := d.Get("workspace_name").(string)
 	lsName := d.Get("linked_service_name").(string)
 
@@ -88,8 +91,7 @@ func resourceArmLogAnalyticsWorkspaceLinkedServiceCreateUpdate(d *schema.Resourc
 		},
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resGroup, workspaceName, lsName, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, workspaceName, lsName, parameters); err != nil {
 		return fmt.Errorf("Error issuing create request for Log Analytics Workspace Linked Service %q/%q (Resource Group %q): %+v", workspaceName, lsName, resGroup, err)
 	}
 
@@ -97,7 +99,6 @@ func resourceArmLogAnalyticsWorkspaceLinkedServiceCreateUpdate(d *schema.Resourc
 	if err != nil {
 		return fmt.Errorf("Error retrieving Analytics Workspace Linked Service %q/%q (Resource Group %q): %+v", workspaceName, lsName, resGroup, err)
 	}
-
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read Log Analytics Linked Service '%s' (resource group %s) ID", lsName, resGroup)
 	}
@@ -111,10 +112,12 @@ func resourceArmLogAnalyticsWorkspaceLinkedServiceCreateUpdate(d *schema.Resourc
 func resourceArmLogAnalyticsWorkspaceLinkedServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).linkedServicesClient
 	ctx := meta.(*ArmClient).StopContext
+
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
+
 	resGroup := id.ResourceGroup
 	workspaceName := id.Path["workspaces"]
 	lsName := id.Path["linkedservices"]
@@ -160,16 +163,17 @@ func flattenLogAnalyticsWorkspaceLinkedServiceProperties(input *operationalinsig
 func resourceArmLogAnalyticsWorkspaceLinkedServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).linkedServicesClient
 	ctx := meta.(*ArmClient).StopContext
+
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
+
 	resGroup := id.ResourceGroup
 	workspaceName := id.Path["workspaces"]
 	lsName := id.Path["linkedservices"]
 
 	resp, err := client.Delete(ctx, resGroup, workspaceName, lsName)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil

@@ -49,6 +49,24 @@ func TestAccAzureRMTemplateDeployment_disappears(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMTemplateDeployment_nestedTemplate(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMTemplateDeployment_nestedTemplate(ri, testLocation())
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMTemplateDeploymentExists("azurerm_template_deployment.test"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMTemplateDeployment_withParams(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMTemplateDeployment_withParams(ri, testLocation())
@@ -132,12 +150,12 @@ func TestAccAzureRMTemplateDeployment_withError(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMTemplateDeploymentExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMTemplateDeploymentExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -162,25 +180,24 @@ func testCheckAzureRMTemplateDeploymentExists(name string) resource.TestCheckFun
 	}
 }
 
-func testCheckAzureRMTemplateDeploymentDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMTemplateDeploymentDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		deploymentName := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for template deployment: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for template deployment: %s", deploymentName)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).deploymentsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, err := client.Delete(ctx, resourceGroup, deploymentName)
-		if err != nil {
+		if _, err := client.Delete(ctx, resourceGroup, deploymentName); err != nil {
 			return fmt.Errorf("Failed deleting Deployment %q (Resource Group %q): %+v", deploymentName, resourceGroup, err)
 		}
 
@@ -313,6 +330,65 @@ resource "azurerm_template_deployment" "test" {
         "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
         "dnsSettings": {
           "domainNameLabel": "[variables('dnsLabelPrefix')]"
+        }
+      }
+    }
+  ]
+}
+DEPLOY
+
+  deployment_mode = "Complete"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMTemplateDeployment_nestedTemplate(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_template_deployment" "test" {
+  name                = "acctesttemplate-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  template_body = <<DEPLOY
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+  },
+  "variables": {
+    "location": "[resourceGroup().location]",
+    "resourceGroupName": "[resourceGroup().name]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2017-05-10",
+      "name": "nested-template-deployment",
+      "type": "Microsoft.Resources/deployments",
+      "resourceGroup": "[variables('resourceGroupName')]",
+      "properties": {
+        "mode": "Incremental",
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "variables": {
+            "location": "[variables('location')]",
+            "resourceGroupName": "[variables('resourceGroupName')]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Network/publicIPAddresses",
+              "apiVersion": "2015-06-15",
+              "name": "acctest-pip",
+              "location": "[variables('location')]",
+              "properties": {
+                "publicIPAllocationMethod": "Dynamic"
+              }
+            }
+          ]
         }
       }
     }

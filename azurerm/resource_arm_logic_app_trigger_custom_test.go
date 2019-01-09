@@ -40,6 +40,7 @@ func testAccAzureRMLogicAppTriggerCustom_basic(rInt int, location string) string
 resource "azurerm_logic_app_trigger_custom" "test" {
   name         = "recurrence-%d"
   logic_app_id = "${azurerm_logic_app_workflow.test.id}"
+
   body = <<BODY
 {
   "recurrence": {

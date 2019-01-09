@@ -13,6 +13,10 @@ func locationSchema() *schema.Schema {
 	return azure.SchemaLocation()
 }
 
+func locationSchemaOptional() *schema.Schema {
+	return azure.SchemaLocationOptional()
+}
+
 func locationForDataSourceSchema() *schema.Schema {
 	return azure.SchemaLocationForDataSource()
 }
@@ -55,4 +59,8 @@ func zonesSchemaComputed() *schema.Schema {
 
 func expandZones(v []interface{}) *[]string {
 	return azure.ExpandZones(v)
+}
+
+func azureRMHashLocation(location interface{}) int {
+	return azure.HashAzureLocation(location)
 }

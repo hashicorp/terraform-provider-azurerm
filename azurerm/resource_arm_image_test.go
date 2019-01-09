@@ -169,8 +169,7 @@ func testGeneralizeVMImage(resourceGroup string, vmName string, userName string,
 		suffix := armClient.environment.ResourceManagerVMDNSSuffix
 		dnsName := fmt.Sprintf("%s.%s.%s", hostName, normalizedLocation, suffix)
 
-		err := deprovisionVM(userName, password, dnsName, port)
-		if err != nil {
+		if err := deprovisionVM(userName, password, dnsName, port); err != nil {
 			return fmt.Errorf("Bad: Deprovisioning error %+v", err)
 		}
 
@@ -179,13 +178,11 @@ func testGeneralizeVMImage(resourceGroup string, vmName string, userName string,
 			return fmt.Errorf("Bad: Deallocating error %+v", err)
 		}
 
-		err = future.WaitForCompletionRef(ctx, vmClient.Client)
-		if err != nil {
+		if err = future.WaitForCompletionRef(ctx, vmClient.Client); err != nil {
 			return fmt.Errorf("Bad: Deallocating error %+v", err)
 		}
 
-		_, err = vmClient.Generalize(ctx, resourceGroup, vmName)
-		if err != nil {
+		if _, err = vmClient.Generalize(ctx, resourceGroup, vmName); err != nil {
 			return fmt.Errorf("Bad: Generalizing error %+v", err)
 		}
 
@@ -226,14 +223,14 @@ func deprovisionVM(userName string, password string, hostName string, port strin
 	return nil
 }
 
-func testCheckAzureRMImageExists(name string, shouldExist bool) resource.TestCheckFunc {
+func testCheckAzureRMImageExists(resourceName string, shouldExist bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
 		log.Printf("[INFO] testing MANAGED IMAGE EXISTS - BEGIN.")
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		dName := rs.Primary.Attributes["name"]

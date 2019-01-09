@@ -57,6 +57,35 @@ func TestAccAzureRMDnsNsRecord_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMDnsNsRecord_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_dns_ns_record.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDnsNsRecord_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDnsNsRecordExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMDnsNsRecord_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_dns_ns_record"),
+			},
+		},
+	})
+}
+
 //TODO: remove this once we remove the `record` attribute
 func TestAccAzureRMDnsNsRecord_deprecatedUpdateRecords(t *testing.T) {
 	resourceName := "azurerm_dns_ns_record.test"
@@ -215,12 +244,12 @@ func TestAccAzureRMDnsNsRecord_withTags(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDnsNsRecordExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDnsNsRecordExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		nsName := rs.Primary.Attributes["name"]
@@ -294,6 +323,22 @@ resource "azurerm_dns_ns_record" "test" {
   records = ["ns1.contoso.com", "ns2.contoso.com"]
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMDnsNsRecord_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMDnsNsRecord_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_dns_ns_record" "import" {
+  name                = "${azurerm_dns_ns_record.test.name}"
+  resource_group_name = "${azurerm_dns_ns_record.test.resource_group_name}"
+  zone_name           = "${azurerm_dns_ns_record.test.zone_name}"
+  ttl                 = 300
+
+  records = ["ns1.contoso.com", "ns2.contoso.com"]
+}
+`, template)
 }
 
 //TODO: remove this once we remove the `record` attribute

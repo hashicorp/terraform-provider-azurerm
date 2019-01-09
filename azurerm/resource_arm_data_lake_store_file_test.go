@@ -38,12 +38,43 @@ func TestAccAzureRMDataLakeStoreFile_basic(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDataLakeStoreFileExists(name string) resource.TestCheckFunc {
+func TestAccAzureRMDataLakeStoreFile_requiresimport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_data_lake_store_file.test"
+
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDataLakeStoreFileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDataLakeStoreFile_basic(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataLakeStoreFileExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMDataLakeStoreFile_requiresImport(ri, rs, location),
+				ExpectError: testRequiresImportError("azurerm_data_lake_store_file"),
+			},
+		},
+	})
+}
+
+func testCheckAzureRMDataLakeStoreFileExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		remoteFilePath := rs.Primary.Attributes["remote_file_path"]
@@ -92,7 +123,7 @@ func testCheckAzureRMDataLakeStoreFileDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDataLakeStoreFile_basic(rInt int, rs, location string) string {
+func testAccAzureRMDataLakeStoreFile_basic(rInt int, rString, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -111,5 +142,18 @@ resource "azurerm_data_lake_store_file" "test" {
   account_name     = "${azurerm_data_lake_store.test.name}"
   local_file_path  = "./testdata/application_gateway_test.cer"
 }
-`, rInt, location, rs, location)
+`, rInt, location, rString, location)
+}
+
+func testAccAzureRMDataLakeStoreFile_requiresImport(rInt int, rString, location string) string {
+	template := testAccAzureRMDataLakeStoreFile_basic(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_lake_store_file" "import" {
+  remote_file_path = "${azurerm_data_lake_store_file.test.remote_file_path}"
+  account_name     = "${azurerm_data_lake_store_file.test.name}"
+  local_file_path  = "./testdata/application_gateway_test.cer"
+}
+`, template)
 }

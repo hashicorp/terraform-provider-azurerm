@@ -273,7 +273,7 @@ A `probe` block support the following:
 
 * `name` - (Required) The Name of the Probe.
 
-* `probe` - (Required) The Protocol used for this Probe. Possible values are `Http` and `Https`.
+* `protocol` - (Required) The Protocol used for this Probe. Possible values are `Http` and `Https`.
 
 * `path` - (Required) The Path used for this Probe.
 

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
@@ -26,7 +25,7 @@ func resourceArmActiveDirectoryApplication() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"homepage": {
@@ -79,6 +78,7 @@ func resourceArmActiveDirectoryApplicationCreate(d *schema.ResourceData, meta in
 	client := meta.(*ArmClient).applicationsClient
 	ctx := meta.(*ArmClient).StopContext
 
+	// NOTE: name isn't the Resource ID here, so we don't check it exists
 	name := d.Get("name").(string)
 	availableToOtherTenants := d.Get("available_to_other_tenants").(bool)
 
@@ -138,8 +138,7 @@ func resourceArmActiveDirectoryApplicationUpdate(d *schema.ResourceData, meta in
 		properties.Oauth2AllowImplicitFlow = utils.Bool(oauth)
 	}
 
-	_, err := client.Patch(ctx, d.Id(), properties)
-	if err != nil {
+	if _, err := client.Patch(ctx, d.Id(), properties); err != nil {
 		return fmt.Errorf("Error patching Azure AD Application with ID %q: %+v", d.Id(), err)
 	}
 
@@ -197,8 +196,8 @@ func resourceArmActiveDirectoryApplicationDelete(d *schema.ResourceData, meta in
 		properties := graphrbac.ApplicationUpdateParameters{
 			AvailableToOtherTenants: utils.Bool(false),
 		}
-		_, err := client.Patch(ctx, d.Id(), properties)
-		if err != nil {
+
+		if _, err := client.Patch(ctx, d.Id(), properties); err != nil {
 			return fmt.Errorf("Error patching Azure AD Application with ID %q: %+v", d.Id(), err)
 		}
 	}

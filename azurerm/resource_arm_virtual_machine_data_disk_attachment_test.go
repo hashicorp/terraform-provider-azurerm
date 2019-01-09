@@ -418,7 +418,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "test" {
   virtual_machine_id        = "${azurerm_virtual_machine.test.id}"
   lun                       = "0"
   caching                   = "None"
-  write_accelerator_enabled = "%t"
+  write_accelerator_enabled = %t
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, enabled)
 }
