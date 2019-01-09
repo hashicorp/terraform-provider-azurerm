@@ -38,11 +38,11 @@ func TestAccAzureRMNotificationHub_basic(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMNotificationHubExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMNotificationHubExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("not found: %s", name)
+			return fmt.Errorf("not found: %s", resourceName)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).notificationHubsClient
@@ -58,7 +58,7 @@ func testCheckAzureRMNotificationHubExists(name string) resource.TestCheckFunc {
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Notification Hub does not exist: %s", name)
+			return fmt.Errorf("Notification Hub does not exist: %s", hubName)
 		}
 
 		return nil

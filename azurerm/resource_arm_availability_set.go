@@ -14,9 +14,9 @@ import (
 
 func resourceArmAvailabilitySet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAvailabilitySetCreate,
+		Create: resourceArmAvailabilitySetCreateUpdate,
 		Read:   resourceArmAvailabilitySetRead,
-		Update: resourceArmAvailabilitySetCreate,
+		Update: resourceArmAvailabilitySetCreateUpdate,
 		Delete: resourceArmAvailabilitySetDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -61,7 +61,7 @@ func resourceArmAvailabilitySet() *schema.Resource {
 	}
 }
 
-func resourceArmAvailabilitySetCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).availSetClient
 	ctx := meta.(*ArmClient).StopContext
 

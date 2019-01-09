@@ -60,6 +60,35 @@ func testAccAzureRMEventHubAuthorizationRule(t *testing.T, listen, send, manage 
 	})
 }
 
+func TestAccAzureRMEventHubAuthorizationRule_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_eventhub_authorization_rule.test"
+	rInt := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMEventHubAuthorizationRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMEventHubAuthorizationRule_base(rInt, location, true, true, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventHubAuthorizationRuleExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMEventHubAuthorizationRule_requiresImport(rInt, location, true, true, true),
+				ExpectError: testRequiresImportError("azurerm_eventhub_authorization_rule"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMEventHubAuthorizationRule_rightsUpdate(t *testing.T) {
 	resourceName := "azurerm_eventhub_authorization_rule.test"
 
@@ -126,12 +155,12 @@ func testCheckAzureRMEventHubAuthorizationRuleDestroy(s *terraform.State) error 
 	return nil
 }
 
-func testCheckAzureRMEventHubAuthorizationRuleExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMEventHubAuthorizationRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -192,4 +221,21 @@ resource "azurerm_eventhub_authorization_rule" "test" {
   manage = %[5]t
 }
 `, rInt, location, listen, send, manage)
+}
+
+func testAccAzureRMEventHubAuthorizationRule_requiresImport(rInt int, location string, listen, send, manage bool) string {
+	template := testAccAzureRMEventHubAuthorizationRule_base(rInt, location, listen, send, manage)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_eventhub_authorization_rule" "import" {
+  name                = "${azurerm_eventhub_authorization_rule.test.name}"
+  namespace_name      = "${azurerm_eventhub_authorization_rule.test.namespace_name}"
+  eventhub_name       = "${azurerm_eventhub_authorization_rule.test.eventhub_name}"
+  resource_group_name = "${azurerm_eventhub_authorization_rule.test.resource_group_name}"
+  listen              = "${azurerm_eventhub_authorization_rule.test.listen}"
+  send                = "${azurerm_eventhub_authorization_rule.test.send}"
+  manage              = "${azurerm_eventhub_authorization_rule.test.manage}"
+}
+`, template)
 }

@@ -41,7 +41,7 @@ resource "azurerm_public_ip" "webserverpublic_ip" {
   name                         = "${var.resource_prefix}_publicip"
   location                     = "${var.location}"
   resource_group_name          = "${azurerm_resource_group.webservers_rg.name}"
-  public_ip_address_allocation = "static"
+  allocation_method = "Static"
   domain_name_label            = "${var.lb_dns_label}"
 }
 

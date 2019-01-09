@@ -18,9 +18,9 @@ import (
 
 func resourceArmContainerService() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmContainerServiceCreate,
+		Create: resourceArmContainerServiceCreateUpdate,
 		Read:   resourceArmContainerServiceRead,
-		Update: resourceArmContainerServiceCreate,
+		Update: resourceArmContainerServiceCreateUpdate,
 		Delete: resourceArmContainerServiceDelete,
 
 		DeprecationMessage: `Azure Container Service (ACS) has been deprecated in favour of Azure (Managed) Kubernetes Service (AKS).
@@ -191,7 +191,7 @@ More information can be found here: https://azure.microsoft.com/en-us/updates/az
 	}
 }
 
-func resourceArmContainerServiceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmContainerServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
 	ctx := meta.(*ArmClient).StopContext
 	containerServiceClient := client.containerServicesClient

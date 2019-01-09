@@ -12,9 +12,9 @@ import (
 
 func resourceArmVirtualMachineExtensions() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualMachineExtensionsCreate,
+		Create: resourceArmVirtualMachineExtensionsCreateUpdate,
 		Read:   resourceArmVirtualMachineExtensionsRead,
-		Update: resourceArmVirtualMachineExtensionsCreate,
+		Update: resourceArmVirtualMachineExtensionsCreateUpdate,
 		Delete: resourceArmVirtualMachineExtensionsDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -78,7 +78,7 @@ func resourceArmVirtualMachineExtensions() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualMachineExtensionsCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmVirtualMachineExtensionsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).vmExtensionClient
 	ctx := meta.(*ArmClient).StopContext
 

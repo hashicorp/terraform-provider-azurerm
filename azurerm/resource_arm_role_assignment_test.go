@@ -165,11 +165,11 @@ func testAccAzureRMRoleAssignment_custom(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMRoleAssignmentExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMRoleAssignmentExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %q", name)
+			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
 		scope := rs.Primary.Attributes["scope"]
@@ -181,7 +181,7 @@ func testCheckAzureRMRoleAssignmentExists(name string) resource.TestCheckFunc {
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Role Assignment %q (Scope: %q) does not exist", name, scope)
+				return fmt.Errorf("Bad: Role Assignment %q (Scope: %q) does not exist", roleAssignmentName, scope)
 			}
 			return fmt.Errorf("Bad: Get on roleDefinitionsClient: %+v", err)
 		}

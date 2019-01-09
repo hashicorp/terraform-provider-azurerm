@@ -121,12 +121,12 @@ func TestAccAzureRMRoute_multipleRoutes(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMRouteExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMRouteExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %q", name)
+			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -151,12 +151,12 @@ func testCheckAzureRMRouteExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testCheckAzureRMRouteDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMRouteDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]

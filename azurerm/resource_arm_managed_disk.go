@@ -15,9 +15,9 @@ import (
 
 func resourceArmManagedDisk() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmManagedDiskCreate,
+		Create: resourceArmManagedDiskCreateUpdate,
 		Read:   resourceArmManagedDiskRead,
-		Update: resourceArmManagedDiskCreate,
+		Update: resourceArmManagedDiskCreateUpdate,
 		Delete: resourceArmManagedDiskDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -112,7 +112,7 @@ func validateDiskSizeGB(v interface{}, _ string) (warnings []string, errors []er
 	return warnings, errors
 }
 
-func resourceArmManagedDiskCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).diskClient
 	ctx := meta.(*ArmClient).StopContext
 

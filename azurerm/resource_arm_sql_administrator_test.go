@@ -66,11 +66,11 @@ func TestAccAzureRMSqlAdministrator_disappears(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMSqlAdministratorExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMSqlAdministratorExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
@@ -84,11 +84,11 @@ func testCheckAzureRMSqlAdministratorExists(name string) resource.TestCheckFunc 
 	}
 }
 
-func testCheckAzureRMSqlAdministratorDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMSqlAdministratorDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]

@@ -120,11 +120,11 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_updatingSharedKey(t *testing.
 	})
 }
 
-func testCheckAzureRMVirtualNetworkGatewayConnectionExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMVirtualNetworkGatewayConnectionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		connectionName := rs.Primary.Attributes["name"]
@@ -198,10 +198,10 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctest-${var.random}"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
+  name                = "acctest-${var.random}"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -278,10 +278,10 @@ resource "azurerm_subnet" "test_1" {
 }
 
 resource "azurerm_public_ip" "test_1" {
-  name                         = "acctest-${var.random1}"
-  location                     = "${azurerm_resource_group.test_1.location}"
-  resource_group_name          = "${azurerm_resource_group.test_1.name}"
-  public_ip_address_allocation = "Dynamic"
+  name                = "acctest-${var.random1}"
+  location            = "${azurerm_resource_group.test_1.location}"
+  resource_group_name = "${azurerm_resource_group.test_1.name}"
+  allocation_method   = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test_1" {
@@ -333,10 +333,10 @@ resource "azurerm_subnet" "test_2" {
 }
 
 resource "azurerm_public_ip" "test_2" {
-  name                         = "acctest-${var.random2}"
-  location                     = "${azurerm_resource_group.test_2.location}"
-  resource_group_name          = "${azurerm_resource_group.test_2.name}"
-  public_ip_address_allocation = "Dynamic"
+  name                = "acctest-${var.random2}"
+  location            = "${azurerm_resource_group.test_2.location}"
+  resource_group_name = "${azurerm_resource_group.test_2.name}"
+  allocation_method   = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test_2" {
@@ -396,10 +396,10 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctest-${var.random}"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
+  name                = "acctest-${var.random}"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {

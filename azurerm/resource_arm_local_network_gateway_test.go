@@ -216,12 +216,12 @@ func TestAccAzureRMLocalNetworkGateway_bgpSettingsComplete(t *testing.T) {
 // testCheckAzureRMLocalNetworkGatewayExists returns the resource.TestCheckFunc
 // which checks whether or not the expected local network gateway exists both
 // in the schema, and on Azure.
-func testCheckAzureRMLocalNetworkGatewayExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMLocalNetworkGatewayExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// first check within the schema for the local network gateway:
-		res, ok := s.RootModule().Resources[name]
+		res, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Local network gateway '%s' not found.", name)
+			return fmt.Errorf("Local network gateway '%s' not found.", resourceName)
 		}
 
 		// then, extract the name and the resource group:
@@ -249,12 +249,12 @@ func testCheckAzureRMLocalNetworkGatewayExists(name string) resource.TestCheckFu
 	}
 }
 
-func testCheckAzureRMLocalNetworkGatewayDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMLocalNetworkGatewayDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// first check within the schema for the local network gateway:
-		res, ok := s.RootModule().Resources[name]
+		res, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Local network gateway '%s' not found.", name)
+			return fmt.Errorf("Local network gateway '%s' not found.", resourceName)
 		}
 
 		// then, extract the name and the resource group:

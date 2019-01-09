@@ -123,12 +123,12 @@ func TestAccAzureRMDevTestVirtualNetwork_subnet(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDevTestVirtualNetworkExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDevTestVirtualNetworkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		virtualNetworkName := rs.Primary.Attributes["name"]

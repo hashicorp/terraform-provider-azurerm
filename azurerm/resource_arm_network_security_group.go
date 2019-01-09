@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -14,9 +15,9 @@ var networkSecurityGroupResourceName = "azurerm_network_security_group"
 
 func resourceArmNetworkSecurityGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetworkSecurityGroupCreate,
+		Create: resourceArmNetworkSecurityGroupCreateUpdate,
 		Read:   resourceArmNetworkSecurityGroupRead,
-		Update: resourceArmNetworkSecurityGroupCreate,
+		Update: resourceArmNetworkSecurityGroupCreateUpdate,
 		Delete: resourceArmNetworkSecurityGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -157,7 +158,7 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 	}
 }
 
-func resourceArmNetworkSecurityGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmNetworkSecurityGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).secGroupClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -386,13 +387,13 @@ func flattenNetworkSecurityRules(rules *[]network.SecurityRule) []map[string]int
 					sgRule["destination_address_prefix"] = *props.DestinationAddressPrefix
 				}
 				if props.DestinationAddressPrefixes != nil {
-					sgRule["destination_address_prefixes"] = sliceToSet(*props.DestinationAddressPrefixes)
+					sgRule["destination_address_prefixes"] = set.FromStringSlice(*props.DestinationAddressPrefixes)
 				}
 				if props.DestinationPortRange != nil {
 					sgRule["destination_port_range"] = *props.DestinationPortRange
 				}
 				if props.DestinationPortRanges != nil {
-					sgRule["destination_port_ranges"] = sliceToSet(*props.DestinationPortRanges)
+					sgRule["destination_port_ranges"] = set.FromStringSlice(*props.DestinationPortRanges)
 				}
 
 				destinationApplicationSecurityGroups := make([]string, 0)
@@ -401,13 +402,13 @@ func flattenNetworkSecurityRules(rules *[]network.SecurityRule) []map[string]int
 						destinationApplicationSecurityGroups = append(destinationApplicationSecurityGroups, *g.ID)
 					}
 				}
-				sgRule["destination_application_security_group_ids"] = sliceToSet(destinationApplicationSecurityGroups)
+				sgRule["destination_application_security_group_ids"] = set.FromStringSlice(destinationApplicationSecurityGroups)
 
 				if props.SourceAddressPrefix != nil {
 					sgRule["source_address_prefix"] = *props.SourceAddressPrefix
 				}
 				if props.SourceAddressPrefixes != nil {
-					sgRule["source_address_prefixes"] = sliceToSet(*props.SourceAddressPrefixes)
+					sgRule["source_address_prefixes"] = set.FromStringSlice(*props.SourceAddressPrefixes)
 				}
 
 				sourceApplicationSecurityGroups := make([]string, 0)
@@ -416,13 +417,13 @@ func flattenNetworkSecurityRules(rules *[]network.SecurityRule) []map[string]int
 						sourceApplicationSecurityGroups = append(sourceApplicationSecurityGroups, *g.ID)
 					}
 				}
-				sgRule["source_application_security_group_ids"] = sliceToSet(sourceApplicationSecurityGroups)
+				sgRule["source_application_security_group_ids"] = set.FromStringSlice(sourceApplicationSecurityGroups)
 
 				if props.SourcePortRange != nil {
 					sgRule["source_port_range"] = *props.SourcePortRange
 				}
 				if props.SourcePortRanges != nil {
-					sgRule["source_port_ranges"] = sliceToSet(*props.SourcePortRanges)
+					sgRule["source_port_ranges"] = set.FromStringSlice(*props.SourcePortRanges)
 				}
 
 				sgRule["protocol"] = string(props.Protocol)
@@ -436,14 +437,6 @@ func flattenNetworkSecurityRules(rules *[]network.SecurityRule) []map[string]int
 	}
 
 	return result
-}
-
-func sliceToSet(slice []string) *schema.Set {
-	set := &schema.Set{F: schema.HashString}
-	for _, v := range slice {
-		set.Add(v)
-	}
-	return set
 }
 
 func validateSecurityRule(sgRule map[string]interface{}) error {

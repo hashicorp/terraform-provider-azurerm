@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -46,6 +47,16 @@ func NewExpressRouteGatewaysClientWithBaseURI(baseURI string, subscriptionID str
 // expressRouteGatewayName - the name of the ExpressRoute gateway.
 // putExpressRouteGatewayParameters - parameters required in an ExpressRoute gateway PUT operation.
 func (client ExpressRouteGatewaysClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, expressRouteGatewayName string, putExpressRouteGatewayParameters ExpressRouteGateway) (result ExpressRouteGatewaysCreateOrUpdateFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExpressRouteGatewaysClient.CreateOrUpdate")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: putExpressRouteGatewayParameters,
 			Constraints: []validation.Constraint{{Target: "putExpressRouteGatewayParameters.ExpressRouteGatewayProperties", Name: validation.Null, Rule: false,
@@ -123,6 +134,16 @@ func (client ExpressRouteGatewaysClient) CreateOrUpdateResponder(resp *http.Resp
 // resourceGroupName - the name of the resource group.
 // expressRouteGatewayName - the name of the ExpressRoute gateway.
 func (client ExpressRouteGatewaysClient) Delete(ctx context.Context, resourceGroupName string, expressRouteGatewayName string) (result ExpressRouteGatewaysDeleteFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExpressRouteGatewaysClient.Delete")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeletePreparer(ctx, resourceGroupName, expressRouteGatewayName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ExpressRouteGatewaysClient", "Delete", nil, "Failure preparing request")
@@ -189,6 +210,16 @@ func (client ExpressRouteGatewaysClient) DeleteResponder(resp *http.Response) (r
 // resourceGroupName - the name of the resource group.
 // expressRouteGatewayName - the name of the ExpressRoute gateway.
 func (client ExpressRouteGatewaysClient) Get(ctx context.Context, resourceGroupName string, expressRouteGatewayName string) (result ExpressRouteGateway, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExpressRouteGatewaysClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetPreparer(ctx, resourceGroupName, expressRouteGatewayName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ExpressRouteGatewaysClient", "Get", nil, "Failure preparing request")
@@ -255,6 +286,16 @@ func (client ExpressRouteGatewaysClient) GetResponder(resp *http.Response) (resu
 // Parameters:
 // resourceGroupName - the name of the resource group.
 func (client ExpressRouteGatewaysClient) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result ExpressRouteGatewayList, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExpressRouteGatewaysClient.ListByResourceGroup")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.ListByResourceGroupPreparer(ctx, resourceGroupName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ExpressRouteGatewaysClient", "ListByResourceGroup", nil, "Failure preparing request")
@@ -318,6 +359,16 @@ func (client ExpressRouteGatewaysClient) ListByResourceGroupResponder(resp *http
 
 // ListBySubscription lists ExpressRoute gateways under a given subscription.
 func (client ExpressRouteGatewaysClient) ListBySubscription(ctx context.Context) (result ExpressRouteGatewayList, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExpressRouteGatewaysClient.ListBySubscription")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.ListBySubscriptionPreparer(ctx)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ExpressRouteGatewaysClient", "ListBySubscription", nil, "Failure preparing request")

@@ -140,11 +140,11 @@ func TestAccAzureRMNotificationHubAuthorizationRule_updated(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMNotificationHubAuthorizationRuleExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMNotificationHubAuthorizationRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("not found: %s", name)
+			return fmt.Errorf("not found: %s", resourceName)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).notificationHubsClient
@@ -161,7 +161,7 @@ func testCheckAzureRMNotificationHubAuthorizationRuleExists(name string) resourc
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Notification Hub Authorization Rule does not exist: %s", name)
+			return fmt.Errorf("Notification Hub Authorization Rule does not exist: %s", ruleName)
 		}
 
 		return nil

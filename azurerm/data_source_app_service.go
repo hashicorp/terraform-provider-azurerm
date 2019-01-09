@@ -60,8 +60,9 @@ func dataSourceArmAppService() *schema.Resource {
 							Computed: true,
 						},
 						"value": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:      schema.TypeString,
+							Sensitive: true,
+							Computed:  true,
 						},
 						"type": {
 							Type:     schema.TypeString,

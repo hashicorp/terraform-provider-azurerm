@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
-func TestAccDataSourceAzureRMSnapshot_importBasic(t *testing.T) {
+func TestAccDataSourceAzureRMSnapshot_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_snapshot.snapshot"
 	ri := tf.AccRandTimeInt()
 
@@ -28,7 +28,7 @@ func TestAccDataSourceAzureRMSnapshot_importBasic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMSnapshot_importEncryption(t *testing.T) {
+func TestAccDataSourceAzureRMSnapshot_encryption(t *testing.T) {
 	dataSourceName := "data.azurerm_snapshot.snapshot"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)

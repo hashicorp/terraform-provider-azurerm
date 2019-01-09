@@ -184,12 +184,12 @@ func TestAccAzureRMAvailabilitySet_managed(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMAvailabilitySetExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMAvailabilitySetExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		availSetName := rs.Primary.Attributes["name"]
@@ -203,7 +203,7 @@ func testCheckAzureRMAvailabilitySetExists(name string) resource.TestCheckFunc {
 		resp, err := client.Get(ctx, resourceGroup, availSetName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Availability Set %q (resource group: %q) does not exist", name, resourceGroup)
+				return fmt.Errorf("Bad: Availability Set %q (resource group: %q) does not exist", availSetName, resourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on availSetClient: %+v", err)
@@ -213,12 +213,12 @@ func testCheckAzureRMAvailabilitySetExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testCheckAzureRMAvailabilitySetDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMAvailabilitySetDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		availSetName := rs.Primary.Attributes["name"]

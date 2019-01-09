@@ -73,8 +73,10 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"dns_prefix": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateKubernetesClusterDnsPrefix(),
 			},
 
 			"kubernetes_version": {
@@ -1120,6 +1122,13 @@ func validateKubernetesClusterAgentPoolName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^[a-z]{1}[a-z0-9]{0,11}$"),
 		"Agent Pool names must start with a lowercase letter, have max length of 12, and only have characters a-z0-9.",
+	)
+}
+
+func validateKubernetesClusterDnsPrefix() schema.SchemaValidateFunc {
+	return validation.StringMatch(
+		regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{0,43}[a-zA-Z0-9]$"),
+		"The DNS name must contain between 3 and 45 characters. The name can contain only letters, numbers, and hyphens. The name must start with a letter and must end with a letter or a number.",
 	)
 }
 

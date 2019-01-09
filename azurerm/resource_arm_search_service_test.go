@@ -65,12 +65,12 @@ func TestAccAzureRMSearchService_complete(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMSearchServiceExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMSearchServiceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]

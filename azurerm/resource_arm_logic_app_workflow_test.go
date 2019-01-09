@@ -76,11 +76,11 @@ func TestAccAzureRMLogicAppWorkflow_tags(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMLogicAppWorkflowExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMLogicAppWorkflowExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		workflowName := rs.Primary.Attributes["name"]

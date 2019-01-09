@@ -87,11 +87,11 @@ func testCheckAzureRMPolicyDefinitionExistsInMgmtGroup(policyName string, manage
 	}
 }
 
-func testCheckAzureRMPolicyDefinitionExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMPolicyDefinitionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("not found: %s", name)
+			return fmt.Errorf("not found: %s", resourceName)
 		}
 
 		policyName := rs.Primary.Attributes["name"]
@@ -105,7 +105,7 @@ func testCheckAzureRMPolicyDefinitionExists(name string) resource.TestCheckFunc 
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("policy does not exist: %s", name)
+			return fmt.Errorf("policy does not exist: %s", policyName)
 		}
 
 		return nil
@@ -178,14 +178,14 @@ PARAMETERS
 func testAzureRMPolicyDefinition_ManagementGroup(ri int) string {
 	return fmt.Sprintf(`
 resource "azurerm_management_group" "test" {
-	display_name = "acctestmg-%d"
+  display_name = "acctestmg-%d"
 }
 
 resource "azurerm_policy_definition" "test" {
-  name         = "acctestpol-%d"
-  policy_type  = "Custom"
-  mode         = "All"
-  display_name = "acctestpol-%d"
+  name                = "acctestpol-%d"
+  policy_type         = "Custom"
+  mode                = "All"
+  display_name        = "acctestpol-%d"
   management_group_id = "${azurerm_management_group.test.group_id}"
 
   policy_rule = <<POLICY_RULE

@@ -28,7 +28,7 @@ resource "azurerm_public_ip" "transferpip" {
   name                         = "transferpip"
   location                     = "${azurerm_resource_group.rg.location}"
   resource_group_name          = "${azurerm_resource_group.rg.name}"
-  public_ip_address_allocation = "Static"
+  allocation_method = "Static"
 }
 
 resource "azurerm_network_interface" "transfernic" {
@@ -49,7 +49,7 @@ resource "azurerm_public_ip" "mypip" {
   name                         = "mypip"
   location                     = "${azurerm_resource_group.rg.location}"
   resource_group_name          = "${azurerm_resource_group.rg.name}"
-  public_ip_address_allocation = "Dynamic"
+  allocation_method = "Dynamic"
 }
 
 resource "azurerm_network_interface" "mynic" {

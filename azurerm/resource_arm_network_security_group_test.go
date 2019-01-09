@@ -216,12 +216,12 @@ func TestAccAzureRMNetworkSecurityGroup_applicationSecurityGroup(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMNetworkSecurityGroupExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMNetworkSecurityGroupExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %q", name)
+			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
 		sgName := rs.Primary.Attributes["name"]
@@ -235,7 +235,7 @@ func testCheckAzureRMNetworkSecurityGroupExists(name string) resource.TestCheckF
 		resp, err := client.Get(ctx, resourceGroup, sgName, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Network Security Group %q (resource group: %q) does not exist", name, resourceGroup)
+				return fmt.Errorf("Bad: Network Security Group %q (resource group: %q) does not exist", sgName, resourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on secGroupClient: %+v", err)
@@ -245,12 +245,12 @@ func testCheckAzureRMNetworkSecurityGroupExists(name string) resource.TestCheckF
 	}
 }
 
-func testCheckAzureRMNetworkSecurityGroupDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMNetworkSecurityGroupDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		sgName := rs.Primary.Attributes["name"]

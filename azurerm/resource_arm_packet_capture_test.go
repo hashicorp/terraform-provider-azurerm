@@ -117,11 +117,11 @@ func testAccAzureRMPacketCapture_withFilters(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMPacketCaptureExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMPacketCaptureExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("not found: %s", name)
+			return fmt.Errorf("not found: %s", resourceName)
 		}
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
@@ -137,7 +137,7 @@ func testCheckAzureRMPacketCaptureExists(name string) resource.TestCheckFunc {
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Packet Capture does not exist: %s", name)
+			return fmt.Errorf("Packet Capture does not exist: %s", packetCaptureName)
 		}
 
 		return nil
@@ -206,7 +206,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 

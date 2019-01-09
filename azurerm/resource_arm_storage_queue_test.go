@@ -77,12 +77,12 @@ func TestAccAzureRMStorageQueue_basic(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMStorageQueueExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMStorageQueueExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]

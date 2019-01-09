@@ -137,7 +137,6 @@ func resourceArmDnsPtrRecordRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("resource_group_name", resGroup)
 	d.Set("zone_name", zoneName)
 	d.Set("ttl", resp.TTL)
-	d.Set("etag", resp.Etag)
 
 	if err := d.Set("records", flattenAzureRmDnsPtrRecords(resp.PtrRecords)); err != nil {
 		return err

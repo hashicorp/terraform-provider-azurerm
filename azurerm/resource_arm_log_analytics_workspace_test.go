@@ -52,10 +52,9 @@ func TestAccAzureRmLogAnalyticsWorkspaceName_validation(t *testing.T) {
 	}
 }
 
-func TestAccAzureRMLogAnalyticsWorkspace_requiredOnly(t *testing.T) {
+func TestAccAzureRMLogAnalyticsWorkspace_basic(t *testing.T) {
 	resourceName := "azurerm_log_analytics_workspace.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMLogAnalyticsWorkspace_requiredOnly(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -63,7 +62,7 @@ func TestAccAzureRMLogAnalyticsWorkspace_requiredOnly(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMLogAnalyticsWorkspace_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsWorkspaceExists(resourceName),
 				),
@@ -77,10 +76,9 @@ func TestAccAzureRMLogAnalyticsWorkspace_requiredOnly(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogAnalyticsWorkspace_retentionInDaysComplete(t *testing.T) {
+func TestAccAzureRMLogAnalyticsWorkspace_complete(t *testing.T) {
 	resourceName := "azurerm_log_analytics_workspace.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMLogAnalyticsWorkspace_retentionInDaysComplete(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -88,7 +86,7 @@ func TestAccAzureRMLogAnalyticsWorkspace_retentionInDaysComplete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMLogAnalyticsWorkspace_complete(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsWorkspaceExists(resourceName),
 				),
@@ -128,12 +126,12 @@ func testCheckAzureRMLogAnalyticsWorkspaceDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMLogAnalyticsWorkspaceExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMLogAnalyticsWorkspaceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -157,7 +155,7 @@ func testCheckAzureRMLogAnalyticsWorkspaceExists(name string) resource.TestCheck
 		return nil
 	}
 }
-func testAccAzureRMLogAnalyticsWorkspace_requiredOnly(rInt int, location string) string {
+func testAccAzureRMLogAnalyticsWorkspace_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -165,7 +163,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctest-%d"
+  name                = "acctestLAW-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "PerGB2018"
@@ -173,7 +171,7 @@ resource "azurerm_log_analytics_workspace" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMLogAnalyticsWorkspace_retentionInDaysComplete(rInt int, location string) string {
+func testAccAzureRMLogAnalyticsWorkspace_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -181,11 +179,15 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctest-%d"
+  name                = "acctestLAW-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "PerGB2018"
   retention_in_days   = 30
+
+ tags {
+    Environment = "Test"
+  }
 }
 `, rInt, location, rInt)
 }

@@ -145,12 +145,12 @@ func TestAccAzureRMResourceGroup_withTags(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMResourceGroupExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMResourceGroupExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		resourceGroup := rs.Primary.Attributes["name"]
@@ -165,19 +165,19 @@ func testCheckAzureRMResourceGroupExists(name string) resource.TestCheckFunc {
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Virtual Network %q (resource group: %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: resource group: %q does not exist", resourceGroup)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMResourceGroupDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMResourceGroupDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		resourceGroup := rs.Primary.Attributes["name"]

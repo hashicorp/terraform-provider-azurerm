@@ -42,6 +42,37 @@ func TestAccAzureRMFunctionApp_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMFunctionApp_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_function_app.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+	rs := strings.ToLower(acctest.RandString(11))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMFunctionApp_basic(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFunctionAppExists(resourceName),
+					testCheckAzureRMFunctionAppHasNoContentShare(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMFunctionApp_requiresImport(ri, rs, location),
+				ExpectError: testRequiresImportError("azurerm_function_app"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMFunctionApp_tags(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
 	ri := tf.AccRandTimeInt()
@@ -546,12 +577,12 @@ func testCheckAzureRMFunctionAppDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMFunctionAppExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMFunctionAppExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		functionAppName := rs.Primary.Attributes["name"]
@@ -575,12 +606,12 @@ func testCheckAzureRMFunctionAppExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testCheckAzureRMFunctionAppHasContentShare(name string) resource.TestCheckFunc {
+func testCheckAzureRMFunctionAppHasContentShare(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		functionAppName := rs.Primary.Attributes["name"]
@@ -607,12 +638,12 @@ func testCheckAzureRMFunctionAppHasContentShare(name string) resource.TestCheckF
 	}
 }
 
-func testCheckAzureRMFunctionAppHasNoContentShare(name string) resource.TestCheckFunc {
+func testCheckAzureRMFunctionAppHasNoContentShare(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		functionAppName := rs.Primary.Attributes["name"]
@@ -673,6 +704,21 @@ resource "azurerm_function_app" "test" {
   storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
 }
 `, rInt, location, storage)
+}
+
+func testAccAzureRMFunctionApp_requiresImport(rInt int, storage, location string) string {
+	template := testAccAzureRMFunctionApp_basic(rInt, storage, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_function_app" "import" {
+  name                      = "${azurerm_function_app.test.name}"
+  location                  = "${azurerm_function_app.test.location}"
+  resource_group_name       = "${azurerm_function_app.test.resource_group_name}"
+  app_service_plan_id       = "${azurerm_function_app.test.app_service_plan_id}"
+  storage_connection_string = "${azurerm_function_app.test.storage_connection_string}"
+}
+`, template)
 }
 
 func testAccAzureRMFunctionApp_tags(rInt int, storage string, location string) string {
