@@ -164,7 +164,7 @@ The `ports` block supports:
 
 * `port` - (Required) The port number the container will expose.
 
-* `protocol` - (Optional) The network protocol ("tcp"/"udp") the port will use.
+* `protocol` - (Optional) The network protocol ("tcp"/"udp") associated with port. The default is `TCP`.
 
 ## Attributes Reference
 

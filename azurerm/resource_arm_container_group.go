@@ -167,7 +167,7 @@ func resourceArmContainerGroup() *schema.Resource {
 										Optional:         true,
 										ForceNew:         true,
 										DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-										Default:          string("TCP"),
+										Default:          string(containerinstance.TCP),
 										ValidateFunc: validation.StringInSlice([]string{
 											string(containerinstance.TCP),
 											string(containerinstance.UDP),
