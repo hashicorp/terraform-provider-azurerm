@@ -24,6 +24,26 @@ func dataSourceArmApplicationInsights() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"location": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"application_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"app_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"tags": {
+				Type:     schema.TypeMap,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -46,6 +66,10 @@ func dataSourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface
 
 	d.SetId(*resp.ID)
 	d.Set("instrumentation_key", *resp.InstrumentationKey)
+	d.Set("location", *resp.Location)
+	d.Set("app_id", *resp.AppID)
+	d.Set("application_type", resp.ApplicationType)
+	d.Set("tags", resp.Tags)
 
 	return nil
 }

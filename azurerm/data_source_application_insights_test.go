@@ -19,21 +19,40 @@ func TestAccDataSourceApplicationInsights_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccResourceApplicationInsights_complete(ri, location),
-				Check:  resource.TestCheckResourceAttrSet(dataSourceName, "instrumentation_key"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(dataSourceName, "instrumentation_key"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "app_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "location"),
+					resource.TestCheckResourceAttr(dataSourceName, "application_type", "other"),
+					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "tags.foo", "bar"),
+				),
 			},
 		},
 	})
 }
 
 func testAccResourceApplicationInsights_complete(rInt int, location string) string {
-	resource := testAccAzureRMApplicationInsights_basic(rInt, location, "other")
-
 	return fmt.Sprintf(`
-	%s
+resource "azurerm_resource_group" "test" {
+	name     = "acctestRG-%[1]d"
+	location = "%[2]s"
+}
+
+resource "azurerm_application_insights" "test" {
+	name                = "acctestappinsights-%[1]d"
+	location            = "${azurerm_resource_group.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	application_type    = "other"
+
+	tags {
+		"foo" = "bar"
+	}
+}
 
 data "azurerm_application_insights" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   name                = "${azurerm_application_insights.test.name}"
 }
-`, resource)
+`, rInt, location)
 }
