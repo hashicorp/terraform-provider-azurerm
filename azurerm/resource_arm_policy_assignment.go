@@ -97,7 +97,6 @@ func resourceArmPolicyAssignment() *schema.Resource {
 			"not_scopes": {
 				Type:     schema.TypeList,
 				Optional: true,
-				ForceNew: false,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 		},
