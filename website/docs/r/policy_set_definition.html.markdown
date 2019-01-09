@@ -62,6 +62,10 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of the policy set definition.
 
+* `management_group_id` - (Optional) The ID of the Management Group where this policy should be defined. Changing this forces a new resource to be created.
+
+~> **Note:** if you are using `azurerm_management_group` to assign a value to `management_group_id`, be sure to use `.group_id` and not `.id`.
+
 * `metadata` - (Optional) The metadata for the policy set definition. This is a json object representing additional metadata that should be stored with the policy definition.
 
 * `parameters` - (Optional) Parameters for the policy set definition. This field is a json object that allows you to parameterize your policy definition.
@@ -78,4 +82,8 @@ Policy Set Definitions can be imported using the Resource ID, e.g.
 
 ```shell
 terraform import azurerm_policy_set_definition.test  /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/policySetDefinitions/testPolicySet
+```
+or
+```shell
+terraform import azurerm_policy_set_definition.test /providers/Microsoft.Management/managementgroups/my-mgmt-group-id/providers/Microsoft.Authorization/policySetDefinitions/testPolicySet
 ```
