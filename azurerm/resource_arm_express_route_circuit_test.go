@@ -86,7 +86,8 @@ func testAccAzureRMExpressRouteCircuit_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_express_route_circuit.test"
 	var erc network.ExpressRouteCircuit
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{

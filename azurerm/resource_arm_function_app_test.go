@@ -49,7 +49,8 @@ func TestAccAzureRMFunctionApp_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_function_app.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
 	location := testLocation()
 	rs := strings.ToLower(acctest.RandString(11))
 

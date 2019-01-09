@@ -196,7 +196,8 @@ func TestAccAzureRMEventHub_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_eventhub.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{

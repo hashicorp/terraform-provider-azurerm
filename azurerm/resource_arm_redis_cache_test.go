@@ -454,7 +454,8 @@ func TestAccAzureRMRedisCache_InternalSubnetStaticIP(t *testing.T) {
 
 func TestAccAzureRMRedisCache_InternalSubnet_withZone(t *testing.T) {
 	resourceName := "azurerm_redis_cache.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
 	config := testAccAzureRMRedisCache_internalSubnet_withZone(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{

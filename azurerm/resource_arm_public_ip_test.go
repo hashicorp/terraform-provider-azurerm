@@ -41,7 +41,7 @@ func TestAccAzureRMPublicIpStatic_basic(t *testing.T) {
 
 func TestAccAzureRMPublicIpStatic_basicOld(t *testing.T) {
 	resourceName := "azurerm_public_ip.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

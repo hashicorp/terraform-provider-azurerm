@@ -39,7 +39,8 @@ func TestAccAzureRMPolicyAssignment_basic(t *testing.T) {
 func TestAccAzureRMPolicyAssignment_deployIfNotExists_policy(t *testing.T) {
 	resourceName := "azurerm_policy_assignment.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -91,7 +92,8 @@ func TestAccAzureRMPolicyAssignment_complete(t *testing.T) {
 func TestAccAzureRMPolicyAssignment_not_scopes(t *testing.T) {
 	resourceName := "azurerm_policy_assignment.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{

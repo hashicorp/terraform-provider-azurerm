@@ -67,7 +67,8 @@ func TestAccAzureRMEventHubAuthorizationRule_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_eventhub_authorization_rule.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
+
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{

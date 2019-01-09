@@ -368,7 +368,8 @@ func TestAccAzureRMNetworkInterface_IPAddressesBug1286(t *testing.T) {
 
 func TestAccAzureRMNetworkInterface_IPAddressesFeature2543(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,

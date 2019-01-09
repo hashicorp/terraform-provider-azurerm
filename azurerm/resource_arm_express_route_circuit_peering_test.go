@@ -46,7 +46,8 @@ func testAccAzureRMExpressRouteCircuitPeering_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_express_route_circuit_peering.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{

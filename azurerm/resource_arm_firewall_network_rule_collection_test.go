@@ -46,7 +46,8 @@ func TestAccAzureRMFirewallNetworkRuleCollection_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_firewall_network_rule_collection.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{

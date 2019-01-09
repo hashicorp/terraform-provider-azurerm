@@ -42,7 +42,8 @@ func TestAccAzureRMEventHubNamespace_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_eventhub_namespace.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -66,7 +67,7 @@ func TestAccAzureRMEventHubNamespace_requiresImport(t *testing.T) {
 
 func TestAccAzureRMEventHubNamespace_KafkaEnabled(t *testing.T) {
 	resourceName := "azurerm_eventhub_namespace.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

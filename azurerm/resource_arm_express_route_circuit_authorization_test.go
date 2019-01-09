@@ -43,7 +43,8 @@ func testAccAzureRMExpressRouteCircuitAuthorization_requiresImport(t *testing.T)
 	}
 
 	resourceName := "azurerm_express_route_circuit_authorization.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{

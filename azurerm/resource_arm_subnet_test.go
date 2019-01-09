@@ -40,7 +40,8 @@ func TestAccAzureRMSubnet_basic(t *testing.T) {
 
 func TestAccAzureRMSubnet_delegation(t *testing.T) {
 	resourceName := "azurerm_subnet.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
 	config := testAccAzureRMSubnet_delegation(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{

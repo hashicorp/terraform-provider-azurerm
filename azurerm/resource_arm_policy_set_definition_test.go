@@ -66,7 +66,7 @@ func TestAccAzureRMPolicySetDefinition_custom(t *testing.T) {
 func TestAccAzureRMPolicySetDefinition_ManagementGroup(t *testing.T) {
 	resourceName := "azurerm_policy_set_definition.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

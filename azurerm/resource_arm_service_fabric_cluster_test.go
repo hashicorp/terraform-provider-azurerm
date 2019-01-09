@@ -273,7 +273,8 @@ func TestAccAzureRMServiceFabricCluster_readerAdminClientCertificateThumbprint(t
 
 func TestAccAzureRMServiceFabricCluster_azureActiveDirectory(t *testing.T) {
 	resourceName := "azurerm_service_fabric_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{

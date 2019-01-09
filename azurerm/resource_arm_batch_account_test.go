@@ -69,7 +69,8 @@ func TestAccAzureRMBatchAccount_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_batch_account.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
 	rs := acctest.RandString(4)
 	location := testLocation()
 
