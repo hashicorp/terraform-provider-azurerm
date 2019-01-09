@@ -3,6 +3,7 @@ package azurerm
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/url"
@@ -53,6 +54,7 @@ func resourceArmDataLakeStoreFile() *schema.Resource {
 func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dataLakeStoreFilesClient
 	ctx := meta.(*ArmClient).StopContext
+	bufferSize := 4 * 1024 * 1024
 
 	log.Printf("[INFO] preparing arguments for Date Lake Store File creation.")
 
@@ -82,15 +84,28 @@ func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}
 	}
 	defer utils.IoCloseAndLogError(file, fmt.Sprintf("Error closing Data Lake Store File %q", localFilePath))
 
-	// Read the file contents
-	fileContents, err := ioutil.ReadAll(file)
-	if err != nil {
-		return err
-	}
-
-	_, err = client.Create(ctx, accountName, remoteFilePath, ioutil.NopCloser(bytes.NewReader(fileContents)), utils.Bool(false), filesystem.CLOSE, nil, nil)
+	_, err = client.Create(ctx, accountName, remoteFilePath, nil, nil, filesystem.DATA, nil, nil)
 	if err != nil {
 		return fmt.Errorf("Error issuing create request for Data Lake Store File %q : %+v", remoteFilePath, err)
+	}
+
+	buffer := make([]byte, bufferSize, bufferSize)
+	for {
+		n, err := file.Read(buffer)
+		if err == io.EOF {
+			break
+		}
+		flag := filesystem.DATA
+		if n < bufferSize {
+			// last chunk
+			flag = filesystem.CLOSE
+		}
+		chunk := ioutil.NopCloser(bytes.NewReader(buffer))
+
+		_, err = client.Append(ctx, accountName, remoteFilePath, chunk, nil, flag, nil, nil)
+		if err != nil {
+			return fmt.Errorf("Error transferring chunk for Data Lake Store File %q : %+v", remoteFilePath, err)
+		}
 	}
 
 	d.SetId(id)
