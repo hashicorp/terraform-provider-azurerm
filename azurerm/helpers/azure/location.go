@@ -17,6 +17,16 @@ func SchemaLocation() *schema.Schema {
 	}
 }
 
+func SchemaLocationOptional() *schema.Schema {
+	return &schema.Schema{
+		Type:             schema.TypeString,
+		Optional:         true,
+		ForceNew:         true,
+		StateFunc:        NormalizeLocation,
+		DiffSuppressFunc: SuppressLocationDiff,
+	}
+}
+
 func SchemaLocationForDataSource() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeString,

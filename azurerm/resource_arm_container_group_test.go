@@ -123,6 +123,35 @@ func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMContainerGroup_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_container_group.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMContainerGroup_linuxBasic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerGroupExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMContainerGroup_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_container_group"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMContainerGroup_linuxBasicUpdate(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := acctest.RandInt()
@@ -307,6 +336,33 @@ resource "azurerm_container_group" "test" {
   }
 }
 `, ri, location, ri)
+}
+
+func testAccAzureRMContainerGroup_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMContainerGroup_linuxBasic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_group" "import" {
+  name                = "${azurerm_container_group.test.name}"
+  location            = "${azurerm_container_group.test.location}"
+  resource_group_name = "${azurerm_container_group.test.resource_group_name}"
+  ip_address_type     = "public"
+  os_type             = "Linux"
+
+  container {
+    name   = "hw"
+    image  = "microsoft/aci-helloworld:latest"
+    cpu    = "0.5"
+    memory = "0.5"
+    port   = "80"
+  }
+
+  tags {
+    environment = "Testing"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMContainerGroup_imageRegistryCredentials(ri int, location string) string {
@@ -600,12 +656,12 @@ resource "azurerm_container_group" "test" {
 `, ri, location, ri, ri, ri, ri)
 }
 
-func testCheckAzureRMContainerGroupExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMContainerGroupExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]

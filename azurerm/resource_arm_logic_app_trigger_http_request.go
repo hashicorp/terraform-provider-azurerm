@@ -81,8 +81,7 @@ func resourceArmLogicAppTriggerHttpRequest() *schema.Resource {
 func resourceArmLogicAppTriggerHttpRequestCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	schemaRaw := d.Get("schema").(string)
 	var schema map[string]interface{}
-	err := json.Unmarshal([]byte(schemaRaw), &schema)
-	if err != nil {
+	if err := json.Unmarshal([]byte(schemaRaw), &schema); err != nil {
 		return fmt.Errorf("Error unmarshalling JSON from Schema: %+v", err)
 	}
 
@@ -106,8 +105,7 @@ func resourceArmLogicAppTriggerHttpRequestCreateUpdate(d *schema.ResourceData, m
 
 	logicAppId := d.Get("logic_app_id").(string)
 	name := d.Get("name").(string)
-	err = resourceLogicAppTriggerUpdate(d, meta, logicAppId, name, trigger)
-	if err != nil {
+	if err := resourceLogicAppTriggerUpdate(d, meta, logicAppId, name, trigger); err != nil {
 		return err
 	}
 

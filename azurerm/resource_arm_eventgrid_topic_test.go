@@ -38,6 +38,34 @@ func TestAccAzureRMEventGridTopic_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMEventGridTopic_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_eventgrid_topic.test"
+	ri := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMEventGridTopicDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMEventGridTopic_basic(ri),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventGridTopicExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMEventGridTopic_requiresImport(ri),
+				ExpectError: testRequiresImportError("azurerm_eventgrid_topic"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMEventGridTopic_basicWithTags(t *testing.T) {
 	resourceName := "azurerm_eventgrid_topic.test"
 	ri := acctest.RandInt()
@@ -96,12 +124,12 @@ func testCheckAzureRMEventGridTopicDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMEventGridTopicExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMEventGridTopicExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -126,6 +154,7 @@ func testCheckAzureRMEventGridTopicExists(name string) resource.TestCheckFunc {
 }
 
 func testAccAzureRMEventGridTopic_basic(rInt int) string {
+	// TODO: confirm if this is still the case
 	// currently only supported in "West Central US" & "West US 2"
 	location := "westus2"
 	return fmt.Sprintf(`
@@ -140,6 +169,19 @@ resource "azurerm_eventgrid_topic" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMEventGridTopic_requiresImport(rInt int) string {
+	template := testAccAzureRMEventGridTopic_basic(rInt)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_eventgrid_topic" "import" {
+  name                = "${azurerm_eventgrid_topic.test.name}"
+  location            = "${azurerm_eventgrid_topic.test.location}"
+  resource_group_name = "${azurerm_eventgrid_topic.test.resource_group_name}"
+}
+`, template)
 }
 
 func testAccAzureRMEventGridTopic_basicWithTags(rInt int) string {

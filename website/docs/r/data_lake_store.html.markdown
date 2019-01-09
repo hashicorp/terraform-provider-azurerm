@@ -22,13 +22,8 @@ resource "azurerm_data_lake_store" "example" {
   name                = "consumptiondatalake"
   resource_group_name = "${azurerm_resource_group.example.name}"
   location            = "${azurerm_resource_group.example.location}"
-
-  encrytpion {
-    type         = "UserManaged"
-    key_vault_id = "${azurerm_key_vault.example.id}"
-    key_name     = "${azurerm_key_vault_key.example.name}"
-    key_version  = "${azurerm_key_vault_key.example.version}"
-  }
+  encryption_state    = "Enabled"
+  encryption_type     = "SystemManaged"
 }
 ```
 

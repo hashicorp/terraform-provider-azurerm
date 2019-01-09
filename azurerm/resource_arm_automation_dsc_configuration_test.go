@@ -39,6 +39,35 @@ func TestAccAzureRMAutomationDscConfiguration_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAutomationDscConfiguration_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_automation_dsc_configuration.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAutomationDscConfigurationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAutomationDscConfiguration_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAutomationDscConfigurationExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMAutomationDscConfiguration_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_automation_dsc_configuration"),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMAutomationDscConfigurationDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).automationDscConfigurationClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -73,13 +102,13 @@ func testCheckAzureRMAutomationDscConfigurationDestroy(s *terraform.State) error
 	return nil
 }
 
-func testCheckAzureRMAutomationDscConfigurationExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMAutomationDscConfigurationExists(resourceName string) resource.TestCheckFunc {
 
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -133,4 +162,20 @@ resource "azurerm_automation_dsc_configuration" "test" {
   description             = "test"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMAutomationDscConfiguration_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMAutomationDscConfiguration_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_automation_dsc_configuration" "import" {
+  name                    = "${azurerm_automation_dsc_configuration.test.name}"
+  resource_group_name     = "${azurerm_automation_dsc_configuration.test.resource_group_name}"
+  automation_account_name = "${azurerm_automation_dsc_configuration.test.automation_account_name}"
+  location                = "${azurerm_automation_dsc_configuration.test.location}"
+  content_embedded        = "${azurerm_automation_dsc_configuration.test.content_embedded}"
+  description             = "${azurerm_automation_dsc_configuration.test.description}"
+}
+`, template)
 }

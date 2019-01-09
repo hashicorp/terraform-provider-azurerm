@@ -30,7 +30,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateMsSqlServiceName,
+				ValidateFunc: azure.ValidateMsSqlElasticPoolName,
 			},
 
 			"location": locationSchema(),
@@ -41,7 +41,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateMsSqlServiceName,
+				ValidateFunc: azure.ValidateMsSqlServerName,
 			},
 
 			"sku": {
@@ -122,19 +122,19 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 				Type:       schema.TypeList,
 				Computed:   true,
 				MaxItems:   1,
-				Deprecated: "All properties herein have been move to the top level",
+				Deprecated: "These properties herein have been moved to the top level or removed",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"state": {
 							Type:       schema.TypeString,
 							Computed:   true,
-							Deprecated: "This property has been moved to the top level",
+							Deprecated: "This property has been removed",
 						},
 
 						"creation_date": {
 							Type:       schema.TypeString,
 							Computed:   true,
-							Deprecated: "This property has been moved to the top level",
+							Deprecated: "This property has been removed",
 						},
 
 						"max_size_bytes": {
@@ -152,7 +152,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 						"license_type": {
 							Type:       schema.TypeString,
 							Computed:   true,
-							Deprecated: "This property has been moved to the top level",
+							Deprecated: "This property has been removed",
 						},
 					},
 				},

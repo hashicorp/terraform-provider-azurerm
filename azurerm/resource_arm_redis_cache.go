@@ -45,6 +45,8 @@ func resourceArmRedisCache() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameSchema(),
 
+			"zones": singleZonesSchema(),
+
 			"capacity": {
 				Type:     schema.TypeInt,
 				Required: true,
@@ -249,13 +251,16 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 		parameters.SubnetID = utils.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("zones"); ok {
+		parameters.Zones = expandZones(v.([]interface{}))
+	}
+
 	future, err := client.Create(ctx, resGroup, name, parameters)
 	if err != nil {
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 
@@ -333,8 +338,7 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 		parameters.RedisConfiguration = redisConfiguration
 	}
 
-	_, err := client.Update(ctx, resGroup, name, parameters)
-	if err != nil {
+	if _, err := client.Update(ctx, resGroup, name, parameters); err != nil {
 		return err
 	}
 
@@ -424,6 +428,9 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
+	if zones := resp.Zones; zones != nil {
+		d.Set("zones", zones)
+	}
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("capacity", sku.Capacity)
@@ -478,8 +485,8 @@ func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error
 
 		return err
 	}
-	err = future.WaitForCompletionRef(ctx, redisClient.Client)
-	if err != nil {
+
+	if err = future.WaitForCompletionRef(ctx, redisClient.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}

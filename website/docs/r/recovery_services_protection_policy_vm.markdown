@@ -6,7 +6,7 @@ description: |-
   Manages an Recovery Services VM Protection Policy.
 ---
 
-# azurerm_recovery_services_protection_policy
+# azurerm_recovery_services_protection_policy_vm
 
 Manages an Recovery Services VM Protection Policy.
 
@@ -29,6 +29,8 @@ resource "azurerm_recovery_services_protection_policy_vm" "test" {
   name                = "tfex-recovery-vault-policy"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
+
+  timezone = "UTC"
 
   backup = {
     frequency = "Daily"
@@ -71,6 +73,8 @@ The following arguments are supported:
 
 * `backup` - (Required) Configures the Policy backup frequecent, times & days as documented in the `backup` block below. 
 
+* `timezone` - (Optional) Specifies the timezone. Defaults to `UTC`
+
 * `retention_daily` - (Optional) Configures the policy daily retention as documented in the `retention_daily` block below. Required when backup frequency is `Daily`.
 
 * `retention_weekly` - (Optional) Configures the policy weekly retention as documented in the `retention_weekly` block below. Required when backup frequency is `Weekly`.
@@ -78,6 +82,8 @@ The following arguments are supported:
 * `retention_monthly` - (Optional) Configures the policy monthly retention as documented in the `retention_monthly` block below.
 
 * `retention_yearly` - (Optional) Configures the policy yearly retention as documented in the `retention_yearly` block below.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 

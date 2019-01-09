@@ -34,11 +34,11 @@ func TestAccDataSourceAzureRMRecoveryServicesVault_basic(t *testing.T) {
 
 func testAccDataSourceRecoveryServicesVault_basic(rInt int, location string) string {
 	return fmt.Sprintf(` 
-%s 
- 
-data "azurerm_recovery_services_vault" "test" { 
-  name                = "${azurerm_recovery_services_vault.test.name}" 
-  resource_group_name = "${azurerm_resource_group.test.name}" 
-} 
+%s
+
+data "azurerm_recovery_services_vault" "test" {
+  name                = "${azurerm_recovery_services_vault.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
 `, testAccAzureRMRecoveryServicesVault_basic(rInt, location))
 }
