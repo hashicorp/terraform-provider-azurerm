@@ -23,6 +23,7 @@ IMPROVEMENTS:
 * `azurerm_log_analytics_workspace_linked_service` - now correctly handels uppcase `workspace_name` values  [GH-2594]
 * `azurerm_network_interface` - support for IPv6 addresses [GH-2548]
 * `azurerm_policy_assignment` - support for Managed Service Identity [GH-2549]
+* `azurerm_policy_assignment` - support exclusions with the `not_scopes` property [GH-2620]
 * `azurerm_policy_definition` - polices can now be assigned to a management group [GH-2490]
 * `azurerm_policy_set_definition` - policy sets can now be assigned to a management group [GH-2618]
 * `azurerm_public_ip` - deprecated `public_ip_address_allocation` in favor of `allocation_method` to better match the SDK [GH-2576]
