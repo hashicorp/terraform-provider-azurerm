@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"regexp"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -223,7 +223,7 @@ func TestAccAzureRMAppServiceSlot_clientAffinityEnabledUpdate(t *testing.T) {
 func TestAccAzureRMAppServiceSlot_connectionStrings(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMAppServiceSlot_connectionStrings(ri, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -231,12 +231,27 @@ func TestAccAzureRMAppServiceSlot_connectionStrings(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_connectionStrings(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "connection_string.0.name", "Example"),
-					resource.TestCheckResourceAttr(resourceName, "connection_string.0.value", "some-postgresql-connection-string"),
-					resource.TestCheckResourceAttr(resourceName, "connection_string.0.type", "PostgreSQL"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.3173438943.name", "First"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.3173438943.value", "first-connection-string"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.3173438943.type", "Custom"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.2442860602.name", "Second"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.2442860602.value", "some-postgresql-connection-string"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.2442860602.type", "PostgreSQL"),
+				),
+			},
+			{
+				Config: testAccAzureRMAppServiceSlot_connectionStringsUpdated(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.3173438943.name", "First"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.3173438943.value", "first-connection-string"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.3173438943.type", "Custom"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.2442860602.name", "Second"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.2442860602.value", "some-postgresql-connection-string"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.2442860602.type", "PostgreSQL"),
 				),
 			},
 		},
@@ -791,8 +806,6 @@ func TestAccAzureRMAppServiceSlot_enableManageServiceIdentity(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServiceSlot_enableManageServiceIdentity(ri, testLocation())
 
-	uuidMatch := regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -803,8 +816,8 @@ func TestAccAzureRMAppServiceSlot_enableManageServiceIdentity(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceSlotExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", uuidMatch),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", uuidMatch),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", validate.UUIDRegExp),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", validate.UUIDRegExp),
 				),
 			},
 		},
@@ -1111,7 +1124,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_clientAffinityEnabled(rInt int, location string, clientAffinityEnabled bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1177,9 +1190,62 @@ resource "azurerm_app_service_slot" "test" {
   app_service_name    = "${azurerm_app_service.test.name}"
 
   connection_string {
-    name  = "Example"
+    name  = "First"
+    value = "first-connection-string"
+    type  = "Custom"
+  }
+
+  connection_string {
+    name  = "Second"
     value = "some-postgresql-connection-string"
     type  = "PostgreSQL"
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMAppServiceSlot_connectionStringsUpdated(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
+  connection_string {
+    name  = "Second"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+
+  connection_string {
+    name  = "First"
+    value = "first-connection-string"
+    type  = "Custom"
   }
 }
 `, rInt, location, rInt, rInt, rInt)
@@ -1231,7 +1297,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_enabled(rInt int, location string, enabled bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1259,7 +1325,7 @@ resource "azurerm_app_service_slot" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
   app_service_name    = "${azurerm_app_service.test.name}"
-  enabled = %t
+  enabled             = %t
 }
 `, rInt, location, rInt, rInt, rInt, enabled)
 }
@@ -1267,7 +1333,7 @@ resource "azurerm_app_service_slot" "test" {
 func testAccAzureRMAppServiceSlot_httpsOnly(rInt int, location string, httpsOnly bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

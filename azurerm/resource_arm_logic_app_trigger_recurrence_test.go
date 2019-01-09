@@ -196,13 +196,13 @@ func TestAccAzureRMLogicAppTriggerRecurrence_update(t *testing.T) {
 func testAccAzureRMLogicAppTriggerRecurrence_basic(rInt int, location, frequency string, interval int) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_logic_app_workflow" "test" {
-  name = "acctestlaw-%d"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctestlaw-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 

@@ -107,12 +107,12 @@ func TestAccAzureRMVirtualNetworkPeering_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMVirtualNetworkPeeringExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMVirtualNetworkPeeringExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -139,12 +139,12 @@ func testCheckAzureRMVirtualNetworkPeeringExists(name string) resource.TestCheck
 	}
 }
 
-func testCheckAzureRMVirtualNetworkPeeringDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMVirtualNetworkPeeringDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]

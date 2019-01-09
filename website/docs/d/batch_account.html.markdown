@@ -14,7 +14,7 @@ Use this data source to access information about an existing Batch Account.
 ## Example Usage
 
 ```hcl
-data "azurerm_batch_account "test" {
+data "azurerm_batch_account" "test" {
   name                = "testbatchaccount"
   resource_group_name = "test"
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -57,6 +58,20 @@ func resourceArmDnsPtrRecordCreateUpdate(d *schema.ResourceData, meta interface{
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	zoneName := d.Get("zone_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, zoneName, name, dns.PTR)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing DNS PTR Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_dns_ptr_record", *existing.ID)
+		}
+	}
+
 	ttl := int64(d.Get("ttl").(int))
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -75,9 +90,14 @@ func resourceArmDnsPtrRecordCreateUpdate(d *schema.ResourceData, meta interface{
 
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	resp, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.PTR, parameters, eTag, ifNoneMatch)
+	_, err = client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.PTR, parameters, eTag, ifNoneMatch)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating/updating DNS PTR Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+	}
+
+	resp, err := client.Get(ctx, resGroup, zoneName, name, dns.PTR)
+	if err != nil {
+		return fmt.Errorf("Error retrieving DNS PTR Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
 	if resp.ID == nil {
@@ -117,7 +137,6 @@ func resourceArmDnsPtrRecordRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("resource_group_name", resGroup)
 	d.Set("zone_name", zoneName)
 	d.Set("ttl", resp.TTL)
-	d.Set("etag", resp.Etag)
 
 	if err := d.Set("records", flattenAzureRmDnsPtrRecords(resp.PtrRecords)); err != nil {
 		return err

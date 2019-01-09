@@ -51,6 +51,10 @@ output "app_service_id" {
 
 * `tags` - A mapping of tags to assign to the resource.
 
+* `outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12`
+
+* `possible_outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12,52.143.43.17` - not all of which are necessarily in use. Superset of `outbound_ip_addresses`.
+
 ---
 
 `connection_string` supports the following:

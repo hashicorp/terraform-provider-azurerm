@@ -19,6 +19,3 @@ variable "storage_replication_type" {
   description = "Defines the Replication Type to use for this storage account. Valid options include LRS, GRS etc."
   default     = "LRS"
 }
-
-
-

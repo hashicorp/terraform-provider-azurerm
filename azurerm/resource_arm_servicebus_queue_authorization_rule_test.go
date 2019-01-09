@@ -126,11 +126,11 @@ func testCheckAzureRMServiceBusQueueAuthorizationRuleDestroy(s *terraform.State)
 	return nil
 }
 
-func testCheckAzureRMServiceBusQueueAuthorizationRuleExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMServiceBusQueueAuthorizationRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -186,9 +186,9 @@ resource "azurerm_servicebus_queue_authorization_rule" "test" {
   queue_name          = "${azurerm_servicebus_queue.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  listen              = %[3]t
-  send                = %[4]t
-  manage              = %[5]t
+  listen = %[3]t
+  send   = %[4]t
+  manage = %[5]t
 }
 `, rInt, location, listen, send, manage)
 }

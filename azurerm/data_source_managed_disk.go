@@ -46,6 +46,11 @@ func dataSourceArmManagedDisk() *schema.Resource {
 				Computed: true,
 			},
 
+			"create_option": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}

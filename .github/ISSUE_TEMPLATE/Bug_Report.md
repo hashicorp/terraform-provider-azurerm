@@ -34,7 +34,7 @@ If you are running into one of these scenarios, we recommend opening an issue in
 
 <!--- Please list the affected resources and data sources. --->
 
-* azurerm_XXXXX
+* `azurerm_XXXXX`
 
 ### Terraform Configuration Files
 

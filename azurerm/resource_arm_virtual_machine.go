@@ -21,9 +21,9 @@ var virtualMachineResourceName = "azurerm_virtual_machine"
 
 func resourceArmVirtualMachine() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualMachineCreate,
+		Create: resourceArmVirtualMachineCreateUpdate,
 		Read:   resourceArmVirtualMachineRead,
-		Update: resourceArmVirtualMachineCreate,
+		Update: resourceArmVirtualMachineCreateUpdate,
 		Delete: resourceArmVirtualMachineDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -553,7 +553,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualMachineCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmVirtualMachineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).vmClient
 	ctx := meta.(*ArmClient).StopContext
 

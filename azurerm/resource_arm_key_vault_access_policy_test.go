@@ -115,12 +115,12 @@ func TestAccAzureRMKeyVaultAccessPolicy_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMKeyVaultAccessPolicyExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMKeyVaultAccessPolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		vaultName := rs.Primary.Attributes["vault_name"]
@@ -249,7 +249,6 @@ resource "azurerm_key_vault_access_policy" "test" {
   tenant_id = "${data.azurerm_client_config.current.tenant_id}"
   object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
 }
-
 `, template)
 }
 

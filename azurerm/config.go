@@ -45,7 +45,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi"
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
-	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/management"
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups"
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/2017-08-01-preview/security"
 	"github.com/Azure/azure-sdk-for-go/services/preview/signalr/mgmt/2018-03-01-preview/signalr"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
@@ -126,7 +126,8 @@ type ArmClient struct {
 	apiManagementServiceClient apimanagement.ServiceClient
 
 	// Application Insights
-	appInsightsClient appinsights.ComponentsClient
+	appInsightsClient       appinsights.ComponentsClient
+	appInsightsAPIKeyClient appinsights.APIKeysClient
 
 	// Authentication
 	roleAssignmentsClient   authorization.RoleAssignmentsClient
@@ -139,6 +140,7 @@ type ArmClient struct {
 
 	// Batch
 	batchAccountClient batch.AccountClient
+	batchPoolClient    batch.PoolClient
 
 	// CDN
 	cdnCustomDomainsClient cdn.CustomDomainsClient
@@ -321,8 +323,9 @@ type ArmClient struct {
 	appServicesClient     web.AppsClient
 
 	// Policy
-	policyAssignmentsClient policy.AssignmentsClient
-	policyDefinitionsClient policy.DefinitionsClient
+	policyAssignmentsClient    policy.AssignmentsClient
+	policyDefinitionsClient    policy.DefinitionsClient
+	policySetDefinitionsClient policy.SetDefinitionsClient
 }
 
 var (
@@ -479,6 +482,10 @@ func (c *ArmClient) registerAppInsightsClients(endpoint, subscriptionId string, 
 	ai := appinsights.NewComponentsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&ai.Client, auth)
 	c.appInsightsClient = ai
+
+	aiak := appinsights.NewAPIKeysClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&aiak.Client, auth)
+	c.appInsightsAPIKeyClient = aiak
 }
 
 func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
@@ -541,6 +548,10 @@ func (c *ArmClient) registerBatchClients(endpoint, subscriptionId string, auth a
 	batchAccount := batch.NewAccountClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&batchAccount.Client, auth)
 	c.batchAccountClient = batchAccount
+
+	batchPool := batch.NewPoolClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&batchPool.Client, auth)
+	c.batchPoolClient = batchPool
 }
 
 func (c *ArmClient) registerCDNClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
@@ -1165,6 +1176,10 @@ func (c *ArmClient) registerPolicyClients(endpoint, subscriptionId string, auth 
 	policyDefinitionsClient := policy.NewDefinitionsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&policyDefinitionsClient.Client, auth)
 	c.policyDefinitionsClient = policyDefinitionsClient
+
+	policySetDefinitionsClient := policy.NewSetDefinitionsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&policySetDefinitionsClient.Client, auth)
+	c.policySetDefinitionsClient = policySetDefinitionsClient
 }
 
 func (c *ArmClient) registerManagementGroupClients(endpoint string, auth autorest.Authorizer) {

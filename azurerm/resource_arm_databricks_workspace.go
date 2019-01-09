@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -71,12 +72,26 @@ func resourceArmDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta int
 	log.Printf("[INFO] preparing arguments for Azure ARM Databricks Workspace creation.")
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Databricks Workspace %q (Resource Group %q): %s", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_databricks_workspace", *existing.ID)
+		}
+	}
+
 	skuName := d.Get("sku").(string)
 	managedResourceGroupName := d.Get("managed_resource_group_name").(string)
 	var managedResourceGroupID string
 
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
 

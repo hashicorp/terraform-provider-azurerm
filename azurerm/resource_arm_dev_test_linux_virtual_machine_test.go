@@ -43,6 +43,35 @@ func TestAccAzureRMDevTestLinuxVirtualMachine_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMDevTestLinuxVirtualMachine_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_dev_test_linux_virtual_machine.test"
+	rInt := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDevTestLinuxVirtualMachineDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDevTestLinuxVirtualMachine_basic(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDevTestLinuxVirtualMachineExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMDevTestLinuxVirtualMachine_requiresImport(rInt, location),
+				ExpectError: testRequiresImportError("azurerm_dev_test_lab_linux_virtual_machine"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMDevTestLinuxVirtualMachine_basicSSH(t *testing.T) {
 	resourceName := "azurerm_dev_test_linux_virtual_machine.test"
 	rInt := acctest.RandInt()
@@ -144,12 +173,12 @@ func TestAccAzureRMDevTestLinuxVirtualMachine_updateStorage(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDevTestLinuxVirtualMachineExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDevTestLinuxVirtualMachineExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		virtualMachineName := rs.Primary.Attributes["name"]
@@ -226,6 +255,33 @@ resource "azurerm_dev_test_linux_virtual_machine" "test" {
   }
 }
 `, template, rInt)
+}
+
+func testAccAzureRMDevTestLinuxVirtualMachine_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMDevTestLinuxVirtualMachine_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_dev_test_linux_virtual_machine" "import" {
+  name                   = "${azurerm_dev_test_linux_virtual_machine.test.name}"
+  lab_name               = "${azurerm_dev_test_linux_virtual_machine.test.lab_name}"
+  resource_group_name    = "${azurerm_dev_test_linux_virtual_machine.test.resource_group_name}"
+  location               = "${azurerm_dev_test_linux_virtual_machine.test.location}"
+  size                   = "${azurerm_dev_test_linux_virtual_machine.test.size}"
+  username               = "acct5stU5er"
+  password               = "Pa$$w0rd1234!"
+  lab_virtual_network_id = "${azurerm_dev_test_virtual_network.test.id}"
+  lab_subnet_name        = "${azurerm_dev_test_virtual_network.test.subnet.0.name}"
+  storage_type           = "Standard"
+
+  gallery_image_reference {
+    offer     = "UbuntuServer"
+    publisher = "Canonical"
+    sku       = "18.04-LTS"
+    version   = "latest"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMDevTestLinuxVirtualMachine_basicSSH(rInt int, location string) string {

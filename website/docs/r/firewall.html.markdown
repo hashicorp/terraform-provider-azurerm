@@ -11,8 +11,6 @@ description: |-
 
 Manages an Azure Firewall.
 
--> **NOTE** Azure Firewall is currently in Public Preview.
-
 ## Example Usage
 
 ```hcl
@@ -36,11 +34,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "testpip"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Static"
-  sku                          = "Standard"
+  name                = "testpip"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_firewall" "test" {
@@ -49,9 +47,9 @@ resource "azurerm_firewall" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   ip_configuration {
-    name                          = "configuration"
-    subnet_id                     = "${azurerm_subnet.test.id}"
-    public_ip_address_id          = "${azurerm_public_ip.test.id}"
+    name                 = "configuration"
+    subnet_id            = "${azurerm_subnet.test.id}"
+    public_ip_address_id = "${azurerm_public_ip.test.id}"
   }
 }
 ```

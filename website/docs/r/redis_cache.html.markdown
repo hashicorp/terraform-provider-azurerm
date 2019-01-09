@@ -147,6 +147,9 @@ The pricing group for the Redis Family - either "C" or "P" at present.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+* `zones` - (Optional) A list of a single item of the Availability Zone which the Redis Cache should be allocated in.
+
+ -> **Please Note**: Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](http://aka.ms/azenroll).
 ---
 
 * `redis_configuration` supports the following:

@@ -24,7 +24,7 @@ func dataSourceArmSnapshot() *schema.Resource {
 				Computed: true,
 			},
 			"disk_size_gb": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 			"time_created": {

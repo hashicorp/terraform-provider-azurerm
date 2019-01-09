@@ -13,6 +13,10 @@ func locationSchema() *schema.Schema {
 	return azure.SchemaLocation()
 }
 
+func locationSchemaOptional() *schema.Schema {
+	return azure.SchemaLocationOptional()
+}
+
 func locationForDataSourceSchema() *schema.Schema {
 	return azure.SchemaLocationForDataSource()
 }

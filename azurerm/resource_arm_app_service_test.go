@@ -2,8 +2,9 @@ package azurerm
 
 import (
 	"fmt"
-	"regexp"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -65,6 +66,8 @@ func TestAccAzureRMAppService_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "outbound_ip_addresses"),
+					resource.TestCheckResourceAttrSet(resourceName, "possible_outbound_ip_addresses"),
 				),
 			},
 			{
@@ -402,8 +405,6 @@ func TestAccAzureRMAppService_enableManageServiceIdentity(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_mangedServiceIdentity(ri, testLocation())
 
-	uuidMatch := regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -414,8 +415,8 @@ func TestAccAzureRMAppService_enableManageServiceIdentity(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", uuidMatch),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", uuidMatch),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", validate.UUIDRegExp),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", validate.UUIDRegExp),
 				),
 			},
 		},
@@ -429,8 +430,6 @@ func TestAccAzureRMAppService_updateResourceByEnablingManageServiceIdentity(t *t
 
 	basicResourceNoManagedIdentity := testAccAzureRMAppService_basic(ri, testLocation())
 	managedIdentityEnabled := testAccAzureRMAppService_mangedServiceIdentity(ri, testLocation())
-
-	uuidMatch := regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -449,8 +448,8 @@ func TestAccAzureRMAppService_updateResourceByEnablingManageServiceIdentity(t *t
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", uuidMatch),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", uuidMatch),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", validate.UUIDRegExp),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", validate.UUIDRegExp),
 				),
 			},
 		},
@@ -499,7 +498,7 @@ func TestAccAzureRMAppService_clientAffinityUpdate(t *testing.T) {
 func TestAccAzureRMAppService_connectionStrings(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMAppService_connectionStrings(ri, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -507,12 +506,27 @@ func TestAccAzureRMAppService_connectionStrings(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppService_connectionStrings(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "connection_string.0.name", "Example"),
-					resource.TestCheckResourceAttr(resourceName, "connection_string.0.value", "some-postgresql-connection-string"),
-					resource.TestCheckResourceAttr(resourceName, "connection_string.0.type", "PostgreSQL"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.3173438943.name", "First"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.3173438943.value", "first-connection-string"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.3173438943.type", "Custom"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.2442860602.name", "Second"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.2442860602.value", "some-postgresql-connection-string"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.2442860602.type", "PostgreSQL"),
+				),
+			},
+			{
+				Config: testAccAzureRMAppService_connectionStringsUpdated(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.3173438943.name", "First"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.3173438943.value", "first-connection-string"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.3173438943.type", "Custom"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.2442860602.name", "Second"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.2442860602.value", "some-postgresql-connection-string"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.2442860602.type", "PostgreSQL"),
 				),
 			},
 			{
@@ -1161,12 +1175,12 @@ func testCheckAzureRMAppServiceDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMAppServiceExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMAppServiceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		appServiceName := rs.Primary.Attributes["name"]
@@ -1487,7 +1501,7 @@ func testAccAzureRMAppService_clientAffinityDisabled(rInt int, location string) 
 func testAccAzureRMAppService_clientAffinity(rInt int, location string, clientAffinity bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1666,9 +1680,54 @@ resource "azurerm_app_service" "test" {
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
 
   connection_string {
-    name  = "Example"
+    name  = "First"
+    value = "first-connection-string"
+    type  = "Custom"
+  }
+
+  connection_string {
+    name  = "Second"
     value = "some-postgresql-connection-string"
     type  = "PostgreSQL"
+  }
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMAppService_connectionStringsUpdated(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+
+  connection_string {
+    name  = "Second"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+
+  connection_string {
+    name  = "First"
+    value = "first-connection-string"
+    type  = "Custom"
   }
 }
 `, rInt, location, rInt, rInt)

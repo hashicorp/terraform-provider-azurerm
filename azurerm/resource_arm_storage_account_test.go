@@ -3,8 +3,11 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"regexp"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -173,6 +176,11 @@ func TestAccAzureRMStorageAccount_blobConnectionString(t *testing.T) {
 }
 
 func TestAccAzureRMStorageAccount_blobEncryption(t *testing.T) {
+	_, exists := os.LookupEnv("TF_ACC_STORAGE_ENCRYPTION_DISABLE")
+	if !exists {
+		t.Skip("`TF_ACC_STORAGE_ENCRYPTION_DISABLE` isn't specified - skipping since disabling encryption is generally disabled")
+	}
+
 	resourceName := "azurerm_storage_account.testsa"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
@@ -209,6 +217,11 @@ func TestAccAzureRMStorageAccount_blobEncryption(t *testing.T) {
 }
 
 func TestAccAzureRMStorageAccount_fileEncryption(t *testing.T) {
+	_, exists := os.LookupEnv("TF_ACC_STORAGE_ENCRYPTION_DISABLE")
+	if !exists {
+		t.Skip("`TF_ACC_STORAGE_ENCRYPTION_DISABLE` isn't specified - skipping since disabling encryption is generally disabled")
+	}
+
 	resourceName := "azurerm_storage_account.testsa"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
@@ -392,8 +405,6 @@ func TestAccAzureRMStorageAccount_enableIdentity(t *testing.T) {
 	rs := acctest.RandString(4)
 	config := testAccAzureRMStorageAccount_identity(ri, rs, testLocation())
 
-	uuidMatch := regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -404,8 +415,8 @@ func TestAccAzureRMStorageAccount_enableIdentity(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", uuidMatch),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", uuidMatch),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", validate.UUIDRegExp),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", validate.UUIDRegExp),
 				),
 			},
 		},
@@ -519,12 +530,12 @@ func TestAccAzureRMStorageAccount_networkRulesDeleted(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMStorageAccountExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMStorageAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		storageAccount := rs.Primary.Attributes["name"]
@@ -540,19 +551,19 @@ func testCheckAzureRMStorageAccountExists(name string) resource.TestCheckFunc {
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: StorageAccount %q (resource group: %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: StorageAccount %q (resource group: %q) does not exist", storageAccount, resourceGroup)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMStorageAccountDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMStorageAccountDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		storageAccount := rs.Primary.Attributes["name"]

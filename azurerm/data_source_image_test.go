@@ -87,11 +87,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctestpip%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
-  domain_name_label            = "acctestpip%d"
+  name                = "acctestpip%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
+  domain_name_label   = "acctestpip%d"
 }
 
 resource "azurerm_network_interface" "testsource" {
@@ -102,7 +102,7 @@ resource "azurerm_network_interface" "testsource" {
   ip_configuration {
     name                          = "testconfigurationsource"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = "${azurerm_public_ip.test.id}"
   }
 }
@@ -216,11 +216,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctestpip%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
-  domain_name_label            = "acctestpip%d"
+  name                = "acctestpip%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
+  domain_name_label   = "acctestpip%d"
 }
 
 resource "azurerm_network_interface" "testsource" {
@@ -231,7 +231,7 @@ resource "azurerm_network_interface" "testsource" {
   ip_configuration {
     name                          = "testconfigurationsource"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = "${azurerm_public_ip.test.id}"
   }
 }
