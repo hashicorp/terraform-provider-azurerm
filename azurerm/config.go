@@ -140,6 +140,7 @@ type ArmClient struct {
 
 	// Batch
 	batchAccountClient batch.AccountClient
+	batchPoolClient    batch.PoolClient
 
 	// CDN
 	cdnCustomDomainsClient cdn.CustomDomainsClient
@@ -547,6 +548,10 @@ func (c *ArmClient) registerBatchClients(endpoint, subscriptionId string, auth a
 	batchAccount := batch.NewAccountClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&batchAccount.Client, auth)
 	c.batchAccountClient = batchAccount
+
+	batchPool := batch.NewPoolClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&batchPool.Client, auth)
+	c.batchPoolClient = batchPool
 }
 
 func (c *ArmClient) registerCDNClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
