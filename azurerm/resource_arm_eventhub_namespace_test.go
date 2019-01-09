@@ -429,7 +429,6 @@ resource "azurerm_eventhub_namespace" "import" {
 `, template)
 }
 
-
 func testAccAzureRMEventHubNamespace_KafkaEnabled(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {

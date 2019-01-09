@@ -146,7 +146,7 @@ func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta inter
 		},
 		EHNamespaceProperties: &eventhub.EHNamespaceProperties{
 			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
-			KafkaEnabled: utils.Bool(kafkaEnabled),
+			KafkaEnabled:         utils.Bool(kafkaEnabled),
 		},
 		Tags: expandTags(tags),
 	}
