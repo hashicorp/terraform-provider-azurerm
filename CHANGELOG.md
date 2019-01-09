@@ -11,19 +11,24 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* dependencies: updating to `v24.0.0` of `Azure/azure-sdk-for-go` [GH-2572]
 * dependencies: upgrading the `network` SDK to `2018-08-01` [GH-2433]
 * Data Source: `azurerm_app_service` - exporting the `possible_outbound_ip_addresses` [GH-2513]
 * Data Source:  `azurerm_container_registry` - now exports `tags` [GH-2607]
+* Data Source:  `azurerm_public_ip` - now exports `location`, `sku`, `allocation_method`, `reverse_fqdn` and `zones` [GH-2576]
 * `azurerm_app_service` - exporting the `possible_outbound_ip_addresses` [GH-2513]
 * `azurerm_firewall` - renaming the `public_ip_address_id` property to `ip_address_id` [GH-2433]
+* `azurerm_kubernetes_cluster` - the `dns_prefix` now forces a new resource and is properly validated [GH-2611]
 * `azurerm_log_analytics_workspace_linked_service` - now correctly handels uppcase `workspace_name` values  [GH-2594]
 * `azurerm_network_interface` - support for IPv6 addresses [GH-2548]
 * `azurerm_policy_assignment` - support for Managed Service Identity [GH-2549]
 * `azurerm_policy_definition` - polices can now be assigned to a management group [GH-2490]
+* `azurerm_public_ip` - deprecated `public_ip_address_allocation` in favor of `allocation_method` to better match the SDK [GH-2576]
 * `azurerm_redis_cache` - add availability zone support [GH-2580]
 * `azurerm_service_fabric_cluster` - support for `azure_active_directory` [GH-2553]
 * `azurerm_service_fabric_cluster` - support for `reverse_proxy_certificate` [GH-2544]
 * `azurerm_service_fabric_cluster` - support for `reverse_proxy_endpoint_port` [GH-2544]
+* `azurerm_subnet` - support for delegation [GH-2042]
 
 BUG FIXES:
 
@@ -31,6 +36,8 @@ BUG FIXES:
 * Data Source: `azurerm_network_interface` - exposing `application_security_group_ids` within the `ip_configuration` block [GH-2599]
 * Data Source: `azurerm_snapshot` - ensuring `disk_size_gb` is set [GH-2596]
 * Data Source: `azurerm_storage_account` - ensuring the `account_replication_type` field is set correctly [GH-2595]
+* `azurerm_app_service` - handling connection strings being in any order [GH-2609]
+* `azurerm_app_service_slot` - handling connection strings being in any order [GH-2609]
 * `azurerm_network_security_rule` - the properties `source_application_security_group_ids` and `destination_application_security_group_ids` are now correctly read & imported [GH-2558]
 * `azurerm_role_assignment` - retrieving the role definition name during import [GH-2565]
 * `azurerm_template_deployment` - fixing regression and supportting nested template deployments [GH-2514]

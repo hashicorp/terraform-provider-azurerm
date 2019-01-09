@@ -18,15 +18,19 @@ package scheduler
 // Changes may cause incorrect behavior and will be lost if the code is regenerated.
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
-// Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
+// The package's fully qualified name.
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
+
 // DayOfWeek enumerates the values for day of week.
 type DayOfWeek string
 
@@ -706,15 +710,24 @@ type JobCollectionListResultIterator struct {
 	page JobCollectionListResultPage
 }
 
-// Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
-// Next advances to the next value.  If there was an error making
+// NextWithContext advances to the next value.  If there was an error making
 // the request the iterator does not advance and the error is returned.
-func (iter *JobCollectionListResultIterator) Next() error {
+func (iter *JobCollectionListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/JobCollectionListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	iter.i++
 	if iter.i < len(iter.page.Values()) {
 		return nil
 	}
-	err := iter.page.Next()
+	err = iter.page.NextWithContext(ctx)
 	if err != nil {
 		iter.i--
 		return err
@@ -723,7 +736,13 @@ func (iter *JobCollectionListResultIterator) Next() error {
 	return nil
 }
 
-// Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *JobCollectionListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
 // NotDone returns true if the enumeration should be started or is not yet complete.
 func (iter JobCollectionListResultIterator) NotDone() bool {
 	return iter.page.NotDone() && iter.i < len(iter.page.Values())
@@ -746,6 +765,12 @@ func (iter JobCollectionListResultIterator) Value() JobCollectionDefinition {
 }
 
 // Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
+// Creates a new instance of the JobCollectionListResultIterator type.
+func NewJobCollectionListResultIterator(page JobCollectionListResultPage) JobCollectionListResultIterator {
+	return JobCollectionListResultIterator{page: page}
+}
+
+// Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
 // IsEmpty returns true if the ListResult contains no values.
 func (jclr JobCollectionListResult) IsEmpty() bool {
 	return jclr.Value == nil || len(*jclr.Value) == 0
@@ -753,11 +778,11 @@ func (jclr JobCollectionListResult) IsEmpty() bool {
 
 // jobCollectionListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
-func (jclr JobCollectionListResult) jobCollectionListResultPreparer() (*http.Request, error) {
+func (jclr JobCollectionListResult) jobCollectionListResultPreparer(ctx context.Context) (*http.Request, error) {
 	if jclr.NextLink == nil || len(to.String(jclr.NextLink)) < 1 {
 		return nil, nil
 	}
-	return autorest.Prepare(&http.Request{},
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
 		autorest.AsJSON(),
 		autorest.AsGet(),
 		autorest.WithBaseURL(to.String(jclr.NextLink)))
@@ -766,15 +791,24 @@ func (jclr JobCollectionListResult) jobCollectionListResultPreparer() (*http.Req
 // Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
 // JobCollectionListResultPage contains a page of JobCollectionDefinition values.
 type JobCollectionListResultPage struct {
-	fn   func(JobCollectionListResult) (JobCollectionListResult, error)
+	fn   func(context.Context, JobCollectionListResult) (JobCollectionListResult, error)
 	jclr JobCollectionListResult
 }
 
-// Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
-// Next advances to the next page of values.  If there was an error making
+// NextWithContext advances to the next page of values.  If there was an error making
 // the request the page does not advance and the error is returned.
-func (page *JobCollectionListResultPage) Next() error {
-	next, err := page.fn(page.jclr)
+func (page *JobCollectionListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/JobCollectionListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.jclr)
 	if err != nil {
 		return err
 	}
@@ -782,7 +816,13 @@ func (page *JobCollectionListResultPage) Next() error {
 	return nil
 }
 
-// Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *JobCollectionListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
 // NotDone returns true if the page enumeration should be started or is not yet complete.
 func (page JobCollectionListResultPage) NotDone() bool {
 	return !page.jclr.IsEmpty()
@@ -801,6 +841,12 @@ func (page JobCollectionListResultPage) Values() []JobCollectionDefinition {
 		return nil
 	}
 	return *page.jclr.Value
+}
+
+// Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
+// Creates a new instance of the JobCollectionListResultPage type.
+func NewJobCollectionListResultPage(getNextPage func(context.Context, JobCollectionListResult) (JobCollectionListResult, error)) JobCollectionListResultPage {
+	return JobCollectionListResultPage{fn: getNextPage}
 }
 
 // Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
@@ -825,8 +871,8 @@ type JobCollectionQuota struct {
 	MaxRecurrence *JobMaxRecurrence `json:"maxRecurrence,omitempty"`
 }
 
-// Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
-// JobCollectionsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// JobCollectionsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type JobCollectionsDeleteFuture struct {
 	azure.Future
 }
@@ -874,8 +920,8 @@ func (future *JobCollectionsDisableFuture) Result(client JobCollectionsClient) (
 	return
 }
 
-// Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
-// JobCollectionsEnableFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// JobCollectionsEnableFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type JobCollectionsEnableFuture struct {
 	azure.Future
 }
@@ -987,15 +1033,24 @@ type JobHistoryListResultIterator struct {
 	page JobHistoryListResultPage
 }
 
-// Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
-// Next advances to the next value.  If there was an error making
+// NextWithContext advances to the next value.  If there was an error making
 // the request the iterator does not advance and the error is returned.
-func (iter *JobHistoryListResultIterator) Next() error {
+func (iter *JobHistoryListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/JobHistoryListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	iter.i++
 	if iter.i < len(iter.page.Values()) {
 		return nil
 	}
-	err := iter.page.Next()
+	err = iter.page.NextWithContext(ctx)
 	if err != nil {
 		iter.i--
 		return err
@@ -1004,7 +1059,13 @@ func (iter *JobHistoryListResultIterator) Next() error {
 	return nil
 }
 
-// Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *JobHistoryListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
 // NotDone returns true if the enumeration should be started or is not yet complete.
 func (iter JobHistoryListResultIterator) NotDone() bool {
 	return iter.page.NotDone() && iter.i < len(iter.page.Values())
@@ -1027,6 +1088,12 @@ func (iter JobHistoryListResultIterator) Value() JobHistoryDefinition {
 }
 
 // Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
+// Creates a new instance of the JobHistoryListResultIterator type.
+func NewJobHistoryListResultIterator(page JobHistoryListResultPage) JobHistoryListResultIterator {
+	return JobHistoryListResultIterator{page: page}
+}
+
+// Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
 // IsEmpty returns true if the ListResult contains no values.
 func (jhlr JobHistoryListResult) IsEmpty() bool {
 	return jhlr.Value == nil || len(*jhlr.Value) == 0
@@ -1034,11 +1101,11 @@ func (jhlr JobHistoryListResult) IsEmpty() bool {
 
 // jobHistoryListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
-func (jhlr JobHistoryListResult) jobHistoryListResultPreparer() (*http.Request, error) {
+func (jhlr JobHistoryListResult) jobHistoryListResultPreparer(ctx context.Context) (*http.Request, error) {
 	if jhlr.NextLink == nil || len(to.String(jhlr.NextLink)) < 1 {
 		return nil, nil
 	}
-	return autorest.Prepare(&http.Request{},
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
 		autorest.AsJSON(),
 		autorest.AsGet(),
 		autorest.WithBaseURL(to.String(jhlr.NextLink)))
@@ -1047,15 +1114,24 @@ func (jhlr JobHistoryListResult) jobHistoryListResultPreparer() (*http.Request, 
 // Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
 // JobHistoryListResultPage contains a page of JobHistoryDefinition values.
 type JobHistoryListResultPage struct {
-	fn   func(JobHistoryListResult) (JobHistoryListResult, error)
+	fn   func(context.Context, JobHistoryListResult) (JobHistoryListResult, error)
 	jhlr JobHistoryListResult
 }
 
-// Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
-// Next advances to the next page of values.  If there was an error making
+// NextWithContext advances to the next page of values.  If there was an error making
 // the request the page does not advance and the error is returned.
-func (page *JobHistoryListResultPage) Next() error {
-	next, err := page.fn(page.jhlr)
+func (page *JobHistoryListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/JobHistoryListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.jhlr)
 	if err != nil {
 		return err
 	}
@@ -1063,7 +1139,13 @@ func (page *JobHistoryListResultPage) Next() error {
 	return nil
 }
 
-// Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *JobHistoryListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
 // NotDone returns true if the page enumeration should be started or is not yet complete.
 func (page JobHistoryListResultPage) NotDone() bool {
 	return !page.jhlr.IsEmpty()
@@ -1085,6 +1167,12 @@ func (page JobHistoryListResultPage) Values() []JobHistoryDefinition {
 }
 
 // Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
+// Creates a new instance of the JobHistoryListResultPage type.
+func NewJobHistoryListResultPage(getNextPage func(context.Context, JobHistoryListResult) (JobHistoryListResult, error)) JobHistoryListResultPage {
+	return JobHistoryListResultPage{fn: getNextPage}
+}
+
+// Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
 // JobListResult ...
 type JobListResult struct {
 	autorest.Response `json:"-"`
@@ -1101,15 +1189,24 @@ type JobListResultIterator struct {
 	page JobListResultPage
 }
 
-// Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
-// Next advances to the next value.  If there was an error making
+// NextWithContext advances to the next value.  If there was an error making
 // the request the iterator does not advance and the error is returned.
-func (iter *JobListResultIterator) Next() error {
+func (iter *JobListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/JobListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	iter.i++
 	if iter.i < len(iter.page.Values()) {
 		return nil
 	}
-	err := iter.page.Next()
+	err = iter.page.NextWithContext(ctx)
 	if err != nil {
 		iter.i--
 		return err
@@ -1118,7 +1215,13 @@ func (iter *JobListResultIterator) Next() error {
 	return nil
 }
 
-// Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *JobListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
 // NotDone returns true if the enumeration should be started or is not yet complete.
 func (iter JobListResultIterator) NotDone() bool {
 	return iter.page.NotDone() && iter.i < len(iter.page.Values())
@@ -1141,6 +1244,12 @@ func (iter JobListResultIterator) Value() JobDefinition {
 }
 
 // Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
+// Creates a new instance of the JobListResultIterator type.
+func NewJobListResultIterator(page JobListResultPage) JobListResultIterator {
+	return JobListResultIterator{page: page}
+}
+
+// Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
 // IsEmpty returns true if the ListResult contains no values.
 func (jlr JobListResult) IsEmpty() bool {
 	return jlr.Value == nil || len(*jlr.Value) == 0
@@ -1148,11 +1257,11 @@ func (jlr JobListResult) IsEmpty() bool {
 
 // jobListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
-func (jlr JobListResult) jobListResultPreparer() (*http.Request, error) {
+func (jlr JobListResult) jobListResultPreparer(ctx context.Context) (*http.Request, error) {
 	if jlr.NextLink == nil || len(to.String(jlr.NextLink)) < 1 {
 		return nil, nil
 	}
-	return autorest.Prepare(&http.Request{},
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
 		autorest.AsJSON(),
 		autorest.AsGet(),
 		autorest.WithBaseURL(to.String(jlr.NextLink)))
@@ -1161,15 +1270,24 @@ func (jlr JobListResult) jobListResultPreparer() (*http.Request, error) {
 // Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
 // JobListResultPage contains a page of JobDefinition values.
 type JobListResultPage struct {
-	fn  func(JobListResult) (JobListResult, error)
+	fn  func(context.Context, JobListResult) (JobListResult, error)
 	jlr JobListResult
 }
 
-// Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
-// Next advances to the next page of values.  If there was an error making
+// NextWithContext advances to the next page of values.  If there was an error making
 // the request the page does not advance and the error is returned.
-func (page *JobListResultPage) Next() error {
-	next, err := page.fn(page.jlr)
+func (page *JobListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/JobListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.jlr)
 	if err != nil {
 		return err
 	}
@@ -1177,7 +1295,13 @@ func (page *JobListResultPage) Next() error {
 	return nil
 }
 
-// Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *JobListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
 // NotDone returns true if the page enumeration should be started or is not yet complete.
 func (page JobListResultPage) NotDone() bool {
 	return !page.jlr.IsEmpty()
@@ -1196,6 +1320,12 @@ func (page JobListResultPage) Values() []JobDefinition {
 		return nil
 	}
 	return *page.jlr.Value
+}
+
+// Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
+// Creates a new instance of the JobListResultPage type.
+func NewJobListResultPage(getNextPage func(context.Context, JobListResult) (JobListResult, error)) JobListResultPage {
+	return JobListResultPage{fn: getNextPage}
 }
 
 // Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.

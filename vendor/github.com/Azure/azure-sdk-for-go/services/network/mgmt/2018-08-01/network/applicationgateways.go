@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -46,6 +47,16 @@ func NewApplicationGatewaysClientWithBaseURI(baseURI string, subscriptionID stri
 // applicationGatewayName - the name of the application gateway.
 // expand - expands BackendAddressPool and BackendHttpSettings referenced in backend health.
 func (client ApplicationGatewaysClient) BackendHealth(ctx context.Context, resourceGroupName string, applicationGatewayName string, expand string) (result ApplicationGatewaysBackendHealthFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationGatewaysClient.BackendHealth")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.BackendHealthPreparer(ctx, resourceGroupName, applicationGatewayName, expand)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ApplicationGatewaysClient", "BackendHealth", nil, "Failure preparing request")
@@ -117,6 +128,16 @@ func (client ApplicationGatewaysClient) BackendHealthResponder(resp *http.Respon
 // applicationGatewayName - the name of the application gateway.
 // parameters - parameters supplied to the create or update application gateway operation.
 func (client ApplicationGatewaysClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, applicationGatewayName string, parameters ApplicationGateway) (result ApplicationGatewaysCreateOrUpdateFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationGatewaysClient.CreateOrUpdate")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.ApplicationGatewayPropertiesFormat", Name: validation.Null, Rule: false,
@@ -127,6 +148,14 @@ func (client ApplicationGatewaysClient) CreateOrUpdate(ctx context.Context, reso
 						{Target: "parameters.ApplicationGatewayPropertiesFormat.WebApplicationFirewallConfiguration.MaxRequestBodySize", Name: validation.Null, Rule: false,
 							Chain: []validation.Constraint{{Target: "parameters.ApplicationGatewayPropertiesFormat.WebApplicationFirewallConfiguration.MaxRequestBodySize", Name: validation.InclusiveMaximum, Rule: int64(128), Chain: nil},
 								{Target: "parameters.ApplicationGatewayPropertiesFormat.WebApplicationFirewallConfiguration.MaxRequestBodySize", Name: validation.InclusiveMinimum, Rule: 8, Chain: nil},
+							}},
+						{Target: "parameters.ApplicationGatewayPropertiesFormat.WebApplicationFirewallConfiguration.MaxRequestBodySizeInKb", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "parameters.ApplicationGatewayPropertiesFormat.WebApplicationFirewallConfiguration.MaxRequestBodySizeInKb", Name: validation.InclusiveMaximum, Rule: int64(128), Chain: nil},
+								{Target: "parameters.ApplicationGatewayPropertiesFormat.WebApplicationFirewallConfiguration.MaxRequestBodySizeInKb", Name: validation.InclusiveMinimum, Rule: 8, Chain: nil},
+							}},
+						{Target: "parameters.ApplicationGatewayPropertiesFormat.WebApplicationFirewallConfiguration.FileUploadLimitInMb", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "parameters.ApplicationGatewayPropertiesFormat.WebApplicationFirewallConfiguration.FileUploadLimitInMb", Name: validation.InclusiveMaximum, Rule: int64(500), Chain: nil},
+								{Target: "parameters.ApplicationGatewayPropertiesFormat.WebApplicationFirewallConfiguration.FileUploadLimitInMb", Name: validation.InclusiveMinimum, Rule: 0, Chain: nil},
 							}},
 					}},
 					{Target: "parameters.ApplicationGatewayPropertiesFormat.AutoscaleConfiguration", Name: validation.Null, Rule: false,
@@ -206,6 +235,16 @@ func (client ApplicationGatewaysClient) CreateOrUpdateResponder(resp *http.Respo
 // resourceGroupName - the name of the resource group.
 // applicationGatewayName - the name of the application gateway.
 func (client ApplicationGatewaysClient) Delete(ctx context.Context, resourceGroupName string, applicationGatewayName string) (result ApplicationGatewaysDeleteFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationGatewaysClient.Delete")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeletePreparer(ctx, resourceGroupName, applicationGatewayName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ApplicationGatewaysClient", "Delete", nil, "Failure preparing request")
@@ -272,6 +311,16 @@ func (client ApplicationGatewaysClient) DeleteResponder(resp *http.Response) (re
 // resourceGroupName - the name of the resource group.
 // applicationGatewayName - the name of the application gateway.
 func (client ApplicationGatewaysClient) Get(ctx context.Context, resourceGroupName string, applicationGatewayName string) (result ApplicationGateway, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationGatewaysClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetPreparer(ctx, resourceGroupName, applicationGatewayName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ApplicationGatewaysClient", "Get", nil, "Failure preparing request")
@@ -338,6 +387,16 @@ func (client ApplicationGatewaysClient) GetResponder(resp *http.Response) (resul
 // Parameters:
 // predefinedPolicyName - name of Ssl predefined policy.
 func (client ApplicationGatewaysClient) GetSslPredefinedPolicy(ctx context.Context, predefinedPolicyName string) (result ApplicationGatewaySslPredefinedPolicy, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationGatewaysClient.GetSslPredefinedPolicy")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetSslPredefinedPolicyPreparer(ctx, predefinedPolicyName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ApplicationGatewaysClient", "GetSslPredefinedPolicy", nil, "Failure preparing request")
@@ -403,6 +462,16 @@ func (client ApplicationGatewaysClient) GetSslPredefinedPolicyResponder(resp *ht
 // Parameters:
 // resourceGroupName - the name of the resource group.
 func (client ApplicationGatewaysClient) List(ctx context.Context, resourceGroupName string) (result ApplicationGatewayListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationGatewaysClient.List")
+		defer func() {
+			sc := -1
+			if result.aglr.Response.Response != nil {
+				sc = result.aglr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx, resourceGroupName)
 	if err != nil {
@@ -466,8 +535,8 @@ func (client ApplicationGatewaysClient) ListResponder(resp *http.Response) (resu
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client ApplicationGatewaysClient) listNextResults(lastResults ApplicationGatewayListResult) (result ApplicationGatewayListResult, err error) {
-	req, err := lastResults.applicationGatewayListResultPreparer()
+func (client ApplicationGatewaysClient) listNextResults(ctx context.Context, lastResults ApplicationGatewayListResult) (result ApplicationGatewayListResult, err error) {
+	req, err := lastResults.applicationGatewayListResultPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "network.ApplicationGatewaysClient", "listNextResults", nil, "Failure preparing next results request")
 	}
@@ -488,12 +557,32 @@ func (client ApplicationGatewaysClient) listNextResults(lastResults ApplicationG
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
 func (client ApplicationGatewaysClient) ListComplete(ctx context.Context, resourceGroupName string) (result ApplicationGatewayListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationGatewaysClient.List")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.page, err = client.List(ctx, resourceGroupName)
 	return
 }
 
 // ListAll gets all the application gateways in a subscription.
 func (client ApplicationGatewaysClient) ListAll(ctx context.Context) (result ApplicationGatewayListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationGatewaysClient.ListAll")
+		defer func() {
+			sc := -1
+			if result.aglr.Response.Response != nil {
+				sc = result.aglr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.fn = client.listAllNextResults
 	req, err := client.ListAllPreparer(ctx)
 	if err != nil {
@@ -556,8 +645,8 @@ func (client ApplicationGatewaysClient) ListAllResponder(resp *http.Response) (r
 }
 
 // listAllNextResults retrieves the next set of results, if any.
-func (client ApplicationGatewaysClient) listAllNextResults(lastResults ApplicationGatewayListResult) (result ApplicationGatewayListResult, err error) {
-	req, err := lastResults.applicationGatewayListResultPreparer()
+func (client ApplicationGatewaysClient) listAllNextResults(ctx context.Context, lastResults ApplicationGatewayListResult) (result ApplicationGatewayListResult, err error) {
+	req, err := lastResults.applicationGatewayListResultPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "network.ApplicationGatewaysClient", "listAllNextResults", nil, "Failure preparing next results request")
 	}
@@ -578,12 +667,32 @@ func (client ApplicationGatewaysClient) listAllNextResults(lastResults Applicati
 
 // ListAllComplete enumerates all values, automatically crossing page boundaries as required.
 func (client ApplicationGatewaysClient) ListAllComplete(ctx context.Context) (result ApplicationGatewayListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationGatewaysClient.ListAll")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.page, err = client.ListAll(ctx)
 	return
 }
 
 // ListAvailableSslOptions lists available Ssl options for configuring Ssl policy.
 func (client ApplicationGatewaysClient) ListAvailableSslOptions(ctx context.Context) (result ApplicationGatewayAvailableSslOptions, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationGatewaysClient.ListAvailableSslOptions")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.ListAvailableSslOptionsPreparer(ctx)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ApplicationGatewaysClient", "ListAvailableSslOptions", nil, "Failure preparing request")
@@ -646,6 +755,16 @@ func (client ApplicationGatewaysClient) ListAvailableSslOptionsResponder(resp *h
 
 // ListAvailableSslPredefinedPolicies lists all SSL predefined policies for configuring Ssl policy.
 func (client ApplicationGatewaysClient) ListAvailableSslPredefinedPolicies(ctx context.Context) (result ApplicationGatewayAvailableSslPredefinedPoliciesPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationGatewaysClient.ListAvailableSslPredefinedPolicies")
+		defer func() {
+			sc := -1
+			if result.agaspp.Response.Response != nil {
+				sc = result.agaspp.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.fn = client.listAvailableSslPredefinedPoliciesNextResults
 	req, err := client.ListAvailableSslPredefinedPoliciesPreparer(ctx)
 	if err != nil {
@@ -708,8 +827,8 @@ func (client ApplicationGatewaysClient) ListAvailableSslPredefinedPoliciesRespon
 }
 
 // listAvailableSslPredefinedPoliciesNextResults retrieves the next set of results, if any.
-func (client ApplicationGatewaysClient) listAvailableSslPredefinedPoliciesNextResults(lastResults ApplicationGatewayAvailableSslPredefinedPolicies) (result ApplicationGatewayAvailableSslPredefinedPolicies, err error) {
-	req, err := lastResults.applicationGatewayAvailableSslPredefinedPoliciesPreparer()
+func (client ApplicationGatewaysClient) listAvailableSslPredefinedPoliciesNextResults(ctx context.Context, lastResults ApplicationGatewayAvailableSslPredefinedPolicies) (result ApplicationGatewayAvailableSslPredefinedPolicies, err error) {
+	req, err := lastResults.applicationGatewayAvailableSslPredefinedPoliciesPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "network.ApplicationGatewaysClient", "listAvailableSslPredefinedPoliciesNextResults", nil, "Failure preparing next results request")
 	}
@@ -730,12 +849,32 @@ func (client ApplicationGatewaysClient) listAvailableSslPredefinedPoliciesNextRe
 
 // ListAvailableSslPredefinedPoliciesComplete enumerates all values, automatically crossing page boundaries as required.
 func (client ApplicationGatewaysClient) ListAvailableSslPredefinedPoliciesComplete(ctx context.Context) (result ApplicationGatewayAvailableSslPredefinedPoliciesIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationGatewaysClient.ListAvailableSslPredefinedPolicies")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.page, err = client.ListAvailableSslPredefinedPolicies(ctx)
 	return
 }
 
 // ListAvailableWafRuleSets lists all available web application firewall rule sets.
 func (client ApplicationGatewaysClient) ListAvailableWafRuleSets(ctx context.Context) (result ApplicationGatewayAvailableWafRuleSetsResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationGatewaysClient.ListAvailableWafRuleSets")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.ListAvailableWafRuleSetsPreparer(ctx)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ApplicationGatewaysClient", "ListAvailableWafRuleSets", nil, "Failure preparing request")
@@ -801,6 +940,16 @@ func (client ApplicationGatewaysClient) ListAvailableWafRuleSetsResponder(resp *
 // resourceGroupName - the name of the resource group.
 // applicationGatewayName - the name of the application gateway.
 func (client ApplicationGatewaysClient) Start(ctx context.Context, resourceGroupName string, applicationGatewayName string) (result ApplicationGatewaysStartFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationGatewaysClient.Start")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.StartPreparer(ctx, resourceGroupName, applicationGatewayName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ApplicationGatewaysClient", "Start", nil, "Failure preparing request")
@@ -867,6 +1016,16 @@ func (client ApplicationGatewaysClient) StartResponder(resp *http.Response) (res
 // resourceGroupName - the name of the resource group.
 // applicationGatewayName - the name of the application gateway.
 func (client ApplicationGatewaysClient) Stop(ctx context.Context, resourceGroupName string, applicationGatewayName string) (result ApplicationGatewaysStopFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationGatewaysClient.Stop")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.StopPreparer(ctx, resourceGroupName, applicationGatewayName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ApplicationGatewaysClient", "Stop", nil, "Failure preparing request")
@@ -934,6 +1093,16 @@ func (client ApplicationGatewaysClient) StopResponder(resp *http.Response) (resu
 // applicationGatewayName - the name of the application gateway.
 // parameters - parameters supplied to update application gateway tags.
 func (client ApplicationGatewaysClient) UpdateTags(ctx context.Context, resourceGroupName string, applicationGatewayName string, parameters TagsObject) (result ApplicationGatewaysUpdateTagsFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationGatewaysClient.UpdateTags")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.UpdateTagsPreparer(ctx, resourceGroupName, applicationGatewayName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ApplicationGatewaysClient", "UpdateTags", nil, "Failure preparing request")
