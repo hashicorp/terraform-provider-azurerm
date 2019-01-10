@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_application_insights` [GH-2625]
 * **New Data Source:** `azurerm_batch_account` [GH-2428]
 * **New Data Source:** `azurerm_batch_pool` [GH-2461]
 * **New Data Source:** `azurerm_virtual_machine` [GH-2463]
