@@ -230,6 +230,24 @@ func resourceArmKubernetesCluster() *schema.Resource {
 								},
 							},
 						},
+
+						"aci_connector_linux": {
+							Type:     schema.TypeList,
+							MaxItems: 1,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enabled": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+									"subnet_name": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -725,6 +743,22 @@ func expandKubernetesClusterAddonProfiles(d *schema.ResourceData) map[string]*co
 		}
 	}
 
+	aciConnector := profile["aci_connector_linux"].([]interface{})
+	if len(aciConnector) > 0 {
+		value := aciConnector[0].(map[string]interface{})
+		config := make(map[string]*string)
+		enabled := value["enabled"].(bool)
+
+		if subnetName, ok := value["subnet_name"]; ok {
+			config["SubnetName"] = utils.String(subnetName.(string))
+		}
+
+		addonProfiles["aciConnectorLinux"] = &containerservice.ManagedClusterAddonProfile{
+			Enabled: utils.Bool(enabled),
+			Config:  config,
+		}
+	}
+
 	return addonProfiles
 }
 
@@ -770,6 +804,26 @@ func flattenKubernetesClusterAddonProfiles(profile map[string]*containerservice.
 		agents = append(agents, output)
 	}
 	values["oms_agent"] = agents
+
+	aciConnectors := make([]interface{}, 0)
+	if aciConnector := profile["aciConnectorLinux"]; aciConnector != nil {
+		enabled := false
+		if enabledVal := aciConnector.Enabled; enabledVal != nil {
+			enabled = *enabledVal
+		}
+
+		subnetName := ""
+		if v := aciConnector.Config["SubnetName"]; v != nil {
+			subnetName = *v
+		}
+
+		output := map[string]interface{}{
+			"enabled":     enabled,
+			"subnet_name": subnetName,
+		}
+		aciConnectors = append(aciConnectors, output)
+	}
+	values["aci_connector_linux"] = aciConnectors
 
 	return []interface{}{values}
 }
