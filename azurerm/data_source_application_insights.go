@@ -65,9 +65,9 @@ func dataSourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface
 	}
 
 	d.SetId(*resp.ID)
-	d.Set("instrumentation_key", *resp.InstrumentationKey)
-	d.Set("location", *resp.Location)
-	d.Set("app_id", *resp.AppID)
+	d.Set("instrumentation_key", resp.InstrumentationKey)
+	d.Set("location", resp.Location)
+	d.Set("app_id", resp.AppID)
 	d.Set("application_type", resp.ApplicationType)
 	d.Set("tags", resp.Tags)
 
