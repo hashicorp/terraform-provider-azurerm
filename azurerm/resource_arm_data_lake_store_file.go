@@ -100,7 +100,7 @@ func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}
 			// last chunk
 			flag = filesystem.CLOSE
 		}
-		chunk := ioutil.NopCloser(bytes.NewReader(buffer))
+		chunk := ioutil.NopCloser(bytes.NewReader(buffer[:n]))
 
 		_, err = client.Append(ctx, accountName, remoteFilePath, chunk, nil, flag, nil, nil)
 		if err != nil {
