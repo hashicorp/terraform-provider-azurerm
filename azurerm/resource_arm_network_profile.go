@@ -309,10 +309,11 @@ func flattenArmContainerNetworkInterfaceConfigurations(input *[]network.Containe
 		return retCNIConfigs
 	}
 
+	// if-continue is used to simplify the deeply nested if-else statement.
 	for _, cniConfig := range *input {
 		retCNIConfig := make(map[string]interface{})
 		cniProps := cniConfig.ContainerNetworkInterfaceConfigurationPropertiesFormat
-		if cniProps == nil || cniProps.IPConfigurations == nil {
+		if cniProps == nil {
 			continue
 		}
 
