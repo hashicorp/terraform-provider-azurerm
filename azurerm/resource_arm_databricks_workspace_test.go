@@ -225,7 +225,7 @@ resource "azurerm_databricks_workspace" "test" {
   name                = "acctestdbw-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  sku                 = "standard"
+  sku                 = "Standard"
 }
 `, rInt, location, rInt)
 }

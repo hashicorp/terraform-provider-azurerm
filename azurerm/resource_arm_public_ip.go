@@ -162,7 +162,7 @@ func resourceArmPublicIpCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if strings.EqualFold(sku, "standard") {
-		if strings.EqualFold(ipAllocationMethod, "static") {
+		if !strings.EqualFold(ipAllocationMethod, "static") {
 			return fmt.Errorf("Static IP allocation must be used when creating Standard SKU public IP addresses.")
 		}
 	}

@@ -326,7 +326,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "standard"
+  sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {
@@ -348,7 +348,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "standard"
+  sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {
@@ -371,7 +371,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "standard"
+  sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {
@@ -419,7 +419,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "standard"
+  sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {
@@ -468,7 +468,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "standard"
+  sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {
@@ -491,7 +491,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "standard"
+  sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {

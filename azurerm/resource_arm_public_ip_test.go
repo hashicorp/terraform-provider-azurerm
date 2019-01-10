@@ -624,7 +624,7 @@ resource "azurerm_public_ip" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   allocation_method   = "Static"
-  sku                 = "standard"
+  sku                 = "Standard"
 }
 `, rInt, location, rInt)
 }
@@ -642,7 +642,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   allocation_method   = "Static"
   ip_version          = "%s"
-  sku                 = "standard"
+  sku                 = "Standard"
 }
 `, rInt, location, rInt, ipVersion)
 }
