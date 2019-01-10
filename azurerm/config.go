@@ -297,7 +297,6 @@ type ArmClient struct {
 	loadBalancerClient              network.LoadBalancersClient
 	localNetConnClient              network.LocalNetworkGatewaysClient
 	netProfileClient                network.ProfilesClient
-	netUsageClient                  network.UsagesClient
 	packetCapturesClient            network.PacketCapturesClient
 	publicIPClient                  network.PublicIPAddressesClient
 	publicIPPrefixClient            network.PublicIPPrefixesClient
