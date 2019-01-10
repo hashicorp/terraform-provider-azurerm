@@ -25,6 +25,7 @@ IMPROVEMENTS:
 * `azurerm_azuread_application` - deprecating in favour of the split-out AzureAD Provider [GH-2632]
 * `azurerm_azuread_service_principal` - deprecating in favour of the split-out AzureAD Provider [GH-2632]
 * `azurerm_azuread_service_principal_password` - deprecating in favour of the split-out AzureAD Provider [GH-2632]
+* `azurerm_cognitive_account` - support for the `SpeechServices` kind [GH-2583]
 * `azurerm_eventhub_namespace` - support for `kafka_enabled` [GH-2395]
 * `azurerm_firewall` - renaming the `public_ip_address_id` property to `ip_address_id` [GH-2433]
 * `azurerm_kubernetes_cluster` - the `dns_prefix` now forces a new resource and is properly validated [GH-2611]
