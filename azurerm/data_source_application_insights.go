@@ -69,7 +69,7 @@ func dataSourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface
 	d.Set("location", resp.Location)
 	d.Set("app_id", resp.AppID)
 	d.Set("application_type", resp.ApplicationType)
-	d.Set("tags", resp.Tags)
+	flattenAndSetTags(d, resp.Tags)
 
 	return nil
 }
