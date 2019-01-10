@@ -797,7 +797,15 @@ resource "azurerm_subnet" "test-aci" {
   name                 = "acctestsubnet-aci%d"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "172.0.3.0/24"
+	address_prefix       = "172.0.3.0/24"
+
+	delegation {
+    name = "aciDelegation"
+    service_delegation {
+      name    = "Microsoft.ContainerInstance/containerGroups"
+      actions = [ "Microsoft.Network/virtualNetworks/subnets/action" ]
+    }
+  }
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -815,9 +823,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   agent_pool_profile {
-    name    = "default"
-    count   = "1"
-    vm_size = "Standard_DS2_v2"
+    name           = "default"
+    count          = "1"
+    vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = "${azurerm_subnet.test.id}"
   }
 
@@ -828,8 +836,8 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   addon_profile {
     aci_connector_linux {
-      enabled                    = true
-      subnet_name                = "${azurerm_subnet.test-aci.name}"
+      enabled     = true
+      subnet_name = "${azurerm_subnet.test-aci.name}"
     }
   }
 
