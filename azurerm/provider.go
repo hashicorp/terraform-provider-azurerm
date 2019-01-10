@@ -144,6 +144,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_virtual_machine":                       dataSourceArmVirtualMachine(),
 			"azurerm_virtual_network":                       dataSourceArmVirtualNetwork(),
 			"azurerm_virtual_network_gateway":               dataSourceArmVirtualNetworkGateway(),
+			"azurerm_application_insights":                  dataSourceArmApplicationInsights(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
