@@ -311,7 +311,7 @@ func TestAccAzureRMKubernetesCluster_internalNetwork(t *testing.T) {
 
 func TestAccAzureRMKubernetesCluster_addonProfileAciConnectorLinux(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	config := testAccAzureRMKubernetesCluster_addonProfileAciConnectorLinux(ri, clientId, clientSecret, testLocation())

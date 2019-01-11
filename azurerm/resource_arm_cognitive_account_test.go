@@ -40,7 +40,7 @@ func TestAccAzureRMCognitiveAccount_basic(t *testing.T) {
 
 func TestAccAzureRMCognitiveAccount_speechServices(t *testing.T) {
 	resourceName := "azurerm_cognitive_account.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMCognitiveAccount_speechServices(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{

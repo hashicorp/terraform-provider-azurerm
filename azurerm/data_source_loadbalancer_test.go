@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
 func TestAccAzureRMDataSourceLoadBalancer_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_lb.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
