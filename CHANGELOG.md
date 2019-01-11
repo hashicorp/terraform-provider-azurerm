@@ -1,4 +1,9 @@
 ## 2.0.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* `azurerm_data_lake_store_file` - support file uploads greater then 4 megabytes [GH-2633]
+
 ## 1.21.0 (January 11, 2019)
 
 FEATURES:
@@ -14,7 +19,6 @@ FEATURES:
 * **New Resource:** `azurerm_batch_pool` ([#2461](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2461))
 * **New Resource:** `azurerm_firewall_application_rule_collection` ([#2532](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2532))
 * **New Resource:** `azurerm_policy_set_definition` ([#2535](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2535))
-
 
 IMPROVEMENTS:
 
