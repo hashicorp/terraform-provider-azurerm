@@ -1,7 +1,10 @@
 package azurerm
 
 import (
+	"bytes"
 	"fmt"
+	"github.com/hashicorp/terraform/helper/hashcode"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"log"
 	"strings"
 
@@ -149,53 +152,56 @@ func resourceArmContainerGroup() *schema.Resource {
 						},
 
 						"port": {
-							Type:          schema.TypeInt,
-							Optional:      true,
-							ForceNew:      true,
-							ConflictsWith: []string{"container.0.ports"},
-							Deprecated:    "Use `ports` instead.",
-							ValidateFunc:  validate.PortNumber,
-						},
-
-						"ports": {
-							Type:          schema.TypeSet,
-							Optional:      true,
-							ForceNew:      true,
-							ConflictsWith: []string{"container.0.port", "container.0.protocol"},
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"protocol": {
-										Type:             schema.TypeString,
-										Optional:         true,
-										ForceNew:         true,
-										DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-										Default:          string(containerinstance.TCP),
-										ValidateFunc: validation.StringInSlice([]string{
-											string(containerinstance.TCP),
-											string(containerinstance.UDP),
-										}, true),
-									},
-									"port": {
-										Type:         schema.TypeInt,
-										Required:     true,
-										ForceNew:     true,
-										ValidateFunc: validate.PortNumber,
-									},
-								},
-							},
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ForceNew:     true,
+							Computed:     true,
+							Deprecated:   "Deprecated in favor of `ports`",
+							ValidateFunc: validate.PortNumber,
 						},
 
 						"protocol": {
 							Type:             schema.TypeString,
 							Optional:         true,
 							ForceNew:         true,
-							ConflictsWith:    []string{"container.0.ports"},
-							Deprecated:       "Use `ports` instead.",
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							Computed:         true,
+							Deprecated:       "Deprecated in favor of `ports`",
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerinstance.TCP),
 								string(containerinstance.UDP),
 							}, true),
+						},
+
+						"ports": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							ForceNew: true,
+							Computed: true,
+							Set:      resourceArmContainerGroupPortsHash,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"port": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ForceNew:     true,
+										Computed:     true,
+										ValidateFunc: validate.PortNumber,
+									},
+
+									"protocol": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ForceNew: true,
+										Computed: true,
+										//Default:  string(containerinstance.TCP), restore in 2.0
+										ValidateFunc: validation.StringInSlice([]string{
+											string(containerinstance.TCP),
+											string(containerinstance.UDP),
+										}, false),
+									},
+								},
+							},
 						},
 
 						"environment_variables": {
@@ -446,46 +452,44 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 			},
 		}
 
-		if v := data["port"]; v != 0 {
-			port := int32(v.(int))
-
-			// container port (port number)
-			container.Ports = &[]containerinstance.ContainerPort{
-				{
-					Port: &port,
-				},
-			}
-
-			// container group port (port number + protocol)
-			containerGroupPort := containerinstance.Port{
-				Port: &port,
-			}
-
-			if v, ok := data["protocol"]; ok {
-				protocol := v.(string)
-				containerGroupPort.Protocol = containerinstance.ContainerGroupNetworkProtocol(strings.ToUpper(protocol))
-			}
-
-			containerGroupPorts = append(containerGroupPorts, containerGroupPort)
-		}
-
-		if v, ok := data["ports"]; ok {
-			s := v.(*schema.Set)
+		if v, ok := data["ports"].(*schema.Set); ok && len(v.List()) > 0 {
 			var ports []containerinstance.ContainerPort
-			for _, v := range s.List() {
+			for _, v := range v.List() {
 				portObj := v.(map[string]interface{})
+
 				port := int32(portObj["port"].(int))
 				proto := portObj["protocol"].(string)
+
 				ports = append(ports, containerinstance.ContainerPort{
-					Protocol: containerinstance.ContainerNetworkProtocol(strings.ToUpper(proto)),
 					Port:     &port,
+					Protocol: containerinstance.ContainerNetworkProtocol(proto),
 				})
 				containerGroupPorts = append(containerGroupPorts, containerinstance.Port{
-					Protocol: containerinstance.ContainerGroupNetworkProtocol(strings.ToUpper(proto)),
 					Port:     &port,
+					Protocol: containerinstance.ContainerGroupNetworkProtocol(proto),
 				})
 			}
 			container.Ports = &ports
+		} else {
+			if v := int32(data["port"].(int)); v != 0 {
+				ports := []containerinstance.ContainerPort{
+					{
+						Port: &v,
+					},
+				}
+
+				port := containerinstance.Port{
+					Port: &v,
+				}
+
+				if v, ok := data["protocol"].(string); ok {
+					ports[0].Protocol = containerinstance.ContainerNetworkProtocol(v)
+					port.Protocol = containerinstance.ContainerGroupNetworkProtocol(v)
+				}
+
+				container.Ports = &ports
+				containerGroupPorts = append(containerGroupPorts, port)
+			}
 		}
 
 		// Set both sensitive and non-secure environment variables
@@ -669,13 +673,9 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 
 	//map old container names to index so we can look up things up
 	nameIndexMap := map[string]int{}
-	var newPortsField bool
 	for i, c := range d.Get("container").([]interface{}) {
 		cfg := c.(map[string]interface{})
 		nameIndexMap[cfg["name"].(string)] = i
-		if _, ok := cfg["ports"]; ok {
-			newPortsField = true
-		}
 	}
 
 	containerCfg := make([]interface{}, 0, len(*containers))
@@ -705,31 +705,32 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 			}
 		}
 
-		if len(*container.Ports) > 0 {
-			if newPortsField {
-				ports := make([]interface{}, 0)
-				for _, p := range *container.Ports {
-					port := make(map[string]interface{})
-					port["port"] = int(*p.Port)
-					port["protocol"] = string(p.Protocol)
-					ports = append(ports, port)
+		if cPorts := container.Ports; cPorts != nil && len(*cPorts) > 0 {
+			ports := make([]interface{}, 0)
+			for _, p := range *cPorts {
+				port := make(map[string]interface{})
+				if v := p.Port; v != nil {
+					port["port"] = int(*v)
 				}
-				containerConfig["ports"] = ports
-			} else {
-				containerPort := *(*container.Ports)[0].Port
-				containerConfig["port"] = containerPort
-				// protocol isn't returned in container config, have to search in container group ports
-				protocol := ""
-				if containerGroupPorts != nil {
-					for _, cgPort := range *containerGroupPorts {
-						if *cgPort.Port == containerPort {
-							protocol = string(cgPort.Protocol)
-						}
+				port["protocol"] = string(p.Protocol)
+				ports = append(ports, port)
+			}
+			containerConfig["ports"] = schema.NewSet(resourceArmContainerGroupPortsHash, ports)
+
+			//old deprecated code
+			containerPort := *(*cPorts)[0].Port
+			containerConfig["port"] = containerPort
+			// protocol isn't returned in container config, have to search in container group ports
+			protocol := ""
+			if containerGroupPorts != nil {
+				for _, cgPort := range *containerGroupPorts {
+					if *cgPort.Port == containerPort {
+						protocol = string(cgPort.Protocol)
 					}
 				}
-				if protocol != "" {
-					containerConfig["protocol"] = protocol
-				}
+			}
+			if protocol != "" {
+				containerConfig["protocol"] = protocol
 			}
 		}
 
@@ -864,4 +865,15 @@ func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, cont
 	}
 
 	return volumeConfigs
+}
+
+func resourceArmContainerGroupPortsHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%d-", m["port"].(int)))
+		buf.WriteString(fmt.Sprintf("%s-", m["protocol"].(string)))
+	}
+
+	return hashcode.String(buf.String())
 }

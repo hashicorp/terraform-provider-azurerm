@@ -385,7 +385,7 @@ resource "azurerm_container_group" "test" {
     cpu      = "0.5"
     memory   = "0.5"
     port     = 5443
-    protocol = "udp"
+    protocol = "UDP"
   }
 
   image_registry_credential {
@@ -482,7 +482,7 @@ resource "azurerm_container_group" "test" {
     }
     ports  = {
       port     = 5443
-      protocol = "udp"
+      protocol = "UDP"
     }
   }
 
@@ -521,11 +521,11 @@ resource "azurerm_container_group" "test" {
     memory = "3.5"
     ports  = {
       port     = 80
-      protocol = "tcp"
+      protocol = "TCP"
     }
     ports  = {
       port     = 443
-      protocol = "tcp"
+      protocol = "TCP"
     }
   }
 
@@ -559,7 +559,7 @@ resource "azurerm_container_group" "test" {
     memory = "3.5"
     ports  = {
       port     = 80
-      protocol = "tcp"
+      protocol = "TCP"
     }
 
     environment_variables {
@@ -623,7 +623,7 @@ resource "azurerm_container_group" "test" {
 
     ports  = {
       port     = 80
-      protocol = "tcp"
+      protocol = "TCP"
     }
 
     volume {

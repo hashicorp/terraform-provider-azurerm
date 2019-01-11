@@ -50,10 +50,12 @@ resource "azurerm_container_group" "aci-helloworld" {
     cpu    = "0.5"
     memory = "1.5"
     ports  = {
-      port = 80
+      port     = 80
+      protocol = "TCP"
     }
     ports = {
-      port = 443 
+      port     = 443
+      protocol = "TCP" 
     }
 
     environment_variables {
@@ -166,7 +168,7 @@ The `ports` block supports:
 
 * `port` - (Required) The port number the container will expose.
 
-* `protocol` - (Optional) The network protocol ("tcp"/"udp") associated with port. The default is `TCP`.
+* `protocol` - (Required) The network protocol associated with port. Possible values are `TCP` & `UDP`.
 
 ## Attributes Reference
 
