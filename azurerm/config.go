@@ -84,6 +84,7 @@ type ArmClient struct {
 	clientId                 string
 	tenantId                 string
 	subscriptionId           string
+	partnerId                string
 	usingServicePrincipal    bool
 	environment              az.Environment
 	skipProviderRegistration bool
@@ -349,7 +350,7 @@ func clientRequestID() string {
 }
 
 func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Authorizer) {
-	setUserAgent(client)
+	setUserAgent(client, c.partnerId)
 	client.Authorizer = auth
 	//client.RequestInspector = azure.WithClientID(clientRequestID())
 	client.Sender = azure.BuildSender()
@@ -357,7 +358,7 @@ func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Autho
 	client.PollingDuration = 60 * time.Minute
 }
 
-func setUserAgent(client *autorest.Client) {
+func setUserAgent(client *autorest.Client, partnerID string) {
 	// TODO: This is the SDK version not the CLI version, once we are on 0.12, should revisit
 	tfUserAgent := httpclient.UserAgentString()
 
@@ -370,12 +371,16 @@ func setUserAgent(client *autorest.Client) {
 		client.UserAgent = fmt.Sprintf("%s %s", client.UserAgent, azureAgent)
 	}
 
+	if partnerID != "" {
+		client.UserAgent = fmt.Sprintf("%s pid-%s", client.UserAgent, partnerID)
+	}
+
 	log.Printf("[DEBUG] AzureRM Client User Agent: %s\n", client.UserAgent)
 }
 
 // getArmClient is a helper method which returns a fully instantiated
 // *ArmClient based on the Config's current settings.
-func getArmClient(c *authentication.Config, skipProviderRegistration bool) (*ArmClient, error) {
+func getArmClient(c *authentication.Config, skipProviderRegistration bool, partnerId string) (*ArmClient, error) {
 	env, err := authentication.DetermineEnvironment(c.Environment)
 	if err != nil {
 		return nil, err
@@ -386,6 +391,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool) (*Arm
 		clientId:                 c.ClientID,
 		tenantId:                 c.TenantID,
 		subscriptionId:           c.SubscriptionID,
+		partnerId:                partnerId,
 		environment:              *env,
 		usingServicePrincipal:    c.AuthenticatedAsAServicePrincipal,
 		skipProviderRegistration: skipProviderRegistration,
@@ -726,7 +732,7 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	c.sqlDatabasesClient = sqlDBClient
 
 	sqlDTDPClient := sql.NewDatabaseThreatDetectionPoliciesClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&sqlDTDPClient.Client)
+	setUserAgent(&sqlDTDPClient.Client, "")
 	sqlDTDPClient.Authorizer = auth
 	sqlDTDPClient.Sender = sender
 	sqlDTDPClient.SkipResourceProviderRegistration = c.skipProviderRegistration
