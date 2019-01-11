@@ -84,9 +84,8 @@ resource "azurerm_eventhub_namespace" "test" {
   resource_group_name      = "${azurerm_resource_group.test.name}"
   sku                      = "Standard"
   capacity                 = "2"
-	auto_inflate_enabled     = true
-	auto_inflate_enabled     = true
-	kafka_enabled .          = true
+  auto_inflate_enabled     = true
+  kafka_enabled            = true
   maximum_throughput_units = 20
 }
 
