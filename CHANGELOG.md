@@ -30,6 +30,7 @@ IMPROVEMENTS:
 * `azurerm_container_group` - deprecated container properties `port` and `protocol` for ports allowing for multiple ports [GH-1930]
 * `azurerm_eventhub_namespace` - support for `kafka_enabled` [GH-2395]
 * `azurerm_firewall` - renaming the `public_ip_address_id` property to `ip_address_id` [GH-2433]
+* `azurerm_kubernetes_cluster` - support for Virtual Nodes [GH-2641]
 * `azurerm_kubernetes_cluster` - the `dns_prefix` now forces a new resource and is properly validated [GH-2611]
 * `azurerm_log_analytics_workspace_linked_service` - now correctly handels uppcase `workspace_name` values  [GH-2594]
 * `azurerm_network_interface` - support for IPv6 addresses [GH-2548]
