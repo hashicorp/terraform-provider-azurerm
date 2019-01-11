@@ -89,7 +89,7 @@ func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error issuing create request for Data Lake Store File %q : %+v", remoteFilePath, err)
 	}
 
-	buffer := make([]byte, chunkSize, chunkSize)
+	buffer := make([]byte, chunkSize)
 	for {
 		n, err := file.Read(buffer)
 		if err == io.EOF {
