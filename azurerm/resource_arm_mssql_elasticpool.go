@@ -160,7 +160,8 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 
 			"max_size_bytes": {
 				Type:         schema.TypeInt,
-				Required:     true,
+				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.IntAtLeast(0),
 			},
 
@@ -266,7 +267,6 @@ func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interf
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	sku := expandAzureRmMsSqlElasticPoolSku(d)
-	maxSize := d.Get("max_size_bytes").(int)
 	tags := d.Get("tags").(map[string]interface{})
 
 	elasticPool := sql.ElasticPool{
@@ -276,8 +276,11 @@ func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interf
 		Tags:     expandTags(tags),
 		ElasticPoolProperties: &sql.ElasticPoolProperties{
 			PerDatabaseSettings: expandAzureRmMsSqlElasticPoolPerDatabaseSettings(d),
-			MaxSizeBytes:        utils.Int64(int64(maxSize)),
 		},
+	}
+
+	if v, ok := d.GetOk("max_size_bytes"); ok {
+		elasticPool.MaxSizeBytes = utils.Int64(int64(v.(int)))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, elasticPoolName, elasticPool)
