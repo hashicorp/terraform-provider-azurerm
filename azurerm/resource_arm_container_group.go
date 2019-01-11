@@ -3,10 +3,11 @@ package azurerm
 import (
 	"bytes"
 	"fmt"
-	"github.com/hashicorp/terraform/helper/hashcode"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"log"
 	"strings"
+
+	"github.com/hashicorp/terraform/helper/hashcode"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
 	"github.com/hashicorp/terraform/helper/schema"
