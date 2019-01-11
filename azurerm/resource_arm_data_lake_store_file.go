@@ -54,7 +54,7 @@ func resourceArmDataLakeStoreFile() *schema.Resource {
 func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dataLakeStoreFilesClient
 	ctx := meta.(*ArmClient).StopContext
-	bufferSize := 4 * 1024 * 1024
+	chunkSize := 4 * 1024 * 1024
 
 	log.Printf("[INFO] preparing arguments for Date Lake Store File creation.")
 
@@ -89,14 +89,14 @@ func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error issuing create request for Data Lake Store File %q : %+v", remoteFilePath, err)
 	}
 
-	buffer := make([]byte, bufferSize, bufferSize)
+	buffer := make([]byte, chunkSize, chunkSize)
 	for {
 		n, err := file.Read(buffer)
 		if err == io.EOF {
 			break
 		}
 		flag := filesystem.DATA
-		if n < bufferSize {
+		if n < chunkSize {
 			// last chunk
 			flag = filesystem.CLOSE
 		}
