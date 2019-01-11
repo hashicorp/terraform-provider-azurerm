@@ -79,6 +79,7 @@ func Provider() terraform.ResourceProvider {
 			"partner_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				DefaultFunc:  schema.EnvDefaultFunc("ARM_PARTNER_ID", ""),
 				ValidateFunc: validate.UUID,
 			},
 
