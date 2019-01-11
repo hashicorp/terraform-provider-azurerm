@@ -23,7 +23,7 @@ resource "azurerm_public_ip" "main" {
   name                         = "${var.prefix}-pip"
   location                     = "${azurerm_resource_group.main.location}"
   resource_group_name          = "${azurerm_resource_group.main.name}"
-  public_ip_address_allocation = "static"
+  allocation_method = "Static"
 }
 
 resource "azurerm_network_interface" "main" {
@@ -35,7 +35,7 @@ resource "azurerm_network_interface" "main" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.internal.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = "${azurerm_public_ip.main.id}"
   }
 }

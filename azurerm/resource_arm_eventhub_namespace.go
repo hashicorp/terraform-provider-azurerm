@@ -24,9 +24,9 @@ var eventHubNamespaceDefaultAuthorizationRule = "RootManageSharedAccessKey"
 
 func resourceArmEventHubNamespace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmEventHubNamespaceCreate,
+		Create: resourceArmEventHubNamespaceCreateUpdate,
 		Read:   resourceArmEventHubNamespaceRead,
-		Update: resourceArmEventHubNamespaceCreate,
+		Update: resourceArmEventHubNamespaceCreateUpdate,
 		Delete: resourceArmEventHubNamespaceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -62,6 +62,12 @@ func resourceArmEventHubNamespace() *schema.Resource {
 			},
 
 			"auto_inflate_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"kafka_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -103,7 +109,7 @@ func resourceArmEventHubNamespace() *schema.Resource {
 	}
 }
 
-func resourceArmEventHubNamespaceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).eventHubNamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM EventHub Namespace creation.")
@@ -129,6 +135,7 @@ func resourceArmEventHubNamespaceCreate(d *schema.ResourceData, meta interface{}
 	capacity := int32(d.Get("capacity").(int))
 	tags := d.Get("tags").(map[string]interface{})
 	autoInflateEnabled := d.Get("auto_inflate_enabled").(bool)
+	kafkaEnabled := d.Get("kafka_enabled").(bool)
 
 	parameters := eventhub.EHNamespace{
 		Location: &location,
@@ -139,6 +146,7 @@ func resourceArmEventHubNamespaceCreate(d *schema.ResourceData, meta interface{}
 		},
 		EHNamespaceProperties: &eventhub.EHNamespaceProperties{
 			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
+			KafkaEnabled:         utils.Bool(kafkaEnabled),
 		},
 		Tags: expandTags(tags),
 	}
@@ -211,6 +219,7 @@ func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) 
 
 	if props := resp.EHNamespaceProperties; props != nil {
 		d.Set("auto_inflate_enabled", props.IsAutoInflateEnabled)
+		d.Set("kafka_enabled", props.KafkaEnabled)
 		d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
 	}
 

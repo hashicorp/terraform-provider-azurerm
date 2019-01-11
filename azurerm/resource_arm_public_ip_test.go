@@ -15,7 +15,6 @@ import (
 func TestAccAzureRMPublicIpStatic_basic(t *testing.T) {
 	resourceName := "azurerm_public_ip.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMPublicIPStatic_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -23,11 +22,47 @@ func TestAccAzureRMPublicIpStatic_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMPublicIPStatic_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPublicIpExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
+					resource.TestCheckResourceAttr(resourceName, "allocation_method", "Static"),
+					resource.TestCheckResourceAttr(resourceName, "ip_version", "IPv4"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMPublicIpStatic_basicOld(t *testing.T) {
+	resourceName := "azurerm_public_ip.test"
+	ri := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPublicIPStatic_basicOld(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIpExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
 					resource.TestCheckResourceAttr(resourceName, "public_ip_address_allocation", "Static"),
+					resource.TestCheckResourceAttr(resourceName, "ip_version", "IPv4"),
+				),
+			},
+			{
+				Config: testAccAzureRMPublicIPStatic_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPublicIpExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
+					resource.TestCheckResourceAttr(resourceName, "allocation_method", "Static"),
 					resource.TestCheckResourceAttr(resourceName, "ip_version", "IPv4"),
 				),
 			},
@@ -54,7 +89,7 @@ func TestAccAzureRMPublicIpStatic_zones(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIpExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
-					resource.TestCheckResourceAttr(resourceName, "public_ip_address_allocation", "Static"),
+					resource.TestCheckResourceAttr(resourceName, "allocation_method", "Static"),
 					resource.TestCheckResourceAttr(resourceName, "zones.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "zones.0", "1"),
 				),
@@ -84,7 +119,7 @@ func TestAccAzureRMPublicIpStatic_basic_withDNSLabel(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIpExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
-					resource.TestCheckResourceAttr(resourceName, "public_ip_address_allocation", "Static"),
+					resource.TestCheckResourceAttr(resourceName, "allocation_method", "Static"),
 					resource.TestCheckResourceAttr(resourceName, "domain_name_label", dnl),
 				),
 			},
@@ -397,7 +432,7 @@ func TestAccAzureRMPublicIpStatic_canLabelBe63(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIpExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
-					resource.TestCheckResourceAttr(resourceName, "public_ip_address_allocation", "Static"),
+					resource.TestCheckResourceAttr(resourceName, "allocation_method", "Static"),
 				),
 			},
 			{
@@ -502,6 +537,22 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
+  name                = "acctestpublicip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMPublicIPStatic_basicOld(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_public_ip" "test" {
   name                         = "acctestpublicip-%d"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
@@ -518,11 +569,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctestpublicip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Static"
-  zones                        = ["1"]
+  name                = "acctestpublicip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
+  zones               = ["1"]
 }
 `, rInt, location, rInt)
 }
@@ -535,11 +586,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctestpublicip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Static"
-  domain_name_label            = "%s"
+  name                = "acctestpublicip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
+  domain_name_label   = "%s"
 }
 `, rInt, location, rInt, dnsNameLabel)
 }
@@ -552,11 +603,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctestpublicip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Static"
-  ip_version                   = "%s"
+  name                = "acctestpublicip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
+  ip_version          = "%s"
 }
 `, rInt, location, rInt, ipVersion)
 }
@@ -569,11 +620,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctestpublicip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
-  sku                          = "standard"
+  name                = "acctestpublicip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 `, rInt, location, rInt)
 }
@@ -586,12 +637,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctestpublicip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
-  ip_version                   = "%s"
-  sku                          = "standard"
+  name                = "acctestpublicip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
+  ip_version          = "%s"
+  sku                 = "Standard"
 }
 `, rInt, location, rInt, ipVersion)
 }
@@ -604,11 +655,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctestpublicip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
-  domain_name_label            = "acctest-%d"
+  name                = "acctestpublicip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
+  domain_name_label   = "acctest-%d"
 }
 `, rInt, location, rInt, rInt)
 }
@@ -621,11 +672,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctestpublicip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
-  idle_timeout_in_minutes      = 30
+  name                    = "acctestpublicip-%d"
+  location                = "${azurerm_resource_group.test.location}"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  allocation_method       = "Static"
+  idle_timeout_in_minutes = 30
 }
 `, rInt, location, rInt)
 }
@@ -638,10 +689,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctestpublicip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "dynamic"
+  name                = "acctestpublicip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
 }
 `, rInt, location, rInt)
 }
@@ -654,10 +705,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctestpublicip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "dynamic"
+  name                = "acctestpublicip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
 
   ip_version = "%s"
 }
@@ -672,10 +723,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctestpublicip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
+  name                = "acctestpublicip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
 
   tags {
     environment = "Production"
@@ -693,10 +744,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctestpublicip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
+  name                = "acctestpublicip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
 
   tags {
     environment = "staging"
@@ -717,8 +768,8 @@ resource "azurerm_public_ip" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  public_ip_address_allocation = "static"
-  domain_name_label            = "k2345678-1-2345678-2-2345678-3-2345678-4-2345678-5-2345678-6-23"
+  allocation_method = "Static"
+  domain_name_label = "k2345678-1-2345678-2-2345678-3-2345678-4-2345678-5-2345678-6-23"
 }
 `, rInt, location, rInt)
 }

@@ -91,6 +91,8 @@ The following arguments are supported:
 
 ~> **NOTE:** This value is required when the specified Policy Definition contains the `parameters` field.
 
+* `not_scopes` - (Optional) A list of the Policy Assignment's excluded scopes. The list must contain Resource IDs (such as Subscriptions e.g. `/subscriptions/00000000-0000-0000-000000000000` or Resource Groups e.g.`/subscriptions/00000000-0000-0000-000000000000/resourceGroups/myResourceGroup`). 
+
 ---
 
 An `identity` block supports the following:

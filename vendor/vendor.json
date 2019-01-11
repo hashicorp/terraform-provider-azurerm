@@ -3,548 +3,562 @@
 	"ignore": "test",
 	"package": [
 		{
-			"checksumSHA1": "Ohzmn3hdzuDAONRJ4pfj9gIcK9Y=",
+			"checksumSHA1": "ktGlFy+mU5MqGZhigPPr+pdfzo8=",
+			"path": "contrib.go.opencensus.io/exporter/ocagent",
+			"revision": "0758abcb21781452e3f21b8d7944e0da2a16d736",
+			"revisionTime": "2018-12-13T12:33:50Z"
+		},
+		{
+			"checksumSHA1": "UhJRm079RffZyb5lr6ejn6NGiu0=",
 			"path": "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "Ynbz9cbfu714dUSimcL4QRIg96E=",
+			"checksumSHA1": "3VO/n9u/PvhiKHK6qc3Xb7aV6y0=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "stiogNKwVm0Y0v6nxqIPlXG9tnw=",
+			"checksumSHA1": "QGeDrdFRWEVwOzsJbyYJE0mRtSM=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "wSU0j8sK/9pDbS+X4jxvExz44w8=",
+			"checksumSHA1": "wdO6kxeyyQx9UiqIFsRtAIW4ofs=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "GZEKIkiC//1VgeihW1g/KU+JC8A=",
+			"checksumSHA1": "XtG25ZYVNTfmZDEftJIJm4yL23c=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-10-12/cdn",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "aWRle6uvrmNNv+Awt3+Ymr0DDhQ=",
+			"checksumSHA1": "/QUp84QewovysKw+LKeQYh4zycI=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "iS3V1RJwe8QKQ8k+IdX6MRxFjjs=",
+			"checksumSHA1": "m/xKYLfpFHCiYAwVlLCWXU3a8OE=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "c6iA9bRood4Du2CyILUSc0UDZl4=",
+			"checksumSHA1": "TxxMpNrjQkLSUtgB3dSvHrRfcx4=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "de3ebjA98pZUR4H4Ff4CgFA42xE=",
+			"checksumSHA1": "9hSFpEIQITHhhkg8CwLp2hX10Zg=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "KvtgSYEEP2S+7fc4ICih0J8EfEc=",
+			"checksumSHA1": "sZjHrayrWmY3mMQgB8DAdBj81dA=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "CgGa0kQ5bjQWYin6/fiqSTf+8kg=",
+			"checksumSHA1": "wjGaQSLH8AUHozm79zoHbKAJ6JI=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "+XnMSGudv1OJ0EM7e4KT6RvXn4Y=",
+			"checksumSHA1": "zuKWfEPtf8/U63xAUC7Qtsi9ark=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "9oNfXIzF5S8ninqAOSfpVf5rNEY=",
+			"checksumSHA1": "aVqVZg1Xg+rkbSMKkDmuI7KXY/Y=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "owtUC3Li102StpaZ1Ahh0SvifP4=",
+			"checksumSHA1": "e5TvOCapiiiptgU6Jiyq1cWj6Zk=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "koKSQ4PgeyIgykEPNEeE2tzRm18=",
+			"checksumSHA1": "b+Cwtn2VI3bPAtHUrzzleH8J+Gw=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "eScauiDOG7qx2IieGVacFNMaviE=",
+			"checksumSHA1": "hZ9/d3yVb4ohdxg2M63Wqd7u0SQ=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "1pUhYieF1QxwmtGTfyJl5+jqBw4=",
+			"checksumSHA1": "Lxr9g0A8LJ3JjKQTi25Q8ZRpB1I=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2018-01-01/eventgrid",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "FF+JJRL14lbAx8c2s4pixvIulCA=",
+			"checksumSHA1": "ExJRY9MXpdhg5u23mTdXUxhFyv8=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "R/wi+9kJaTVXwJDbeqSVEmmdzbU=",
+			"checksumSHA1": "TLS49M5qFLOtWvgjHAmcBFbC/hY=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "7R4dQFtj4Tgw11c3rmlRU3y71sQ=",
+			"checksumSHA1": "32MVtKQrYX3OQFes6KKoffEEO8Q=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2018-04-01/devices",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "3Dn5zSdAcOuPVXEy5egbIsfFeC4=",
+			"checksumSHA1": "LrI3LcCkp0SDVLIRdhl9FWvAdao=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "RZpLYjpPpobqat3uLWXPC8H33EQ=",
+			"checksumSHA1": "NRPUNJ43DimaXd/zTgpzc6lIC4Q=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "VxbYAnSoPGTkgYpdnwIMpRJzMvw=",
+			"checksumSHA1": "krcFBdXPRB+7l2yQn1GVmOxDEz4=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "pkXIbdaGm2PLbtdgxpdI52dKNyA=",
+			"checksumSHA1": "YduBWwfKSEkU4zIkWDmBKeaFZdE=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "qyyk0Jp48pFGztq+naQDrFWBXSA=",
+			"checksumSHA1": "5Uz8IGClwII1KHXJ0bymz+Fer7E=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "gKWc9f9h+qlpzYqyoG3CZR+7q/U=",
+			"checksumSHA1": "aLv1D7Noiv9u2qGOp0+Y5NjWEOA=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "T9YDd9glsQTzaJZKbY5dIaXo3xU=",
+			"checksumSHA1": "SOQKMuiy/cAdjbkbBIp/HcLODV0=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "yShJsIf7y4pGWsFKOnEOVRLUFMA=",
+			"checksumSHA1": "Df9H/cUAhGXb6jUXSiz+C9CXrRE=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/preview/apimanagement/mgmt/2018-06-01-preview/apimanagement",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "E7n1e1+L/fY7TVayjtwOXaMilD4=",
+			"checksumSHA1": "K71nBeoUijXpcs+Tgl5ajvUt7nE=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "wGW3tQ2ARxHa8qNWfNY0yiqWEmU=",
+			"checksumSHA1": "vA9jTWNBVcLfmOlu4ebhehgUK0s=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/preview/devspaces/mgmt/2018-06-01-preview/devspaces",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "P5j/WdC8zYfnoyr7VSyPjvozy4Q=",
+			"checksumSHA1": "7NzqqHn8tHPmQNVs/NkG5YohMr4=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "fnApqrMFYSd4sVvZbgQhpbn5Tm8=",
+			"checksumSHA1": "I7vThbS0qg561VpDOdvo1qYleJs=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/preview/mariadb/mgmt/2018-06-01-preview/mariadb",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "NTKrqzjgDA3tOouG/avprOJuw0M=",
+			"checksumSHA1": "qf6o2dkVOeOnChUPtZ2Q1LdftVc=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "QT7LrDyti+qDCjhxerYb8PwLfew=",
+			"checksumSHA1": "9QiFVjxAPWxCMY8q5F2qYlW5uOM=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "Ea3OpuYtxSgAyBgOwgQb2zKoYxY=",
+			"checksumSHA1": "T3alVnMbToqNeEv8VhDRh8xp07A=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "oAlXK4qZSqvLCrJwyLZLVvUqQhc=",
+			"checksumSHA1": "JBM0pvnm6bqqsVEYSbrRzXYwgu0=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "dOTq3QXVgEkhOV23gEhom7VQOgk=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/management",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"checksumSHA1": "Cw3Uj8s3um8HneNxzmXFFy1gpEg=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups",
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "LgT1ewQ3oLiXRW1L1oZ0I8g2bH4=",
+			"checksumSHA1": "jXWt772YKcYrv6B9K5fF/l+I09o=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/2017-08-01-preview/security",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "28xCpXfx5zWtMy6gXgxQw7nD4YQ=",
+			"checksumSHA1": "RHE+VR3M1ZqRU/50ArAP+IXSyQE=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/preview/signalr/mgmt/2018-03-01-preview/signalr",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "/lxvjQjQNmBuS4tOwMdG3n4nWd0=",
+			"checksumSHA1": "ovANO6ZYBi+NTSSFFK9aXuqAISo=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "A+vy/mTrX3aAqIjnZcAhIqQc/UU=",
+			"checksumSHA1": "vNfuy0EtDXCzz/rlnce77a4vbQk=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "UWSnIzZywuEpEevbPfbPNLk1dFk=",
+			"checksumSHA1": "Q0a/TbZkZ55aCn4dCrnS05a5z24=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "D1RyQEwuDGT8PKaB1bWL0AkdzrA=",
+			"checksumSHA1": "ATwKbzPaR0DQWro5ea79G+d2wBI=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2017-07-01/backup",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "i/Nusgj1Ol8GAQKU3yCcVXQiBlg=",
+			"checksumSHA1": "iGoeri+TKP9wFfCA4XCqYmRpmLU=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "U2P3yBkAXv5gePqS1FbScQWsSNc=",
+			"checksumSHA1": "LWgnucdAenZeN4RjsoKU9JGyn04=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "dVI8mXjcACkxDIMil3qe9FXxfo8=",
+			"checksumSHA1": "Tnw6Ah2Iqc9m/1lCar+6rXvIvwk=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-02-01/resources",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "BNcbTSVY4BRQ3Qt6Cajo4fM9Esk=",
+			"checksumSHA1": "A75dN8nK1i7yv8p3w1DxYLn4hcg=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "ARZrveVxX1XLLg2D070/YMD/TvM=",
+			"checksumSHA1": "ey4pCtMdo2fFObUUPZjC/y94pAM=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "uzyd1GHAwK4+q82pHHwNuoYrxqU=",
+			"checksumSHA1": "0M1xxwMExrlaNoXfNudBPXqDtto=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "+2cFVK2+a2ie24gma4Mv83nXKUU=",
+			"checksumSHA1": "uJlA7Ak0zO19/MYXrKFkcTk8Qq0=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "ie11UTGJ69WCFS5kTy3lBbRlqwo=",
+			"checksumSHA1": "jUZzDCO0Cttya2ZvJGwVdbR4W6Y=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "I5vftq1uXVmiDOe8CtOA4Xx2jHw=",
+			"checksumSHA1": "k+GEvumpr+a3kFFHLMCwEDOQ7h4=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "2Rxne9fHSlFs6Z9HXnIW+FP7yko=",
+			"checksumSHA1": "cqZ7zVo6CeIKAh/gX+UBshpdB3Y=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
 			"checksumSHA1": "E6K9qLJIuos/ZGzhOpfbCxb77MQ=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2018-02-01/servicefabric",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "J2UJ27fuu+vuOCBLl22m+5SZx8c=",
+			"checksumSHA1": "AaWEef29fTugDHGkHmaOXE86umg=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "HhbwyLbz+/pbGSWb2cp+fAp6YsI=",
+			"checksumSHA1": "lRlZkQ5efEA8z6wD0lgqg1EmeAI=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "5QztaasSlo+UktbM1xGNtzHxmxw=",
+			"checksumSHA1": "dO9Ny6JBKL6n/IHE0HpQFz4KmYo=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
 			"checksumSHA1": "Fo0yAWjaIGDb4GNhqnLCgyaPzNI=",
 			"path": "github.com/Azure/azure-sdk-for-go/storage",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "iwFNzhhpqENmDbIOG2GHQJY2nDs=",
+			"checksumSHA1": "5OXhmdScl78ZC8+IuDA6LBE8f7U=",
 			"path": "github.com/Azure/azure-sdk-for-go/version",
-			"revision": "da91af54816b4cf72949c225a2d0980f51fab01b",
-			"revisionTime": "2018-10-19T17:11:53Z",
-			"version": "v21.3.0",
-			"versionExact": "v21.3.0"
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
 		},
 		{
-			"checksumSHA1": "1Y2+bSzYrdPHQqRjR1OrBMHAvxY=",
+			"checksumSHA1": "AUVb80JXsNPSMRGnXGOy+Jr/cd0=",
 			"path": "github.com/Azure/go-autorest/autorest",
-			"revision": "a88c19ef2016e095f0b6c3b451074b4663f53bed",
-			"revisionTime": "2018-09-11T16:08:53Z",
-			"version": "v10.15.4",
-			"versionExact": "v10.15.4"
+			"revision": "f401b1ccc8eb505927fae7a0c7f6406d37ca1c7e",
+			"revisionTime": "2018-11-19T21:30:05Z",
+			"version": "v11.2.8",
+			"versionExact": "v11.2.8"
 		},
 		{
-			"checksumSHA1": "GxL0HHpZDj2milPhR3SPV6MWLPc=",
+			"checksumSHA1": "YqcJpqDQDdqSRfPAthRiXgGu5I4=",
 			"path": "github.com/Azure/go-autorest/autorest/adal",
-			"revision": "a88c19ef2016e095f0b6c3b451074b4663f53bed",
-			"revisionTime": "2018-09-11T16:08:53Z",
-			"version": "v10.15.4",
-			"versionExact": "v10.15.4"
+			"revision": "f401b1ccc8eb505927fae7a0c7f6406d37ca1c7e",
+			"revisionTime": "2018-11-19T21:30:05Z",
+			"version": "v11.2.8",
+			"versionExact": "v11.2.8"
 		},
 		{
-			"checksumSHA1": "iabndyKiv9sLDixJh4izKt7Nniw=",
+			"checksumSHA1": "xKXSYGhozfJcpsB+ZJoY2ynam10=",
 			"path": "github.com/Azure/go-autorest/autorest/azure",
-			"revision": "a88c19ef2016e095f0b6c3b451074b4663f53bed",
-			"revisionTime": "2018-09-11T16:08:53Z",
-			"version": "v10.15.4",
-			"versionExact": "v10.15.4"
+			"revision": "f401b1ccc8eb505927fae7a0c7f6406d37ca1c7e",
+			"revisionTime": "2018-11-19T21:30:05Z",
+			"version": "v11.2.8",
+			"versionExact": "v11.2.8"
 		},
 		{
-			"checksumSHA1": "Fkezj7ch01wYNvXzQZdhmeSf/mk=",
+			"checksumSHA1": "PTO/5npEPoRIq4fu0OSNyPcKoCU=",
 			"path": "github.com/Azure/go-autorest/autorest/azure/cli",
-			"revision": "a88c19ef2016e095f0b6c3b451074b4663f53bed",
-			"revisionTime": "2018-09-11T16:08:53Z",
-			"version": "v10.15.4",
-			"versionExact": "v10.15.4"
+			"revision": "f401b1ccc8eb505927fae7a0c7f6406d37ca1c7e",
+			"revisionTime": "2018-11-19T21:30:05Z",
+			"version": "v11.2.8",
+			"versionExact": "v11.2.8"
 		},
 		{
 			"checksumSHA1": "9nXCi9qQsYjxCeajJKWttxgEt0I=",
 			"path": "github.com/Azure/go-autorest/autorest/date",
-			"revision": "a88c19ef2016e095f0b6c3b451074b4663f53bed",
-			"revisionTime": "2018-09-11T16:08:53Z",
-			"version": "v10.15.4",
-			"versionExact": "v10.15.4"
+			"revision": "f401b1ccc8eb505927fae7a0c7f6406d37ca1c7e",
+			"revisionTime": "2018-11-19T21:30:05Z",
+			"version": "v11.2.8",
+			"versionExact": "v11.2.8"
 		},
 		{
 			"checksumSHA1": "SbBb2GcJNm5GjuPKGL2777QywR4=",
 			"path": "github.com/Azure/go-autorest/autorest/to",
-			"revision": "a88c19ef2016e095f0b6c3b451074b4663f53bed",
-			"revisionTime": "2018-09-11T16:08:53Z",
-			"version": "v10.15.4",
-			"versionExact": "v10.15.4"
+			"revision": "f401b1ccc8eb505927fae7a0c7f6406d37ca1c7e",
+			"revisionTime": "2018-11-19T21:30:05Z",
+			"version": "v11.2.8",
+			"versionExact": "v11.2.8"
 		},
 		{
 			"checksumSHA1": "HjdLfAF3oA2In8F3FKh/Y+BPyXk=",
 			"path": "github.com/Azure/go-autorest/autorest/validation",
-			"revision": "a88c19ef2016e095f0b6c3b451074b4663f53bed",
-			"revisionTime": "2018-09-11T16:08:53Z",
-			"version": "v10.15.4",
-			"versionExact": "v10.15.4"
+			"revision": "f401b1ccc8eb505927fae7a0c7f6406d37ca1c7e",
+			"revisionTime": "2018-11-19T21:30:05Z",
+			"version": "v11.2.8",
+			"versionExact": "v11.2.8"
 		},
 		{
-			"checksumSHA1": "b2lrPJRxf+MEfmMafN40wepi5WM=",
+			"checksumSHA1": "o2qI63YFK2UPxMUK+WmV6GJv794=",
 			"path": "github.com/Azure/go-autorest/logger",
-			"revision": "a88c19ef2016e095f0b6c3b451074b4663f53bed",
-			"revisionTime": "2018-09-11T16:08:53Z",
-			"version": "v10.15.4",
-			"versionExact": "v10.15.4"
+			"revision": "f401b1ccc8eb505927fae7a0c7f6406d37ca1c7e",
+			"revisionTime": "2018-11-19T21:30:05Z",
+			"version": "v11.2.8",
+			"versionExact": "v11.2.8"
 		},
 		{
-			"checksumSHA1": "JVAdK/V4SFCsCdpRBd4hTq/Z3h4=",
+			"checksumSHA1": "SIuMOYtCDIhIa+DsJ0jOHGB419I=",
+			"path": "github.com/Azure/go-autorest/tracing",
+			"revision": "f401b1ccc8eb505927fae7a0c7f6406d37ca1c7e",
+			"revisionTime": "2018-11-19T21:30:05Z",
+			"version": "v11.2.8",
+			"versionExact": "v11.2.8"
+		},
+		{
+			"checksumSHA1": "evqP2cet4RqTw7FURs4U4SMCdaE=",
 			"path": "github.com/Azure/go-autorest/version",
-			"revision": "a88c19ef2016e095f0b6c3b451074b4663f53bed",
-			"revisionTime": "2018-09-11T16:08:53Z",
-			"version": "v10.15.4",
-			"versionExact": "v10.15.4"
+			"revision": "f401b1ccc8eb505927fae7a0c7f6406d37ca1c7e",
+			"revisionTime": "2018-11-19T21:30:05Z",
+			"version": "v11.2.8",
+			"versionExact": "v11.2.8"
 		},
 		{
 			"checksumSHA1": "jQh1fnoKPKMURvKkpdRjN695nAQ=",
@@ -795,6 +809,42 @@
 			"revisionTime": "2017-07-27T06:48:18Z"
 		},
 		{
+			"checksumSHA1": "rS+KSOpRZHKEyQ13DfV6k44GQVo=",
+			"path": "github.com/census-instrumentation/opencensus-proto/gen-go/agent/common/v1",
+			"revision": "ba49f56771b83cff7bea7f34d1236fc139dbc471",
+			"revisionTime": "2018-12-14T14:39:42Z"
+		},
+		{
+			"checksumSHA1": "DPEooHe1/Ma82O/CQM/tMwAovIU=",
+			"path": "github.com/census-instrumentation/opencensus-proto/gen-go/agent/metrics/v1",
+			"revision": "ba49f56771b83cff7bea7f34d1236fc139dbc471",
+			"revisionTime": "2018-12-14T14:39:42Z"
+		},
+		{
+			"checksumSHA1": "eKb4VKqYhdn/Kf42sjqH4roTpPY=",
+			"path": "github.com/census-instrumentation/opencensus-proto/gen-go/agent/trace/v1",
+			"revision": "ba49f56771b83cff7bea7f34d1236fc139dbc471",
+			"revisionTime": "2018-12-14T14:39:42Z"
+		},
+		{
+			"checksumSHA1": "rKzJ8hnsSDaWgw3DJJYdNkBedj8=",
+			"path": "github.com/census-instrumentation/opencensus-proto/gen-go/metrics/v1",
+			"revision": "ba49f56771b83cff7bea7f34d1236fc139dbc471",
+			"revisionTime": "2018-12-14T14:39:42Z"
+		},
+		{
+			"checksumSHA1": "2fKrrtfaiK7W+yuYD4mtihqzOqg=",
+			"path": "github.com/census-instrumentation/opencensus-proto/gen-go/resource/v1",
+			"revision": "ba49f56771b83cff7bea7f34d1236fc139dbc471",
+			"revisionTime": "2018-12-14T14:39:42Z"
+		},
+		{
+			"checksumSHA1": "iGCuHqGlfNMVbExsNYaRFuXD6bQ=",
+			"path": "github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1",
+			"revision": "ba49f56771b83cff7bea7f34d1236fc139dbc471",
+			"revisionTime": "2018-12-14T14:39:42Z"
+		},
+		{
 			"checksumSHA1": "dvabztWVQX8f6oMLRyv4dLH+TGY=",
 			"path": "github.com/davecgh/go-spew/spew",
 			"revision": "346938d642f2ec3594ed81d874461961cd0faa76",
@@ -834,40 +884,100 @@
 			"revisionTime": "2017-01-17T13:00:17Z"
 		},
 		{
-			"checksumSHA1": "yqF125xVSkmfLpIVGrLlfE05IUk=",
+			"checksumSHA1": "BP2buXHHOKxI5eYS2xELVng2kf4=",
+			"path": "github.com/golang/protobuf/jsonpb",
+			"revision": "1d3f30b51784bec5aad268e59fd3c2fc1c2fe73f",
+			"revisionTime": "2018-11-28T19:23:52Z"
+		},
+		{
+			"checksumSHA1": "Y2MOwzNZfl4NRNDbLCZa6sgx7O0=",
 			"path": "github.com/golang/protobuf/proto",
-			"revision": "130e6b02ab059e7b717a096f397c5b60111cae74",
-			"revisionTime": "2017-09-20T22:06:47Z"
+			"revision": "1d3f30b51784bec5aad268e59fd3c2fc1c2fe73f",
+			"revisionTime": "2018-11-28T19:23:52Z"
 		},
 		{
-			"checksumSHA1": "VfkiItDBFFkZluaAMAzJipDXNBY=",
+			"checksumSHA1": "WOkXetG3AqJnfVVuqTJvdukcHps=",
+			"path": "github.com/golang/protobuf/protoc-gen-go/descriptor",
+			"revision": "1d3f30b51784bec5aad268e59fd3c2fc1c2fe73f",
+			"revisionTime": "2018-11-28T19:23:52Z"
+		},
+		{
+			"checksumSHA1": "gOYxGkBKInpq0VIV+O7FT97RaKY=",
+			"path": "github.com/golang/protobuf/protoc-gen-go/generator",
+			"revision": "1d3f30b51784bec5aad268e59fd3c2fc1c2fe73f",
+			"revisionTime": "2018-11-28T19:23:52Z"
+		},
+		{
+			"checksumSHA1": "uY4dEtqaAe5gsU8gbpCI1JgEIII=",
+			"path": "github.com/golang/protobuf/protoc-gen-go/generator/internal/remap",
+			"revision": "1d3f30b51784bec5aad268e59fd3c2fc1c2fe73f",
+			"revisionTime": "2018-11-28T19:23:52Z"
+		},
+		{
+			"checksumSHA1": "h4PLbJDYnRmcUuf56USJ5K3xJOg=",
+			"path": "github.com/golang/protobuf/protoc-gen-go/plugin",
+			"revision": "1d3f30b51784bec5aad268e59fd3c2fc1c2fe73f",
+			"revisionTime": "2018-11-28T19:23:52Z"
+		},
+		{
+			"checksumSHA1": "tkJPssYejSjuAwE2tdEnoEIj93Q=",
 			"path": "github.com/golang/protobuf/ptypes",
-			"revision": "130e6b02ab059e7b717a096f397c5b60111cae74",
-			"revisionTime": "2017-09-20T22:06:47Z"
+			"revision": "1d3f30b51784bec5aad268e59fd3c2fc1c2fe73f",
+			"revisionTime": "2018-11-28T19:23:52Z"
 		},
 		{
-			"checksumSHA1": "UB9scpDxeFjQe5tEthuR4zCLRu4=",
+			"checksumSHA1": "2/Xg4L9IVGQRJB8zCELZx7/Z4HU=",
 			"path": "github.com/golang/protobuf/ptypes/any",
-			"revision": "130e6b02ab059e7b717a096f397c5b60111cae74",
-			"revisionTime": "2017-09-20T22:06:47Z"
+			"revision": "1d3f30b51784bec5aad268e59fd3c2fc1c2fe73f",
+			"revisionTime": "2018-11-28T19:23:52Z"
 		},
 		{
-			"checksumSHA1": "hUjAj0dheFVDl84BAnSWj9qy2iY=",
+			"checksumSHA1": "RE9rLveNHapyMKQC8p10tbkUE9w=",
 			"path": "github.com/golang/protobuf/ptypes/duration",
-			"revision": "130e6b02ab059e7b717a096f397c5b60111cae74",
-			"revisionTime": "2017-09-20T22:06:47Z"
+			"revision": "1d3f30b51784bec5aad268e59fd3c2fc1c2fe73f",
+			"revisionTime": "2018-11-28T19:23:52Z"
 		},
 		{
-			"checksumSHA1": "O2ItP5rmfrgxPufhjJXbFlXuyL8=",
+			"checksumSHA1": "RT/PGRMtH/yBCbIJfZftaz5yc3M=",
+			"path": "github.com/golang/protobuf/ptypes/struct",
+			"revision": "1d3f30b51784bec5aad268e59fd3c2fc1c2fe73f",
+			"revisionTime": "2018-11-28T19:23:52Z"
+		},
+		{
+			"checksumSHA1": "seEwY2xETpK9yHJ9+bHqkLZ0VMU=",
 			"path": "github.com/golang/protobuf/ptypes/timestamp",
-			"revision": "130e6b02ab059e7b717a096f397c5b60111cae74",
-			"revisionTime": "2017-09-20T22:06:47Z"
+			"revision": "1d3f30b51784bec5aad268e59fd3c2fc1c2fe73f",
+			"revisionTime": "2018-11-28T19:23:52Z"
+		},
+		{
+			"checksumSHA1": "KlQCb83HC090bojw4ofNDxn2nho=",
+			"path": "github.com/golang/protobuf/ptypes/wrappers",
+			"revision": "1d3f30b51784bec5aad268e59fd3c2fc1c2fe73f",
+			"revisionTime": "2018-11-28T19:23:52Z"
 		},
 		{
 			"checksumSHA1": "Y80EASFjCaCxHdfPxmN4Wc2n1BM=",
 			"path": "github.com/google/uuid",
 			"revision": "7e072fc3a7be179aee6d3359e46015aa8c995314",
 			"revisionTime": "2017-08-14T14:36:39Z"
+		},
+		{
+			"checksumSHA1": "3wzsPPMqn5TgyqyPBQ/G0sOa414=",
+			"path": "github.com/grpc-ecosystem/grpc-gateway/runtime",
+			"revision": "719aaadb1a4f7b11606d454e266fe5c5f789796f",
+			"revisionTime": "2018-12-21T14:38:24Z"
+		},
+		{
+			"checksumSHA1": "dKdNxuf5/Z1Oiz+7tXTeuyXqHgE=",
+			"path": "github.com/grpc-ecosystem/grpc-gateway/runtime/internal",
+			"revision": "719aaadb1a4f7b11606d454e266fe5c5f789796f",
+			"revisionTime": "2018-12-21T14:38:24Z"
+		},
+		{
+			"checksumSHA1": "yUJS5jJyNTvxHCUUXiK3xnKfN14=",
+			"path": "github.com/grpc-ecosystem/grpc-gateway/utilities",
+			"revision": "719aaadb1a4f7b11606d454e266fe5c5f789796f",
+			"revisionTime": "2018-12-21T14:38:24Z"
 		},
 		{
 			"checksumSHA1": "dVqCmA2mEDIDr8tEXu4gTaK9uPs=",
@@ -1487,6 +1597,102 @@
 			"revisionTime": "2018-02-27T16:32:37Z"
 		},
 		{
+			"checksumSHA1": "wRH0iK545K+1Fz2MT2ThFxlAV2g=",
+			"path": "go.opencensus.io",
+			"revision": "950a67f393d867cfbe91414063b69e511f42fefb",
+			"revisionTime": "2018-12-20T02:06:23Z"
+		},
+		{
+			"checksumSHA1": "TA3C6+5PM7V2zbsnLMp13Efy/BA=",
+			"path": "go.opencensus.io/exemplar",
+			"revision": "950a67f393d867cfbe91414063b69e511f42fefb",
+			"revisionTime": "2018-12-20T02:06:23Z"
+		},
+		{
+			"checksumSHA1": "uEGNDh56bViSqI19kj5uQbcTUOQ=",
+			"path": "go.opencensus.io/internal",
+			"revision": "950a67f393d867cfbe91414063b69e511f42fefb",
+			"revisionTime": "2018-12-20T02:06:23Z"
+		},
+		{
+			"checksumSHA1": "Vcwr4P/uIN4haoJPglU7liURepM=",
+			"path": "go.opencensus.io/internal/tagencoding",
+			"revision": "950a67f393d867cfbe91414063b69e511f42fefb",
+			"revisionTime": "2018-12-20T02:06:23Z"
+		},
+		{
+			"checksumSHA1": "sMF3Cr30ZRlZipnGD8Y88S2+/y4=",
+			"path": "go.opencensus.io/plugin/ochttp",
+			"revision": "950a67f393d867cfbe91414063b69e511f42fefb",
+			"revisionTime": "2018-12-20T02:06:23Z"
+		},
+		{
+			"checksumSHA1": "0OVZlXVUMGzf8ddlnjg2yMZI4ao=",
+			"path": "go.opencensus.io/plugin/ochttp/propagation/b3",
+			"revision": "950a67f393d867cfbe91414063b69e511f42fefb",
+			"revisionTime": "2018-12-20T02:06:23Z"
+		},
+		{
+			"checksumSHA1": "bLpZ3pUjneUgtRyjLggDEc4bnEA=",
+			"path": "go.opencensus.io/plugin/ochttp/propagation/tracecontext",
+			"revision": "950a67f393d867cfbe91414063b69e511f42fefb",
+			"revisionTime": "2018-12-20T02:06:23Z"
+		},
+		{
+			"checksumSHA1": "li0/XZO2M4O6dcd2a145ux5E4hA=",
+			"path": "go.opencensus.io/resource",
+			"revision": "950a67f393d867cfbe91414063b69e511f42fefb",
+			"revisionTime": "2018-12-20T02:06:23Z"
+		},
+		{
+			"checksumSHA1": "iITJeCEWl7VUPxOB8ThLRAGYTJU=",
+			"path": "go.opencensus.io/stats",
+			"revision": "950a67f393d867cfbe91414063b69e511f42fefb",
+			"revisionTime": "2018-12-20T02:06:23Z"
+		},
+		{
+			"checksumSHA1": "SEHKoV2p561oIgFTqzQ67a/XU7I=",
+			"path": "go.opencensus.io/stats/internal",
+			"revision": "950a67f393d867cfbe91414063b69e511f42fefb",
+			"revisionTime": "2018-12-20T02:06:23Z"
+		},
+		{
+			"checksumSHA1": "R26x5lc61+27q3Fd2SMGKJGj6kI=",
+			"path": "go.opencensus.io/stats/view",
+			"revision": "950a67f393d867cfbe91414063b69e511f42fefb",
+			"revisionTime": "2018-12-20T02:06:23Z"
+		},
+		{
+			"checksumSHA1": "uGBQ6ZVQ7R2OpALxUZIaNXEkBSA=",
+			"path": "go.opencensus.io/tag",
+			"revision": "950a67f393d867cfbe91414063b69e511f42fefb",
+			"revisionTime": "2018-12-20T02:06:23Z"
+		},
+		{
+			"checksumSHA1": "LFehOdQ0p2mKk0rpV1FaQTq4UwU=",
+			"path": "go.opencensus.io/trace",
+			"revision": "950a67f393d867cfbe91414063b69e511f42fefb",
+			"revisionTime": "2018-12-20T02:06:23Z"
+		},
+		{
+			"checksumSHA1": "0P3BycP6CFnFNRCnF4dTlMEJgEI=",
+			"path": "go.opencensus.io/trace/internal",
+			"revision": "950a67f393d867cfbe91414063b69e511f42fefb",
+			"revisionTime": "2018-12-20T02:06:23Z"
+		},
+		{
+			"checksumSHA1": "FHJParRi8f1GHO7Cx+lk3bMWBq0=",
+			"path": "go.opencensus.io/trace/propagation",
+			"revision": "950a67f393d867cfbe91414063b69e511f42fefb",
+			"revisionTime": "2018-12-20T02:06:23Z"
+		},
+		{
+			"checksumSHA1": "UHbxxaMqpEPsubh8kPwzSlyEwqI=",
+			"path": "go.opencensus.io/trace/tracestate",
+			"revision": "950a67f393d867cfbe91414063b69e511f42fefb",
+			"revisionTime": "2018-12-20T02:06:23Z"
+		},
+		{
 			"checksumSHA1": "vE43s37+4CJ2CDU6TlOUOYE0K9c=",
 			"path": "golang.org/x/crypto/bcrypt",
 			"revision": "9477e0b78b9ac3d0b03822fd95422e2fe07627cd",
@@ -1631,10 +1837,16 @@
 			"revisionTime": "2017-07-19T03:24:12Z"
 		},
 		{
-			"checksumSHA1": "tY+5thYxjKDUQyQXYcBqogmMS5U=",
+			"checksumSHA1": "tI1YsCNEjyDW/aGNtunZDyjN9MA=",
+			"path": "golang.org/x/sync/semaphore",
+			"revision": "37e7f081c4d4c64e13b10787722085407fe5d15f",
+			"revisionTime": "2018-09-24T18:15:43Z"
+		},
+		{
+			"checksumSHA1": "XmZ1a+WnKZSyE4XWvsnPl4QBOLY=",
 			"path": "golang.org/x/sys/unix",
-			"revision": "314a259e304ff91bd6985da2a7149bbf91237993",
-			"revisionTime": "2017-07-19T03:44:26Z"
+			"revision": "b4a75ba826a64a70990f11a225237acd6ef35c9f",
+			"revisionTime": "2018-12-21T10:19:52Z"
 		},
 		{
 			"checksumSHA1": "JGxWXCzR7rwOsuQCK1UGd6yuS90=",
@@ -1679,112 +1891,220 @@
 			"revisionTime": "2017-09-13T19:45:57Z"
 		},
 		{
+			"checksumSHA1": "3MKQfzebrexFB4O7eRWdonIHlng=",
+			"path": "google.golang.org/api/support/bundler",
+			"revision": "65a46cafb132eff435c7d1e0f439cc73c8eebb85",
+			"revisionTime": "2018-12-21T00:06:18Z"
+		},
+		{
 			"checksumSHA1": "Tc3BU26zThLzcyqbVtiSEp7EpU8=",
 			"path": "google.golang.org/genproto/googleapis/rpc/status",
 			"revision": "1e559d0a00eef8a9a43151db4665280bd8dd5886",
 			"revisionTime": "2017-09-18T11:17:02Z"
 		},
 		{
-			"checksumSHA1": "nwfmMh930HtXA7u5HYomxSR3Ixg=",
+			"checksumSHA1": "nqnnm6YjyqMt33FmtYC9GbOaHiA=",
+			"path": "google.golang.org/genproto/protobuf/field_mask",
+			"revision": "bd9b4fb69e2ffd37621a6caa54dcbead29b546f2",
+			"revisionTime": "2018-12-21T17:55:05Z"
+		},
+		{
+			"checksumSHA1": "Wc9OxPx+ovoELQV3pEszM1Uiwa0=",
 			"path": "google.golang.org/grpc",
-			"revision": "7657092a1303cc5a6fa3fee988d57c665683a4da",
-			"revisionTime": "2017-08-09T21:16:03Z"
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
 		},
 		{
-			"checksumSHA1": "/eTpFgjvMq5Bc9hYnw5fzKG4B6I=",
+			"checksumSHA1": "i9fbSBXiIpT5NxcVzH8giW0gzV4=",
+			"path": "google.golang.org/grpc/balancer",
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
+		},
+		{
+			"checksumSHA1": "OK25OEkLL/dbMiAdL9ic5o5+X1E=",
+			"path": "google.golang.org/grpc/balancer/base",
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
+		},
+		{
+			"checksumSHA1": "nbqOZ9r8jJ6K3PfnhxuR0qqsUmY=",
+			"path": "google.golang.org/grpc/balancer/roundrobin",
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
+		},
+		{
+			"checksumSHA1": "YyTUFAVju8wgb1s/3azC2CeSbfY=",
+			"path": "google.golang.org/grpc/binarylog/grpc_binarylog_v1",
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
+		},
+		{
+			"checksumSHA1": "R3tuACGAPyK4lr+oSNt1saUzC0M=",
 			"path": "google.golang.org/grpc/codes",
-			"revision": "7657092a1303cc5a6fa3fee988d57c665683a4da",
-			"revisionTime": "2017-08-09T21:16:03Z"
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
 		},
 		{
-			"checksumSHA1": "XH2WYcDNwVO47zYShREJjcYXm0Y=",
+			"checksumSHA1": "5XXlkpXzzeNtV9I7x+3/UVWRe20=",
 			"path": "google.golang.org/grpc/connectivity",
-			"revision": "7657092a1303cc5a6fa3fee988d57c665683a4da",
-			"revisionTime": "2017-08-09T21:16:03Z"
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
 		},
 		{
-			"checksumSHA1": "5ylThBvJnIcyWhL17AC9+Sdbw2E=",
+			"checksumSHA1": "MCTf5N2ZKhqL6vW5AfPXh8bGavg=",
 			"path": "google.golang.org/grpc/credentials",
-			"revision": "7657092a1303cc5a6fa3fee988d57c665683a4da",
-			"revisionTime": "2017-08-09T21:16:03Z"
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
 		},
 		{
-			"checksumSHA1": "2NbY9kmMweE4VUsruRsvmViVnNg=",
-			"path": "google.golang.org/grpc/grpclb/grpc_lb_v1",
-			"revision": "7657092a1303cc5a6fa3fee988d57c665683a4da",
-			"revisionTime": "2017-08-09T21:16:03Z"
+			"checksumSHA1": "Eqxca59xIMaL4EUNwWsozg7kFkk=",
+			"path": "google.golang.org/grpc/credentials/internal",
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
 		},
 		{
-			"checksumSHA1": "ntHev01vgZgeIh5VFRmbLx/BSTo=",
+			"checksumSHA1": "cfLb+pzWB+Glwp82rgfcEST1mv8=",
+			"path": "google.golang.org/grpc/encoding",
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
+		},
+		{
+			"checksumSHA1": "LKKkn7EYA+Do9Qwb2/SUKLFNxoo=",
+			"path": "google.golang.org/grpc/encoding/proto",
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
+		},
+		{
+			"checksumSHA1": "ZPPSFisPDz2ANO4FBZIft+fRxyk=",
 			"path": "google.golang.org/grpc/grpclog",
-			"revision": "7657092a1303cc5a6fa3fee988d57c665683a4da",
-			"revisionTime": "2017-08-09T21:16:03Z"
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
 		},
 		{
-			"checksumSHA1": "pc9cweMiKQ5hVMuO9UoMGdbizaY=",
+			"checksumSHA1": "TsFbK+yELoBT2G3aNxtQFKnvmhw=",
 			"path": "google.golang.org/grpc/health",
-			"revision": "7657092a1303cc5a6fa3fee988d57c665683a4da",
-			"revisionTime": "2017-08-09T21:16:03Z"
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
 		},
 		{
-			"checksumSHA1": "W5KfI1NIGJt7JaVnLzefDZr3+4s=",
+			"checksumSHA1": "KfgIKMqGJ8FdFbWlGDsnmrCY7eE=",
 			"path": "google.golang.org/grpc/health/grpc_health_v1",
-			"revision": "7657092a1303cc5a6fa3fee988d57c665683a4da",
-			"revisionTime": "2017-08-09T21:16:03Z"
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
 		},
 		{
-			"checksumSHA1": "U9vDe05/tQrvFBojOQX8Xk12W9I=",
+			"checksumSHA1": "xUOlil5rXPg8m1Suz3lvtXwuGh4=",
 			"path": "google.golang.org/grpc/internal",
-			"revision": "7657092a1303cc5a6fa3fee988d57c665683a4da",
-			"revisionTime": "2017-08-09T21:16:03Z"
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
 		},
 		{
-			"checksumSHA1": "hcuHgKp8W0wIzoCnNfKI8NUss5o=",
+			"checksumSHA1": "uDJA7QK2iGnEwbd9TPqkLaM+xuU=",
+			"path": "google.golang.org/grpc/internal/backoff",
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
+		},
+		{
+			"checksumSHA1": "9EzFWJVWPBdOC2kwXX11v9HSLTs=",
+			"path": "google.golang.org/grpc/internal/binarylog",
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
+		},
+		{
+			"checksumSHA1": "b2D1xk9yFjuoeP9CztKiSLCwRdc=",
+			"path": "google.golang.org/grpc/internal/channelz",
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
+		},
+		{
+			"checksumSHA1": "6QSkZpDS6A2UpV6Vn+uMJVa/Sog=",
+			"path": "google.golang.org/grpc/internal/envconfig",
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
+		},
+		{
+			"checksumSHA1": "70gndc/uHwyAl3D45zqp7vyHWlo=",
+			"path": "google.golang.org/grpc/internal/grpcrand",
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
+		},
+		{
+			"checksumSHA1": "psHSfNyU2y9L9zRK+s41e7ScTf4=",
+			"path": "google.golang.org/grpc/internal/grpcsync",
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
+		},
+		{
+			"checksumSHA1": "3LK1XBsYw6P112yilUgf8E8ZZY8=",
+			"path": "google.golang.org/grpc/internal/syscall",
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
+		},
+		{
+			"checksumSHA1": "SlIFDWzTYuvTqNbn1x75d3/+HgQ=",
+			"path": "google.golang.org/grpc/internal/transport",
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
+		},
+		{
+			"checksumSHA1": "pK59s0zeOsJ4ItPrxOufEI8RD2s=",
 			"path": "google.golang.org/grpc/keepalive",
-			"revision": "7657092a1303cc5a6fa3fee988d57c665683a4da",
-			"revisionTime": "2017-08-09T21:16:03Z"
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
 		},
 		{
-			"checksumSHA1": "N++Ur11m6Dq3j14/Hc2Kqmxroag=",
+			"checksumSHA1": "0OoJw+Wc7+1Ox5nBbwjgqWW8Xpw=",
 			"path": "google.golang.org/grpc/metadata",
-			"revision": "7657092a1303cc5a6fa3fee988d57c665683a4da",
-			"revisionTime": "2017-08-09T21:16:03Z"
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
 		},
 		{
-			"checksumSHA1": "bYKw8OIjj/ybY68eGqy7zqq6qmE=",
+			"checksumSHA1": "AIpS1T2G1el02vW5nhqY1fklbpU=",
 			"path": "google.golang.org/grpc/naming",
-			"revision": "7657092a1303cc5a6fa3fee988d57c665683a4da",
-			"revisionTime": "2017-08-09T21:16:03Z"
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
 		},
 		{
-			"checksumSHA1": "n5EgDdBqFMa2KQFhtl+FF/4gIFo=",
+			"checksumSHA1": "ltPJN8UyzvWN0H0BvkP2AREujgQ=",
 			"path": "google.golang.org/grpc/peer",
-			"revision": "7657092a1303cc5a6fa3fee988d57c665683a4da",
-			"revisionTime": "2017-08-09T21:16:03Z"
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
 		},
 		{
-			"checksumSHA1": "53Mbn2VqooOk47EWLHHFpKEOVwE=",
+			"checksumSHA1": "GEq6wwE1qWLmkaM02SjxBmmnHDo=",
+			"path": "google.golang.org/grpc/resolver",
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
+		},
+		{
+			"checksumSHA1": "I9b2MMRa7Sz+hSB0AF/vPFsPOv4=",
+			"path": "google.golang.org/grpc/resolver/dns",
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
+		},
+		{
+			"checksumSHA1": "zs9M4xE8Lyg4wvuYvR00XoBxmuw=",
+			"path": "google.golang.org/grpc/resolver/passthrough",
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
+		},
+		{
+			"checksumSHA1": "FJu1DY9s5uP3cGFvuVGCL5bgrqw=",
 			"path": "google.golang.org/grpc/stats",
-			"revision": "7657092a1303cc5a6fa3fee988d57c665683a4da",
-			"revisionTime": "2017-08-09T21:16:03Z"
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
 		},
 		{
-			"checksumSHA1": "3Dwz4RLstDHMPyDA7BUsYe+JP4w=",
+			"checksumSHA1": "bJSa9mM309wvISy+B6zfc0KAUqs=",
 			"path": "google.golang.org/grpc/status",
-			"revision": "7657092a1303cc5a6fa3fee988d57c665683a4da",
-			"revisionTime": "2017-08-09T21:16:03Z"
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
 		},
 		{
-			"checksumSHA1": "aixGx/Kd0cj9ZlZHacpHe3XgMQ4=",
+			"checksumSHA1": "HGXDrPBB90iBU4NJ7C1N8MJRkI0=",
 			"path": "google.golang.org/grpc/tap",
-			"revision": "7657092a1303cc5a6fa3fee988d57c665683a4da",
-			"revisionTime": "2017-08-09T21:16:03Z"
-		},
-		{
-			"checksumSHA1": "S0qdJtlMimKlOrJ4aZ/pxO5uVwg=",
-			"path": "google.golang.org/grpc/transport",
-			"revision": "7657092a1303cc5a6fa3fee988d57c665683a4da",
-			"revisionTime": "2017-08-09T21:16:03Z"
+			"revision": "25de51fc024f642d9ac888257b1485939a1d4a14",
+			"revisionTime": "2018-12-22T00:55:49Z"
 		},
 		{
 			"checksumSHA1": "AnKBN2Q4AWaSNb0JyINBQbnpxGM=",

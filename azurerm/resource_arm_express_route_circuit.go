@@ -64,7 +64,6 @@ func resourceArmExpressRouteCircuit() *schema.Resource {
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.Standard),
-								string(network.Premium),
 							}, true),
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},

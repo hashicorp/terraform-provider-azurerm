@@ -489,7 +489,7 @@ func TestAccAzureRMFunctionApp_loggingDisabled(t *testing.T) {
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMFunctionApp_loggingDisabled(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
@@ -520,7 +520,7 @@ func TestAccAzureRMFunctionApp_updateLogging(t *testing.T) {
 	enabledConfig := testAccAzureRMFunctionApp_basic(ri, rs, location)
 	disabledConfig := testAccAzureRMFunctionApp_loggingDisabled(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,

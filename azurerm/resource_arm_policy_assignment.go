@@ -93,6 +93,12 @@ func resourceArmPolicyAssignment() *schema.Resource {
 				ValidateFunc:     validation.ValidateJsonString,
 				DiffSuppressFunc: structure.SuppressJsonDiff,
 			},
+
+			"not_scopes": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
 		},
 	}
 }
@@ -137,6 +143,11 @@ func resourceArmPolicyAssignmentCreateOrUpdate(d *schema.ResourceData, meta inte
 		assignment.AssignmentProperties.Parameters = &expandedParams
 	}
 
+	if _, ok := d.GetOk("not_scopes"); ok {
+		notScopes := expandAzureRmPolicyNotScopes(d)
+		assignment.AssignmentProperties.NotScopes = notScopes
+	}
+
 	if _, err := client.Create(ctx, scope, name, assignment); err != nil {
 		return err
 	}
@@ -151,6 +162,7 @@ func resourceArmPolicyAssignmentCreateOrUpdate(d *schema.ResourceData, meta inte
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 10,
 	}
+
 	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Policy Assignment %q to become available: %s", name, err)
 	}
@@ -207,6 +219,8 @@ func resourceArmPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) e
 
 			d.Set("parameters", json)
 		}
+
+		d.Set("not_scopes", props.NotScopes)
 	}
 
 	return nil
@@ -271,4 +285,15 @@ func flattenAzureRmPolicyIdentity(identity *policy.Identity) []interface{} {
 	}
 
 	return []interface{}{result}
+}
+
+func expandAzureRmPolicyNotScopes(d *schema.ResourceData) *[]string {
+	notScopes := d.Get("not_scopes").([]interface{})
+	notScopesRes := make([]string, 0)
+
+	for _, notScope := range notScopes {
+		notScopesRes = append(notScopesRes, notScope.(string))
+	}
+
+	return &notScopesRes
 }

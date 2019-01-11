@@ -18,9 +18,9 @@ import (
 
 func resourceArmLoadBalancerRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLoadBalancerRuleCreate,
+		Create: resourceArmLoadBalancerRuleCreateUpdate,
 		Read:   resourceArmLoadBalancerRuleRead,
-		Update: resourceArmLoadBalancerRuleCreate,
+		Update: resourceArmLoadBalancerRuleCreateUpdate,
 		Delete: resourceArmLoadBalancerRuleDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -115,7 +115,7 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 	}
 }
 
-func resourceArmLoadBalancerRuleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).loadBalancerClient
 	ctx := meta.(*ArmClient).StopContext
 

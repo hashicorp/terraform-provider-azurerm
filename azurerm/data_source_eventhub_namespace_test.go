@@ -42,6 +42,7 @@ func TestAccDataSourceAzureRMEventHubNamespace_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "sku", "Standard"),
 					resource.TestCheckResourceAttr(dataSourceName, "capacity", "2"),
 					resource.TestCheckResourceAttr(dataSourceName, "auto_inflate_enabled", "true"),
+					resource.TestCheckResourceAttr(dataSourceName, "kafka_enabled", "true"),
 					resource.TestCheckResourceAttr(dataSourceName, "maximum_throughput_units", "20"),
 				),
 			},
@@ -84,6 +85,7 @@ resource "azurerm_eventhub_namespace" "test" {
   sku                      = "Standard"
   capacity                 = "2"
   auto_inflate_enabled     = true
+  kafka_enabled            = true
   maximum_throughput_units = 20
 }
 

@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -47,6 +48,16 @@ func NewConnectionMonitorsClientWithBaseURI(baseURI string, subscriptionID strin
 // connectionMonitorName - the name of the connection monitor.
 // parameters - parameters that define the operation to create a connection monitor.
 func (client ConnectionMonitorsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, networkWatcherName string, connectionMonitorName string, parameters ConnectionMonitor) (result ConnectionMonitorsCreateOrUpdateFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ConnectionMonitorsClient.CreateOrUpdate")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.ConnectionMonitorParameters", Name: validation.Null, Rule: true,
@@ -128,6 +139,16 @@ func (client ConnectionMonitorsClient) CreateOrUpdateResponder(resp *http.Respon
 // networkWatcherName - the name of the Network Watcher resource.
 // connectionMonitorName - the name of the connection monitor.
 func (client ConnectionMonitorsClient) Delete(ctx context.Context, resourceGroupName string, networkWatcherName string, connectionMonitorName string) (result ConnectionMonitorsDeleteFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ConnectionMonitorsClient.Delete")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeletePreparer(ctx, resourceGroupName, networkWatcherName, connectionMonitorName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ConnectionMonitorsClient", "Delete", nil, "Failure preparing request")
@@ -196,6 +217,16 @@ func (client ConnectionMonitorsClient) DeleteResponder(resp *http.Response) (res
 // networkWatcherName - the name of the Network Watcher resource.
 // connectionMonitorName - the name of the connection monitor.
 func (client ConnectionMonitorsClient) Get(ctx context.Context, resourceGroupName string, networkWatcherName string, connectionMonitorName string) (result ConnectionMonitorResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ConnectionMonitorsClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetPreparer(ctx, resourceGroupName, networkWatcherName, connectionMonitorName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ConnectionMonitorsClient", "Get", nil, "Failure preparing request")
@@ -264,6 +295,16 @@ func (client ConnectionMonitorsClient) GetResponder(resp *http.Response) (result
 // resourceGroupName - the name of the resource group containing Network Watcher.
 // networkWatcherName - the name of the Network Watcher resource.
 func (client ConnectionMonitorsClient) List(ctx context.Context, resourceGroupName string, networkWatcherName string) (result ConnectionMonitorListResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ConnectionMonitorsClient.List")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.ListPreparer(ctx, resourceGroupName, networkWatcherName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ConnectionMonitorsClient", "List", nil, "Failure preparing request")
@@ -332,6 +373,16 @@ func (client ConnectionMonitorsClient) ListResponder(resp *http.Response) (resul
 // networkWatcherName - the name of the Network Watcher resource.
 // connectionMonitorName - the name given to the connection monitor.
 func (client ConnectionMonitorsClient) Query(ctx context.Context, resourceGroupName string, networkWatcherName string, connectionMonitorName string) (result ConnectionMonitorsQueryFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ConnectionMonitorsClient.Query")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.QueryPreparer(ctx, resourceGroupName, networkWatcherName, connectionMonitorName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ConnectionMonitorsClient", "Query", nil, "Failure preparing request")
@@ -401,6 +452,16 @@ func (client ConnectionMonitorsClient) QueryResponder(resp *http.Response) (resu
 // networkWatcherName - the name of the Network Watcher resource.
 // connectionMonitorName - the name of the connection monitor.
 func (client ConnectionMonitorsClient) Start(ctx context.Context, resourceGroupName string, networkWatcherName string, connectionMonitorName string) (result ConnectionMonitorsStartFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ConnectionMonitorsClient.Start")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.StartPreparer(ctx, resourceGroupName, networkWatcherName, connectionMonitorName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ConnectionMonitorsClient", "Start", nil, "Failure preparing request")
@@ -469,6 +530,16 @@ func (client ConnectionMonitorsClient) StartResponder(resp *http.Response) (resu
 // networkWatcherName - the name of the Network Watcher resource.
 // connectionMonitorName - the name of the connection monitor.
 func (client ConnectionMonitorsClient) Stop(ctx context.Context, resourceGroupName string, networkWatcherName string, connectionMonitorName string) (result ConnectionMonitorsStopFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ConnectionMonitorsClient.Stop")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.StopPreparer(ctx, resourceGroupName, networkWatcherName, connectionMonitorName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ConnectionMonitorsClient", "Stop", nil, "Failure preparing request")

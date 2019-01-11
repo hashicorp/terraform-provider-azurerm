@@ -38,7 +38,29 @@ func TestAccAzureRMSubnet_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSubnet_delegation(t *testing.T) {
+	resourceName := "azurerm_subnet.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMSubnet_delegation(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSubnetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSubnetExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "delegation.#", "1"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMSubnet_routeTableUpdate(t *testing.T) {
+	resourceName := "azurerm_subnet.test"
 	ri := acctest.RandInt()
 	location := testLocation()
 	initConfig := testAccAzureRMSubnet_routeTable(ri, location)
@@ -52,14 +74,14 @@ func TestAccAzureRMSubnet_routeTableUpdate(t *testing.T) {
 			{
 				Config: initConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSubnetExists("azurerm_subnet.test"),
+					testCheckAzureRMSubnetExists(resourceName),
 				),
 			},
 
 			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSubnetRouteTableExists("azurerm_subnet.test", fmt.Sprintf("acctest-%d", ri)),
+					testCheckAzureRMSubnetRouteTableExists(resourceName, fmt.Sprintf("acctest-%d", ri)),
 				),
 			},
 		},
@@ -157,6 +179,7 @@ func TestAccAzureRMSubnet_bug7986(t *testing.T) {
 }
 
 func TestAccAzureRMSubnet_bug15204(t *testing.T) {
+	resourceName := "azurerm_subnet.test"
 	ri := acctest.RandInt()
 	initConfig := testAccAzureRMSubnet_bug15204(ri, testLocation())
 
@@ -168,7 +191,7 @@ func TestAccAzureRMSubnet_bug15204(t *testing.T) {
 			{
 				Config: initConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSubnetExists("azurerm_subnet.test"),
+					testCheckAzureRMSubnetExists(resourceName),
 				),
 			},
 		},
@@ -176,6 +199,7 @@ func TestAccAzureRMSubnet_bug15204(t *testing.T) {
 }
 
 func TestAccAzureRMSubnet_disappears(t *testing.T) {
+	resourceName := "azurerm_subnet.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMSubnet_basic(ri, testLocation())
 
@@ -187,8 +211,8 @@ func TestAccAzureRMSubnet_disappears(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSubnetExists("azurerm_subnet.test"),
-					testCheckAzureRMSubnetDisappears("azurerm_subnet.test"),
+					testCheckAzureRMSubnetExists(resourceName),
+					testCheckAzureRMSubnetDisappears(resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -376,6 +400,36 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.2.0/24"
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMSubnet_delegation(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+  delegation {
+     name = "acctestdelegation"
+     service_delegation {
+       name    = "Microsoft.ContainerInstance/containerGroups"
+       actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+     }
+  }
 }
 `, rInt, location, rInt, rInt)
 }

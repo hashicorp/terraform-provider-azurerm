@@ -178,14 +178,14 @@ PARAMETERS
 func testAzureRMPolicyDefinition_ManagementGroup(ri int) string {
 	return fmt.Sprintf(`
 resource "azurerm_management_group" "test" {
-	display_name = "acctestmg-%d"
+  display_name = "acctestmg-%d"
 }
 
 resource "azurerm_policy_definition" "test" {
-  name         = "acctestpol-%d"
-  policy_type  = "Custom"
-  mode         = "All"
-  display_name = "acctestpol-%d"
+  name                = "acctestpol-%d"
+  policy_type         = "Custom"
+  mode                = "All"
+  display_name        = "acctestpol-%d"
   management_group_id = "${azurerm_management_group.test.group_id}"
 
   policy_rule = <<POLICY_RULE

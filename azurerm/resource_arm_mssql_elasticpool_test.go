@@ -15,7 +15,7 @@ func TestAccAzureRMMsSqlElasticPool_basic_DTU(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMMsSqlElasticPool_basic_DTU(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMsSqlElasticPoolDestroy,
@@ -47,7 +47,7 @@ func TestAccAzureRMMsSqlElasticPool_basic_vCore(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMMsSqlElasticPool_basic_vCore(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMsSqlElasticPoolDestroy,
@@ -80,7 +80,7 @@ func TestAccAzureRMMsSqlElasticPool_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMMsSqlElasticPool_basic_DTU(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMsSqlElasticPoolDestroy,
@@ -109,7 +109,7 @@ func TestAccAzureRMMsSqlElasticPool_resize_DTU(t *testing.T) {
 	preConfig := testAccAzureRMMsSqlElasticPool_basic_DTU(ri, location)
 	postConfig := testAccAzureRMMsSqlElasticPool_resize_DTU(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMsSqlElasticPoolDestroy,
@@ -147,7 +147,7 @@ func TestAccAzureRMMsSqlElasticPool_resize_vCore(t *testing.T) {
 	preConfig := testAccAzureRMMsSqlElasticPool_basic_vCore(ri, location)
 	postConfig := testAccAzureRMMsSqlElasticPool_resize_vCore(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMsSqlElasticPoolDestroy,

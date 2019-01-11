@@ -45,7 +45,7 @@ func TestAccAzureRMRecoveryServicesProtectedVm_separateResourceGroups(t *testing
 	resourceName := "azurerm_recovery_services_protected_vm.test"
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRecoveryServicesProtectedVmDestroy,
@@ -190,11 +190,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctest-ip"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
-  domain_name_label            = "acctestip%[1]d"
+  name                = "acctest-ip"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
+  domain_name_label   = "acctestip%[1]d"
 }
 
 resource "azurerm_storage_account" "test" {

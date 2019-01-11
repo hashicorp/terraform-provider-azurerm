@@ -30,7 +30,7 @@ func TestAccDataSourceAzureRMLogAnalyticsWorkspace_basic(t *testing.T) {
 }
 
 func testAccDataSourceAzureRMLogAnalyticsWorkspace_basicWithDataSource(rInt int, location string) string {
-	config := testAccAzureRMLogAnalyticsWorkspace_retentionInDaysComplete(rInt, location)
+	config := testAccAzureRMLogAnalyticsWorkspace_complete(rInt, location)
 	return fmt.Sprintf(`
 %s
 

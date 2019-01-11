@@ -38,6 +38,33 @@ func TestAccAzureRMCognitiveAccount_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCognitiveAccount_speechServices(t *testing.T) {
+	resourceName := "azurerm_cognitive_account.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMCognitiveAccount_speechServices(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppCognitiveAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCognitiveAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "kind", "SpeechServices"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMCognitiveAccount_requiresImport(t *testing.T) {
 	if !requireResourcesToBeImported {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -191,6 +218,27 @@ resource "azurerm_cognitive_account" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   kind                = "Face"
+
+  sku {
+    name = "S0"
+    tier = "Standard"
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMCognitiveAccount_speechServices(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_cognitive_account" "test" {
+  name                = "acctestcogacc-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  kind                = "SpeechServices"
 
   sku {
     name = "S0"

@@ -11,9 +11,9 @@ import (
 
 func resourceArmNetworkSecurityRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetworkSecurityRuleCreate,
+		Create: resourceArmNetworkSecurityRuleCreateUpdate,
 		Read:   resourceArmNetworkSecurityRuleRead,
-		Update: resourceArmNetworkSecurityRuleCreate,
+		Update: resourceArmNetworkSecurityRuleCreateUpdate,
 		Delete: resourceArmNetworkSecurityRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -152,7 +152,7 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 	}
 }
 
-func resourceArmNetworkSecurityRuleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmNetworkSecurityRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).secRuleClient
 	ctx := meta.(*ArmClient).StopContext
 
