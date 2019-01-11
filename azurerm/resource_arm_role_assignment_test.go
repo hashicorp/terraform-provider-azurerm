@@ -223,7 +223,7 @@ func testAccAzureRMActiveDirectoryServicePrincipal_roleAssignment(t *testing.T) 
 	ri := acctest.RandInt()
 	id := uuid.New().String()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryServicePrincipalDestroy,

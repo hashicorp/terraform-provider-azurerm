@@ -13,7 +13,7 @@ func TestAccDataSourceArmMonitorDiagnosticCategories_appService(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -33,7 +33,7 @@ func TestAccDataSourceArmMonitorDiagnosticCategories_storageAccount(t *testing.T
 	rs := acctest.RandString(8)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
