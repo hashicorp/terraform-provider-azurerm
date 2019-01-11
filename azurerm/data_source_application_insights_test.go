@@ -10,7 +10,7 @@ import (
 
 func TestAccDataSourceApplicationInsights_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_application_insights.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{

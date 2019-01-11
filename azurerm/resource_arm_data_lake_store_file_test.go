@@ -44,7 +44,7 @@ func TestAccAzureRMDataLakeStoreFile_basic(t *testing.T) {
 
 func TestAccAzureRMDataLakeStoreFile_largefiles(t *testing.T) {
 	resourceName := "azurerm_data_lake_store_file.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 
 	//"large" in this context is anything greater than 4 megabytes

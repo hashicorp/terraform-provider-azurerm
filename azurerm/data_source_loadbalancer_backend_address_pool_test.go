@@ -10,7 +10,7 @@ import (
 
 func TestAccAzureRMDataSourceLoadBalancerBackEndAddressPool_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_lb_backend_address_pool.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	addressPoolName := fmt.Sprintf("%d-address-pool", ri)
 
