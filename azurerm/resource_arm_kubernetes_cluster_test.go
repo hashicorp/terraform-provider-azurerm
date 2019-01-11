@@ -115,7 +115,7 @@ func TestAccAzureRMKubernetesCluster_roleBasedAccessControl(t *testing.T) {
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -148,7 +148,7 @@ func TestAccAzureRMKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	tenantId := os.Getenv("ARM_TENANT_ID")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,

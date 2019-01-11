@@ -295,7 +295,7 @@ func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
 	updatedConfigWithNoLocation := testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation(ri, testLocation(), skuPremium)
 	updatedConfigBasicSku := testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation(ri, testLocation(), skuBasic)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,

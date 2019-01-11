@@ -87,7 +87,7 @@ func TestAccAzureRMVirtualMachine_multipleAssignedIdentity(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := acctest.RandString(14)
 	config := testAccAzureRMVirtualMachineMultipleAssignedIdentity(ri, testLocation(), rs)
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,

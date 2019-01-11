@@ -15,7 +15,7 @@ func TestAccAzureRMIotHubConsumerGroup_events(t *testing.T) {
 	rInt := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMIotHubConsumerGroupDestroy,
@@ -40,7 +40,7 @@ func TestAccAzureRMIotHubConsumerGroup_operationsMonitoringEvents(t *testing.T) 
 	rInt := acctest.RandInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMIotHubConsumerGroupDestroy,

@@ -47,7 +47,7 @@ func TestAccAzureRMVirtualMachineScaleSet_evictionPolicyDelete(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMVirtualMachineScaleSet_evictionPolicyDelete(ri, testLocation())
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
@@ -668,7 +668,7 @@ func TestAccAzureRMVirtualMachineScaleSet_multipleAssignedMSI(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := acctest.RandString(14)
 	config := testAccAzureRMVirtualMachineScaleSetMultipleAssignedMSI(ri, testLocation(), rs)
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
