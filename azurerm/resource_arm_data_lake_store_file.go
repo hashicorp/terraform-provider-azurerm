@@ -84,8 +84,7 @@ func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}
 	}
 	defer utils.IoCloseAndLogError(file, fmt.Sprintf("Error closing Data Lake Store File %q", localFilePath))
 
-	_, err = client.Create(ctx, accountName, remoteFilePath, nil, nil, filesystem.DATA, nil, nil)
-	if err != nil {
+	if _, err = client.Create(ctx, accountName, remoteFilePath, nil, nil, filesystem.DATA, nil, nil); err != nil {
 		return fmt.Errorf("Error issuing create request for Data Lake Store File %q : %+v", remoteFilePath, err)
 	}
 
@@ -102,8 +101,7 @@ func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}
 		}
 		chunk := ioutil.NopCloser(bytes.NewReader(buffer[:n]))
 
-		_, err = client.Append(ctx, accountName, remoteFilePath, chunk, nil, flag, nil, nil)
-		if err != nil {
+		if _, err = client.Append(ctx, accountName, remoteFilePath, chunk, nil, flag, nil, nil); err != nil {
 			return fmt.Errorf("Error transferring chunk for Data Lake Store File %q : %+v", remoteFilePath, err)
 		}
 	}
