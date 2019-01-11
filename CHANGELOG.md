@@ -11,6 +11,7 @@ FEATURES:
 * **New Resource:** `azurerm_batch_pool` [GH-2461]
 * **New Resource:** `azurerm_firewall_application_rule_collection` [GH-2532]
 * **New Resource:** `azurerm_policy_set_definition` [GH-2535]
+Adding Ports To Container Groups #
 
 IMPROVEMENTS:
 * dependencies: updating to `v24.0.0` of `Azure/azure-sdk-for-go` [GH-2572]
@@ -26,6 +27,7 @@ IMPROVEMENTS:
 * `azurerm_azuread_service_principal` - deprecating in favour of the split-out AzureAD Provider [GH-2632]
 * `azurerm_azuread_service_principal_password` - deprecating in favour of the split-out AzureAD Provider [GH-2632]
 * `azurerm_cognitive_account` - support for the `SpeechServices` kind [GH-2583]
+* `azurerm_container_group` - deprecated container properties `port` and `protocol` for ports allowing for multiple ports [GH-1930]
 * `azurerm_eventhub_namespace` - support for `kafka_enabled` [GH-2395]
 * `azurerm_firewall` - renaming the `public_ip_address_id` property to `ip_address_id` [GH-2433]
 * `azurerm_kubernetes_cluster` - the `dns_prefix` now forces a new resource and is properly validated [GH-2611]
