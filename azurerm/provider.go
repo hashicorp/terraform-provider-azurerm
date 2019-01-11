@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
 
 // Provider returns a terraform.ResourceProvider.
@@ -72,6 +73,14 @@ func Provider() terraform.ResourceProvider {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_MSI_ENDPOINT", ""),
+			},
+
+			// Managed Tracking GUID for User-agent
+			"partner_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				DefaultFunc:  schema.EnvDefaultFunc("ARM_PARTNER_ID", ""),
+				ValidateFunc: validate.UUID,
 			},
 
 			// Advanced feature flags
@@ -368,8 +377,10 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			return nil, fmt.Errorf("Error building AzureRM Client: %s", err)
 		}
 
+		partnerId := d.Get("partner_id").(string)
 		skipProviderRegistration := d.Get("skip_provider_registration").(bool)
-		client, err := getArmClient(config, skipProviderRegistration)
+		client, err := getArmClient(config, skipProviderRegistration, partnerId)
+
 		if err != nil {
 			return nil, err
 		}
