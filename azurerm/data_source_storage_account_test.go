@@ -6,11 +6,12 @@ import (
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMStorageAccount_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_storage_account.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
 	preConfig := testAccDataSourceAzureRMStorageAccount_basic(ri, rs, location)

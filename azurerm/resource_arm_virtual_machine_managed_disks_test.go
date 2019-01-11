@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 // NOTE: Test `TestAccAzureRMVirtualMachine_enableAnWithVM` requires a machine of size `D8_v3` which is large/expensive - you may wish to ignore this test"
@@ -21,7 +22,7 @@ import (
 func TestAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_standardSSD(t *testing.T) {
 	resourceName := "azurerm_virtual_machine.test"
 	var vm compute.VirtualMachine
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_standardSSD(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -41,7 +42,7 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_standardSSD(t *t
 
 func TestAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_explicit(t *testing.T) {
 	var vm compute.VirtualMachine
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_explicit(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -60,7 +61,7 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_explicit(t *test
 
 func TestAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_implicit(t *testing.T) {
 	var vm compute.VirtualMachine
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_implicit(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -79,7 +80,7 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_implicit(t *test
 
 func TestAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_attach(t *testing.T) {
 	var vm compute.VirtualMachine
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_attach(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -99,7 +100,7 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_attach(t *testin
 func TestAccAzureRMVirtualMachine_withDataDisk_managedDisk_explicit(t *testing.T) {
 	var vm compute.VirtualMachine
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachine_withDataDisk_managedDisk_explicit(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -119,7 +120,7 @@ func TestAccAzureRMVirtualMachine_withDataDisk_managedDisk_explicit(t *testing.T
 func TestAccAzureRMVirtualMachine_withDataDisk_managedDisk_implicit(t *testing.T) {
 	var vm compute.VirtualMachine
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachine_withDataDisk_managedDisk_implicit(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -140,7 +141,7 @@ func TestAccAzureRMVirtualMachine_deleteManagedDiskOptOut(t *testing.T) {
 	var vm compute.VirtualMachine
 	var osd string
 	var dtd string
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMVirtualMachine_withDataDisk_managedDisk_implicit(ri, location)
 	postConfig := testAccAzureRMVirtualMachine_basicLinuxMachineDeleteVM_managedDisk(ri, location)
@@ -173,7 +174,7 @@ func TestAccAzureRMVirtualMachine_deleteManagedDiskOptIn(t *testing.T) {
 	var vm compute.VirtualMachine
 	var osd string
 	var dtd string
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_DestroyDisksBefore(ri, location)
 	postConfig := testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_DestroyDisksAfter(ri, location)
@@ -203,7 +204,7 @@ func TestAccAzureRMVirtualMachine_deleteManagedDiskOptIn(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualMachine_osDiskTypeConflict(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachine_osDiskTypeConflict(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -219,7 +220,7 @@ func TestAccAzureRMVirtualMachine_osDiskTypeConflict(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualMachine_dataDiskTypeConflict(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachine_dataDiskTypeConflict(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -235,7 +236,7 @@ func TestAccAzureRMVirtualMachine_dataDiskTypeConflict(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualMachine_bugAzureRM33(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(7)
 	config := testAccAzureRMVirtualMachine_bugAzureRM33(ri, rs, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
@@ -253,7 +254,7 @@ func TestAccAzureRMVirtualMachine_bugAzureRM33(t *testing.T) {
 func TestAccAzureRMVirtualMachine_attachSecondDataDiskWithAttachOption(t *testing.T) {
 	var afterCreate, afterUpdate compute.VirtualMachine
 	resourceName := "azurerm_virtual_machine.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_empty(ri, location)
 	postConfig := testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_attach(ri, location)
@@ -283,7 +284,7 @@ func TestAccAzureRMVirtualMachine_attachSecondDataDiskWithAttachOption(t *testin
 }
 
 func TestAccAzureRMVirtualMachine_linuxNoConfig(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachine_linuxNoConfig(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -299,7 +300,7 @@ func TestAccAzureRMVirtualMachine_linuxNoConfig(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualMachine_windowsNoConfig(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachine_windowsNoConfig(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -316,7 +317,7 @@ func TestAccAzureRMVirtualMachine_windowsNoConfig(t *testing.T) {
 
 func TestAccAzureRMVirtualMachine_multipleNICs(t *testing.T) {
 	resourceName := "azurerm_virtual_machine.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
 	subscriptionId := os.Getenv("ARM_SUBSCRIPTION_ID")
 	prefix := fmt.Sprintf("/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/networkInterfaces", subscriptionId, ri)
@@ -345,7 +346,7 @@ func TestAccAzureRMVirtualMachine_managedServiceIdentity(t *testing.T) {
 	var vm compute.VirtualMachine
 
 	resourceName := "azurerm_virtual_machine.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachine_withManagedServiceIdentity(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -368,7 +369,7 @@ func TestAccAzureRMVirtualMachine_managedServiceIdentity(t *testing.T) {
 func TestAccAzureRMVirtualMachine_enableAnWithVM(t *testing.T) {
 	var vm compute.VirtualMachine
 	resourceName := "azurerm_virtual_machine.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -386,7 +387,7 @@ func TestAccAzureRMVirtualMachine_enableAnWithVM(t *testing.T) {
 
 func TestAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_changeOsWriteAcceleratorEnabled(t *testing.T) {
 	resourceName := "azurerm_virtual_machine.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	var vm compute.VirtualMachine
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -414,7 +415,7 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_changeOsWriteAcc
 
 func TestAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_withWriteAcceleratorEnabled(t *testing.T) {
 	resourceName := "azurerm_virtual_machine.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	var vm compute.VirtualMachine
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -435,7 +436,7 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_withWriteAcceler
 
 func TestAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_changeWriteAcceleratorEnabled(t *testing.T) {
 	resourceName := "azurerm_virtual_machine.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	var vm compute.VirtualMachine
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -483,7 +484,7 @@ func TestAccAzureRMVirtualMachine_winRMCerts(t *testing.T) {
 func TestAccAzureRMVirtualMachine_hasDiskInfoWhenStopped(t *testing.T) {
 	var vm compute.VirtualMachine
 	resourceName := "azurerm_virtual_machine.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachine_hasDiskInfoWhenStopped(rInt, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -513,7 +514,7 @@ func TestAccAzureRMVirtualMachine_hasDiskInfoWhenStopped(t *testing.T) {
 func TestAccAzureRMVirtualMachine_importBasic_withZone(t *testing.T) {
 	resourceName := "azurerm_virtual_machine.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_implicit_withZone(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{

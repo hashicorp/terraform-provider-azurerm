@@ -13,11 +13,12 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMStorageBlob_basic(t *testing.T) {
 	resourceName := "azurerm_storage_blob.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageBlob_basic(ri, rs, testLocation())
 
@@ -44,7 +45,7 @@ func TestAccAzureRMStorageBlob_basic(t *testing.T) {
 
 func TestAccAzureRMStorageBlob_disappears(t *testing.T) {
 	resourceName := "azurerm_storage_blob.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageBlob_basic(ri, rs, testLocation())
 
@@ -66,7 +67,7 @@ func TestAccAzureRMStorageBlob_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMStorageBlobBlock_source(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs1 := strings.ToLower(acctest.RandString(11))
 	sourceBlob, err := ioutil.TempFile("", "")
 	if err != nil {
@@ -102,7 +103,7 @@ func TestAccAzureRMStorageBlobBlock_source(t *testing.T) {
 
 func TestAccAzureRMStorageBlobPage_source(t *testing.T) {
 	resourceName := "azurerm_storage_blob.source"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	sourceBlob, err := ioutil.TempFile("", "")
 	if err != nil {
@@ -162,7 +163,7 @@ func TestAccAzureRMStorageBlobPage_source(t *testing.T) {
 
 func TestAccAzureRMStorageBlob_source_uri(t *testing.T) {
 	resourceName := "azurerm_storage_blob.destination"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	sourceBlob, err := ioutil.TempFile("", "")
 	if err != nil {
@@ -204,7 +205,7 @@ func TestAccAzureRMStorageBlob_source_uri(t *testing.T) {
 
 func TestAccAzureRMStorageBlobBlock_blockContentType(t *testing.T) {
 	resourceName := "azurerm_storage_blob.source"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs1 := strings.ToLower(acctest.RandString(11))
 	sourceBlob, err := ioutil.TempFile("", "")
 	if err != nil {

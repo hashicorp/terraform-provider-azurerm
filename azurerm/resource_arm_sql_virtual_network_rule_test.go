@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,7 +20,7 @@ import (
 */
 func TestAccAzureRMSqlVirtualNetworkRule_basic(t *testing.T) {
 	resourceName := "azurerm_sql_virtual_network_rule.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	preConfig := testAccAzureRMSqlVirtualNetworkRule_basic(ri, testLocation())
 	postConfig := testAccAzureRMSqlVirtualNetworkRule_withUpdates(ri, testLocation())
 
@@ -58,7 +59,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_basic(t *testing.T) {
 */
 func TestAccAzureRMSqlVirtualNetworkRule_switchSubnets(t *testing.T) {
 	resourceName := "azurerm_sql_virtual_network_rule.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	preConfig := testAccAzureRMSqlVirtualNetworkRule_subnetSwitchPre(ri, testLocation())
 	postConfig := testAccAzureRMSqlVirtualNetworkRule_subnetSwitchPost(ri, testLocation())
@@ -95,7 +96,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_switchSubnets(t *testing.T) {
 */
 func TestAccAzureRMSqlVirtualNetworkRule_disappears(t *testing.T) {
 	resourceName := "azurerm_sql_virtual_network_rule.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSqlVirtualNetworkRule_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -122,7 +123,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_disappears(t *testing.T) {
 */
 func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointValid(t *testing.T) {
 	resourceName := "azurerm_sql_virtual_network_rule.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSqlVirtualNetworkRule_ignoreEndpointValid(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -146,7 +147,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointValid(t *testing.T) {
 	is still applied since the endpoint validation will be set to false.
 */
 func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointInvalid(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSqlVirtualNetworkRule_ignoreEndpointInvalid(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -171,7 +172,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_multipleSubnets(t *testing.T) {
 	resourceName1 := "azurerm_sql_virtual_network_rule.rule1"
 	resourceName2 := "azurerm_sql_virtual_network_rule.rule2"
 	resourceName3 := "azurerm_sql_virtual_network_rule.rule3"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSqlVirtualNetworkRule_multipleSubnets(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{

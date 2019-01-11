@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -71,7 +72,7 @@ func TestAccAzureRMContainerRegistryName_validation(t *testing.T) {
 
 func TestAccAzureRMContainerRegistry_basicClassic(t *testing.T) {
 	resourceName := "azurerm_container_registry.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	config := testAccAzureRMContainerRegistry_basicUnmanaged(ri, rs, testLocation(), "Classic")
 
@@ -97,7 +98,7 @@ func TestAccAzureRMContainerRegistry_basicClassic(t *testing.T) {
 
 func TestAccAzureRMContainerRegistry_basicBasic(t *testing.T) {
 	resourceName := "azurerm_container_registry.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -127,7 +128,7 @@ func TestAccAzureRMContainerRegistry_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_container_registry.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -151,7 +152,7 @@ func TestAccAzureRMContainerRegistry_requiresImport(t *testing.T) {
 
 func TestAccAzureRMContainerRegistry_basicStandard(t *testing.T) {
 	resourceName := "azurerm_container_registry.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Standard")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -176,7 +177,7 @@ func TestAccAzureRMContainerRegistry_basicStandard(t *testing.T) {
 
 func TestAccAzureRMContainerRegistry_basicPremium(t *testing.T) {
 	resourceName := "azurerm_container_registry.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Premium")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -201,7 +202,7 @@ func TestAccAzureRMContainerRegistry_basicPremium(t *testing.T) {
 
 func TestAccAzureRMContainerRegistry_basicBasicUpgradePremium(t *testing.T) {
 	resourceName := "azurerm_container_registry.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Basic")
 	configUpdated := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Premium")
 
@@ -230,7 +231,7 @@ func TestAccAzureRMContainerRegistry_basicBasicUpgradePremium(t *testing.T) {
 
 func TestAccAzureRMContainerRegistry_complete(t *testing.T) {
 	resourceName := "azurerm_container_registry.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	config := testAccAzureRMContainerRegistry_complete(ri, rs, testLocation())
 
@@ -256,7 +257,7 @@ func TestAccAzureRMContainerRegistry_complete(t *testing.T) {
 
 func TestAccAzureRMContainerRegistry_update(t *testing.T) {
 	resourceName := "azurerm_container_registry.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
 	config := testAccAzureRMContainerRegistry_complete(ri, rs, location)
@@ -287,7 +288,7 @@ func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
 	dataSourceName := "azurerm_container_registry.test"
 	skuPremium := "Premium"
 	skuBasic := "Basic"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	containerRegistryName := fmt.Sprintf("testacccr%d", ri)
 	resourceGroupName := fmt.Sprintf("testAccRg-%d", ri)
 	config := testAccAzureRMContainerRegistry_geoReplication(ri, testLocation(), skuPremium, `eastus", "westus`)

@@ -5,15 +5,15 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMContainerGroup_imageRegistryCredentials(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	config := testAccAzureRMContainerGroup_imageRegistryCredentials(ri, testLocation())
 
@@ -50,7 +50,7 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentials(t *testing.T) {
 
 func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	config := testAccAzureRMContainerGroup_imageRegistryCredentials(ri, testLocation())
 	updated := testAccAzureRMContainerGroup_imageRegistryCredentialsUpdated(ri, testLocation())
@@ -92,7 +92,7 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 
 func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	config := testAccAzureRMContainerGroup_linuxBasic(ri, testLocation())
 
@@ -130,7 +130,7 @@ func TestAccAzureRMContainerGroup_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_container_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -154,7 +154,7 @@ func TestAccAzureRMContainerGroup_requiresImport(t *testing.T) {
 
 func TestAccAzureRMContainerGroup_linuxBasicUpdate(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	config := testAccAzureRMContainerGroup_linuxBasic(ri, testLocation())
 	updatedConfig := testAccAzureRMContainerGroup_linuxBasicUpdated(ri, testLocation())
@@ -185,7 +185,7 @@ func TestAccAzureRMContainerGroup_linuxBasicUpdate(t *testing.T) {
 
 func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	config := testAccAzureRMContainerGroup_linuxComplete(ri, testLocation())
 
@@ -236,7 +236,7 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 
 func TestAccAzureRMContainerGroup_windowsBasic(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	config := testAccAzureRMContainerGroup_windowsBasic(ri, testLocation())
 
@@ -265,7 +265,7 @@ func TestAccAzureRMContainerGroup_windowsBasic(t *testing.T) {
 
 func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	config := testAccAzureRMContainerGroup_windowsComplete(ri, testLocation())
 

@@ -4,13 +4,16 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
 func TestAccDataSourceAzureRMBatchPool_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_batch_pool.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
 	rs := acctest.RandString(4)
 	location := testLocation()
 	config := testAccDataSourceAzureRMBatchPool_complete(ri, rs, location)

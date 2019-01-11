@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -13,7 +15,8 @@ import (
 
 func TestAccAzureRMBatchPool_basic(t *testing.T) {
 	resourceName := "azurerm_batch_pool.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
 	rs := acctest.RandString(4)
 	location := testLocation()
 
@@ -46,7 +49,8 @@ func TestAccAzureRMBatchPool_basic(t *testing.T) {
 
 func TestAccAzureRMBatchPool_fixedScale_complete(t *testing.T) {
 	resourceName := "azurerm_batch_pool.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
 	rs := acctest.RandString(4)
 	location := testLocation()
 
@@ -82,7 +86,8 @@ func TestAccAzureRMBatchPool_fixedScale_complete(t *testing.T) {
 
 func TestAccAzureRMBatchPool_autoScale_complete(t *testing.T) {
 	resourceName := "azurerm_batch_pool.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
 	rs := acctest.RandString(4)
 	location := testLocation()
 
@@ -116,7 +121,8 @@ func TestAccAzureRMBatchPool_autoScale_complete(t *testing.T) {
 
 func TestAccAzureRMBatchPool_completeUpdated(t *testing.T) {
 	resourceName := "azurerm_batch_pool.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
 	rs := acctest.RandString(4)
 	location := testLocation()
 
@@ -170,7 +176,8 @@ func TestAccAzureRMBatchPool_completeUpdated(t *testing.T) {
 
 func TestAccAzureRMBatchPoolStartTask_basic(t *testing.T) {
 	resourceName := "azurerm_batch_pool.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
 	rs := acctest.RandString(4)
 	location := testLocation()
 

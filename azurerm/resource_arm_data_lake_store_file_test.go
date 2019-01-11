@@ -11,13 +11,14 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMDataLakeStoreFile_basic(t *testing.T) {
 	resourceName := "azurerm_data_lake_store_file.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -93,7 +94,7 @@ func TestAccAzureRMDataLakeStoreFile_requiresimport(t *testing.T) {
 
 	resourceName := "azurerm_data_lake_store_file.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
 

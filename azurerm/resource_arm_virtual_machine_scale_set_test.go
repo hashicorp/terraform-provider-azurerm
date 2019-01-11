@@ -13,11 +13,12 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMVirtualMachineScaleSet_basic(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineScaleSet_basic(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -45,7 +46,7 @@ func TestAccAzureRMVirtualMachineScaleSet_basic(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineScaleSet_evictionPolicyDelete(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineScaleSet_evictionPolicyDelete(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -71,7 +72,7 @@ func TestAccAzureRMVirtualMachineScaleSet_evictionPolicyDelete(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineScaleSet_standardSSD(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineScaleSet_standardSSD(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -96,7 +97,7 @@ func TestAccAzureRMVirtualMachineScaleSet_standardSSD(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineScaleSet_basicPublicIP(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineScaleSet_basicPublicIP(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -117,7 +118,7 @@ func TestAccAzureRMVirtualMachineScaleSet_basicPublicIP(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineScaleSet_basicApplicationSecurity(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	networkProfileName := fmt.Sprintf("TestNetworkProfile-%d", ri)
 	networkProfile := map[string]interface{}{"name": networkProfileName, "primary": true}
 	networkProfileHash := fmt.Sprintf("%d", resourceArmVirtualMachineScaleSetNetworkConfigurationHash(networkProfile))
@@ -138,7 +139,7 @@ func TestAccAzureRMVirtualMachineScaleSet_basicApplicationSecurity(t *testing.T)
 
 func TestAccAzureRMVirtualMachineScaleSet_basicAcceleratedNetworking(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineScaleSet_basicAcceleratedNetworking(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -158,7 +159,7 @@ func TestAccAzureRMVirtualMachineScaleSet_basicAcceleratedNetworking(t *testing.
 
 func TestAccAzureRMVirtualMachineScaleSet_basicIPForwarding(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	networkProfileName := fmt.Sprintf("TestNetworkProfile-%d", ri)
 	networkProfile := map[string]interface{}{"name": networkProfileName, "primary": true}
 	networkProfileHash := fmt.Sprintf("%d", resourceArmVirtualMachineScaleSetNetworkConfigurationHash(networkProfile))
@@ -181,7 +182,7 @@ func TestAccAzureRMVirtualMachineScaleSet_basicIPForwarding(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineScaleSet_basicDNSSettings(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	networkProfileName := fmt.Sprintf("TestNetworkProfile-%d", ri)
 	networkProfile := map[string]interface{}{"name": networkProfileName, "primary": true}
 	networkProfileHash := fmt.Sprintf("%d", resourceArmVirtualMachineScaleSetNetworkConfigurationHash(networkProfile))
@@ -205,7 +206,7 @@ func TestAccAzureRMVirtualMachineScaleSet_basicDNSSettings(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineScaleSet_bootDiagnostic(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineScaleSet_bootDiagnostic(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -225,7 +226,7 @@ func TestAccAzureRMVirtualMachineScaleSet_bootDiagnostic(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineScaleSet_networkSecurityGroup(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineScaleSet_networkSecurityGroup(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -244,7 +245,7 @@ func TestAccAzureRMVirtualMachineScaleSet_networkSecurityGroup(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineScaleSet_basicWindows(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineScaleSet_basicWindows(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -266,7 +267,7 @@ func TestAccAzureRMVirtualMachineScaleSet_basicWindows(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineScaleSet_singlePlacementGroupFalse(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineScaleSet_singlePlacementGroupFalse(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -286,7 +287,7 @@ func TestAccAzureRMVirtualMachineScaleSet_singlePlacementGroupFalse(t *testing.T
 
 func TestAccAzureRMVirtualMachineScaleSet_linuxUpdated(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMVirtualMachineScaleSet_linux(ri, location)
 	updatedConfig := testAccAzureRMVirtualMachineScaleSet_linuxUpdated(ri, location)
@@ -314,7 +315,7 @@ func TestAccAzureRMVirtualMachineScaleSet_linuxUpdated(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineScaleSet_customDataUpdated(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMVirtualMachineScaleSet_linux(ri, location)
 	updatedConfig := testAccAzureRMVirtualMachineScaleSet_linuxCustomDataUpdated(ri, location)
@@ -342,7 +343,7 @@ func TestAccAzureRMVirtualMachineScaleSet_customDataUpdated(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineScaleSet_basicLinux_managedDisk(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineScaleSet_basicLinux_managedDisk(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -367,7 +368,7 @@ func TestAccAzureRMVirtualMachineScaleSet_basicLinux_managedDisk(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineScaleSet_basicWindows_managedDisk(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineScaleSet_basicWindows_managedDisk(ri, testLocation(), "Standard_D1_v2")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -386,7 +387,7 @@ func TestAccAzureRMVirtualMachineScaleSet_basicWindows_managedDisk(t *testing.T)
 
 func TestAccAzureRMVirtualMachineScaleSet_basicWindows_managedDisk_resize(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	preConfig := testAccAzureRMVirtualMachineScaleSet_basicWindows_managedDisk(ri, testLocation(), "Standard_D1_v2")
 	postConfig := testAccAzureRMVirtualMachineScaleSet_basicWindows_managedDisk(ri, testLocation(), "Standard_D2_v2")
 	resource.ParallelTest(t, resource.TestCase{
@@ -412,7 +413,7 @@ func TestAccAzureRMVirtualMachineScaleSet_basicWindows_managedDisk_resize(t *tes
 
 func TestAccAzureRMVirtualMachineScaleSet_basicLinux_managedDiskNoName(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineScaleSet_basicLinux_managedDiskNoName(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -431,7 +432,7 @@ func TestAccAzureRMVirtualMachineScaleSet_basicLinux_managedDiskNoName(t *testin
 
 func TestAccAzureRMVirtualMachineScaleSet_basicLinux_disappears(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineScaleSet_basic(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -452,7 +453,7 @@ func TestAccAzureRMVirtualMachineScaleSet_basicLinux_disappears(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineScaleSet_planManagedDisk(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineScaleSet_planManagedDisk(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -471,7 +472,7 @@ func TestAccAzureRMVirtualMachineScaleSet_planManagedDisk(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineScaleSet_customImage(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceGroup := fmt.Sprintf("acctestRG-%d", ri)
 	userName := fmt.Sprintf("testadmin%d", ri)
 	password := fmt.Sprintf("Password1234!%d", ri)
@@ -507,7 +508,7 @@ func TestAccAzureRMVirtualMachineScaleSet_customImage(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineScaleSet_applicationGateway(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineScaleSetApplicationGatewayTemplate(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -527,7 +528,7 @@ func TestAccAzureRMVirtualMachineScaleSet_applicationGateway(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineScaleSet_loadBalancer(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineScaleSetLoadBalancerTemplate(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -553,7 +554,7 @@ func TestAccAzureRMVirtualMachineScaleSet_loadBalancer(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineScaleSet_loadBalancerManagedDataDisks(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineScaleSetLoadBalancerTemplateManagedDataDisks(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -573,7 +574,7 @@ func TestAccAzureRMVirtualMachineScaleSet_loadBalancerManagedDataDisks(t *testin
 
 func TestAccAzureRMVirtualMachineScaleSet_overprovision(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineScaleSetOverProvisionTemplate(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -599,7 +600,7 @@ func TestAccAzureRMVirtualMachineScaleSet_overprovision(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineScaleSet_priority(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineScaleSetPriorityTemplate(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -620,7 +621,7 @@ func TestAccAzureRMVirtualMachineScaleSet_priority(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineScaleSet_SystemAssignedMSI(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineScaleSetSystemAssignedMSI(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -642,7 +643,7 @@ func TestAccAzureRMVirtualMachineScaleSet_SystemAssignedMSI(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineScaleSet_UserAssignedMSI(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(14)
 	config := testAccAzureRMVirtualMachineScaleSetUserAssignedMSI(ri, testLocation(), rs)
 	resource.ParallelTest(t, resource.TestCase{
@@ -665,7 +666,7 @@ func TestAccAzureRMVirtualMachineScaleSet_UserAssignedMSI(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineScaleSet_multipleAssignedMSI(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(14)
 	config := testAccAzureRMVirtualMachineScaleSetMultipleAssignedMSI(ri, testLocation(), rs)
 	resource.ParallelTest(t, resource.TestCase{
@@ -688,7 +689,7 @@ func TestAccAzureRMVirtualMachineScaleSet_multipleAssignedMSI(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineScaleSet_extension(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineScaleSetExtensionTemplate(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -714,7 +715,7 @@ func TestAccAzureRMVirtualMachineScaleSet_extension(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineScaleSet_extensionUpdate(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMVirtualMachineScaleSetExtensionTemplate(ri, location)
 	updatedConfig := testAccAzureRMVirtualMachineScaleSetExtensionTemplateUpdated(ri, location)
@@ -743,7 +744,7 @@ func TestAccAzureRMVirtualMachineScaleSet_extensionUpdate(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineScaleSet_multipleExtensions(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineScaleSetMultipleExtensionsTemplate(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -768,7 +769,7 @@ func TestAccAzureRMVirtualMachineScaleSet_multipleExtensions(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualMachineScaleSet_osDiskTypeConflict(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineScaleSet_osDiskTypeConflict(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -785,7 +786,7 @@ func TestAccAzureRMVirtualMachineScaleSet_osDiskTypeConflict(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineScaleSet_NonStandardCasing(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineScaleSetNonStandardCasing(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -810,7 +811,7 @@ func TestAccAzureRMVirtualMachineScaleSet_NonStandardCasing(t *testing.T) {
 func TestAccAzureRMVirtualMachineScaleSet_importLinux(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineScaleSet_linux(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -836,7 +837,7 @@ func TestAccAzureRMVirtualMachineScaleSet_importLinux(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineScaleSet_multipleNetworkProfiles(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineScaleSet_multipleNetworkProfiles(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -855,7 +856,7 @@ func TestAccAzureRMVirtualMachineScaleSet_multipleNetworkProfiles(t *testing.T) 
 
 func TestAccAzureRMVirtualMachineScaleSet_AutoUpdates(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineScaleSet_rollingAutoUpdates(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -874,7 +875,7 @@ func TestAccAzureRMVirtualMachineScaleSet_AutoUpdates(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineScaleSet_upgradeModeUpdate(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	manualConfig := testAccAzureRMVirtualMachineScaleSet_upgradeModeUpdate(ri, location, "Manual")
 	automaticConfig := testAccAzureRMVirtualMachineScaleSet_upgradeModeUpdate(ri, location, "Automatic")
@@ -942,7 +943,7 @@ func TestAccAzureRMVirtualMachineScaleSet_upgradeModeUpdate(t *testing.T) {
 func TestAccAzureRMVirtualMachineScaleSet_importBasic_managedDisk_withZones(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineScaleSet_basicLinux_managedDisk_withZones(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{

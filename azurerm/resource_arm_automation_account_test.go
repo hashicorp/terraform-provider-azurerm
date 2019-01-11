@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMAutomationAccount_basic(t *testing.T) {
 	resourceName := "azurerm_automation_account.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -45,7 +45,7 @@ func TestAccAzureRMAutomationAccount_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_automation_account.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -69,7 +69,7 @@ func TestAccAzureRMAutomationAccount_requiresImport(t *testing.T) {
 
 func TestAccAzureRMAutomationAccount_complete(t *testing.T) {
 	resourceName := "azurerm_automation_account.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

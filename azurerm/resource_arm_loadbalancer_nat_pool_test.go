@@ -6,14 +6,14 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMLoadBalancerNatPool_basic(t *testing.T) {
 	var lb network.LoadBalancer
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	natPoolName := fmt.Sprintf("NatPool-%d", ri)
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
@@ -48,7 +48,7 @@ func TestAccAzureRMLoadBalancerNatPool_basic(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerNatPool_removal(t *testing.T) {
 	var lb network.LoadBalancer
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	natPoolName := fmt.Sprintf("NatPool-%d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -76,9 +76,9 @@ func TestAccAzureRMLoadBalancerNatPool_removal(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerNatPool_update(t *testing.T) {
 	var lb network.LoadBalancer
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	natPoolName := fmt.Sprintf("NatPool-%d", ri)
-	natPool2Name := fmt.Sprintf("NatPool-%d", acctest.RandInt())
+	natPool2Name := fmt.Sprintf("NatPool-%d", tf.AccRandTimeInt())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -109,7 +109,7 @@ func TestAccAzureRMLoadBalancerNatPool_update(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerNatPool_reapply(t *testing.T) {
 	var lb network.LoadBalancer
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	natPoolName := fmt.Sprintf("NatPool-%d", ri)
 
 	deleteNatPoolState := func(s *terraform.State) error {
@@ -143,7 +143,7 @@ func TestAccAzureRMLoadBalancerNatPool_reapply(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerNatPool_disappears(t *testing.T) {
 	var lb network.LoadBalancer
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	natPoolName := fmt.Sprintf("NatPool-%d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{

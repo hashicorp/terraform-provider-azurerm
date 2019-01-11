@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMApplicationSecurityGroup_basic(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_application_security_group.test"
 	config := testAccAzureRMApplicationSecurityGroup_basic(ri, testLocation())
 
@@ -37,7 +37,7 @@ func TestAccAzureRMApplicationSecurityGroup_requiresImport(t *testing.T) {
 		return
 	}
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	resourceName := "azurerm_application_security_group.test"
 
@@ -61,7 +61,7 @@ func TestAccAzureRMApplicationSecurityGroup_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMApplicationSecurityGroup_complete(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_application_security_group.test"
 	config := testAccAzureRMApplicationSecurityGroup_complete(ri, testLocation())
 
@@ -83,7 +83,7 @@ func TestAccAzureRMApplicationSecurityGroup_complete(t *testing.T) {
 }
 
 func TestAccAzureRMApplicationSecurityGroup_update(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	resourceName := "azurerm_application_security_group.test"
 

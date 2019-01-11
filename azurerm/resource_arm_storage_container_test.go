@@ -10,13 +10,14 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMStorageContainer_basic(t *testing.T) {
 	resourceName := "azurerm_storage_container.test"
 	var c storage.Container
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageContainer_basic(ri, rs, testLocation())
 
@@ -44,7 +45,7 @@ func TestAccAzureRMStorageContainer_update(t *testing.T) {
 	resourceName := "azurerm_storage_container.test"
 	var c storage.Container
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	at1 := "private"
 	at2 := "container"
@@ -82,7 +83,7 @@ func TestAccAzureRMStorageContainer_update(t *testing.T) {
 func TestAccAzureRMStorageContainer_disappears(t *testing.T) {
 	var c storage.Container
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageContainer_basic(ri, rs, testLocation())
 
@@ -107,7 +108,7 @@ func TestAccAzureRMStorageContainer_root(t *testing.T) {
 	resourceName := "azurerm_storage_container.test"
 	var c storage.Container
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageContainer_root(ri, rs, testLocation())
 

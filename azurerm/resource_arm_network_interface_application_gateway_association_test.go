@@ -5,15 +5,15 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation_basic(t *testing.T) {
 	resourceName := "azurerm_network_interface_application_gateway_backend_address_pool_association.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -32,7 +32,7 @@ func TestAccAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssociati
 
 func TestAccAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation_deleted(t *testing.T) {
 	resourceName := "azurerm_network_interface_application_gateway_backend_address_pool_association.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
