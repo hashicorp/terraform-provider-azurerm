@@ -92,7 +92,12 @@ func TestAccAzureRMDatabricksWorkspace_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDatabricksWorkspace_withTags(t *testing.T) {
+func TestAccAzureRMDatabricksWorkspace_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
 	resourceName := "azurerm_databricks_workspace.test"
 	ri := acctest.RandInt()
 	location := testLocation()
@@ -103,20 +108,46 @@ func TestAccAzureRMDatabricksWorkspace_withTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDatabricksWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDatabricksWorkspace_withTags(ri, location),
+				Config: testAccAzureRMDatabricksWorkspace_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDatabricksWorkspaceExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMDatabricksWorkspace_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_databricks_workspace"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMDatabricksWorkspace_complete(t *testing.T) {
+	resourceName := "azurerm_databricks_workspace.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDatabricksWorkspaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDatabricksWorkspace_complete(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDatabricksWorkspaceExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_resource_group_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "managed_resource_group_name"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
 					resource.TestCheckResourceAttr(resourceName, "tags.pricing", "Standard"),
 				),
 			},
 			{
-				Config: testAccAzureRMDatabricksWorkspace_withTagsUpdate(ri, location),
+				Config: testAccAzureRMDatabricksWorkspace_completeUpdate(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDatabricksWorkspaceExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_resource_group_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "managed_resource_group_name"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.pricing", "Standard"),
 				),
@@ -130,11 +161,11 @@ func TestAccAzureRMDatabricksWorkspace_withTags(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDatabricksWorkspaceExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDatabricksWorkspaceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Bad: Not found: %s", name)
+			return fmt.Errorf("Bad: Not found: %s", resourceName)
 		}
 
 		workspaceName := rs.Primary.Attributes["name"]
@@ -194,12 +225,26 @@ resource "azurerm_databricks_workspace" "test" {
   name                = "acctestdbw-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  sku                 = "Standard"
+  sku                 = "standard"
 }
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMDatabricksWorkspace_withTags(rInt int, location string) string {
+func testAccAzureRMDatabricksWorkspace_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMDatabricksWorkspace_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_databricks_workspace" "import" {
+  name                = "$[azurerm_databricks_workspace.test.name}"
+  resource_group_name = "${azurerm_databricks_workspace.test.resource_group_name}"
+  location            = "${azurerm_databricks_workspace.test.location}"
+  sku                 = "${azurerm_databricks_workspace.test.sku}"
+}
+`, template)
+}
+
+func testAccAzureRMDatabricksWorkspace_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -207,20 +252,21 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_databricks_workspace" "test" {
-  name                = "acctestdbw-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  sku                 = "Standard"
+  name                        = "acctestdbw-%d"
+  resource_group_name         = "${azurerm_resource_group.test.name}"
+  location                    = "${azurerm_resource_group.test.location}"
+  sku                         = "standard"
+  managed_resource_group_name = "acctestRG-%d-managed"
 
   tags {
     environment = "Production"
     pricing     = "Standard"
   }
 }
-`, rInt, location, rInt)
+`, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMDatabricksWorkspace_withTagsUpdate(rInt int, location string) string {
+func testAccAzureRMDatabricksWorkspace_completeUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -228,14 +274,15 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_databricks_workspace" "test" {
-  name                = "acctestdbw-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  sku                 = "Standard"
+  name                        = "acctestdbw-%d"
+  resource_group_name         = "${azurerm_resource_group.test.name}"
+  location                    = "${azurerm_resource_group.test.location}"
+  sku                         = "standard"
+  managed_resource_group_name = "acctestRG-%d-managed"
 
   tags {
     pricing = "Standard"
   }
 }
-`, rInt, location, rInt)
+`, rInt, location, rInt, rInt)
 }

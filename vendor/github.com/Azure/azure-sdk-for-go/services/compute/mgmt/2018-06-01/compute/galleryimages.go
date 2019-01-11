@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -49,6 +50,16 @@ func NewGalleryImagesClientWithBaseURI(baseURI string, subscriptionID string) Ga
 // characters.
 // galleryImage - parameters supplied to the create or update gallery image operation.
 func (client GalleryImagesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, galleryName string, galleryImageName string, galleryImage GalleryImage) (result GalleryImagesCreateOrUpdateFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/GalleryImagesClient.CreateOrUpdate")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: galleryImage,
 			Constraints: []validation.Constraint{{Target: "galleryImage.GalleryImageProperties", Name: validation.Null, Rule: false,
@@ -109,10 +120,6 @@ func (client GalleryImagesClient) CreateOrUpdateSender(req *http.Request) (futur
 	if err != nil {
 		return
 	}
-	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted))
-	if err != nil {
-		return
-	}
 	future.Future, err = azure.NewFutureFromResponse(resp)
 	return
 }
@@ -136,6 +143,16 @@ func (client GalleryImagesClient) CreateOrUpdateResponder(resp *http.Response) (
 // galleryName - the name of the Shared Image Gallery in which the Image Definition is to be deleted.
 // galleryImageName - the name of the gallery Image Definition to be deleted.
 func (client GalleryImagesClient) Delete(ctx context.Context, resourceGroupName string, galleryName string, galleryImageName string) (result GalleryImagesDeleteFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/GalleryImagesClient.Delete")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeletePreparer(ctx, resourceGroupName, galleryName, galleryImageName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.GalleryImagesClient", "Delete", nil, "Failure preparing request")
@@ -182,10 +199,6 @@ func (client GalleryImagesClient) DeleteSender(req *http.Request) (future Galler
 	if err != nil {
 		return
 	}
-	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent))
-	if err != nil {
-		return
-	}
 	future.Future, err = azure.NewFutureFromResponse(resp)
 	return
 }
@@ -208,6 +221,16 @@ func (client GalleryImagesClient) DeleteResponder(resp *http.Response) (result a
 // galleryName - the name of the Shared Image Gallery from which the Image Definitions are to be retrieved.
 // galleryImageName - the name of the gallery Image Definition to be retrieved.
 func (client GalleryImagesClient) Get(ctx context.Context, resourceGroupName string, galleryName string, galleryImageName string) (result GalleryImage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/GalleryImagesClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetPreparer(ctx, resourceGroupName, galleryName, galleryImageName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.GalleryImagesClient", "Get", nil, "Failure preparing request")
@@ -276,6 +299,16 @@ func (client GalleryImagesClient) GetResponder(resp *http.Response) (result Gall
 // resourceGroupName - the name of the resource group.
 // galleryName - the name of the Shared Image Gallery from which Image Definitions are to be listed.
 func (client GalleryImagesClient) ListByGallery(ctx context.Context, resourceGroupName string, galleryName string) (result GalleryImageListPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/GalleryImagesClient.ListByGallery")
+		defer func() {
+			sc := -1
+			if result.gil.Response.Response != nil {
+				sc = result.gil.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.fn = client.listByGalleryNextResults
 	req, err := client.ListByGalleryPreparer(ctx, resourceGroupName, galleryName)
 	if err != nil {
@@ -340,8 +373,8 @@ func (client GalleryImagesClient) ListByGalleryResponder(resp *http.Response) (r
 }
 
 // listByGalleryNextResults retrieves the next set of results, if any.
-func (client GalleryImagesClient) listByGalleryNextResults(lastResults GalleryImageList) (result GalleryImageList, err error) {
-	req, err := lastResults.galleryImageListPreparer()
+func (client GalleryImagesClient) listByGalleryNextResults(ctx context.Context, lastResults GalleryImageList) (result GalleryImageList, err error) {
+	req, err := lastResults.galleryImageListPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "compute.GalleryImagesClient", "listByGalleryNextResults", nil, "Failure preparing next results request")
 	}
@@ -362,6 +395,16 @@ func (client GalleryImagesClient) listByGalleryNextResults(lastResults GalleryIm
 
 // ListByGalleryComplete enumerates all values, automatically crossing page boundaries as required.
 func (client GalleryImagesClient) ListByGalleryComplete(ctx context.Context, resourceGroupName string, galleryName string) (result GalleryImageListIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/GalleryImagesClient.ListByGallery")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.page, err = client.ListByGallery(ctx, resourceGroupName, galleryName)
 	return
 }

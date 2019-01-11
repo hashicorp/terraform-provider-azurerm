@@ -3,6 +3,7 @@ package azure
 import (
 	"strings"
 
+	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -10,6 +11,16 @@ func SchemaLocation() *schema.Schema {
 	return &schema.Schema{
 		Type:             schema.TypeString,
 		Required:         true,
+		ForceNew:         true,
+		StateFunc:        NormalizeLocation,
+		DiffSuppressFunc: SuppressLocationDiff,
+	}
+}
+
+func SchemaLocationOptional() *schema.Schema {
+	return &schema.Schema{
+		Type:             schema.TypeString,
+		Optional:         true,
 		ForceNew:         true,
 		StateFunc:        NormalizeLocation,
 		DiffSuppressFunc: SuppressLocationDiff,
@@ -45,4 +56,8 @@ func NormalizeLocation(location interface{}) string {
 
 func SuppressLocationDiff(k, old, new string, d *schema.ResourceData) bool {
 	return NormalizeLocation(old) == NormalizeLocation(new)
+}
+
+func HashAzureLocation(location interface{}) int {
+	return hashcode.String(NormalizeLocation(location.(string)))
 }

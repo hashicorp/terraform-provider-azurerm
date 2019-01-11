@@ -66,8 +66,7 @@ func resourceArmLogicAppTriggerRecurrenceCreateUpdate(d *schema.ResourceData, me
 
 	logicAppId := d.Get("logic_app_id").(string)
 	name := d.Get("name").(string)
-	err := resourceLogicAppTriggerUpdate(d, meta, logicAppId, name, trigger)
-	if err != nil {
+	if err := resourceLogicAppTriggerUpdate(d, meta, logicAppId, name, trigger); err != nil {
 		return err
 	}
 

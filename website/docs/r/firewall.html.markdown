@@ -11,8 +11,6 @@ description: |-
 
 Manages an Azure Firewall.
 
--> **NOTE** Azure Firewall is currently in Public Preview.
-
 ## Example Usage
 
 ```hcl
@@ -36,11 +34,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "testpip"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Static"
-  sku                          = "Standard"
+  name                = "testpip"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_firewall" "test" {
@@ -49,9 +47,9 @@ resource "azurerm_firewall" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   ip_configuration {
-    name                          = "configuration"
-    subnet_id                     = "${azurerm_subnet.test.id}"
-    internal_public_ip_address_id = "${azurerm_public_ip.test.id}"
+    name                 = "configuration"
+    subnet_id            = "${azurerm_subnet.test.id}"
+    public_ip_address_id = "${azurerm_public_ip.test.id}"
   }
 }
 ```
@@ -80,7 +78,7 @@ A `ip_configuration` block supports the following:
 
 -> **NOTE** The Subnet used for the Firewall must have the name `AzureFirewallSubnet` and the subnet mask must be at least `/25`.
 
-* `internal_public_ip_address_id` - (Required) The Resource ID of the Public IP Address associated with the firewall.
+* `public_ip_address_id` - (Required) The Resource ID of the Public IP Address associated with the firewall.
 
 -> **NOTE** The Public IP must have a `Static` allocation and `Standard` sku.
 

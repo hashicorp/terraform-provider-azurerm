@@ -38,8 +38,7 @@ func testSweepMonitorLogProfiles(region string) error {
 			continue
 		}
 
-		_, err := client.Delete(ctx, name)
-		if err != nil {
+		if _, err := client.Delete(ctx, name); err != nil {
 			return fmt.Errorf("Error deleting Log Profile %q: %+v", name, err)
 		}
 	}
@@ -190,12 +189,12 @@ func testCheckAzureRMLogProfileDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMLogProfileExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMLogProfileExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).monitorLogProfilesClient
@@ -215,12 +214,12 @@ func testCheckAzureRMLogProfileExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testCheckAzureRMLogProfileDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMLogProfileDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -228,8 +227,7 @@ func testCheckAzureRMLogProfileDisappears(name string) resource.TestCheckFunc {
 		client := testAccProvider.Meta().(*ArmClient).monitorLogProfilesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, err := client.Delete(ctx, name)
-		if err != nil {
+		if _, err := client.Delete(ctx, name); err != nil {
 			return fmt.Errorf("Error deleting Log Profile %q: %+v", name, err)
 		}
 

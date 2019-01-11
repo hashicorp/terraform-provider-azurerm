@@ -95,6 +95,8 @@ A `sku` block supports the following:
 
 * `tier` - (Required) The billing tier for the IoT Hub. Possible values are `Basic`, `Free` or `Standard`.
 
+~> **NOTE:** Only one IotHub can be on the `Free` tier per subscription.
+
 * `capacity` - (Required) The number of provisioned IoT Hub units.
 
 ---

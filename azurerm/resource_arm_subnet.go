@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -13,9 +14,9 @@ var subnetResourceName = "azurerm_subnet"
 
 func resourceArmSubnet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSubnetCreate,
+		Create: resourceArmSubnetCreateUpdate,
 		Read:   resourceArmSubnetRead,
-		Update: resourceArmSubnetCreate,
+		Update: resourceArmSubnetCreateUpdate,
 		Delete: resourceArmSubnetDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -66,11 +67,50 @@ func resourceArmSubnet() *schema.Resource {
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
+
+			"delegation": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"service_delegation": {
+							Type:     schema.TypeList,
+							Required: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"Microsoft.ContainerInstance/containerGroups",
+										}, false),
+									},
+									"actions": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+												"Microsoft.Network/virtualNetworks/subnets/action",
+											}, false),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
 
-func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).subnetClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -122,12 +162,11 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 		properties.RouteTable = nil
 	}
 
-	serviceEndpoints, serviceEndpointsErr := expandAzureRmServiceEndpoints(d)
-	if serviceEndpointsErr != nil {
-		return fmt.Errorf("Error Building list of Service Endpoints: %+v", serviceEndpointsErr)
-	}
-
+	serviceEndpoints := expandSubnetServiceEndpoints(d)
 	properties.ServiceEndpoints = &serviceEndpoints
+
+	delegations := expandSubnetDelegation(d)
+	properties.Delegations = &delegations
 
 	subnet := network.Subnet{
 		Name:                   &name,
@@ -139,8 +178,7 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error Creating/Updating Subnet %q (VN %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for completion of Subnet %q (VN %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
 	}
 
@@ -186,9 +224,11 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	if props := resp.SubnetPropertiesFormat; props != nil {
 		d.Set("address_prefix", props.AddressPrefix)
 
+		var securityGroupId *string
 		if props.NetworkSecurityGroup != nil {
-			d.Set("network_security_group_id", props.NetworkSecurityGroup.ID)
+			securityGroupId = props.NetworkSecurityGroup.ID
 		}
+		d.Set("network_security_group_id", securityGroupId)
 
 		var routeTableId string
 		if props.RouteTable != nil && props.RouteTable.ID != nil {
@@ -204,6 +244,11 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 		serviceEndpoints := flattenSubnetServiceEndpoints(props.ServiceEndpoints)
 		if err := d.Set("service_endpoints", serviceEndpoints); err != nil {
 			return err
+		}
+
+		delegation := flattenSubnetDelegation(props.Delegations)
+		if err := d.Set("delegation", delegation); err != nil {
+			return fmt.Errorf("Error flattening `delegation`: %+v", err)
 		}
 	}
 
@@ -262,7 +307,7 @@ func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func expandAzureRmServiceEndpoints(d *schema.ResourceData) ([]network.ServiceEndpointPropertiesFormat, error) {
+func expandSubnetServiceEndpoints(d *schema.ResourceData) []network.ServiceEndpointPropertiesFormat {
 	serviceEndpoints := d.Get("service_endpoints").([]interface{})
 	enpoints := make([]network.ServiceEndpointPropertiesFormat, 0)
 
@@ -276,7 +321,7 @@ func expandAzureRmServiceEndpoints(d *schema.ResourceData) ([]network.ServiceEnd
 		enpoints = append(enpoints, endpoint)
 	}
 
-	return enpoints, nil
+	return enpoints
 }
 
 func flattenSubnetServiceEndpoints(serviceEndpoints *[]network.ServiceEndpointPropertiesFormat) []string {
@@ -301,4 +346,71 @@ func flattenSubnetIPConfigurations(ipConfigurations *[]network.IPConfiguration) 
 	}
 
 	return ips
+}
+
+func expandSubnetDelegation(d *schema.ResourceData) []network.Delegation {
+	delegations := d.Get("delegation").([]interface{})
+	retDelegations := make([]network.Delegation, 0)
+
+	for _, deleValue := range delegations {
+		deleData := deleValue.(map[string]interface{})
+		deleName := deleData["name"].(string)
+		srvDelegations := deleData["service_delegation"].([]interface{})
+		srvDelegation := srvDelegations[0].(map[string]interface{})
+		srvName := srvDelegation["name"].(string)
+		srvActions := srvDelegation["actions"].([]interface{})
+
+		retSrvActions := make([]string, 0)
+		for _, srvAction := range srvActions {
+			srvActionData := srvAction.(string)
+			retSrvActions = append(retSrvActions, srvActionData)
+		}
+
+		retDelegation := network.Delegation{
+			Name: &deleName,
+			ServiceDelegationPropertiesFormat: &network.ServiceDelegationPropertiesFormat{
+				ServiceName: &srvName,
+				Actions:     &retSrvActions,
+			},
+		}
+
+		retDelegations = append(retDelegations, retDelegation)
+	}
+
+	return retDelegations
+}
+
+func flattenSubnetDelegation(delegations *[]network.Delegation) []interface{} {
+	if delegations == nil {
+		return []interface{}{}
+	}
+
+	retDeles := make([]interface{}, 0)
+
+	for _, dele := range *delegations {
+		retDele := make(map[string]interface{})
+		if v := dele.Name; v != nil {
+			retDele["name"] = *v
+		}
+
+		svcDeles := make([]interface{}, 0)
+		svcDele := make(map[string]interface{})
+		if props := dele.ServiceDelegationPropertiesFormat; props != nil {
+			if v := props.ServiceName; v != nil {
+				svcDele["name"] = *v
+			}
+
+			if v := props.Actions; v != nil {
+				svcDele["actions"] = *v
+			}
+		}
+
+		svcDeles = append(svcDeles, svcDele)
+
+		retDele["service_delegation"] = svcDeles
+
+		retDeles = append(retDeles, retDele)
+	}
+
+	return retDeles
 }

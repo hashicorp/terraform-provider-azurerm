@@ -266,13 +266,12 @@ func testCheckAzureRMRecoveryServicesProtectionPolicyVmExists(resourceName strin
 			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Recovery Services Vault Policy: %q", resourceName)
-		}
-
 		vaultName := rs.Primary.Attributes["recovery_vault_name"]
 		policyName := rs.Primary.Attributes["name"]
+		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for Recovery Services Vault %q Policy: %q", vaultName, policyName)
+		}
 
 		resp, err := client.Get(ctx, vaultName, resourceGroup, policyName)
 		if err != nil {
@@ -311,17 +310,16 @@ resource "azurerm_recovery_services_protection_policy_vm" "test" {
   name                = "acctest-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
-  
+
   backup = {
     frequency = "Daily"
     time      = "23:00"
-  } 
+  }
 
   retention_daily = {
     count = 10
   }
 }
-
 `, testAccAzureRMRecoveryServicesProtectionPolicyVm_base(rInt, location), rInt)
 }
 
@@ -345,19 +343,18 @@ resource "azurerm_recovery_services_protection_policy_vm" "test" {
   name                = "acctest-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
-  
+
   backup = {
     frequency = "Weekly"
     time      = "23:00"
     weekdays  = ["Sunday", "Wednesday"]
-  } 
+  }
 
   retention_weekly = {
     count    = 42
     weekdays = ["Sunday", "Wednesday"]
   }
 }
-
 `, testAccAzureRMRecoveryServicesProtectionPolicyVm_base(rInt, location), rInt)
 }
 
@@ -382,11 +379,11 @@ resource "azurerm_recovery_services_protection_policy_vm" "test" {
   name                = "acctest-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
-  
+
   backup = {
     frequency = "Daily"
     time      = "23:00"
-  } 
+  }
 
   retention_daily = {
     count = 10
@@ -442,12 +439,12 @@ resource "azurerm_recovery_services_protection_policy_vm" "test" {
   name                = "acctest-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
-  
+
   backup = {
     frequency = "Weekly"
     time      = "23:00"
     weekdays  = ["Sunday", "Wednesday", "Friday", "Saturday"]
-  } 
+  }
 
   retention_weekly = {
     count    = 42
@@ -499,12 +496,12 @@ resource "azurerm_recovery_services_protection_policy_vm" "test" {
   name                = "acctest-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
-  
+
   backup = {
     frequency = "Weekly"
     time      = "23:00"
     weekdays  = ["Sunday", "Wednesday", "Friday", "Saturday"]
-  } 
+  }
 
   retention_weekly = {
     count    = 42

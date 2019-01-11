@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/resourceproviders"
+	"github.com/hashicorp/go-azure-helpers/resourceproviders"
 )
 
 func TestAccAzureRMEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {

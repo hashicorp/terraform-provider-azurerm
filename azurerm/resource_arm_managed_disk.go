@@ -15,9 +15,9 @@ import (
 
 func resourceArmManagedDisk() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmManagedDiskCreate,
+		Create: resourceArmManagedDiskCreateUpdate,
 		Read:   resourceArmManagedDiskRead,
-		Update: resourceArmManagedDiskCreate,
+		Update: resourceArmManagedDiskCreateUpdate,
 		Delete: resourceArmManagedDiskDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -103,16 +103,16 @@ func resourceArmManagedDisk() *schema.Resource {
 	}
 }
 
-func validateDiskSizeGB(v interface{}, _ string) (ws []string, errors []error) {
+func validateDiskSizeGB(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(int)
 	if value < 0 || value > 4095 {
 		errors = append(errors, fmt.Errorf(
 			"The `disk_size_gb` can only be between 0 and 4095"))
 	}
-	return ws, errors
+	return warnings, errors
 }
 
-func resourceArmManagedDiskCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).diskClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -192,8 +192,7 @@ func resourceArmManagedDiskCreate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 
@@ -285,8 +284,7 @@ func resourceArmManagedDiskDelete(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
 			return err
 		}

@@ -14,7 +14,43 @@ Manages a Diagnostic Setting for an existing Resource.
 ## Example Usage
 
 ```
+resource "azurerm_resource_group" "test" {
+  name     = "example-resources"
+  location = "West Europe"
+}
 
+data "azurerm_storage_account" "test" {
+  name                = "examplestoracc"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+data "azurerm_key_vault" "test" {
+  name                = "example-vault"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name               = "example"
+  target_resource_id = "${data.azurerm_key_vault.test.id}"
+  storage_account_id = "${data.azurerm_storage_account.test.id}"
+
+  log {
+    category = "AuditEvent"
+    enabled  = false
+
+    retention_policy {
+      enabled = false
+    }
+  }
+
+  metric {
+    category = "AllMetrics"
+
+    retention_policy {
+      enabled = false
+    }
+  }
+}
 ```
 
 ## Argument Reference
@@ -23,15 +59,17 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Diagnostic Setting. Changing this forces a new resource to be created.
 
-* `resource_id` - (Required) The ID of an existing Resource on which to configure Diagnostic Settings. Changing this forces a new resource to be created.
+* `target_resource_id` - (Required) The ID of an existing Resource on which to configure Diagnostic Settings. Changing this forces a new resource to be created.
 
-* `event_hub_name` - (Optional) Specifies the name of the Event Hub where Diagnostics Data should be sent. Changing this forces a new resource to be created.
+* `eventhub_name` - (Optional) Specifies the name of the Event Hub where Diagnostics Data should be sent. Changing this forces a new resource to be created.
 
 -> **NOTE:** If this isn't specified then the default Event Hub will be used.
 
-* `event_hub_authorization_rule_id` - (Optional) Specifies the ID of an Event Hub Namespace Authorization Rule used to send Diagnostics Data. Changing this forces a new resource to be created.
+* `eventhub_authorization_rule_id` - (Optional) Specifies the ID of an Event Hub Namespace Authorization Rule used to send Diagnostics Data. Changing this forces a new resource to be created.
 
--> **NOTE:** One of `event_hub_authorization_rule_id`, `log_analytics_workspace_id` and `storage_account_id` must be specified.
+-> **NOTE:** This can be sourced from [the `azurerm_eventhub_namespace_authorization_rule` resource](eventhub_namespace_authorization_rule.html) and is different from [a `azurerm_eventhub_authorization_rule` resource](eventhub_authorization_rule.html).
+
+-> **NOTE:** One of `eventhub_authorization_rule_id`, `log_analytics_workspace_id` and `storage_account_id` must be specified.
 
 * `log` - (Optional) One or more `log` blocks as defined below.
 
@@ -39,7 +77,7 @@ The following arguments are supported:
 
 * `log_analytics_workspace_id` - (Optional) Specifies the ID of a Log Analytics Workspace where Diagnostics Data should be sent. Changing this forces a new resource to be created.
 
--> **NOTE:** One of `event_hub_authorization_rule_id`, `log_analytics_workspace_id` and `storage_account_id` must be specified.
+-> **NOTE:** One of `eventhub_authorization_rule_id`, `log_analytics_workspace_id` and `storage_account_id` must be specified.
 
 * `metric` - (Optional) One or more `metric` blocks as defined below.
 
@@ -47,7 +85,7 @@ The following arguments are supported:
 
 * `storage_account_id` - (Optional) With this parameter you can specify a storage account which should be used to send the logs to. Parameter must be a valid Azure Resource ID. Changing this forces a new resource to be created.
 
--> **NOTE:** One of `event_hub_authorization_rule_id`, `log_analytics_workspace_id` and `storage_account_id` must be specified.
+-> **NOTE:** One of `eventhub_authorization_rule_id`, `log_analytics_workspace_id` and `storage_account_id` must be specified.
 
 ---
 

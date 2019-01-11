@@ -12,9 +12,9 @@ import (
 
 func resourceArmServiceBusSubscription() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceBusSubscriptionCreate,
+		Create: resourceArmServiceBusSubscriptionCreateUpdate,
 		Read:   resourceArmServiceBusSubscriptionRead,
-		Update: resourceArmServiceBusSubscriptionCreate,
+		Update: resourceArmServiceBusSubscriptionCreateUpdate,
 		Delete: resourceArmServiceBusSubscriptionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -101,7 +101,7 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 	}
 }
 
-func resourceArmServiceBusSubscriptionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmServiceBusSubscriptionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).serviceBusSubscriptionsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ARM ServiceBus Subscription creation.")
@@ -141,8 +141,7 @@ func resourceArmServiceBusSubscriptionCreate(d *schema.ResourceData, meta interf
 		parameters.DefaultMessageTimeToLive = &defaultMessageTtl
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, topicName, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, topicName, name, parameters); err != nil {
 		return err
 	}
 

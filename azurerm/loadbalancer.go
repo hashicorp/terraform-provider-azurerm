@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -138,12 +138,12 @@ func loadbalancerStateRefreshFunc(ctx context.Context, client network.LoadBalanc
 	}
 }
 
-func validateLoadBalancerPrivateIpAddressAllocation(v interface{}, _ string) (ws []string, errors []error) {
+func validateLoadBalancerPrivateIpAddressAllocation(v interface{}, _ string) (warnings []string, errors []error) {
 	value := strings.ToLower(v.(string))
 	if value != "static" && value != "dynamic" {
 		errors = append(errors, fmt.Errorf("LoadBalancer Allocations can only be Static or Dynamic"))
 	}
-	return ws, errors
+	return warnings, errors
 }
 
 // sets the loadbalancer_id in the ResourceData from the sub resources full id

@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/terraform"
@@ -102,8 +102,8 @@ func createResourceGroup(ctx context.Context, client *ArmClient, resourceGroupNa
 	group := resources.Group{
 		Location: &location,
 	}
-	_, err := client.resourceGroupsClient.CreateOrUpdate(ctx, resourceGroupName, group)
-	if err != nil {
+
+	if _, err := client.resourceGroupsClient.CreateOrUpdate(ctx, resourceGroupName, group); err != nil {
 		return fmt.Errorf("Error creating Resource Group %q: %+v", resourceGroupName, err)
 	}
 	return nil
@@ -125,8 +125,7 @@ func createStorageAccount(client *ArmClient, resourceGroupName, storageAccountNa
 		return nil, fmt.Errorf("Error creating Storage Account %q: %+v", resourceGroupName, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, storageClient.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, storageClient.Client); err != nil {
 		return nil, fmt.Errorf("Error waiting for creation of Storage Account %q: %+v", resourceGroupName, err)
 	}
 

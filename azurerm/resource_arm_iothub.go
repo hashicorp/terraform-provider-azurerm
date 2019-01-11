@@ -304,8 +304,7 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error creating/updating IotHub %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for the completion of the creating/updating of IotHub %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -727,7 +726,7 @@ func flattenIoTHubRoute(input *devices.RoutingProperties) []interface{} {
 	return results
 }
 
-func validateIoTHubEndpointName(v interface{}, _ string) (ws []string, errors []error) {
+func validateIoTHubEndpointName(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	reservedNames := []string{
@@ -743,10 +742,10 @@ func validateIoTHubEndpointName(v interface{}, _ string) (ws []string, errors []
 		}
 	}
 
-	return ws, errors
+	return warnings, errors
 }
 
-func validateIoTHubFileNameFormat(v interface{}, k string) (ws []string, errors []error) {
+func validateIoTHubFileNameFormat(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	requiredComponents := []string{
@@ -765,5 +764,5 @@ func validateIoTHubFileNameFormat(v interface{}, k string) (ws []string, errors 
 		}
 	}
 
-	return ws, errors
+	return warnings, errors
 }

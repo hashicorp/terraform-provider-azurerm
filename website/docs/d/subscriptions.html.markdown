@@ -16,17 +16,18 @@ Use this data source to access information about all the Subscriptions currently
 data "azurerm_subscriptions" "available" {}
 
 output "available_subscriptions" {
-  value = "${data.azurerm_subscriptions.current.subscriptions}"
+  value = "${data.azurerm_subscriptions.available.subscriptions}"
 }
 
 output "first_available_subscription_display_name" {
-  value = "${data.azurerm_subscriptions.current.subscriptions.0.display_name}"
+  value = "${data.azurerm_subscriptions.available.subscriptions.0.display_name}"
 }
 ```
 
 ## Argument Reference
 
-There are no arguments available for this data source.
+* `display_name_prefix` - (Optional) A case-insensitive prefix which can be used to filter on the `display_name` field
+* `display_name_contains` - (Optional) A case-insensitive value which must be contained within the `display_name` field, used to filter the results
 
 ## Attributes Reference
 

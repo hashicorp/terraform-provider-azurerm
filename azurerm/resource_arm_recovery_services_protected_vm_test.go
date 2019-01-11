@@ -190,11 +190,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctest-ip"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
-  domain_name_label            = "acctestip%[1]d"
+  name                = "acctest-ip"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
+  domain_name_label   = "acctestip%[1]d"
 }
 
 resource "azurerm_storage_account" "test" {
@@ -294,7 +294,6 @@ resource "azurerm_recovery_services_protected_vm" "test" {
   source_vm_id        = "${azurerm_virtual_machine.test.id}"
   backup_policy_id    = "${azurerm_recovery_services_protection_policy_vm.test.id}"
 }
-
 `, testAccAzureRMRecoveryServicesProtectedVm_base(rInt, location))
 }
 
@@ -328,7 +327,6 @@ resource "azurerm_recovery_services_protection_policy_vm" "test2" {
     count = 10
   }
 }
-
 `, testAccAzureRMRecoveryServicesProtectedVm_base(rInt, location), rInt, location)
 }
 
@@ -342,6 +340,5 @@ resource "azurerm_recovery_services_protected_vm" "test" {
   backup_policy_id    = "${azurerm_recovery_services_protection_policy_vm.test2.id}"
   source_vm_id        = "${azurerm_virtual_machine.test.id}"
 }
-
 `, testAccAzureRMRecoveryServicesProtectedVm_additionalVault(rInt, location))
 }

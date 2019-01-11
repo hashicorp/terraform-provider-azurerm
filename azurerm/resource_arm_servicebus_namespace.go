@@ -20,9 +20,9 @@ var serviceBusNamespaceDefaultAuthorizationRule = "RootManageSharedAccessKey"
 
 func resourceArmServiceBusNamespace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceBusNamespaceCreate,
+		Create: resourceArmServiceBusNamespaceCreateUpdate,
 		Read:   resourceArmServiceBusNamespaceRead,
-		Update: resourceArmServiceBusNamespaceCreate,
+		Update: resourceArmServiceBusNamespaceCreateUpdate,
 		Delete: resourceArmServiceBusNamespaceDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -108,7 +108,7 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 	}
 }
 
-func resourceArmServiceBusNamespaceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).serviceBusNamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -138,8 +138,7 @@ func resourceArmServiceBusNamespaceCreate(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 

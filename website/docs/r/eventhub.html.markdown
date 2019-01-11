@@ -24,6 +24,7 @@ resource "azurerm_eventhub_namespace" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
   capacity            = 1
+  kafka_enabled       = false
 
   tags {
     environment = "Production"
@@ -49,7 +50,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the EventHub's parent Namespace exists. Changing this forces a new resource to be created.
 
-* `partition_count` - (Required) Specifies the current number of shards on the Event Hub.
+* `partition_count` - (Required) Specifies the current number of shards on the Event Hub. Changing this forces a new resource to be created.
 
 * `message_retention` - (Required) Specifies the number of days to retain the events for this Event Hub. Needs to be between 1 and 7 days; or 1 day when using a Basic SKU for the parent EventHub Namespace.
 

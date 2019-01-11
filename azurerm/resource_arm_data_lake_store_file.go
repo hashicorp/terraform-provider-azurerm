@@ -12,6 +12,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -59,6 +60,22 @@ func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}
 	remoteFilePath := d.Get("remote_file_path").(string)
 	localFilePath := d.Get("local_file_path").(string)
 
+	// example.azuredatalakestore.net/test/example.txt
+	id := fmt.Sprintf("%s.%s%s", accountName, client.AdlsFileSystemDNSSuffix, remoteFilePath)
+
+	if requireResourcesToBeImported {
+		existing, err := client.GetFileStatus(ctx, accountName, remoteFilePath, utils.Bool(true))
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Data Lake Store File %q (Account %q): %s", remoteFilePath, accountName, err)
+			}
+		}
+
+		if existing.FileStatus != nil && existing.FileStatus.ModificationTime != nil {
+			return tf.ImportAsExistsError("azurerm_data_lake_store_file", id)
+		}
+	}
+
 	file, err := os.Open(localFilePath)
 	if err != nil {
 		return fmt.Errorf("error opening file %q: %+v", localFilePath, err)
@@ -76,8 +93,6 @@ func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error issuing create request for Data Lake Store File %q : %+v", remoteFilePath, err)
 	}
 
-	// example.azuredatalakestore.net/test/example.txt
-	id := fmt.Sprintf("%s.%s%s", accountName, client.AdlsFileSystemDNSSuffix, remoteFilePath)
 	d.SetId(id)
 	return resourceArmDataLakeStoreFileRead(d, meta)
 }

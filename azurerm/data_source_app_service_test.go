@@ -21,6 +21,8 @@ func TestAccDataSourceAzureRMAppService_basic(t *testing.T) {
 				Config: testAccDataSourceAppService_basic(rInt, location),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "app_service_plan_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "outbound_ip_addresses"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "possible_outbound_ip_addresses"),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "0"),
 				),
 			},
@@ -117,9 +119,12 @@ func TestAccDataSourceAzureRMAppService_connectionString(t *testing.T) {
 			{
 				Config: testAccDataSourceAppService_connectionStrings(rInt, location),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "connection_string.0.name", "Example"),
-					resource.TestCheckResourceAttr(dataSourceName, "connection_string.0.value", "some-postgresql-connection-string"),
-					resource.TestCheckResourceAttr(dataSourceName, "connection_string.0.type", "PostgreSQL"),
+					resource.TestCheckResourceAttr(dataSourceName, "connection_string.0.name", "First"),
+					resource.TestCheckResourceAttr(dataSourceName, "connection_string.0.value", "first-connection-string"),
+					resource.TestCheckResourceAttr(dataSourceName, "connection_string.0.type", "Custom"),
+					resource.TestCheckResourceAttr(dataSourceName, "connection_string.1.name", "Second"),
+					resource.TestCheckResourceAttr(dataSourceName, "connection_string.1.value", "some-postgresql-connection-string"),
+					resource.TestCheckResourceAttr(dataSourceName, "connection_string.1.type", "PostgreSQL"),
 				),
 			},
 		},

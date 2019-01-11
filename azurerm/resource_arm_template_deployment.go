@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -18,9 +18,9 @@ import (
 
 func resourceArmTemplateDeployment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmTemplateDeploymentCreate,
+		Create: resourceArmTemplateDeploymentCreateUpdate,
 		Read:   resourceArmTemplateDeploymentRead,
-		Update: resourceArmTemplateDeploymentCreate,
+		Update: resourceArmTemplateDeploymentCreateUpdate,
 		Delete: resourceArmTemplateDeploymentDelete,
 
 		Schema: map[string]*schema.Schema{
@@ -70,7 +70,7 @@ func resourceArmTemplateDeployment() *schema.Resource {
 	}
 }
 
-func resourceArmTemplateDeploymentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmTemplateDeploymentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
 	deployClient := client.deploymentsClient
 	ctx := client.StopContext
@@ -126,8 +126,7 @@ func resourceArmTemplateDeploymentCreate(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error creating deployment: %+v", err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, deployClient.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, deployClient.Client); err != nil {
 		return fmt.Errorf("Error creating deployment: %+v", err)
 	}
 
@@ -236,8 +235,7 @@ func resourceArmTemplateDeploymentDelete(d *schema.ResourceData, meta interface{
 // TODO: move this out into the new `helpers` structure
 func expandParametersBody(body string) (map[string]interface{}, error) {
 	var parametersBody map[string]interface{}
-	err := json.Unmarshal([]byte(body), &parametersBody)
-	if err != nil {
+	if err := json.Unmarshal([]byte(body), &parametersBody); err != nil {
 		return nil, fmt.Errorf("Error Expanding the parameters_body for Azure RM Template Deployment")
 	}
 	return parametersBody, nil
@@ -245,8 +243,7 @@ func expandParametersBody(body string) (map[string]interface{}, error) {
 
 func expandTemplateBody(template string) (map[string]interface{}, error) {
 	var templateBody map[string]interface{}
-	err := json.Unmarshal([]byte(template), &templateBody)
-	if err != nil {
+	if err := json.Unmarshal([]byte(template), &templateBody); err != nil {
 		return nil, fmt.Errorf("Error Expanding the template_body for Azure RM Template Deployment")
 	}
 	return templateBody, nil
@@ -257,8 +254,8 @@ func normalizeJson(jsonString interface{}) string {
 		return ""
 	}
 	var j interface{}
-	err := json.Unmarshal([]byte(jsonString.(string)), &j)
-	if err != nil {
+
+	if err := json.Unmarshal([]byte(jsonString.(string)), &j); err != nil {
 		return fmt.Sprintf("Error parsing JSON: %+v", err)
 	}
 	b, _ := json.Marshal(j)

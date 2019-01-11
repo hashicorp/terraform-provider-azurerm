@@ -65,8 +65,7 @@ func testSweepVirtualNetworks(region string) error {
 			return err
 		}
 
-		err = future.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			if response.WasNotFound(future.Response()) {
 				continue
 			}
@@ -184,12 +183,12 @@ func TestAccAzureRMVirtualNetwork_bug373(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMVirtualNetworkExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMVirtualNetworkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		virtualNetworkName := rs.Primary.Attributes["name"]
@@ -208,19 +207,19 @@ func testCheckAzureRMVirtualNetworkExists(name string) resource.TestCheckFunc {
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Virtual Network %q (resource group: %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: Virtual Network %q (resource group: %q) does not exist", virtualNetworkName, resourceGroup)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMVirtualNetworkDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMVirtualNetworkDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		virtualNetworkName := rs.Primary.Attributes["name"]
@@ -238,8 +237,7 @@ func testCheckAzureRMVirtualNetworkDisappears(name string) resource.TestCheckFun
 			return fmt.Errorf("Error deleting Virtual Network %q (RG %q): %+v", virtualNetworkName, resourceGroup, err)
 		}
 
-		err = future.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("Error waiting for deletion of Virtual Network %q (RG %q): %+v", virtualNetworkName, resourceGroup, err)
 		}
 

@@ -70,6 +70,7 @@ The following arguments are supported:
 * `managed_disk_id` - (Optional) Specifies the ID of the managed disk resource that you want to use to create the image.
 * `blob_uri` - (Optional) Specifies the URI in Azure storage of the blob that you want to use to create the image.
 * `caching` - (Optional) Specifies the caching mode as `ReadWrite`, `ReadOnly`, or `None`. The default is `None`.
+* `size_gb` - (Optional) Specifies the size of the image to be created. The target size can't be smaller than the source size.
 
 `data_disk` supports the following:
 

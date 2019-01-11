@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -75,17 +76,7 @@ func resourceArmCognitiveAccount() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(cognitiveservices.F0),
-								string(cognitiveservices.S0),
-								string(cognitiveservices.S1),
-								string(cognitiveservices.S2),
-								string(cognitiveservices.S3),
-								string(cognitiveservices.S4),
-								string(cognitiveservices.S5),
-								string(cognitiveservices.S6),
-								string(cognitiveservices.P0),
-								string(cognitiveservices.P1),
-								string(cognitiveservices.P2),
+								"F0", "S0", "S1", "S2", "S3", "S4", "S5", "S6", "P0", "P1", "P2",
 							}, false),
 						},
 
@@ -117,22 +108,35 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.GetProperties(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Cognitive Account %q (Resource Group %q): %s", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_cognitive_account", *existing.ID)
+		}
+	}
+
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	kind := d.Get("kind").(string)
 	tags := d.Get("tags").(map[string]interface{})
 	sku := expandCognitiveAccountSku(d)
 
 	properties := cognitiveservices.AccountCreateParameters{
-		Kind:       cognitiveservices.Kind(kind),
+		Kind:       utils.String(kind),
 		Location:   utils.String(location),
 		Sku:        sku,
 		Properties: &cognitiveServicesPropertiesStruct{},
 		Tags:       expandTags(tags),
 	}
 
-	_, err := client.Create(ctx, resourceGroup, name, properties)
-	if err != nil {
+	if _, err := client.Create(ctx, resourceGroup, name, properties); err != nil {
 		return fmt.Errorf("Error creating Cognitive Services Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -244,7 +248,7 @@ func expandCognitiveAccountSku(d *schema.ResourceData) *cognitiveservices.Sku {
 	sku := skus[0].(map[string]interface{})
 
 	return &cognitiveservices.Sku{
-		Name: cognitiveservices.SkuName(sku["name"].(string)),
+		Name: utils.String(sku["name"].(string)),
 		Tier: cognitiveservices.SkuTier(sku["tier"].(string)),
 	}
 }
@@ -254,10 +258,13 @@ func flattenCognitiveAccountSku(input *cognitiveservices.Sku) []interface{} {
 		return []interface{}{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"name": string(input.Name),
-			"tier": string(input.Tier),
-		},
+	m := map[string]interface{}{
+		"tier": string(input.Tier),
 	}
+
+	if v := input.Name; v != nil {
+		m["name"] = *v
+	}
+
+	return []interface{}{m}
 }

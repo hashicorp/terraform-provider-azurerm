@@ -10,14 +10,16 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmEventHub() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmEventHubCreate,
+		Create: resourceArmEventHubCreateUpdate,
 		Read:   resourceArmEventHubRead,
-		Update: resourceArmEventHubCreate,
+		Update: resourceArmEventHubCreateUpdate,
 		Delete: resourceArmEventHubDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -46,6 +48,7 @@ func resourceArmEventHub() *schema.Resource {
 			"partition_count": {
 				Type:         schema.TypeInt,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validateEventHubPartitionCount,
 			},
 
@@ -68,7 +71,7 @@ func resourceArmEventHub() *schema.Resource {
 						"encoding": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(eventhub.Avro),
 								string(eventhub.AvroDeflate),
@@ -112,8 +115,9 @@ func resourceArmEventHub() *schema.Resource {
 										Required: true,
 									},
 									"storage_account_id": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: azure.ValidateResourceID,
 									},
 								},
 							},
@@ -132,7 +136,7 @@ func resourceArmEventHub() *schema.Resource {
 	}
 }
 
-func resourceArmEventHubCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).eventHubClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ARM EventHub creation.")
@@ -140,6 +144,20 @@ func resourceArmEventHubCreate(d *schema.ResourceData, meta interface{}) error {
 	name := d.Get("name").(string)
 	namespaceName := d.Get("namespace_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, namespaceName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing EventHub %q (Namespace %q / Resource Group %q): %s", name, namespaceName, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_eventhub", *existing.ID)
+		}
+	}
+
 	partitionCount := int64(d.Get("partition_count").(int))
 	messageRetention := int64(d.Get("message_retention").(int))
 
@@ -159,8 +177,7 @@ func resourceArmEventHubCreate(d *schema.ResourceData, meta interface{}) error {
 		parameters.Properties.CaptureDescription = captureDescription
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters); err != nil {
 		return err
 	}
 
@@ -241,27 +258,27 @@ func resourceArmEventHubDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func validateEventHubPartitionCount(v interface{}, _ string) (ws []string, errors []error) {
+func validateEventHubPartitionCount(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(int)
 
 	if !(32 >= value && value >= 2) {
 		errors = append(errors, fmt.Errorf("EventHub Partition Count has to be between 2 and 32"))
 	}
 
-	return ws, errors
+	return warnings, errors
 }
 
-func validateEventHubMessageRetentionCount(v interface{}, _ string) (ws []string, errors []error) {
+func validateEventHubMessageRetentionCount(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(int)
 
 	if !(7 >= value && value >= 1) {
 		errors = append(errors, fmt.Errorf("EventHub Retention Count has to be between 1 and 7"))
 	}
 
-	return ws, errors
+	return warnings, errors
 }
 
-func validateEventHubArchiveNameFormat(v interface{}, k string) (ws []string, errors []error) {
+func validateEventHubArchiveNameFormat(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	requiredComponents := []string{
@@ -282,7 +299,7 @@ func validateEventHubArchiveNameFormat(v interface{}, k string) (ws []string, er
 		}
 	}
 
-	return ws, errors
+	return warnings, errors
 }
 
 func expandEventHubCaptureDescription(d *schema.ResourceData) (*eventhub.CaptureDescription, error) {
