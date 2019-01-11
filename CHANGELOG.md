@@ -5,6 +5,8 @@ FEATURES:
 * **New Data Source:** `azurerm_application_insights` [GH-2625]
 * **New Data Source:** `azurerm_batch_account` [GH-2428]
 * **New Data Source:** `azurerm_batch_pool` [GH-2461]
+* **New Data Source:** `azurerm_lb` [GH-2354]
+* **New Data Source:** `azurerm_lb_backend_address_pool` [GH-2354]
 * **New Data Source:** `azurerm_virtual_machine` [GH-2463]
 * **New Resource:** `azurerm_application_insights_api_key` [GH-2556]
 * **New Resource:** `azurerm_batch_account` [GH-2428]
