@@ -32,7 +32,7 @@ We recommend using either a Service Principal or Managed Service Identity when r
 # Configure the Azure Provider
 provider "azurerm" {
   # whilst the `version` attribute is optional, we recommend pinning to a given version of the Provider
-  version = "=1.20.0"
+  version = "=1.21.0"
 }
 
 # Create a resource group
@@ -125,6 +125,8 @@ More information on [how to configure a Service Principal using Managed Service 
 ---
 
 For some advanced scenarios, such as where more granular permissions are necessary - the following properties can be set:
+
+* `partner_id` - (Optional) A GUID/UUID provided by Microsoft that is added to the user agent to facilitate partner resource usage data collection. This can also be sourced from the `ARM_PARTNER_ID` Environment Variable.
 
 * `skip_credentials_validation` - (Optional) Should the AzureRM Provider skip verifying the credentials being used are valid? This can also be sourced from the `ARM_SKIP_CREDENTIALS_VALIDATION` Environment Variable. Defaults to `false`.
 

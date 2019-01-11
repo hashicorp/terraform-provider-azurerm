@@ -19,7 +19,7 @@ func TestAccAzureRMContainerRegistryMigrateState(t *testing.T) {
 		return
 	}
 
-	client, err := getArmClient(config, false)
+	client, err := getArmClient(config, false, "")
 	if err != nil {
 		t.Fatal(fmt.Errorf("Error building ARM Client: %+v", err))
 		return

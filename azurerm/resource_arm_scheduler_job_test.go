@@ -545,7 +545,7 @@ resource "azurerm_scheduler_job_collection" "test" {
   name                = "acctest-%[1]d-job_collection"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "standard"
+  sku                 = "Standard"
 }
 `, rInt, location)
 }

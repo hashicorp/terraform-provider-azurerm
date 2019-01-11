@@ -7,8 +7,19 @@
               <a href="/docs/providers/index.html">All Providers</a>
             </li>
 
-            <li<%= sidebar_current("docs-azurerm-index") %>>
-              <a href="/docs/providers/azurerm/index.html">Azure Provider</a>
+            <li>
+              <a href="#">Azure Providers</a>
+              <ul class="nav nav-visible">
+                <li<%= sidebar_current("docs-azuread-index") %>>
+                   <a href="/docs/providers/azuread/index.html">Azure Active Directory</a>
+                </li>
+                <li<%= sidebar_current("docs-azurerm-index") %>>
+                   <a href="/docs/providers/azurerm/index.html">Azure</a>
+                </li>
+                <li<%= sidebar_current("docs-azurestack-index") %>>
+                   <a href="/docs/providers/azurestack/index.html">Azure Stack</a>
+                </li>
+              </ul>
             </li>
 
             <li<%= sidebar_current("docs-azurerm-authentication") %>>
@@ -58,6 +69,10 @@
 
                 <li<%= sidebar_current("docs-azurerm-datasource-app-service-plan") %>>
                     <a href="/docs/providers/azurerm/d/app_service_plan.html">azurerm_app_service_plan</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-datasource-application-insights") %>>
+                    <a href="/docs/providers/azurerm/d/application_insights.html">azurerm_application_insights</a>
                 </li>
 
                 <li<%= sidebar_current("docs-azurerm-datasource-azuread-application") %>>
@@ -126,6 +141,14 @@
 
                 <li<%= sidebar_current("docs-azurerm-data-source-kubernetes-cluster") %>>
                     <a href="/docs/providers/azurerm/d/kubernetes_cluster.html">azurerm_kubernetes_cluster</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-datasource-load-balancer-x") %>>
+                    <a href="/docs/providers/azurerm/d/loadbalancer.html">azurerm_lb</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-datasource-load-balancer-backend-address-pool") %>>
+                    <a href="/docs/providers/azurerm/d/loadbalancer_backend_address_pool.html">azurerm_lb_backend_address_pool</a>
                 </li>
 
                 <li<%= sidebar_current("docs-azurerm-data-source-logic-analytics-workspace") %>>
