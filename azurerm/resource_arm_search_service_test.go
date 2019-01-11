@@ -130,7 +130,7 @@ resource "azurerm_search_service" "test" {
   name                = "acctestsearchservice%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  sku                 = "Standard"
+  sku                 = "standard"
 
   tags {
     environment = "staging"
@@ -150,7 +150,7 @@ resource "azurerm_search_service" "test" {
   name                = "acctestsearchservice%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  sku                 = "Standard"
+  sku                 = "standard"
   replica_count       = 2
 
   tags {
