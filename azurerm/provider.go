@@ -80,7 +80,7 @@ func Provider() terraform.ResourceProvider {
 				Type:         schema.TypeString,
 				Optional:     true,
 				DefaultFunc:  schema.EnvDefaultFunc("ARM_PARTNER_ID", ""),
-				ValidateFunc: validate.UUID,
+				ValidateFunc: validate.UUIDOrEmpty,
 			},
 
 			// Advanced feature flags
