@@ -6,11 +6,12 @@ import (
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMBatchAccount_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_batch_account.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
 	config := testAccDataSourceAzureRMBatchAccount_basic(ri, rs, location)
@@ -33,7 +34,7 @@ func TestAccDataSourceAzureRMBatchAccount_basic(t *testing.T) {
 
 func TestAccDataSourceAzureRMBatchAccount_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_batch_account.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
 	config := testAccDataSourceAzureRMBatchAccount_complete(ri, rs, location)

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -41,7 +42,7 @@ func TestValidateManagementLockName(t *testing.T) {
 
 func TestAccAzureRMManagementLock_resourceGroupReadOnlyBasic(t *testing.T) {
 	resourceName := "azurerm_management_lock.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMManagementLock_resourceGroupReadOnlyBasic(ri, location)
 
@@ -67,7 +68,7 @@ func TestAccAzureRMManagementLock_resourceGroupReadOnlyBasic(t *testing.T) {
 
 func TestAccAzureRMManagementLock_resourceGroupReadOnlyComplete(t *testing.T) {
 	resourceName := "azurerm_management_lock.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMManagementLock_resourceGroupReadOnlyComplete(ri, location)
 
@@ -93,7 +94,7 @@ func TestAccAzureRMManagementLock_resourceGroupReadOnlyComplete(t *testing.T) {
 
 func TestAccAzureRMManagementLock_resourceGroupCanNotDeleteBasic(t *testing.T) {
 	resourceName := "azurerm_management_lock.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMManagementLock_resourceGroupCanNotDeleteBasic(ri, location)
 
@@ -119,7 +120,7 @@ func TestAccAzureRMManagementLock_resourceGroupCanNotDeleteBasic(t *testing.T) {
 
 func TestAccAzureRMManagementLock_resourceGroupCanNotDeleteComplete(t *testing.T) {
 	resourceName := "azurerm_management_lock.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMManagementLock_resourceGroupCanNotDeleteComplete(ri, location)
 
@@ -145,7 +146,7 @@ func TestAccAzureRMManagementLock_resourceGroupCanNotDeleteComplete(t *testing.T
 
 func TestAccAzureRMManagementLock_publicIPReadOnlyBasic(t *testing.T) {
 	resourceName := "azurerm_management_lock.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMManagementLock_publicIPReadOnlyBasic(ri, location)
 
@@ -171,7 +172,7 @@ func TestAccAzureRMManagementLock_publicIPReadOnlyBasic(t *testing.T) {
 
 func TestAccAzureRMManagementLock_publicIPCanNotDeleteBasic(t *testing.T) {
 	resourceName := "azurerm_management_lock.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMManagementLock_publicIPCanNotDeleteBasic(ri, location)
 
@@ -202,7 +203,7 @@ func TestAccAzureRMManagementLock_subscriptionReadOnlyBasic(t *testing.T) {
 	}
 
 	resourceName := "azurerm_management_lock.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMManagementLock_subscriptionReadOnlyBasic(ri)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -232,7 +233,7 @@ func TestAccAzureRMManagementLock_subscriptionCanNotDeleteBasic(t *testing.T) {
 	}
 
 	resourceName := "azurerm_management_lock.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMManagementLock_subscriptionCanNotDeleteBasic(ri)
 
 	resource.ParallelTest(t, resource.TestCase{

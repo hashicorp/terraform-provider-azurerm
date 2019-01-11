@@ -5,13 +5,12 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
-
-	"github.com/hashicorp/terraform/helper/acctest"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceVirtualMachine_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_virtual_machine.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	name := fmt.Sprintf("acctvm-%d", ri)
 	config := testAccDataSourceVirtualMachine_basic(ri, testLocation())

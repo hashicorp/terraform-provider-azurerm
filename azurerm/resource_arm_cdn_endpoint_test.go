@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMCdnEndpoint_basic(t *testing.T) {
 	resourceName := "azurerm_cdn_endpoint.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMCdnEndpoint_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -42,7 +42,7 @@ func TestAccAzureRMCdnEndpoint_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_cdn_endpoint.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -66,7 +66,7 @@ func TestAccAzureRMCdnEndpoint_requiresImport(t *testing.T) {
 
 func TestAccAzureRMCdnEndpoint_disappears(t *testing.T) {
 	resourceName := "azurerm_cdn_endpoint.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMCdnEndpoint_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -88,7 +88,7 @@ func TestAccAzureRMCdnEndpoint_disappears(t *testing.T) {
 
 func TestAccAzureRMCdnEndpoint_updateHostHeader(t *testing.T) {
 	resourceName := "azurerm_cdn_endpoint.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMCdnEndpoint_hostHeader(ri, "www.example.com", location)
 	updatedConfig := testAccAzureRMCdnEndpoint_hostHeader(ri, "www.example2.com", location)
@@ -118,7 +118,7 @@ func TestAccAzureRMCdnEndpoint_updateHostHeader(t *testing.T) {
 
 func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
 	resourceName := "azurerm_cdn_endpoint.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMCdnEndpoint_withTags(ri, location)
 	postConfig := testAccAzureRMCdnEndpoint_withTagsUpdate(ri, location)
@@ -160,7 +160,7 @@ func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
 
 func TestAccAzureRMCdnEndpoint_optimized(t *testing.T) {
 	resourceName := "azurerm_cdn_endpoint.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMCdnEndpoint_optimized(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -181,7 +181,7 @@ func TestAccAzureRMCdnEndpoint_optimized(t *testing.T) {
 
 func TestAccAzureRMCdnEndpoint_withGeoFilters(t *testing.T) {
 	resourceName := "azurerm_cdn_endpoint.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMCdnEndpoint_geoFilters(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -201,7 +201,7 @@ func TestAccAzureRMCdnEndpoint_withGeoFilters(t *testing.T) {
 }
 func TestAccAzureRMCdnEndpoint_fullFields(t *testing.T) {
 	resourceName := "azurerm_cdn_endpoint.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMCdnEndpoint_fullFields(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -233,7 +233,7 @@ func TestAccAzureRMCdnEndpoint_fullFields(t *testing.T) {
 
 func TestAccAzureRMCdnEndpoint_isHttpAndHttpsAllowedUpdate(t *testing.T) {
 	resourceName := "azurerm_cdn_endpoint.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMCdnEndpoint_isHttpAndHttpsAllowed(ri, location, "true", "false")
 	updatedConfig := testAccAzureRMCdnEndpoint_isHttpAndHttpsAllowed(ri, location, "false", "true")

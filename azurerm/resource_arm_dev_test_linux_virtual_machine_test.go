@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMDevTestLinuxVirtualMachine_basic(t *testing.T) {
 	resourceName := "azurerm_dev_test_linux_virtual_machine.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -50,7 +50,7 @@ func TestAccAzureRMDevTestLinuxVirtualMachine_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_dev_test_linux_virtual_machine.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -74,7 +74,7 @@ func TestAccAzureRMDevTestLinuxVirtualMachine_requiresImport(t *testing.T) {
 
 func TestAccAzureRMDevTestLinuxVirtualMachine_basicSSH(t *testing.T) {
 	resourceName := "azurerm_dev_test_linux_virtual_machine.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -107,7 +107,7 @@ func TestAccAzureRMDevTestLinuxVirtualMachine_basicSSH(t *testing.T) {
 
 func TestAccAzureRMDevTestLinuxVirtualMachine_inboundNatRules(t *testing.T) {
 	resourceName := "azurerm_dev_test_linux_virtual_machine.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -143,7 +143,7 @@ func TestAccAzureRMDevTestLinuxVirtualMachine_inboundNatRules(t *testing.T) {
 
 func TestAccAzureRMDevTestLinuxVirtualMachine_updateStorage(t *testing.T) {
 	resourceName := "azurerm_dev_test_linux_virtual_machine.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{

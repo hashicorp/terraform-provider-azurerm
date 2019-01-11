@@ -8,12 +8,13 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func testAccAzureRMPacketCapture_localDisk(t *testing.T) {
 	resourceName := "azurerm_packet_capture.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -39,7 +40,7 @@ func testAccAzureRMPacketCapture_localDisk(t *testing.T) {
 func testAccAzureRMPacketCapture_storageAccount(t *testing.T) {
 	resourceName := "azurerm_packet_capture.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
 	location := testLocation()
 
@@ -66,7 +67,7 @@ func testAccAzureRMPacketCapture_storageAccount(t *testing.T) {
 func testAccAzureRMPacketCapture_storageAccountAndLocalDisk(t *testing.T) {
 	resourceName := "azurerm_packet_capture.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
 	location := testLocation()
 
@@ -93,7 +94,7 @@ func testAccAzureRMPacketCapture_storageAccountAndLocalDisk(t *testing.T) {
 func testAccAzureRMPacketCapture_withFilters(t *testing.T) {
 	resourceName := "azurerm_packet_capture.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{

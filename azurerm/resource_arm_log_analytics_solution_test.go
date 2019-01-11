@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMLogAnalyticsSolution_basicContainerMonitoring(t *testing.T) {
 	resourceName := "azurerm_log_analytics_solution.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMLogAnalyticsSolution_containerMonitoring(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -36,7 +36,7 @@ func TestAccAzureRMLogAnalyticsSolution_basicContainerMonitoring(t *testing.T) {
 
 func TestAccAzureRMLogAnalyticsSolution_basicSecurity(t *testing.T) {
 	resourceName := "azurerm_log_analytics_solution.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMLogAnalyticsSolution_security(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{

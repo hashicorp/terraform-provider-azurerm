@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceArmVirtualNetwork_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_virtual_network.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	name := fmt.Sprintf("acctestvnet-%d", ri)
 	config := testAccDataSourceArmVirtualNetwork_basic(ri, testLocation())
@@ -34,7 +34,7 @@ func TestAccDataSourceArmVirtualNetwork_basic(t *testing.T) {
 
 func TestAccDataSourceArmVirtualNetwork_peering(t *testing.T) {
 	dataSourceName := "data.azurerm_virtual_network.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	virtualNetworkName := fmt.Sprintf("acctestvnet-1-%d", ri)
 	location := testLocation()

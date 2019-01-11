@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMApplicationInsights_basicWeb(t *testing.T) {
 	resourceName := "azurerm_application_insights.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "web")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -43,7 +43,7 @@ func TestAccAzureRMApplicationInsights_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_application_insights.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -68,7 +68,7 @@ func TestAccAzureRMApplicationInsights_requiresImport(t *testing.T) {
 
 func TestAccAzureRMApplicationInsights_basicJava(t *testing.T) {
 	resourceName := "azurerm_application_insights.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "java")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -94,7 +94,7 @@ func TestAccAzureRMApplicationInsights_basicJava(t *testing.T) {
 
 func TestAccAzureRMApplicationInsights_basicMobileCenter(t *testing.T) {
 	resourceName := "azurerm_application_insights.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "MobileCenter")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -120,7 +120,7 @@ func TestAccAzureRMApplicationInsights_basicMobileCenter(t *testing.T) {
 
 func TestAccAzureRMApplicationInsights_basicOther(t *testing.T) {
 	resourceName := "azurerm_application_insights.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "other")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -146,7 +146,7 @@ func TestAccAzureRMApplicationInsights_basicOther(t *testing.T) {
 
 func TestAccAzureRMApplicationInsights_basicPhone(t *testing.T) {
 	resourceName := "azurerm_application_insights.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "phone")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -172,7 +172,7 @@ func TestAccAzureRMApplicationInsights_basicPhone(t *testing.T) {
 
 func TestAccAzureRMApplicationInsights_basicStore(t *testing.T) {
 	resourceName := "azurerm_application_insights.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "store")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -198,7 +198,7 @@ func TestAccAzureRMApplicationInsights_basicStore(t *testing.T) {
 
 func TestAccAzureRMApplicationInsights_basiciOS(t *testing.T) {
 	resourceName := "azurerm_application_insights.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "ios")
 
 	resource.ParallelTest(t, resource.TestCase{

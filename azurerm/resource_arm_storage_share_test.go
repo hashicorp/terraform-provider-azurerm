@@ -10,12 +10,13 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMStorageShare_basic(t *testing.T) {
 	var sS storage.Share
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageShare_basic(ri, rs, testLocation())
 	resourceName := "azurerm_storage_share.test"
@@ -43,7 +44,7 @@ func TestAccAzureRMStorageShare_basic(t *testing.T) {
 func TestAccAzureRMStorageShare_disappears(t *testing.T) {
 	var sS storage.Share
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageShare_basic(ri, rs, testLocation())
 	resourceName := "azurerm_storage_share.test"
@@ -68,7 +69,7 @@ func TestAccAzureRMStorageShare_disappears(t *testing.T) {
 func TestAccAzureRMStorageShare_updateQuota(t *testing.T) {
 	var sS storage.Share
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageShare_basic(ri, rs, testLocation())
 	config2 := testAccAzureRMStorageShare_updateQuota(ri, rs, testLocation())
