@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
 
 // Provider returns a terraform.ResourceProvider.
@@ -76,8 +77,9 @@ func Provider() terraform.ResourceProvider {
 
 			// Managed Tracking GUID for User-agent
 			"partner_id": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.UUID,
 			},
 
 			// Advanced feature flags
