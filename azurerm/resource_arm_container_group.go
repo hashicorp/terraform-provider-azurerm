@@ -29,9 +29,10 @@ func resourceArmContainerGroup() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"location": locationSchema(),
@@ -43,7 +44,7 @@ func resourceArmContainerGroup() *schema.Resource {
 				Optional:         true,
 				Default:          "Public",
 				ForceNew:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerinstance.Public),
 				}, true),
@@ -53,7 +54,7 @@ func resourceArmContainerGroup() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerinstance.Windows),
 					string(containerinstance.Linux),
@@ -69,23 +70,23 @@ func resourceArmContainerGroup() *schema.Resource {
 						"server": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
 							ForceNew:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"username": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
 							ForceNew:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"password": {
 							Type:         schema.TypeString,
 							Required:     true,
 							Sensitive:    true,
-							ValidateFunc: validate.NoEmptyStrings,
 							ForceNew:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
@@ -98,22 +99,12 @@ func resourceArmContainerGroup() *schema.Resource {
 				Optional:         true,
 				ForceNew:         true,
 				Default:          string(containerinstance.Always),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerinstance.Always),
 					string(containerinstance.Never),
 					string(containerinstance.OnFailure),
 				}, true),
-			},
-
-			"ip_address": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"fqdn": {
-				Type:     schema.TypeString,
-				Computed: true,
 			},
 
 			"dns_name_label": {
@@ -129,15 +120,17 @@ func resourceArmContainerGroup() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"image": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"cpu": {
@@ -239,15 +232,17 @@ func resourceArmContainerGroup() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
-										Type:     schema.TypeString,
-										Required: true,
-										ForceNew: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 
 									"mount_path": {
-										Type:     schema.TypeString,
-										Required: true,
-										ForceNew: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 
 									"read_only": {
@@ -258,27 +253,40 @@ func resourceArmContainerGroup() *schema.Resource {
 									},
 
 									"share_name": {
-										Type:     schema.TypeString,
-										Required: true,
-										ForceNew: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 
 									"storage_account_name": {
-										Type:     schema.TypeString,
-										Required: true,
-										ForceNew: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 
 									"storage_account_key": {
-										Type:     schema.TypeString,
-										Required: true,
-										ForceNew: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 								},
 							},
 						},
 					},
 				},
+			},
+
+			"ip_address": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"fqdn": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
