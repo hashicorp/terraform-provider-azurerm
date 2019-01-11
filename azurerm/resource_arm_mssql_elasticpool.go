@@ -164,7 +164,6 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 				ValidateFunc: validation.IntAtLeast(0),
 			},
 
-
 			"zone_redundant": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -267,6 +266,7 @@ func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interf
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	sku := expandAzureRmMsSqlElasticPoolSku(d)
+	maxSize := d.Get("max_size_bytes").(int)
 	tags := d.Get("tags").(map[string]interface{})
 
 	elasticPool := sql.ElasticPool{
@@ -276,6 +276,7 @@ func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interf
 		Tags:     expandTags(tags),
 		ElasticPoolProperties: &sql.ElasticPoolProperties{
 			PerDatabaseSettings: expandAzureRmMsSqlElasticPoolPerDatabaseSettings(d),
+			MaxSizeBytes:        utils.Int64(int64(maxSize)),
 		},
 	}
 
@@ -425,14 +426,8 @@ func flattenAzureRmMsSqlElasticPoolSku(resp *sql.Sku) []interface{} {
 	return []interface{}{values}
 }
 
-func flattenAzureRmMsSqlElasticPoolProperties(d *schema.ResourceData, resp *sql.ElasticPoolProperties) []interface{} {
+func flattenAzureRmMsSqlElasticPoolProperties(resp *sql.ElasticPoolProperties) []interface{} {
 	elasticPoolProperty := map[string]interface{}{}
-
-	if maxSizeBytes := resp.MaxSizeBytes; maxSizeBytes != nil {
-		elasticPoolProperty["max_size_bytes"] = *maxSizeBytes
-		d.Set("max_size_bytes", *maxSizeBytes)
-	}
-
 	elasticPoolProperty["state"] = string(resp.State)
 
 	if date := resp.CreationDate; date != nil {
