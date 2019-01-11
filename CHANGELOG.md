@@ -11,7 +11,7 @@ FEATURES:
 * **New Resource:** `azurerm_batch_pool` [GH-2461]
 * **New Resource:** `azurerm_firewall_application_rule_collection` [GH-2532]
 * **New Resource:** `azurerm_policy_set_definition` [GH-2535]
-Adding Ports To Container Groups #
+
 
 IMPROVEMENTS:
 * dependencies: updating to `v24.0.0` of `Azure/azure-sdk-for-go` [GH-2572]
