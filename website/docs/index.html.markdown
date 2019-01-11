@@ -126,7 +126,7 @@ More information on [how to configure a Service Principal using Managed Service 
 
 For some advanced scenarios, such as where more granular permissions are necessary - the following properties can be set:
 
-* `partner_id` - (Optional) A GUID/UUID provided by Microsoft that is added to the user agent to facilitate partner resource usage data collection. This can also be sourced from the `ARM_PARTNER_ID` Environment Variable.
+* `partner_id` - (Optional) A GUID/UUID that is [registered](https://docs.microsoft.com/azure/marketplace/azure-partner-customer-usage-attribution#register-guids-and-offers) with Microsoft to facilitate partner resource usage attribution. This can also be sourced from the `ARM_PARTNER_ID` Environment Variable.
 
 * `skip_credentials_validation` - (Optional) Should the AzureRM Provider skip verifying the credentials being used are valid? This can also be sourced from the `ARM_SKIP_CREDENTIALS_VALIDATION` Environment Variable. Defaults to `false`.
 
