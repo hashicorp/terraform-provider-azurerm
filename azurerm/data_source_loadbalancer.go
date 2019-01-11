@@ -160,7 +160,7 @@ func flattenLoadBalancerDataSourceFrontendIpConfiguration(ipConfigs *[]network.F
 		if props := config.FrontendIPConfigurationPropertiesFormat; props != nil {
 			ipConfig["private_ip_address_allocation"] = props.PrivateIPAllocationMethod
 
-			if subnet := props.Subnet; subnet != nil {
+			if subnet := props.Subnet; subnet != nil && subnet.ID != nil {
 				ipConfig["subnet_id"] = *subnet.ID
 			}
 
@@ -168,7 +168,7 @@ func flattenLoadBalancerDataSourceFrontendIpConfiguration(ipConfigs *[]network.F
 				ipConfig["private_ip_address"] = *pip
 			}
 
-			if pip := props.PublicIPAddress; pip != nil {
+			if pip := props.PublicIPAddress; pip != nil && pip.ID != nil {
 				ipConfig["public_ip_address_id"] = *pip.ID
 			}
 		}
