@@ -3,7 +3,9 @@ package azurerm
 import (
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -41,17 +43,26 @@ func TestAccAzureRMDataLakeStoreFile_basic(t *testing.T) {
 
 func TestAccAzureRMDataLakeStoreFile_largefiles(t *testing.T) {
 	resourceName := "azurerm_data_lake_store_file.test"
-
-	//"large" in this context is anything greater than 4 megabytes
-	largeSize := 12 * 1024 * 1024
-	data := make([]byte, largeSize, largeSize)
-	err := ioutil.WriteFile("./testdata/testAccAzureRMDataLakeStoreFile_largefiles.bin", data, 0644)
-	if err != nil {
-		t.Errorf("Error creating testdata.")
-	}
-
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
+
+	//"large" in this context is anything greater than 4 megabytes
+	largeSize := 12 * 1024 * 1024 //12 mb
+	data := make([]byte, largeSize, largeSize)
+	rand.Read(data) //fill with random data
+
+	tmpfile, err := ioutil.TempFile("", "azurerm-acc-datalake-file-large")
+	if err != nil {
+		t.Errorf("Unable to open a temporary file.")
+	}
+	defer os.Remove(tmpfile.Name())
+
+	if _, err := tmpfile.Write(data); err != nil {
+		t.Errorf("Unable to write to temporary file %q: %v", tmpfile.Name(), err)
+	}
+	if err := tmpfile.Close(); err != nil {
+		t.Errorf("Unable to close temporary file %q: %v", tmpfile.Name(), err)
+	}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -59,7 +70,7 @@ func TestAccAzureRMDataLakeStoreFile_largefiles(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataLakeStoreFileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataLakeStoreFile_largefiles(ri, rs, testLocation()),
+				Config: testAccAzureRMDataLakeStoreFile_largefiles(ri, rs, testLocation(), tmpfile.Name()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeStoreFileExists(resourceName),
 				),
@@ -181,7 +192,7 @@ resource "azurerm_data_lake_store_file" "test" {
 `, rInt, location, rString, location)
 }
 
-func testAccAzureRMDataLakeStoreFile_largefiles(rInt int, rString, location string) string {
+func testAccAzureRMDataLakeStoreFile_largefiles(rInt int, rString, location, file string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -198,9 +209,9 @@ resource "azurerm_data_lake_store" "test" {
 resource "azurerm_data_lake_store_file" "test" {
   remote_file_path = "/test/testAccAzureRMDataLakeStoreFile_largefiles.bin"
   account_name     = "${azurerm_data_lake_store.test.name}"
-  local_file_path  = "./testdata/testAccAzureRMDataLakeStoreFile_largefiles.bin"
+  local_file_path  = "%s"
 }
-`, rInt, location, rString, location)
+`, rInt, location, rString, location, file)
 }
 
 func testAccAzureRMDataLakeStoreFile_requiresImport(rInt int, rString, location string) string {
