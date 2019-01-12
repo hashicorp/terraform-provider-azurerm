@@ -7,11 +7,12 @@ import (
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceArmStorageAccountSas_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_storage_account_sas.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	rString := acctest.RandString(4)
 	location := testLocation()
 	utcNow := time.Now().UTC()

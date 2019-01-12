@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMSqlElasticPool_basic(t *testing.T) {
 	resourceName := "azurerm_sql_elasticpool.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSqlElasticPool_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -37,7 +37,7 @@ func TestAccAzureRMSqlElasticPool_basic(t *testing.T) {
 
 func TestAccAzureRMSqlElasticPool_disappears(t *testing.T) {
 	resourceName := "azurerm_sql_elasticpool.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSqlElasticPool_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -59,7 +59,7 @@ func TestAccAzureRMSqlElasticPool_disappears(t *testing.T) {
 
 func TestAccAzureRMSqlElasticPool_resizeDtu(t *testing.T) {
 	resourceName := "azurerm_sql_elasticpool.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMSqlElasticPool_basic(ri, location)
 	postConfig := testAccAzureRMSqlElasticPool_resizedDtu(ri, location)

@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMMariaDbServer_basic(t *testing.T) {
 	resourceName := "azurerm_mariadb_server.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMMariaDbServer_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -43,7 +43,7 @@ func TestAccAzureRMMariaDbServer_basic(t *testing.T) {
 
 func TestAccAzureRMMariaDbServer_basicMaxStorage(t *testing.T) {
 	resourceName := "azurerm_mariadb_server.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMMariaDbServer_basicMaxStorage(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -74,7 +74,7 @@ func TestAccAzureRMMariaDbServer_basicMaxStorage(t *testing.T) {
 
 func TestAccAzureRMMariaDbServer_generalPurpose(t *testing.T) {
 	resourceName := "azurerm_mariadb_server.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMMariaDbServer_generalPurpose(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -102,7 +102,7 @@ func TestAccAzureRMMariaDbServer_generalPurpose(t *testing.T) {
 
 func TestAccAzureRMMariaDbServer_memoryOptimized(t *testing.T) {
 	resourceName := "azurerm_mariadb_server.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMMariaDbServer_memoryOptimizedGeoRedundant(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -130,7 +130,7 @@ func TestAccAzureRMMariaDbServer_memoryOptimized(t *testing.T) {
 
 func TestAccAzureRMMariaDbServer_updatePassword(t *testing.T) {
 	resourceName := "azurerm_mariadb_server.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMMariaDbServer_basic(ri, location)
 	updatedConfig := testAccAzureRMMariaDbServer_basicUpdatedPassword(ri, location)
@@ -158,7 +158,7 @@ func TestAccAzureRMMariaDbServer_updatePassword(t *testing.T) {
 
 func TestAccAzureRMMariaDbServer_updated(t *testing.T) {
 	resourceName := "azurerm_mariadb_server.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMMariaDbServer_basic(ri, location)
 	updatedConfig := testAccAzureRMMariaDbServer_basicUpdated(ri, location)
@@ -194,7 +194,7 @@ func TestAccAzureRMMariaDbServer_updated(t *testing.T) {
 
 func TestAccAzureRMMariaDbServer_updateSKU(t *testing.T) {
 	resourceName := "azurerm_mariadb_server.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMMariaDbServer_generalPurpose(ri, location)
 	updatedConfig := testAccAzureRMMariaDbServer_memoryOptimized(ri, location)

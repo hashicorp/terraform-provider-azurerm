@@ -5,15 +5,15 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMContainerGroup_imageRegistryCredentials(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	config := testAccAzureRMContainerGroup_imageRegistryCredentials(ri, testLocation())
 
@@ -50,7 +50,7 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentials(t *testing.T) {
 
 func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	config := testAccAzureRMContainerGroup_imageRegistryCredentials(ri, testLocation())
 	updated := testAccAzureRMContainerGroup_imageRegistryCredentialsUpdated(ri, testLocation())
@@ -71,6 +71,8 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.1.server", "mine.acr.io"),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.1.username", "acrusername"),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.1.password", "acrpassword"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.port", "5443"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.protocol", "UDP"),
 				),
 			},
 			{
@@ -81,6 +83,7 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.0.server", "hub.docker.com"),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.0.username", "updatedusername"),
 					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.0.password", "updatedpassword"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.ports.#", "1"),
 				),
 			},
 		},
@@ -89,7 +92,7 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 
 func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	config := testAccAzureRMContainerGroup_linuxBasic(ri, testLocation())
 
@@ -104,6 +107,7 @@ func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
 					testCheckAzureRMContainerGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Linux"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.port", "80"),
 				),
 			},
 			{
@@ -126,7 +130,7 @@ func TestAccAzureRMContainerGroup_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_container_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -150,7 +154,7 @@ func TestAccAzureRMContainerGroup_requiresImport(t *testing.T) {
 
 func TestAccAzureRMContainerGroup_linuxBasicUpdate(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	config := testAccAzureRMContainerGroup_linuxBasic(ri, testLocation())
 	updatedConfig := testAccAzureRMContainerGroup_linuxBasicUpdated(ri, testLocation())
@@ -172,6 +176,7 @@ func TestAccAzureRMContainerGroup_linuxBasicUpdate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "container.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.ports.#", "2"),
 				),
 			},
 		},
@@ -180,7 +185,7 @@ func TestAccAzureRMContainerGroup_linuxBasicUpdate(t *testing.T) {
 
 func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	config := testAccAzureRMContainerGroup_linuxComplete(ri, testLocation())
 
@@ -194,6 +199,7 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.ports.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.command", "/bin/bash -c ls"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.commands.#", "3"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.commands.0", "/bin/bash"),
@@ -230,7 +236,7 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 
 func TestAccAzureRMContainerGroup_windowsBasic(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	config := testAccAzureRMContainerGroup_windowsBasic(ri, testLocation())
 
@@ -245,6 +251,7 @@ func TestAccAzureRMContainerGroup_windowsBasic(t *testing.T) {
 					testCheckAzureRMContainerGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Windows"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.ports.#", "2"),
 				),
 			},
 			{
@@ -258,7 +265,7 @@ func TestAccAzureRMContainerGroup_windowsBasic(t *testing.T) {
 
 func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	config := testAccAzureRMContainerGroup_windowsComplete(ri, testLocation())
 
@@ -272,6 +279,7 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.ports.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.command", "cmd.exe echo hi"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.commands.#", "3"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.commands.0", "cmd.exe"),
@@ -320,7 +328,7 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    port   = "80"
+    port   = 80
   }
 
   tags {
@@ -372,11 +380,12 @@ resource "azurerm_container_group" "test" {
   os_type             = "Linux"
 
   container {
-    name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
-    cpu    = "0.5"
-    memory = "0.5"
-    port   = "80"
+    name     = "hw"
+    image    = "microsoft/aci-helloworld:latest"
+    cpu      = "0.5"
+    memory   = "0.5"
+    port     = 5443
+    protocol = "UDP"
   }
 
   image_registry_credential {
@@ -424,7 +433,9 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    port   = "80"
+    ports  = {
+      port = 80
+    }
   }
 
   image_registry_credential {
@@ -466,7 +477,13 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    port   = "80"
+    ports  = {
+      port     = 80
+    }
+    ports  = {
+      port     = 5443
+      protocol = "UDP"
+    }
   }
 
   container {
@@ -502,7 +519,14 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/windowsservercore:latest"
     cpu    = "2.0"
     memory = "3.5"
-    port   = "80"
+    ports  = {
+      port     = 80
+      protocol = "TCP"
+    }
+    ports  = {
+      port     = 443
+      protocol = "TCP"
+    }
   }
 
   tags {
@@ -533,7 +557,10 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/windowsservercore:latest"
     cpu    = "2.0"
     memory = "3.5"
-    port   = "80"
+    ports  = {
+      port     = 80
+      protocol = "TCP"
+    }
 
     environment_variables {
       "foo"  = "bar"
@@ -594,8 +621,10 @@ resource "azurerm_container_group" "test" {
     cpu    = "1"
     memory = "1.5"
 
-    port     = "80"
-    protocol = "TCP"
+    ports  = {
+      port     = 80
+      protocol = "TCP"
+    }
 
     volume {
       name       = "logs"
@@ -604,11 +633,11 @@ resource "azurerm_container_group" "test" {
       share_name = "${azurerm_storage_share.test.name}"
 
       storage_account_name = "${azurerm_storage_account.test.name}"
-      storage_account_key  = "${azurerm_storage_account.test.primary_access_key}"
+      storage_account_key = "${azurerm_storage_account.test.primary_access_key}"
     }
 
     environment_variables {
-      "foo"  = "bar"
+      "foo" = "bar"
       "foo1" = "bar1"
     }
 
@@ -651,7 +680,6 @@ func testCheckAzureRMContainerGroupExists(resourceName string) resource.TestChec
 			}
 			return fmt.Errorf("Bad: Get on containerGroupsClient: %+v", err)
 		}
-
 		return nil
 	}
 }

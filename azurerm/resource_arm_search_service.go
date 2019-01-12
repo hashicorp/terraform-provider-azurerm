@@ -40,8 +40,7 @@ func resourceArmSearchService() *schema.Resource {
 					string(search.Standard),
 					string(search.Standard2),
 					string(search.Standard3),
-				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				}, false),
 			},
 
 			"replica_count": {

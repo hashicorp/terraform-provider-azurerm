@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMSubnet_basic(t *testing.T) {
 	resourceName := "data.azurerm_subnet.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -33,7 +33,7 @@ func TestAccDataSourceAzureRMSubnet_basic(t *testing.T) {
 
 func TestAccDataSourceAzureRMSubnet_networkSecurityGroup(t *testing.T) {
 	dataSourceName := "data.azurerm_subnet.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -56,7 +56,7 @@ func TestAccDataSourceAzureRMSubnet_networkSecurityGroup(t *testing.T) {
 
 func TestAccDataSourceAzureRMSubnet_routeTable(t *testing.T) {
 	dataSourceName := "data.azurerm_subnet.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },

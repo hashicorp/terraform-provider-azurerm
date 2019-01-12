@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMRelayNamespace_basic(t *testing.T) {
 	resourceName := "azurerm_relay_namespace.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMRelayNamespace_basic(ri, location)
 
@@ -43,7 +43,7 @@ func TestAccAzureRMRelayNamespace_basic(t *testing.T) {
 
 func TestAccAzureRMRelayNamespace_complete(t *testing.T) {
 	resourceName := "azurerm_relay_namespace.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMRelayNamespace_complete(ri, location)
 

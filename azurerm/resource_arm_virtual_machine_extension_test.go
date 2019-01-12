@@ -6,14 +6,14 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMVirtualMachineExtension_basic(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_extension.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMVirtualMachineExtension_basic(ri, location)
 	postConfig := testAccAzureRMVirtualMachineExtension_basicUpdate(ri, location)
@@ -50,7 +50,7 @@ func TestAccAzureRMVirtualMachineExtension_basic(t *testing.T) {
 func TestAccAzureRMVirtualMachineExtension_concurrent(t *testing.T) {
 	firstResourceName := "azurerm_virtual_machine_extension.test"
 	secondResourceName := "azurerm_virtual_machine_extension.test2"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineExtension_concurrent(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -72,7 +72,7 @@ func TestAccAzureRMVirtualMachineExtension_concurrent(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualMachineExtension_linuxDiagnostics(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineExtension_linuxDiagnostics(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{

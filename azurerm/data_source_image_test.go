@@ -6,12 +6,13 @@ import (
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMImage_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_image.test"
 
-	config := testAccDataSourceAzureRMImageBasic(acctest.RandInt(), acctest.RandString(4), testLocation())
+	config := testAccDataSourceAzureRMImageBasic(tf.AccRandTimeInt(), acctest.RandString(4), testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -42,7 +43,7 @@ func TestAccDataSourceAzureRMImage_localFilter(t *testing.T) {
 	ascDataSourceName := "data.azurerm_image.test1"
 	descDataSourceName := "data.azurerm_image.test2"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccDataSourceAzureRMImageLocalFilter(ri, acctest.RandString(4), testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
