@@ -49,8 +49,8 @@ func resourceArmVirtualNetwork() *schema.Resource {
 			},
 
 			"ddos_protection_plan_id": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
@@ -304,7 +304,7 @@ func expandVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData,
 			DNSServers: utils.ExpandStringArray(d.Get("dns_servers").([]interface{})),
 		},
 		EnableDdosProtection: &enableDDosProtection,
-		Subnets: &subnets,
+		Subnets:              &subnets,
 	}
 	return properties, nil
 }
