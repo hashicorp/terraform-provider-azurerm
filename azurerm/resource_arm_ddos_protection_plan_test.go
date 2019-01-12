@@ -170,7 +170,7 @@ func testCheckAzureRMDDosProtectionPlanDisappears(resourceName string) resource.
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Delete on netProfileClient: %+v", err)
+			return fmt.Errorf("Bad: Delete on ddosProtectionPlanClient: %+v", err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
