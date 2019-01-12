@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -39,7 +40,7 @@ func TestValidateBatchAccountName(t *testing.T) {
 
 func TestAccAzureRMBatchAccount_basic(t *testing.T) {
 	resourceName := "azurerm_batch_account.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
 
@@ -68,7 +69,8 @@ func TestAccAzureRMBatchAccount_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_batch_account.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
 	rs := acctest.RandString(4)
 	location := testLocation()
 
@@ -93,7 +95,7 @@ func TestAccAzureRMBatchAccount_requiresImport(t *testing.T) {
 
 func TestAccAzureRMBatchAccount_complete(t *testing.T) {
 	resourceName := "azurerm_batch_account.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
 

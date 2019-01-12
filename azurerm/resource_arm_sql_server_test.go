@@ -5,9 +5,9 @@ import (
 	"log"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -62,7 +62,7 @@ func testSweepSQLServer(region string) error {
 
 func TestAccAzureRMSqlServer_basic(t *testing.T) {
 	resourceName := "azurerm_sql_server.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSqlServer_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -88,7 +88,7 @@ func TestAccAzureRMSqlServer_basic(t *testing.T) {
 
 func TestAccAzureRMSqlServer_disappears(t *testing.T) {
 	resourceName := "azurerm_sql_server.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSqlServer_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -110,7 +110,7 @@ func TestAccAzureRMSqlServer_disappears(t *testing.T) {
 
 func TestAccAzureRMSqlServer_withTags(t *testing.T) {
 	resourceName := "azurerm_sql_server.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMSqlServer_withTags(ri, location)
 	postConfig := testAccAzureRMSqlServer_withTagsUpdated(ri, location)

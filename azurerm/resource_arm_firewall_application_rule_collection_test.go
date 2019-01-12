@@ -4,15 +4,17 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
 
 func TestAccAzureRMFirewallApplicationRuleCollection_basic(t *testing.T) {
 	resourceName := "azurerm_firewall_application_rule_collection.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -52,7 +54,8 @@ func TestAccAzureRMFirewallApplicationRuleCollection_requiresImport(t *testing.T
 	}
 
 	resourceName := "azurerm_firewall_application_rule_collection.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -76,7 +79,8 @@ func TestAccAzureRMFirewallApplicationRuleCollection_requiresImport(t *testing.T
 
 func TestAccAzureRMFirewallApplicationRuleCollection_updatedName(t *testing.T) {
 	resourceName := "azurerm_firewall_application_rule_collection.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -113,7 +117,8 @@ func TestAccAzureRMFirewallApplicationRuleCollection_updatedName(t *testing.T) {
 func TestAccAzureRMFirewallApplicationRuleCollection_multipleRuleCollections(t *testing.T) {
 	firstRule := "azurerm_firewall_application_rule_collection.test"
 	secondRule := "azurerm_firewall_application_rule_collection.test_add"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -164,7 +169,8 @@ func TestAccAzureRMFirewallApplicationRuleCollection_multipleRuleCollections(t *
 func TestAccAzureRMFirewallApplicationRuleCollection_update(t *testing.T) {
 	firstResourceName := "azurerm_firewall_application_rule_collection.test"
 	secondResourceName := "azurerm_firewall_application_rule_collection.test_add"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -208,7 +214,8 @@ func TestAccAzureRMFirewallApplicationRuleCollection_update(t *testing.T) {
 
 func TestAccAzureRMFirewallApplicationRuleCollection_disappears(t *testing.T) {
 	resourceName := "azurerm_firewall_application_rule_collection.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -234,7 +241,8 @@ func TestAccAzureRMFirewallApplicationRuleCollection_disappears(t *testing.T) {
 
 func TestAccAzureRMFirewallApplicationRuleCollection_multipleRules(t *testing.T) {
 	resourceName := "azurerm_firewall_application_rule_collection.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -278,7 +286,8 @@ func TestAccAzureRMFirewallApplicationRuleCollection_multipleRules(t *testing.T)
 
 func TestAccAzureRMFirewallApplicationRuleCollection_multipleProtocols(t *testing.T) {
 	resourceName := "azurerm_firewall_application_rule_collection.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -312,7 +321,8 @@ func TestAccAzureRMFirewallApplicationRuleCollection_multipleProtocols(t *testin
 
 func TestAccAzureRMFirewallApplicationRuleCollection_updateProtocols(t *testing.T) {
 	resourceName := "azurerm_firewall_application_rule_collection.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{

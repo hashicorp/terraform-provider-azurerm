@@ -5,15 +5,15 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func testAccAzureRMExpressRouteCircuitAuthorization_basic(t *testing.T) {
 	resourceName := "azurerm_express_route_circuit_authorization.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -43,7 +43,8 @@ func testAccAzureRMExpressRouteCircuitAuthorization_requiresImport(t *testing.T)
 	}
 
 	resourceName := "azurerm_express_route_circuit_authorization.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
+
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -69,7 +70,7 @@ func testAccAzureRMExpressRouteCircuitAuthorization_requiresImport(t *testing.T)
 func testAccAzureRMExpressRouteCircuitAuthorization_multiple(t *testing.T) {
 	firstResourceName := "azurerm_express_route_circuit_authorization.test1"
 	secondResourceName := "azurerm_express_route_circuit_authorization.test2"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

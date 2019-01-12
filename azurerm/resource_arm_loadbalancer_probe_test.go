@@ -6,14 +6,14 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMLoadBalancerProbe_basic(t *testing.T) {
 	var lb network.LoadBalancer
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	probeName := fmt.Sprintf("probe-%d", ri)
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
@@ -48,7 +48,7 @@ func TestAccAzureRMLoadBalancerProbe_basic(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerProbe_removal(t *testing.T) {
 	var lb network.LoadBalancer
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	probeName := fmt.Sprintf("probe-%d", ri)
 	location := testLocation()
 
@@ -77,9 +77,9 @@ func TestAccAzureRMLoadBalancerProbe_removal(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerProbe_update(t *testing.T) {
 	var lb network.LoadBalancer
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	probeName := fmt.Sprintf("probe-%d", ri)
-	probe2Name := fmt.Sprintf("probe-%d", acctest.RandInt())
+	probe2Name := fmt.Sprintf("probe-%d", tf.AccRandTimeInt())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -110,7 +110,7 @@ func TestAccAzureRMLoadBalancerProbe_update(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerProbe_updateProtocol(t *testing.T) {
 	var lb network.LoadBalancer
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	probeName := fmt.Sprintf("probe-%d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -140,7 +140,7 @@ func TestAccAzureRMLoadBalancerProbe_updateProtocol(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerProbe_reapply(t *testing.T) {
 	var lb network.LoadBalancer
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	probeName := fmt.Sprintf("probe-%d", ri)
 
 	deleteProbeState := func(s *terraform.State) error {
@@ -174,7 +174,7 @@ func TestAccAzureRMLoadBalancerProbe_reapply(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerProbe_disappears(t *testing.T) {
 	var lb network.LoadBalancer
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	probeName := fmt.Sprintf("probe-%d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{

@@ -8,14 +8,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"golang.org/x/crypto/ssh"
 )
 
 func TestAccAzureRMImage_standaloneImage(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceGroup := fmt.Sprintf("acctestRG-%d", ri)
 	userName := "testadmin"
 	password := "Password1234!"
@@ -55,7 +55,7 @@ func TestAccAzureRMImage_standaloneImage(t *testing.T) {
 }
 
 func TestAccAzureRMImage_customImageVMFromVHD(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceGroup := fmt.Sprintf("acctestRG-%d", ri)
 	userName := "testadmin"
 	password := "Password1234!"
@@ -90,7 +90,7 @@ func TestAccAzureRMImage_customImageVMFromVHD(t *testing.T) {
 }
 
 func TestAccAzureRMImage_customImageVMFromVM(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceGroup := fmt.Sprintf("acctestRG-%d", ri)
 	userName := "testadmin"
 	password := "Password1234!"
@@ -125,7 +125,7 @@ func TestAccAzureRMImage_customImageVMFromVM(t *testing.T) {
 }
 
 func TestAccAzureRMImageVMSS_customImageVMSSFromVHD(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceGroup := fmt.Sprintf("acctestRG-%d", ri)
 	userName := "testadmin"
 	password := "Password1234!"

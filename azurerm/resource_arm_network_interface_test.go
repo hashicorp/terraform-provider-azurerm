@@ -6,10 +6,10 @@ import (
 
 	"log"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -77,7 +77,7 @@ func testSweepNetworkInterfaces(region string) error {
 
 func TestAccAzureRMNetworkInterface_disappears(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -97,7 +97,7 @@ func TestAccAzureRMNetworkInterface_disappears(t *testing.T) {
 
 func TestAccAzureRMNetworkInterface_basic(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -120,7 +120,7 @@ func TestAccAzureRMNetworkInterface_basic(t *testing.T) {
 
 func TestAccAzureRMNetworkInterface_setNetworkSecurityGroupId(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMNetworkInterface_basic(rInt, location)
 	updatedConfig := testAccAzureRMNetworkInterface_basicWithNetworkSecurityGroup(rInt, location)
@@ -149,7 +149,7 @@ func TestAccAzureRMNetworkInterface_setNetworkSecurityGroupId(t *testing.T) {
 
 func TestAccAzureRMNetworkInterface_removeNetworkSecurityGroupId(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMNetworkInterface_basicWithNetworkSecurityGroup(rInt, location)
 	updatedConfig := testAccAzureRMNetworkInterface_basic(rInt, location)
@@ -178,7 +178,7 @@ func TestAccAzureRMNetworkInterface_removeNetworkSecurityGroupId(t *testing.T) {
 
 func TestAccAzureRMNetworkInterface_multipleSubnets(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMNetworkInterface_multipleSubnets(rInt, location)
 
@@ -200,7 +200,7 @@ func TestAccAzureRMNetworkInterface_multipleSubnets(t *testing.T) {
 
 func TestAccAzureRMNetworkInterface_multipleSubnetsPrimary(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMNetworkInterface_multipleSubnets(rInt, location)
 	updatedConfig := testAccAzureRMNetworkInterface_multipleSubnetsUpdatedPrimary(rInt, location)
@@ -236,7 +236,7 @@ func TestAccAzureRMNetworkInterface_multipleSubnetsPrimary(t *testing.T) {
 
 func TestAccAzureRMNetworkInterface_enableIPForwarding(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -255,7 +255,7 @@ func TestAccAzureRMNetworkInterface_enableIPForwarding(t *testing.T) {
 
 func TestAccAzureRMNetworkInterface_enableAcceleratedNetworking(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -273,7 +273,7 @@ func TestAccAzureRMNetworkInterface_enableAcceleratedNetworking(t *testing.T) {
 }
 
 func TestAccAzureRMNetworkInterface_multipleLoadBalancers(t *testing.T) {
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -292,7 +292,7 @@ func TestAccAzureRMNetworkInterface_multipleLoadBalancers(t *testing.T) {
 
 func TestAccAzureRMNetworkInterface_applicationGateway(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -311,7 +311,7 @@ func TestAccAzureRMNetworkInterface_applicationGateway(t *testing.T) {
 
 func TestAccAzureRMNetworkInterface_withTags(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -340,7 +340,7 @@ func TestAccAzureRMNetworkInterface_withTags(t *testing.T) {
 
 func TestAccAzureRMNetworkInterface_IPAddressesBug1286(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -368,7 +368,8 @@ func TestAccAzureRMNetworkInterface_IPAddressesBug1286(t *testing.T) {
 
 func TestAccAzureRMNetworkInterface_IPAddressesFeature2543(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -388,7 +389,7 @@ func TestAccAzureRMNetworkInterface_IPAddressesFeature2543(t *testing.T) {
 }
 
 func TestAccAzureRMNetworkInterface_bug7986(t *testing.T) {
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -407,7 +408,7 @@ func TestAccAzureRMNetworkInterface_bug7986(t *testing.T) {
 
 func TestAccAzureRMNetworkInterface_applicationSecurityGroups(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -426,7 +427,7 @@ func TestAccAzureRMNetworkInterface_applicationSecurityGroups(t *testing.T) {
 
 func TestAccAzureRMNetworkInterface_importPublicIP(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -955,11 +956,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "test-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
-  domain_name_label            = "${azurerm_resource_group.test.name}"
+  name                = "test-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
+  domain_name_label   = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_network_interface" "test" {

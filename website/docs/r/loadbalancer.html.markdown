@@ -41,10 +41,10 @@ resource "azurerm_lb" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the LoadBalancer.
-* `resource_group_name` - (Required) The name of the resource group in which to create the LoadBalancer.
-* `location` - (Required) Specifies the supported Azure location where the resource exists.
-* `frontend_ip_configuration` - (Optional) A frontend ip configuration block as documented below.
+* `name` - (Required) Specifies the name of the Load Balancer.
+* `resource_group_name` - (Required) The name of the Resource Group in which to create the Load Balancer.
+* `location` - (Required) Specifies the supported Azure Region where the Load Balancer should be created.
+* `frontend_ip_configuration` - (Optional) A `frontend_ip_configuration` block as documented below.
 * `sku` - (Optional) The SKU of the Azure Load Balancer. Accepted values are `Basic` and `Standard`. Defaults to `Basic`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -52,11 +52,11 @@ The following arguments are supported:
 `frontend_ip_configuration` supports the following:
 
 * `name` - (Required) Specifies the name of the frontend ip configuration.
-* `subnet_id` - (Optional) Reference to subnet associated with the IP Configuration.
+* `subnet_id` - The ID of the Subnet which should be associated with the IP Configuration.
 * `private_ip_address` - (Optional) Private IP Address to assign to the Load Balancer. The last one and first four IPs in any range are reserved and cannot be manually assigned.
-* `private_ip_address_allocation` - (Optional) Defines how a private IP address is assigned. Options are Static or Dynamic.
-* `public_ip_address_id` - (Optional) Reference to Public IP address to be associated with the Load Balancer.
-* `zones` - (Optional) A collection containing the availability zone to allocate the IP in.
+* `private_ip_address_allocation` - (Optional) The allocation method for the Private IP Address used by this Load Balancer. Possible values as `Dynamic` and `Static`.
+* `public_ip_address_id` - (Optional) Th ID of a Public IP Address which should be associated with the Load Balancer.
+* `zones` - (Optional) A list of Availability Zones which the Load Balancer's IP Addresses should be created in.
 
 -> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).
 

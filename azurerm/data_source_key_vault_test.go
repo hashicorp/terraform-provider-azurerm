@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMKeyVault_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_key_vault.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccDataSourceAzureRMKeyVault_basic(ri, location)
 
@@ -38,7 +38,7 @@ func TestAccDataSourceAzureRMKeyVault_basic(t *testing.T) {
 
 func TestAccDataSourceAzureRMKeyVault_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_key_vault.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccDataSourceAzureRMKeyVault_complete(ri, location)
 
@@ -67,7 +67,7 @@ func TestAccDataSourceAzureRMKeyVault_complete(t *testing.T) {
 
 func TestAccDataSourceAzureRMKeyVault_networkAcls(t *testing.T) {
 	dataSourceName := "data.azurerm_key_vault.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccDataSourceAzureRMKeyVault_networkAcls(ri, location)
 

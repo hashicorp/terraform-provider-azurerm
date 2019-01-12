@@ -11,12 +11,13 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMVirtualMachine_winTimeZone(t *testing.T) {
 	resourceName := "azurerm_virtual_machine.test"
 	var vm compute.VirtualMachine
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachine_winTimeZone(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -37,7 +38,7 @@ func TestAccAzureRMVirtualMachine_winTimeZone(t *testing.T) {
 func TestAccAzureRMVirtualMachine_SystemAssignedIdentity(t *testing.T) {
 	var vm compute.VirtualMachine
 	resourceName := "azurerm_virtual_machine.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineSystemAssignedIdentity(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -60,7 +61,7 @@ func TestAccAzureRMVirtualMachine_SystemAssignedIdentity(t *testing.T) {
 func TestAccAzureRMVirtualMachine_UserAssignedIdentity(t *testing.T) {
 	var vm compute.VirtualMachine
 	resourceName := "azurerm_virtual_machine.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(14)
 	config := testAccAzureRMVirtualMachineUserAssignedIdentity(ri, testLocation(), rs)
 	resource.ParallelTest(t, resource.TestCase{
@@ -84,10 +85,10 @@ func TestAccAzureRMVirtualMachine_UserAssignedIdentity(t *testing.T) {
 func TestAccAzureRMVirtualMachine_multipleAssignedIdentity(t *testing.T) {
 	var vm compute.VirtualMachine
 	resourceName := "azurerm_virtual_machine.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(14)
 	config := testAccAzureRMVirtualMachineMultipleAssignedIdentity(ri, testLocation(), rs)
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,

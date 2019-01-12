@@ -5,13 +5,13 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMKubernetesCluster_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	location := testLocation()
@@ -44,12 +44,12 @@ func TestAccDataSourceAzureRMKubernetesCluster_basic(t *testing.T) {
 
 func TestAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControl(t *testing.T) {
 	dataSourceName := "data.azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -71,13 +71,13 @@ func TestAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControl(t *testing
 
 func TestAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
 	dataSourceName := "data.azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	tenantId := os.Getenv("ARM_TENANT_ID")
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -102,7 +102,7 @@ func TestAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControlAAD(t *test
 
 func TestAccDataSourceAzureRMKubernetesCluster_internalNetwork(t *testing.T) {
 	dataSourceName := "data.azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	location := testLocation()
@@ -126,7 +126,7 @@ func TestAccDataSourceAzureRMKubernetesCluster_internalNetwork(t *testing.T) {
 
 func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 	dataSourceName := "data.azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	location := testLocation()
@@ -155,7 +155,7 @@ func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzure(t *testin
 
 func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureComplete(t *testing.T) {
 	dataSourceName := "data.azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	location := testLocation()
@@ -184,7 +184,7 @@ func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureComplete(t
 
 func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
 	dataSourceName := "data.azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	location := testLocation()
@@ -213,7 +213,7 @@ func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenet(t *test
 
 func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenetComplete(t *testing.T) {
 	dataSourceName := "data.azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	location := testLocation()
@@ -242,7 +242,7 @@ func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenetComplete
 
 func TestAccDataSourceAzureRMKubernetesCluster_addOnProfileOMS(t *testing.T) {
 	dataSourceName := "data.azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	location := testLocation()
@@ -269,7 +269,7 @@ func TestAccDataSourceAzureRMKubernetesCluster_addOnProfileOMS(t *testing.T) {
 
 func TestAccDataSourceAzureRMKubernetesCluster_addOnProfileRouting(t *testing.T) {
 	dataSourceName := "data.azurerm_kubernetes_cluster.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	location := testLocation()

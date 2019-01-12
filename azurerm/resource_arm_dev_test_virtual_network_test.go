@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestValidateDevTestVirtualNetworkName(t *testing.T) {
@@ -40,7 +40,7 @@ func TestValidateDevTestVirtualNetworkName(t *testing.T) {
 
 func TestAccAzureRMDevTestVirtualNetwork_basic(t *testing.T) {
 	resourceName := "azurerm_dev_test_virtual_network.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -71,7 +71,7 @@ func TestAccAzureRMDevTestVirtualNetwork_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_dev_test_virtual_network.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -96,7 +96,7 @@ func TestAccAzureRMDevTestVirtualNetwork_requiresImport(t *testing.T) {
 
 func TestAccAzureRMDevTestVirtualNetwork_subnet(t *testing.T) {
 	resourceName := "azurerm_dev_test_virtual_network.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{

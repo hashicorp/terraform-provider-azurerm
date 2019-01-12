@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMDNSZone_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_dns_zone.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -30,7 +30,7 @@ func TestAccDataSourceAzureRMDNSZone_basic(t *testing.T) {
 
 func TestAccDataSourceAzureRMDNSZone_tags(t *testing.T) {
 	dataSourceName := "data.azurerm_dns_zone.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -51,7 +51,7 @@ func TestAccDataSourceAzureRMDNSZone_tags(t *testing.T) {
 
 func TestAccDataSourceAzureRMDNSZone_withoutResourceGroupName(t *testing.T) {
 	dataSourceName := "data.azurerm_dns_zone.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", rInt)
 

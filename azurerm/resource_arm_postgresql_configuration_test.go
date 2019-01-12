@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMPostgreSQLConfiguration_backslashQuote(t *testing.T) {
 	resourceName := "azurerm_postgresql_configuration.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMPostgreSQLConfiguration_backslashQuote(ri, location)
 	serverOnlyConfig := testAccAzureRMPostgreSQLConfiguration_empty(ri, location)
@@ -46,7 +46,7 @@ func TestAccAzureRMPostgreSQLConfiguration_backslashQuote(t *testing.T) {
 
 func TestAccAzureRMPostgreSQLConfiguration_clientMinMessages(t *testing.T) {
 	resourceName := "azurerm_postgresql_configuration.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMPostgreSQLConfiguration_clientMinMessages(ri, location)
 	serverOnlyConfig := testAccAzureRMPostgreSQLConfiguration_empty(ri, location)
@@ -80,7 +80,7 @@ func TestAccAzureRMPostgreSQLConfiguration_clientMinMessages(t *testing.T) {
 
 func TestAccAzureRMPostgreSQLConfiguration_deadlockTimeout(t *testing.T) {
 	resourceName := "azurerm_postgresql_configuration.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMPostgreSQLConfiguration_deadlockTimeout(ri, location)
 	serverOnlyConfig := testAccAzureRMPostgreSQLConfiguration_empty(ri, location)

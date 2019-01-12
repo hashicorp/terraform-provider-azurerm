@@ -5,15 +5,15 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMRoleDefinition_basic(t *testing.T) {
 	resourceName := "azurerm_role_definition.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMRoleDefinition_basic(uuid.New().String(), ri)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -39,7 +39,7 @@ func TestAccAzureRMRoleDefinition_basic(t *testing.T) {
 
 func TestAccAzureRMRoleDefinition_complete(t *testing.T) {
 	resourceName := "azurerm_role_definition.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMRoleDefinition_complete(uuid.New().String(), ri)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -66,7 +66,7 @@ func TestAccAzureRMRoleDefinition_complete(t *testing.T) {
 func TestAccAzureRMRoleDefinition_update(t *testing.T) {
 	resourceName := "azurerm_role_definition.test"
 	id := uuid.New().String()
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	config := testAccAzureRMRoleDefinition_basic(id, ri)
 	updatedConfig := testAccAzureRMRoleDefinition_updated(id, ri)
@@ -104,7 +104,7 @@ func TestAccAzureRMRoleDefinition_update(t *testing.T) {
 func TestAccAzureRMRoleDefinition_emptyName(t *testing.T) {
 	resourceName := "azurerm_role_definition.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
