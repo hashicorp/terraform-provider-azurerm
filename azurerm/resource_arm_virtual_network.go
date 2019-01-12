@@ -48,6 +48,17 @@ func resourceArmVirtualNetwork() *schema.Resource {
 				},
 			},
 
+			"ddos_protection_plan_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validate.NoEmptyStrings,
+			},
+
+			"enable_ddos_protection": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"dns_servers": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -272,13 +283,27 @@ func expandVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData,
 		}
 	}
 
+	ddosPPlanID := ""
+	if v, ok := d.GetOk("ddos_protection_plan_id"); ok {
+		ddosPPlanID = v.(string)
+	}
+
+	enableDDosProtection := false
+	if v, ok := d.GetOk("enable_ddos_protection"); ok {
+		enableDDosProtection = v.(bool)
+	}
+
 	properties := &network.VirtualNetworkPropertiesFormat{
 		AddressSpace: &network.AddressSpace{
 			AddressPrefixes: utils.ExpandStringArray(d.Get("address_space").([]interface{})),
 		},
+		DdosProtectionPlan: &network.SubResource{
+			ID: &ddosPPlanID,
+		},
 		DhcpOptions: &network.DhcpOptions{
 			DNSServers: utils.ExpandStringArray(d.Get("dns_servers").([]interface{})),
 		},
+		EnableDdosProtection: &enableDDosProtection,
 		Subnets: &subnets,
 	}
 	return properties, nil
