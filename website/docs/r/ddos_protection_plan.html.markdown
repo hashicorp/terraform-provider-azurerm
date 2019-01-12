@@ -11,6 +11,8 @@ description: |-
 
 Manages an Azure DDos Protection Plan.
 
+-> **NOTE** Azure only allow `one` DDos Protection Plan per region.
+
 ## Example Usage
 
 ```hcl
