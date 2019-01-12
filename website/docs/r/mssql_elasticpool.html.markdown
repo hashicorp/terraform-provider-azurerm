@@ -32,6 +32,7 @@ resource "azurerm_mssql_elasticpool" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   server_name         = "${azurerm_sql_server.test.name}"
+  max_size_bytes      = 5368709120
 
   sku {
     name     = "GP_Gen5"
@@ -63,6 +64,8 @@ The following arguments are supported:
 
 * `per_database_settings` - (Required) A `per_database_settings` block as defined below.
 
+* `max_size_bytes` - (Optional) The max data size of the elastic pool in bytes.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -92,8 +95,6 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The MsSQL Elastic Pool ID.
-
-* `max_size_bytes` - The storage limit for the database elastic pool in bytes.
 
 * `zone_redundant` - Whether or not this elastic pool is zone redundant.
 
