@@ -48,15 +48,24 @@ func resourceArmVirtualNetwork() *schema.Resource {
 				},
 			},
 
-			"ddos_protection_plan_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validate.NoEmptyStrings,
-			},
-
-			"enable_ddos_protection": {
-				Type:     schema.TypeBool,
+			"ddos_protection_plan": {
+				Type:     schema.TypeList,
 				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+						"enable": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+					},
+				},
 			},
 
 			"dns_servers": {
@@ -194,6 +203,8 @@ func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) err
 			d.Set("address_space", space.AddressPrefixes)
 		}
 
+		d.Set("ddos_protection_plan", flattenVirtualNetworkDDosProtectionPlan(props))
+
 		subnets := flattenVirtualNetworkSubnets(props.Subnets)
 		if err := d.Set("subnet", subnets); err != nil {
 			return fmt.Errorf("Error setting `subnets`: %+v", err)
@@ -283,31 +294,60 @@ func expandVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData,
 		}
 	}
 
-	ddosPPlanID := ""
-	if v, ok := d.GetOk("ddos_protection_plan_id"); ok {
-		ddosPPlanID = v.(string)
-	}
-
-	enableDDosProtection := false
-	if v, ok := d.GetOk("enable_ddos_protection"); ok {
-		enableDDosProtection = v.(bool)
-	}
-
 	properties := &network.VirtualNetworkPropertiesFormat{
 		AddressSpace: &network.AddressSpace{
 			AddressPrefixes: utils.ExpandStringArray(d.Get("address_space").([]interface{})),
 		},
-		DdosProtectionPlan: &network.SubResource{
-			ID: &ddosPPlanID,
-		},
 		DhcpOptions: &network.DhcpOptions{
 			DNSServers: utils.ExpandStringArray(d.Get("dns_servers").([]interface{})),
 		},
-		EnableDdosProtection: &enableDDosProtection,
-		Subnets:              &subnets,
+		Subnets: &subnets,
 	}
+
+	if v, ok := d.GetOk("ddos_protection_plan"); ok {
+		rawList := v.([]interface{})
+
+		var ddosPPlan map[string]interface{}
+		if len(rawList) > 0 {
+			ddosPPlan = rawList[0].(map[string]interface{})
+		}
+
+		if v, ok := ddosPPlan["id"]; ok {
+			id := v.(string)
+			properties.DdosProtectionPlan = &network.SubResource{
+				ID: &id,
+			}
+		}
+
+		if v, ok := ddosPPlan["enable"]; ok {
+			enable := v.(bool)
+			properties.EnableDdosProtection = &enable
+		}
+	}
+
 	return properties, nil
 }
+
+func flattenVirtualNetworkDDosProtectionPlan(input *network.VirtualNetworkPropertiesFormat) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	ddosPPlan := make(map[string]interface{})
+
+	if plan := input.DdosProtectionPlan; plan != nil {
+		if id := plan.ID; id != nil {
+			ddosPPlan["id"] = *id
+		}
+	}
+
+	if enablePPlan := input.EnableDdosProtection; enablePPlan != nil {
+		ddosPPlan["enable"] = *enablePPlan
+	}
+
+	return []interface{}{ddosPPlan}
+}
+
 func flattenVirtualNetworkSubnets(input *[]network.Subnet) *schema.Set {
 	results := &schema.Set{
 		F: resourceAzureSubnetHash,
