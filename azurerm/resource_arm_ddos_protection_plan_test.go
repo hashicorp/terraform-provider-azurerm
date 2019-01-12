@@ -4,18 +4,18 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMDDosProtectionPlan_basic(t *testing.T) {
 	resourceName := "azurerm_ddos_protection_plan.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDDosProtectionPlanDestroy,
@@ -43,10 +43,10 @@ func TestAccAzureRMDDosProtectionPlan_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_ddos_protection_plan.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDDosProtectionPlanDestroy,
@@ -67,10 +67,10 @@ func TestAccAzureRMDDosProtectionPlan_requiresImport(t *testing.T) {
 
 func TestAccAzureRMDDosProtectionPlan_withTags(t *testing.T) {
 	resourceName := "azurerm_ddos_protection_plan.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDDosProtectionPlanDestroy,
@@ -103,10 +103,10 @@ func TestAccAzureRMDDosProtectionPlan_withTags(t *testing.T) {
 
 func TestAccAzureRMDDosProtectionPlan_disappears(t *testing.T) {
 	resourceName := "azurerm_ddos_protection_plan.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	location := testLocation()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDDosProtectionPlanDestroy,
