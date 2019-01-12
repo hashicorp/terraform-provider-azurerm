@@ -3,6 +3,7 @@
 IMPROVEMENTS:
 
 * `azurerm_data_lake_store_file` - support file uploads greater then 4 megabytes [GH-2633]
+* `azurerm_mssql_elasticpool` - the `max_size_bytes` property can now be set [GH-2346]
 * `azurerm_signalr_service` - export the primary and secondary access keys and connection strings [GH-2655]
 
 ## 1.21.0 (January 11, 2019)
