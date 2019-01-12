@@ -49,7 +49,6 @@ func resourceArmNetworkProfile() *schema.Resource {
 						"ip_configuration": {
 							Type:     schema.TypeList,
 							Required: true,
-							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
@@ -66,6 +65,14 @@ func resourceArmNetworkProfile() *schema.Resource {
 							},
 						},
 					},
+				},
+			},
+
+			"container_network_interface_ids": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 
@@ -177,6 +184,11 @@ func resourceArmNetworkProfileRead(d *schema.ResourceData, meta interface{}) err
 		cniConfigs := flattenArmContainerNetworkInterfaceConfigurations(props.ContainerNetworkInterfaceConfigurations)
 		if err := d.Set("container_network_interface_configuration", cniConfigs); err != nil {
 			return fmt.Errorf("Error setting `container_network_interface_configuration`: %+v", err)
+		}
+
+		cniIDs := flattenArmContainerNetworkInterfaceIDs(props.ContainerNetworkInterfaces)
+		if err := d.Set("container_network_interface_ids", cniIDs); err != nil {
+			return fmt.Errorf("Error setting `container_network_interface_ids`: %+v", err)
 		}
 	}
 
@@ -350,4 +362,20 @@ func flattenArmContainerNetworkInterfaceConfigurations(input *[]network.Containe
 	}
 
 	return retCNIConfigs
+}
+
+func flattenArmContainerNetworkInterfaceIDs(input *[]network.ContainerNetworkInterface) []string {
+	retCNIs := make([]string, 0)
+	if input == nil {
+		return retCNIs
+	}
+
+	// if-continue is used to simplify the deeply nested if-else statement.
+	for _, retCNI := range *input {
+		if retCNI.ID != nil {
+			retCNIs = append(retCNIs, *retCNI.ID)
+		}
+	}
+
+	return retCNIs
 }

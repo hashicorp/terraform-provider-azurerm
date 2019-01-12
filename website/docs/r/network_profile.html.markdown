@@ -76,7 +76,7 @@ A `container_network_interface_configuration` block supports the following:
 
 * `name` - (Required) Specifies the name of the IP Configuration.
 
-* `ip_configuration` - (Required) A `ip_configuration` block as documented below.
+* `ip_configuration` - (Required) One or more `ip_configuration` blocks as documented below.
 
 ---
 A `ip_configuration` block supports the following:
@@ -90,6 +90,8 @@ A `ip_configuration` block supports the following:
 The following attributes are exported:
 
 * `id` - The Resource ID of the Azure Network Profile.
+
+* `container_network_interface_ids` - One or more Resource IDs of Azure Container Network Interfaces.
 
 ## Import
 

@@ -6,14 +6,13 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
-	"github.com/hashicorp/terraform/helper/acctest"
 )
 
 func TestAccAzureRMNetworkProfile_basic(t *testing.T) {
 	resourceName := "azurerm_network_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -25,7 +24,7 @@ func TestAccAzureRMNetworkProfile_basic(t *testing.T) {
 				Config: testAccAzureRMNetworkProfile_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkProfileExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "container_network_interface_configuration.0.name"),
+					resource.TestCheckResourceAttrSet(resourceName, "container_network_interface_ids.#"),
 				),
 			},
 			{
@@ -44,7 +43,7 @@ func TestAccAzureRMNetworkProfile_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_network_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -68,7 +67,7 @@ func TestAccAzureRMNetworkProfile_requiresImport(t *testing.T) {
 
 func TestAccAzureRMNetworkProfile_withTags(t *testing.T) {
 	resourceName := "azurerm_network_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -104,7 +103,7 @@ func TestAccAzureRMNetworkProfile_withTags(t *testing.T) {
 
 func TestAccAzureRMNetworkProfile_disappears(t *testing.T) {
 	resourceName := "azurerm_network_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
