@@ -22,7 +22,7 @@ resource "azurerm_subnet" "subnet" {
 }
 resource "azurerm_network_interface" "nic" {
   name                = "${var.rg_prefix}nic"
-  location            = "${var.location}"
+  location            = "${azurerm_resource_group.rg.location}"
   resource_group_name = "${azurerm_resource_group.rg.name}"
   ip_configuration {
     name                          = "${var.rg_prefix}ipconfig"
