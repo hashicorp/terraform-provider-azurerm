@@ -41,7 +41,7 @@ resource "azurerm_public_ip" "pip" {
 resource "azurerm_virtual_machine" "vm" {
   name                  = "${var.rg_prefix}vm"
   resource_group_name   = "${azurerm_resource_group.rg.name}"
-  location              = "${var.location}"
+  location            = "${azurerm_resource_group.rg.location}"
   network_interface_ids = ["${azurerm_network_interface.nic.id}"]
   vm_size               = "${var.vm_size}"
 
