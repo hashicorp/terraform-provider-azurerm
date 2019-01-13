@@ -27,4 +27,4 @@ further information on the GUI way can be found here:
 
 https://azure.microsoft.com/en-us/blog/working-with-marketplace-images-on-azure-resource-manager/
 
-In my example I used a Radware solution but it could be anything with Azure MArketplace
+In my example I used a Radware solution but it could be anything within Azure MArketplace
