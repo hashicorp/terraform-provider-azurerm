@@ -191,6 +191,8 @@ A `backend_http_settings` block supports the following:
 
 * `request_timeout` - (Required) The request timeout in seconds, which must be between 1 and 86400 seconds.
 
+* `pick_host_name_from_backend_address` - (Optional) Whether host header should be picked from the host name of the backend server.
+
 * `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks.
 
 ---
@@ -271,7 +273,7 @@ A `probe` block support the following:
 
 * `interval` - (Required) The Interval between two consecutive probes in seconds. Possible values range from 1 second to a maximum of 86,400 seconds.
 
-* `name` - (Required) The Name of the Probe.
+* `name` - (Optional) The Name of the Probe. Cannot be set if `pick_host_name_from_backend_http_settings` is set to true.
 
 * `protocol` - (Required) The Protocol used for this Probe. Possible values are `Http` and `Https`.
 
@@ -280,6 +282,8 @@ A `probe` block support the following:
 * `timeout` - (Required) The Timeout used for this Probe, which indicates when a probe becomes unhealthy. Possible values range from 1 second to a maximum of 86,400 seconds.
 
 * `unhealthy_threshold` - (Required) The Unhealthy Threshold for this Probe, which indicates the amount of retries which should be attempted before a node is deemed unhealthy. Possible values are from 1 - 20 seconds.
+
+* `pick_host_name_from_backend_http_settings` - (Optional) Whether the host header should be picked from the backend http settings.
 
 * `match` - (Optional) A `match` block as defined above.
 

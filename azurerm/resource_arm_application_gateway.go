@@ -116,6 +116,11 @@ func resourceArmApplicationGateway() *schema.Resource {
 							}, true),
 						},
 
+						"pick_host_name_from_backend_address": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+
 						"request_timeout": {
 							Type:         schema.TypeInt,
 							Optional:     true,
@@ -499,7 +504,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 
 						"host": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 						},
 
 						"interval": {
@@ -515,6 +520,11 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"unhealthy_threshold": {
 							Type:     schema.TypeInt,
 							Required: true,
+						},
+
+						"pick_host_name_from_backend_http_settings": {
+							Type:     schema.TypeBool,
+							Optional: true,
 						},
 
 						"minimum_servers": {
@@ -1087,15 +1097,17 @@ func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gateway
 		port := int32(v["port"].(int))
 		protocol := v["protocol"].(string)
 		cookieBasedAffinity := v["cookie_based_affinity"].(string)
+		pickHostNameFromBackendAddress := v["pick_host_name_from_backend_address"].(bool)
 		requestTimeout := int32(v["request_timeout"].(int))
 
 		setting := network.ApplicationGatewayBackendHTTPSettings{
 			Name: &name,
 			ApplicationGatewayBackendHTTPSettingsPropertiesFormat: &network.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
-				CookieBasedAffinity: network.ApplicationGatewayCookieBasedAffinity(cookieBasedAffinity),
-				Port:                utils.Int32(port),
-				Protocol:            network.ApplicationGatewayProtocol(protocol),
-				RequestTimeout:      utils.Int32(requestTimeout),
+				CookieBasedAffinity:            network.ApplicationGatewayCookieBasedAffinity(cookieBasedAffinity),
+				PickHostNameFromBackendAddress: utils.Bool(pickHostNameFromBackendAddress),
+				Port:                           utils.Int32(port),
+				Protocol:                       network.ApplicationGatewayProtocol(protocol),
+				RequestTimeout:                 utils.Int32(requestTimeout),
 			},
 		}
 
@@ -1152,6 +1164,9 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 			output["cookie_based_affinity"] = string(props.CookieBasedAffinity)
 			if port := props.Port; port != nil {
 				output["port"] = int(*port)
+			}
+			if pickHostNameFromBackendAddress := props.PickHostNameFromBackendAddress; pickHostNameFromBackendAddress != nil {
+				output["pick_host_name_from_backend_address"] = bool(*pickHostNameFromBackendAddress)
 			}
 			output["protocol"] = string(props.Protocol)
 			if timeout := props.RequestTimeout; timeout != nil {
@@ -1544,17 +1559,19 @@ func expandApplicationGatewayProbes(d *schema.ResourceData) *[]network.Applicati
 		protocol := v["protocol"].(string)
 		timeout := int32(v["timeout"].(int))
 		unhealthyThreshold := int32(v["unhealthy_threshold"].(int))
+		pickHostNameFromBackendHTTPSettings := v["pick_host_name_from_backend_http_settings"].(bool)
 
 		output := network.ApplicationGatewayProbe{
 			Name: utils.String(name),
 			ApplicationGatewayProbePropertiesFormat: &network.ApplicationGatewayProbePropertiesFormat{
-				Host:               utils.String(host),
-				Interval:           utils.Int32(interval),
-				MinServers:         utils.Int32(minServers),
-				Path:               utils.String(probePath),
-				Protocol:           network.ApplicationGatewayProtocol(protocol),
-				Timeout:            utils.Int32(timeout),
-				UnhealthyThreshold: utils.Int32(unhealthyThreshold),
+				Host:                                utils.String(host),
+				Interval:                            utils.Int32(interval),
+				MinServers:                          utils.Int32(minServers),
+				Path:                                utils.String(probePath),
+				Protocol:                            network.ApplicationGatewayProtocol(protocol),
+				Timeout:                             utils.Int32(timeout),
+				UnhealthyThreshold:                  utils.Int32(unhealthyThreshold),
+				PickHostNameFromBackendHTTPSettings: utils.Bool(pickHostNameFromBackendHTTPSettings),
 			},
 		}
 
@@ -1618,6 +1635,10 @@ func flattenApplicationGatewayProbes(input *[]network.ApplicationGatewayProbe) [
 
 			if threshold := props.UnhealthyThreshold; threshold != nil {
 				output["unhealthy_threshold"] = int(*threshold)
+			}
+
+			if pickHostNameFromBackendHTTPSettings := props.PickHostNameFromBackendHTTPSettings; pickHostNameFromBackendHTTPSettings != nil {
+				output["pick_host_name_from_backend_http_settings"] = bool(*pickHostNameFromBackendHTTPSettings)
 			}
 
 			if minServers := props.MinServers; minServers != nil {
