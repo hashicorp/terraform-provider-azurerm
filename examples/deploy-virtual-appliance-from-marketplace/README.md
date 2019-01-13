@@ -8,7 +8,7 @@ A. using PowerShell:
 
 https://docs.microsoft.com/en-us/powershell/module/azurerm.marketplaceordering/set-azurermmarketplaceterms?view=azurermps-6.13.0
 
-a validation example:
+A validation example:
 
 ![getazurermmarketplaceterms](https://user-images.githubusercontent.com/18166141/50479182-ecfdf700-09dd-11e9-9afa-d47f0a77fcb9.JPG)
 
