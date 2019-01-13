@@ -15,7 +15,7 @@ A validation example:
 
 B. using GUI:
 
-search and choose for the solution in Azure Marketplace. scroll down and click on "want to deploy programmatically?"
+Search and choose for the solution in Azure Marketplace. scroll down and click on "want to deploy programmatically?"
 
 ![wanttodeployprogrammatically](https://user-images.githubusercontent.com/18166141/50479221-25053a00-09de-11e9-82cf-c779acaa272a.jpg)
 
