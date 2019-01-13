@@ -1,6 +1,6 @@
 # Deploy a Virtual Appliance VM from Azure Marketplace
 
-In order to enable deployment in a programatic way (such as with Terrafrom), you first need to enable it in Azure. This is a one time action per Subscription per Solution.
+In order to enable deployment in a programatic way (such as with Terraform), you first need to enable it in Azure. This is a one time action per Subscription per Solution.
 
 Two ways to acheive that:
 
@@ -10,18 +10,18 @@ https://docs.microsoft.com/en-us/powershell/module/azurerm.marketplaceordering/s
 
 A validation example:
 
-![getazurermmarketplaceterms](https://user-images.githubusercontent.com/18166141/50479182-ecfdf700-09dd-11e9-9afa-d47f0a77fcb9.JPG)
+https://raw.githubusercontent.com/shayshahak/terraform-provider-azurerm/master/examples/deploy-virtual-appliance-from-marketplace/images/GetAzureRmMarketPlaceTerms.JPG
 
 
 B. using GUI:
 
 Search and choose for the solution in Azure Marketplace. scroll down and click on "want to deploy programmatically?"
 
-![wanttodeployprogrammatically](https://user-images.githubusercontent.com/18166141/50479221-25053a00-09de-11e9-82cf-c779acaa272a.jpg)
+https://github.com/shayshahak/terraform-provider-azurerm/blob/master/examples/deploy-virtual-appliance-from-marketplace/images/wanttodeployprogrammatically.jpg
 
 scroll down and click on "Enable" and then "Save"
 
-![configureprogrammaticdeployment](https://user-images.githubusercontent.com/18166141/50479242-377f7380-09de-11e9-94b3-3e07492533bd.JPG)
+https://github.com/shayshahak/terraform-provider-azurerm/blob/master/examples/deploy-virtual-appliance-from-marketplace/images/configureprogrammaticdeployment.JPG
 
 further information on the GUI way can be found here:
 
