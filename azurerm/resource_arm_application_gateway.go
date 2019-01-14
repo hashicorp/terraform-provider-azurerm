@@ -1166,7 +1166,7 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 				output["port"] = int(*port)
 			}
 			if pickHostNameFromBackendAddress := props.PickHostNameFromBackendAddress; pickHostNameFromBackendAddress != nil {
-				output["pick_host_name_from_backend_address"] = bool(*pickHostNameFromBackendAddress)
+				output["pick_host_name_from_backend_address"] = *pickHostNameFromBackendAddress
 			}
 			output["protocol"] = string(props.Protocol)
 			if timeout := props.RequestTimeout; timeout != nil {
@@ -1638,7 +1638,7 @@ func flattenApplicationGatewayProbes(input *[]network.ApplicationGatewayProbe) [
 			}
 
 			if pickHostNameFromBackendHTTPSettings := props.PickHostNameFromBackendHTTPSettings; pickHostNameFromBackendHTTPSettings != nil {
-				output["pick_host_name_from_backend_http_settings"] = bool(*pickHostNameFromBackendHTTPSettings)
+				output["pick_host_name_from_backend_http_settings"] = *pickHostNameFromBackendHTTPSettings
 			}
 
 			if minServers := props.MinServers; minServers != nil {
