@@ -127,6 +127,21 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		},
 	}
 
+	exists, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(exists.Response) {
+			return fmt.Errorf("Error checking for presence of existing Firewall %q (Resource Group %q): %s", name, resourceGroup, err)
+		}
+	}
+	if exists.ID != nil && *exists.ID != "" {
+		if exists.AzureFirewallPropertiesFormat != nil {
+			props := *exists.AzureFirewallPropertiesFormat
+			parameters.AzureFirewallPropertiesFormat.ApplicationRuleCollections = props.ApplicationRuleCollections
+			parameters.AzureFirewallPropertiesFormat.NetworkRuleCollections = props.NetworkRuleCollections
+			parameters.AzureFirewallPropertiesFormat.NatRuleCollections = props.NatRuleCollections
+		}
+	}
+
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
 	if err != nil {
 		return fmt.Errorf("Error creating/updating Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)

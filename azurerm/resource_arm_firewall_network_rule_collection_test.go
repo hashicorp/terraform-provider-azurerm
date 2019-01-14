@@ -271,6 +271,40 @@ func TestAccAzureRMFirewallNetworkRuleCollection_multipleRules(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMFirewallNetworkRuleCollection_updateFirewallTags(t *testing.T) {
+	resourceName := "azurerm_firewall_network_rule_collection.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMFirewallNetworkRuleCollection_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFirewallNetworkRuleCollectionExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
+					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
+					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
+					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
+				),
+			},
+			{
+				Config: testAccAzureRMFirewallNetworkRuleCollection_updateFirewallTags(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFirewallNetworkRuleCollectionExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "name", "acctestnrc"),
+					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
+					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
+					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMFirewallNetworkRuleCollectionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -656,6 +690,41 @@ resource "azurerm_firewall_network_rule_collection" "test" {
 
     protocols = [
       "TCP",
+    ]
+  }
+}
+`, template)
+}
+
+func testAccAzureRMFirewallNetworkRuleCollection_updateFirewallTags(rInt int, location string) string {
+	template := testAccAzureRMFirewall_withTags(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_firewall_network_rule_collection" "test" {
+  name                = "acctestnrc"
+  azure_firewall_name = "${azurerm_firewall.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  priority            = 100
+  action              = "Allow"
+
+  rule {
+    name = "rule1"
+
+    source_addresses = [
+      "10.0.0.0/16",
+    ]
+
+    destination_ports = [
+      "53",
+    ]
+
+    destination_addresses = [
+      "8.8.8.8",
+    ]
+
+    protocols = [
+      "Any",
     ]
   }
 }
