@@ -66,6 +66,14 @@ The following attributes are exported:
 
 * `server_port` - The publicly accessible port of the SignalR service which is designed for customer server side use.
 
+* `primary_access_key` - The primary access key for the SignalR service.
+
+* `primary_connection_string` - The primary connection string for the SignalR service.
+
+* `secondary_access_key` - The secondary access key for the SignalR service.
+
+* `secondary_connection_string` - The secondary connection string for the SignalR service.
+
 ## Import
 
 SignalR services can be imported using the `resource id`, e.g.
