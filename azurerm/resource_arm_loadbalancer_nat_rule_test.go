@@ -6,14 +6,14 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMLoadBalancerNatRule_basic(t *testing.T) {
 	var lb network.LoadBalancer
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	natRuleName := fmt.Sprintf("NatRule-%d", ri)
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
@@ -48,7 +48,7 @@ func TestAccAzureRMLoadBalancerNatRule_basic(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerNatRule_removal(t *testing.T) {
 	var lb network.LoadBalancer
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	natRuleName := fmt.Sprintf("NatRule-%d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -76,9 +76,9 @@ func TestAccAzureRMLoadBalancerNatRule_removal(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerNatRule_update(t *testing.T) {
 	var lb network.LoadBalancer
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	natRuleName := fmt.Sprintf("NatRule-%d", ri)
-	natRule2Name := fmt.Sprintf("NatRule-%d", acctest.RandInt())
+	natRule2Name := fmt.Sprintf("NatRule-%d", tf.AccRandTimeInt())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -111,7 +111,7 @@ func TestAccAzureRMLoadBalancerNatRule_update(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerNatRule_reapply(t *testing.T) {
 	var lb network.LoadBalancer
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	natRuleName := fmt.Sprintf("NatRule-%d", ri)
 
 	deleteNatRuleState := func(s *terraform.State) error {
@@ -145,7 +145,7 @@ func TestAccAzureRMLoadBalancerNatRule_reapply(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerNatRule_disappears(t *testing.T) {
 	var lb network.LoadBalancer
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	natRuleName := fmt.Sprintf("NatRule-%d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -168,7 +168,7 @@ func TestAccAzureRMLoadBalancerNatRule_disappears(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerNatRule_enableFloatingIP(t *testing.T) {
 	var lb network.LoadBalancer
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	natRuleName := fmt.Sprintf("NatRule-%d", ri)
 	location := testLocation()
 
@@ -190,7 +190,7 @@ func TestAccAzureRMLoadBalancerNatRule_enableFloatingIP(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerNatRule_disableFloatingIP(t *testing.T) {
 	var lb network.LoadBalancer
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	natRuleName := fmt.Sprintf("NatRule-%d", ri)
 	location := testLocation()
 

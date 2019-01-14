@@ -10,13 +10,14 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMStorageTable_basic(t *testing.T) {
 	resourceName := "azurerm_storage_table.test"
 	var table storage.Table
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageTable_basic(ri, rs, testLocation())
 
@@ -43,7 +44,7 @@ func TestAccAzureRMStorageTable_basic(t *testing.T) {
 func TestAccAzureRMStorageTable_disappears(t *testing.T) {
 	var table storage.Table
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageTable_basic(ri, rs, testLocation())
 

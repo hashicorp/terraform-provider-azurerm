@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAzureRMDatabrickWorkspaceName(t *testing.T) {
@@ -69,7 +69,7 @@ func TestAzureRMDatabrickWorkspaceName(t *testing.T) {
 
 func TestAccAzureRMDatabricksWorkspace_basic(t *testing.T) {
 	resourceName := "azurerm_databricks_workspace.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -99,7 +99,7 @@ func TestAccAzureRMDatabricksWorkspace_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_databricks_workspace.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -123,7 +123,7 @@ func TestAccAzureRMDatabricksWorkspace_requiresImport(t *testing.T) {
 
 func TestAccAzureRMDatabricksWorkspace_complete(t *testing.T) {
 	resourceName := "azurerm_databricks_workspace.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -138,8 +138,8 @@ func TestAccAzureRMDatabricksWorkspace_complete(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "managed_resource_group_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_resource_group_name"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
-					resource.TestCheckResourceAttr(resourceName, "tags.pricing", "Standard"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Environment", "Production"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Pricing", "Standard"),
 				),
 			},
 			{
@@ -149,7 +149,7 @@ func TestAccAzureRMDatabricksWorkspace_complete(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "managed_resource_group_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_resource_group_name"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.pricing", "Standard"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Pricing", "Standard"),
 				),
 			},
 			{
@@ -225,7 +225,7 @@ resource "azurerm_databricks_workspace" "test" {
   name                = "acctestdbw-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  sku                 = "Standard"
+  sku                 = "standard"
 }
 `, rInt, location, rInt)
 }
@@ -259,8 +259,8 @@ resource "azurerm_databricks_workspace" "test" {
   managed_resource_group_name = "acctestRG-%d-managed"
 
   tags {
-    environment = "Production"
-    pricing     = "Standard"
+    Environment = "Production"
+    Pricing     = "Standard"
   }
 }
 `, rInt, location, rInt, rInt)
@@ -281,7 +281,7 @@ resource "azurerm_databricks_workspace" "test" {
   managed_resource_group_name = "acctestRG-%d-managed"
 
   tags {
-    pricing = "Standard"
+    Pricing = "Standard"
   }
 }
 `, rInt, location, rInt, rInt)

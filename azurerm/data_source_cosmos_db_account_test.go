@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMCosmosDBAccount_boundedStaleness_complete(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	dataSourceName := "data.azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -31,7 +31,7 @@ func TestAccDataSourceAzureRMCosmosDBAccount_boundedStaleness_complete(t *testin
 }
 
 func TestAccDataSourceAzureRMCosmosDBAccount_geoReplicated_customId(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	dataSourceName := "data.azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -54,7 +54,7 @@ func TestAccDataSourceAzureRMCosmosDBAccount_geoReplicated_customId(t *testing.T
 }
 
 func TestAccDataSourceAzureRMCosmosDBAccount_virtualNetworkFilter(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	dataSourceName := "data.azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -76,7 +76,7 @@ func TestAccDataSourceAzureRMCosmosDBAccount_virtualNetworkFilter(t *testing.T) 
 }
 
 func TestAccDataSourceAzureRMCosmosDBAccount_complete(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	dataSourceName := "data.azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{

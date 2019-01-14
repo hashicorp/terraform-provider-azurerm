@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMNotificationHubNamespace_free(t *testing.T) {
 	dataSourceName := "data.azurerm_notification_hub_namespace.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccDataSourceAzureRMNotificationHubNamespaceFree(rInt, location)
 

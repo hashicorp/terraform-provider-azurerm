@@ -8,11 +8,12 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMAutoScaleSetting_basic(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(6)
 	location := testLocation()
 	config := testAccAzureRMAutoScaleSetting_basic(ri, rs, location)
@@ -45,7 +46,7 @@ func TestAccAzureRMAutoScaleSetting_basic(t *testing.T) {
 
 func TestAccAzureRMAutoScaleSetting_multipleProfiles(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(6)
 	location := testLocation()
 	config := testAccAzureRMAutoScaleSetting_multipleProfiles(ri, rs, location)
@@ -71,7 +72,7 @@ func TestAccAzureRMAutoScaleSetting_multipleProfiles(t *testing.T) {
 
 func TestAccAzureRMAutoScaleSetting_multipleRules(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(6)
 	location := testLocation()
 
@@ -111,7 +112,7 @@ func TestAccAzureRMAutoScaleSetting_multipleRules(t *testing.T) {
 
 func TestAccAzureRMAutoScaleSetting_customEmails(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(6)
 	location := testLocation()
 
@@ -147,7 +148,7 @@ func TestAccAzureRMAutoScaleSetting_customEmails(t *testing.T) {
 
 func TestAccAzureRMAutoScaleSetting_recurrence(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(6)
 	location := testLocation()
 	config := testAccAzureRMAutoScaleSetting_recurrence(ri, rs, location)
@@ -179,7 +180,7 @@ func TestAccAzureRMAutoScaleSetting_recurrence(t *testing.T) {
 
 func TestAccAzureRMAutoScaleSetting_recurrenceUpdate(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(6)
 	location := testLocation()
 
@@ -220,7 +221,7 @@ func TestAccAzureRMAutoScaleSetting_recurrenceUpdate(t *testing.T) {
 
 func TestAccAzureRMAutoScaleSetting_fixedDate(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(6)
 	location := testLocation()
 	config := testAccAzureRMAutoScaleSetting_fixedDate(ri, rs, location)

@@ -6,9 +6,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMContainerService_orchestrationPlatformValidation(t *testing.T) {
@@ -77,7 +77,7 @@ func TestAccAzureRMContainerService_agentProfilePoolCountValidation(t *testing.T
 }
 
 func TestAccAzureRMContainerService_dcosBasic(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMContainerService_dcosBasic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -101,7 +101,7 @@ func TestAccAzureRMContainerService_requiresImport(t *testing.T) {
 		return
 	}
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -124,7 +124,7 @@ func TestAccAzureRMContainerService_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMContainerService_kubernetesBasic(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	config := testAccAzureRMContainerService_kubernetesBasic(ri, clientId, clientSecret, testLocation())
@@ -145,7 +145,7 @@ func TestAccAzureRMContainerService_kubernetesBasic(t *testing.T) {
 }
 
 func TestAccAzureRMContainerService_kubernetesComplete(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	config := testAccAzureRMContainerService_kubernetesComplete(ri, clientId, clientSecret, testLocation())
@@ -166,7 +166,7 @@ func TestAccAzureRMContainerService_kubernetesComplete(t *testing.T) {
 }
 
 func TestAccAzureRMContainerService_swarmBasic(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMContainerService_swarmBasic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{

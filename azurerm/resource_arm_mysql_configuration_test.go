@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMMySQLConfiguration_characterSetServer(t *testing.T) {
 	resourceName := "azurerm_mysql_configuration.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMMySQLConfiguration_characterSetServer(ri, location)
 	serverOnlyConfig := testAccAzureRMMySQLConfiguration_empty(ri, location)
@@ -46,7 +46,7 @@ func TestAccAzureRMMySQLConfiguration_characterSetServer(t *testing.T) {
 
 func TestAccAzureRMMySQLConfiguration_interactiveTimeout(t *testing.T) {
 	resourceName := "azurerm_mysql_configuration.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMMySQLConfiguration_interactiveTimeout(ri, location)
 	serverOnlyConfig := testAccAzureRMMySQLConfiguration_empty(ri, location)
@@ -80,7 +80,7 @@ func TestAccAzureRMMySQLConfiguration_interactiveTimeout(t *testing.T) {
 
 func TestAccAzureRMMySQLConfiguration_logSlowAdminStatements(t *testing.T) {
 	resourceName := "azurerm_mysql_configuration.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMMySQLConfiguration_logSlowAdminStatements(ri, location)
 	serverOnlyConfig := testAccAzureRMMySQLConfiguration_empty(ri, location)

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
 
 // Provider returns a terraform.ResourceProvider.
@@ -74,6 +75,14 @@ func Provider() terraform.ResourceProvider {
 				DefaultFunc: schema.EnvDefaultFunc("ARM_MSI_ENDPOINT", ""),
 			},
 
+			// Managed Tracking GUID for User-agent
+			"partner_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				DefaultFunc:  schema.EnvDefaultFunc("ARM_PARTNER_ID", ""),
+				ValidateFunc: validate.UUIDOrEmpty,
+			},
+
 			// Advanced feature flags
 			"skip_credentials_validation": {
 				Type:        schema.TypeBool,
@@ -113,6 +122,8 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_key_vault_secret":                      dataSourceArmKeyVaultSecret(),
 			"azurerm_key_vault":                             dataSourceArmKeyVault(),
 			"azurerm_kubernetes_cluster":                    dataSourceArmKubernetesCluster(),
+			"azurerm_lb":                                    dataSourceArmLoadBalancer(),
+			"azurerm_lb_backend_address_pool":               dataSourceArmLoadBalancerBackendAddressPool(),
 			"azurerm_log_analytics_workspace":               dataSourceLogAnalyticsWorkspace(),
 			"azurerm_logic_app_workflow":                    dataSourceArmLogicAppWorkflow(),
 			"azurerm_managed_disk":                          dataSourceArmManagedDisk(),
@@ -366,8 +377,10 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			return nil, fmt.Errorf("Error building AzureRM Client: %s", err)
 		}
 
+		partnerId := d.Get("partner_id").(string)
 		skipProviderRegistration := d.Get("skip_provider_registration").(bool)
-		client, err := getArmClient(config, skipProviderRegistration)
+		client, err := getArmClient(config, skipProviderRegistration, partnerId)
+
 		if err != nil {
 			return nil, err
 		}

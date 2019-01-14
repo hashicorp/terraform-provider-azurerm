@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMCdnProfile_basic(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccDataSourceAzureRMCdnProfile_basic(ri, location)
 
@@ -30,7 +30,7 @@ func TestAccDataSourceAzureRMCdnProfile_basic(t *testing.T) {
 
 func TestAccDataSourceAzureRMCdnProfile_withTags(t *testing.T) {
 	resourceName := "data.azurerm_cdn_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccDataSourceAzureRMCdnProfile_withTags(ri, location)
 

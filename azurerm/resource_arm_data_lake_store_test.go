@@ -6,14 +6,14 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMDataLakeStore_basic(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -44,7 +44,7 @@ func TestAccAzureRMDataLakeStore_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_data_lake_store.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -68,7 +68,7 @@ func TestAccAzureRMDataLakeStore_requiresImport(t *testing.T) {
 
 func TestAccAzureRMDataLakeStore_tier(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -93,7 +93,7 @@ func TestAccAzureRMDataLakeStore_tier(t *testing.T) {
 
 func TestAccAzureRMDataLakeStore_encryptionDisabled(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -119,7 +119,7 @@ func TestAccAzureRMDataLakeStore_encryptionDisabled(t *testing.T) {
 
 func TestAccAzureRMDataLakeStore_firewallUpdate(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -165,7 +165,7 @@ func TestAccAzureRMDataLakeStore_firewallUpdate(t *testing.T) {
 
 func TestAccAzureRMDataLakeStore_withTags(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

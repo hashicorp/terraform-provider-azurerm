@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 )
@@ -79,7 +80,7 @@ func testSweepVirtualNetworks(region string) error {
 
 func TestAccAzureRMVirtualNetwork_basic(t *testing.T) {
 	resourceName := "azurerm_virtual_network.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualNetwork_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -106,7 +107,7 @@ func TestAccAzureRMVirtualNetwork_basic(t *testing.T) {
 
 func TestAccAzureRMVirtualNetwork_disappears(t *testing.T) {
 	resourceName := "azurerm_virtual_network.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualNetwork_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -129,7 +130,7 @@ func TestAccAzureRMVirtualNetwork_disappears(t *testing.T) {
 func TestAccAzureRMVirtualNetwork_withTags(t *testing.T) {
 	resourceName := "azurerm_virtual_network.test"
 	location := testLocation()
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	preConfig := testAccAzureRMVirtualNetwork_withTags(ri, location)
 	postConfig := testAccAzureRMVirtualNetwork_withTagsUpdated(ri, location)
 

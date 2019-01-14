@@ -8,9 +8,9 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 // TODO: refactor the test configs
@@ -65,7 +65,7 @@ func testSweepCosmosDBAccount(region string) error {
 
 //consistency
 func TestAccAzureRMCosmosDBAccount_eventualConsistency(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -94,7 +94,7 @@ func TestAccAzureRMCosmosDBAccount_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_cosmosdb_account.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -117,7 +117,7 @@ func TestAccAzureRMCosmosDBAccount_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_session(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -141,7 +141,7 @@ func TestAccAzureRMCosmosDBAccount_session(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_strong(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -165,7 +165,7 @@ func TestAccAzureRMCosmosDBAccount_strong(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_consistentPrefix(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -189,7 +189,7 @@ func TestAccAzureRMCosmosDBAccount_consistentPrefix(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_boundedStaleness(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -213,7 +213,7 @@ func TestAccAzureRMCosmosDBAccount_boundedStaleness(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_boundedStaleness_complete(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -239,7 +239,7 @@ func TestAccAzureRMCosmosDBAccount_boundedStaleness_complete(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_consistency_change(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -266,7 +266,7 @@ func TestAccAzureRMCosmosDBAccount_consistency_change(t *testing.T) {
 
 //DB kinds
 func TestAccAzureRMCosmosDBAccount_mongoDB(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -292,7 +292,7 @@ func TestAccAzureRMCosmosDBAccount_mongoDB(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_gremlin(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -317,7 +317,7 @@ func TestAccAzureRMCosmosDBAccount_gremlin(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_table(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -342,7 +342,7 @@ func TestAccAzureRMCosmosDBAccount_table(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_updatePropertiesAndLocation(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -369,7 +369,7 @@ func TestAccAzureRMCosmosDBAccount_updatePropertiesAndLocation(t *testing.T) {
 
 //replication
 func TestAccAzureRMCosmosDBAccount_geoReplicated_customId(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -393,7 +393,7 @@ func TestAccAzureRMCosmosDBAccount_geoReplicated_customId(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_geoReplicated_add_remove(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 	configBasic := testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.BoundedStaleness), "", "")
 	configReplicated := testAccAzureRMCosmosDBAccount_geoReplicated_customId(ri, testLocation(), testAltLocation())
@@ -429,7 +429,7 @@ func TestAccAzureRMCosmosDBAccount_geoReplicated_add_remove(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_geoReplicated_rename(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -455,7 +455,7 @@ func TestAccAzureRMCosmosDBAccount_geoReplicated_rename(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_virtualNetworkFilter(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -478,7 +478,7 @@ func TestAccAzureRMCosmosDBAccount_virtualNetworkFilter(t *testing.T) {
 
 //basic --> complete (
 func TestAccAzureRMCosmosDBAccount_complete(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -508,7 +508,7 @@ func TestAccAzureRMCosmosDBAccount_complete(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_multiMaster(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{

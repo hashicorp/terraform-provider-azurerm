@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMSearchService_basic(t *testing.T) {
 	resourceName := "azurerm_search_service.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSearchService_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -38,7 +38,7 @@ func TestAccAzureRMSearchService_basic(t *testing.T) {
 
 func TestAccAzureRMSearchService_complete(t *testing.T) {
 	resourceName := "azurerm_search_service.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSearchService_complete(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -130,7 +130,7 @@ resource "azurerm_search_service" "test" {
   name                = "acctestsearchservice%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  sku                 = "Standard"
+  sku                 = "standard"
 
   tags {
     environment = "staging"
@@ -150,7 +150,7 @@ resource "azurerm_search_service" "test" {
   name                = "acctestsearchservice%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  sku                 = "Standard"
+  sku                 = "standard"
   replica_count       = 2
 
   tags {
