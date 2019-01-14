@@ -55,16 +55,16 @@ func resourceArmIotHubConsumerGroupCreate(d *schema.ResourceData, meta interface
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	if _, err := client.CreateEventHubConsumerGroup(ctx, resourceGroup, iotHubName, endpointName, name); err != nil {
-		return err
+		return fmt.Errorf("Error creating Consumer Group %q (Endpoint %q / IoTHub %q / Resource Group %q): %+v", name, endpointName, iotHubName, resourceGroup, err)
 	}
 
 	read, err := client.GetEventHubConsumerGroup(ctx, resourceGroup, iotHubName, endpointName, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving Consumer Group %q (Endpoint %q / IoTHub %q / Resource Group %q): %+v", name, endpointName, iotHubName, resourceGroup, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read IoTHub Consumer Group %q (Resource Group %q) ID", name, resourceGroup)
+		return fmt.Errorf("Cannot read ID for Consumer Group %q (Endpoint %q / IoTHub %q / Resource Group %q): %+v", name, endpointName, iotHubName, resourceGroup, err)
 	}
 
 	d.SetId(*read.ID)
@@ -91,7 +91,8 @@ func resourceArmIotHubConsumerGroupRead(d *schema.ResourceData, meta interface{}
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on IoTHub Consumer Group %s: %+v", name, err)
+
+		return fmt.Errorf("Error making read request for Consumer Group %q (Endpoint %q / IoTHub %q / Resource Group %q): %+v", name, endpointName, iotHubName, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -119,7 +120,7 @@ func resourceArmIotHubConsumerGroupDelete(d *schema.ResourceData, meta interface
 
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error issuing delete request for IoTHub Consumer Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("Error deleting Consumer Group %q (Endpoint %q / IoTHub %q / Resource Group %q): %+v", name, endpointName, iotHubName, resourceGroup, err)
 		}
 	}
 
