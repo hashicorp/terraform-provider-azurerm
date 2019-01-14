@@ -203,7 +203,9 @@ func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) err
 			d.Set("address_space", space.AddressPrefixes)
 		}
 
-		d.Set("ddos_protection_plan", flattenVirtualNetworkDDosProtectionPlan(props))
+		if err := d.Set("ddos_protection_plan", flattenVirtualNetworkDDosProtectionPlan(props)); err != nil {
+			return fmt.Errorf("Error setting `ddos_protection_plan`: %+v", err)
+		}
 
 		subnets := flattenVirtualNetworkSubnets(props.Subnets)
 		if err := d.Set("subnet", subnets); err != nil {
