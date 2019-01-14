@@ -711,6 +711,17 @@ func resourceArmApplicationGateway() *schema.Resource {
 								"3.0",
 							}, false),
 						},
+						"file_uploadlimit": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+								v := val.(int)
+								if v < 1 || v > 500 {
+									errs = append(errs, fmt.Errorf("%q must be between 1 and 500 inclusive, got: %d", key, v))
+								}
+								return
+							},
+						},
 					},
 				},
 			},
@@ -2050,12 +2061,14 @@ func expandApplicationGatewayWafConfig(d *schema.ResourceData) *network.Applicat
 	mode := v["firewall_mode"].(string)
 	ruleSetType := v["rule_set_type"].(string)
 	ruleSetVersion := v["rule_set_version"].(string)
+	fileUploadLimitInMb := v["file_uploadlimit"].(int)
 
 	return &network.ApplicationGatewayWebApplicationFirewallConfiguration{
-		Enabled:        utils.Bool(enabled),
-		FirewallMode:   network.ApplicationGatewayFirewallMode(mode),
-		RuleSetType:    utils.String(ruleSetType),
-		RuleSetVersion: utils.String(ruleSetVersion),
+		Enabled:             utils.Bool(enabled),
+		FirewallMode:        network.ApplicationGatewayFirewallMode(mode),
+		RuleSetType:         utils.String(ruleSetType),
+		RuleSetVersion:      utils.String(ruleSetVersion),
+		FileUploadLimitInMb: utils.Int32(int32(fileUploadLimitInMb)),
 	}
 }
 
@@ -2079,6 +2092,10 @@ func flattenApplicationGatewayWafConfig(input *network.ApplicationGatewayWebAppl
 
 	if input.RuleSetVersion != nil {
 		output["rule_set_version"] = *input.RuleSetVersion
+	}
+
+	if input.FileUploadLimitInMb != nil {
+		output["file_uploadlimit"] = *input.FileUploadLimitInMb
 	}
 
 	results = append(results, output)
