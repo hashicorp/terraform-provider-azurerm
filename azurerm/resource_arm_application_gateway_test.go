@@ -224,8 +224,8 @@ func TestAccAzureRMApplicationGateway_probes(t *testing.T) {
 
 func TestAccAzureRMApplicationGateway_probesPickHostNameFromBackendHTTPSettings(t *testing.T) {
 	resourceName := "azurerm_application_gateway.test"
-	ri := acctest.RandInt()
-
+	ri := tf.AccRandTimeInt()
+	
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -249,7 +249,7 @@ func TestAccAzureRMApplicationGateway_probesPickHostNameFromBackendHTTPSettings(
 
 func TestAccAzureRMApplicationGateway_settingsPickHostNameFromBackendAddress(t *testing.T) {
 	resourceName := "azurerm_application_gateway.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
