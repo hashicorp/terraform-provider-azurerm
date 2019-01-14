@@ -14,6 +14,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * `azurerm_firewall` - ensuring rules aren't removed during an update [GH-2663]
+* service bus subscription name's can now start with a digit [GH-2672]
 
 ## 1.21.0 (January 11, 2019)
 
