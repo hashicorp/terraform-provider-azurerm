@@ -1,5 +1,9 @@
 ## 2.0.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:**  `azurerm_ddos_protection_plan` [GH-2654]
+
 IMPROVEMENTS:
 
 * `azurerm_data_lake_store_file` - support file uploads greater then 4 megabytes [GH-2633]
