@@ -105,6 +105,33 @@ func TestAccAzureRMVirtualNetwork_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualNetwork_ddosProtectionPlan(t *testing.T) {
+	resourceName := "azurerm_virtual_network.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMVirtualNetwork_ddosProtectionPlan(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualNetworkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "ddos_protection_plan.0.enable", "true"),
+					resource.TestCheckResourceAttrSet(resourceName, "ddos_protection_plan.0.id"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMVirtualNetwork_disappears(t *testing.T) {
 	resourceName := "azurerm_virtual_network.test"
 	ri := tf.AccRandTimeInt()
@@ -291,6 +318,38 @@ resource "azurerm_virtual_network" "test" {
   }
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMVirtualNetwork_ddosProtectionPlan(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_ddos_protection_plan" "test" {
+  name                = "acctestddospplan-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  ddos_protection_plan {
+    id     = "${azurerm_ddos_protection_plan.test.id}"
+    enable = true
+  }
+
+  subnet {
+    name           = "subnet1"
+    address_prefix = "10.0.1.0/24"
+  }
+}
+`, rInt, location, rInt, rInt)
 }
 
 func testAccAzureRMVirtualNetwork_withTags(rInt int, location string) string {
