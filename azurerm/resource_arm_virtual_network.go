@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"log"
 	"net/http"
 
@@ -56,8 +57,8 @@ func resourceArmVirtualNetwork() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"id": {
 							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 						"enable": {
 							Type:     schema.TypeBool,
