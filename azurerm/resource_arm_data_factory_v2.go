@@ -33,6 +33,10 @@ func resourceArmDataFactoryV2() *schema.Resource {
 				),
 			},
 
+			"location": locationSchema(),
+
+			"resource_group_name": resourceGroupNameSchema(),
+
 			"identity": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -136,10 +140,6 @@ func resourceArmDataFactoryV2() *schema.Resource {
 				},
 				ConflictsWith: []string{"github_configuration"},
 			},
-
-			"location": locationSchema(),
-
-			"resource_group_name": resourceGroupNameSchema(),
 
 			"tags": tagsSchema(),
 		},
