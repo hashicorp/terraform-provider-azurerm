@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"strings"
 
+	"context"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/Azure/azure-sdk-for-go/storage"
@@ -14,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"golang.org/x/net/context"
 )
 
 var virtualMachineResourceName = "azurerm_virtual_machine"
