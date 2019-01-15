@@ -119,6 +119,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"pick_host_name_from_backend_address": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 
 						"request_timeout": {
@@ -525,6 +526,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"pick_host_name_from_backend_http_settings": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 
 						"minimum_servers": {
