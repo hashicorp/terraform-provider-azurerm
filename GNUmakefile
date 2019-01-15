@@ -46,7 +46,7 @@ lint:
 
 tools:
 	@echo "==> installing required tooling..."
-	go get -u github.com/alecthomas/gometalinter
+	GO111MODULE=off go get -u github.com/alecthomas/gometalinter
 	gometalinter --install
 
 
