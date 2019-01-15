@@ -17,7 +17,7 @@ func TestAccAzureRMDataFactoryV2_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMDataFactoryV2_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryV2Destroy,
@@ -28,6 +28,11 @@ func TestAccAzureRMDataFactoryV2_basic(t *testing.T) {
 					testCheckAzureRMDataFactoryV2Exists("azurerm_data_factory_v2.test"),
 				),
 			},
+			{
+				ResourceName:      "azurerm_data_factory_v2.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -36,7 +41,7 @@ func TestAccAzureRMDataFactoryV2_tags(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMDataFactoryV2_tags(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryV2Destroy,
@@ -53,33 +58,12 @@ func TestAccAzureRMDataFactoryV2_tags(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDataFactoryV2_importWithTags(t *testing.T) {
-	ri := acctest.RandInt()
-	config := testAccAzureRMDataFactoryV2_tags(ri, testLocation())
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryV2Destroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-			},
-			{
-				ResourceName:      "azurerm_data_factory_v2.test",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
 func TestAccAzureRMDataFactoryV2_tagsUpdated(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMDataFactoryV2_tags(ri, testLocation())
 	updatedConfig := testAccAzureRMDataFactoryV2_tagsUpdated(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryV2Destroy,
@@ -110,7 +94,7 @@ func TestAccAzureRMDataFactoryV2_identity(t *testing.T) {
 	config := testAccAzureRMDataFactoryV2_identity(ri, testLocation())
 	uuidMatch := regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryV2Destroy,
@@ -133,7 +117,7 @@ func TestAccAzureRMDataFactoryV2_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMDataFactoryV2_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryV2Destroy,
