@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -66,24 +67,29 @@ func resourceArmDataFactoryV2() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"account_name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"collaboration_branch": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"host_name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"repository_name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"root_folder": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
@@ -97,28 +103,34 @@ func resourceArmDataFactoryV2() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"account_name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"collaboration_branch": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"project_name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"repository_name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"root_folder": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"tenant_id": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
@@ -155,8 +167,7 @@ func resourceArmDataFactoryV2CreateOrUpdate(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, name, dataFactory, "")
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, dataFactory, ""); err != nil {
 		return err
 	}
 
@@ -174,8 +185,7 @@ func resourceArmDataFactoryV2CreateOrUpdate(d *schema.ResourceData, meta interfa
 			FactoryResourceID: resp.ID,
 			RepoConfiguration: repo,
 		}
-		_, err = client.ConfigureFactoryRepo(ctx, location, repoUpdate)
-		if err != nil {
+		if _, err = client.ConfigureFactoryRepo(ctx, location, repoUpdate); err != nil {
 			return err
 		}
 	}
@@ -232,9 +242,7 @@ func resourceArmDataFactoryV2Read(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error setting Data Factory %q `identity` (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if tags := resp.Tags; tags != nil {
-		flattenAndSetTags(d, tags)
-	}
+	flattenAndSetTags(d, resp.Tags)
 
 	return nil
 }
