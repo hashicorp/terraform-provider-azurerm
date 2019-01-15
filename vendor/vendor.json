@@ -65,6 +65,14 @@
 			"versionExact": "v24.0.0"
 		},
 		{
+			"checksumSHA1": "SY4xAngy9GgbJE/J1lA25inz4zI=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/consumption/mgmt/2018-10-01/consumption",
+			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
+			"revisionTime": "2018-12-19T17:12:57Z",
+			"version": "v24.0.0",
+			"versionExact": "v24.0.0"
+		},
+		{
 			"checksumSHA1": "TxxMpNrjQkLSUtgB3dSvHrRfcx4=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance",
 			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
@@ -1529,6 +1537,12 @@
 			"path": "github.com/satori/uuid",
 			"revision": "b061729afc07e77a8aa4fad0a2fd840958f1942a",
 			"revisionTime": "2016-09-27T10:08:44Z"
+		},
+		{
+			"checksumSHA1": "dhcoAs6YFyvXiG55mx5WDxg+/4g=",
+			"path": "github.com/shopspring/decimal",
+			"revision": "cd690d0c9e2447b1ef2a129a6b7b49077da89b8e",
+			"revisionTime": "2018-07-09T20:31:17Z"
 		},
 		{
 			"checksumSHA1": "qgMa75aMGbkFY0jIqqqgVnCUoNA=",
