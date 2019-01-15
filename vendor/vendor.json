@@ -113,6 +113,7 @@
 			"versionExact": "v24.0.0"
 		},
 		{
+			"checksumSHA1": "aVqVZg1Xg+rkbSMKkDmuI7KXY/Y=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account",
 			"revision": "1951233eb944a49aa5f7278cba8e3e32a8c958af",
 			"revisionTime": "2018-12-19T17:12:57Z",
