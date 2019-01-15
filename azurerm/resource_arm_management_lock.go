@@ -72,8 +72,7 @@ func resourceArmManagementLockCreateUpdate(d *schema.ResourceData, meta interfac
 		},
 	}
 
-	_, err := client.CreateOrUpdateByScope(ctx, scope, name, lock)
-	if err != nil {
+	if _, err := client.CreateOrUpdateByScope(ctx, scope, name, lock); err != nil {
 		return err
 	}
 
@@ -160,16 +159,16 @@ func parseAzureRMLockId(id string) (*AzureManagementLockId, error) {
 	return &lockId, nil
 }
 
-func validateArmManagementLockName(v interface{}, k string) (ws []string, es []error) {
+func validateArmManagementLockName(v interface{}, k string) (warnings []string, errors []error) {
 	input := v.(string)
 
 	if !regexp.MustCompile(`[A-Za-z0-9-_]`).MatchString(input) {
-		es = append(es, fmt.Errorf("%s can only consist of alphanumeric characters, dashes and underscores", k))
+		errors = append(errors, fmt.Errorf("%s can only consist of alphanumeric characters, dashes and underscores", k))
 	}
 
 	if len(input) >= 260 {
-		es = append(es, fmt.Errorf("%s can only be a maximum of 260 characters", k))
+		errors = append(errors, fmt.Errorf("%s can only be a maximum of 260 characters", k))
 	}
 
-	return
+	return warnings, errors
 }

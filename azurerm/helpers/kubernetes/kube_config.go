@@ -3,7 +3,7 @@ package kubernetes
 import (
 	"fmt"
 
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 )
 
 type clusterItem struct {
@@ -27,6 +27,26 @@ type user struct {
 	ClientKeyData        string `yaml:"client-key-data"`
 }
 
+type userItemAAD struct {
+	Name string  `yaml:"name"`
+	User userAAD `yaml:"user"`
+}
+
+type userAAD struct {
+	AuthProvider authProvider `yaml:"auth-provider"`
+}
+
+type authProvider struct {
+	Name   string        `yaml:"name"`
+	Config configAzureAD `yaml:"config"`
+}
+
+type configAzureAD struct {
+	APIServerID string `yaml:"apiserver-id,omitempty"`
+	ClientID    string `yaml:"client-id,omitempty"`
+	TenantID    string `yaml:"tenant-id,omitempty"`
+}
+
 type contextItem struct {
 	Name    string  `yaml:"name"`
 	Context context `yaml:"context"`
@@ -38,14 +58,23 @@ type context struct {
 	Namespace string `yaml:"namespace,omitempty"`
 }
 
-type KubeConfig struct {
+type KubeConfigBase struct {
 	APIVersion     string                 `yaml:"apiVersion"`
 	Clusters       []clusterItem          `yaml:"clusters"`
-	Users          []userItem             `yaml:"users"`
 	Contexts       []contextItem          `yaml:"contexts,omitempty"`
 	CurrentContext string                 `yaml:"current-context,omitempty"`
 	Kind           string                 `yaml:"kind,omitempty"`
 	Preferences    map[string]interface{} `yaml:"preferences,omitempty"`
+}
+
+type KubeConfig struct {
+	KubeConfigBase `yaml:",inline"`
+	Users          []userItem `yaml:"users"`
+}
+
+type KubeConfigAAD struct {
+	KubeConfigBase `yaml:",inline"`
+	Users          []userItemAAD `yaml:"users"`
 }
 
 func ParseKubeConfig(config string) (*KubeConfig, error) {
@@ -54,20 +83,41 @@ func ParseKubeConfig(config string) (*KubeConfig, error) {
 	}
 
 	var kubeConfig KubeConfig
-	err := yaml.Unmarshal([]byte(config), &kubeConfig)
-	if err != nil {
+
+	if err := yaml.Unmarshal([]byte(config), &kubeConfig); err != nil {
 		return nil, fmt.Errorf("Failed to unmarshal YAML config with error %+v", err)
 	}
 	if len(kubeConfig.Clusters) <= 0 || len(kubeConfig.Users) <= 0 {
 		return nil, fmt.Errorf("Config %+v contains no valid clusters or users", kubeConfig)
 	}
-	user := kubeConfig.Users[0].User
-	if user.Token == "" && (user.ClientCertificteData == "" || user.ClientKeyData == "") {
-		return nil, fmt.Errorf("Config requires either token or certificate auth for user %+v", user)
+	u := kubeConfig.Users[0].User
+	if u.Token == "" && (u.ClientCertificteData == "" || u.ClientKeyData == "") {
+		return nil, fmt.Errorf("Config requires either token or certificate auth for user %+v", u)
 	}
-	cluster := kubeConfig.Clusters[0].Cluster
-	if cluster.Server == "" {
-		return nil, fmt.Errorf("Config has invalid or non existent server for cluster %+v", cluster)
+	c := kubeConfig.Clusters[0].Cluster
+	if c.Server == "" {
+		return nil, fmt.Errorf("Config has invalid or non existent server for cluster %+v", c)
+	}
+
+	return &kubeConfig, nil
+}
+
+func ParseKubeConfigAAD(config string) (*KubeConfigAAD, error) {
+	if config == "" {
+		return nil, fmt.Errorf("Cannot parse empty config")
+	}
+
+	var kubeConfig KubeConfigAAD
+	if err := yaml.Unmarshal([]byte(config), &kubeConfig); err != nil {
+		return nil, fmt.Errorf("Failed to unmarshal YAML config with error %+v", err)
+	}
+	if len(kubeConfig.Clusters) <= 0 || len(kubeConfig.Users) <= 0 {
+		return nil, fmt.Errorf("Config %+v contains no valid clusters or users", kubeConfig)
+	}
+
+	c := kubeConfig.Clusters[0].Cluster
+	if c.Server == "" {
+		return nil, fmt.Errorf("Config has invalid or non existent server for cluster %+v", c)
 	}
 
 	return &kubeConfig, nil

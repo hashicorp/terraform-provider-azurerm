@@ -120,8 +120,7 @@ func resourceArmSharedImageVersionCreateUpdate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error creating Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", imageVersion, imageName, galleryName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for the creation of Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", imageVersion, imageName, galleryName, resourceGroup, err)
 	}
 
@@ -176,7 +175,7 @@ func resourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{})
 
 			flattenedRegions := flattenSharedImageVersionTargetRegions(profile.TargetRegions)
 			if err := d.Set("target_region", flattenedRegions); err != nil {
-				return fmt.Errorf("Error flattening `target_region`: %+v", err)
+				return fmt.Errorf("Error setting `target_region`: %+v", err)
 			}
 
 			if source := profile.Source; source != nil {
@@ -215,8 +214,7 @@ func resourceArmSharedImageVersionDelete(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error deleting Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", imageVersion, imageName, galleryName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
 			return fmt.Errorf("Error deleting Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", imageVersion, imageName, galleryName, resourceGroup, err)
 		}
@@ -249,7 +247,7 @@ func flattenSharedImageVersionTargetRegions(input *[]compute.TargetRegion) []int
 
 	if input != nil {
 		for _, v := range *input {
-			output := make(map[string]interface{}, 0)
+			output := make(map[string]interface{})
 
 			if v.Name != nil {
 				output["name"] = azureRMNormalizeLocation(*v.Name)

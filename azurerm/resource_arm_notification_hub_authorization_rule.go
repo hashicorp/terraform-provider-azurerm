@@ -91,8 +91,7 @@ func resourceArmNotificationHubAuthorizationRuleCreateUpdate(d *schema.ResourceD
 		},
 	}
 
-	_, err := client.CreateOrUpdateAuthorizationRule(ctx, resourceGroup, namespaceName, notificationHubName, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdateAuthorizationRule(ctx, resourceGroup, namespaceName, notificationHubName, name, parameters); err != nil {
 		return fmt.Errorf("Error creating Authorization Rule %q (Notification Hub %q / Namespace %q / Resource Group %q): %+v", name, notificationHubName, namespaceName, resourceGroup, err)
 	}
 
@@ -216,5 +215,5 @@ func flattenNotificationHubAuthorizationRuleRights(input *[]notificationhubs.Acc
 		}
 	}
 
-	return
+	return manage, send, listen
 }

@@ -6,16 +6,17 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMDnsPtrRecord_basic(t *testing.T) {
-	ri := acctest.RandInt()
+	resourceName := "azurerm_dns_ptr_record.test"
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDnsPtrRecord_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsPtrRecordDestroy,
@@ -23,20 +24,54 @@ func TestAccAzureRMDnsPtrRecord_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsPtrRecordExists("azurerm_dns_ptr_record.test"),
+					testCheckAzureRMDnsPtrRecordExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMDnsPtrRecord_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_dns_ptr_record.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDnsPtrRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDnsPtrRecord_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDnsPtrRecordExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMDnsPtrRecord_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_dns_ptr_record"),
 			},
 		},
 	})
 }
 
 func TestAccAzureRMDnsPtrRecord_updateRecords(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMDnsPtrRecord_basic(ri, location)
 	postConfig := testAccAzureRMDnsPtrRecord_updateRecords(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsPtrRecordDestroy,
@@ -61,12 +96,13 @@ func TestAccAzureRMDnsPtrRecord_updateRecords(t *testing.T) {
 }
 
 func TestAccAzureRMDnsPtrRecord_withTags(t *testing.T) {
-	ri := acctest.RandInt()
+	resourceName := "azurerm_dns_ptr_record.test"
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMDnsPtrRecord_withTags(ri, location)
 	postConfig := testAccAzureRMDnsPtrRecord_withTagsUpdate(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsPtrRecordDestroy,
@@ -74,29 +110,33 @@ func TestAccAzureRMDnsPtrRecord_withTags(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsPtrRecordExists("azurerm_dns_ptr_record.test"),
-					resource.TestCheckResourceAttr("azurerm_dns_ptr_record.test", "tags.%", "2"),
+					testCheckAzureRMDnsPtrRecordExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 				),
 			},
 
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsPtrRecordExists("azurerm_dns_ptr_record.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_dns_ptr_record.test", "tags.%", "1"),
+					testCheckAzureRMDnsPtrRecordExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
-func testCheckAzureRMDnsPtrRecordExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDnsPtrRecordExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		ptrName := rs.Primary.Attributes["name"]
@@ -170,6 +210,21 @@ resource "azurerm_dns_ptr_record" "test" {
   records             = ["hashicorp.com", "microsoft.com"]
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMDnsPtrRecord_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMDnsPtrRecord_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_dns_ptr_record" "import" {
+  name                = "${azurerm_dns_ptr_record.test.name}"
+  resource_group_name = "${azurerm_dns_ptr_record.test.resource_group_name}"
+  zone_name           = "${azurerm_dns_ptr_record.test.zone_name}"
+  ttl                 = 300
+  records             = ["hashicorp.com", "microsoft.com"]
+}
+`, template)
 }
 
 func testAccAzureRMDnsPtrRecord_updateRecords(rInt int, location string) string {

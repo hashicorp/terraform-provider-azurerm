@@ -4,17 +4,17 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceArmVirtualNetworkInterface_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_network_interface.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	name := fmt.Sprintf("acctest-nic-%d", ri)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -48,10 +48,10 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
-resource "azurerm_network_security_group" "test" { 
-  name                 = "acctest-nsg-%d"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+resource "azurerm_network_security_group" "test" {
+  name                = "acctest-nsg-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
@@ -70,14 +70,13 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 
   tags {
     environment = "staging"
   }
 }
-
 `, rInt, location, rInt, rInt, rInt)
 }
 
@@ -95,10 +94,10 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
-resource "azurerm_network_security_group" "test" { 
-  name                 = "acctest-nsg-%d"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+resource "azurerm_network_security_group" "test" {
+  name                = "acctest-nsg-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
@@ -117,7 +116,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 
   tags {
@@ -126,10 +125,8 @@ resource "azurerm_network_interface" "test" {
 }
 
 data "azurerm_network_interface" "test" {
-  name = "acctest-nic-%d"
+  name                = "acctest-nic-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
-
-
 `, rInt, location, rInt, rInt, rInt, rInt)
 }

@@ -5,17 +5,17 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMRoleDefinition_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_role_definition.test"
 
 	id := uuid.New().String()
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -49,11 +49,12 @@ resource "azurerm_role_definition" "test" {
   description        = "Created by the Data Source Role Definition Acceptance Test"
 
   permissions {
-    actions     = ["*"]
+    actions = ["*"]
+
     not_actions = [
-    	"Microsoft.Authorization/*/Delete",
-    	"Microsoft.Authorization/*/Write",
-    	"Microsoft.Authorization/elevateAccess/Action"
+      "Microsoft.Authorization/*/Delete",
+      "Microsoft.Authorization/*/Write",
+      "Microsoft.Authorization/elevateAccess/Action",
     ]
   }
 

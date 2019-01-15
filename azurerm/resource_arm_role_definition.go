@@ -126,8 +126,7 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 		},
 	}
 
-	_, err := client.CreateOrUpdate(ctx, scope, roleDefinitionId, properties)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, scope, roleDefinitionId, properties); err != nil {
 		return err
 	}
 
@@ -255,13 +254,11 @@ func flattenRoleDefinitionPermissions(input *[]authorization.Permission) []inter
 	}
 
 	for _, permission := range *input {
-		output := make(map[string]interface{}, 0)
+		output := make(map[string]interface{})
 
 		actions := make([]string, 0)
-		if permission.Actions != nil {
-			for _, action := range *permission.Actions {
-				actions = append(actions, action)
-			}
+		if s := permission.Actions; s != nil {
+			actions = *s
 		}
 		output["actions"] = actions
 
@@ -274,10 +271,8 @@ func flattenRoleDefinitionPermissions(input *[]authorization.Permission) []inter
 		output["data_actions"] = schema.NewSet(schema.HashString, dataActions)
 
 		notActions := make([]string, 0)
-		if permission.NotActions != nil {
-			for _, action := range *permission.NotActions {
-				notActions = append(notActions, action)
-			}
+		if s := permission.NotActions; s != nil {
+			notActions = *s
 		}
 		output["not_actions"] = notActions
 

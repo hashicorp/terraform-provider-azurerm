@@ -4,17 +4,17 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	response "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMNetworkSecurityGroup_basic(t *testing.T) {
 	resourceName := "azurerm_network_security_group.test"
-	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	rInt := tf.AccRandTimeInt()
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
@@ -25,14 +25,19 @@ func TestAccAzureRMNetworkSecurityGroup_basic(t *testing.T) {
 					testCheckAzureRMNetworkSecurityGroupExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
 func TestAccAzureRMNetworkSecurityGroup_singleRule(t *testing.T) {
 	resourceName := "azurerm_network_security_group.test"
-	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	rInt := tf.AccRandTimeInt()
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
@@ -43,15 +48,20 @@ func TestAccAzureRMNetworkSecurityGroup_singleRule(t *testing.T) {
 					testCheckAzureRMNetworkSecurityGroupExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
 func TestAccAzureRMNetworkSecurityGroup_update(t *testing.T) {
 	resourceName := "azurerm_network_security_group.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
@@ -74,8 +84,8 @@ func TestAccAzureRMNetworkSecurityGroup_update(t *testing.T) {
 
 func TestAccAzureRMNetworkSecurityGroup_disappears(t *testing.T) {
 	resourceName := "azurerm_network_security_group.test"
-	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	rInt := tf.AccRandTimeInt()
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
@@ -94,8 +104,8 @@ func TestAccAzureRMNetworkSecurityGroup_disappears(t *testing.T) {
 
 func TestAccAzureRMNetworkSecurityGroup_withTags(t *testing.T) {
 	resourceName := "azurerm_network_security_group.test"
-	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	rInt := tf.AccRandTimeInt()
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
@@ -109,7 +119,11 @@ func TestAccAzureRMNetworkSecurityGroup_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.cost_center", "MSFT"),
 				),
 			},
-
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 			{
 				Config: testAccAzureRMNetworkSecurityGroup_withTagsUpdate(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
@@ -118,14 +132,19 @@ func TestAccAzureRMNetworkSecurityGroup_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "staging"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
 func TestAccAzureRMNetworkSecurityGroup_addingExtraRules(t *testing.T) {
 	resourceName := "azurerm_network_security_group.test"
-	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	rInt := tf.AccRandTimeInt()
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
@@ -151,8 +170,8 @@ func TestAccAzureRMNetworkSecurityGroup_addingExtraRules(t *testing.T) {
 
 func TestAccAzureRMNetworkSecurityGroup_augmented(t *testing.T) {
 	resourceName := "azurerm_network_security_group.test"
-	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	rInt := tf.AccRandTimeInt()
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
@@ -164,14 +183,19 @@ func TestAccAzureRMNetworkSecurityGroup_augmented(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "security_rule.#", "1"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
 func TestAccAzureRMNetworkSecurityGroup_applicationSecurityGroup(t *testing.T) {
 	resourceName := "azurerm_network_security_group.test"
-	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	rInt := tf.AccRandTimeInt()
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
@@ -183,16 +207,21 @@ func TestAccAzureRMNetworkSecurityGroup_applicationSecurityGroup(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "security_rule.#", "1"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
-func testCheckAzureRMNetworkSecurityGroupExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMNetworkSecurityGroupExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %q", name)
+			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
 		sgName := rs.Primary.Attributes["name"]
@@ -206,7 +235,7 @@ func testCheckAzureRMNetworkSecurityGroupExists(name string) resource.TestCheckF
 		resp, err := client.Get(ctx, resourceGroup, sgName, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Network Security Group %q (resource group: %q) does not exist", name, resourceGroup)
+				return fmt.Errorf("Bad: Network Security Group %q (resource group: %q) does not exist", sgName, resourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on secGroupClient: %+v", err)
@@ -216,12 +245,12 @@ func testCheckAzureRMNetworkSecurityGroupExists(name string) resource.TestCheckF
 	}
 }
 
-func testCheckAzureRMNetworkSecurityGroupDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMNetworkSecurityGroupDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		sgName := rs.Primary.Attributes["name"]
@@ -309,7 +338,6 @@ resource "azurerm_network_security_group" "test" {
     destination_address_prefix = "*"
   }
 }
-
 `, rInt, location)
 }
 
@@ -412,7 +440,6 @@ resource "azurerm_network_security_group" "test" {
     environment = "staging"
   }
 }
-
 `, rInt, location)
 }
 
@@ -434,10 +461,10 @@ resource "azurerm_network_security_group" "test" {
     direction                    = "Inbound"
     access                       = "Allow"
     protocol                     = "Tcp"
-    source_port_ranges           = [ "10000-40000" ]
-    destination_port_ranges      = [ "80", "443", "8080", "8190" ]
-    source_address_prefixes      = [ "10.0.0.0/8", "192.168.0.0/16" ]
-    destination_address_prefixes = [ "172.16.0.0/20", "8.8.8.8" ]
+    source_port_ranges           = ["10000-40000"]
+    destination_port_ranges      = ["80", "443", "8080", "8190"]
+    source_address_prefixes      = ["10.0.0.0/8", "192.168.0.0/16"]
+    destination_address_prefixes = ["172.16.0.0/20", "8.8.8.8"]
   }
 }
 `, rInt, location)
@@ -475,8 +502,8 @@ resource "azurerm_network_security_group" "test" {
     protocol                                   = "Tcp"
     source_application_security_group_ids      = ["${azurerm_application_security_group.first.id}"]
     destination_application_security_group_ids = ["${azurerm_application_security_group.second.id}"]
-    source_port_ranges                         = [ "10000-40000" ]
-    destination_port_ranges                    = [ "80", "443", "8080", "8190" ]
+    source_port_ranges                         = ["10000-40000"]
+    destination_port_ranges                    = ["80", "443", "8080", "8190"]
   }
 }
 `, rInt, location, rInt, rInt, rInt)

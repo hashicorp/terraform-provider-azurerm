@@ -2,14 +2,21 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"log"
 )
 
 func dataSourceArmActiveDirectoryServicePrincipal() *schema.Resource {
 	return &schema.Resource{
+		DeprecationMessage: `The Azure Active Directory resources have been split out into their own Provider.
+
+Information on migrating to the new AzureAD Provider can be found here: https://terraform.io/docs/providers/azurerm/guides/migrating-to-azuread.html
+
+As such the Azure Active Directory resources within the AzureRM Provider are now deprecated and will be removed in v2.0 of the AzureRM Provider.
+`,
 		Read: dataSourceArmActiveDirectoryServicePrincipalRead,
 
 		Schema: map[string]*schema.Schema{

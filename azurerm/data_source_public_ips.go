@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 )
@@ -138,7 +138,7 @@ func flattenDataSourcePublicIPs(input []network.PublicIPAddress) []interface{} {
 }
 
 func flattenDataSourcePublicIP(input network.PublicIPAddress) map[string]string {
-	output := make(map[string]string, 0)
+	output := make(map[string]string)
 
 	if input.ID != nil {
 		output["id"] = *input.ID

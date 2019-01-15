@@ -23,7 +23,7 @@ data "azurerm_image" "existing" {
 
 data "azurerm_shared_image" "existing" {
   name                = "existing-image"
-  gallery_name        = "existing-gallery"
+  gallery_name        = "existing_gallery"
   resource_group_name = "existing-resources"
 }
 
@@ -34,7 +34,11 @@ resource "azurerm_shared_image_version" "test" {
   resource_group_name = "${data.azurerm_shared_image.existing.resource_group_name}"
   location            = "${data.azurerm_shared_image.existing.location}"
   managed_image_id    = "${data.azurerm_image.existing.id}"
-  regions             = ["${data.azurerm_shared_image.existing.location}"]
+
+  target_region {
+    name                   = "${data.azurerm_shared_image.existing.location}"
+    regional_replica_count = "5"
+  }
 }
 ```
 
@@ -56,11 +60,19 @@ The following arguments are supported:
 
 -> **NOTE:** The ID can be sourced from the `azurerm_image` [Data Source](https://www.terraform.io/docs/providers/azurerm/d/image.html) or [Resource](https://www.terraform.io/docs/providers/azurerm/r/image.html).
 
-* `regions` - (Required) The list of Azure Regions in which this Image Version should exist.
+* `target_region` - (Required) One or more `target_region` blocks as documented below.
 
 * `exclude_from_latest` - (Optional) Should this Image Version be excluded from the `latest` filter? If set to `true` this Image Version won't be returned for the `latest` version. Defaults to `false`.
 
 * `tags` - (Optional) A collection of tags which should be applied to this resource.
+
+---
+
+The `target_region` block exports the following:
+
+* `name` - (Required) The Azure Region in which this Image Version should exist.
+
+* `regional_replica_count` - (Required) The number of replicas of the Image Version to be created per region.
 
 ## Attributes Reference
 

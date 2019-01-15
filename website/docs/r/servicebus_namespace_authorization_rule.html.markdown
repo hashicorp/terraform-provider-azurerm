@@ -13,7 +13,6 @@ Manages a ServiceBus Namespace authorization Rule within a ServiceBus.
 ## Example Usage
 
 ```hcl
-
 resource "azurerm_resource_group" "example" {
   name     = "terraform-servicebus"
   location = "West US"
@@ -23,7 +22,7 @@ resource "azurerm_servicebus_namespace" "example" {
   name                = "tfex_sevicebus_namespace"
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
-  sku                 = "standard"
+  sku                 = "Standard"
 
   tags {
     source = "terraform"

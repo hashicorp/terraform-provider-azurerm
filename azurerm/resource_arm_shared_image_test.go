@@ -5,18 +5,18 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMSharedImage_basic(t *testing.T) {
 	resourceName := "azurerm_shared_image.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSharedImageDestroy,
@@ -39,10 +39,10 @@ func TestAccAzureRMSharedImage_basic(t *testing.T) {
 
 func TestAccAzureRMSharedImage_complete(t *testing.T) {
 	resourceName := "azurerm_shared_image.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSharedImageDestroy,
@@ -96,12 +96,12 @@ func testCheckAzureRMSharedImageDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMSharedImageExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMSharedImageExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		imageName := rs.Primary.Attributes["name"]
@@ -130,7 +130,7 @@ func testCheckAzureRMSharedImageExists(name string) resource.TestCheckFunc {
 func testAccAzureRMSharedImage_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -159,7 +159,7 @@ resource "azurerm_shared_image" "test" {
 func testAccAzureRMSharedImage_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMApiManagement_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_api_management.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -26,6 +26,7 @@ func TestAccDataSourceAzureRMApiManagement_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "sku.0.capacity", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "sku.0.name", "Developer"),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "public_ip_addresses.#"),
 				),
 			},
 		},

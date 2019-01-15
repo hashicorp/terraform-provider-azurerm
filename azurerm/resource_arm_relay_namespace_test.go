@@ -5,18 +5,18 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMRelayNamespace_basic(t *testing.T) {
 	resourceName := "azurerm_relay_namespace.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMRelayNamespace_basic(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRelayNamespaceDestroy,
@@ -32,17 +32,22 @@ func TestAccAzureRMRelayNamespace_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "secondary_key"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
 func TestAccAzureRMRelayNamespace_complete(t *testing.T) {
 	resourceName := "azurerm_relay_namespace.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMRelayNamespace_complete(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRelayNamespaceDestroy,
@@ -57,6 +62,11 @@ func TestAccAzureRMRelayNamespace_complete(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "primary_key"),
 					resource.TestCheckResourceAttrSet(resourceName, "secondary_key"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -118,13 +128,13 @@ func testCheckAzureRMRelayNamespaceDestroy(s *terraform.State) error {
 func testAccAzureRMRelayNamespace_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_relay_namespace" "test" {
-  name =  "acctestrn-%d"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctestrn-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
@@ -137,13 +147,13 @@ resource "azurerm_relay_namespace" "test" {
 func testAccAzureRMRelayNamespace_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_relay_namespace" "test" {
-  name =  "acctestrn-%d"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctestrn-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {

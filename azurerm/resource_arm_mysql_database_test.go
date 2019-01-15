@@ -4,18 +4,18 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMMySQLDatabase_basic(t *testing.T) {
 	resourceName := "azurerm_mysql_database.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMMySQLDatabase_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLDatabaseDestroy,
@@ -25,6 +25,11 @@ func TestAccAzureRMMySQLDatabase_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLDatabaseExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -32,10 +37,10 @@ func TestAccAzureRMMySQLDatabase_basic(t *testing.T) {
 
 func TestAccAzureRMMySQLDatabase_charsetUppercase(t *testing.T) {
 	resourceName := "azurerm_mysql_database.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMMySQLDatabase_charsetUppercase(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLDatabaseDestroy,
@@ -46,6 +51,11 @@ func TestAccAzureRMMySQLDatabase_charsetUppercase(t *testing.T) {
 					testCheckAzureRMMySQLDatabaseExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "charset", "utf8"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -53,10 +63,10 @@ func TestAccAzureRMMySQLDatabase_charsetUppercase(t *testing.T) {
 
 func TestAccAzureRMMySQLDatabase_charsetMixedcase(t *testing.T) {
 	resourceName := "azurerm_mysql_database.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMMySQLDatabase_charsetMixedcase(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLDatabaseDestroy,
@@ -68,16 +78,21 @@ func TestAccAzureRMMySQLDatabase_charsetMixedcase(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "charset", "utf8"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
-func testCheckAzureRMMySQLDatabaseExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMMySQLDatabaseExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -148,9 +163,9 @@ resource "azurerm_mysql_server" "test" {
   }
 
   storage_profile {
-    storage_mb = 51200
+    storage_mb            = 51200
     backup_retention_days = 7
-    geo_redundant_backup = "Disabled"
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"
@@ -189,9 +204,9 @@ resource "azurerm_mysql_server" "test" {
   }
 
   storage_profile {
-    storage_mb = 51200
+    storage_mb            = 51200
     backup_retention_days = 7
-    geo_redundant_backup = "Disabled"
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"
@@ -230,9 +245,9 @@ resource "azurerm_mysql_server" "test" {
   }
 
   storage_profile {
-    storage_mb = 51200
+    storage_mb            = 51200
     backup_retention_days = 7
-    geo_redundant_backup = "Disabled"
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"

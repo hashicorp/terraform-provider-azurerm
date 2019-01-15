@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -20,6 +22,7 @@ func resourceArmSqlVirtualNetworkRule() *schema.Resource {
 		Read:   resourceArmSqlVirtualNetworkRuleRead,
 		Update: resourceArmSqlVirtualNetworkRuleCreateUpdate,
 		Delete: resourceArmSqlVirtualNetworkRuleDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -35,9 +38,10 @@ func resourceArmSqlVirtualNetworkRule() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"server_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateMsSqlServerName,
 			},
 
 			"subnet_id": {
@@ -71,13 +75,12 @@ func resourceArmSqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta i
 		},
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, parameters); err != nil {
 		return fmt.Errorf("Error creating SQL Virtual Network Rule %q (SQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
 	}
 
 	//Wait for the provisioning state to become ready
-	log.Printf("[DEBUG] Waiting for SQL Virtual Network Rule %q (SQL Server: %q, Resource Group: %q) to become ready: %+v", name, serverName, resourceGroup, err)
+	log.Printf("[DEBUG] Waiting for SQL Virtual Network Rule %q (SQL Server: %q, Resource Group: %q) to become ready", name, serverName, resourceGroup)
 	stateConf := &resource.StateChangeConf{
 		Pending:                   []string{"Initializing", "InProgress", "Unknown", "ResponseNotFound"},
 		Target:                    []string{"Ready"},
@@ -159,8 +162,7 @@ func resourceArmSqlVirtualNetworkRuleDelete(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error deleting SQL Virtual Network Rule %q (SQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
@@ -175,7 +177,7 @@ func resourceArmSqlVirtualNetworkRuleDelete(d *schema.ResourceData, meta interfa
 	This function checks the format of the SQL Virtual Network Rule Name to make sure that
 	it does not contain any potentially invalid values.
 */
-func validateSqlVirtualNetworkRuleName(v interface{}, k string) (ws []string, errors []error) {
+func validateSqlVirtualNetworkRuleName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	// Cannot be empty
@@ -211,7 +213,7 @@ func validateSqlVirtualNetworkRuleName(v interface{}, k string) (ws []string, er
 
 	// There are multiple returns in the case that there is more than one invalid
 	// case applied to the name.
-	return
+	return warnings, errors
 }
 
 /*
@@ -240,7 +242,7 @@ func sqlVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client sql
 
 		if props := resp.VirtualNetworkRuleProperties; props != nil {
 			log.Printf("[DEBUG] Retrieving SQL Virtual Network Rule %q (SQL Server: %q, Resource Group: %q) returned Status %s", resourceGroup, serverName, name, props.State)
-			return resp, fmt.Sprintf("%s", props.State), nil
+			return resp, string(props.State), nil
 		}
 
 		//Valid response was returned but VirtualNetworkRuleProperties was nil. Basically the rule exists, but with no properties for some reason. Assume Unknown instead of returning error.

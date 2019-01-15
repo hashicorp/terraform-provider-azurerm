@@ -40,36 +40,36 @@ resource "azurerm_resource_group" "testrg" {
 }
 
 resource "azurerm_virtual_network" "test" {
-    name = "virtnetname"
-    address_space = ["10.0.0.0/16"]
-    location = "${azurerm_resource_group.testrg.location}"
-    resource_group_name = "${azurerm_resource_group.testrg.name}"
+  name                = "virtnetname"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.testrg.location}"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
 }
 
 resource "azurerm_subnet" "test" {
-	name                 = "subnetname"
-	resource_group_name  = "${azurerm_resource_group.testrg.name}"
-	virtual_network_name = "${azurerm_virtual_network.test.name}"
-	address_prefix       = "10.0.2.0/24"
-	service_endpoints    = ["Microsoft.Sql","Microsoft.Storage"]
-  }
+  name                 = "subnetname"
+  resource_group_name  = "${azurerm_resource_group.testrg.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+  service_endpoints    = ["Microsoft.Sql", "Microsoft.Storage"]
+}
 
 resource "azurerm_storage_account" "testsa" {
-    name = "storageaccountname"
-    resource_group_name = "${azurerm_resource_group.testrg.name}"
+  name                = "storageaccountname"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
 
-    location = "${azurerm_resource_group.testrg.location}"
-    account_tier = "Standard"
-    account_replication_type = "LRS"
-	
-    network_rules {
-        ip_rules = ["127.0.0.1"]
-        virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
-    }
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 
-    tags {
-        environment = "staging"
-    }
+  network_rules {
+    ip_rules                   = ["127.0.0.1"]
+    virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
+  }
+
+  tags {
+    environment = "staging"
+  }
 }
 ```
 

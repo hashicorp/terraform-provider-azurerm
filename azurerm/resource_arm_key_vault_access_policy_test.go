@@ -15,7 +15,7 @@ func TestAccAzureRMKeyVaultAccessPolicy_basic(t *testing.T) {
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultAccessPolicy_basic(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
@@ -29,6 +29,11 @@ func TestAccAzureRMKeyVaultAccessPolicy_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "secret_permissions.1", "set"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -39,7 +44,7 @@ func TestAccAzureRMKeyVaultAccessPolicy_multiple(t *testing.T) {
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultAccessPolicy_multiple(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
@@ -64,6 +69,16 @@ func TestAccAzureRMKeyVaultAccessPolicy_multiple(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName2, "certificate_permissions.1", "delete"),
 				),
 			},
+			{
+				ResourceName:      resourceName1,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      resourceName2,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -74,7 +89,7 @@ func TestAccAzureRMKeyVaultAccessPolicy_update(t *testing.T) {
 	preConfig := testAccAzureRMKeyVaultAccessPolicy_basic(rs, testLocation())
 	postConfig := testAccAzureRMKeyVaultAccessPolicy_update(rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
@@ -100,12 +115,12 @@ func TestAccAzureRMKeyVaultAccessPolicy_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMKeyVaultAccessPolicyExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMKeyVaultAccessPolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		vaultName := rs.Primary.Attributes["vault_name"]
@@ -126,6 +141,9 @@ func testCheckAzureRMKeyVaultAccessPolicyExists(name string) resource.TestCheckF
 		}
 
 		policy, err := findKeyVaultAccessPolicy(resp.Properties.AccessPolicies, objectId, applicationId)
+		if err != nil {
+			return fmt.Errorf("Error finding Key Vault Access Policy %q : %+v", vaultName, err)
+		}
 		if policy == nil {
 			return fmt.Errorf("Bad: Key Vault Policy %q (resource group: %q, object_id: %s) does not exist", vaultName, resGroup, objectId)
 		}
@@ -231,7 +249,6 @@ resource "azurerm_key_vault_access_policy" "test" {
   tenant_id = "${data.azurerm_client_config.current.tenant_id}"
   object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
 }
-
 `, template)
 }
 

@@ -152,8 +152,7 @@ func resourceArmNotificationHubCreateUpdate(d *schema.ResourceData, meta interfa
 		},
 	}
 
-	_, err = client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters); err != nil {
 		return fmt.Errorf("Error creating Notification Hub %q (Namespace %q / Resource Group %q): %+v", name, namespaceName, resourceGroup, err)
 	}
 
@@ -277,7 +276,7 @@ func flattenNotificationHubsAPNSCredentials(input *notificationhubs.ApnsCredenti
 		return make([]interface{}, 0)
 	}
 
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 
 	if bundleId := input.AppName; bundleId != nil {
 		output["bundle_id"] = *bundleId
@@ -327,7 +326,7 @@ func flattenNotificationHubsGCMCredentials(input *notificationhubs.GcmCredential
 		return []interface{}{}
 	}
 
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 	if props := input.GcmCredentialProperties; props != nil {
 		if apiKey := props.GoogleAPIKey; apiKey != nil {
 			output["api_key"] = *apiKey

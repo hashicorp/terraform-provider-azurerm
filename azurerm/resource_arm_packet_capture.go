@@ -5,7 +5,7 @@ import (
 
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -169,8 +169,7 @@ func resourceArmPacketCaptureCreate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error creating Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for creation of Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
 	}
 
@@ -220,12 +219,12 @@ func resourceArmPacketCaptureRead(d *schema.ResourceData, meta interface{}) erro
 
 		location := flattenArmPacketCaptureStorageLocation(props.StorageLocation)
 		if err := d.Set("storage_location", location); err != nil {
-			return fmt.Errorf("Error flattening `storage_location`: %+v", err)
+			return fmt.Errorf("Error setting `storage_location`: %+v", err)
 		}
 
 		filters := flattenArmPacketCaptureFilters(props.Filters)
 		if err := d.Set("filter", filters); err != nil {
-			return fmt.Errorf("Error flattening `filter`: %+v", err)
+			return fmt.Errorf("Error setting `filter`: %+v", err)
 		}
 	}
 
@@ -254,8 +253,7 @@ func resourceArmPacketCaptureDelete(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error deleting Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
@@ -291,7 +289,7 @@ func flattenArmPacketCaptureStorageLocation(input *network.PacketCaptureStorageL
 		return []interface{}{}
 	}
 
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 
 	if path := input.FilePath; path != nil {
 		output["file_path"] = *path
@@ -343,7 +341,7 @@ func flattenArmPacketCaptureFilters(input *[]network.PacketCaptureFilter) []inte
 
 	if inFilter := input; inFilter != nil {
 		for _, v := range *inFilter {
-			filter := make(map[string]interface{}, 0)
+			filter := make(map[string]interface{})
 
 			if address := v.LocalIPAddress; address != nil {
 				filter["local_ip_address"] = *address

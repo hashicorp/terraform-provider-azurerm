@@ -5,18 +5,18 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMSharedImageGallery_basic(t *testing.T) {
 	resourceName := "azurerm_shared_image_gallery.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSharedImageGalleryDestroy,
@@ -39,10 +39,10 @@ func TestAccAzureRMSharedImageGallery_basic(t *testing.T) {
 
 func TestAccAzureRMSharedImageGallery_complete(t *testing.T) {
 	resourceName := "azurerm_shared_image_gallery.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSharedImageGalleryDestroy,
@@ -94,12 +94,12 @@ func testCheckAzureRMSharedImageGalleryDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMSharedImageGalleryExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMSharedImageGalleryExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		galleryName := rs.Primary.Attributes["name"]
@@ -127,7 +127,7 @@ func testCheckAzureRMSharedImageGalleryExists(name string) resource.TestCheckFun
 func testAccAzureRMSharedImageGallery_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -142,7 +142,7 @@ resource "azurerm_shared_image_gallery" "test" {
 func testAccAzureRMSharedImageGallery_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

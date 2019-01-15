@@ -29,12 +29,23 @@ resource "azurerm_network_security_group" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
+resource "azurerm_ddos_protection_plan" "test" {
+  name                = "ddospplan1"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
 resource "azurerm_virtual_network" "test" {
   name                = "virtualNetwork1"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space       = ["10.0.0.0/16"]
   dns_servers         = ["10.0.0.4", "10.0.0.5"]
+  
+  ddos_protection_plan {
+    id     = "${azurerm_ddos_protection_plan.test.id}"
+    enable = true
+  }
 
   subnet {
     name           = "subnet1"
@@ -74,6 +85,8 @@ The following arguments are supported:
 
 * `location` - (Required) The location/region where the virtual network is
     created. Changing this forces a new resource to be created.
+    
+* `ddos_protection_plan` - (Optional) A `ddos_protection_plan` block as documented below.
 
 * `dns_servers` - (Optional) List of IP addresses of DNS servers
 
@@ -81,6 +94,14 @@ The following arguments are supported:
     subnets. Each `subnet` block supports fields documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+A `ddos_protection_plan` block supports the following:
+
+* `id` - (Optional) The Resource ID of DDos Protection Plan.
+
+* `enable` - (Optional) Enable/disable DDos Protection Plan on Virtual Network. Default to `false`.
 
 ---
 

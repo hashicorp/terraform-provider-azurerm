@@ -122,8 +122,7 @@ func resourceArmSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 
@@ -207,15 +206,14 @@ func resourceArmSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error deleting Snapshot: %+v", err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error deleting Snapshot: %+v", err)
 	}
 
 	return nil
 }
 
-func validateSnapshotName(v interface{}, k string) (ws []string, errors []error) {
+func validateSnapshotName(v interface{}, _ string) (warnings []string, errors []error) {
 	// a-z, A-Z, 0-9, _ and -. The max name length is 80
 	value := v.(string)
 
@@ -229,5 +227,5 @@ func validateSnapshotName(v interface{}, k string) (ws []string, errors []error)
 		errors = append(errors, fmt.Errorf("Snapshot Name can be up to 80 characters, currently %d.", length))
 	}
 
-	return
+	return warnings, errors
 }

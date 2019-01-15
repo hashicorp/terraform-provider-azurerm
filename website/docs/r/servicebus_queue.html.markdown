@@ -13,35 +13,26 @@ Manage and manage a ServiceBus Queue.
 ## Example Usage
 
 ```hcl
-variable "location" {
-  description = "Azure datacenter to deploy to."
-  default = "West US"
-}
-
-variable "servicebus_name" {
-  description = "Input your unique Azure service bus name"
-}
-
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "terraform-servicebus"
-  location = "${var.location}"
+  location = "West Europe"
 }
 
-resource "azurerm_servicebus_namespace" "test" {
-  name                = "${var.servicebus_name}"
-  location            = "${var.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "standard"
+resource "azurerm_servicebus_namespace" "example" {
+  name                = "tfex_sevicebus_namespace"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  sku                 = "Standard"
 
   tags {
     source = "terraform"
   }
 }
 
-resource "azurerm_servicebus_queue" "test" {
-  name                = "testQueue"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+resource "azurerm_servicebus_queue" "example" {
+  name                = "tfex_servicebus_queue"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
 
   enable_partitioning = true
 }
@@ -96,12 +87,14 @@ The following arguments are supported:
     the Queue requires duplicate detection. Changing this forces
     a new resource to be created. Defaults to `false`.
 
-* `requires_session` - (Optional) Boolean flag which controls whether the Queue requires sessions. 
-    This will allow ordered handling of unbounded sequences of related messages. With sessions enabled 
-    a queue can guarantee first-in-first-out delivery of messages. 
+* `requires_session` - (Optional) Boolean flag which controls whether the Queue requires sessions.
+    This will allow ordered handling of unbounded sequences of related messages. With sessions enabled
+    a queue can guarantee first-in-first-out delivery of messages.
     Changing this forces a new resource to be created. Defaults to `false`.
 
 * `dead_lettering_on_message_expiration` - (Optional) Boolean flag which controls whether the Queue has dead letter support when a message expires. Defaults to `false`.
+
+* `max_delivery_count` - (Optional) Integer value which controls when a message is automatically deadlettered. Defaults to `10`.
 
 ## Attributes Reference
 

@@ -14,6 +14,8 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -42,6 +44,8 @@ func resourceArmRedisCache() *schema.Resource {
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
+
+			"zones": singleZonesSchema(),
 
 			"capacity": {
 				Type:     schema.TypeInt,
@@ -153,16 +157,8 @@ func resourceArmRedisCache() *schema.Resource {
 						"day_of_week": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-							ValidateFunc: validation.StringInSlice([]string{
-								"Monday",
-								"Tuesday",
-								"Wednesday",
-								"Thursday",
-								"Friday",
-								"Saturday",
-								"Sunday",
-							}, true),
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc:     validate.DayOfTheWeek(true),
 						},
 						"start_hour_utc": {
 							Type:         schema.TypeInt,
@@ -255,13 +251,16 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 		parameters.SubnetID = utils.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("zones"); ok {
+		parameters.Zones = expandZones(v.([]interface{}))
+	}
+
 	future, err := client.Create(ctx, resGroup, name, parameters)
 	if err != nil {
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 
@@ -275,13 +274,13 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 
 	log.Printf("[DEBUG] Waiting for Redis Instance (%s) to become available", d.Get("name"))
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"Updating", "Creating"},
+		Pending:    []string{"Scaling", "Updating", "Creating"},
 		Target:     []string{"Succeeded"},
 		Refresh:    redisStateRefreshFunc(ctx, client, resGroup, name),
 		Timeout:    60 * time.Minute,
 		MinTimeout: 15 * time.Second,
 	}
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Redis Instance (%s) to become available: %s", d.Get("name"), err)
 	}
 
@@ -339,8 +338,7 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 		parameters.RedisConfiguration = redisConfiguration
 	}
 
-	_, err := client.Update(ctx, resGroup, name, parameters)
-	if err != nil {
+	if _, err := client.Update(ctx, resGroup, name, parameters); err != nil {
 		return err
 	}
 
@@ -354,13 +352,13 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 
 	log.Printf("[DEBUG] Waiting for Redis Instance (%s) to become available", d.Get("name"))
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"Updating", "Creating"},
+		Pending:    []string{"Scaling", "Updating", "Creating"},
 		Target:     []string{"Succeeded"},
 		Refresh:    redisStateRefreshFunc(ctx, client, resGroup, name),
 		Timeout:    60 * time.Minute,
 		MinTimeout: 15 * time.Second,
 	}
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err = stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Redis Instance (%s) to become available: %s", d.Get("name"), err)
 	}
 
@@ -420,7 +418,7 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 	schedule, err := patchSchedulesClient.Get(ctx, resGroup, name)
 	if err == nil {
 		patchSchedule := flattenRedisPatchSchedules(schedule)
-		if err := d.Set("patch_schedule", patchSchedule); err != nil {
+		if err = d.Set("patch_schedule", patchSchedule); err != nil {
 			return fmt.Errorf("Error setting `patch_schedule`: %+v", err)
 		}
 	}
@@ -429,6 +427,9 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
+	}
+	if zones := resp.Zones; zones != nil {
+		d.Set("zones", zones)
 	}
 
 	if sku := resp.Sku; sku != nil {
@@ -484,8 +485,8 @@ func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error
 
 		return err
 	}
-	err = future.WaitForCompletionRef(ctx, redisClient.Client)
-	if err != nil {
+
+	if err = future.WaitForCompletionRef(ctx, redisClient.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
@@ -648,7 +649,7 @@ func flattenRedisPatchSchedules(schedule redis.PatchSchedule) []interface{} {
 	outputs := make([]interface{}, 0)
 
 	for _, entry := range *schedule.ScheduleEntries.ScheduleEntries {
-		output := make(map[string]interface{}, 0)
+		output := make(map[string]interface{})
 
 		output["day_of_week"] = string(entry.DayOfWeek)
 		output["start_hour_utc"] = int(*entry.StartHourUtc)
@@ -659,7 +660,7 @@ func flattenRedisPatchSchedules(schedule redis.PatchSchedule) []interface{} {
 	return outputs
 }
 
-func validateRedisFamily(v interface{}, k string) (ws []string, errors []error) {
+func validateRedisFamily(v interface{}, _ string) (warnings []string, errors []error) {
 	value := strings.ToLower(v.(string))
 	families := map[string]bool{
 		"c": true,
@@ -669,10 +670,10 @@ func validateRedisFamily(v interface{}, k string) (ws []string, errors []error) 
 	if !families[value] {
 		errors = append(errors, fmt.Errorf("Redis Family can only be C or P"))
 	}
-	return
+	return warnings, errors
 }
 
-func validateRedisMaxMemoryPolicy(v interface{}, k string) (ws []string, errors []error) {
+func validateRedisMaxMemoryPolicy(v interface{}, _ string) (warnings []string, errors []error) {
 	value := strings.ToLower(v.(string))
 	families := map[string]bool{
 		"noeviction":      true,
@@ -687,10 +688,10 @@ func validateRedisMaxMemoryPolicy(v interface{}, k string) (ws []string, errors 
 		errors = append(errors, fmt.Errorf("Redis Max Memory Policy can only be 'noeviction' / 'allkeys-lru' / 'volatile-lru' / 'allkeys-random' / 'volatile-random' / 'volatile-ttl'"))
 	}
 
-	return
+	return warnings, errors
 }
 
-func validateRedisBackupFrequency(v interface{}, k string) (ws []string, errors []error) {
+func validateRedisBackupFrequency(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(int)
 	families := map[int]bool{
 		15:   true,
@@ -705,5 +706,5 @@ func validateRedisBackupFrequency(v interface{}, k string) (ws []string, errors 
 		errors = append(errors, fmt.Errorf("Redis Backup Frequency can only be '15', '30', '60', '360', '720' or '1440'"))
 	}
 
-	return
+	return warnings, errors
 }

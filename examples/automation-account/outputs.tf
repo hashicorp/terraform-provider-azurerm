@@ -1,4 +1,3 @@
-
 output "automation_schedule-start_time" {
   value = "${azurerm_automation_schedule.one-time.start_time}"
 }

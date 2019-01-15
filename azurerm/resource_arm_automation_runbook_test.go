@@ -4,17 +4,17 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMAutomationRunbook_PSWorkflow(t *testing.T) {
 	resourceName := "azurerm_automation_runbook.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationRunbookDestroy,
@@ -36,11 +36,40 @@ func TestAccAzureRMAutomationRunbook_PSWorkflow(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAutomationRunbook_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_automation_runbook.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAutomationRunbookDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAutomationRunbook_PSWorkflow(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAutomationRunbookExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMAutomationRunbook_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_automation_runbook"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAutomationRunbook_PSWorkflowWithHash(t *testing.T) {
 	resourceName := "azurerm_automation_runbook.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationRunbookDestroy,
@@ -64,9 +93,9 @@ func TestAccAzureRMAutomationRunbook_PSWorkflowWithHash(t *testing.T) {
 
 func TestAccAzureRMAutomationRunbook_PSWithContent(t *testing.T) {
 	resourceName := "azurerm_automation_runbook.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutomationRunbookDestroy,
@@ -122,13 +151,13 @@ func testCheckAzureRMAutomationRunbookDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMAutomationRunbookExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMAutomationRunbookExists(resourceName string) resource.TestCheckFunc {
 
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -159,49 +188,17 @@ func testCheckAzureRMAutomationRunbookExists(name string) resource.TestCheckFunc
 func testAccAzureRMAutomationRunbook_PSWorkflow(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
- name = "acctestRG-%d"
- location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_automation_account" "test" {
   name                = "acctest-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
   sku {
-	name = "Basic"
-  }
-}
-
-resource "azurerm_automation_runbook" "test" {
-  name	 	      = "Get-AzureVMTutorial"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  account_name        = "${azurerm_automation_account.test.name}"
-  log_verbose	      = "true"
-  log_progress	      = "true"
-  description	      = "This is a test runbook for terraform acceptance test"
-  runbook_type	      = "PowerShellWorkflow"
-  publish_content_link {
-	uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
-  }
-}
-`, rInt, location, rInt)
-}
-
-func testAccAzureRMAutomationRunbook_PSWorkflowWithHash(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
- name = "acctestRG-%d"
- location = "%s"
-}
-
-resource "azurerm_automation_account" "test" {
-  name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  sku {
-	name = "Basic"
+    name = "Basic"
   }
 }
 
@@ -210,18 +207,78 @@ resource "azurerm_automation_runbook" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  account_name        = "${azurerm_automation_account.test.name}"
-  log_verbose         = "true"
-  log_progress        = "true"
-  description         = "This is a test runbook for terraform acceptance test"
-  runbook_type        = "PowerShellWorkflow"
+  account_name = "${azurerm_automation_account.test.name}"
+  log_verbose  = "true"
+  log_progress = "true"
+  description  = "This is a test runbook for terraform acceptance test"
+  runbook_type = "PowerShellWorkflow"
+
   publish_content_link {
-	uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
-	version = "1.0.0.0"
-	hash {
-		algorithm = "SHA256"
-		value = "115775B8FF2BE672D8A946BD0B489918C724DDE15A440373CA54461D53010A80"
-	}
+    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMAutomationRunbook_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMAutomationRunbook_PSWorkflow(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_automation_runbook" "import" {
+  name                = "${azurerm_automation_runbook.test.name}"
+  location            = "${azurerm_automation_runbook.test.location}"
+  resource_group_name = "${azurerm_automation_runbook.test.resource_group_name}"
+
+  account_name = "${azurerm_automation_runbook.test.account_name}"
+  log_verbose  = "true"
+  log_progress = "true"
+  description  = "This is a test runbook for terraform acceptance test"
+  runbook_type = "PowerShellWorkflow"
+
+  publish_content_link {
+    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
+  }
+}
+`, template)
+}
+
+func testAccAzureRMAutomationRunbook_PSWorkflowWithHash(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctest-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name = "Basic"
+  }
+}
+
+resource "azurerm_automation_runbook" "test" {
+  name                = "Get-AzureVMTutorial"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  account_name = "${azurerm_automation_account.test.name}"
+  log_verbose  = "true"
+  log_progress = "true"
+  description  = "This is a test runbook for terraform acceptance test"
+  runbook_type = "PowerShellWorkflow"
+
+  publish_content_link {
+    uri     = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
+    version = "1.0.0.0"
+
+    hash {
+      algorithm = "SHA256"
+      value     = "115775B8FF2BE672D8A946BD0B489918C724DDE15A440373CA54461D53010A80"
+    }
   }
 }
 `, rInt, location, rInt)

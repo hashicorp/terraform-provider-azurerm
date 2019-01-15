@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMLogicAppActionHttp_basic(t *testing.T) {
 	resourceName := "azurerm_logic_app_action_http.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMLogicAppActionHttp_basic(ri, testLocation())
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
@@ -22,6 +22,11 @@ func TestAccAzureRMLogicAppActionHttp_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogicAppActionExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -29,9 +34,9 @@ func TestAccAzureRMLogicAppActionHttp_basic(t *testing.T) {
 
 func TestAccAzureRMLogicAppActionHttp_headers(t *testing.T) {
 	resourceName := "azurerm_logic_app_action_http.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMLogicAppActionHttp_headers(ri, testLocation())
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
@@ -42,14 +47,19 @@ func TestAccAzureRMLogicAppActionHttp_headers(t *testing.T) {
 					testCheckAzureRMLogicAppActionExists(resourceName),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
 func TestAccAzureRMLogicAppActionHttp_disappears(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
@@ -100,6 +110,7 @@ resource "azurerm_logic_app_action_http" "test" {
   logic_app_id = "${azurerm_logic_app_workflow.test.id}"
   method       = "GET"
   uri          = "http://example.com/hello"
+
   headers {
     "Hello"     = "World"
     "Something" = "New"
@@ -111,13 +122,13 @@ resource "azurerm_logic_app_action_http" "test" {
 func testAccAzureRMLogicAppActionHttp_template(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_logic_app_workflow" "test" {
-  name = "acctestlaw-%d"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctestlaw-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt)

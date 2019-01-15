@@ -5,39 +5,44 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMNotificationHub_basic(t *testing.T) {
 	resourceName := "azurerm_notification_hub.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMNotificationHub_basic(ri, location),
+				Config: testAccAzureRMNotificationHub_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNotificationHubExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "apns_credential.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "gcm_credential.#", "0"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
-func testCheckAzureRMNotificationHubExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMNotificationHubExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("not found: %s", name)
+			return fmt.Errorf("not found: %s", resourceName)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).notificationHubsClient
@@ -53,7 +58,7 @@ func testCheckAzureRMNotificationHubExists(name string) resource.TestCheckFunc {
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Notification Hub does not exist: %s", name)
+			return fmt.Errorf("Notification Hub does not exist: %s", hubName)
 		}
 
 		return nil
@@ -87,10 +92,10 @@ func testCheckAzureRMNotificationHubDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAzureRMNotificationHub_basic(ri int, location string) string {
+func testAccAzureRMNotificationHub_basic(ri int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestrgpol-%d"
+  name     = "acctestRGpol-%d"
   location = "%s"
 }
 
@@ -98,15 +103,16 @@ resource "azurerm_notification_hub_namespace" "test" {
   name                = "acctestnhn-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  namespace_type      = "NotificationHub" 
+  namespace_type      = "NotificationHub"
+
   sku {
-   name = "Free"
+    name = "Free"
   }
 }
 
 resource "azurerm_notification_hub" "test" {
   name                = "acctestnh-%d"
-  namespace_name      = "${azurerm_notification_hub_namespace.test.name}" 
+  namespace_name      = "${azurerm_notification_hub_namespace.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
 }

@@ -13,7 +13,7 @@ func TestAccDataSourceAzureRMAzureADApplication_byObjectId(t *testing.T) {
 	id := uuid.New().String()
 	config := testAccDataSourceAzureRMAzureADApplication_objectId(id)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
@@ -40,7 +40,7 @@ func TestAccDataSourceAzureRMAzureADApplication_byObjectId(t *testing.T) {
 func TestAccDataSourceAzureRMAzureADApplication_byObjectIdComplete(t *testing.T) {
 	dataSourceName := "data.azurerm_azuread_application.test"
 	id := uuid.New().String()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
@@ -69,7 +69,7 @@ func TestAccDataSourceAzureRMAzureADApplication_byName(t *testing.T) {
 	id := uuid.New().String()
 	config := testAccDataSourceAzureRMAzureADApplication_name(id)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
