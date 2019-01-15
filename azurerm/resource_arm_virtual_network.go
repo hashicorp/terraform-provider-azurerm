@@ -63,8 +63,7 @@ func resourceArmVirtualNetwork() *schema.Resource {
 						},
 						"enable": {
 							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
+							Required: true,
 						},
 					},
 				},
@@ -333,23 +332,21 @@ func expandVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData,
 }
 
 func flattenVirtualNetworkDDosProtectionPlan(input *network.VirtualNetworkPropertiesFormat) []interface{} {
+	result := make([]interface{}, 0)
 	if input == nil {
-		return []interface{}{}
+		return result
 	}
 
-	ddosPPlan := make(map[string]interface{})
-
-	if plan := input.DdosProtectionPlan; plan != nil {
-		if id := plan.ID; id != nil {
-			ddosPPlan["id"] = *id
-		}
+	if input.DdosProtectionPlan == nil || input.DdosProtectionPlan.ID == nil || input.EnableDdosProtection == nil {
+		return result
 	}
 
-	if enablePPlan := input.EnableDdosProtection; enablePPlan != nil {
-		ddosPPlan["enable"] = *enablePPlan
+	return []interface{}{
+		map[string]interface{}{
+			"id":     *input.DdosProtectionPlan.ID,
+			"enable": *input.EnableDdosProtection,
+		},
 	}
-
-	return []interface{}{ddosPPlan}
 }
 
 func flattenVirtualNetworkSubnets(input *[]network.Subnet) *schema.Set {
