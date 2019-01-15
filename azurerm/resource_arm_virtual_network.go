@@ -332,13 +332,12 @@ func expandVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData,
 }
 
 func flattenVirtualNetworkDDosProtectionPlan(input *network.VirtualNetworkPropertiesFormat) []interface{} {
-	result := make([]interface{}, 0)
 	if input == nil {
-		return result
+		return []interface{}{}
 	}
 
 	if input.DdosProtectionPlan == nil || input.DdosProtectionPlan.ID == nil || input.EnableDdosProtection == nil {
-		return result
+		return []interface{}{}
 	}
 
 	return []interface{}{
