@@ -9,11 +9,12 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMManagedDisk_empty(t *testing.T) {
 	resourceName := "azurerm_managed_disk.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	var d compute.Disk
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -38,7 +39,7 @@ func TestAccAzureRMManagedDisk_empty(t *testing.T) {
 
 func TestAccAzureRMManagedDisk_zeroGbFromPlatformImage(t *testing.T) {
 	resourceName := "azurerm_managed_disk.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	var d compute.Disk
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -59,7 +60,7 @@ func TestAccAzureRMManagedDisk_zeroGbFromPlatformImage(t *testing.T) {
 func TestAccAzureRMManagedDisk_import(t *testing.T) {
 	resourceName := "azurerm_managed_disk.test"
 	location := testLocation()
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	var vm compute.VirtualMachine
 	var d compute.Disk
 
@@ -90,7 +91,7 @@ func TestAccAzureRMManagedDisk_import(t *testing.T) {
 
 func TestAccAzureRMManagedDisk_copy(t *testing.T) {
 	resourceName := "azurerm_managed_disk.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	var d compute.Disk
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -110,7 +111,7 @@ func TestAccAzureRMManagedDisk_copy(t *testing.T) {
 
 func TestAccAzureRMManagedDisk_fromPlatformImage(t *testing.T) {
 	resourceName := "azurerm_managed_disk.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	var d compute.Disk
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -130,7 +131,7 @@ func TestAccAzureRMManagedDisk_fromPlatformImage(t *testing.T) {
 
 func TestAccAzureRMManagedDisk_update(t *testing.T) {
 	resourceName := "azurerm_managed_disk.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	var d compute.Disk
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -165,7 +166,7 @@ func TestAccAzureRMManagedDisk_update(t *testing.T) {
 
 func TestAccAzureRMManagedDisk_encryption(t *testing.T) {
 	resourceName := "azurerm_managed_disk.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	var d compute.Disk
 
@@ -194,7 +195,7 @@ func TestAccAzureRMManagedDisk_encryption(t *testing.T) {
 
 func TestAccAzureRMManagedDisk_NonStandardCasing(t *testing.T) {
 	resourceName := "azurerm_managed_disk.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	var d compute.Disk
 
 	config := testAccAzureRMManagedDiskNonStandardCasing(ri, testLocation())
@@ -220,7 +221,7 @@ func TestAccAzureRMManagedDisk_NonStandardCasing(t *testing.T) {
 
 func TestAccAzureRMManagedDisk_importEmpty_withZone(t *testing.T) {
 	resourceName := "azurerm_managed_disk.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	var d compute.Disk
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -243,11 +244,11 @@ func TestAccAzureRMManagedDisk_importEmpty_withZone(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMManagedDiskExists(name string, d *compute.Disk, shouldExist bool) resource.TestCheckFunc {
+func testCheckAzureRMManagedDiskExists(resourceName string, d *compute.Disk, shouldExist bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		dName := rs.Primary.Attributes["name"]
@@ -303,11 +304,11 @@ func testCheckAzureRMManagedDiskDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testDeleteAzureRMVirtualMachine(name string) resource.TestCheckFunc {
+func testDeleteAzureRMVirtualMachine(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		vmName := rs.Primary.Attributes["name"]
@@ -484,21 +485,24 @@ resource "azurerm_managed_disk" "test" {
 func testAccAzureRMManagedDiskNonStandardCasing(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
+
 resource "azurerm_managed_disk" "test" {
-    name = "acctestd-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    storage_account_type = "standard_lrs"
-    create_option = "Empty"
-    disk_size_gb = "1"
-    tags {
-        environment = "acctest"
-        cost-center = "ops"
-    }
-}`, rInt, location, rInt)
+  name                 = "acctestd-%d"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_type = "standard_lrs"
+  create_option        = "Empty"
+  disk_size_gb         = "1"
+
+  tags {
+    environment = "acctest"
+    cost-center = "ops"
+  }
+}
+`, rInt, location, rInt)
 }
 
 func testAccAzureRMManagedDisk_platformImage(rInt int, location string) string {
@@ -511,16 +515,17 @@ data "azurerm_platform_image" "test" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
+
 resource "azurerm_managed_disk" "test" {
-  name = "acctestd-%d"
-  location = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  os_type = "Linux"
-  create_option = "FromImage"
-  image_reference_id = "${data.azurerm_platform_image.test.id}"
+  name                 = "acctestd-%d"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  os_type              = "Linux"
+  create_option        = "FromImage"
+  image_reference_id   = "${data.azurerm_platform_image.test.id}"
   storage_account_type = "Standard_LRS"
 }
 `, location, rInt, location, rInt)

@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMLogAnalyticsSolution_basicContainerMonitoring(t *testing.T) {
 	resourceName := "azurerm_log_analytics_solution.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMLogAnalyticsSolution_containerMonitoring(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -36,7 +36,7 @@ func TestAccAzureRMLogAnalyticsSolution_basicContainerMonitoring(t *testing.T) {
 
 func TestAccAzureRMLogAnalyticsSolution_basicSecurity(t *testing.T) {
 	resourceName := "azurerm_log_analytics_solution.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMLogAnalyticsSolution_security(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -84,12 +84,12 @@ func testCheckAzureRMLogAnalyticsSolutionDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMLogAnalyticsSolutionExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMLogAnalyticsSolutionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -122,7 +122,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctest-dep-%d"
+  name                = "acctestLAW-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "PerGB2018"
@@ -151,7 +151,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctest-dep-%d"
+  name                = "acctestLAW-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "PerGB2018"

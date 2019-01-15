@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMAutomationAccount_basic(t *testing.T) {
 	resourceName := "azurerm_automation_account.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -38,9 +38,38 @@ func TestAccAzureRMAutomationAccount_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAutomationAccount_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_automation_account.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAutomationAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAutomationAccount_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAutomationAccountExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMAutomationAccount_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_automation_account"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAutomationAccount_complete(t *testing.T) {
 	resourceName := "azurerm_automation_account.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -92,13 +121,13 @@ func testCheckAzureRMAutomationAccountDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMAutomationAccountExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMAutomationAccountExists(resourceName string) resource.TestCheckFunc {
 
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -141,6 +170,23 @@ resource "azurerm_automation_account" "test" {
   }
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMAutomationAccount_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMAutomationAccount_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_automation_account" "import" {
+  name                = "${azurerm_automation_account.test.name}"
+  location            = "${azurerm_automation_account.test.location}"
+  resource_group_name = "${azurerm_automation_account.test.resource_group_name}"
+
+  sku {
+    name = "Basic"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMAutomationAccount_complete(rInt int, location string) string {

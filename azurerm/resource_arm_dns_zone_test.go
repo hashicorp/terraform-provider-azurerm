@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMDnsZone_basic(t *testing.T) {
 	resourceName := "azurerm_dns_zone.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDnsZone_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -35,9 +35,38 @@ func TestAccAzureRMDnsZone_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMDnsZone_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_dns_zone.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDnsZone_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDnsZoneExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMDnsZone_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_dns_zone"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMDnsZone_withVNets(t *testing.T) {
 	resourceName := "azurerm_dns_zone.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDnsZone_withVNets(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -62,7 +91,7 @@ func TestAccAzureRMDnsZone_withVNets(t *testing.T) {
 
 func TestAccAzureRMDnsZone_withTags(t *testing.T) {
 	resourceName := "azurerm_dns_zone.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMDnsZone_withTags(ri, location)
 	postConfig := testAccAzureRMDnsZone_withTagsUpdate(ri, location)
@@ -95,12 +124,12 @@ func TestAccAzureRMDnsZone_withTags(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDnsZoneExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDnsZoneExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		zoneName := rs.Primary.Attributes["name"]
@@ -163,6 +192,18 @@ resource "azurerm_dns_zone" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMDnsZone_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMDnsZone_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_dns_zone" "import" {
+  name                = "${azurerm_dns_zone.test.name}"
+  resource_group_name = "${azurerm_dns_zone.test.resource_group_name}"
+}
+`, template)
 }
 
 func testAccAzureRMDnsZone_withVNets(rInt int, location string) string {

@@ -8,14 +8,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"golang.org/x/crypto/ssh"
 )
 
 func TestAccAzureRMImage_standaloneImage(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceGroup := fmt.Sprintf("acctestRG-%d", ri)
 	userName := "testadmin"
 	password := "Password1234!"
@@ -55,7 +55,7 @@ func TestAccAzureRMImage_standaloneImage(t *testing.T) {
 }
 
 func TestAccAzureRMImage_customImageVMFromVHD(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceGroup := fmt.Sprintf("acctestRG-%d", ri)
 	userName := "testadmin"
 	password := "Password1234!"
@@ -90,7 +90,7 @@ func TestAccAzureRMImage_customImageVMFromVHD(t *testing.T) {
 }
 
 func TestAccAzureRMImage_customImageVMFromVM(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceGroup := fmt.Sprintf("acctestRG-%d", ri)
 	userName := "testadmin"
 	password := "Password1234!"
@@ -125,7 +125,7 @@ func TestAccAzureRMImage_customImageVMFromVM(t *testing.T) {
 }
 
 func TestAccAzureRMImageVMSS_customImageVMSSFromVHD(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceGroup := fmt.Sprintf("acctestRG-%d", ri)
 	userName := "testadmin"
 	password := "Password1234!"
@@ -223,14 +223,14 @@ func deprovisionVM(userName string, password string, hostName string, port strin
 	return nil
 }
 
-func testCheckAzureRMImageExists(name string, shouldExist bool) resource.TestCheckFunc {
+func testCheckAzureRMImageExists(resourceName string, shouldExist bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
 		log.Printf("[INFO] testing MANAGED IMAGE EXISTS - BEGIN.")
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		dName := rs.Primary.Attributes["name"]
@@ -376,11 +376,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctpip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
-  domain_name_label            = "%s"
+  name                = "acctpip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
+  domain_name_label   = "%s"
 }
 
 resource "azurerm_network_interface" "testsource" {
@@ -391,7 +391,7 @@ resource "azurerm_network_interface" "testsource" {
   ip_configuration {
     name                          = "testconfigurationsource"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = "${azurerm_public_ip.test.id}"
   }
 }
@@ -477,11 +477,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctpip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
-  domain_name_label            = "%s"
+  name                = "acctpip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
+  domain_name_label   = "%s"
 }
 
 resource "azurerm_network_interface" "testsource" {
@@ -492,7 +492,7 @@ resource "azurerm_network_interface" "testsource" {
   ip_configuration {
     name                          = "testconfigurationsource"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = "${azurerm_public_ip.test.id}"
   }
 }
@@ -597,11 +597,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctpip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
-  domain_name_label            = "%s"
+  name                = "acctpip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
+  domain_name_label   = "%s"
 }
 
 resource "azurerm_network_interface" "testsource" {
@@ -612,7 +612,7 @@ resource "azurerm_network_interface" "testsource" {
   ip_configuration {
     name                          = "testconfigurationsource"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = "${azurerm_public_ip.test.id}"
   }
 }
@@ -698,11 +698,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctpip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
-  domain_name_label            = "%s"
+  name                = "acctpip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
+  domain_name_label   = "%s"
 }
 
 resource "azurerm_network_interface" "testsource" {
@@ -713,7 +713,7 @@ resource "azurerm_network_interface" "testsource" {
   ip_configuration {
     name                          = "testconfigurationsource"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = "${azurerm_public_ip.test.id}"
   }
 }
@@ -802,7 +802,7 @@ resource "azurerm_network_interface" "testdestination" {
   ip_configuration {
     name                          = "testconfiguration2"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
@@ -863,11 +863,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctpip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
-  domain_name_label            = "%s"
+  name                = "acctpip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
+  domain_name_label   = "%s"
 }
 
 resource "azurerm_network_interface" "testsource" {
@@ -878,7 +878,7 @@ resource "azurerm_network_interface" "testsource" {
   ip_configuration {
     name                          = "testconfigurationsource"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = "${azurerm_public_ip.test.id}"
   }
 }
@@ -943,11 +943,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctpip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
-  domain_name_label            = "%s"
+  name                = "acctpip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
+  domain_name_label   = "%s"
 }
 
 resource "azurerm_network_interface" "testsource" {
@@ -958,7 +958,7 @@ resource "azurerm_network_interface" "testsource" {
   ip_configuration {
     name                          = "testconfigurationsource"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = "${azurerm_public_ip.test.id}"
   }
 }
@@ -1019,7 +1019,7 @@ resource "azurerm_network_interface" "testdestination" {
   ip_configuration {
     name                          = "testconfiguration2"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
@@ -1080,11 +1080,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctpip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
-  domain_name_label            = "%s"
+  name                = "acctpip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
+  domain_name_label   = "%s"
 }
 
 resource "azurerm_network_interface" "testsource" {
@@ -1095,7 +1095,7 @@ resource "azurerm_network_interface" "testsource" {
   ip_configuration {
     name                          = "testconfigurationsource"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = "${azurerm_public_ip.test.id}"
   }
 }
@@ -1181,11 +1181,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctpip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
-  domain_name_label            = "%s"
+  name                = "acctpip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
+  domain_name_label   = "%s"
 }
 
 resource "azurerm_network_interface" "testsource" {
@@ -1196,7 +1196,7 @@ resource "azurerm_network_interface" "testsource" {
   ip_configuration {
     name                          = "testconfigurationsource"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = "${azurerm_public_ip.test.id}"
   }
 }

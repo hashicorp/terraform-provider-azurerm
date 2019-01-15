@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMEventHubPartitionCount_validation(t *testing.T) {
@@ -166,7 +167,7 @@ func TestAccAzureRMEventHubArchiveNameFormat_validation(t *testing.T) {
 
 func TestAccAzureRMEventHub_basic(t *testing.T) {
 	resourceName := "azurerm_eventhub.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -188,9 +189,39 @@ func TestAccAzureRMEventHub_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMEventHub_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_eventhub.test"
+	ri := tf.AccRandTimeInt()
+
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMEventHubDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMEventHub_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventHubExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMEventHub_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_eventhub"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMEventHub_partitionCountUpdate(t *testing.T) {
 	resourceName := "azurerm_eventhub.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	preConfig := testAccAzureRMEventHub_basic(ri, testLocation())
 	postConfig := testAccAzureRMEventHub_partitionCountUpdate(ri, testLocation())
 
@@ -219,7 +250,7 @@ func TestAccAzureRMEventHub_partitionCountUpdate(t *testing.T) {
 
 func TestAccAzureRMEventHub_standard(t *testing.T) {
 	resourceName := "azurerm_eventhub.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -243,7 +274,7 @@ func TestAccAzureRMEventHub_standard(t *testing.T) {
 
 func TestAccAzureRMEventHub_captureDescription(t *testing.T) {
 	resourceName := "azurerm_eventhub.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -269,7 +300,7 @@ func TestAccAzureRMEventHub_captureDescription(t *testing.T) {
 
 func TestAccAzureRMEventHub_captureDescriptionDisabled(t *testing.T) {
 	resourceName := "azurerm_eventhub.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
 	location := testLocation()
 
@@ -301,7 +332,7 @@ func TestAccAzureRMEventHub_captureDescriptionDisabled(t *testing.T) {
 
 func TestAccAzureRMEventHub_messageRetentionUpdate(t *testing.T) {
 	resourceName := "azurerm_eventhub.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	preConfig := testAccAzureRMEventHub_standard(ri, testLocation())
 	postConfig := testAccAzureRMEventHub_messageRetentionUpdate(ri, testLocation())
 
@@ -355,12 +386,12 @@ func testCheckAzureRMEventHubDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMEventHubExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMEventHubExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -408,6 +439,21 @@ resource "azurerm_eventhub" "test" {
   message_retention   = 1
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMEventHub_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMEventHub_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_eventhub" "import" {
+  name                = "${azurerm_eventhub.test.name}"
+  namespace_name      = "${azurerm_eventhub.test.namespace_name}"
+  resource_group_name = "${azurerm_eventhub.test.resource_group_name}"
+  partition_count     = "${azurerm_eventhub.test.partition_count}"
+  message_retention   = "${azurerm_eventhub.test.message_retention}"
+}
+`, template)
 }
 
 func testAccAzureRMEventHub_partitionCountUpdate(rInt int, location string) string {

@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -215,6 +216,20 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 	log.Printf("[INFO] preparing arguments for AzureRM Function App creation.")
 
 	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+
+	if requireResourcesToBeImported {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Function App %q (Resource Group %q): %s", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_function_app", *existing.ID)
+		}
+	}
 
 	availabilityRequest := web.ResourceNameAvailabilityRequest{
 		Name: utils.String(name),
@@ -229,7 +244,6 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("The name %q used for the Function App needs to be globally unique and isn't available: %s", name, *available.Message)
 	}
 
-	resGroup := d.Get("resource_group_name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	kind := "functionapp"
 	appServicePlanID := d.Get("app_service_plan_id").(string)
@@ -266,7 +280,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	createFuture, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope)
+	createFuture, err := client.CreateOrUpdate(ctx, resourceGroup, name, siteEnvelope)
 	if err != nil {
 		return err
 	}
@@ -276,12 +290,12 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
+	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Function App %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read Function App %s (resource group %s) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)

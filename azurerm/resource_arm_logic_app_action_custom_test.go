@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMLogicAppActionCustom_basic(t *testing.T) {
 	resourceName := "azurerm_logic_app_action_custom.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMLogicAppActionCustom_basic(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -40,6 +40,7 @@ func testAccAzureRMLogicAppActionCustom_basic(rInt int, location string) string 
 resource "azurerm_logic_app_action_custom" "test" {
   name         = "action%d"
   logic_app_id = "${azurerm_logic_app_workflow.test.id}"
+
   body = <<BODY
 {
     "description": "A variable to configure the auto expiration age in days. Configured in negative number. Default is -30 (30 days old).",

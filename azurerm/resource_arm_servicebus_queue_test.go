@@ -5,15 +5,15 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMServiceBusQueue_basic(t *testing.T) {
 	resourceName := "azurerm_servicebus_queue.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMServiceBusQueue_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -40,7 +40,7 @@ func TestAccAzureRMServiceBusQueue_basic(t *testing.T) {
 
 func TestAccAzureRMServiceBusQueue_update(t *testing.T) {
 	resourceName := "azurerm_servicebus_queue.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMServiceBusQueue_basic(ri, location)
 	postConfig := testAccAzureRMServiceBusQueue_update(ri, location)
@@ -75,7 +75,7 @@ func TestAccAzureRMServiceBusQueue_update(t *testing.T) {
 
 func TestAccAzureRMServiceBusQueue_enablePartitioningStandard(t *testing.T) {
 	resourceName := "azurerm_servicebus_queue.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMServiceBusQueue_basic(ri, location)
 	postConfig := testAccAzureRMServiceBusQueue_enablePartitioningStandard(ri, location)
@@ -106,7 +106,7 @@ func TestAccAzureRMServiceBusQueue_enablePartitioningStandard(t *testing.T) {
 
 func TestAccAzureRMServiceBusQueue_defaultEnablePartitioningPremium(t *testing.T) {
 	resourceName := "azurerm_servicebus_queue.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMServiceBusQueue_Premium(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -133,7 +133,7 @@ func TestAccAzureRMServiceBusQueue_defaultEnablePartitioningPremium(t *testing.T
 
 func TestAccAzureRMServiceBusQueue_enableDuplicateDetection(t *testing.T) {
 	resourceName := "azurerm_servicebus_queue.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMServiceBusQueue_basic(ri, location)
 	postConfig := testAccAzureRMServiceBusQueue_enableDuplicateDetection(ri, location)
@@ -168,7 +168,7 @@ func TestAccAzureRMServiceBusQueue_enableDuplicateDetection(t *testing.T) {
 func TestAccAzureRMServiceBusQueue_enableRequiresSession(t *testing.T) {
 	resourceName := "azurerm_servicebus_queue.test"
 	location := testLocation()
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -200,7 +200,7 @@ func TestAccAzureRMServiceBusQueue_enableRequiresSession(t *testing.T) {
 func TestAccAzureRMServiceBusQueue_enableDeadLetteringOnMessageExpiration(t *testing.T) {
 	resourceName := "azurerm_servicebus_queue.test"
 	location := testLocation()
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -231,7 +231,7 @@ func TestAccAzureRMServiceBusQueue_enableDeadLetteringOnMessageExpiration(t *tes
 
 func TestAccAzureRMServiceBusQueue_lockDuration(t *testing.T) {
 	resourceName := "azurerm_servicebus_queue.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	config := testAccAzureRMServiceBusQueue_lockDuration(ri, location)
@@ -267,7 +267,7 @@ func TestAccAzureRMServiceBusQueue_lockDuration(t *testing.T) {
 
 func TestAccAzureRMServiceBusQueue_isoTimeSpanAttributes(t *testing.T) {
 	resourceName := "azurerm_servicebus_queue.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMServiceBusQueue_isoTimeSpanAttributes(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -297,7 +297,7 @@ func TestAccAzureRMServiceBusQueue_isoTimeSpanAttributes(t *testing.T) {
 func TestAccAzureRMServiceBusQueue_maxDeliveryCount(t *testing.T) {
 	resourceName := "azurerm_servicebus_queue.test"
 	location := testLocation()
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -355,12 +355,12 @@ func testCheckAzureRMServiceBusQueueDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMServiceBusQueueExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMServiceBusQueueExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		queueName := rs.Primary.Attributes["name"]
@@ -397,7 +397,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  sku                 = "standard"
+  sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {
@@ -444,7 +444,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  sku                 = "standard"
+  sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {
@@ -468,7 +468,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  sku                 = "standard"
+  sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {
@@ -492,7 +492,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  sku                 = "standard"
+  sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {
@@ -563,7 +563,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  sku                 = "standard"
+  sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {
@@ -586,7 +586,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  sku                 = "standard"
+  sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {
@@ -609,7 +609,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  sku                 = "standard"
+  sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {
@@ -635,7 +635,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  sku                 = "standard"
+  sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_queue" "test" {

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestResourceAzureRMStorageQueueName_Validation(t *testing.T) {
@@ -52,7 +53,7 @@ func TestResourceAzureRMStorageQueueName_Validation(t *testing.T) {
 
 func TestAccAzureRMStorageQueue_basic(t *testing.T) {
 	resourceName := "azurerm_storage_queue.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageQueue_basic(ri, rs, testLocation())
 
@@ -76,12 +77,12 @@ func TestAccAzureRMStorageQueue_basic(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMStorageQueueExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMStorageQueueExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]

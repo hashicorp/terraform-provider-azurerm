@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func getTrafficManagerFQDN(hostname string) (string, error) {
@@ -22,7 +22,7 @@ func getTrafficManagerFQDN(hostname string) (string, error) {
 
 func TestAccAzureRMTrafficManagerProfile_geographic(t *testing.T) {
 	resourceName := "azurerm_traffic_manager_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMTrafficManagerProfile_geographic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -48,7 +48,7 @@ func TestAccAzureRMTrafficManagerProfile_geographic(t *testing.T) {
 
 func TestAccAzureRMTrafficManagerProfile_weighted(t *testing.T) {
 	resourceName := "azurerm_traffic_manager_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMTrafficManagerProfile_weighted(ri, testLocation())
 
 	fqdn, err := getTrafficManagerFQDN(fmt.Sprintf("acctesttmp%d", ri))
@@ -80,7 +80,7 @@ func TestAccAzureRMTrafficManagerProfile_weighted(t *testing.T) {
 
 func TestAccAzureRMTrafficManagerProfile_weightedTCP(t *testing.T) {
 	resourceName := "azurerm_traffic_manager_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMTrafficManagerProfile_weightedTCP(ri, testLocation())
 
 	fqdn, err := getTrafficManagerFQDN(fmt.Sprintf("acctesttmp%d", ri))
@@ -112,7 +112,7 @@ func TestAccAzureRMTrafficManagerProfile_weightedTCP(t *testing.T) {
 
 func TestAccAzureRMTrafficManagerProfile_performance(t *testing.T) {
 	resourceName := "azurerm_traffic_manager_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMTrafficManagerProfile_performance(ri, testLocation())
 
 	fqdn, err := getTrafficManagerFQDN(fmt.Sprintf("acctesttmp%d", ri))
@@ -144,7 +144,7 @@ func TestAccAzureRMTrafficManagerProfile_performance(t *testing.T) {
 
 func TestAccAzureRMTrafficManagerProfile_priority(t *testing.T) {
 	resourceName := "azurerm_traffic_manager_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMTrafficManagerProfile_priority(ri, testLocation())
 
 	fqdn, err := getTrafficManagerFQDN(fmt.Sprintf("acctesttmp%d", ri))
@@ -176,7 +176,7 @@ func TestAccAzureRMTrafficManagerProfile_priority(t *testing.T) {
 
 func TestAccAzureRMTrafficManagerProfile_withTags(t *testing.T) {
 	resourceName := "azurerm_traffic_manager_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	preConfig := testAccAzureRMTrafficManagerProfile_withTags(ri, testLocation())
 	postConfig := testAccAzureRMTrafficManagerProfile_withTagsUpdated(ri, testLocation())
 
@@ -213,7 +213,7 @@ func TestAccAzureRMTrafficManagerProfile_withTags(t *testing.T) {
 
 func TestAccAzureRMTrafficManagerProfile_performanceToGeographic(t *testing.T) {
 	resourceName := "azurerm_traffic_manager_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	preConfig := testAccAzureRMTrafficManagerProfile_performance(ri, testLocation())
 	postConfig := testAccAzureRMTrafficManagerProfile_geographic(ri, testLocation())
 
@@ -249,7 +249,7 @@ func TestAccAzureRMTrafficManagerProfile_performanceToGeographic(t *testing.T) {
 
 func TestAccAzureRMTrafficManagerProfile_priorityToWeighted(t *testing.T) {
 	resourceName := "azurerm_traffic_manager_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	preConfig := testAccAzureRMTrafficManagerProfile_priority(ri, testLocation())
 	postConfig := testAccAzureRMTrafficManagerProfile_weighted(ri, testLocation())
 
@@ -283,12 +283,12 @@ func TestAccAzureRMTrafficManagerProfile_priorityToWeighted(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMTrafficManagerProfileExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMTrafficManagerProfileExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]

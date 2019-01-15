@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -18,9 +18,9 @@ import (
 
 func resourceArmTemplateDeployment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmTemplateDeploymentCreate,
+		Create: resourceArmTemplateDeploymentCreateUpdate,
 		Read:   resourceArmTemplateDeploymentRead,
-		Update: resourceArmTemplateDeploymentCreate,
+		Update: resourceArmTemplateDeploymentCreateUpdate,
 		Delete: resourceArmTemplateDeploymentDelete,
 
 		Schema: map[string]*schema.Schema{
@@ -70,7 +70,7 @@ func resourceArmTemplateDeployment() *schema.Resource {
 	}
 }
 
-func resourceArmTemplateDeploymentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmTemplateDeploymentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
 	deployClient := client.deploymentsClient
 	ctx := client.StopContext

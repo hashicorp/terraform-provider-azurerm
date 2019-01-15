@@ -5,15 +5,15 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMServiceBusTopic_basic(t *testing.T) {
 	resourceName := "azurerm_servicebus_topic.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMServiceBusTopic_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -38,7 +38,7 @@ func TestAccAzureRMServiceBusTopic_basic(t *testing.T) {
 
 func TestAccAzureRMServiceBusTopic_basicDisabled(t *testing.T) {
 	resourceName := "azurerm_servicebus_topic.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMServiceBusTopic_basicDisabled(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -63,7 +63,7 @@ func TestAccAzureRMServiceBusTopic_basicDisabled(t *testing.T) {
 
 func TestAccAzureRMServiceBusTopic_basicDisableEnable(t *testing.T) {
 	resourceName := "azurerm_servicebus_topic.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	enabledConfig := testAccAzureRMServiceBusTopic_basic(ri, location)
 	disabledConfig := testAccAzureRMServiceBusTopic_basicDisabled(ri, location)
@@ -97,7 +97,7 @@ func TestAccAzureRMServiceBusTopic_basicDisableEnable(t *testing.T) {
 
 func TestAccAzureRMServiceBusTopic_update(t *testing.T) {
 	resourceName := "azurerm_servicebus_topic.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMServiceBusTopic_basic(ri, location)
 	postConfig := testAccAzureRMServiceBusTopic_update(ri, location)
@@ -126,7 +126,7 @@ func TestAccAzureRMServiceBusTopic_update(t *testing.T) {
 
 func TestAccAzureRMServiceBusTopic_enablePartitioningStandard(t *testing.T) {
 	resourceName := "azurerm_servicebus_topic.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMServiceBusTopic_basic(ri, location)
 	postConfig := testAccAzureRMServiceBusTopic_enablePartitioningStandard(ri, location)
@@ -161,7 +161,7 @@ func TestAccAzureRMServiceBusTopic_enablePartitioningStandard(t *testing.T) {
 
 func TestAccAzureRMServiceBusTopic_enablePartitioningPremium(t *testing.T) {
 	resourceName := "azurerm_servicebus_topic.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMServiceBusTopic_basicPremium(ri, location)
 	postConfig := testAccAzureRMServiceBusTopic_enablePartitioningPremium(ri, location)
@@ -195,7 +195,7 @@ func TestAccAzureRMServiceBusTopic_enablePartitioningPremium(t *testing.T) {
 
 func TestAccAzureRMServiceBusTopic_enableDuplicateDetection(t *testing.T) {
 	resourceName := "azurerm_servicebus_topic.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMServiceBusTopic_basic(ri, location)
 	postConfig := testAccAzureRMServiceBusTopic_enableDuplicateDetection(ri, location)
@@ -228,7 +228,7 @@ func TestAccAzureRMServiceBusTopic_enableDuplicateDetection(t *testing.T) {
 
 func TestAccAzureRMServiceBusTopic_isoTimeSpanAttributes(t *testing.T) {
 	resourceName := "azurerm_servicebus_topic.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMServiceBusTopic_isoTimeSpanAttributes(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -284,12 +284,12 @@ func testCheckAzureRMServiceBusTopicDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMServiceBusTopicExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMServiceBusTopicExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		topicName := rs.Primary.Attributes["name"]
@@ -326,7 +326,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "standard"
+  sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {
@@ -348,7 +348,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "standard"
+  sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {
@@ -371,7 +371,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "standard"
+  sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {
@@ -419,7 +419,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "standard"
+  sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {
@@ -468,7 +468,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "standard"
+  sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {
@@ -491,7 +491,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "standard"
+  sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {

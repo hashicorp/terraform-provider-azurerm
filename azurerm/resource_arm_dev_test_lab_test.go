@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMDevTestLab_basic(t *testing.T) {
 	resourceName := "azurerm_dev_test_lab.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -37,9 +37,38 @@ func TestAccAzureRMDevTestLab_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMDevTestLab_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_dev_test_lab.test"
+	rInt := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDevTestLabDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDevTestLab_basic(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDevTestLabExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMDevTestLab_requiresImport(rInt, location),
+				ExpectError: testRequiresImportError("azurerm_dev_test_lab"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMDevTestLab_complete(t *testing.T) {
 	resourceName := "azurerm_dev_test_lab.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -65,12 +94,12 @@ func TestAccAzureRMDevTestLab_complete(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDevTestLabExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDevTestLabExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		labName := rs.Primary.Attributes["name"]
@@ -135,6 +164,19 @@ resource "azurerm_dev_test_lab" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMDevTestLab_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMDevTestLab_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_dev_test_lab" "import" {
+  name                = "${azurerm_dev_test_lab.test.name}"
+  location            = "${azurerm_dev_test_lab.test.location}"
+  resource_group_name = "${azurerm_dev_test_lab.test.resource_group_name}"
+}
+`, template)
 }
 
 func testAccAzureRMDevTestLab_complete(rInt int, location string) string {

@@ -6,14 +6,14 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMDnsMxRecord_basic(t *testing.T) {
 	resourceName := "azurerm_dns_mx_record.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDnsMxRecord_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -36,9 +36,38 @@ func TestAccAzureRMDnsMxRecord_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMDnsMxRecord_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_dns_mx_record.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDnsMxRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDnsMxRecord_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDnsMxRecordExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMDnsMxRecord_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_dns_mx_record"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMDnsMxRecord_updateRecords(t *testing.T) {
 	resourceName := "azurerm_dns_mx_record.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMDnsMxRecord_basic(ri, location)
 	postConfig := testAccAzureRMDnsMxRecord_updateRecords(ri, location)
@@ -68,7 +97,7 @@ func TestAccAzureRMDnsMxRecord_updateRecords(t *testing.T) {
 
 func TestAccAzureRMDnsMxRecord_withTags(t *testing.T) {
 	resourceName := "azurerm_dns_mx_record.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMDnsMxRecord_withTags(ri, location)
 	postConfig := testAccAzureRMDnsMxRecord_withTagsUpdate(ri, location)
@@ -101,12 +130,12 @@ func TestAccAzureRMDnsMxRecord_withTags(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDnsMxRecordExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDnsMxRecordExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		mxName := rs.Primary.Attributes["name"]
@@ -189,6 +218,30 @@ resource "azurerm_dns_mx_record" "test" {
   }
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMDnsMxRecord_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMDnsMxRecord_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_dns_mx_record" "import" {
+  name                = "${azurerm_dns_mx_record.test.name}"
+  resource_group_name = "${azurerm_dns_mx_record.test.resource_group_name}"
+  zone_name           = "${azurerm_dns_mx_record.test.zone_name}"
+  ttl                 = 300
+
+  record {
+    preference = "10"
+    exchange   = "mail1.contoso.com"
+  }
+
+  record {
+    preference = "20"
+    exchange   = "mail2.contoso.com"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMDnsMxRecord_updateRecords(rInt int, location string) string {

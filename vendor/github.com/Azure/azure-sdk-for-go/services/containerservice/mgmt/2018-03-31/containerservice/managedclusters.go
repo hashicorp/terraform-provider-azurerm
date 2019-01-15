@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -47,6 +48,16 @@ func NewManagedClustersClientWithBaseURI(baseURI string, subscriptionID string) 
 // resourceName - the name of the managed cluster resource.
 // parameters - parameters supplied to the Create or Update a Managed Cluster operation.
 func (client ManagedClustersClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, resourceName string, parameters ManagedCluster) (result ManagedClustersCreateOrUpdateFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedClustersClient.CreateOrUpdate")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.ManagedClusterProperties", Name: validation.Null, Rule: false,
@@ -145,6 +156,16 @@ func (client ManagedClustersClient) CreateOrUpdateResponder(resp *http.Response)
 // resourceGroupName - the name of the resource group.
 // resourceName - the name of the managed cluster resource.
 func (client ManagedClustersClient) Delete(ctx context.Context, resourceGroupName string, resourceName string) (result ManagedClustersDeleteFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedClustersClient.Delete")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeletePreparer(ctx, resourceGroupName, resourceName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersClient", "Delete", nil, "Failure preparing request")
@@ -211,6 +232,16 @@ func (client ManagedClustersClient) DeleteResponder(resp *http.Response) (result
 // resourceGroupName - the name of the resource group.
 // resourceName - the name of the managed cluster resource.
 func (client ManagedClustersClient) Get(ctx context.Context, resourceGroupName string, resourceName string) (result ManagedCluster, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedClustersClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetPreparer(ctx, resourceGroupName, resourceName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersClient", "Get", nil, "Failure preparing request")
@@ -280,6 +311,16 @@ func (client ManagedClustersClient) GetResponder(resp *http.Response) (result Ma
 // resourceName - the name of the managed cluster resource.
 // roleName - the name of the role for managed cluster accessProfile resource.
 func (client ManagedClustersClient) GetAccessProfile(ctx context.Context, resourceGroupName string, resourceName string, roleName string) (result ManagedClusterAccessProfile, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedClustersClient.GetAccessProfile")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetAccessProfilePreparer(ctx, resourceGroupName, resourceName, roleName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersClient", "GetAccessProfile", nil, "Failure preparing request")
@@ -349,6 +390,16 @@ func (client ManagedClustersClient) GetAccessProfileResponder(resp *http.Respons
 // resourceGroupName - the name of the resource group.
 // resourceName - the name of the managed cluster resource.
 func (client ManagedClustersClient) GetUpgradeProfile(ctx context.Context, resourceGroupName string, resourceName string) (result ManagedClusterUpgradeProfile, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedClustersClient.GetUpgradeProfile")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetUpgradeProfilePreparer(ctx, resourceGroupName, resourceName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersClient", "GetUpgradeProfile", nil, "Failure preparing request")
@@ -414,6 +465,16 @@ func (client ManagedClustersClient) GetUpgradeProfileResponder(resp *http.Respon
 // List gets a list of managed clusters in the specified subscription. The operation returns properties of each managed
 // cluster.
 func (client ManagedClustersClient) List(ctx context.Context) (result ManagedClusterListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedClustersClient.List")
+		defer func() {
+			sc := -1
+			if result.mclr.Response.Response != nil {
+				sc = result.mclr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx)
 	if err != nil {
@@ -476,8 +537,8 @@ func (client ManagedClustersClient) ListResponder(resp *http.Response) (result M
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client ManagedClustersClient) listNextResults(lastResults ManagedClusterListResult) (result ManagedClusterListResult, err error) {
-	req, err := lastResults.managedClusterListResultPreparer()
+func (client ManagedClustersClient) listNextResults(ctx context.Context, lastResults ManagedClusterListResult) (result ManagedClusterListResult, err error) {
+	req, err := lastResults.managedClusterListResultPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "containerservice.ManagedClustersClient", "listNextResults", nil, "Failure preparing next results request")
 	}
@@ -498,6 +559,16 @@ func (client ManagedClustersClient) listNextResults(lastResults ManagedClusterLi
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
 func (client ManagedClustersClient) ListComplete(ctx context.Context) (result ManagedClusterListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedClustersClient.List")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.page, err = client.List(ctx)
 	return
 }
@@ -507,6 +578,16 @@ func (client ManagedClustersClient) ListComplete(ctx context.Context) (result Ma
 // Parameters:
 // resourceGroupName - the name of the resource group.
 func (client ManagedClustersClient) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result ManagedClusterListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedClustersClient.ListByResourceGroup")
+		defer func() {
+			sc := -1
+			if result.mclr.Response.Response != nil {
+				sc = result.mclr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.fn = client.listByResourceGroupNextResults
 	req, err := client.ListByResourceGroupPreparer(ctx, resourceGroupName)
 	if err != nil {
@@ -570,8 +651,8 @@ func (client ManagedClustersClient) ListByResourceGroupResponder(resp *http.Resp
 }
 
 // listByResourceGroupNextResults retrieves the next set of results, if any.
-func (client ManagedClustersClient) listByResourceGroupNextResults(lastResults ManagedClusterListResult) (result ManagedClusterListResult, err error) {
-	req, err := lastResults.managedClusterListResultPreparer()
+func (client ManagedClustersClient) listByResourceGroupNextResults(ctx context.Context, lastResults ManagedClusterListResult) (result ManagedClusterListResult, err error) {
+	req, err := lastResults.managedClusterListResultPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "containerservice.ManagedClustersClient", "listByResourceGroupNextResults", nil, "Failure preparing next results request")
 	}
@@ -592,16 +673,36 @@ func (client ManagedClustersClient) listByResourceGroupNextResults(lastResults M
 
 // ListByResourceGroupComplete enumerates all values, automatically crossing page boundaries as required.
 func (client ManagedClustersClient) ListByResourceGroupComplete(ctx context.Context, resourceGroupName string) (result ManagedClusterListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedClustersClient.ListByResourceGroup")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.page, err = client.ListByResourceGroup(ctx, resourceGroupName)
 	return
 }
 
-// ListClusterAdminCredentials gets clusteradmin credential of the managed cluster with a specified resource group and
+// ListClusterAdminCredentials gets cluster admin credential of the managed cluster with a specified resource group and
 // name.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // resourceName - the name of the managed cluster resource.
 func (client ManagedClustersClient) ListClusterAdminCredentials(ctx context.Context, resourceGroupName string, resourceName string) (result CredentialResults, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedClustersClient.ListClusterAdminCredentials")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.ListClusterAdminCredentialsPreparer(ctx, resourceGroupName, resourceName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersClient", "ListClusterAdminCredentials", nil, "Failure preparing request")
@@ -664,12 +765,22 @@ func (client ManagedClustersClient) ListClusterAdminCredentialsResponder(resp *h
 	return
 }
 
-// ListClusterUserCredentials gets clusteruser credential of the managed cluster with a specified resource group and
+// ListClusterUserCredentials gets cluster user credential of the managed cluster with a specified resource group and
 // name.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // resourceName - the name of the managed cluster resource.
 func (client ManagedClustersClient) ListClusterUserCredentials(ctx context.Context, resourceGroupName string, resourceName string) (result CredentialResults, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedClustersClient.ListClusterUserCredentials")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.ListClusterUserCredentialsPreparer(ctx, resourceGroupName, resourceName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersClient", "ListClusterUserCredentials", nil, "Failure preparing request")
@@ -738,6 +849,16 @@ func (client ManagedClustersClient) ListClusterUserCredentialsResponder(resp *ht
 // resourceName - the name of the managed cluster resource.
 // parameters - parameters supplied to the Update Managed Cluster Tags operation.
 func (client ManagedClustersClient) UpdateTags(ctx context.Context, resourceGroupName string, resourceName string, parameters TagsObject) (result ManagedClustersUpdateTagsFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedClustersClient.UpdateTags")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.UpdateTagsPreparer(ctx, resourceGroupName, resourceName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersClient", "UpdateTags", nil, "Failure preparing request")

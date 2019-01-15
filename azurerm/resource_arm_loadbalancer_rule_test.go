@@ -5,10 +5,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestResourceAzureRMLoadBalancerRuleNameLabel_validation(t *testing.T) {
@@ -69,7 +70,7 @@ func TestResourceAzureRMLoadBalancerRuleNameLabel_validation(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerRule_basic(t *testing.T) {
 	var lb network.LoadBalancer
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	lbRuleName := fmt.Sprintf("LbRule-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
@@ -104,7 +105,7 @@ func TestAccAzureRMLoadBalancerRule_basic(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerRule_removal(t *testing.T) {
 	var lb network.LoadBalancer
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	lbRuleName := fmt.Sprintf("LbRule-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -133,7 +134,7 @@ func TestAccAzureRMLoadBalancerRule_removal(t *testing.T) {
 // https://github.com/hashicorp/terraform/issues/9424
 func TestAccAzureRMLoadBalancerRule_inconsistentReads(t *testing.T) {
 	var lb network.LoadBalancer
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	backendPoolName := fmt.Sprintf("LbPool-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
 	lbRuleName := fmt.Sprintf("LbRule-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
 	probeName := fmt.Sprintf("LbProbe-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
@@ -158,7 +159,7 @@ func TestAccAzureRMLoadBalancerRule_inconsistentReads(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerRule_update(t *testing.T) {
 	var lb network.LoadBalancer
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	lbRuleName := fmt.Sprintf("LbRule-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
 	lbRule2Name := fmt.Sprintf("LbRule-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
 
@@ -206,7 +207,7 @@ func TestAccAzureRMLoadBalancerRule_update(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerRule_reapply(t *testing.T) {
 	var lb network.LoadBalancer
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	lbRuleName := fmt.Sprintf("LbRule-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
 
 	deleteRuleState := func(s *terraform.State) error {
@@ -240,7 +241,7 @@ func TestAccAzureRMLoadBalancerRule_reapply(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerRule_disappears(t *testing.T) {
 	var lb network.LoadBalancer
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	lbRuleName := fmt.Sprintf("LbRule-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -324,10 +325,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "test-ip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
+  name                = "test-ip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
 }
 
 resource "azurerm_lb" "test" {
@@ -362,10 +363,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "test-ip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
+  name                = "test-ip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
 }
 
 resource "azurerm_lb" "test" {
@@ -390,10 +391,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "test-ip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
+  name                = "test-ip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
 }
 
 resource "azurerm_lb" "test" {
@@ -444,10 +445,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "test-ip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
+  name                = "test-ip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
 }
 
 resource "azurerm_lb" "test" {
@@ -493,10 +494,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "test-ip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
+  name                = "test-ip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
 }
 
 resource "azurerm_lb" "test" {

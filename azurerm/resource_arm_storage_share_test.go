@@ -10,12 +10,13 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMStorageShare_basic(t *testing.T) {
 	var sS storage.Share
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageShare_basic(ri, rs, testLocation())
 	resourceName := "azurerm_storage_share.test"
@@ -43,7 +44,7 @@ func TestAccAzureRMStorageShare_basic(t *testing.T) {
 func TestAccAzureRMStorageShare_disappears(t *testing.T) {
 	var sS storage.Share
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageShare_basic(ri, rs, testLocation())
 	resourceName := "azurerm_storage_share.test"
@@ -68,7 +69,7 @@ func TestAccAzureRMStorageShare_disappears(t *testing.T) {
 func TestAccAzureRMStorageShare_updateQuota(t *testing.T) {
 	var sS storage.Share
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageShare_basic(ri, rs, testLocation())
 	config2 := testAccAzureRMStorageShare_updateQuota(ri, rs, testLocation())
@@ -96,12 +97,12 @@ func TestAccAzureRMStorageShare_updateQuota(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMStorageShareExists(name string, sS *storage.Share) resource.TestCheckFunc {
+func testCheckAzureRMStorageShareExists(resourceName string, sS *storage.Share) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -149,11 +150,11 @@ func testCheckAzureRMStorageShareExists(name string, sS *storage.Share) resource
 	}
 }
 
-func testAccARMStorageShareDisappears(name string, sS *storage.Share) resource.TestCheckFunc {
+func testAccARMStorageShareDisappears(resourceName string, sS *storage.Share) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		armClient := testAccProvider.Meta().(*ArmClient)
@@ -178,11 +179,11 @@ func testAccARMStorageShareDisappears(name string, sS *storage.Share) resource.T
 		options := &storage.FileRequestOptions{}
 		err = reference.Create(options)
 		if err != nil {
-			return fmt.Errorf("Error creating Storage Share %q reference (storage account: %q) : %+v", name, storageAccountName, err)
+			return fmt.Errorf("Error creating Storage Share %q reference (storage account: %q) : %+v", sS.Name, storageAccountName, err)
 		}
 
 		if _, err = reference.DeleteIfExists(options); err != nil {
-			return fmt.Errorf("Error deleting storage file %q: %s", name, err)
+			return fmt.Errorf("Error deleting storage Share %q: %s", sS.Name, err)
 		}
 
 		return nil

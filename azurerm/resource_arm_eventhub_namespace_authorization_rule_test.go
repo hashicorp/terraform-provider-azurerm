@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -36,7 +36,7 @@ func testAccAzureRMEventHubNamespaceAuthorizationRule(t *testing.T, listen, send
 		CheckDestroy: testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubNamespaceAuthorizationRule_base(acctest.RandInt(), testLocation(), listen, send, manage),
+				Config: testAccAzureRMEventHubNamespaceAuthorizationRule_base(tf.AccRandTimeInt(), testLocation(), listen, send, manage),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
@@ -59,6 +59,36 @@ func testAccAzureRMEventHubNamespaceAuthorizationRule(t *testing.T, listen, send
 	})
 }
 
+func TestAccAzureRMEventHubNamespaceAuthorizationRule_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_eventhub_namespace_authorization_rule.test"
+	rInt := tf.AccRandTimeInt()
+
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMEventHubNamespaceAuthorizationRule_base(rInt, location, true, true, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMEventHubNamespaceAuthorizationRule_requiresImport(rInt, location, true, true, true),
+				ExpectError: testRequiresImportError("azurerm_eventhub_namespace_authorization_rule"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMEventHubNamespaceAuthorizationRule_rightsUpdate(t *testing.T) {
 	resourceName := "azurerm_eventhub_namespace_authorization_rule.test"
 
@@ -68,7 +98,7 @@ func TestAccAzureRMEventHubNamespaceAuthorizationRule_rightsUpdate(t *testing.T)
 		CheckDestroy: testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubNamespaceAuthorizationRule_base(acctest.RandInt(), testLocation(), true, false, false),
+				Config: testAccAzureRMEventHubNamespaceAuthorizationRule_base(tf.AccRandTimeInt(), testLocation(), true, false, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "listen", "true"),
@@ -77,7 +107,7 @@ func TestAccAzureRMEventHubNamespaceAuthorizationRule_rightsUpdate(t *testing.T)
 				),
 			},
 			{
-				Config: testAccAzureRMEventHubNamespaceAuthorizationRule_base(acctest.RandInt(), testLocation(), true, true, true),
+				Config: testAccAzureRMEventHubNamespaceAuthorizationRule_base(tf.AccRandTimeInt(), testLocation(), true, true, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
@@ -124,12 +154,12 @@ func testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy(s *terraform.Stat
 	return nil
 }
 
-func testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -166,7 +196,7 @@ resource "azurerm_eventhub_namespace" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku                 = "Standard"
+  sku = "Standard"
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
@@ -174,9 +204,25 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  listen              = %[3]t
-  send                = %[4]t
-  manage              = %[5]t
+  listen = %[3]t
+  send   = %[4]t
+  manage = %[5]t
 }
 `, rInt, location, listen, send, manage)
+}
+
+func testAccAzureRMEventHubNamespaceAuthorizationRule_requiresImport(rInt int, location string, listen, send, manage bool) string {
+	template := testAccAzureRMEventHubNamespaceAuthorizationRule_base(rInt, location, listen, send, manage)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_eventhub_namespace_authorization_rule" "import" {
+  name                = "${azurerm_eventhub_namespace_authorization_rule.test.name}"
+  namespace_name      = "${azurerm_eventhub_namespace_authorization_rule.test.namespace_name}"
+  resource_group_name = "${azurerm_eventhub_namespace_authorization_rule.test.resource_group_name}"
+  listen              = "${azurerm_eventhub_namespace_authorization_rule.test.listen}"
+  send                = "${azurerm_eventhub_namespace_authorization_rule.test.send}"
+  manage              = "${azurerm_eventhub_namespace_authorization_rule.test.manage}"
+}
+`, template)
 }

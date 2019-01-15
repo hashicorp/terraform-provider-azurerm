@@ -7,14 +7,14 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMDevSpaceController_basic(t *testing.T) {
 	resourceName := "azurerm_devspace_controller.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
@@ -36,12 +36,43 @@ func TestAccAzureRMDevSpaceController_basic(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDevSpaceControllerExists(name string) resource.TestCheckFunc {
+func TestAccAzureRMDevSpaceController_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_devspace_controller.test"
+	rInt := tf.AccRandTimeInt()
+	location := testLocation()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDevSpaceControllerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDevSpaceController_basic(rInt, location, clientId, clientSecret),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDevSpaceControllerExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMDevSpaceController_requiresImport(rInt, location, clientId, clientSecret),
+				ExpectError: testRequiresImportError("azurerm_devspace_controller"),
+			},
+		},
+	})
+}
+
+func testCheckAzureRMDevSpaceControllerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		ctrlName := rs.Primary.Attributes["name"]
@@ -127,19 +158,39 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 
-resource "azurerm_devspace_controller" test {
-  name                = "acctestdsc%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_devspace_controller" "test" {
+  name                                     = "acctestdsc%d"
+  location                                 = "${azurerm_resource_group.test.location}"
+  resource_group_name                      = "${azurerm_resource_group.test.name}"
+  host_suffix                              = "suffix"
+  target_container_host_resource_id        = "${azurerm_kubernetes_cluster.test.id}"
+  target_container_host_credentials_base64 = "${base64encode(azurerm_kubernetes_cluster.test.kube_config_raw)}"
 
   sku {
     name = "S1"
     tier = "Standard"
   }
-
-  host_suffix                              = "suffix"
-  target_container_host_resource_id        = "${azurerm_kubernetes_cluster.test.id}"
-  target_container_host_credentials_base64 = "${base64encode(azurerm_kubernetes_cluster.test.kube_config_raw)}"
 }
 `, rInt, location, rInt, clientId, clientSecret, rInt)
+}
+
+func testAccAzureRMDevSpaceController_requiresImport(rInt int, location string, clientId string, clientSecret string) string {
+	template := testAccAzureRMDevSpaceController_basic(rInt, location, clientId, clientSecret)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_devspace_controller" "import" {
+  name                                     = "${azurerm_devspace_controller.test.name}"
+  location                                 = "${azurerm_devspace_controller.test.location}"
+  resource_group_name                      = "${azurerm_devspace_controller.test.resource_group_name}"
+  host_suffix                              = "${azurerm_devspace_controller.test.host_suffix}"
+  target_container_host_resource_id        = "${azurerm_kubernetes_cluster.test.id}"
+  target_container_host_credentials_base64 = "${base64encode(azurerm_kubernetes_cluster.test.kube_config_raw)}"
+
+  sku {
+    name = "S1"
+    tier = "Standard"
+  }
+}
+`, template)
 }

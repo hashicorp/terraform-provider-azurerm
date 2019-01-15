@@ -5,9 +5,9 @@ import (
 	"log"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -62,7 +62,7 @@ func testSweepSQLServer(region string) error {
 
 func TestAccAzureRMSqlServer_basic(t *testing.T) {
 	resourceName := "azurerm_sql_server.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSqlServer_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -88,7 +88,7 @@ func TestAccAzureRMSqlServer_basic(t *testing.T) {
 
 func TestAccAzureRMSqlServer_disappears(t *testing.T) {
 	resourceName := "azurerm_sql_server.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSqlServer_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -110,7 +110,7 @@ func TestAccAzureRMSqlServer_disappears(t *testing.T) {
 
 func TestAccAzureRMSqlServer_withTags(t *testing.T) {
 	resourceName := "azurerm_sql_server.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMSqlServer_withTags(ri, location)
 	postConfig := testAccAzureRMSqlServer_withTagsUpdated(ri, location)
@@ -144,12 +144,12 @@ func TestAccAzureRMSqlServer_withTags(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMSqlServerExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMSqlServerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		sqlServerName := rs.Primary.Attributes["name"]
@@ -201,12 +201,12 @@ func testCheckAzureRMSqlServerDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMSqlServerDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMSqlServerDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]

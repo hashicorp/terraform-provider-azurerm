@@ -8,10 +8,12 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
+
+// TODO: refactor the test configs
 
 func init() {
 	resource.AddTestSweepers("azurerm_cosmosdb_account", &resource.Sweeper{
@@ -63,7 +65,7 @@ func testSweepCosmosDBAccount(region string) error {
 
 //consistency
 func TestAccAzureRMCosmosDBAccount_eventualConsistency(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -85,9 +87,37 @@ func TestAccAzureRMCosmosDBAccount_eventualConsistency(t *testing.T) {
 		},
 	})
 }
+func TestAccAzureRMCosmosDBAccount_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_cosmosdb_account.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDBAccount_basic(ri, location, string(documentdb.Eventual), "", ""),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.Eventual), 1),
+				),
+			},
+			{
+				Config:      testAccAzureRMCosmosDBAccount_requiresImport(ri, location, string(documentdb.Eventual), "", ""),
+				ExpectError: testRequiresImportError("azurerm_cosmosdb_account"),
+			},
+		},
+	})
+}
 
 func TestAccAzureRMCosmosDBAccount_session(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -111,7 +141,7 @@ func TestAccAzureRMCosmosDBAccount_session(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_strong(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -135,7 +165,7 @@ func TestAccAzureRMCosmosDBAccount_strong(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_consistentPrefix(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -159,7 +189,7 @@ func TestAccAzureRMCosmosDBAccount_consistentPrefix(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_boundedStaleness(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -183,7 +213,7 @@ func TestAccAzureRMCosmosDBAccount_boundedStaleness(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_boundedStaleness_complete(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -209,7 +239,7 @@ func TestAccAzureRMCosmosDBAccount_boundedStaleness_complete(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_consistency_change(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -236,7 +266,7 @@ func TestAccAzureRMCosmosDBAccount_consistency_change(t *testing.T) {
 
 //DB kinds
 func TestAccAzureRMCosmosDBAccount_mongoDB(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -262,7 +292,7 @@ func TestAccAzureRMCosmosDBAccount_mongoDB(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_gremlin(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -287,7 +317,7 @@ func TestAccAzureRMCosmosDBAccount_gremlin(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_table(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -312,7 +342,7 @@ func TestAccAzureRMCosmosDBAccount_table(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_updatePropertiesAndLocation(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -339,7 +369,7 @@ func TestAccAzureRMCosmosDBAccount_updatePropertiesAndLocation(t *testing.T) {
 
 //replication
 func TestAccAzureRMCosmosDBAccount_geoReplicated_customId(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -363,7 +393,7 @@ func TestAccAzureRMCosmosDBAccount_geoReplicated_customId(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_geoReplicated_add_remove(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 	configBasic := testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.BoundedStaleness), "", "")
 	configReplicated := testAccAzureRMCosmosDBAccount_geoReplicated_customId(ri, testLocation(), testAltLocation())
@@ -399,7 +429,7 @@ func TestAccAzureRMCosmosDBAccount_geoReplicated_add_remove(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_geoReplicated_rename(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -425,7 +455,7 @@ func TestAccAzureRMCosmosDBAccount_geoReplicated_rename(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_virtualNetworkFilter(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -448,7 +478,7 @@ func TestAccAzureRMCosmosDBAccount_virtualNetworkFilter(t *testing.T) {
 
 //basic --> complete (
 func TestAccAzureRMCosmosDBAccount_complete(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -478,7 +508,7 @@ func TestAccAzureRMCosmosDBAccount_complete(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_multiMaster(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -529,12 +559,12 @@ func testCheckAzureRMCosmosDBAccountDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMCosmosDBAccountExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMCosmosDBAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -574,6 +604,7 @@ resource "azurerm_cosmosdb_account" "test" {
 
   consistency_policy {
     consistency_level = "%s"
+
     %s
   }
 
@@ -582,10 +613,36 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 0
   }
 
-%s
-
+  %s
 }
 `, rInt, location, rInt, consistency, consistencyOptions, additional)
+}
+
+func testAccAzureRMCosmosDBAccount_requiresImport(rInt int, location string, consistency string, consistencyOptions string, additional string) string {
+	template := testAccAzureRMCosmosDBAccount_basic(rInt, location, consistency, consistencyOptions, additional)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cosmosdb_account" "import" {
+  name                = "${azurerm_cosmosdb_account.test.name}"
+  location            = "${azurerm_cosmosdb_account.test.location}"
+  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
+  offer_type          = "Standard"
+
+  consistency_policy {
+    consistency_level = "%s"
+
+    %s
+  }
+
+  geo_location {
+    location          = "${azurerm_resource_group.test.location}"
+    failover_priority = 0
+  }
+
+  %s
+}
+`, template, consistency, consistencyOptions, additional)
 }
 
 func testAccAzureRMCosmosDBAccount_boundedStaleness_complete(rInt int, location string) string {

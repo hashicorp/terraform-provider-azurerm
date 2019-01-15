@@ -10,13 +10,14 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMStorageTable_basic(t *testing.T) {
 	resourceName := "azurerm_storage_table.test"
 	var table storage.Table
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageTable_basic(ri, rs, testLocation())
 
@@ -43,7 +44,7 @@ func TestAccAzureRMStorageTable_basic(t *testing.T) {
 func TestAccAzureRMStorageTable_disappears(t *testing.T) {
 	var table storage.Table
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageTable_basic(ri, rs, testLocation())
 
@@ -64,12 +65,12 @@ func TestAccAzureRMStorageTable_disappears(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMStorageTableExists(name string, t *storage.Table) resource.TestCheckFunc {
+func testCheckAzureRMStorageTableExists(resourceName string, t *storage.Table) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -114,11 +115,11 @@ func testCheckAzureRMStorageTableExists(name string, t *storage.Table) resource.
 	}
 }
 
-func testAccARMStorageTableDisappears(name string, t *storage.Table) resource.TestCheckFunc {
+func testAccARMStorageTableDisappears(resourceName string, t *storage.Table) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		armClient := testAccProvider.Meta().(*ArmClient)

@@ -11,14 +11,15 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmEventHub() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmEventHubCreate,
+		Create: resourceArmEventHubCreateUpdate,
 		Read:   resourceArmEventHubRead,
-		Update: resourceArmEventHubCreate,
+		Update: resourceArmEventHubCreateUpdate,
 		Delete: resourceArmEventHubDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -135,7 +136,7 @@ func resourceArmEventHub() *schema.Resource {
 	}
 }
 
-func resourceArmEventHubCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).eventHubClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ARM EventHub creation.")
@@ -143,6 +144,20 @@ func resourceArmEventHubCreate(d *schema.ResourceData, meta interface{}) error {
 	name := d.Get("name").(string)
 	namespaceName := d.Get("namespace_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, namespaceName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing EventHub %q (Namespace %q / Resource Group %q): %s", name, namespaceName, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_eventhub", *existing.ID)
+		}
+	}
+
 	partitionCount := int64(d.Get("partition_count").(int))
 	messageRetention := int64(d.Get("message_retention").(int))
 

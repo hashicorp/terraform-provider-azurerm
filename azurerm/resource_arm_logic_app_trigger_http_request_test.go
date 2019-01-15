@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMLogicAppTriggerHttpRequest_basic(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_http_request.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -35,7 +35,7 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_basic(t *testing.T) {
 
 func TestAccAzureRMLogicAppTriggerHttpRequest_fullSchema(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_http_request.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -60,7 +60,7 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_fullSchema(t *testing.T) {
 
 func TestAccAzureRMLogicAppTriggerHttpRequest_method(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_http_request.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -85,7 +85,7 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_method(t *testing.T) {
 
 func TestAccAzureRMLogicAppTriggerHttpRequest_relativePath(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_http_request.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -110,7 +110,7 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_relativePath(t *testing.T) {
 }
 
 func TestAccAzureRMLogicAppTriggerHttpRequest_disappears(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -160,7 +160,8 @@ func testAccAzureRMLogicAppTriggerHttpRequest_fullSchema(rInt int, location stri
 resource "azurerm_logic_app_trigger_http_request" "test" {
   name         = "some-http-trigger"
   logic_app_id = "${azurerm_logic_app_workflow.test.id}"
-  schema       = <<SCHEMA
+
+  schema = <<SCHEMA
 {
     "type": "object",
     "properties": {

@@ -40,10 +40,10 @@ resource "azurerm_subnet" "backend" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "example-pip"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
-  public_ip_address_allocation = "dynamic"
+  name                = "example-pip"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  allocation_method   = "Dynamic"
 }
 
 # since these variables are re-used - a locals block makes this more maintainable

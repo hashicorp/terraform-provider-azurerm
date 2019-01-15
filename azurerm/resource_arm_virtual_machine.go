@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -21,9 +21,9 @@ var virtualMachineResourceName = "azurerm_virtual_machine"
 
 func resourceArmVirtualMachine() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualMachineCreate,
+		Create: resourceArmVirtualMachineCreateUpdate,
 		Read:   resourceArmVirtualMachineRead,
-		Update: resourceArmVirtualMachineCreate,
+		Update: resourceArmVirtualMachineCreateUpdate,
 		Delete: resourceArmVirtualMachineDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -553,7 +553,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualMachineCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmVirtualMachineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).vmClient
 	ctx := meta.(*ArmClient).StopContext
 

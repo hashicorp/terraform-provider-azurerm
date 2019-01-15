@@ -2,15 +2,17 @@ package azurerm
 
 import (
 	"fmt"
+
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
 func TestAccDataSourceAzureRMAppServicePlan_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service_plan.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -35,7 +37,7 @@ func TestAccDataSourceAzureRMAppServicePlan_basic(t *testing.T) {
 
 func TestAccDataSourceAzureRMAppServicePlan_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service_plan.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{

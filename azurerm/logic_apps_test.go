@@ -9,11 +9,11 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func testCheckAzureRMLogicAppActionExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMLogicAppActionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		logicAppId := rs.Primary.Attributes["logic_app_id"]
@@ -57,11 +57,11 @@ func testCheckAzureRMLogicAppActionExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testCheckAzureRMLogicAppTriggerExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMLogicAppTriggerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		logicAppId := rs.Primary.Attributes["logic_app_id"]

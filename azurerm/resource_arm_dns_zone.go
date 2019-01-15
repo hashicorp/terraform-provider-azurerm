@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -30,12 +31,12 @@ func resourceArmDnsZone() *schema.Resource {
 			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
 
 			"number_of_record_sets": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 
 			"max_number_of_record_sets": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 
@@ -79,6 +80,20 @@ func resourceArmDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) er
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing DNS Zone %q (Resource Group %q): %s", name, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_dns_zone", *existing.ID)
+		}
+	}
+
 	location := "global"
 	zoneType := d.Get("zone_type").(string)
 	tags := d.Get("tags").(map[string]interface{})
@@ -98,13 +113,18 @@ func resourceArmDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) er
 
 	etag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	resp, err := client.CreateOrUpdate(ctx, resGroup, name, parameters, etag, ifNoneMatch)
+	_, err := client.CreateOrUpdate(ctx, resGroup, name, parameters, etag, ifNoneMatch)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating/updating DNS Zone %q (Resource Group %q): %s", name, resGroup, err)
+	}
+
+	resp, err := client.Get(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving DNS Zone %q (Resource Group %q): %s", name, resGroup, err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read DNS zone %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read DNS Zone %q (Resource Group %q) ID", name, resGroup)
 	}
 
 	d.SetId(*resp.ID)
@@ -130,7 +150,7 @@ func resourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading DNS zone %s (resource group %s): %+v", name, resGroup, err)
+		return fmt.Errorf("Error reading DNS Zone %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	d.Set("name", name)

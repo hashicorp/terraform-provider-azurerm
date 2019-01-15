@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMLogicAppActionHttp_basic(t *testing.T) {
 	resourceName := "azurerm_logic_app_action_http.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMLogicAppActionHttp_basic(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -34,7 +34,7 @@ func TestAccAzureRMLogicAppActionHttp_basic(t *testing.T) {
 
 func TestAccAzureRMLogicAppActionHttp_headers(t *testing.T) {
 	resourceName := "azurerm_logic_app_action_http.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMLogicAppActionHttp_headers(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -57,7 +57,7 @@ func TestAccAzureRMLogicAppActionHttp_headers(t *testing.T) {
 }
 
 func TestAccAzureRMLogicAppActionHttp_disappears(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -110,6 +110,7 @@ resource "azurerm_logic_app_action_http" "test" {
   logic_app_id = "${azurerm_logic_app_workflow.test.id}"
   method       = "GET"
   uri          = "http://example.com/hello"
+
   headers {
     "Hello"     = "World"
     "Something" = "New"

@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(t *testing.T) {
 	resourceName := "azurerm_servicebus_subscription_rule.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -32,7 +32,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(t *testing.T) {
 
 func TestAccAzureRMServiceBusSubscriptionRule_basicCorrelationFilter(t *testing.T) {
 	resourceName := "azurerm_servicebus_subscription_rule.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMServiceBusSubscriptionRule_basicCorrelationFilter(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -52,7 +52,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_basicCorrelationFilter(t *testing.
 
 func TestAccAzureRMServiceBusSubscriptionRule_sqlFilterWithAction(t *testing.T) {
 	resourceName := "azurerm_servicebus_subscription_rule.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMServiceBusSubscriptionRule_sqlFilterWithAction(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -72,7 +72,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_sqlFilterWithAction(t *testing.T) 
 
 func TestAccAzureRMServiceBusSubscriptionRule_correlationFilterWithAction(t *testing.T) {
 	resourceName := "azurerm_servicebus_subscription_rule.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMServiceBusSubscriptionRule_correlationFilterWithAction(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -92,7 +92,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_correlationFilterWithAction(t *tes
 
 func TestAccAzureRMServiceBusSubscriptionRule_sqlFilterUpdated(t *testing.T) {
 	resourceName := "azurerm_servicebus_subscription_rule.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(ri, location)
 	updatedConfig := testAccAzureRMServiceBusSubscriptionRule_basicSqlFilterUpdated(ri, location)
@@ -122,7 +122,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_sqlFilterUpdated(t *testing.T) {
 
 func TestAccAzureRMServiceBusSubscriptionRule_correlationFilterUpdated(t *testing.T) {
 	resourceName := "azurerm_servicebus_subscription_rule.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMServiceBusSubscriptionRule_correlationFilter(ri, location)
 	updatedConfig := testAccAzureRMServiceBusSubscriptionRule_correlationFilterUpdated(ri, location)
@@ -154,7 +154,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_correlationFilterUpdated(t *testin
 
 func TestAccAzureRMServiceBusSubscriptionRule_updateSqlFilterToCorrelationFilter(t *testing.T) {
 	resourceName := "azurerm_servicebus_subscription_rule.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(ri, location)
 	updatedConfig := testAccAzureRMServiceBusSubscriptionRule_basicCorrelationFilter(ri, location)
@@ -223,8 +223,8 @@ resource "azurerm_servicebus_subscription_rule" "test" {
   topic_name          = "${azurerm_servicebus_topic.test.name}"
   subscription_name   = "${azurerm_servicebus_subscription.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  filter_type 		= "SqlFilter"
-  sql_filter  		= "2=2"
+  filter_type         = "SqlFilter"
+  sql_filter          = "2=2"
 }
 `, template, rInt)
 }
@@ -240,8 +240,8 @@ resource "azurerm_servicebus_subscription_rule" "test" {
   topic_name          = "${azurerm_servicebus_topic.test.name}"
   subscription_name   = "${azurerm_servicebus_subscription.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  filter_type 		= "SqlFilter"
-  sql_filter  		= "3=3"
+  filter_type         = "SqlFilter"
+  sql_filter          = "3=3"
 }
 `, template, rInt)
 }
@@ -257,9 +257,9 @@ resource "azurerm_servicebus_subscription_rule" "test" {
   topic_name          = "${azurerm_servicebus_topic.test.name}"
   subscription_name   = "${azurerm_servicebus_subscription.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  filter_type 		= "SqlFilter"
-  sql_filter  		= "2=2"
-  action      		= "SET Test='true'"
+  filter_type         = "SqlFilter"
+  sql_filter          = "2=2"
+  action              = "SET Test='true'"
 }
 `, template, rInt)
 }
@@ -275,9 +275,9 @@ resource "azurerm_servicebus_subscription_rule" "test" {
   topic_name          = "${azurerm_servicebus_topic.test.name}"
   subscription_name   = "${azurerm_servicebus_subscription.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  filter_type 		= "CorrelationFilter"
+  filter_type         = "CorrelationFilter"
 
-  correlation_filter 	= {
+  correlation_filter = {
     correlation_id      = "test_correlation_id"
     message_id          = "test_message_id"
     to                  = "test_to"
@@ -287,7 +287,7 @@ resource "azurerm_servicebus_subscription_rule" "test" {
     reply_to_session_id = "test_reply_to_session_id"
     content_type        = "test_content_type"
   }
-}	
+}
 `, template, rInt)
 }
 
@@ -302,11 +302,11 @@ resource "azurerm_servicebus_subscription_rule" "test" {
   topic_name          = "${azurerm_servicebus_topic.test.name}"
   subscription_name   = "${azurerm_servicebus_subscription.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  filter_type 		= "CorrelationFilter"
+  filter_type         = "CorrelationFilter"
 
-  correlation_filter 	= {
-    correlation_id	= "test_correlation_id"
-    message_id		= "test_message_id"
+  correlation_filter = {
+    correlation_id = "test_correlation_id"
+    message_id     = "test_message_id"
   }
 }
 `, template, rInt)
@@ -325,10 +325,10 @@ resource "azurerm_servicebus_subscription_rule" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   filter_type         = "CorrelationFilter"
 
-  correlation_filter 	= {
-    correlation_id	= "test_correlation_id"
-    message_id		= "test_message_id_updated"
-    reply_to		= "test_reply_to_added" 
+  correlation_filter = {
+    correlation_id = "test_correlation_id"
+    message_id     = "test_message_id_updated"
+    reply_to       = "test_reply_to_added"
   }
 }
 `, template, rInt)
@@ -345,8 +345,8 @@ resource "azurerm_servicebus_subscription_rule" "test" {
   topic_name          = "${azurerm_servicebus_topic.test.name}"
   subscription_name   = "${azurerm_servicebus_subscription.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  action      		  = "SET Test='true'"
-  filter_type 		  = "CorrelationFilter"
+  action              = "SET Test='true'"
+  filter_type         = "CorrelationFilter"
 
   correlation_filter = {
     correlation_id = "test_correlation_id"
@@ -367,7 +367,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "standard"
+  sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {

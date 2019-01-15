@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMSqlElasticPool_basic(t *testing.T) {
 	resourceName := "azurerm_sql_elasticpool.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSqlElasticPool_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -37,7 +37,7 @@ func TestAccAzureRMSqlElasticPool_basic(t *testing.T) {
 
 func TestAccAzureRMSqlElasticPool_disappears(t *testing.T) {
 	resourceName := "azurerm_sql_elasticpool.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSqlElasticPool_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -59,7 +59,7 @@ func TestAccAzureRMSqlElasticPool_disappears(t *testing.T) {
 
 func TestAccAzureRMSqlElasticPool_resizeDtu(t *testing.T) {
 	resourceName := "azurerm_sql_elasticpool.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMSqlElasticPool_basic(ri, location)
 	postConfig := testAccAzureRMSqlElasticPool_resizedDtu(ri, location)
@@ -89,11 +89,11 @@ func TestAccAzureRMSqlElasticPool_resizeDtu(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMSqlElasticPoolExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMSqlElasticPoolExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
@@ -109,7 +109,7 @@ func testCheckAzureRMSqlElasticPoolExists(name string) resource.TestCheckFunc {
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: SQL Elastic Pool %q on server: %q (resource group: %q) does not exist", name, serverName, resourceGroup)
+			return fmt.Errorf("Bad: SQL Elastic Pool %q on server: %q (resource group: %q) does not exist", poolName, serverName, resourceGroup)
 		}
 
 		return nil
@@ -143,12 +143,12 @@ func testCheckAzureRMSqlElasticPoolDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMSqlElasticPoolDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMSqlElasticPoolDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]

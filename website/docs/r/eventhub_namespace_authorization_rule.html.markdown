@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventhub_namespace_authorization_rule"
-sidebar_current: "docs-azurerm-resource-eventhub-namespace-authorization-rule"
+sidebar_current: "docs-azurerm-resource-messaging-eventhub-namespace-authorization-rule"
 description: |-
   Manages an Authorization Rule for an Event Hub Namespace.
 ---

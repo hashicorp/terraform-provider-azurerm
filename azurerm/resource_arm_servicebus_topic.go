@@ -13,9 +13,9 @@ import (
 
 func resourceArmServiceBusTopic() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceBusTopicCreate,
+		Create: resourceArmServiceBusTopicCreateUpdate,
 		Read:   resourceArmServiceBusTopicRead,
-		Update: resourceArmServiceBusTopicCreate,
+		Update: resourceArmServiceBusTopicCreateUpdate,
 		Delete: resourceArmServiceBusTopicDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -116,7 +116,7 @@ func resourceArmServiceBusTopic() *schema.Resource {
 	}
 }
 
-func resourceArmServiceBusTopicCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).serviceBusTopicsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ServiceBus Topic creation.")

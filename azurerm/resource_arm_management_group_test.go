@@ -6,9 +6,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMManagementGroup_basic(t *testing.T) {
@@ -106,7 +106,7 @@ func TestAccAzureRMManagementGroup_multiLevelUpdated(t *testing.T) {
 
 func TestAccAzureRMManagementGroup_withName(t *testing.T) {
 	resourceName := "azurerm_management_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -125,7 +125,7 @@ func TestAccAzureRMManagementGroup_withName(t *testing.T) {
 
 func TestAccAzureRMManagementGroup_updateName(t *testing.T) {
 	resourceName := "azurerm_management_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -183,26 +183,26 @@ func TestAccAzureRMManagementGroup_withSubscriptions(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMManagementGroupExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMManagementGroupExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("not found: %s", name)
+			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		name := rs.Primary.Attributes["group_id"]
+		groupName := rs.Primary.Attributes["group_id"]
 
 		client := testAccProvider.Meta().(*ArmClient).managementGroupsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		recurse := false
-		resp, err := client.Get(ctx, name, "", &recurse, "", "no-cache")
+		resp, err := client.Get(ctx, groupName, "", &recurse, "", "no-cache")
 		if err != nil {
 			return fmt.Errorf("Bad: Get on managementGroupsClient: %s", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Management Group does not exist: %s", name)
+			return fmt.Errorf("Management Group does not exist: %s", groupName)
 		}
 
 		return nil
@@ -236,8 +236,7 @@ func testCheckAzureRMManagementGroupDestroy(s *terraform.State) error {
 
 func testAzureRMManagementGroup_basic() string {
 	return fmt.Sprintf(`
-resource "azurerm_management_group" "test" {
-}
+resource "azurerm_management_group" "test" {}
 `)
 }
 

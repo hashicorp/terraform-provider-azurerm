@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -37,7 +37,7 @@ func testAccAzureRMServiceBusNamespaceAuthorizationRule(t *testing.T, listen, se
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceBusNamespaceAuthorizationRule_base(acctest.RandInt(), testLocation(), listen, send, manage),
+				Config: testAccAzureRMServiceBusNamespaceAuthorizationRule_base(tf.AccRandTimeInt(), testLocation(), listen, send, manage),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
@@ -69,7 +69,7 @@ func TestAccAzureRMServiceBusNamespaceAuthorizationRule_rightsUpdate(t *testing.
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceBusNamespaceAuthorizationRule_base(acctest.RandInt(), testLocation(), true, false, false),
+				Config: testAccAzureRMServiceBusNamespaceAuthorizationRule_base(tf.AccRandTimeInt(), testLocation(), true, false, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "listen", "true"),
@@ -78,7 +78,7 @@ func TestAccAzureRMServiceBusNamespaceAuthorizationRule_rightsUpdate(t *testing.
 				),
 			},
 			{
-				Config: testAccAzureRMServiceBusNamespaceAuthorizationRule_base(acctest.RandInt(), testLocation(), true, true, true),
+				Config: testAccAzureRMServiceBusNamespaceAuthorizationRule_base(tf.AccRandTimeInt(), testLocation(), true, true, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
@@ -125,12 +125,12 @@ func testCheckAzureRMServiceBusNamespaceAuthorizationRuleDestroy(s *terraform.St
 	return nil
 }
 
-func testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -174,9 +174,9 @@ resource "azurerm_servicebus_namespace_authorization_rule" "test" {
   namespace_name      = "${azurerm_servicebus_namespace.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  listen              = %[3]t
-  send                = %[4]t
-  manage              = %[5]t
+  listen = %[3]t
+  send   = %[4]t
+  manage = %[5]t
 }
 `, rInt, location, listen, send, manage)
 }

@@ -7,19 +7,38 @@
               <a href="/docs/providers/index.html">All Providers</a>
             </li>
 
-            <li<%= sidebar_current("docs-azurerm-index") %>>
-              <a href="/docs/providers/azurerm/index.html">Azure Provider</a>
+            <li>
+              <a href="#">Azure Providers</a>
               <ul class="nav nav-visible">
-                <li<%= sidebar_current("docs-azurerm-index-authentication-azure-cli") %>>
-                    <a href="/docs/providers/azurerm/authenticating_via_azure_cli.html">Authenticating via the Azure CLI</a>
+                <li<%= sidebar_current("docs-azuread-index") %>>
+                   <a href="/docs/providers/azuread/index.html">Azure Active Directory</a>
+                </li>
+                <li<%= sidebar_current("docs-azurerm-index") %>>
+                   <a href="/docs/providers/azurerm/index.html">Azure</a>
+                </li>
+                <li<%= sidebar_current("docs-azurestack-index") %>>
+                   <a href="/docs/providers/azurestack/index.html">Azure Stack</a>
+                </li>
+              </ul>
+            </li>
+
+            <li<%= sidebar_current("docs-azurerm-authentication") %>>
+              <a href="#">Authentication</a>
+              <ul class="nav nav-visible">
+                <li<%= sidebar_current("docs-azurerm-authentication-azure-cli") %>>
+                    <a href="/docs/providers/azurerm/auth/azure_cli.html">Authenticating using the Azure CLI</a>
                 </li>
 
-                <li<%= sidebar_current("docs-azurerm-index-authentication-service-principal") %>>
-                    <a href="/docs/providers/azurerm/authenticating_via_service_principal.html">Authenticating via a Service Principal (Shared Account)</a>
+                <li<%= sidebar_current("docs-azurerm-authentication-managed-service-identity") %>>
+                    <a href="/docs/providers/azurerm/auth/managed_service_identity.html">Authenticating using Managed Service Identity</a>
                 </li>
 
-                <li<%= sidebar_current("docs-azurerm-index-authentication-msi") %>>
-                    <a href="/docs/providers/azurerm/authenticating_via_msi.html">Authenticating via Managed Service Identity</a>
+                <li<%= sidebar_current("docs-azurerm-authentication-service-principal-client-certificate") %>>
+                    <a href="/docs/providers/azurerm/auth/service_principal_client_certificate.html">Authenticating using a Service Principal with a Client Certificate</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-authentication-service-principal-client-secret") %>>
+                    <a href="/docs/providers/azurerm/auth/service_principal_client_secret.html">Authenticating using a Service Principal with a Client Secret</a>
                 </li>
               </ul>
             </li>
@@ -52,12 +71,24 @@
                     <a href="/docs/providers/azurerm/d/app_service_plan.html">azurerm_app_service_plan</a>
                 </li>
 
+                <li<%= sidebar_current("docs-azurerm-datasource-application-insights") %>>
+                    <a href="/docs/providers/azurerm/d/application_insights.html">azurerm_application_insights</a>
+                </li>
+
                 <li<%= sidebar_current("docs-azurerm-datasource-azuread-application") %>>
                   <a href="/docs/providers/azurerm/d/azuread_application.html">azurerm_azuread_application</a>
                 </li>
 
                 <li<%= sidebar_current("docs-azurerm-datasource-azuread-application") %>>
                   <a href="/docs/providers/azurerm/d/azuread_service_principal.html">azurerm_azuread_service_principal</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-datasource-batch-account") %>>
+                  <a href="/docs/providers/azurerm/d/batch_account.html">azurerm_batch_account</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-datasource-batch-pool") %>>
+                  <a href="/docs/providers/azurerm/d/batch_pool.html">azurerm_batch_pool</a>
                 </li>
 
                 <li<%= sidebar_current("docs-azurerm-datasource-builtin-role-definition") %>>
@@ -76,7 +107,7 @@
                     <a href="/docs/providers/azurerm/d/container_registry.html">azurerm_container_registry</a>
                 </li>
 
-                <li<%= sidebar_current("docs-azurerm-cosmosdb-account") %>>
+                <li<%= sidebar_current("docs-azurerm-datasource-cosmosdb-account") %>>
                     <a href="/docs/providers/azurerm/d/cosmosdb_account.html">azurerm_cosmosdb_account</a>
                 </li>
 
@@ -118,6 +149,14 @@
 
                 <li<%= sidebar_current("docs-azurerm-data-source-kubernetes-cluster") %>>
                     <a href="/docs/providers/azurerm/d/kubernetes_cluster.html">azurerm_kubernetes_cluster</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-datasource-load-balancer-x") %>>
+                    <a href="/docs/providers/azurerm/d/loadbalancer.html">azurerm_lb</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-datasource-load-balancer-backend-address-pool") %>>
+                    <a href="/docs/providers/azurerm/d/loadbalancer_backend_address_pool.html">azurerm_lb_backend_address_pool</a>
                 </li>
 
                 <li<%= sidebar_current("docs-azurerm-data-source-logic-analytics-workspace") %>>
@@ -226,6 +265,10 @@
 
                 <li<%= sidebar_current("docs-azurerm-datasource-traffic-manager-geographical-location") %>>
                     <a href="/docs/providers/azurerm/d/traffic_manager_geographical_location.html">azurerm_traffic_manager_geographical_location</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-datasource-virtual-machine") %>>
+                    <a href="/docs/providers/azurerm/d/virtual_machine.html">azurerm_virtual_machine</a>
                 </li>
 
                 <li<%= sidebar_current("docs-azurerm-datasource-virtual-network-x") %>>
@@ -358,6 +401,23 @@
               <ul class="nav nav-visible">
                 <li<%= sidebar_current("docs-azurerm-resource-application-insights") %>>
                   <a href="/docs/providers/azurerm/r/application_insights.html">azurerm_application_insights</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-application-insights-api-key") %>>
+                  <a href="/docs/providers/azurerm/r/application_insights_api_key.html">azurerm_application_insights_api_key</a>
+                </li>
+              </ul>
+            </li>
+
+            <li<%= sidebar_current("docs-azurerm-resource-batch") %>>
+              <a href="#">Batch Resources</a>
+              <ul class="nav nav-visible">
+                <li<%= sidebar_current("docs-azurerm-resource-batch-account") %>>
+                  <a href="/docs/providers/azurerm/r/batch_account.html">azurerm_batch_account</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-batch-pool") %>>
+                  <a href="/docs/providers/azurerm/r/batch_pool.html">azurerm_batch_pool</a>
                 </li>
               </ul>
             </li>
@@ -769,6 +829,10 @@
                   <a href="/docs/providers/azurerm/r/eventhub_namespace.html">azurerm_eventhub_namespace</a>
                 </li>
 
+                <li<%= sidebar_current("docs-azurerm-resource-messaging-eventhub-namespace-authorization-rule") %>>
+                  <a href="/docs/providers/azurerm/r/eventhub_namespace_authorization_rule.html">azurerm_eventhub_namespace_authorization_rule</a>
+                </li>
+
                 <li<%= sidebar_current("docs-azurerm-resource-messaging-iothub-x") %>>
                   <a href="/docs/providers/azurerm/r/iothub.html">azurerm_iothub</a>
                 </li>
@@ -824,6 +888,10 @@
                 <li<%= sidebar_current("docs-azurerm-resource-messaging-servicebus-topic-authorization-rule") %>>
                   <a href="/docs/providers/azurerm/r/servicebus_topic_authorization_rule.html">azurerm_servicebus_topic_authorization_rule</a>
                 </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-messaging-signalr-service") %>>
+                  <a href="/docs/providers/azurerm/r/signalr_service.html">azurerm_signalr_service</a>
+                </li>
               </ul>
             </li>
 
@@ -871,6 +939,10 @@
 
                 <li<%= sidebar_current("docs-azurerm-resource-network-application-security-group") %>>
                   <a href="/docs/providers/azurerm/r/application_security_group.html">azurerm_application_security_group</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-network-ddos-protection-plan") %>>
+                  <a href="/docs/providers/azurerm/r/ddos_protection_plan.html">azurerm_ddos_protection_plan</a>
                 </li>
 
                 <li<%= sidebar_current("docs-azurerm-resource-network-express-route-circuit-x") %>>
@@ -1014,6 +1086,10 @@
 
                 <li<%= sidebar_current("docs-azurerm-resource-policy-definition") %>>
                   <a href="/docs/providers/azurerm/r/policy_definition.html">azurerm_policy_definition</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-policy-set-definition") %>>
+                  <a href="/docs/providers/azurerm/r/policy_set_definition.html">azurerm_policy_set_definition</a>
                 </li>
               </ul>
             </li>

@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMRoute_basic(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMRoute_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -37,9 +37,9 @@ func TestAccAzureRMRoute_basic(t *testing.T) {
 
 func TestAccAzureRMRoute_update(t *testing.T) {
 	resourceName := "azurerm_route.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRouteDestroy,
@@ -73,7 +73,7 @@ func TestAccAzureRMRoute_update(t *testing.T) {
 }
 
 func TestAccAzureRMRoute_disappears(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMRoute_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -94,7 +94,7 @@ func TestAccAzureRMRoute_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMRoute_multipleRoutes(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMRoute_basic(ri, location)
 	postConfig := testAccAzureRMRoute_multipleRoutes(ri, location)
@@ -121,12 +121,12 @@ func TestAccAzureRMRoute_multipleRoutes(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMRouteExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMRouteExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %q", name)
+			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -151,12 +151,12 @@ func testCheckAzureRMRouteExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testCheckAzureRMRouteDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMRouteDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -236,24 +236,24 @@ resource "azurerm_route" "test" {
 func testAccAzureRMRoute_basicAppliance(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name     = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_route_table" "test" {
-    name                = "acctestrt%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestrt%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_route" "test" {
-    name                = "acctestroute%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    route_table_name    = "${azurerm_route_table.test.name}"
+  name                = "acctestroute%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  route_table_name    = "${azurerm_route_table.test.name}"
 
-    address_prefix         = "10.1.0.0/16"
-    next_hop_type          = "VirtualAppliance"
-    next_hop_in_ip_address = "192.168.0.1"
+  address_prefix         = "10.1.0.0/16"
+  next_hop_type          = "VirtualAppliance"
+  next_hop_in_ip_address = "192.168.0.1"
 }
 `, rInt, location, rInt, rInt)
 }

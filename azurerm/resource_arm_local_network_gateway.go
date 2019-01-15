@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -11,9 +11,9 @@ import (
 
 func resourceArmLocalNetworkGateway() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLocalNetworkGatewayCreate,
+		Create: resourceArmLocalNetworkGatewayCreateUpdate,
 		Read:   resourceArmLocalNetworkGatewayRead,
-		Update: resourceArmLocalNetworkGatewayCreate,
+		Update: resourceArmLocalNetworkGatewayCreateUpdate,
 		Delete: resourceArmLocalNetworkGatewayDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -73,7 +73,7 @@ func resourceArmLocalNetworkGateway() *schema.Resource {
 	}
 }
 
-func resourceArmLocalNetworkGatewayCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLocalNetworkGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).localNetConnClient
 	ctx := meta.(*ArmClient).StopContext
 

@@ -9,11 +9,12 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMMonitorMetricAlert_basic(t *testing.T) {
 	resourceName := "azurerm_monitor_metric_alert.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMMonitorMetricAlert_basic(ri, rs, testLocation())
 
@@ -48,7 +49,7 @@ func TestAccAzureRMMonitorMetricAlert_basic(t *testing.T) {
 
 func TestAccAzureRMMonitorMetricAlert_complete(t *testing.T) {
 	resourceName := "azurerm_monitor_metric_alert.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMMonitorMetricAlert_complete(ri, rs, testLocation())
 
@@ -103,7 +104,7 @@ func TestAccAzureRMMonitorMetricAlert_complete(t *testing.T) {
 
 func TestAccAzureRMMonitorMetricAlert_basicAndCompleteUpdate(t *testing.T) {
 	resourceName := "azurerm_monitor_metric_alert.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	location := testLocation()
 	basicConfig := testAccAzureRMMonitorMetricAlert_basic(ri, rs, location)
@@ -325,29 +326,29 @@ func testCheckAzureRMMonitorMetricAlertDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMMonitorMetricAlertExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMMonitorMetricAlertExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		resourceName := rs.Primary.Attributes["name"]
+		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Metric Alert Instance: %s", resourceName)
+			return fmt.Errorf("Bad: no resource group found in state for Metric Alert Instance: %s", name)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).monitorMetricAlertsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(ctx, resourceGroup, resourceName)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on monitorMetricAlertsClient: %+v", err)
 		}
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Metric Alert Instance %q (resource group: %q) does not exist", resourceName, resourceGroup)
+			return fmt.Errorf("Bad: Metric Alert Instance %q (resource group: %q) does not exist", name, resourceGroup)
 		}
 
 		return nil

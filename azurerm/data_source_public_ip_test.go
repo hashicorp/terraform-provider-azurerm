@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMPublicIP_static(t *testing.T) {
 	dataSourceName := "data.azurerm_public_ip.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	name := fmt.Sprintf("acctestpublicip-%d", ri)
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", ri)
@@ -40,7 +40,7 @@ func TestAccDataSourceAzureRMPublicIP_static(t *testing.T) {
 
 func TestAccDataSourceAzureRMPublicIP_dynamic(t *testing.T) {
 	dataSourceName := "data.azurerm_public_ip.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	name := fmt.Sprintf("acctestpublicip-%d", ri)
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", ri)
@@ -75,12 +75,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "%s"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
-  domain_name_label            = "acctest-%d"
-  idle_timeout_in_minutes      = 30
+  name                    = "%s"
+  location                = "${azurerm_resource_group.test.location}"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  allocation_method       = "Static"
+  domain_name_label       = "acctest-%d"
+  idle_timeout_in_minutes = 30
 
   tags {
     environment = "test"
@@ -102,10 +102,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctestpublicip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "dynamic"
+  name                = "acctestpublicip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
 
   ip_version = "%s"
 

@@ -73,8 +73,10 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"dns_prefix": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateKubernetesClusterDnsPrefix(),
 			},
 
 			"kubernetes_version": {
@@ -228,6 +230,24 @@ func resourceArmKubernetesCluster() *schema.Resource {
 								},
 							},
 						},
+
+						"aci_connector_linux": {
+							Type:     schema.TypeList,
+							MaxItems: 1,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enabled": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+									"subnet_name": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -314,13 +334,19 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			"role_based_access_control": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+							ForceNew: true,
+						},
 						"azure_active_directory": {
 							Type:     schema.TypeList,
-							Required: true,
+							Optional: true,
 							ForceNew: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
@@ -366,6 +392,48 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			},
 
 			// Computed
+			"kube_admin_config": {
+				Type:     schema.TypeList,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"host": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"username": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"password": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"client_certificate": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"client_key": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"cluster_ca_certificate": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"kube_admin_config_raw": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
 			"kube_config": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -450,8 +518,7 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 	}
 
 	rbacRaw := d.Get("role_based_access_control").([]interface{})
-	azureADProfile := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
-	roleBasedAccessControlEnabled := azureADProfile != nil
+	rbacEnabled, azureADProfile := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
 
 	parameters := containerservice.ManagedCluster{
 		Name:     &name,
@@ -461,7 +528,7 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 			AddonProfiles:           addonProfiles,
 			AgentPoolProfiles:       &agentProfiles,
 			DNSPrefix:               utils.String(dnsPrefix),
-			EnableRBAC:              utils.Bool(roleBasedAccessControlEnabled),
+			EnableRBAC:              utils.Bool(rbacEnabled),
 			KubernetesVersion:       utils.String(kubernetesVersion),
 			LinuxProfile:            linuxProfile,
 			NetworkProfile:          networkProfile,
@@ -552,7 +619,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("Error setting `network_profile`: %+v", err)
 		}
 
-		roleBasedAccessControl := flattenKubernetesClusterRoleBasedAccessControl(props.AadProfile, d)
+		roleBasedAccessControl := flattenKubernetesClusterRoleBasedAccessControl(props, d)
 		if err := d.Set("role_based_access_control", roleBasedAccessControl); err != nil {
 			return fmt.Errorf("Error setting `role_based_access_control`: %+v", err)
 		}
@@ -560,6 +627,23 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		servicePrincipal := flattenAzureRmKubernetesClusterServicePrincipalProfile(props.ServicePrincipalProfile)
 		if err := d.Set("service_principal", servicePrincipal); err != nil {
 			return fmt.Errorf("Error setting `service_principal`: %+v", err)
+		}
+
+		// adminProfile is only available for RBAC enabled clusters with AAD
+		if props.AadProfile != nil {
+			adminProfile, err := client.GetAccessProfile(ctx, resGroup, name, "clusterAdmin")
+			if err != nil {
+				return fmt.Errorf("Error retrieving Admin Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resGroup, err)
+			}
+
+			adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterAccessProfile(adminProfile)
+			d.Set("kube_admin_config_raw", adminKubeConfigRaw)
+			if err := d.Set("kube_admin_config", adminKubeConfig); err != nil {
+				return fmt.Errorf("Error setting `kube_admin_config`: %+v", err)
+			}
+		} else {
+			d.Set("kube_admin_config_raw", "")
+			d.Set("kube_admin_config", []interface{}{})
 		}
 	}
 
@@ -659,6 +743,22 @@ func expandKubernetesClusterAddonProfiles(d *schema.ResourceData) map[string]*co
 		}
 	}
 
+	aciConnector := profile["aci_connector_linux"].([]interface{})
+	if len(aciConnector) > 0 {
+		value := aciConnector[0].(map[string]interface{})
+		config := make(map[string]*string)
+		enabled := value["enabled"].(bool)
+
+		if subnetName, ok := value["subnet_name"]; ok {
+			config["subnetName"] = utils.String(subnetName.(string))
+		}
+
+		addonProfiles["aciConnectorLinux"] = &containerservice.ManagedClusterAddonProfile{
+			Enabled: utils.Bool(enabled),
+			Config:  config,
+		}
+	}
+
 	return addonProfiles
 }
 
@@ -704,6 +804,26 @@ func flattenKubernetesClusterAddonProfiles(profile map[string]*containerservice.
 		agents = append(agents, output)
 	}
 	values["oms_agent"] = agents
+
+	aciConnectors := make([]interface{}, 0)
+	if aciConnector := profile["aciConnectorLinux"]; aciConnector != nil {
+		enabled := false
+		if enabledVal := aciConnector.Enabled; enabledVal != nil {
+			enabled = *enabledVal
+		}
+
+		subnetName := ""
+		if v := aciConnector.Config["subnetName"]; v != nil {
+			subnetName = *v
+		}
+
+		output := map[string]interface{}{
+			"enabled":     enabled,
+			"subnet_name": subnetName,
+		}
+		aciConnectors = append(aciConnectors, output)
+	}
+	values["aci_connector_linux"] = aciConnectors
 
 	return []interface{}{values}
 }
@@ -914,73 +1034,85 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 	return []interface{}{values}
 }
 
-func expandKubernetesClusterRoleBasedAccessControl(input []interface{}, providerTenantId string) *containerservice.ManagedClusterAADProfile {
+func expandKubernetesClusterRoleBasedAccessControl(input []interface{}, providerTenantId string) (bool, *containerservice.ManagedClusterAADProfile) {
 	if len(input) == 0 {
-		return nil
+		return false, nil
 	}
 
 	val := input[0].(map[string]interface{})
 
+	rbacEnabled := val["enabled"].(bool)
 	azureADsRaw := val["azure_active_directory"].([]interface{})
-	azureAdRaw := azureADsRaw[0].(map[string]interface{})
 
-	clientAppId := azureAdRaw["client_app_id"].(string)
-	serverAppId := azureAdRaw["server_app_id"].(string)
-	serverAppSecret := azureAdRaw["server_app_secret"].(string)
-	tenantId := azureAdRaw["tenant_id"].(string)
+	var aad *containerservice.ManagedClusterAADProfile
+	if len(azureADsRaw) > 0 {
+		azureAdRaw := azureADsRaw[0].(map[string]interface{})
 
-	if tenantId == "" {
-		tenantId = providerTenantId
-	}
+		clientAppId := azureAdRaw["client_app_id"].(string)
+		serverAppId := azureAdRaw["server_app_id"].(string)
+		serverAppSecret := azureAdRaw["server_app_secret"].(string)
+		tenantId := azureAdRaw["tenant_id"].(string)
 
-	return &containerservice.ManagedClusterAADProfile{
-		ClientAppID:     utils.String(clientAppId),
-		ServerAppID:     utils.String(serverAppId),
-		ServerAppSecret: utils.String(serverAppSecret),
-		TenantID:        utils.String(tenantId),
-	}
-}
+		if tenantId == "" {
+			tenantId = providerTenantId
+		}
 
-func flattenKubernetesClusterRoleBasedAccessControl(input *containerservice.ManagedClusterAADProfile, d *schema.ResourceData) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	profile := make(map[string]interface{})
-
-	if input.ClientAppID != nil {
-		profile["client_app_id"] = *input.ClientAppID
-	}
-
-	if input.ServerAppID != nil {
-		profile["server_app_id"] = *input.ServerAppID
-	}
-
-	// since input.ServerAppSecret isn't returned we're pulling this out of the existing state (which won't work for Imports)
-	// role_based_access_control.0.azure_active_directory.0.server_app_secret
-	if existing, ok := d.GetOk("role_based_access_control"); ok {
-		rbacRawVals := existing.([]interface{})
-		if len(rbacRawVals) > 0 {
-			rbacRawVal := rbacRawVals[0].(map[string]interface{})
-			if azureADVals, ok := rbacRawVal["azure_active_directory"].([]interface{}); ok && len(azureADVals) > 0 {
-				azureADVal := azureADVals[0].(map[string]interface{})
-				v := azureADVal["server_app_secret"]
-				if v != nil {
-					profile["server_app_secret"] = v.(string)
-				}
-			}
+		aad = &containerservice.ManagedClusterAADProfile{
+			ClientAppID:     utils.String(clientAppId),
+			ServerAppID:     utils.String(serverAppId),
+			ServerAppSecret: utils.String(serverAppSecret),
+			TenantID:        utils.String(tenantId),
 		}
 	}
 
-	if input.TenantID != nil {
-		profile["tenant_id"] = *input.TenantID
+	return rbacEnabled, aad
+}
+
+func flattenKubernetesClusterRoleBasedAccessControl(input *containerservice.ManagedClusterProperties, d *schema.ResourceData) []interface{} {
+	rbacEnabled := false
+	if input.EnableRBAC != nil {
+		rbacEnabled = *input.EnableRBAC
+	}
+
+	results := make([]interface{}, 0)
+	if profile := input.AadProfile; profile != nil {
+		output := make(map[string]interface{})
+
+		if profile.ClientAppID != nil {
+			output["client_app_id"] = *profile.ClientAppID
+		}
+
+		if profile.ServerAppID != nil {
+			output["server_app_id"] = *profile.ServerAppID
+		}
+
+		// since input.ServerAppSecret isn't returned we're pulling this out of the existing state (which won't work for Imports)
+		// role_based_access_control.0.azure_active_directory.0.server_app_secret
+		if existing, ok := d.GetOk("role_based_access_control"); ok {
+			rbacRawVals := existing.([]interface{})
+			if len(rbacRawVals) > 0 {
+				rbacRawVal := rbacRawVals[0].(map[string]interface{})
+				if azureADVals, ok := rbacRawVal["azure_active_directory"].([]interface{}); ok && len(azureADVals) > 0 {
+					azureADVal := azureADVals[0].(map[string]interface{})
+					v := azureADVal["server_app_secret"]
+					if v != nil {
+						output["server_app_secret"] = v.(string)
+					}
+				}
+			}
+		}
+
+		if profile.TenantID != nil {
+			output["tenant_id"] = *profile.TenantID
+		}
+
+		results = append(results, output)
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"azure_active_directory": []interface{}{
-				profile,
-			},
+			"enabled":                rbacEnabled,
+			"azure_active_directory": results,
 		},
 	}
 }
@@ -1044,6 +1176,13 @@ func validateKubernetesClusterAgentPoolName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^[a-z]{1}[a-z0-9]{0,11}$"),
 		"Agent Pool names must start with a lowercase letter, have max length of 12, and only have characters a-z0-9.",
+	)
+}
+
+func validateKubernetesClusterDnsPrefix() schema.SchemaValidateFunc {
+	return validation.StringMatch(
+		regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{0,43}[a-zA-Z0-9]$"),
+		"The DNS name must contain between 3 and 45 characters. The name can contain only letters, numbers, and hyphens. The name must start with a letter and must end with a letter or a number.",
 	)
 }
 

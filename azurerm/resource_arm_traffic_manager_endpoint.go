@@ -13,9 +13,9 @@ import (
 
 func resourceArmTrafficManagerEndpoint() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmTrafficManagerEndpointCreate,
+		Create: resourceArmTrafficManagerEndpointCreateUpdate,
 		Read:   resourceArmTrafficManagerEndpointRead,
-		Update: resourceArmTrafficManagerEndpointCreate,
+		Update: resourceArmTrafficManagerEndpointCreateUpdate,
 		Delete: resourceArmTrafficManagerEndpointDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -112,7 +112,7 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 	}
 }
 
-func resourceArmTrafficManagerEndpointCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmTrafficManagerEndpointCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).trafficManagerEndpointsClient
 
 	log.Printf("[INFO] preparing arguments for TrafficManager Endpoint creation.")

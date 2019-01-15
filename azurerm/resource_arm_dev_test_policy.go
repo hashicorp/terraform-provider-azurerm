@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -58,7 +59,7 @@ func resourceArmDevTestPolicy() *schema.Resource {
 			"threshold": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"evaluator_type": {
@@ -96,6 +97,19 @@ func resourceArmDevTestPolicyCreateUpdate(d *schema.ResourceData, meta interface
 	policySetName := d.Get("policy_set_name").(string)
 	labName := d.Get("lab_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, labName, policySetName, name, "")
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing DevTest Policy %q (Policy Set %q / Lab %q / Resource Group %q): %s", name, policySetName, labName, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_dev_test_policy", *existing.ID)
+		}
+	}
 
 	factData := d.Get("fact_data").(string)
 	threshold := d.Get("threshold").(string)

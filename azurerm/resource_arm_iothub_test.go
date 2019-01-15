@@ -8,11 +8,12 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMIotHub_basic(t *testing.T) {
 	resourceName := "azurerm_iothub.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -35,7 +36,7 @@ func TestAccAzureRMIotHub_basic(t *testing.T) {
 
 func TestAccAzureRMIotHub_standard(t *testing.T) {
 	resourceName := "azurerm_iothub.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -59,7 +60,7 @@ func TestAccAzureRMIotHub_standard(t *testing.T) {
 
 func TestAccAzureRMIotHub_customRoutes(t *testing.T) {
 	resourceName := "azurerm_iothub.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	rStr := acctest.RandString(5)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -107,13 +108,13 @@ func testCheckAzureRMIotHubDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMIotHubExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMIotHubExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 		iothubName := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]

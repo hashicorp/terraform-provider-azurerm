@@ -6,11 +6,12 @@ import (
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMDataLakeStore_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_data_lake_store.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
 
@@ -31,7 +32,7 @@ func TestAccDataSourceAzureRMDataLakeStore_basic(t *testing.T) {
 
 func TestAccDataSourceAzureRMDataLakeStore_tier(t *testing.T) {
 	dataSourceName := "data.azurerm_data_lake_store.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
 

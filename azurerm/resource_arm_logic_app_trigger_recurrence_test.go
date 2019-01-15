@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMLogicAppTriggerRecurrence_month(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_recurrence.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -36,7 +36,7 @@ func TestAccAzureRMLogicAppTriggerRecurrence_month(t *testing.T) {
 
 func TestAccAzureRMLogicAppTriggerRecurrence_week(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_recurrence.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -62,7 +62,7 @@ func TestAccAzureRMLogicAppTriggerRecurrence_week(t *testing.T) {
 
 func TestAccAzureRMLogicAppTriggerRecurrence_day(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_recurrence.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -88,7 +88,7 @@ func TestAccAzureRMLogicAppTriggerRecurrence_day(t *testing.T) {
 
 func TestAccAzureRMLogicAppTriggerRecurrence_minute(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_recurrence.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -114,7 +114,7 @@ func TestAccAzureRMLogicAppTriggerRecurrence_minute(t *testing.T) {
 
 func TestAccAzureRMLogicAppTriggerRecurrence_second(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_recurrence.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -140,7 +140,7 @@ func TestAccAzureRMLogicAppTriggerRecurrence_second(t *testing.T) {
 
 func TestAccAzureRMLogicAppTriggerRecurrence_hour(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_recurrence.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -166,7 +166,7 @@ func TestAccAzureRMLogicAppTriggerRecurrence_hour(t *testing.T) {
 
 func TestAccAzureRMLogicAppTriggerRecurrence_update(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_recurrence.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -196,13 +196,13 @@ func TestAccAzureRMLogicAppTriggerRecurrence_update(t *testing.T) {
 func testAccAzureRMLogicAppTriggerRecurrence_basic(rInt int, location, frequency string, interval int) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_logic_app_workflow" "test" {
-  name = "acctestlaw-%d"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctestlaw-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 

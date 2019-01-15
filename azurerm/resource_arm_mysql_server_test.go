@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMMySQLServer_basicFiveSix(t *testing.T) {
 	resourceName := "azurerm_mysql_server.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMMySQLServer_basicFiveSix(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -40,7 +40,7 @@ func TestAccAzureRMMySQLServer_basicFiveSix(t *testing.T) {
 
 func TestAccAzureRMMySQLServer_basicFiveSeven(t *testing.T) {
 	resourceName := "azurerm_mysql_server.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMMySQLServer_basicFiveSeven(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -68,7 +68,7 @@ func TestAccAzureRMMySQLServer_basicFiveSeven(t *testing.T) {
 
 func TestAccAzureRMMySqlServer_generalPurpose(t *testing.T) {
 	resourceName := "azurerm_mysql_server.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMMySQLServer_generalPurpose(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -96,7 +96,7 @@ func TestAccAzureRMMySqlServer_generalPurpose(t *testing.T) {
 
 func TestAccAzureRMMySqlServer_memoryOptimized(t *testing.T) {
 	resourceName := "azurerm_mysql_server.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMMySQLServer_memoryOptimizedGeoRedundant(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -123,7 +123,7 @@ func TestAccAzureRMMySqlServer_memoryOptimized(t *testing.T) {
 
 func TestAccAzureRMMySQLServer_basicFiveSevenUpdated(t *testing.T) {
 	resourceName := "azurerm_mysql_server.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMMySQLServer_basicFiveSeven(ri, location)
 	updatedConfig := testAccAzureRMMySQLServer_basicFiveSevenUpdated(ri, location)
@@ -167,7 +167,7 @@ func TestAccAzureRMMySQLServer_basicFiveSevenUpdated(t *testing.T) {
 
 func TestAccAzureRMMySQLServer_updateSKU(t *testing.T) {
 	resourceName := "azurerm_mysql_server.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMMySQLServer_generalPurpose(ri, location)
 	updatedConfig := testAccAzureRMMySQLServer_memoryOptimized(ri, location)
@@ -207,12 +207,12 @@ func TestAccAzureRMMySQLServer_updateSKU(t *testing.T) {
 
 //
 
-func testCheckAzureRMMySQLServerExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMMySQLServerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]

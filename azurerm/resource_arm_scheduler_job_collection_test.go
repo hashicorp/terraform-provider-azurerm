@@ -8,14 +8,14 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMSchedulerJobCollection_basic(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_scheduler_job_collection.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -37,7 +37,7 @@ func TestAccAzureRMSchedulerJobCollection_basic(t *testing.T) {
 }
 
 func TestAccAzureRMSchedulerJobCollection_complete(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_scheduler_job_collection.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -90,12 +90,12 @@ func testCheckAzureRMSchedulerJobCollectionDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMSchedulerJobCollectionExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMSchedulerJobCollectionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %q", name)
+			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -122,18 +122,18 @@ func testCheckAzureRMSchedulerJobCollectionExists(name string) resource.TestChec
 
 func testAccAzureRMSchedulerJobCollection_basic(rInt int, location string, additional string) string {
 	return fmt.Sprintf(` 
-resource "azurerm_resource_group" "test" { 
-  name     = "acctestRG-%d" 
-  location = "%s" 
-} 
- 
-resource "azurerm_scheduler_job_collection" "test" { 
-  name                = "acctest-%d" 
-  location            = "${azurerm_resource_group.test.location}" 
-  resource_group_name = "${azurerm_resource_group.test.name}" 
-  sku                 = "Standard" 
-%s 
-} 
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_scheduler_job_collection" "test" {
+  name                = "acctest-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+  %s
+}
 `, rInt, location, rInt, additional)
 }
 

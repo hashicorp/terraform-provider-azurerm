@@ -5,15 +5,15 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMNotificationHubAuthorizationRule_listen(t *testing.T) {
 	resourceName := "azurerm_notification_hub_authorization_rule.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -44,7 +44,7 @@ func TestAccAzureRMNotificationHubAuthorizationRule_listen(t *testing.T) {
 func TestAccAzureRMNotificationHubAuthorizationRule_manage(t *testing.T) {
 	resourceName := "azurerm_notification_hub_authorization_rule.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -75,7 +75,7 @@ func TestAccAzureRMNotificationHubAuthorizationRule_manage(t *testing.T) {
 func TestAccAzureRMNotificationHubAuthorizationRule_send(t *testing.T) {
 	resourceName := "azurerm_notification_hub_authorization_rule.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -106,7 +106,7 @@ func TestAccAzureRMNotificationHubAuthorizationRule_send(t *testing.T) {
 func TestAccAzureRMNotificationHubAuthorizationRule_updated(t *testing.T) {
 	resourceName := "azurerm_notification_hub_authorization_rule.test"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -140,11 +140,11 @@ func TestAccAzureRMNotificationHubAuthorizationRule_updated(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMNotificationHubAuthorizationRuleExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMNotificationHubAuthorizationRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("not found: %s", name)
+			return fmt.Errorf("not found: %s", resourceName)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).notificationHubsClient
@@ -161,7 +161,7 @@ func testCheckAzureRMNotificationHubAuthorizationRuleExists(name string) resourc
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Notification Hub Authorization Rule does not exist: %s", name)
+			return fmt.Errorf("Notification Hub Authorization Rule does not exist: %s", ruleName)
 		}
 
 		return nil
@@ -203,7 +203,7 @@ func testAzureRMNotificationHubAuthorizationRule_listen(ri int, location string)
 resource "azurerm_notification_hub_authorization_rule" "test" {
   name                  = "acctestrule-%d"
   notification_hub_name = "${azurerm_notification_hub.test.name}"
-  namespace_name        = "${azurerm_notification_hub_namespace.test.name}" 
+  namespace_name        = "${azurerm_notification_hub_namespace.test.name}"
   resource_group_name   = "${azurerm_resource_group.test.name}"
   listen                = true
 }
@@ -218,7 +218,7 @@ func testAzureRMNotificationHubAuthorizationRule_send(ri int, location string) s
 resource "azurerm_notification_hub_authorization_rule" "test" {
   name                  = "acctestrule-%d"
   notification_hub_name = "${azurerm_notification_hub.test.name}"
-  namespace_name        = "${azurerm_notification_hub_namespace.test.name}" 
+  namespace_name        = "${azurerm_notification_hub_namespace.test.name}"
   resource_group_name   = "${azurerm_resource_group.test.name}"
   send                  = true
   listen                = true
@@ -234,7 +234,7 @@ func testAzureRMNotificationHubAuthorizationRule_manage(ri int, location string)
 resource "azurerm_notification_hub_authorization_rule" "test" {
   name                  = "acctestrule-%d"
   notification_hub_name = "${azurerm_notification_hub.test.name}"
-  namespace_name        = "${azurerm_notification_hub_namespace.test.name}" 
+  namespace_name        = "${azurerm_notification_hub_namespace.test.name}"
   resource_group_name   = "${azurerm_resource_group.test.name}"
   manage                = true
   send                  = true

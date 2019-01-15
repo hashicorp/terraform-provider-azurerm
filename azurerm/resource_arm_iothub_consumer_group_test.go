@@ -5,17 +5,17 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMIotHubConsumerGroup_events(t *testing.T) {
 	resourceName := "azurerm_iothub_consumer_group.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMIotHubConsumerGroupDestroy,
@@ -37,10 +37,10 @@ func TestAccAzureRMIotHubConsumerGroup_events(t *testing.T) {
 
 func TestAccAzureRMIotHubConsumerGroup_operationsMonitoringEvents(t *testing.T) {
 	resourceName := "azurerm_iothub_consumer_group.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMIotHubConsumerGroupDestroy,
@@ -87,13 +87,13 @@ func testCheckAzureRMIotHubConsumerGroupDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMIotHubConsumerGroupExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMIotHubConsumerGroupExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]

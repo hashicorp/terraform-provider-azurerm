@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -15,10 +15,22 @@ func dataSourceArmPublicIP() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
+			"location": locationForDataSourceSchema(),
+
 			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+
+			"sku": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"allocation_method": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 
 			"ip_version": {
 				Type:     schema.TypeString,
@@ -40,10 +52,17 @@ func dataSourceArmPublicIP() *schema.Resource {
 				Computed: true,
 			},
 
+			"reverse_fqdn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"ip_address": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"zones": zonesSchemaComputed(),
 
 			"tags": tagsSchema(),
 		},
@@ -67,19 +86,36 @@ func dataSourceArmPublicIPRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.SetId(*resp.ID)
 
+	d.Set("zones", resp.Zones)
+
 	//ensure values are at least set to "", d.Set() is a noop on a nil
+	//there must be a better way...
+	d.Set("location", "")
+	d.Set("sku", "")
 	d.Set("fqdn", "")
+	d.Set("reverse_fqdn", "")
 	d.Set("domain_name_label", "")
+	d.Set("allocation_method", "")
 	d.Set("ip_address", "")
 	d.Set("ip_version", "")
 	d.Set("idle_timeout_in_minutes", 0)
 
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
+
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku", string(sku.Name))
+	}
+
 	if props := resp.PublicIPAddressPropertiesFormat; props != nil {
 		if dnsSettings := props.DNSSettings; dnsSettings != nil {
 			d.Set("fqdn", dnsSettings.Fqdn)
+			d.Set("reverse_fqdn", dnsSettings.ReverseFqdn)
 			d.Set("domain_name_label", dnsSettings.DomainNameLabel)
 		}
 
+		d.Set("allocation_method", string(props.PublicIPAllocationMethod))
 		d.Set("ip_address", props.IPAddress)
 		d.Set("ip_version", string(props.PublicIPAddressVersion))
 		d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)

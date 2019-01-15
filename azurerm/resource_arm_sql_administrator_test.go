@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMSqlAdministrator_basic(t *testing.T) {
 	resourceName := "azurerm_sql_active_directory_administrator.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	preConfig := testAccAzureRMSqlAdministrator_basic(ri, testLocation())
 	postConfig := testAccAzureRMSqlAdministrator_withUpdates(ri, testLocation())
 
@@ -46,7 +46,7 @@ func TestAccAzureRMSqlAdministrator_basic(t *testing.T) {
 
 func TestAccAzureRMSqlAdministrator_disappears(t *testing.T) {
 	resourceName := "azurerm_sql_active_directory_administrator.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSqlAdministrator_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -66,11 +66,11 @@ func TestAccAzureRMSqlAdministrator_disappears(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMSqlAdministratorExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMSqlAdministratorExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
@@ -84,11 +84,11 @@ func testCheckAzureRMSqlAdministratorExists(name string) resource.TestCheckFunc 
 	}
 }
 
-func testCheckAzureRMSqlAdministratorDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMSqlAdministratorDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]

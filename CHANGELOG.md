@@ -1,40 +1,127 @@
-## 1.20.0 (Unreleased)
+## 2.0.0 (Unreleased)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_monitor_action_group` [GH-2430]
-* **New Resource:** `azurerm_mariadb_database` [GH-2445]
-* **New Resource:** `azurerm_mariadb_server` [GH-2406]
+* **New Resource:**  `azurerm_ddos_protection_plan` [GH-2654]
 
 IMPROVEMENTS:
 
-* authentication: switching to use the shared Azure authentication library [GH-2355]
-* authentication: requesting a token using the audience address [GH-2381]
-* authentication: switching to request tokens from the Azure CLI [GH-2387]
-* sdk: upgrading to version `2018-05-01` of the Policy API [GH-2386]
-* Data Source: `azurerm_subscriptions` - ability to filtering by prefix/contains on the Display Name [GH-2429]
-* `azurerm_app_service` - support for configuring `app_command_line` in the `site_config` block [GH-2350]
-* `azurerm_app_service_plan` - deprecated the `properties` and moved `app_service_environment_id`, `per_site_scaling` and `reserved` to the top level  [GH-2442]
-* `azurerm_app_service_slot` - support for configuring `app_command_line` in the `site_config` block [GH-2350]
-* `azurerm_application_insights` - added `Node.JS` application type [GH-2407]
-* `azurerm_container_registry` - support for geo-replication via the `georeplication_locations` property [GH-2055]
-* `azurerm_key_vault` - exposed `backup` and `restore` permissions made `key_permissions` and `secret_permissions` optional [GH-2363]
-* `azurerm_mssql_elasticpool` - deprecated the `elastic_pool_properties` property and moved `max_size_bytes` and `zone_redundant` to the top level [GH-2378]
-* `azurerm_mysql_server` - support for new skus `GP_Gen5_64` and `MO_Gen5_32` [GH-2446]
-* `azurerm_postgresql_server` support for new skus `GP_Gen5_64` and `MO_Gen5_32` - [GH-2447]
+* `azurerm_data_lake_store_file` - support file uploads greater then 4 megabytes [GH-2633]
+* `azurerm_mssql_elasticpool` - support for setting `max_size_bytes` [GH-2346]
+* `azurerm_signalr_service` - exporting `primary_access_key`, `secondary_access_key`, `primary_connection_string` and `secondary_connection_string` and secondary access keys and connection strings [GH-2655]
+* `azurerm_subnet` - support for additional subnet delegation types [GH-2667]
 
 BUG FIXES:
 
-* Data Source: `azurerm_logic_app_workflow` - ensuing the parameters are a string prior to flattening [GH-2348]
-* Data Source: `azurerm_public_ip` - ensuing properties always exist [GH-2448]
-* Data Source: `azurerm_route_table` - validation updated to prevent empty and blank `property` values from causing a panic [GH-2467]
-* `azurerm_key_vault` - fixing a deadlock situation where multiple subnets are used from the same virtual network [GH-2324]
-* `azurerm_eventhub` - making the `partition_count` field ForceNew [GH-2400]
-* `azurerm_eventhub` - now validates that the `storage_account_id` is a proper resource ID  [GH-2374]
-* `azurerm_mssql_elasticpool` - relaxed validation of the `name` property [GH-2398]
-* `azurerm_recovery_services_protection_policy_vm` - added the `timezone` property [GH-2404]
-* `azurerm_route_table` - validation updated to prevent empty and blank `property` values from causing a panic [GH-2467]
-* `azurerm_virtual_machine` - nil-checking properties prior to accessing [GH-2365]
+* `azurerm_firewall` - ensuring rules aren't removed during an update [GH-2663]
+* service bus subscription name's can now start with a digit [GH-2672]
+
+## 1.21.0 (January 11, 2019)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_application_insights` ([#2625](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2625))
+* **New Data Source:** `azurerm_batch_account` ([#2428](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2428))
+* **New Data Source:** `azurerm_batch_pool` ([#2461](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2461))
+* **New Data Source:** `azurerm_lb` ([#2354](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2354))
+* **New Data Source:** `azurerm_lb_backend_address_pool` ([#2354](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2354))
+* **New Data Source:** `azurerm_virtual_machine` ([#2463](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2463))
+* **New Resource:** `azurerm_application_insights_api_key` ([#2556](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2556))
+* **New Resource:** `azurerm_batch_account` ([#2428](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2428))
+* **New Resource:** `azurerm_batch_pool` ([#2461](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2461))
+* **New Resource:** `azurerm_firewall_application_rule_collection` ([#2532](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2532))
+* **New Resource:** `azurerm_policy_set_definition` ([#2535](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2535))
+
+IMPROVEMENTS:
+
+* config: support for specifying the `partner_id` for partner resource attribution ([#2643](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2643))
+* dependencies: updating to `v24.0.0` of `Azure/azure-sdk-for-go` ([#2572](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2572))
+* dependencies: upgrading the `network` SDK to `2018-08-01` ([#2433](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2433))
+* Data Source: `azurerm_app_service` - exporting the `possible_outbound_ip_addresses` ([#2513](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2513))
+* Data Source: `azurerm_azuread_application` - deprecating in favour of the split-out AzureAD Provider ([#2632](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2632))
+* Data Source: `azurerm_azuread_service_principal` - deprecating in favour of the split-out AzureAD Provider ([#2632](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2632))
+* Data Source: `azurerm_container_registry` - now exports `tags` ([#2607](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2607))
+* Data Source: `azurerm_network_interface` - now exports `ip_configuration.private_ip_address_version` ([#2646](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2646))
+* Data Source: `azurerm_public_ip` - now exports `location`, `sku`, `allocation_method`, `reverse_fqdn` and `zones` ([#2576](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2576))
+* `azurerm_app_service` - exporting the `possible_outbound_ip_addresses` ([#2513](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2513))
+* `azurerm_azuread_application` - deprecating in favour of the split-out AzureAD Provider ([#2632](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2632))
+* `azurerm_azuread_service_principal` - deprecating in favour of the split-out AzureAD Provider ([#2632](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2632))
+* `azurerm_azuread_service_principal_password` - deprecating in favour of the split-out AzureAD Provider ([#2632](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2632))
+* `azurerm_cognitive_account` - support for the `SpeechServices` kind ([#2583](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2583))
+* `azurerm_container_group` - deprecated container properties `port` and `protocol` for ports allowing for multiple ports ([#1930](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1930))
+* `azurerm_eventhub_namespace` - support for `kafka_enabled` ([#2395](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2395))
+* `azurerm_firewall` - renaming the `public_ip_address_id` property to `ip_address_id` ([#2433](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2433))
+* `azurerm_kubernetes_cluster` - support for Virtual Nodes ([#2641](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2641))
+* `azurerm_kubernetes_cluster` - the `dns_prefix` now forces a new resource and is properly validated ([#2611](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2611))
+* `azurerm_log_analytics_workspace_linked_service` - now correctly handels uppcase `workspace_name` values  ([#2594](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2594))
+* `azurerm_network_interface` - support for IPv6 addresses ([#2548](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2548))
+* `azurerm_policy_assignment` - support for Managed Service Identity ([#2549](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2549))
+* `azurerm_policy_assignment` - support exclusions with the `not_scopes` property ([#2620](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2620))
+* `azurerm_policy_definition` - polices can now be assigned to a management group ([#2490](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2490))
+* `azurerm_policy_set_definition` - policy sets can now be assigned to a management group ([#2618](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2618))
+* `azurerm_public_ip` - deprecated `public_ip_address_allocation` in favor of `allocation_method` to better match the SDK ([#2576](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2576))
+* `azurerm_redis_cache` - add availability zone support ([#2580](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2580))
+* `azurerm_service_fabric_cluster` - support for `azure_active_directory` ([#2553](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2553))
+* `azurerm_service_fabric_cluster` - support for `reverse_proxy_certificate` ([#2544](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2544))
+* `azurerm_service_fabric_cluster` - support for `reverse_proxy_endpoint_port` ([#2544](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2544))
+* `azurerm_subnet` - support for delegation ([#2042](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2042))
+
+BUG FIXES:
+
+* Data Source: `azurerm_managed_disk` - exposing the `create_option` field ([#2597](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2597))
+* Data Source: `azurerm_network_interface` - exposing `application_security_group_ids` within the `ip_configuration` block ([#2599](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2599))
+* Data Source: `azurerm_snapshot` - ensuring `disk_size_gb` is set ([#2596](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2596))
+* Data Source: `azurerm_storage_account` - ensuring the `account_replication_type` field is set correctly ([#2595](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2595))
+* `azurerm_app_service` - handling connection strings being in any order ([#2609](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2609))
+* `azurerm_app_service_slot` - handling connection strings being in any order ([#2609](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2609))
+* `azurerm_network_security_rule` - the properties `source_application_security_group_ids` and `destination_application_security_group_ids` are now correctly read & imported ([#2558](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2558))
+* `azurerm_role_assignment` - retrieving the role definition name during import ([#2565](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2565))
+* `azurerm_template_deployment` - fixing regression and supportting nested template deployments ([#2514](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2514))
+
+## 1.20.0 (December 12, 2018)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_monitor_action_group` ([#2430](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2430))
+* **New Resource:** `azurerm_mariadb_database` ([#2445](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2445))
+* **New Resource:** `azurerm_mariadb_server` ([#2406](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2406))
+* **New Resource:** `azurerm_signalr_service` ([#2410](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2410))
+
+IMPROVEMENTS:
+
+* authentication: switching to use the shared Azure authentication library ([#2355](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2355))
+* authentication: support for authenticating using a Service Principal with a Client Certificate ([#2471](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2471))
+* authentication: requesting a token using the audience address ([#2381](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2381))
+* authentication: switching to request tokens from the Azure CLI ([#2387](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2387))
+* sdk: upgrading to version `2018-05-01` of the Policy API ([#2386](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2386))
+* Data Source: `azurerm_kubernetes_cluster` - support for Role Based Access Control without Azure AD ([#2495](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2495))
+* Data Source: `azurerm_kubernetes_cluster` - exposing the `clusterAdmin` credentials ([#2495](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2495))
+* Data Source: `azurerm_subscriptions` - ability to filtering by prefix/contains on the Display Name ([#2429](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2429))
+* `azurerm_app_service` - support for configuring `app_command_line` in the `site_config` block ([#2350](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2350))
+* `azurerm_app_service_plan` - deprecated the `properties` and moved `app_service_environment_id`, `per_site_scaling` and `reserved` to the top level  ([#2442](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2442))
+* `azurerm_app_service_slot` - support for configuring `app_command_line` in the `site_config` block ([#2350](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2350))
+* `azurerm_application_insights` - added `Node.JS` application type ([#2407](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2407))
+* `azurerm_container_registry` - support for geo-replication via the `georeplication_locations` property ([#2055](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2055))
+* `azurerm_key_vault` - exposed `backup` and `restore` permissions made `key_permissions` and `secret_permissions` optional ([#2363](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2363))
+* `azurerm_kubernetes_cluster` - support for Role Based Access Control without Azure AD ([#2495](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2495))
+* `azurerm_kubernetes_cluster` - exposing the `clusterAdmin` credentials ([#2495](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2495))
+* `azurerm_mssql_elasticpool` - deprecated the `elastic_pool_properties` property and moved `max_size_bytes` and `zone_redundant` to the top level ([#2378](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2378))
+* `azurerm_mysql_server` - support for new skus `GP_Gen5_64` and `MO_Gen5_32` ([#2446](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2446))
+* `azurerm_postgresql_server` support for new skus `GP_Gen5_64` and `MO_Gen5_32` - ([#2447](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2447))
+
+BUG FIXES:
+
+* Data Source: `azurerm_logic_app_workflow` - ensuing the parameters are a string prior to flattening ([#2348](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2348))
+* Data Source: `azurerm_public_ip` - ensuing properties always exist ([#2448](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2448))
+* Data Source: `azurerm_route_table` - validation updated to prevent empty and blank `property` values from causing a panic ([#2467](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2467))
+* `azurerm_key_vault` - fixing a deadlock situation where multiple subnets are used from the same virtual network ([#2324](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2324))
+* `azurerm_eventhub` - making the `partition_count` field ForceNew ([#2400](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2400))
+* `azurerm_eventhub` - now validates that the `storage_account_id` is a proper resource ID  ([#2374](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2374))
+* `azurerm_mssql_elasticpool` - relaxed validation of the `name` property ([#2398](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2398))
+* `azurerm_recovery_services_protection_policy_vm` - added the `timezone` property ([#2404](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2404))
+* `azurerm_route_table` - validation updated to prevent empty and blank `property` values from causing a panic ([#2467](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2467))
+* `azurerm_sql_server` - only updating the `admin_login_password` when it's changed, allowing this to be managed outside of Terraform ([#2263](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2263))
+* `azurerm_virtual_machine` - nil-checking properties prior to accessing ([#2365](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2365))
 
 ## 1.19.0 (November 15, 2018)
 

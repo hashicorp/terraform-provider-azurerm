@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
@@ -14,6 +13,12 @@ import (
 
 func resourceArmActiveDirectoryApplication() *schema.Resource {
 	return &schema.Resource{
+		DeprecationMessage: `The Azure Active Directory resources have been split out into their own Provider.
+
+Information on migrating to the new AzureAD Provider can be found here: https://terraform.io/docs/providers/azurerm/guides/migrating-to-azuread.html
+
+As such the Azure Active Directory resources within the AzureRM Provider are now deprecated and will be removed in v2.0 of the AzureRM Provider.
+`,
 		Create: resourceArmActiveDirectoryApplicationCreate,
 		Read:   resourceArmActiveDirectoryApplicationRead,
 		Update: resourceArmActiveDirectoryApplicationUpdate,
@@ -26,7 +31,7 @@ func resourceArmActiveDirectoryApplication() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"homepage": {
@@ -79,6 +84,7 @@ func resourceArmActiveDirectoryApplicationCreate(d *schema.ResourceData, meta in
 	client := meta.(*ArmClient).applicationsClient
 	ctx := meta.(*ArmClient).StopContext
 
+	// NOTE: name isn't the Resource ID here, so we don't check it exists
 	name := d.Get("name").(string)
 	availableToOtherTenants := d.Get("available_to_other_tenants").(bool)
 

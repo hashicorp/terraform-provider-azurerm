@@ -6,14 +6,14 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMDataLakeStore_basic(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -37,10 +37,38 @@ func TestAccAzureRMDataLakeStore_basic(t *testing.T) {
 		},
 	})
 }
+func TestAccAzureRMDataLakeStore_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_data_lake_store.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDataLakeStore_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataLakeStoreExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMDataLakeStore_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_data_lake_store"),
+			},
+		},
+	})
+}
 
 func TestAccAzureRMDataLakeStore_tier(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -65,7 +93,7 @@ func TestAccAzureRMDataLakeStore_tier(t *testing.T) {
 
 func TestAccAzureRMDataLakeStore_encryptionDisabled(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -91,7 +119,7 @@ func TestAccAzureRMDataLakeStore_encryptionDisabled(t *testing.T) {
 
 func TestAccAzureRMDataLakeStore_firewallUpdate(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -137,7 +165,7 @@ func TestAccAzureRMDataLakeStore_firewallUpdate(t *testing.T) {
 
 func TestAccAzureRMDataLakeStore_withTags(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -167,18 +195,18 @@ func TestAccAzureRMDataLakeStore_withTags(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDataLakeStoreExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDataLakeStoreExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		accountName := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for data lake store: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for data lake store: %s", accountName)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).dataLakeStoreAccountClient
@@ -237,6 +265,19 @@ resource "azurerm_data_lake_store" "test" {
   location            = "${azurerm_resource_group.test.location}"
 }
 `, rInt, location, strconv.Itoa(rInt)[0:15])
+}
+
+func testAccAzureRMDataLakeStore_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMDataLakeStore_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_lake_store" "import" {
+  name                = "${azurerm_data_lake_store.test.name}"
+  resource_group_name = "${azurerm_data_lake_store.test.resource_group_name}"
+  location            = "${azurerm_data_lake_store.test.location}"
+}
+`, template)
 }
 
 func testAccAzureRMDataLakeStore_tier(rInt int, location string) string {

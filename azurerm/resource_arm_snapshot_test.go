@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -61,7 +62,7 @@ func TestSnapshotName_validation(t *testing.T) {
 
 func TestAccAzureRMSnapshot_fromManagedDisk(t *testing.T) {
 	resourceName := "azurerm_snapshot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSnapshot_fromManagedDisk(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -87,7 +88,7 @@ func TestAccAzureRMSnapshot_fromManagedDisk(t *testing.T) {
 
 func TestAccAzureRMSnapshot_encryption(t *testing.T) {
 	resourceName := "azurerm_snapshot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	config := testAccAzureRMSnapshot_encryption(ri, rs, testLocation())
 
@@ -114,7 +115,7 @@ func TestAccAzureRMSnapshot_encryption(t *testing.T) {
 
 func TestAccAzureRMSnapshot_update(t *testing.T) {
 	resourceName := "azurerm_snapshot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSnapshot_fromManagedDisk(ri, testLocation())
 	updatedConfig := testAccAzureRMSnapshot_fromManagedDiskUpdated(ri, testLocation())
 
@@ -141,7 +142,7 @@ func TestAccAzureRMSnapshot_update(t *testing.T) {
 
 func TestAccAzureRMSnapshot_extendingManagedDisk(t *testing.T) {
 	resourceName := "azurerm_snapshot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSnapshot_extendingManagedDisk(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -161,7 +162,7 @@ func TestAccAzureRMSnapshot_extendingManagedDisk(t *testing.T) {
 
 func TestAccAzureRMSnapshot_fromExistingSnapshot(t *testing.T) {
 	resourceName := "azurerm_snapshot.second"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSnapshot_fromExistingSnapshot(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -181,7 +182,7 @@ func TestAccAzureRMSnapshot_fromExistingSnapshot(t *testing.T) {
 
 func TestAccAzureRMSnapshot_fromUnmanagedDisk(t *testing.T) {
 	resourceName := "azurerm_snapshot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	config := testAccAzureRMSnapshot_fromUnmanagedDisk(ri, rs, testLocation())
 
@@ -225,12 +226,12 @@ func testCheckAzureRMSnapshotDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMSnapshotExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMSnapshotExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -496,7 +497,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 

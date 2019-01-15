@@ -5,7 +5,7 @@ import (
 	"log"
 	"sync"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -16,9 +16,9 @@ var peerMutex = &sync.Mutex{}
 
 func resourceArmVirtualNetworkPeering() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualNetworkPeeringCreate,
+		Create: resourceArmVirtualNetworkPeeringCreateUpdate,
 		Read:   resourceArmVirtualNetworkPeeringRead,
-		Update: resourceArmVirtualNetworkPeeringCreate,
+		Update: resourceArmVirtualNetworkPeeringCreateUpdate,
 		Delete: resourceArmVirtualNetworkPeeringDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -72,7 +72,7 @@ func resourceArmVirtualNetworkPeering() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualNetworkPeeringCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmVirtualNetworkPeeringCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).vnetPeeringsClient
 	ctx := meta.(*ArmClient).StopContext
 

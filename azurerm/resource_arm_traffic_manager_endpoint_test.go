@@ -6,15 +6,15 @@ import (
 	"path"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMTrafficManagerEndpoint_basic(t *testing.T) {
 	azureResourceName := "azurerm_traffic_manager_endpoint.testAzure"
 	externalResourceName := "azurerm_traffic_manager_endpoint.testExternal"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMTrafficManagerEndpoint_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -43,7 +43,7 @@ func TestAccAzureRMTrafficManagerEndpoint_basic(t *testing.T) {
 func TestAccAzureRMTrafficManagerEndpoint_disappears(t *testing.T) {
 	azureResourceName := "azurerm_traffic_manager_endpoint.testAzure"
 	externalResourceName := "azurerm_traffic_manager_endpoint.testExternal"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMTrafficManagerEndpoint_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -69,7 +69,7 @@ func TestAccAzureRMTrafficManagerEndpoint_disappears(t *testing.T) {
 func TestAccAzureRMTrafficManagerEndpoint_basicDisableExternal(t *testing.T) {
 	azureResourceName := "azurerm_traffic_manager_endpoint.testAzure"
 	externalResourceName := "azurerm_traffic_manager_endpoint.testExternal"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	preConfig := testAccAzureRMTrafficManagerEndpoint_basic(ri, testLocation())
 	postConfig := testAccAzureRMTrafficManagerEndpoint_basicDisableExternal(ri, testLocation())
 
@@ -105,7 +105,7 @@ func TestAccAzureRMTrafficManagerEndpoint_updateWeight(t *testing.T) {
 	firstResourceName := "azurerm_traffic_manager_endpoint.testExternal"
 	secondResourceName := "azurerm_traffic_manager_endpoint.testExternalNew"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMTrafficManagerEndpoint_weight(ri, location)
 	postConfig := testAccAzureRMTrafficManagerEndpoint_updateWeight(ri, location)
@@ -142,7 +142,7 @@ func TestAccAzureRMTrafficManagerEndpoint_updatePriority(t *testing.T) {
 	firstResourceName := "azurerm_traffic_manager_endpoint.testExternal"
 	secondResourceName := "azurerm_traffic_manager_endpoint.testExternalNew"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMTrafficManagerEndpoint_priority(ri, location)
 	postConfig := testAccAzureRMTrafficManagerEndpoint_updatePriority(ri, location)
@@ -175,7 +175,7 @@ func TestAccAzureRMTrafficManagerEndpoint_updatePriority(t *testing.T) {
 }
 
 func TestAccAzureRMTrafficManagerEndpoint_nestedEndpoints(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMTrafficManagerEndpoint_nestedEndpoints(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -196,7 +196,7 @@ func TestAccAzureRMTrafficManagerEndpoint_nestedEndpoints(t *testing.T) {
 
 func TestAccAzureRMTrafficManagerEndpoint_location(t *testing.T) {
 	resourceName := "azurerm_traffic_manager_endpoint.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	first := testAccAzureRMTrafficManagerEndpoint_location(ri, location)
 	second := testAccAzureRMTrafficManagerEndpoint_locationUpdated(ri, location)
@@ -224,7 +224,7 @@ func TestAccAzureRMTrafficManagerEndpoint_location(t *testing.T) {
 
 func TestAccAzureRMTrafficManagerEndpoint_withGeoMappings(t *testing.T) {
 	resourceName := "azurerm_traffic_manager_endpoint.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	first := testAccAzureRMTrafficManagerEndpoint_geoMappings(ri, location)
 	second := testAccAzureRMTrafficManagerEndpoint_geoMappingsUpdated(ri, location)
@@ -256,12 +256,12 @@ func TestAccAzureRMTrafficManagerEndpoint_withGeoMappings(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMTrafficManagerEndpointExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMTrafficManagerEndpointExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -288,12 +288,12 @@ func testCheckAzureRMTrafficManagerEndpointExists(name string) resource.TestChec
 	}
 }
 
-func testCheckAzureRMTrafficManagerEndpointDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMTrafficManagerEndpointDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -367,11 +367,11 @@ resource "azurerm_traffic_manager_profile" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctestpublicip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
-  domain_name_label            = "acctestpublicip-%d"
+  name                = "acctestpublicip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
+  domain_name_label   = "acctestpublicip-%d"
 }
 
 resource "azurerm_traffic_manager_endpoint" "testAzure" {
@@ -419,11 +419,11 @@ resource "azurerm_traffic_manager_profile" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctestpublicip-%d"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
-  domain_name_label            = "acctestpublicip-%d"
+  name                = "acctestpublicip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
+  domain_name_label   = "acctestpublicip-%d"
 }
 
 resource "azurerm_traffic_manager_endpoint" "testAzure" {

@@ -4,6 +4,7 @@ AzureRM Terraform Provider
 - Website: https://www.terraform.io
 - [![Gitter chat](https://badges.gitter.im/hashicorp-terraform/Lobby.png)](https://gitter.im/hashicorp-terraform/Lobby)
 - Mailing list: [Google Groups](http://groups.google.com/group/terraform-tool)
+- Slack workspace: [Terraform on Azure](https://terraform-azure.slack.com) ([Request Invite](https://join.slack.com/t/terraform-azure/shared_invite/enQtNDMzNjQ5NzcxMDc3LTJkZTJhNTg3NTE5ZTdjZjFhMThmMTVmOTg5YWJkMDU1YTMzN2YyOWJmZGM3MGI4OTQ0ODQxNTEyNjdjMDAxMjM))
 
 General Requirements
 ------------
@@ -43,9 +44,9 @@ Using the provider
 ```
 # Configure the Microsoft Azure Provider
 provider "azurerm" {
-  # NOTE: Environment Variables can also be used for Service Principal authentication
-  # Terraform also supports authenticating via the Azure CLI too.
-  # see here for more info: http://terraform.io/docs/providers/azurerm/index.html
+  # More information on the authentication methods supported by
+  # the AzureRM Provider can be found here:
+  # http://terraform.io/docs/providers/azurerm/index.html
 
   # subscription_id = "..."
   # client_id       = "..."
@@ -54,32 +55,17 @@ provider "azurerm" {
 }
 
 # Create a resource group
-resource "azurerm_resource_group" "main" {
+resource "azurerm_resource_group" "example" {
   name     = "production-resources"
   location = "West US"
 }
 
 # Create a virtual network in the production-resources resource group
-resource "azurerm_virtual_network" "network" {
+resource "azurerm_virtual_network" "test" {
   name                = "production-network"
-  resource_group_name = "${azurerm_resource_group.main.name}"
-  location            = "${azurerm_resource_group.main.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
   address_space       = ["10.0.0.0/16"]
-
-  subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
-  }
-
-  subnet {
-    name           = "subnet2"
-    address_prefix = "10.0.2.0/24"
-  }
-
-  subnet {
-    name           = "subnet3"
-    address_prefix = "10.0.3.0/24"
-  }
 }
 ```
 
@@ -88,7 +74,7 @@ Further [usage documentation is available on the Terraform website](https://www.
 Developing the Provider
 ---------------------------
 
-If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (version 1.9+ is *required*). You'll also need to correctly setup a [GOPATH](http://golang.org/doc/code.html#GOPATH), as well as adding `$GOPATH/bin` to your `$PATH`.
+If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (version 1.11+ is *required*). You'll also need to correctly setup a [GOPATH](http://golang.org/doc/code.html#GOPATH), as well as adding `$GOPATH/bin` to your `$PATH`.
 
 To compile the provider, run `make build`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
 
@@ -99,24 +85,26 @@ $ $GOPATH/bin/terraform-provider-azurerm
 ...
 ```
 
-In order to test the provider, you can simply run `make test`.
+In order to run the unit tests for the provider, you can run:
 
 ```sh
 $ make test
 ```
 
-In order to run the full suite of Acceptance tests, run `make testacc`.
+The majority of tests in the provider are Acceptance Tests - which provisions real resources in Azure. It's possible to run the entire acceptance test suite by running `make testacc` - however it's likely you'll want to run a subset, which you can do using a prefix, by running:
 
-The following ENV variables must be set in your shell prior to running acceptance tests:
-- ARM_CLIENT_ID
-- ARM_CLIENT_SECRET
-- ARM_SUBSCRIPTION_ID
-- ARM_TENANT_ID
-- ARM_TEST_LOCATION
-- ARM_TEST_LOCATION_ALT
-
-*Note:* Acceptance tests create real resources, and often cost money to run.
-
-```sh
-$ make testacc
 ```
+make testacc TESTARGS='-run=TestAccAzureRMResourceGroup'
+```
+
+The following Environment Variables must be set in your shell prior to running acceptance tests:
+
+- `ARM_CLIENT_ID`
+- `ARM_CLIENT_SECRET`
+- `ARM_SUBSCRIPTION_ID`
+- `ARM_TENANT_ID`
+- `ARM_ENVIRONMENT`
+- `ARM_TEST_LOCATION`
+- `ARM_TEST_LOCATION_ALT`
+
+**Note:** Acceptance tests create real resources in Azure which often cost money to run.

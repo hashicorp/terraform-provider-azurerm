@@ -21,6 +21,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -46,6 +47,16 @@ func NewInformationProtectionPoliciesClientWithBaseURI(baseURI string, subscript
 // management group (/providers/Microsoft.Management/managementGroups/mgName).
 // informationProtectionPolicyName - name of the information protection policy.
 func (client InformationProtectionPoliciesClient) CreateOrUpdate(ctx context.Context, scope string, informationProtectionPolicyName string) (result InformationProtectionPolicy, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/InformationProtectionPoliciesClient.CreateOrUpdate")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.CreateOrUpdatePreparer(ctx, scope, informationProtectionPolicyName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.InformationProtectionPoliciesClient", "CreateOrUpdate", nil, "Failure preparing request")
@@ -113,6 +124,16 @@ func (client InformationProtectionPoliciesClient) CreateOrUpdateResponder(resp *
 // management group (/providers/Microsoft.Management/managementGroups/mgName).
 // informationProtectionPolicyName - name of the information protection policy.
 func (client InformationProtectionPoliciesClient) Get(ctx context.Context, scope string, informationProtectionPolicyName string) (result InformationProtectionPolicy, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/InformationProtectionPoliciesClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetPreparer(ctx, scope, informationProtectionPolicyName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.InformationProtectionPoliciesClient", "Get", nil, "Failure preparing request")
@@ -179,6 +200,16 @@ func (client InformationProtectionPoliciesClient) GetResponder(resp *http.Respon
 // scope - scope of the query, can be subscription (/subscriptions/0b06d9ea-afe6-4779-bd59-30e5c2d9d13f) or
 // management group (/providers/Microsoft.Management/managementGroups/mgName).
 func (client InformationProtectionPoliciesClient) List(ctx context.Context, scope string) (result InformationProtectionPolicyListPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/InformationProtectionPoliciesClient.List")
+		defer func() {
+			sc := -1
+			if result.ippl.Response.Response != nil {
+				sc = result.ippl.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx, scope)
 	if err != nil {
@@ -241,8 +272,8 @@ func (client InformationProtectionPoliciesClient) ListResponder(resp *http.Respo
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client InformationProtectionPoliciesClient) listNextResults(lastResults InformationProtectionPolicyList) (result InformationProtectionPolicyList, err error) {
-	req, err := lastResults.informationProtectionPolicyListPreparer()
+func (client InformationProtectionPoliciesClient) listNextResults(ctx context.Context, lastResults InformationProtectionPolicyList) (result InformationProtectionPolicyList, err error) {
+	req, err := lastResults.informationProtectionPolicyListPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "security.InformationProtectionPoliciesClient", "listNextResults", nil, "Failure preparing next results request")
 	}
@@ -263,6 +294,16 @@ func (client InformationProtectionPoliciesClient) listNextResults(lastResults In
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
 func (client InformationProtectionPoliciesClient) ListComplete(ctx context.Context, scope string) (result InformationProtectionPolicyListIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/InformationProtectionPoliciesClient.List")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.page, err = client.List(ctx, scope)
 	return
 }

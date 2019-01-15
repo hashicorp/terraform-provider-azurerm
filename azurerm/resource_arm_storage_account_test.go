@@ -3,12 +3,16 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"regexp"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestValidateArmStorageAccountType(t *testing.T) {
@@ -53,7 +57,7 @@ func TestValidateArmStorageAccountName(t *testing.T) {
 
 func TestAccAzureRMStorageAccount_basic(t *testing.T) {
 	resourceName := "azurerm_storage_account.testsa"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
 	preConfig := testAccAzureRMStorageAccount_basic(ri, rs, location)
@@ -95,7 +99,7 @@ func TestAccAzureRMStorageAccount_basic(t *testing.T) {
 
 func TestAccAzureRMStorageAccount_premium(t *testing.T) {
 	resourceName := "azurerm_storage_account.testsa"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
 	preConfig := testAccAzureRMStorageAccount_premium(ri, rs, location)
@@ -126,7 +130,7 @@ func TestAccAzureRMStorageAccount_premium(t *testing.T) {
 
 func TestAccAzureRMStorageAccount_disappears(t *testing.T) {
 	resourceName := "azurerm_storage_account.testsa"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	preConfig := testAccAzureRMStorageAccount_basic(ri, rs, testLocation())
 
@@ -153,7 +157,7 @@ func TestAccAzureRMStorageAccount_disappears(t *testing.T) {
 
 func TestAccAzureRMStorageAccount_blobConnectionString(t *testing.T) {
 	resourceName := "azurerm_storage_account.testsa"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	preConfig := testAccAzureRMStorageAccount_basic(ri, rs, testLocation())
 
@@ -173,8 +177,13 @@ func TestAccAzureRMStorageAccount_blobConnectionString(t *testing.T) {
 }
 
 func TestAccAzureRMStorageAccount_blobEncryption(t *testing.T) {
+	_, exists := os.LookupEnv("TF_ACC_STORAGE_ENCRYPTION_DISABLE")
+	if !exists {
+		t.Skip("`TF_ACC_STORAGE_ENCRYPTION_DISABLE` isn't specified - skipping since disabling encryption is generally disabled")
+	}
+
 	resourceName := "azurerm_storage_account.testsa"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
 	preConfig := testAccAzureRMStorageAccount_blobEncryption(ri, rs, location)
@@ -209,8 +218,13 @@ func TestAccAzureRMStorageAccount_blobEncryption(t *testing.T) {
 }
 
 func TestAccAzureRMStorageAccount_fileEncryption(t *testing.T) {
+	_, exists := os.LookupEnv("TF_ACC_STORAGE_ENCRYPTION_DISABLE")
+	if !exists {
+		t.Skip("`TF_ACC_STORAGE_ENCRYPTION_DISABLE` isn't specified - skipping since disabling encryption is generally disabled")
+	}
+
 	resourceName := "azurerm_storage_account.testsa"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
 	preConfig := testAccAzureRMStorageAccount_fileEncryption(ri, rs, location)
@@ -246,7 +260,7 @@ func TestAccAzureRMStorageAccount_fileEncryption(t *testing.T) {
 
 func TestAccAzureRMStorageAccount_enableHttpsTrafficOnly(t *testing.T) {
 	resourceName := "azurerm_storage_account.testsa"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
 	preConfig := testAccAzureRMStorageAccount_enableHttpsTrafficOnly(ri, rs, location)
@@ -282,7 +296,7 @@ func TestAccAzureRMStorageAccount_enableHttpsTrafficOnly(t *testing.T) {
 
 func TestAccAzureRMStorageAccount_blobStorageWithUpdate(t *testing.T) {
 	resourceName := "azurerm_storage_account.testsa"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
 	preConfig := testAccAzureRMStorageAccount_blobStorage(ri, rs, location)
@@ -319,7 +333,7 @@ func TestAccAzureRMStorageAccount_blobStorageWithUpdate(t *testing.T) {
 
 func TestAccAzureRMStorageAccount_storageV2WithUpdate(t *testing.T) {
 	resourceName := "azurerm_storage_account.testsa"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
 	preConfig := testAccAzureRMStorageAccount_storageV2(ri, rs, location)
@@ -356,7 +370,7 @@ func TestAccAzureRMStorageAccount_storageV2WithUpdate(t *testing.T) {
 
 func TestAccAzureRMStorageAccount_NonStandardCasing(t *testing.T) {
 	resourceName := "azurerm_storage_account.testsa"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	preConfig := testAccAzureRMStorageAccount_nonStandardCasing(ri, rs, testLocation())
 
@@ -388,11 +402,9 @@ func TestAccAzureRMStorageAccount_NonStandardCasing(t *testing.T) {
 func TestAccAzureRMStorageAccount_enableIdentity(t *testing.T) {
 	resourceName := "azurerm_storage_account.testsa"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	config := testAccAzureRMStorageAccount_identity(ri, rs, testLocation())
-
-	uuidMatch := regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -404,8 +416,8 @@ func TestAccAzureRMStorageAccount_enableIdentity(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", uuidMatch),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", uuidMatch),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", validate.UUIDRegExp),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", validate.UUIDRegExp),
 				),
 			},
 		},
@@ -415,7 +427,7 @@ func TestAccAzureRMStorageAccount_enableIdentity(t *testing.T) {
 func TestAccAzureRMStorageAccount_updateResourceByEnablingIdentity(t *testing.T) {
 	resourceName := "azurerm_storage_account.testsa"
 
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 
 	basicResourceNoManagedIdentity := testAccAzureRMStorageAccount_basic(ri, rs, testLocation())
@@ -450,7 +462,7 @@ func TestAccAzureRMStorageAccount_updateResourceByEnablingIdentity(t *testing.T)
 
 func TestAccAzureRMStorageAccount_networkRules(t *testing.T) {
 	resourceName := "azurerm_storage_account.testsa"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
 	preConfig := testAccAzureRMStorageAccount_networkRules(ri, rs, location)
@@ -489,7 +501,7 @@ func TestAccAzureRMStorageAccount_networkRules(t *testing.T) {
 
 func TestAccAzureRMStorageAccount_networkRulesDeleted(t *testing.T) {
 	resourceName := "azurerm_storage_account.testsa"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
 	preConfig := testAccAzureRMStorageAccount_networkRules(ri, rs, location)
@@ -519,12 +531,12 @@ func TestAccAzureRMStorageAccount_networkRulesDeleted(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMStorageAccountExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMStorageAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		storageAccount := rs.Primary.Attributes["name"]
@@ -540,19 +552,19 @@ func testCheckAzureRMStorageAccountExists(name string) resource.TestCheckFunc {
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: StorageAccount %q (resource group: %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: StorageAccount %q (resource group: %q) does not exist", storageAccount, resourceGroup)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMStorageAccountDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMStorageAccountDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		storageAccount := rs.Primary.Attributes["name"]

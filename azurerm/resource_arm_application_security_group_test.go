@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMApplicationSecurityGroup_basic(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_application_security_group.test"
 	config := testAccAzureRMApplicationSecurityGroup_basic(ri, testLocation())
 
@@ -31,8 +31,37 @@ func TestAccAzureRMApplicationSecurityGroup_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMApplicationSecurityGroup_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+	resourceName := "azurerm_application_security_group.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApplicationSecurityGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApplicationSecurityGroup_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationSecurityGroupExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMApplicationSecurityGroup_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_app_service_custom_hostname_binding"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMApplicationSecurityGroup_complete(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_application_security_group.test"
 	config := testAccAzureRMApplicationSecurityGroup_complete(ri, testLocation())
 
@@ -54,7 +83,7 @@ func TestAccAzureRMApplicationSecurityGroup_complete(t *testing.T) {
 }
 
 func TestAccAzureRMApplicationSecurityGroup_update(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	resourceName := "azurerm_application_security_group.test"
 
@@ -110,12 +139,12 @@ func testCheckAzureRMApplicationSecurityGroupDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMApplicationSecurityGroupExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMApplicationSecurityGroupExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %q", name)
+			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -153,6 +182,19 @@ resource "azurerm_application_security_group" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMApplicationSecurityGroup_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMApplicationSecurityGroup_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_application_security_group" "import" {
+  name                = "${azurerm_application_security_group.test.name}"
+  location            = "${azurerm_application_security_group.test.location}"
+  resource_group_name = "${azurerm_application_security_group.test.resource_group_name}"
+}
+`, template)
 }
 
 func testAccAzureRMApplicationSecurityGroup_complete(rInt int, location string) string {

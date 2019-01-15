@@ -44,7 +44,7 @@ resource "azurerm_public_ip" "main" {
   name                         = "${var.prefix}-pip"
   location                     = "${azurerm_resource_group.main.location}"
   resource_group_name          = "${azurerm_resource_group.main.name}"
-  public_ip_address_allocation = "dynamic"
+  allocation_method = "Dynamic"
 }
 
 # Create a Network Security Group with some rules
@@ -90,7 +90,7 @@ resource "azurerm_network_interface" "ext-nic" {
   ip_configuration {
     name                          = "primary"
     subnet_id                     = "${azurerm_subnet.External.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = "${azurerm_public_ip.main.id}"
   }
 }
@@ -104,7 +104,7 @@ resource "azurerm_network_interface" "int-nic" {
   ip_configuration {
     name                          = "primary"
     subnet_id                     = "${azurerm_subnet.Internal.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 

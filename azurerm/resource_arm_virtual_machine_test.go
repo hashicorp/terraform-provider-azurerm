@@ -3,19 +3,21 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
-	"regexp"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMVirtualMachine_winTimeZone(t *testing.T) {
 	resourceName := "azurerm_virtual_machine.test"
 	var vm compute.VirtualMachine
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachine_winTimeZone(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -36,7 +38,7 @@ func TestAccAzureRMVirtualMachine_winTimeZone(t *testing.T) {
 func TestAccAzureRMVirtualMachine_SystemAssignedIdentity(t *testing.T) {
 	var vm compute.VirtualMachine
 	resourceName := "azurerm_virtual_machine.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMVirtualMachineSystemAssignedIdentity(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -49,7 +51,7 @@ func TestAccAzureRMVirtualMachine_SystemAssignedIdentity(t *testing.T) {
 					testCheckAzureRMVirtualMachineExists(resourceName, &vm),
 					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
 					resource.TestCheckResourceAttr(resourceName, "identity.0.identity_ids.#", "0"),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", regexp.MustCompile(".+")),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", validate.UUIDRegExp),
 				),
 			},
 		},
@@ -59,7 +61,7 @@ func TestAccAzureRMVirtualMachine_SystemAssignedIdentity(t *testing.T) {
 func TestAccAzureRMVirtualMachine_UserAssignedIdentity(t *testing.T) {
 	var vm compute.VirtualMachine
 	resourceName := "azurerm_virtual_machine.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(14)
 	config := testAccAzureRMVirtualMachineUserAssignedIdentity(ri, testLocation(), rs)
 	resource.ParallelTest(t, resource.TestCase{
@@ -83,10 +85,10 @@ func TestAccAzureRMVirtualMachine_UserAssignedIdentity(t *testing.T) {
 func TestAccAzureRMVirtualMachine_multipleAssignedIdentity(t *testing.T) {
 	var vm compute.VirtualMachine
 	resourceName := "azurerm_virtual_machine.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(14)
 	config := testAccAzureRMVirtualMachineMultipleAssignedIdentity(ri, testLocation(), rs)
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
@@ -97,19 +99,19 @@ func TestAccAzureRMVirtualMachine_multipleAssignedIdentity(t *testing.T) {
 					testCheckAzureRMVirtualMachineExists(resourceName, &vm),
 					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned, UserAssigned"),
 					resource.TestCheckResourceAttr(resourceName, "identity.0.identity_ids.#", "1"),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", regexp.MustCompile(".+")),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", validate.UUIDRegExp),
 				),
 			},
 		},
 	})
 }
 
-func testCheckAzureRMVirtualMachineExists(name string, vm *compute.VirtualMachine) resource.TestCheckFunc {
+func testCheckAzureRMVirtualMachineExists(resourceName string, vm *compute.VirtualMachine) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		vmName := rs.Primary.Attributes["name"]
@@ -193,7 +195,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
@@ -275,7 +277,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
@@ -371,7 +373,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
@@ -468,14 +470,14 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_network_interface" "test" {
-  name = "acctni-%d"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctni-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   ip_configuration {
-    name = "testconfiguration1"
-    subnet_id = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
@@ -527,7 +529,7 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   os_profile {
-    computer_name = "hn%d"
+    computer_name  = "hn%d"
     admin_username = "testadmin"
     admin_password = "Password1234!"
   }

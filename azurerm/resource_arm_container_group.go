@@ -1,13 +1,20 @@
 package azurerm
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"strings"
 
+	"github.com/hashicorp/terraform/helper/hashcode"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,9 +29,10 @@ func resourceArmContainerGroup() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"location": locationSchema(),
@@ -36,7 +44,7 @@ func resourceArmContainerGroup() *schema.Resource {
 				Optional:         true,
 				Default:          "Public",
 				ForceNew:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerinstance.Public),
 				}, true),
@@ -46,7 +54,7 @@ func resourceArmContainerGroup() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerinstance.Windows),
 					string(containerinstance.Linux),
@@ -62,23 +70,23 @@ func resourceArmContainerGroup() *schema.Resource {
 						"server": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
 							ForceNew:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"username": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
 							ForceNew:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"password": {
 							Type:         schema.TypeString,
 							Required:     true,
 							Sensitive:    true,
-							ValidateFunc: validation.NoZeroValues,
 							ForceNew:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
@@ -91,22 +99,12 @@ func resourceArmContainerGroup() *schema.Resource {
 				Optional:         true,
 				ForceNew:         true,
 				Default:          string(containerinstance.Always),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerinstance.Always),
 					string(containerinstance.Never),
 					string(containerinstance.OnFailure),
 				}, true),
-			},
-
-			"ip_address": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"fqdn": {
-				Type:     schema.TypeString,
-				Computed: true,
 			},
 
 			"dns_name_label": {
@@ -122,15 +120,17 @@ func resourceArmContainerGroup() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"image": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"cpu": {
@@ -149,18 +149,53 @@ func resourceArmContainerGroup() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: validation.IntBetween(1, 65535),
+							Computed:     true,
+							Deprecated:   "Deprecated in favor of `ports`",
+							ValidateFunc: validate.PortNumber,
 						},
 
 						"protocol": {
 							Type:             schema.TypeString,
 							Optional:         true,
 							ForceNew:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							Computed:         true,
+							Deprecated:       "Deprecated in favor of `ports`",
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerinstance.TCP),
 								string(containerinstance.UDP),
 							}, true),
+						},
+
+						"ports": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							ForceNew: true,
+							Computed: true,
+							Set:      resourceArmContainerGroupPortsHash,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"port": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ForceNew:     true,
+										Computed:     true,
+										ValidateFunc: validate.PortNumber,
+									},
+
+									"protocol": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ForceNew: true,
+										Computed: true,
+										//Default:  string(containerinstance.TCP), restore in 2.0
+										ValidateFunc: validation.StringInSlice([]string{
+											string(containerinstance.TCP),
+											string(containerinstance.UDP),
+										}, false),
+									},
+								},
+							},
 						},
 
 						"environment_variables": {
@@ -197,15 +232,17 @@ func resourceArmContainerGroup() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
-										Type:     schema.TypeString,
-										Required: true,
-										ForceNew: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 
 									"mount_path": {
-										Type:     schema.TypeString,
-										Required: true,
-										ForceNew: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 
 									"read_only": {
@@ -216,21 +253,24 @@ func resourceArmContainerGroup() *schema.Resource {
 									},
 
 									"share_name": {
-										Type:     schema.TypeString,
-										Required: true,
-										ForceNew: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 
 									"storage_account_name": {
-										Type:     schema.TypeString,
-										Required: true,
-										ForceNew: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 
 									"storage_account_key": {
-										Type:     schema.TypeString,
-										Required: true,
-										ForceNew: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 								},
 							},
@@ -238,16 +278,40 @@ func resourceArmContainerGroup() *schema.Resource {
 					},
 				},
 			},
+
+			"ip_address": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"fqdn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
 
 func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).containerGroupsClient
 	ctx := meta.(*ArmClient).StopContext
-	containerGroupsClient := meta.(*ArmClient).containerGroupsClient
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Container Group %q (Resource Group %q): %s", name, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_container_group", *existing.ID)
+		}
+	}
+
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	OSType := d.Get("os_type").(string)
 	IPAddressType := d.Get("ip_address_type").(string)
@@ -276,11 +340,11 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 		containerGroup.ContainerGroupProperties.IPAddress.DNSNameLabel = &dnsNameLabel
 	}
 
-	if _, err := containerGroupsClient.CreateOrUpdate(ctx, resGroup, name, containerGroup); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, name, containerGroup); err != nil {
 		return err
 	}
 
-	read, err := containerGroupsClient.Get(ctx, resGroup, name)
+	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
@@ -397,27 +461,44 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 			},
 		}
 
-		if v := data["port"]; v != 0 {
-			port := int32(v.(int))
+		if v, ok := data["ports"].(*schema.Set); ok && len(v.List()) > 0 {
+			var ports []containerinstance.ContainerPort
+			for _, v := range v.List() {
+				portObj := v.(map[string]interface{})
 
-			// container port (port number)
-			container.Ports = &[]containerinstance.ContainerPort{
-				{
-					Port: &port,
-				},
+				port := int32(portObj["port"].(int))
+				proto := portObj["protocol"].(string)
+
+				ports = append(ports, containerinstance.ContainerPort{
+					Port:     &port,
+					Protocol: containerinstance.ContainerNetworkProtocol(proto),
+				})
+				containerGroupPorts = append(containerGroupPorts, containerinstance.Port{
+					Port:     &port,
+					Protocol: containerinstance.ContainerGroupNetworkProtocol(proto),
+				})
 			}
+			container.Ports = &ports
+		} else {
+			if v := int32(data["port"].(int)); v != 0 {
+				ports := []containerinstance.ContainerPort{
+					{
+						Port: &v,
+					},
+				}
 
-			// container group port (port number + protocol)
-			containerGroupPort := containerinstance.Port{
-				Port: &port,
+				port := containerinstance.Port{
+					Port: &v,
+				}
+
+				if v, ok := data["protocol"].(string); ok {
+					ports[0].Protocol = containerinstance.ContainerNetworkProtocol(v)
+					port.Protocol = containerinstance.ContainerGroupNetworkProtocol(v)
+				}
+
+				container.Ports = &ports
+				containerGroupPorts = append(containerGroupPorts, port)
 			}
-
-			if v, ok := data["protocol"]; ok {
-				protocol := v.(string)
-				containerGroupPort.Protocol = containerinstance.ContainerGroupNetworkProtocol(strings.ToUpper(protocol))
-			}
-
-			containerGroupPorts = append(containerGroupPorts, containerGroupPort)
 		}
 
 		// Set both sensitive and non-secure environment variables
@@ -604,7 +685,6 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 	for i, c := range d.Get("container").([]interface{}) {
 		cfg := c.(map[string]interface{})
 		nameIndexMap[cfg["name"].(string)] = i
-
 	}
 
 	containerCfg := make([]interface{}, 0, len(*containers))
@@ -634,8 +714,20 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 			}
 		}
 
-		if len(*container.Ports) > 0 {
-			containerPort := *(*container.Ports)[0].Port
+		if cPorts := container.Ports; cPorts != nil && len(*cPorts) > 0 {
+			ports := make([]interface{}, 0)
+			for _, p := range *cPorts {
+				port := make(map[string]interface{})
+				if v := p.Port; v != nil {
+					port["port"] = int(*v)
+				}
+				port["protocol"] = string(p.Protocol)
+				ports = append(ports, port)
+			}
+			containerConfig["ports"] = schema.NewSet(resourceArmContainerGroupPortsHash, ports)
+
+			//old deprecated code
+			containerPort := *(*cPorts)[0].Port
 			containerConfig["port"] = containerPort
 			// protocol isn't returned in container config, have to search in container group ports
 			protocol := ""
@@ -782,4 +874,15 @@ func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, cont
 	}
 
 	return volumeConfigs
+}
+
+func resourceArmContainerGroupPortsHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%d-", m["port"].(int)))
+		buf.WriteString(fmt.Sprintf("%s-", m["protocol"].(string)))
+	}
+
+	return hashcode.String(buf.String())
 }
