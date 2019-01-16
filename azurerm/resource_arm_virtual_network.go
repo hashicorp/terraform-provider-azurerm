@@ -204,7 +204,7 @@ func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) err
 			d.Set("address_space", space.AddressPrefixes)
 		}
 
-		if err := d.Set("ddos_protection_plan", flattenVirtualNetworkDDosProtectionPlan(props)); err != nil {
+		if err := d.Set("ddos_protection_plan", flattenVirtualNetworkDDoSProtectionPlan(props)); err != nil {
 			return fmt.Errorf("Error setting `ddos_protection_plan`: %+v", err)
 		}
 
@@ -331,7 +331,7 @@ func expandVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData,
 	return properties, nil
 }
 
-func flattenVirtualNetworkDDosProtectionPlan(input *network.VirtualNetworkPropertiesFormat) []interface{} {
+func flattenVirtualNetworkDDoSProtectionPlan(input *network.VirtualNetworkPropertiesFormat) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
