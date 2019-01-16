@@ -30,7 +30,8 @@ debugacc: fmtcheck
 
 fmt:
 	@echo "==> Fixing source code with gofmt..."
-	gofmt -s -w ./$(PKG_NAME)
+	# This logic should match the search logic in scripts/gofmtcheck.sh
+	gofmt -s -w `find . -name '*.go' | grep -v vendor`
 
 # Currently required by tf-deploy compile
 fmtcheck:
