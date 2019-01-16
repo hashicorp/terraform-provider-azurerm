@@ -171,6 +171,7 @@ The following arguments are supported:
 * `linux_fx_version` - (Optional) Linux App Framework and version for the AppService, e.g. `DOCKER|(golang:latest)`.
 * `managed_pipeline_mode` - (Optional) The Managed Pipeline Mode. Possible values are `Integrated` and `Classic`. Defaults to `Integrated`.
 * `min_tls_version` - (Optional) The minimum supported TLS version for the app service. Possible values are `1.0`, `1.1`, and `1.2`. Defaults to `1.2` for new app services.
+* `node_version` - (Optional) The version of Node to use in this App Service. Possible values are `0.6`, `0.8`, `0.10`, `0.12`, `4.8`, `6.5`, `6.9`, `6.12`, `7.10`, `8.1`, `8.4`, `8.5`, `8.9`, `8.10`, `8.11`, `10.0` and `10.6`.
 * `php_version` - (Optional) The version of PHP to use in this App Service. Possible values are `5.5`, `5.6`, `7.0`, `7.1` and `7.2`.
 * `python_version` - (Optional) The version of Python to use in this App Service. Possible values are `2.7` and `3.4`.
 * `remote_debugging_enabled` - (Optional) Is Remote Debugging Enabled? Defaults to `false`.
@@ -221,7 +222,7 @@ The following attributes are exported:
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this App Service.
 
--> You can access the Principal ID via `${azurerm_app_service.test.identity.0.principal_id}` and the Tenant ID via `${azurerm_app_service.test.identity.0.tenant_id}`
+-> You can access the Principal ID via `${azurerm_app_service.test.identity.0.principal_id}` and the Tenant ID via `${azurerm_app_service.test.identity.0.principal_id}`
 
 ---
 

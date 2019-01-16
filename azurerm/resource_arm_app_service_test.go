@@ -6,9 +6,9 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -54,7 +54,7 @@ func TestAzureRMAppServiceName_validation(t *testing.T) {
 
 func TestAccAzureRMAppService_basic(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -86,7 +86,7 @@ func TestAccAzureRMAppService_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -110,7 +110,7 @@ func TestAccAzureRMAppService_requiresImport(t *testing.T) {
 
 func TestAccAzureRMAppService_freeTier(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_freeTier(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -135,7 +135,7 @@ func TestAccAzureRMAppService_freeTier(t *testing.T) {
 
 func TestAccAzureRMAppService_sharedTier(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_sharedTier(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -160,7 +160,7 @@ func TestAccAzureRMAppService_sharedTier(t *testing.T) {
 
 func TestAccAzureRMAppService_32Bit(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_32Bit(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -186,7 +186,7 @@ func TestAccAzureRMAppService_32Bit(t *testing.T) {
 
 func TestAccAzureRMAppService_http2Enabled(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_http2Enabled(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -212,7 +212,7 @@ func TestAccAzureRMAppService_http2Enabled(t *testing.T) {
 
 func TestAccAzureRMAppService_alwaysOn(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_alwaysOn(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -238,7 +238,7 @@ func TestAccAzureRMAppService_alwaysOn(t *testing.T) {
 
 func TestAccAzureRMAppService_appCommandLine(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_appCommandLine(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -264,7 +264,7 @@ func TestAccAzureRMAppService_appCommandLine(t *testing.T) {
 
 func TestAccAzureRMAppService_httpsOnly(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_httpsOnly(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -290,7 +290,7 @@ func TestAccAzureRMAppService_httpsOnly(t *testing.T) {
 
 func TestAccAzureRMAppService_appSettings(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_appSettings(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -316,7 +316,7 @@ func TestAccAzureRMAppService_appSettings(t *testing.T) {
 
 func TestAccAzureRMAppService_clientAffinityEnabled(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_clientAffinityEnabled(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -342,7 +342,7 @@ func TestAccAzureRMAppService_clientAffinityEnabled(t *testing.T) {
 
 func TestAccAzureRMAppService_clientAffinityDisabled(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_clientAffinityDisabled(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -368,7 +368,7 @@ func TestAccAzureRMAppService_clientAffinityDisabled(t *testing.T) {
 
 func TestAccAzureRMAppService_virtualNetwork(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -402,7 +402,7 @@ func TestAccAzureRMAppService_virtualNetwork(t *testing.T) {
 func TestAccAzureRMAppService_enableManageServiceIdentity(t *testing.T) {
 
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_mangedServiceIdentity(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -426,7 +426,7 @@ func TestAccAzureRMAppService_enableManageServiceIdentity(t *testing.T) {
 func TestAccAzureRMAppService_updateResourceByEnablingManageServiceIdentity(t *testing.T) {
 
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 
 	basicResourceNoManagedIdentity := testAccAzureRMAppService_basic(ri, testLocation())
 	managedIdentityEnabled := testAccAzureRMAppService_mangedServiceIdentity(ri, testLocation())
@@ -458,7 +458,7 @@ func TestAccAzureRMAppService_updateResourceByEnablingManageServiceIdentity(t *t
 
 func TestAccAzureRMAppService_clientAffinityUpdate(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_clientAffinity(ri, testLocation(), true)
 	updatedConfig := testAccAzureRMAppService_clientAffinity(ri, testLocation(), false)
 
@@ -497,7 +497,7 @@ func TestAccAzureRMAppService_clientAffinityUpdate(t *testing.T) {
 
 func TestAccAzureRMAppService_connectionStrings(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -540,7 +540,7 @@ func TestAccAzureRMAppService_connectionStrings(t *testing.T) {
 
 func TestAccAzureRMAppService_oneIpRestriction(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_oneIpRestriction(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -567,7 +567,7 @@ func TestAccAzureRMAppService_oneIpRestriction(t *testing.T) {
 
 func TestAccAzureRMAppService_manyIpRestrictions(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_manyIpRestrictions(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -600,7 +600,7 @@ func TestAccAzureRMAppService_manyIpRestrictions(t *testing.T) {
 
 func TestAccAzureRMAppService_defaultDocuments(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_defaultDocuments(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -628,7 +628,7 @@ func TestAccAzureRMAppService_defaultDocuments(t *testing.T) {
 
 func TestAccAzureRMAppService_enabled(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_enabled(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -654,7 +654,7 @@ func TestAccAzureRMAppService_enabled(t *testing.T) {
 
 func TestAccAzureRMAppService_localMySql(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_localMySql(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -680,7 +680,7 @@ func TestAccAzureRMAppService_localMySql(t *testing.T) {
 
 func TestAccAzureRMAppService_managedPipelineMode(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_managedPipelineMode(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -706,7 +706,7 @@ func TestAccAzureRMAppService_managedPipelineMode(t *testing.T) {
 
 func TestAccAzureRMAppService_tagsUpdate(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_tags(ri, testLocation())
 	updatedConfig := testAccAzureRMAppService_tagsUpdated(ri, testLocation())
 
@@ -738,7 +738,7 @@ func TestAccAzureRMAppService_tagsUpdate(t *testing.T) {
 
 func TestAccAzureRMAppService_remoteDebugging(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_remoteDebugging(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -765,7 +765,7 @@ func TestAccAzureRMAppService_remoteDebugging(t *testing.T) {
 
 func TestAccAzureRMAppService_windowsDotNet2(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_windowsDotNet(ri, testLocation(), "v2.0")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -791,7 +791,7 @@ func TestAccAzureRMAppService_windowsDotNet2(t *testing.T) {
 
 func TestAccAzureRMAppService_windowsDotNet4(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_windowsDotNet(ri, testLocation(), "v4.0")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -817,7 +817,7 @@ func TestAccAzureRMAppService_windowsDotNet4(t *testing.T) {
 
 func TestAccAzureRMAppService_windowsDotNetUpdate(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_windowsDotNet(ri, testLocation(), "v2.0")
 	updatedConfig := testAccAzureRMAppService_windowsDotNet(ri, testLocation(), "v4.0")
 
@@ -846,7 +846,7 @@ func TestAccAzureRMAppService_windowsDotNetUpdate(t *testing.T) {
 
 func TestAccAzureRMAppService_windowsJava7Jetty(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_windowsJava(ri, testLocation(), "1.7", "JETTY", "9.3")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -874,7 +874,7 @@ func TestAccAzureRMAppService_windowsJava7Jetty(t *testing.T) {
 
 func TestAccAzureRMAppService_windowsJava8Jetty(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_windowsJava(ri, testLocation(), "1.8", "JETTY", "9.3")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -901,7 +901,7 @@ func TestAccAzureRMAppService_windowsJava8Jetty(t *testing.T) {
 }
 func TestAccAzureRMAppService_windowsJava7Tomcat(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_windowsJava(ri, testLocation(), "1.7", "TOMCAT", "9.0")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -929,7 +929,7 @@ func TestAccAzureRMAppService_windowsJava7Tomcat(t *testing.T) {
 
 func TestAccAzureRMAppService_windowsJava8Tomcat(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_windowsJava(ri, testLocation(), "1.8", "TOMCAT", "9.0")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -957,7 +957,7 @@ func TestAccAzureRMAppService_windowsJava8Tomcat(t *testing.T) {
 
 func TestAccAzureRMAppService_windowsPHP7(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_windowsPHP(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -983,7 +983,7 @@ func TestAccAzureRMAppService_windowsPHP7(t *testing.T) {
 
 func TestAccAzureRMAppService_windowsPython(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_windowsPython(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -1007,9 +1007,35 @@ func TestAccAzureRMAppService_windowsPython(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppService_windowsNode(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppService_windowsNode(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.node_version", "8.4"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAppService_webSockets(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_webSockets(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -1035,7 +1061,7 @@ func TestAccAzureRMAppService_webSockets(t *testing.T) {
 
 func TestAccAzureRMAppService_scmType(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_scmType(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -1063,7 +1089,7 @@ func TestAccAzureRMAppService_scmType(t *testing.T) {
 
 func TestAccAzureRMAppService_ftpsState(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_ftpsState(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -1088,7 +1114,7 @@ func TestAccAzureRMAppService_ftpsState(t *testing.T) {
 
 func TestAccAzureRMAppService_linuxFxVersion(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_linuxFxVersion(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -1111,7 +1137,7 @@ func TestAccAzureRMAppService_linuxFxVersion(t *testing.T) {
 
 func TestAccAzureRMAppService_minTls(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_minTls(ri, testLocation(), "1.0")
 	updatedConfig := testAccAzureRMAppService_minTls(ri, testLocation(), "1.1")
 
@@ -2159,6 +2185,37 @@ resource "azurerm_app_service" "test" {
 
   site_config {
     python_version = "3.4"
+  }
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMAppService_windowsNode(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+
+  site_config {
+    node_version = "8.4"
   }
 }
 `, rInt, location, rInt, rInt)

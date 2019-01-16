@@ -114,6 +114,30 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 					DiffSuppressFunc: suppress.CaseDifference,
 				},
 
+				"node_version": {
+					Type:     schema.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"0.6",
+						"0.8",
+						"0.10",
+						"0.12",
+						"4.8",
+						"6.5",
+						"6.9",
+						"6.12",
+						"7.10",
+						"8.1",
+						"8.4",
+						"8.5",
+						"8.9",
+						"8.10",
+						"8.11",
+						"10.0",
+						"10.6",
+					}, false),
+				},
+
 				"php_version": {
 					Type:     schema.TypeString,
 					Optional: true,
@@ -300,6 +324,10 @@ func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 		siteConfig.ManagedPipelineMode = web.ManagedPipelineMode(v.(string))
 	}
 
+	if v, ok := config["node_version"]; ok {
+		siteConfig.NodeVersion = utils.String(v.(string))
+	}
+
 	if v, ok := config["php_version"]; ok {
 		siteConfig.PhpVersion = utils.String(v.(string))
 	}
@@ -414,6 +442,10 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	result["ip_restriction"] = restrictions
 
 	result["managed_pipeline_mode"] = string(input.ManagedPipelineMode)
+
+	if input.NodeVersion != nil {
+		result["node_version"] = *input.NodeVersion
+	}
 
 	if input.PhpVersion != nil {
 		result["php_version"] = *input.PhpVersion
