@@ -158,11 +158,11 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 				},
 			},
 
-			"max_size_bytes": {
-				Type:         schema.TypeInt,
+			"max_size_gb": {
+				Type:         schema.TypeFloat,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.IntAtLeast(0),
+				ValidateFunc: validate.FloatAtLeast(0),
 			},
 
 			"zone_redundant": {
@@ -176,53 +176,146 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
 
 			name, _ := diff.GetOk("sku.0.name")
+			tier, _ := diff.GetOk("sku.0.tier")
 			capacity, _ := diff.GetOk("sku.0.capacity")
+			maxSizeGb, _ := diff.GetOk("max_size_gb")
 			minCapacity, _ := diff.GetOk("per_database_settings.0.min_capacity")
 			maxCapacity, _ := diff.GetOk("per_database_settings.0.max_capacity")
 
-			if strings.HasPrefix(strings.ToLower(name.(string)), "gp_") {
+			// Basic Checks
+			if strings.ToLower(tier.(string)) == "basic" {
 
-				if capacity.(int) > 24 {
-					return fmt.Errorf("GeneralPurpose pricing tier only supports upto 24 vCores")
+				if !azure.BasicIsCapacityValid(capacity.(int)) {
+					return fmt.Errorf("Basic pricing tier must have a capacity of 50, 100, 200, 300, 400, 800, 1200 or 1600 DTUs")
 				}
 
-				if capacity.(int) < 1 {
-					return fmt.Errorf("GeneralPurpose pricing tier must have a minimum of 1 vCores")
-				}
+				// Basic SKU does not let you pick your max_size_GB they are fixed values
+				maxAllowedGB := azure.BasicGetMaxSizeGB(capacity.(int))
 
-				switch {
-				case capacity.(int) == 1:
-				case capacity.(int) == 2:
-				case capacity.(int) == 4:
-				case capacity.(int) == 8:
-				case capacity.(int) == 16:
-				case capacity.(int) == 24:
-				default:
-					return fmt.Errorf("GeneralPurpose pricing tier must have a capacity of 1, 2, 4, 8, 16, or 24 vCores")
+				if maxSizeGb.(float64) != maxAllowedGB {
+					return fmt.Errorf("Basic pricing tier with a capacity of %d must have a max_size_gb of %.7f, got %.7f", capacity.(int), maxAllowedGB, maxSizeGb.(float64))
 				}
 			}
 
+			// Standard Checks
+			if strings.ToLower(tier.(string)) == "standard" {
+				if int(maxSizeGb.(float64)) < 50 {
+					return fmt.Errorf("Standard pricing tier must have a max_size_gb value equal to or greater than 50 GB, got %d GB", int(maxSizeGb.(float64)))
+				}
+
+				if !azure.StandardCapacityValid(capacity.(int)) {
+					return fmt.Errorf("Standard pricing tier must have a capacity of 50, 100, 200, 300, 400, 800, 1200, 1600, 2000, 2500 or 3000 DTUs")
+				}
+
+				maxAllowedGB := azure.StandardGetMaxSizeGB(capacity.(int))
+
+				if maxSizeGb.(float64) > maxAllowedGB {
+					return fmt.Errorf("Standard pricing tier with a capacity of %d must have a max_size_gb no greater than %d, got %d", capacity.(int), int(maxAllowedGB), int(maxSizeGb.(float64)))
+				}
+
+				if err, ok := azure.IsMaxGBValid(50, maxSizeGb.(float64)); !ok {
+					return fmt.Errorf(err)
+				}
+			}
+
+			// Premium Checks
+			if strings.ToLower(tier.(string)) == "premium" {
+				if int(maxSizeGb.(float64)) < 50 {
+					return fmt.Errorf("Premium pricing tier must have a max_size_gb value equal to or greater than 50 GB, got %d GB", int(maxSizeGb.(float64)))
+				}
+
+				if !azure.PremiumCapacityValid(capacity.(int)) {
+					return fmt.Errorf("Premium pricing tier must have a capacity of 125, 250, 500, 1000, 1500, 2000, 2500, 3000, 3500 or 4000 DTUs")
+				}
+
+				maxAllowedGB := azure.PremiumGetMaxSizeGB(capacity.(int))
+
+				if maxSizeGb.(float64) > maxAllowedGB {
+					return fmt.Errorf("Premium pricing tier with a capacity of %d must have a max_size_gb no greater than %d, got %d", capacity.(int), int(maxAllowedGB), int(maxSizeGb.(float64)))
+				}
+
+				if err, ok := azure.IsMaxGBValid(50, maxSizeGb.(float64)); !ok {
+					return fmt.Errorf(err)
+				}
+			}
+
+			// GeneralPurpose Checks
+			if strings.HasPrefix(strings.ToLower(name.(string)), "gp_") {
+				if int(maxSizeGb.(float64)) < 5 {
+					return fmt.Errorf("GeneralPurpose pricing tier must have a max_size_gb value equal to or greater than 5 GB, got %f GB", maxSizeGb.(float64))
+				}
+
+				// Gen4 Checks
+				if strings.ToLower(tier.(string)) == "gen4" {
+
+					if !azure.GeneralPurposeCapacityValid(capacity.(int), "gen4") {
+						return fmt.Errorf("GeneralPurpose Gen4 pricing tier must have a capacity of 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 16 or 24 vCores")
+					}
+
+					maxAllowedGB := azure.GeneralPurposeGetMaxSizeGB(capacity.(int), "gen4")
+
+					if maxSizeGb.(float64) > maxAllowedGB {
+						return fmt.Errorf("GeneralPurpose Gen4 pricing tier with a capacity of %d vCores must have a max_size_gb between 5 GB and %d GB, got %f", capacity.(int), int(maxAllowedGB), maxSizeGb.(float64))
+					}
+
+					if err, ok := azure.IsMaxGBValid(1, maxSizeGb.(float64)); !ok {
+						return fmt.Errorf(err)
+					}
+				}
+
+				// Gen5 Checks
+				if strings.ToLower(tier.(string)) == "gen5" {
+					if !azure.GeneralPurposeCapacityValid(capacity.(int), "gen5") {
+						return fmt.Errorf("GeneralPurpose Gen5 pricing tier must have a capacity of 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 24, 32, 40 or 80 vCores")
+					}
+
+					maxAllowedGB := azure.GeneralPurposeGetMaxSizeGB(capacity.(int), "gen5")
+
+					if maxSizeGb.(float64) > maxAllowedGB {
+						return fmt.Errorf("GeneralPurpose Gen5 pricing tier with a capacity of %d vCores must have a max_size_gb between 5 GB and %d GB, got %f", capacity.(int), int(maxAllowedGB), maxSizeGb.(float64))
+					}
+
+					if err, ok := azure.IsMaxGBValid(1, maxSizeGb.(float64)); !ok {
+						return fmt.Errorf(err)
+					}
+				}
+			}
+
+			// BusinessCritical Checks
 			if strings.HasPrefix(strings.ToLower(name.(string)), "bc_") {
-				if capacity.(int) > 80 {
-					return fmt.Errorf("BusinessCritical pricing tier only supports upto 80 vCores")
+
+				// Gen4 Checks
+				if strings.ToLower(tier.(string)) == "gen4" {
+					if !azure.BusinessCriticalCapacityValid(capacity.(int), "gen4") {
+						return fmt.Errorf("BusinessCritical Gen4 pricing tier must have a capacity of 2, 3, 4, 5, 6, 7, 8, 9, 10, 16 or 24 vCores")
+					}
+
+					maxAllowedGB := azure.BusinessCriticalGetMaxSizeGB(capacity.(int), "gen4")
+
+					if maxSizeGb.(float64) > maxAllowedGB {
+						return fmt.Errorf("BusinessCritical Gen4 pricing tier with a capacity of %d vCores must have a max_size_gb between 5 GB and %d GB, got %f", capacity.(int), int(maxAllowedGB), maxSizeGb.(float64))
+					}
+
+					if err, ok := azure.IsMaxGBValid(1, maxSizeGb.(float64)); !ok {
+						return fmt.Errorf(err)
+					}
 				}
 
-				if capacity.(int) < 2 {
-					return fmt.Errorf("BusinessCritical pricing tier must have a minimum of 2 vCores")
-				}
+				// Gen5 Checks
+				if strings.ToLower(tier.(string)) == "gen5" {
+					if !azure.BusinessCriticalCapacityValid(capacity.(int), "gen5") {
+						return fmt.Errorf("BusinessCritical Gen5 pricing tier must have a capacity of 4, 6, 8, 10, 12, 14, 16, 18, 20, 24, 32, 40 or 80 vCores")
+					}
 
-				switch {
-				case capacity.(int) == 1:
-				case capacity.(int) == 2:
-				case capacity.(int) == 4:
-				case capacity.(int) == 8:
-				case capacity.(int) == 16:
-				case capacity.(int) == 24:
-				case capacity.(int) == 32:
-				case capacity.(int) == 40:
-				case capacity.(int) == 80:
-				default:
-					return fmt.Errorf("BusinessCritical pricing tier must have a capacity of 2, 4, 8, 16, 24, 32, 40, or 80 vCores")
+					maxAllowedGB := azure.BusinessCriticalGetMaxSizeGB(capacity.(int), "gen5")
+
+					if maxSizeGb.(float64) > maxAllowedGB {
+						return fmt.Errorf("BusinessCritical Gen5 pricing tier with a capacity of %d vCores must have a max_size_gb between 5 GB and %d GB, got %f", capacity.(int), int(maxAllowedGB), maxSizeGb.(float64))
+					}
+
+					if err, ok := azure.IsMaxGBValid(1, maxSizeGb.(float64)); !ok {
+						return fmt.Errorf(err)
+					}
 				}
 			}
 
@@ -280,6 +373,7 @@ func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	if v, ok := d.GetOk("max_size_bytes"); ok {
+		// Convert to Bytes here
 		elasticPool.MaxSizeBytes = utils.Int64(int64(v.(int)))
 	}
 
