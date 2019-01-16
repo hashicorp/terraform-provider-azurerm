@@ -335,6 +335,8 @@ A `waf_configuration` block supports the following:
 
 * `rule_set_version` - (Required) The Version of the Rule Set used for this Web Application Firewall.
 
+* `file_upload_limit_mb` - (Optional) The File Upload Limit in MB. Accepted values are in the range `1`MB to `500`MB. Defaults to `100`MB.
+
 ## Attributes Reference
 
 The following attributes are exported:
