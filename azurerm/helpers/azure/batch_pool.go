@@ -208,10 +208,11 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 		envSettings := make([]batch.EnvironmentSetting, 0)
 
 		for k, v := range envMap {
-			envValue := v.(string)
+			theValue := v.(string)
+			theKey := k
 			envSetting := batch.EnvironmentSetting{
-				Name:  &k,
-				Value: &envValue,
+				Name:  &theKey,
+				Value: &theValue,
 			}
 
 			envSettings = append(envSettings, envSetting)
