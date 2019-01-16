@@ -10,6 +10,8 @@ IMPROVEMENTS:
 * `azurerm_mssql_elasticpool` - support for setting `max_size_bytes` [GH-2346]
 * `azurerm_signalr_service` - exporting `primary_access_key`, `secondary_access_key`, `primary_connection_string` and `secondary_connection_string` and secondary access keys and connection strings [GH-2655]
 * `azurerm_subnet` - support for additional subnet delegation types [GH-2667]
+* `azurerm_application_gateway` - support for the `file_upload_limit_mb` property [GH-2666]
+: Adding upload limit
 
 BUG FIXES:
 
