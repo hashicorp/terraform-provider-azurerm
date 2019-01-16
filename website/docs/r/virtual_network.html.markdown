@@ -101,7 +101,7 @@ A `ddos_protection_plan` block supports the following:
 
 * `id` - (Required) The Resource ID of DDos Protection Plan.
 
-* `enable` - (Required) Enable/disable DDos Protection Plan on Virtual Network. Default to `false`.
+* `enable` - (Required) Enable/disable DDoS Protection Plan on Virtual Network. Defaults to `false`.
 
 ---
 
