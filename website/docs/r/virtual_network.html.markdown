@@ -99,9 +99,9 @@ The following arguments are supported:
 
 A `ddos_protection_plan` block supports the following:
 
-* `id` - (Optional) The Resource ID of DDos Protection Plan.
+* `id` - (Required) The Resource ID of DDoS Protection Plan.
 
-* `enable` - (Optional) Enable/disable DDos Protection Plan on Virtual Network. Default to `false`.
+* `enable` - (Required) Enable/disable DDoS Protection Plan on Virtual Network. Defaults to `false`.
 
 ---
 

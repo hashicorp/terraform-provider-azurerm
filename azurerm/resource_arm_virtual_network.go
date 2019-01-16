@@ -63,8 +63,7 @@ func resourceArmVirtualNetwork() *schema.Resource {
 						},
 						"enable": {
 							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
+							Required: true,
 						},
 					},
 				},
@@ -205,7 +204,7 @@ func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) err
 			d.Set("address_space", space.AddressPrefixes)
 		}
 
-		if err := d.Set("ddos_protection_plan", flattenVirtualNetworkDDosProtectionPlan(props)); err != nil {
+		if err := d.Set("ddos_protection_plan", flattenVirtualNetworkDDoSProtectionPlan(props)); err != nil {
 			return fmt.Errorf("Error setting `ddos_protection_plan`: %+v", err)
 		}
 
@@ -332,24 +331,21 @@ func expandVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData,
 	return properties, nil
 }
 
-func flattenVirtualNetworkDDosProtectionPlan(input *network.VirtualNetworkPropertiesFormat) []interface{} {
+func flattenVirtualNetworkDDoSProtectionPlan(input *network.VirtualNetworkPropertiesFormat) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
-	ddosPPlan := make(map[string]interface{})
-
-	if plan := input.DdosProtectionPlan; plan != nil {
-		if id := plan.ID; id != nil {
-			ddosPPlan["id"] = *id
-		}
+	if input.DdosProtectionPlan == nil || input.DdosProtectionPlan.ID == nil || input.EnableDdosProtection == nil {
+		return []interface{}{}
 	}
 
-	if enablePPlan := input.EnableDdosProtection; enablePPlan != nil {
-		ddosPPlan["enable"] = *enablePPlan
+	return []interface{}{
+		map[string]interface{}{
+			"id":     *input.DdosProtectionPlan.ID,
+			"enable": *input.EnableDdosProtection,
+		},
 	}
-
-	return []interface{}{ddosPPlan}
 }
 
 func flattenVirtualNetworkSubnets(input *[]network.Subnet) *schema.Set {

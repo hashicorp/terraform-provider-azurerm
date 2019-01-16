@@ -10,15 +10,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-// NOTE: this is a test group to avoid each test case to run in parallel, since Azure only allows one DDos Protection
+// NOTE: this is a test group to avoid each test case to run in parallel, since Azure only allows one DDoS Protection
 // Plan per region.
-func TestAccAzureRMDDosProtectionPlan(t *testing.T) {
+func TestAccAzureRMDDoSProtectionPlan(t *testing.T) {
 	testCases := map[string]map[string]func(t *testing.T){
 		"normal": {
-			"basic":          testAccAzureRMDDosProtectionPlan_basic,
-			"requiresImport": testAccAzureRMDDosProtectionPlan_requiresImport,
-			"withTags":       testAccAzureRMDDosProtectionPlan_withTags,
-			"disappears":     testAccAzureRMDDosProtectionPlan_disappears,
+			"basic":          testAccAzureRMDDoSProtectionPlan_basic,
+			"requiresImport": testAccAzureRMDDoSProtectionPlan_requiresImport,
+			"withTags":       testAccAzureRMDDoSProtectionPlan_withTags,
+			"disappears":     testAccAzureRMDDoSProtectionPlan_disappears,
 		},
 	}
 
@@ -33,7 +33,7 @@ func TestAccAzureRMDDosProtectionPlan(t *testing.T) {
 	}
 }
 
-func testAccAzureRMDDosProtectionPlan_basic(t *testing.T) {
+func testAccAzureRMDDoSProtectionPlan_basic(t *testing.T) {
 	resourceName := "azurerm_ddos_protection_plan.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
@@ -41,12 +41,12 @@ func testAccAzureRMDDosProtectionPlan_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMDDosProtectionPlanDestroy,
+		CheckDestroy: testCheckAzureRMDDoSProtectionPlanDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDDosProtectionPlan_basicConfig(ri, location),
+				Config: testAccAzureRMDDoSProtectionPlan_basicConfig(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDDosProtectionPlanExists(resourceName),
+					testCheckAzureRMDDoSProtectionPlanExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "virtual_network_ids.#"),
 				),
 			},
@@ -59,7 +59,7 @@ func testAccAzureRMDDosProtectionPlan_basic(t *testing.T) {
 	})
 }
 
-func testAccAzureRMDDosProtectionPlan_requiresImport(t *testing.T) {
+func testAccAzureRMDDoSProtectionPlan_requiresImport(t *testing.T) {
 	if !requireResourcesToBeImported {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
@@ -72,23 +72,23 @@ func testAccAzureRMDDosProtectionPlan_requiresImport(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMDDosProtectionPlanDestroy,
+		CheckDestroy: testCheckAzureRMDDoSProtectionPlanDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDDosProtectionPlan_basicConfig(ri, location),
+				Config: testAccAzureRMDDoSProtectionPlan_basicConfig(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDDosProtectionPlanExists(resourceName),
+					testCheckAzureRMDDoSProtectionPlanExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMDDosProtectionPlan_requiresImportConfig(ri, location),
+				Config:      testAccAzureRMDDoSProtectionPlan_requiresImportConfig(ri, location),
 				ExpectError: testRequiresImportError("azurerm_ddos_protection_plan"),
 			},
 		},
 	})
 }
 
-func testAccAzureRMDDosProtectionPlan_withTags(t *testing.T) {
+func testAccAzureRMDDoSProtectionPlan_withTags(t *testing.T) {
 	resourceName := "azurerm_ddos_protection_plan.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
@@ -96,21 +96,21 @@ func testAccAzureRMDDosProtectionPlan_withTags(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMDDosProtectionPlanDestroy,
+		CheckDestroy: testCheckAzureRMDDoSProtectionPlanDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDDosProtectionPlan_withTagsConfig(ri, location),
+				Config: testAccAzureRMDDoSProtectionPlan_withTagsConfig(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDDosProtectionPlanExists(resourceName),
+					testCheckAzureRMDDoSProtectionPlanExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
 					resource.TestCheckResourceAttr(resourceName, "tags.cost_center", "MSFT"),
 				),
 			},
 			{
-				Config: testAccAzureRMDDosProtectionPlan_withUpdatedTagsConfig(ri, location),
+				Config: testAccAzureRMDDoSProtectionPlan_withUpdatedTagsConfig(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDDosProtectionPlanExists(resourceName),
+					testCheckAzureRMDDoSProtectionPlanExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Staging"),
 				),
@@ -124,7 +124,7 @@ func testAccAzureRMDDosProtectionPlan_withTags(t *testing.T) {
 	})
 }
 
-func testAccAzureRMDDosProtectionPlan_disappears(t *testing.T) {
+func testAccAzureRMDDoSProtectionPlan_disappears(t *testing.T) {
 	resourceName := "azurerm_ddos_protection_plan.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
@@ -132,13 +132,13 @@ func testAccAzureRMDDosProtectionPlan_disappears(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMDDosProtectionPlanDestroy,
+		CheckDestroy: testCheckAzureRMDDoSProtectionPlanDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDDosProtectionPlan_basicConfig(ri, location),
+				Config: testAccAzureRMDDoSProtectionPlan_basicConfig(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDDosProtectionPlanExists(resourceName),
-					testCheckAzureRMDDosProtectionPlanDisappears(resourceName),
+					testCheckAzureRMDDoSProtectionPlanExists(resourceName),
+					testCheckAzureRMDDoSProtectionPlanDisappears(resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -146,7 +146,7 @@ func testAccAzureRMDDosProtectionPlan_disappears(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDDosProtectionPlanExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMDDoSProtectionPlanExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -157,7 +157,7 @@ func testCheckAzureRMDDosProtectionPlanExists(resourceName string) resource.Test
 		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for DDos Protection Plan: %q", name)
+			return fmt.Errorf("Bad: no resource group found in state for DDoS Protection Plan: %q", name)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).ddosProtectionPlanClient
@@ -165,7 +165,7 @@ func testCheckAzureRMDDosProtectionPlanExists(resourceName string) resource.Test
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: DDos Protection Plan %q (Resource Group: %q) does not exist", name, resourceGroup)
+				return fmt.Errorf("Bad: DDoS Protection Plan %q (Resource Group: %q) does not exist", name, resourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on ddosProtectionPlanClient: %+v", err)
@@ -175,7 +175,7 @@ func testCheckAzureRMDDosProtectionPlanExists(resourceName string) resource.Test
 	}
 }
 
-func testCheckAzureRMDDosProtectionPlanDisappears(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMDDoSProtectionPlanDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -186,7 +186,7 @@ func testCheckAzureRMDDosProtectionPlanDisappears(resourceName string) resource.
 		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for DDos Protection Plan: %q", name)
+			return fmt.Errorf("Bad: no resource group found in state for DDoS Protection Plan: %q", name)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).ddosProtectionPlanClient
@@ -204,7 +204,7 @@ func testCheckAzureRMDDosProtectionPlanDisappears(resourceName string) resource.
 	}
 }
 
-func testCheckAzureRMDDosProtectionPlanDestroy(s *terraform.State) error {
+func testCheckAzureRMDDoSProtectionPlanDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).ddosProtectionPlanClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
@@ -225,13 +225,13 @@ func testCheckAzureRMDDosProtectionPlanDestroy(s *terraform.State) error {
 			return err
 		}
 
-		return fmt.Errorf("DDos Protection Plan still exists:\n%#v", resp.DdosProtectionPlanPropertiesFormat)
+		return fmt.Errorf("DDoS Protection Plan still exists:\n%#v", resp.DdosProtectionPlanPropertiesFormat)
 	}
 
 	return nil
 }
 
-func testAccAzureRMDDosProtectionPlan_basicConfig(rInt int, location string) string {
+func testAccAzureRMDDoSProtectionPlan_basicConfig(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -246,8 +246,8 @@ resource "azurerm_ddos_protection_plan" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMDDosProtectionPlan_requiresImportConfig(rInt int, location string) string {
-	basicConfig := testAccAzureRMDDosProtectionPlan_basicConfig(rInt, location)
+func testAccAzureRMDDoSProtectionPlan_requiresImportConfig(rInt int, location string) string {
+	basicConfig := testAccAzureRMDDoSProtectionPlan_basicConfig(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -259,7 +259,7 @@ resource "azurerm_ddos_protection_plan" "import" {
 `, basicConfig)
 }
 
-func testAccAzureRMDDosProtectionPlan_withTagsConfig(rInt int, location string) string {
+func testAccAzureRMDDoSProtectionPlan_withTagsConfig(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -279,7 +279,7 @@ resource "azurerm_ddos_protection_plan" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMDDosProtectionPlan_withUpdatedTagsConfig(rInt int, location string) string {
+func testAccAzureRMDDoSProtectionPlan_withUpdatedTagsConfig(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
