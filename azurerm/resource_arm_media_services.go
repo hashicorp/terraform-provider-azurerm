@@ -22,6 +22,7 @@ func resourceArmMediaServices() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		// TODO: Add validation after finding out the rules for AMS names
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -29,7 +30,7 @@ func resourceArmMediaServices() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile("^[-a-z0-9]{3,50}$"),
-					"Cosmos DB Account name must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
+					"Media Services Account name must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
 				),
 			},
 
@@ -74,7 +75,7 @@ func resourceArmMediaServicesCreateUpdate(d *schema.ResourceData, meta interface
 
 	service, err := client.CreateOrUpdate(ctx, resourceGroup, accountName, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating media service account: %+v", err)
+		return fmt.Errorf("Error creating Media Service Account: %+v", err)
 	}
 
 	d.SetId(*service.ID)
@@ -94,7 +95,7 @@ func resourceArmMediaServicesRead(d *schema.ResourceData, meta interface{}) erro
 
 	name := id.Path["mediaservices"]
 	resourceGroup := id.ResourceGroup
-	
+
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
