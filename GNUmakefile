@@ -5,6 +5,7 @@ PKG_NAME=azurerm
 #make sure we catch schema errors during testing
 TF_SCHEMA_PANIC_ON_ERROR=1
 GO111MODULE=on
+GOFLAGS=-mod=vendor
 
 default: build
 
