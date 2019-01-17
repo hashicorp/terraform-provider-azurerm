@@ -99,7 +99,7 @@ The following arguments are supported:
 
 `capabilities` Configures the capabilities to enable for this Cosmos DB account:
 
-* `name` - (Required) The capability to enable - Possible values are `EnableTable` and `EnableGremlin`.
+* `name` - (Required) The capability to enable - Possible values are `EnableTable`, `EnableCassandra`, and `EnableGremlin`.
 
 **NOTE:** The `prefix` and `failover_priority` fields of a location cannot be changed for the location with a failover priority of `0`.
 
