@@ -4,6 +4,8 @@ PKG_NAME=azurerm
 
 #make sure we catch schema errors during testing
 TF_SCHEMA_PANIC_ON_ERROR=1
+GO111MODULE=on
+GOFLAGS=-mod=vendor
 
 default: build
 
@@ -47,12 +49,9 @@ lint:
 
 tools:
 	@echo "==> installing required tooling..."
-	go get -u github.com/kardianos/govendor
-	go get -u github.com/alecthomas/gometalinter
-	gometalinter --install
-
-vendor-status:
-	@govendor status
+	@sh "$(CURDIR)/scripts/gogetcookie.sh"
+	GO111MODULE=off go get -u github.com/alecthomas/gometalinter
+	GO111MODULE=off gometalinter --install
 
 test-compile:
 	@if [ "$(TEST)" = "./..." ]; then \
@@ -76,4 +75,4 @@ ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
 endif
 	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider-test PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
 
-.PHONY: build build-docker test test-docker testacc vet fmt fmtcheck errcheck vendor-status test-compile website website-test
+.PHONY: build build-docker test test-docker testacc vet fmt fmtcheck errcheck test-compile website website-test
