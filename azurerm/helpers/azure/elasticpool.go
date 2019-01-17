@@ -447,12 +447,12 @@ func IsMaxGBValid(gbIncrement int64, maxSizeGB float64) (msg string, ok bool) {
 	max := 1073741824 * maxSizeGB
 
 	// Check to see if the resulting max_size_bytes value is an integral value
-	if max != math.Trunc(float64(max)) {
+	if max != math.Trunc(max) {
 		return "max_size_gb is not a valid value", false
 	}
 
 	// Check to see if the maxSizeGB follows the increment constraint
-	if max/float64(inc) != math.Trunc(float64(max/float64(inc))) {
+	if max/float64(inc) != math.Trunc(max/float64(inc)) {
 		return fmt.Sprintf("max_size_gb must be defined in increments of %d GB", gbIncrement), false
 	}
 
