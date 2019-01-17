@@ -3,6 +3,7 @@ package azure
 import (
 	"fmt"
 	"math"
+	"strings"
 )
 
 func BasicGetMaxSizeGB(DTUs int) float64 {
@@ -31,18 +32,24 @@ func BasicGetMaxSizeGB(DTUs int) float64 {
 func BasicIsCapacityValid(capacity int) bool {
 	switch {
 	case capacity == 50:
+		fallthrough
 	case capacity == 100:
+		fallthrough
 	case capacity == 200:
+		fallthrough
 	case capacity == 300:
+		fallthrough
 	case capacity == 400:
+		fallthrough
 	case capacity == 800:
+		fallthrough
 	case capacity == 1200:
+		fallthrough
 	case capacity == 1600:
-	default:
-		return false
+		return true
 	}
 
-	return true
+	return false
 }
 
 func StandardGetMaxSizeGB(DTUs int) float64 {
@@ -77,21 +84,30 @@ func StandardGetMaxSizeGB(DTUs int) float64 {
 func StandardCapacityValid(capacity int) bool {
 	switch {
 	case capacity == 50:
+		fallthrough
 	case capacity == 100:
+		fallthrough
 	case capacity == 200:
+		fallthrough
 	case capacity == 300:
+		fallthrough
 	case capacity == 400:
+		fallthrough
 	case capacity == 800:
+		fallthrough
 	case capacity == 1200:
+		fallthrough
 	case capacity == 1600:
+		fallthrough
 	case capacity == 2000:
+		fallthrough
 	case capacity == 2500:
+		fallthrough
 	case capacity == 3000:
-	default:
-		return false
+		return true
 	}
 
-	return true
+	return false
 }
 
 func PremiumGetMaxSizeGB(DTUs int) float64 {
@@ -124,25 +140,33 @@ func PremiumGetMaxSizeGB(DTUs int) float64 {
 func PremiumCapacityValid(capacity int) bool {
 	switch {
 	case capacity == 125:
+		fallthrough
 	case capacity == 250:
+		fallthrough
 	case capacity == 500:
+		fallthrough
 	case capacity == 1000:
+		fallthrough
 	case capacity == 1500:
+		fallthrough
 	case capacity == 2000:
+		fallthrough
 	case capacity == 2500:
+		fallthrough
 	case capacity == 3000:
+		fallthrough
 	case capacity == 3500:
+		fallthrough
 	case capacity == 4000:
-	default:
-		return false
+		return true
 	}
 
-	return true
+	return false
 }
 
-func GeneralPurposeGetMaxSizeGB(vCores int, SKU string) float64 {
+func GeneralPurposeGetMaxSizeGB(vCores int, family string) float64 {
 
-	if SKU == "gen4" {
+	if family == "gen4" {
 		switch vCores {
 		case 1:
 			return 512
@@ -171,7 +195,9 @@ func GeneralPurposeGetMaxSizeGB(vCores int, SKU string) float64 {
 		}
 		// Invalid vCore
 		return -1
-	} else if SKU == "gen5" {
+	}
+
+	if family == "gen5" {
 		switch vCores {
 		case 2:
 			return 512
@@ -206,7 +232,7 @@ func GeneralPurposeGetMaxSizeGB(vCores int, SKU string) float64 {
 		return -1
 	}
 
-	// Invalid SKU
+	// Invalid family
 	return -2
 }
 
@@ -214,53 +240,75 @@ func GeneralPurposeCapacityValid(capacity int, family string) bool {
 	if family == "gen4" {
 		switch {
 		case capacity == 1:
+			fallthrough
 		case capacity == 2:
+			fallthrough
 		case capacity == 3:
+			fallthrough
 		case capacity == 4:
+			fallthrough
 		case capacity == 5:
+			fallthrough
 		case capacity == 6:
+			fallthrough
 		case capacity == 7:
+			fallthrough
 		case capacity == 8:
+			fallthrough
 		case capacity == 9:
+			fallthrough
 		case capacity == 10:
+			fallthrough
 		case capacity == 16:
+			fallthrough
 		case capacity == 24:
-		default:
-			return false
+			return true
 		}
 
-		return true
+		return false
 	}
 
 	if family == "gen5" {
 		switch {
 		case capacity == 2:
+			fallthrough
 		case capacity == 4:
+			fallthrough
 		case capacity == 6:
+			fallthrough
 		case capacity == 8:
+			fallthrough
 		case capacity == 10:
+			fallthrough
 		case capacity == 12:
+			fallthrough
 		case capacity == 14:
+			fallthrough
 		case capacity == 16:
+			fallthrough
 		case capacity == 18:
+			fallthrough
 		case capacity == 20:
+			fallthrough
 		case capacity == 24:
+			fallthrough
 		case capacity == 32:
+			fallthrough
 		case capacity == 40:
+			fallthrough
 		case capacity == 80:
-		default:
-			return false
+			return true
 		}
 
-		return true
+		return false
 	}
 
 	return false
 }
 
-func BusinessCriticalGetMaxSizeGB(vCores int, SKU string) float64 {
+func BusinessCriticalGetMaxSizeGB(vCores int, family string) float64 {
 
-	if SKU == "gen4" {
+	if family == "gen4" {
 		switch vCores {
 		case 2:
 			fallthrough
@@ -287,7 +335,9 @@ func BusinessCriticalGetMaxSizeGB(vCores int, SKU string) float64 {
 		}
 		// Invalid vCore
 		return -1
-	} else if SKU == "gen5" {
+	}
+
+	if family == "gen5" {
 		switch vCores {
 		case 4:
 			return 1000
@@ -320,7 +370,7 @@ func BusinessCriticalGetMaxSizeGB(vCores int, SKU string) float64 {
 		return -1
 	}
 
-	// Invalid SKU
+	// Invalid family
 	return -2
 }
 
@@ -328,43 +378,63 @@ func BusinessCriticalCapacityValid(capacity int, family string) bool {
 	if family == "gen4" {
 		switch {
 		case capacity == 2:
+			fallthrough
 		case capacity == 3:
+			fallthrough
 		case capacity == 4:
+			fallthrough
 		case capacity == 5:
+			fallthrough
 		case capacity == 6:
+			fallthrough
 		case capacity == 7:
+			fallthrough
 		case capacity == 8:
+			fallthrough
 		case capacity == 9:
+			fallthrough
 		case capacity == 10:
+			fallthrough
 		case capacity == 16:
+			fallthrough
 		case capacity == 24:
-		default:
-			return false
+			return true
 		}
 
-		return true
+		return false
 	}
 
 	if family == "gen5" {
 		switch {
 		case capacity == 4:
+			fallthrough
 		case capacity == 6:
+			fallthrough
 		case capacity == 8:
+			fallthrough
 		case capacity == 10:
+			fallthrough
 		case capacity == 12:
+			fallthrough
 		case capacity == 14:
+			fallthrough
 		case capacity == 16:
+			fallthrough
 		case capacity == 18:
+			fallthrough
 		case capacity == 20:
+			fallthrough
 		case capacity == 24:
+			fallthrough
 		case capacity == 32:
+			fallthrough
 		case capacity == 40:
+			fallthrough
 		case capacity == 80:
-		default:
-			return false
+			return true
 		}
 
-		return true
+		return false
 	}
 
 	return false
@@ -387,4 +457,8 @@ func IsMaxGBValid(gbIncrement int64, maxSizeGB float64) (msg string, ok bool) {
 	}
 
 	return "", true
+}
+
+func NameFamilyValid(name string, family string) bool {
+	return strings.Contains(strings.ToLower(name), strings.ToLower(family))
 }
