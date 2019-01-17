@@ -65,12 +65,6 @@ func resourceArmMediaServices() *schema.Resource {
 
 			"tags": tagsSchema(),
 
-			/*"storage_account": {
-				Type:     schema.TypeSet,
-				Required: true,
-				ForceNew: true,
-			},*/
-
 			"storage_account": {
 				Type:     schema.TypeSet,
 				Required: true,
