@@ -170,8 +170,8 @@ func resourceArmNotificationHubCreateUpdate(d *schema.ResourceData, meta interfa
 		MinTimeout:                15 * time.Second,
 		ContinuousTargetOccurence: 10,
 	}
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Notification Hub %q to become available: %s", name, err)
+	if _, err2 := stateConf.WaitForState(); err2 != nil {
+		return fmt.Errorf("Error waiting for Notification Hub %q to become available: %s", name, err2)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, namespaceName, name)
