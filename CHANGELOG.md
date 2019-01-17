@@ -14,7 +14,8 @@ IMPROVEMENTS:
 : Adding upload limit
 
 BUG FIXES:
-
+* **New Resource:** `` ([#992](https://github.com/terraform-providers/terraform-provider-azurerm/issues/992))
+* `azurerm_express_route_circuit` - added the `premium` SKU back to validation logic [GH-2692]
 * `azurerm_firewall` - ensuring rules aren't removed during an update [GH-2663]
 * service bus subscription name's can now start with a digit [GH-2672]
 
