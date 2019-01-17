@@ -235,7 +235,6 @@ func TestAccAzureRMApplicationGateway_probesPickHostNameFromBackendHTTPSettings(
 				Config: testAccAzureRMApplicationGateway_probesPickHostNameFromBackendHTTPSettings(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "probe.0.pick_host_name_from_backend_http_settings"),
 					resource.TestCheckResourceAttr(resourceName, "probe.0.pick_host_name_from_backend_http_settings", "true"),
 				),
 			},
@@ -261,7 +260,6 @@ func TestAccAzureRMApplicationGateway_settingsPickHostNameFromBackendAddress(t *
 				Config: testAccAzureRMApplicationGateway_settingsPickHostNameFromBackendAddress(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "backend_http_settings.0.pick_host_name_from_backend_address"),
 					resource.TestCheckResourceAttr(resourceName, "backend_http_settings.0.pick_host_name_from_backend_address", "true"),
 				),
 			},
