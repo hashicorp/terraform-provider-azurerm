@@ -12,12 +12,12 @@ import (
 
 const azureDDoSProtectionPlanResourceName = "azurerm_ddos_protection_plan"
 
-func resourceArmDDoSProtectoinPlan() *schema.Resource {
+func resourceArmDDoSProtectionPlan() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDDoSProtectoinPlanCreateUpdate,
-		Read:   resourceArmDDoSProtectoinPlanRead,
-		Update: resourceArmDDoSProtectoinPlanCreateUpdate,
-		Delete: resourceArmDDoSProtectoinPlanDelete,
+		Create: resourceArmDDoSProtectionPlanCreateUpdate,
+		Read:   resourceArmDDoSProtectionPlanRead,
+		Update: resourceArmDDoSProtectionPlanCreateUpdate,
+		Delete: resourceArmDDoSProtectionPlanDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -46,7 +46,7 @@ func resourceArmDDoSProtectoinPlan() *schema.Resource {
 	}
 }
 
-func resourceArmDDoSProtectoinPlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ddosProtectionPlanClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -107,10 +107,10 @@ func resourceArmDDoSProtectoinPlanCreateUpdate(d *schema.ResourceData, meta inte
 
 	d.SetId(*plan.ID)
 
-	return resourceArmDDoSProtectoinPlanRead(d, meta)
+	return resourceArmDDoSProtectionPlanRead(d, meta)
 }
 
-func resourceArmDDoSProtectoinPlanRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDDoSProtectionPlanRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ddosProtectionPlanClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -150,7 +150,7 @@ func resourceArmDDoSProtectoinPlanRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceArmDDoSProtectoinPlanDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDDoSProtectionPlanDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ddosProtectionPlanClient
 	ctx := meta.(*ArmClient).StopContext
 
