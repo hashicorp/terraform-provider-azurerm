@@ -6,6 +6,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* dependencies: switching to Go Modules [GH-2705]
 * `azurerm_data_lake_store_file` - support file uploads greater then 4 megabytes [GH-2633]
 * `azurerm_mssql_elasticpool` - support for setting `max_size_bytes` [GH-2346]
 * `azurerm_signalr_service` - exporting `primary_access_key`, `secondary_access_key`, `primary_connection_string` and `secondary_connection_string` and secondary access keys and connection strings [GH-2655]
@@ -14,7 +15,7 @@ IMPROVEMENTS:
 : Adding upload limit
 
 BUG FIXES:
-* **New Resource:** `` ([#992](https://github.com/terraform-providers/terraform-provider-azurerm/issues/992))
+
 * `azurerm_batch_pool` - can now set multiple environment variables [GH-2685]
 * `azurerm_express_route_circuit` - added the `premium` SKU back to validation logic [GH-2692]
 * `azurerm_firewall` - ensuring rules aren't removed during an update [GH-2663]
