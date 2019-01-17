@@ -12,6 +12,31 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+/*
+ Example terraform template:
+
+	resource "azurerm_media_services" "ams" {
+
+			name = "seushertestams2"
+			location = "westus"
+			resource_group_name = "seusher_dev"
+
+			storage_account {
+					id = "/subscriptions/7060bca0-7a3c-44bd-b54c-4bb1e9facfac/resourcegroups/seusher_dev/providers/Microsoft.Storage/storageAccounts/seusherams3"
+					is_primary = true
+			}
+
+			storage_account {
+					id = "/subscriptions/7060bca0-7a3c-44bd-b54c-4bb1e9facfac/resourcegroups/seusher_dev/providers/Microsoft.Storage/storageAccounts/seusheram2"
+					is_primary = false
+			}
+	}
+
+	output "rendered" {
+	value = "${azurerm_media_services.ams.id}"
+	}
+*/
+
 func resourceArmMediaServices() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmMediaServicesCreateUpdate,
@@ -40,10 +65,28 @@ func resourceArmMediaServices() *schema.Resource {
 
 			"tags": tagsSchema(),
 
-			"storage_account": {
-				Type:     schema.TypeString,
+			/*"storage_account": {
+				Type:     schema.TypeSet,
 				Required: true,
 				ForceNew: true,
+			},*/
+
+			"storage_account": {
+				Type:     schema.TypeSet,
+				Required: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+
+						"is_primary": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -58,16 +101,15 @@ func resourceArmMediaServicesCreateUpdate(d *schema.ResourceData, meta interface
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 	resourceGroup := d.Get("resource_group_name").(string)
-	storageAccount := d.Get("storage_account").(string)
+
+	storageAccounts, err := expandAzureRmStorageAccounts(d)
+	if err != nil {
+		return err
+	}
 
 	parameters := media.Service{
 		ServiceProperties: &media.ServiceProperties{
-			StorageAccounts: &[]media.StorageAccount{
-				{
-					ID:   utils.String(storageAccount),
-					Type: media.Primary,
-				},
-			},
+			StorageAccounts: &storageAccounts,
 		},
 		Location: utils.String(location),
 		Tags:     expandTags(tags),
@@ -138,4 +180,39 @@ func resourceArmMediaServicesDelete(d *schema.ResourceData, meta interface{}) er
 	}
 
 	return nil
+}
+
+func expandAzureRmStorageAccounts(d *schema.ResourceData) ([]media.StorageAccount, error) {
+	storageAccounts := d.Get("storage_account").(*schema.Set).List()
+	rules := make([]media.StorageAccount, 0)
+
+	// Only one storage account can be primary
+	primaryAssigned := false
+
+	for _, accountMapRaw := range storageAccounts {
+		accountMap := accountMapRaw.(map[string]interface{})
+
+		id := accountMap["id"].(string)
+
+		storageType := media.Secondary
+		if accountMap["is_primary"].(bool) {
+			storageType = media.Primary
+
+			// TODO: This function shouldn't process storage accounts and validate them. Move logic out appropriately.
+			if primaryAssigned {
+				return nil, fmt.Errorf("Error processing storage account '%s'. Another storage account is already assigned as is_primary = 'true'", id)
+			}
+
+			primaryAssigned = true
+		}
+
+		storageAccount := media.StorageAccount{
+			ID:   utils.String(id),
+			Type: storageType,
+		}
+
+		rules = append(rules, storageAccount)
+	}
+
+	return rules, nil
 }
