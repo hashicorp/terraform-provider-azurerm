@@ -796,6 +796,20 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 		},
 	}
 
+	for _, probe := range *probes {
+		probeProperties := *probe.ApplicationGatewayProbePropertiesFormat
+		host := *probeProperties.Host
+		pick := *probeProperties.PickHostNameFromBackendHTTPSettings
+
+		if host == "" && !pick {
+			return fmt.Errorf("One of `host` or `pick_host_name_from_backend_http_settings` must be set")
+		}
+
+		if host != "" && pick {
+			return fmt.Errorf("Only one of `host` or `pick_host_name_from_backend_http_settings` can be set")
+		}
+	}
+
 	if _, ok := d.GetOk("waf_configuration"); ok {
 		gateway.ApplicationGatewayPropertiesFormat.WebApplicationFirewallConfiguration = expandApplicationGatewayWafConfig(d)
 	}
