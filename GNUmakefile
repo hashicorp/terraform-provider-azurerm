@@ -4,6 +4,7 @@ PKG_NAME=azurerm
 
 #make sure we catch schema errors during testing
 TF_SCHEMA_PANIC_ON_ERROR=1
+GO111MODULE=on
 
 default: build
 
@@ -47,8 +48,7 @@ lint:
 
 tools:
 	@echo "==> installing required tooling..."
-	go get -u github.com/kardianos/govendor
-	go get -u github.com/alecthomas/gometalinter
+	GO111MODULE=off go get -u github.com/alecthomas/gometalinter
 	gometalinter --install
 
 vendor-status:
