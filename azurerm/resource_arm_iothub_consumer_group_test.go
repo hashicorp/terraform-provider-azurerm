@@ -26,10 +26,41 @@ func TestAccAzureRMIotHubConsumerGroup_events(t *testing.T) {
 					testCheckAzureRMIotHubConsumerGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "eventhub_endpoint_name", "events"),
 				),
-			}, {
+			},
+			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMIotHubConsumerGroup_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_iothub_consumer_group.test"
+	rInt := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMIotHubConsumerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMIotHubConsumerGroup_basic(rInt, location, "events"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMIotHubConsumerGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "eventhub_endpoint_name", "events"),
+				),
+			},
+			{
+				Config:      testAccAzureRMIotHubConsumerGroup_requiresImport(rInt, location, "events"),
+				ExpectError: testRequiresImportError("azurerm_iothub_consumer_group"),
 			},
 		},
 	})
@@ -118,15 +149,15 @@ func testCheckAzureRMIotHubConsumerGroupExists(resourceName string) resource.Tes
 
 func testAccAzureRMIotHubConsumerGroup_basic(rInt int, location, eventName string) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "foo" {
+resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_iothub" "test" {
   name                = "acctestIoTHub-%d"
-  resource_group_name = "${azurerm_resource_group.foo.name}"
-  location            = "${azurerm_resource_group.foo.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
 
   sku {
     name     = "B1"
@@ -143,7 +174,21 @@ resource "azurerm_iothub_consumer_group" "test" {
   name                   = "test"
   iothub_name            = "${azurerm_iothub.test.name}"
   eventhub_endpoint_name = "%s"
-  resource_group_name    = "${azurerm_resource_group.foo.name}"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt, eventName)
+}
+
+func testAccAzureRMIotHubConsumerGroup_requiresImport(rInt int, location, eventName string) string {
+	template := testAccAzureRMIotHubConsumerGroup_basic(rInt, location, eventName)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_iothub_consumer_group" "import" {
+  name                   = "${azurerm_iothub_consumer_group.test.name}"
+  iothub_name            = "${azurerm_iothub_consumer_group.test.iothub_name}"
+  eventhub_endpoint_name = "${azurerm_iothub_consumer_group.test.eventhub_endpoint_name}"
+  resource_group_name    = "${azurerm_iothub_consumer_group.test.resource_group_name}"
+}
+`, template)
 }

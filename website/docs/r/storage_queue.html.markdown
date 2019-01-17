@@ -14,14 +14,14 @@ Manage an Azure Storage Queue.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "example-resources"
   location = "westus"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
+  name                     = "examplestorageacc"
   resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "westus"
+  location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }

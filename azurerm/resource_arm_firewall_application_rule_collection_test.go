@@ -379,6 +379,43 @@ func TestAccAzureRMFirewallApplicationRuleCollection_updateProtocols(t *testing.
 	})
 }
 
+func TestAccAzureRMFirewallApplicationRuleCollection_updateFirewallTags(t *testing.T) {
+	resourceName := "azurerm_firewall_application_rule_collection.test"
+	ri := tf.AccRandTimeInt()
+
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMFirewallApplicationRuleCollection_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFirewallApplicationRuleCollectionExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "name", "acctestarc"),
+					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
+					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
+					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "rule.0.name", "rule1"),
+				),
+			},
+			{
+				Config: testAccAzureRMFirewallApplicationRuleCollection_updateFirewallTags(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFirewallApplicationRuleCollectionExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "name", "acctestarc"),
+					resource.TestCheckResourceAttr(resourceName, "priority", "100"),
+					resource.TestCheckResourceAttr(resourceName, "action", "Allow"),
+					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "rule.0.name", "rule1"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMFirewallApplicationRuleCollectionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -809,6 +846,38 @@ resource "azurerm_firewall_application_rule_collection" "test" {
     protocol {
       port = 9001
       type = "Http"
+    }
+  }
+}
+`, template)
+}
+
+func testAccAzureRMFirewallApplicationRuleCollection_updateFirewallTags(rInt int, location string) string {
+	template := testAccAzureRMFirewall_withTags(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_firewall_application_rule_collection" "test" {
+  name                = "acctestarc"
+  azure_firewall_name = "${azurerm_firewall.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  priority            = 100
+  action              = "Allow"
+
+  rule {
+    name = "rule1"
+
+    source_addresses = [
+      "10.0.0.0/16",
+    ]
+
+    target_fqdns = [
+      "*.google.com",
+    ]
+
+    protocol {
+      port = 443
+      type = "Https"
     }
   }
 }

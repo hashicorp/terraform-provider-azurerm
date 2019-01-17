@@ -601,6 +601,12 @@ func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) er
 	// implying that it also returns the read only keys, however this appears to not be the case
 	keys, err := client.ListKeys(ctx, resourceGroup, name)
 	if err != nil {
+		if utils.ResponseWasNotFound(keys.Response) {
+			log.Printf("[DEBUG] Keys were not found for CosmosDB Account %q (Resource Group %q) - removing from state!", name, resourceGroup)
+			d.SetId("")
+			return nil
+		}
+
 		return fmt.Errorf("[ERROR] Unable to List Write keys for CosmosDB Account %s: %s", name, err)
 	}
 	d.Set("primary_master_key", keys.PrimaryMasterKey)
@@ -608,6 +614,12 @@ func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) er
 
 	readonlyKeys, err := client.ListReadOnlyKeys(ctx, resourceGroup, name)
 	if err != nil {
+		if utils.ResponseWasNotFound(keys.Response) {
+			log.Printf("[DEBUG] Read Only Keys were not found for CosmosDB Account %q (Resource Group %q) - removing from state!", name, resourceGroup)
+			d.SetId("")
+			return nil
+		}
+
 		return fmt.Errorf("[ERROR] Unable to List read-only keys for CosmosDB Account %s: %s", name, err)
 	}
 	d.Set("primary_readonly_master_key", readonlyKeys.PrimaryReadonlyMasterKey)
@@ -615,8 +627,15 @@ func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) er
 
 	connStringResp, err := client.ListConnectionStrings(ctx, resourceGroup, name)
 	if err != nil {
+		if utils.ResponseWasNotFound(keys.Response) {
+			log.Printf("[DEBUG] Connection Strings were not found for CosmosDB Account %q (Resource Group %q) - removing from state!", name, resourceGroup)
+			d.SetId("")
+			return nil
+		}
+
 		return fmt.Errorf("[ERROR] Unable to List connection strings for CosmosDB Account %s: %s", name, err)
 	}
+
 	var connStrings []string
 	if connStringResp.ConnectionStrings != nil {
 		connStrings = make([]string, len(*connStringResp.ConnectionStrings))

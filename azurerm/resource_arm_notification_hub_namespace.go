@@ -111,6 +111,19 @@ func resourceArmNotificationHubNamespaceCreateUpdate(d *schema.ResourceData, met
 		return fmt.Errorf("Error creating/updating Notification Hub Namesapce %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	log.Printf("[DEBUG] Waiting for Notification Hub Namespace %q (Resource Group %q) to be created", name, resourceGroup)
+	stateConf := &resource.StateChangeConf{
+		Pending:                   []string{"404"},
+		Target:                    []string{"200"},
+		Refresh:                   notificationHubNamespaceStateRefreshFunc(ctx, client, resourceGroup, name),
+		Timeout:                   10 * time.Minute,
+		MinTimeout:                15 * time.Second,
+		ContinuousTargetOccurence: 10,
+	}
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("Error waiting for Notification Hub %q (Resource Group %q) to finish replicating: %s", name, resourceGroup, err)
+	}
+
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Notification Hub Namesapce %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -190,7 +203,7 @@ func resourceArmNotificationHubNamespaceDelete(d *schema.ResourceData, meta inte
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"200", "202"},
 		Target:  []string{"404"},
-		Refresh: notificationHubNamespaceStateRefreshFunc(ctx, client, resourceGroup, name),
+		Refresh: notificationHubNamespaceDeleteStateRefreshFunc(ctx, client, resourceGroup, name),
 		Timeout: 10 * time.Minute,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
@@ -224,6 +237,21 @@ func flattenNotificationHubNamespacesSku(input *notificationhubs.Sku) []interfac
 }
 
 func notificationHubNamespaceStateRefreshFunc(ctx context.Context, client notificationhubs.NamespacesClient, resourceGroupName string, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, resourceGroupName, name)
+		if err != nil {
+			if utils.ResponseWasNotFound(res.Response) {
+				return nil, "404", nil
+			}
+
+			return nil, "", fmt.Errorf("Error retrieving Notification Hub Namespace %q (Resource Group %q): %s", name, resourceGroupName, err)
+		}
+
+		return res, strconv.Itoa(res.StatusCode), nil
+	}
+}
+
+func notificationHubNamespaceDeleteStateRefreshFunc(ctx context.Context, client notificationhubs.NamespacesClient, resourceGroupName string, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroupName, name)
 		if err != nil {

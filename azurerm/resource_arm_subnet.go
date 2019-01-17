@@ -87,7 +87,15 @@ func resourceArmSubnet() *schema.Resource {
 										Type:     schema.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
+											"Microsoft.Batch/batchAccounts",
 											"Microsoft.ContainerInstance/containerGroups",
+											"Microsoft.HardwareSecurityModules/dedicatedHSMs",
+											"Microsoft.Logic/integrationServiceEnvironments",
+											"Microsoft.Netapp/volumes",
+											"Microsoft.ServiceFabricMesh/networks",
+											"Microsoft.Sql/managedInstances",
+											"Microsoft.Sql/servers",
+											"Microsoft.Web/serverFarms",
 										}, false),
 									},
 									"actions": {

@@ -79,6 +79,30 @@ func resourceArmSignalRService() *schema.Resource {
 				Computed: true,
 			},
 
+			"primary_access_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"primary_connection_string": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_access_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_connection_string": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -143,6 +167,11 @@ func resourceArmSignalRServiceRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error getting SignalR %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	keys, err := client.ListKeys(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error getting keys of SignalR %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
@@ -159,6 +188,11 @@ func resourceArmSignalRServiceRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("public_port", properties.PublicPort)
 		d.Set("server_port", properties.ServerPort)
 	}
+
+	d.Set("primary_access_key", keys.PrimaryKey)
+	d.Set("primary_connection_string", keys.PrimaryConnectionString)
+	d.Set("secondary_access_key", keys.SecondaryKey)
+	d.Set("secondary_connection_string", keys.SecondaryConnectionString)
 
 	flattenAndSetTags(d, resp.Tags)
 
