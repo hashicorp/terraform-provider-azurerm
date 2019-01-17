@@ -248,6 +248,16 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if v, ok := d.GetOk("subnet_id"); ok {
+		parsed, err := parseAzureResourceID(v.(string))
+		if err != nil {
+			return fmt.Errorf("Error parsing Azure Resource ID %q", v.(string))
+		}
+		subnetName := parsed.Path["subnets"]
+		virtualNetworkName := parsed.Path["virtualNetworks"]
+		azureRMLockByName(virtualNetworkName, virtualNetworkResourceName)
+		defer azureRMUnlockByName(virtualNetworkName, virtualNetworkResourceName)
+		azureRMLockByName(subnetName, subnetResourceName)
+		defer azureRMUnlockByName(subnetName, subnetResourceName)
 		parameters.SubnetID = utils.String(v.(string))
 	}
 
@@ -477,6 +487,26 @@ func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error
 	resGroup := id.ResourceGroup
 	name := id.Path["Redis"]
 
+	read, err := redisClient.Get(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Redis Cache %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+	if read.Properties == nil {
+		return fmt.Errorf("Error retrieving Redis Cache properties %q (Resource Group %q): `props` was nil", name, resGroup)
+	}
+	props := *read.Properties
+	if subnetID := props.SubnetID; subnetID != nil {
+		parsed, err := parseAzureResourceID(*subnetID)
+		if err != nil {
+			return fmt.Errorf("Error parsing Azure Resource ID %q", *subnetID)
+		}
+		subnetName := parsed.Path["subnets"]
+		virtualNetworkName := parsed.Path["virtualNetworks"]
+		azureRMLockByName(virtualNetworkName, virtualNetworkResourceName)
+		defer azureRMUnlockByName(virtualNetworkName, virtualNetworkResourceName)
+		azureRMLockByName(subnetName, subnetResourceName)
+		defer azureRMUnlockByName(subnetName, subnetResourceName)
+	}
 	future, err := redisClient.Delete(ctx, resGroup, name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
