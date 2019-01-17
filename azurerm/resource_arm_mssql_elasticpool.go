@@ -225,6 +225,11 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 
 			// GeneralPurpose Checks
 			if strings.HasPrefix(strings.ToLower(name.(string)), "gp_") {
+				//General Checks
+				if strings.ToLower(tier.(string)) != "generalpurpose" {
+					return fmt.Errorf("mismatch between SKU name '%s' and tier '%s'", name.(string), tier.(string))
+				}
+
 				// Gen4 Checks
 				if strings.ToLower(family.(string)) == "gen4" {
 					if !azure.GeneralPurposeCapacityValid(capacity.(int), "gen4") {
@@ -254,6 +259,11 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 
 			// BusinessCritical Checks
 			if strings.HasPrefix(strings.ToLower(name.(string)), "bc_") {
+				//General Checks
+				if strings.ToLower(tier.(string)) != "businesscritical" {
+					return fmt.Errorf("mismatch between SKU name '%s' and tier '%s'", name.(string), tier.(string))
+				}
+
 				// Gen4 Checks
 				if strings.ToLower(family.(string)) == "gen4" {
 					if !azure.BusinessCriticalCapacityValid(capacity.(int), "gen4") {

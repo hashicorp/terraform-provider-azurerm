@@ -32,7 +32,7 @@ resource "azurerm_mssql_elasticpool" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   server_name         = "${azurerm_sql_server.test.name}"
-  max_size_bytes      = 5368709120
+  max_size_gb         = 756
 
   sku {
     name     = "GP_Gen5"
@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `per_database_settings` - (Required) A `per_database_settings` block as defined below.
 
-* `max_size_bytes` - (Optional) The max data size of the elastic pool in bytes.
+* `max_size_gb` - (Optional) The max data size of the elastic pool in gigabytes.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
