@@ -10,15 +10,14 @@ resource "azurerm_resource_group" "testrg" {
 }
 
 resource "azurerm_media_services" "ams" {
+  name                = "amstest"
+  location            = "${azurerm_resource_group.testrg.location}"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
 
-        name = "amstest"
-        location = "${azurerm_resource_group.testrg.location}"
-        resource_group_name = "${azurerm_resource_group.testrg.name}"
-		
-        storage_account {
-				  id = "${var.existing_storage_account_id}"
-				  is_primary = true
-		    }
+  storage_account {
+    id         = "${var.existing_storage_account_id}"
+    is_primary = true
+  }
 }
 
 output "rendered" {

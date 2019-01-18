@@ -28,14 +28,14 @@ resource "azurerm_storage_account" "testsa" {
 
 resource "azurerm_media_services" "ams" {
 
-        name = "amstest"
-        location = "${azurerm_resource_group.testrg.location}"
-        resource_group_name = "${azurerm_resource_group.testrg.name}"
+  name                = "amstest"
+  location            = "${azurerm_resource_group.testrg.location}"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
 		
-        storage_account {
-				id = "${azurerm_storage_account.testsa.id}"
-				is_primary = true
-		}
+  storage_account {
+		id          = "${azurerm_storage_account.testsa.id}"
+		is_primary  = true
+	}
 }
 ```
 
@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `storage_account` - (Required) A `storage_account` block as defined below. Multiple storage_account arguments can be provided, but only one can be marked as `is_primary`=true.
+* `storage_account` - (Required) A `storage_account` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -59,7 +59,7 @@ A `storage_account` block supports the following:
 
 * `id` - (Required) Specifies the Id for the storage account that will be associated with the Media Services instance.
 
-* `is_primary` - (Required) Specifies whether the storage account should be the primary account or not. A Media Services account supports associating multiple storage accounts, but only one can be marked as primary. 
+* `is_primary` - (Required) Specifies whether the storage account should be the primary account or not. Defaults to `false`.
 
 ## Attributes Reference
 
@@ -74,3 +74,6 @@ MariaDB Server's can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_media_services.ams1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Media/mediaservices/ams1
 ```
+## Note
+
+Multiple `storage_account` arguments can be provided to `azurerm_media_services`, but only one can be marked as `is_primary`=`true`.

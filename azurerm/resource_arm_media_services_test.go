@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"testing"
 
@@ -12,51 +11,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
-
-func init() {
-	resource.AddTestSweepers("azurerm_media_services", &resource.Sweeper{
-		Name: "azurerm_media_services",
-		F:    testSweepMediaServicesAccount,
-	})
-}
-
-func testSweepMediaServicesAccount(region string) error {
-	armClient, err := buildConfigForSweepers()
-	if err != nil {
-		return err
-	}
-
-	client := (*armClient).mediaServicesClient
-	ctx := (*armClient).StopContext
-
-	log.Printf("Retrieving the Media Services Accounts..")
-	results, err := client.List(ctx, "testrg")
-	if err != nil {
-		return fmt.Errorf("Error Listing on Media Services Accounts: %+v", err)
-	}
-
-	for _, account := range results.Values() {
-		if !shouldSweepAcceptanceTestResource(*account.Name, *account.Location, region) {
-			continue
-		}
-
-		resourceId, err := parseAzureResourceID(*account.ID)
-		if err != nil {
-			return err
-		}
-
-		resourceGroup := resourceId.ResourceGroup
-		name := resourceId.Path["mediaservices"]
-
-		log.Printf("Deleting Media Services Account '%s' in Resource Group '%s'", name, resourceGroup)
-		_, err = client.Delete(ctx, resourceGroup, name)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
 
 func TestAccAzureRMMediaServicesAccount_singlestorage(t *testing.T) {
 
@@ -93,19 +47,19 @@ func generateTemplate_singlestorage(name string, location string) string {
 			account_replication_type = "GRS"
 		
 			tags {
-			environment = "staging"
+				environment = "staging"
 			}
 	  }
 	  
 	  resource "azurerm_media_services" "ams" {
 	  
-			  name = "%[1]s"
-			  location = "${azurerm_resource_group.testrg.location}"
-			  resource_group_name = "${azurerm_resource_group.testrg.name}"
+			  name					= "%[1]s"
+			  location				= "${azurerm_resource_group.testrg.location}"
+			  resource_group_name 	= "${azurerm_resource_group.testrg.name}"
 			  
 			  storage_account {
-					  id = "${azurerm_storage_account.testsa.id}"
-					  is_primary = true
+					  id			= "${azurerm_storage_account.testsa.id}"
+					  is_primary	= true
 			  }
 
 			  tags {
@@ -162,24 +116,24 @@ func generateTemplate_multiplestorage(name string, location string) string {
 		account_replication_type = "GRS"
 	
 		tags {
-		environment = "staging"
+			environment = "staging"
 		}
   }
 	  
 	  resource "azurerm_media_services" "ams" {
 	  
-			  name = "%[1]s"
-			  location = "${azurerm_resource_group.testrg.location}"
-			  resource_group_name = "${azurerm_resource_group.testrg.name}"
+			  name					= "%[1]s"
+			  location				= "${azurerm_resource_group.testrg.location}"
+			  resource_group_name	= "${azurerm_resource_group.testrg.name}"
 			  
 			  storage_account {
-					  id = "${azurerm_storage_account.testsa1.id}"
-					  is_primary = true
+					  id			= "${azurerm_storage_account.testsa1.id}"
+					  is_primary	= true
 			  }
 
 			  storage_account {
-					id = "${azurerm_storage_account.testsa2.id}"
-					is_primary = false
+					id			= "${azurerm_storage_account.testsa2.id}"
+					is_primary	= false
 			  }
 
 			  tags {
