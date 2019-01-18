@@ -68,7 +68,7 @@ github.com/hashicorp/go-azure-helpers v0.0.0-20181211121309-38db96513363 h1:9d0j
 github.com/hashicorp/go-azure-helpers v0.0.0-20181211121309-38db96513363/go.mod h1:Y5ejHZY3jQby82dOASJzyQ2xZw37zs+D5x6AaOC6O5E=
 github.com/hashicorp/go-cleanhttp v0.0.0-20170211013415-3573b8b52aa7 h1:67fHcS+inUoiIqWCKIqeDuq2AlPHNHPiTqp97LdQ+bc=
 github.com/hashicorp/go-cleanhttp v0.0.0-20170211013415-3573b8b52aa7/go.mod h1:JpRdi6/HCYpAwUzNwuwqhbovhLtngrth3wmdIIUrZ80=
-github.com/hashicorp/go-getter v0.0.0-20180226183729-64040d90d4ab h1:ap3umB+Fouf/i1/N1q0AZLjOxSg1s8RIQ159wc7wNPE=
+github.com/hashicorp/go-getter v0.0.0-20180226183729-64040d90d4ab h1:q9prbneWtMiyRZWcIZM5gFEIp7ROi+/iXd1fbLTY9T4=
 github.com/hashicorp/go-getter v0.0.0-20180226183729-64040d90d4ab/go.mod h1:6rdJFnhkXnzGOJbvkrdv4t9nLwKcVA+tmbQeUlkIzrU=
 github.com/hashicorp/go-hclog v0.0.0-20170903163258-8105cc0a3736 h1:o62AOlCZLFgztwH3h06WnKRL9OrxVEn+fqPDQC26f68=
 github.com/hashicorp/go-hclog v0.0.0-20170903163258-8105cc0a3736/go.mod h1:9bjs9uLqI8l75knNv3lV1kA55veR+WUPSiKIWcQHudI=
