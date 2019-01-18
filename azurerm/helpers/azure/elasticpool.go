@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-var basicMaxSize = map[int]float64{
+var basicDTUMaxGB = map[int]float64{
 	50:   4.8828125,
 	100:  9.765625,
 	200:  19.53125,
@@ -16,7 +16,7 @@ var basicMaxSize = map[int]float64{
 	1600: 156.25,
 }
 
-var standardMaxSize = map[int]float64{
+var standardDTUMaxGB = map[int]float64{
 	50:   500,
 	100:  750,
 	200:  1024,
@@ -30,7 +30,7 @@ var standardMaxSize = map[int]float64{
 	3000: 4096,
 }
 
-var premiumMaxSize = map[int]float64{
+var premiumDTUMaxGB = map[int]float64{
 	125:  1024,
 	250:  1024,
 	500:  1024,
@@ -43,7 +43,7 @@ var premiumMaxSize = map[int]float64{
 	4000: 4096,
 }
 
-var supportedDTUMaxGBValues = map[float64]bool{
+var supportedMaxGBValues = map[float64]bool{
 	50:   true,
 	100:  true,
 	150:  true,
@@ -74,7 +74,7 @@ var supportedDTUMaxGBValues = map[float64]bool{
 	4096: true,
 }
 
-var generalPurposeGen4MaxGB = map[int]float64{
+var generalPurposeGen4vCoreMaxGB = map[int]float64{
 	1:  512,
 	2:  756,
 	3:  1536,
@@ -89,7 +89,7 @@ var generalPurposeGen4MaxGB = map[int]float64{
 	24: 4096,
 }
 
-var generalPurposeGen5MaxGB = map[int]float64{
+var generalPurposeGen5vCoreMaxGB = map[int]float64{
 	2:  512,
 	4:  756,
 	6:  1536,
@@ -106,7 +106,7 @@ var generalPurposeGen5MaxGB = map[int]float64{
 	80: 4096,
 }
 
-var businessCriticalGen4MaxGB = map[int]float64{
+var businessCriticalGen4vCoreMaxGB = map[int]float64{
 	2:  1024,
 	3:  1024,
 	4:  1024,
@@ -120,7 +120,7 @@ var businessCriticalGen4MaxGB = map[int]float64{
 	24: 1024,
 }
 
-var businessCriticalGen5MaxGB = map[int]float64{
+var businessCriticalGen5vCoreMaxGB = map[int]float64{
 	4:  1024,
 	6:  1536,
 	8:  1536,
@@ -137,55 +137,55 @@ var businessCriticalGen5MaxGB = map[int]float64{
 }
 
 func BasicGetMaxSizeGB(DTUs int) float64 {
-	return basicMaxSize[DTUs]
+	return basicDTUMaxGB[DTUs]
 }
 
 func StandardGetMaxSizeGB(DTUs int) float64 {
-	return standardMaxSize[DTUs]
+	return standardDTUMaxGB[DTUs]
 }
 
 func PremiumGetMaxSizeGB(DTUs int) float64 {
-	return premiumMaxSize[DTUs]
+	return premiumDTUMaxGB[DTUs]
 }
 
-func StantardPremiumMaxGBValid(gb float64) bool {
-	return supportedDTUMaxGBValues[gb]
+func StandardPremiumMaxGBValid(gb float64) bool {
+	return supportedMaxGBValues[gb]
 }
 
 func GeneralPurposeGetMaxSizeGB(vCores int, family string) float64 {
+	maxGB := 0.0
 
-	if family == "gen4" {
-		return generalPurposeGen4MaxGB[vCores]
+	if strings.EqualFold(family, "Gen4") {
+		maxGB = generalPurposeGen4vCoreMaxGB[vCores]
 	}
 
-	if family == "gen5" {
-		return generalPurposeGen5MaxGB[vCores]
+	if strings.EqualFold(family, "Gen5") {
+		maxGB = generalPurposeGen5vCoreMaxGB[vCores]
 	}
 
-	// Invalid family
-	return -1
+	return maxGB
 }
 
 func BusinessCriticalGetMaxSizeGB(vCores int, family string) float64 {
+	maxGB := 0.0
 
-	if family == "gen4" {
-		return businessCriticalGen4MaxGB[vCores]
+	if strings.EqualFold(family, "Gen4") {
+		maxGB = businessCriticalGen4vCoreMaxGB[vCores]
 	}
 
-	if family == "gen5" {
-		return businessCriticalGen5MaxGB[vCores]
+	if strings.EqualFold(family, "Gen5") {
+		maxGB = businessCriticalGen5vCoreMaxGB[vCores]
 	}
 
-	// Invalid family
-	return -1
+	return maxGB
 }
 
-func IsIntAsBytes(maxSizeGB float64) bool {
+func IsIntAsBytes(maxGB float64) bool {
 	// Get the maxSizeGB for the value in bytes
-	max := 1073741824 * maxSizeGB
+	maxBytes := 1073741824 * maxGB
 
 	// Check to see if the resulting max_size_bytes value is an integral value
-	if max != math.Trunc(max) {
+	if maxBytes != math.Trunc(maxBytes) {
 		return false
 	}
 
