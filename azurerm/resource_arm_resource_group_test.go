@@ -2,58 +2,13 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
-
-func init() {
-	resource.AddTestSweepers("azurerm_resource_group", &resource.Sweeper{
-		Name: "azurerm_resource_group",
-		F:    testSweepResourceGroups,
-	})
-}
-
-func testSweepResourceGroups(region string) error {
-	armClient, err := buildConfigForSweepers()
-	if err != nil {
-		return err
-	}
-
-	client := (*armClient).resourceGroupsClient
-	ctx := (*armClient).StopContext
-
-	log.Printf("Retrieving the Resource Groups..")
-	results, err := client.List(ctx, "", utils.Int32(int32(1000)))
-	if err != nil {
-		return fmt.Errorf("Error Listing on Resource Groups: %+v", err)
-	}
-
-	for _, resourceGroup := range results.Values() {
-		if !shouldSweepAcceptanceTestResource(*resourceGroup.Name, *resourceGroup.Location, region) {
-			continue
-		}
-
-		name := *resourceGroup.Name
-		log.Printf("Deleting Resource Group %q", name)
-		deleteFuture, err := client.Delete(ctx, name)
-		if err != nil {
-			return err
-		}
-
-		err = deleteFuture.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
 
 func TestAccAzureRMResourceGroup_basic(t *testing.T) {
 	resourceName := "azurerm_resource_group.test"

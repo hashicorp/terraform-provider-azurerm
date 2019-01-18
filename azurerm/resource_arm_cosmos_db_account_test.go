@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 	"testing"
@@ -14,54 +13,6 @@ import (
 )
 
 // TODO: refactor the test configs
-
-func init() {
-	resource.AddTestSweepers("azurerm_cosmosdb_account", &resource.Sweeper{
-		Name: "azurerm_cosmosdb_account",
-		F:    testSweepCosmosDBAccount,
-	})
-}
-
-func testSweepCosmosDBAccount(region string) error {
-	armClient, err := buildConfigForSweepers()
-	if err != nil {
-		return err
-	}
-
-	client := (*armClient).cosmosDBClient
-	ctx := (*armClient).StopContext
-
-	log.Printf("Retrieving the CosmosDB Accounts..")
-	results, err := client.List(ctx)
-	if err != nil {
-		return fmt.Errorf("Error Listing on CosmosDB Accounts: %+v", err)
-	}
-
-	for _, account := range *results.Value {
-		if !shouldSweepAcceptanceTestResource(*account.Name, *account.Location, region) {
-			continue
-		}
-
-		resourceId, err := parseAzureResourceID(*account.ID)
-		if err != nil {
-			return err
-		}
-
-		resourceGroup := resourceId.ResourceGroup
-		name := resourceId.Path["databaseAccounts"]
-
-		log.Printf("Deleting CosmosDB Account '%s' in Resource Group '%s'", name, resourceGroup)
-		future, err := client.Delete(ctx, resourceGroup, name)
-		if err != nil {
-			return err
-		}
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
 
 //consistency
 func TestAccAzureRMCosmosDBAccount_eventualConsistency(t *testing.T) {
