@@ -8,6 +8,7 @@ IMPROVEMENTS:
 
 * dependencies: switching to Go Modules [GH-2705]
 * `azurerm_application_gateway` - support for the `file_upload_limit_mb` property [GH-2666]
+* `azurerm_application_gateway` - Support for `pick_host_name_from_backend_address` and `pick_host_name_from_backend_http_settings` properties [GH-2658]
 * `azurerm_data_lake_store_file` - support file uploads greater then 4 megabytes [GH-2633]
 * `azurerm_mssql_elasticpool` - support for setting `max_size_bytes` [GH-2346]
 * `azurerm_signalr_service` - exporting `primary_access_key`, `secondary_access_key`, `primary_connection_string` and `secondary_connection_string` and secondary access keys and connection strings [GH-2655]
