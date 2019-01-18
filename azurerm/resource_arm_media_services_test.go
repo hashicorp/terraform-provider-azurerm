@@ -13,7 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-// TODO: All ACC tests timeout on my machine, so I'm sure this test doesn't actually work yet.
 func init() {
 	resource.AddTestSweepers("azurerm_media_services", &resource.Sweeper{
 		Name: "azurerm_media_services",
