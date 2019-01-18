@@ -1,7 +1,6 @@
 package azure
 
 import (
-	"fmt"
 	"math"
 	"strings"
 )
@@ -30,22 +29,22 @@ func BasicGetMaxSizeGB(DTUs int) float64 {
 }
 
 func BasicIsCapacityValid(capacity int) bool {
-	switch {
-	case capacity == 50:
+	switch capacity {
+	case 50:
 		fallthrough
-	case capacity == 100:
+	case 100:
 		fallthrough
-	case capacity == 200:
+	case 200:
 		fallthrough
-	case capacity == 300:
+	case 300:
 		fallthrough
-	case capacity == 400:
+	case 400:
 		fallthrough
-	case capacity == 800:
+	case 800:
 		fallthrough
-	case capacity == 1200:
+	case 1200:
 		fallthrough
-	case capacity == 1600:
+	case 1600:
 		return true
 	}
 
@@ -59,51 +58,51 @@ func StandardGetMaxSizeGB(DTUs int) float64 {
 	case 100:
 		return 750
 	case 200:
-		return 1000
+		return 1024
 	case 300:
-		return 1250
+		return 1280
 	case 400:
-		return 1500
+		return 1536
 	case 800:
-		return 2000
+		return 2048
 	case 1200:
-		return 2500
+		return 2560
 	case 1600:
-		return 3000
+		return 3072
 	case 2000:
-		return 3500
+		return 3584
 	case 2500:
 		fallthrough
 	case 3000:
-		return 4000
+		return 4096
 	}
 	// Invalid DTU
 	return -1
 }
 
 func StandardCapacityValid(capacity int) bool {
-	switch {
-	case capacity == 50:
+	switch capacity {
+	case 50:
 		fallthrough
-	case capacity == 100:
+	case 100:
 		fallthrough
-	case capacity == 200:
+	case 200:
 		fallthrough
-	case capacity == 300:
+	case 300:
 		fallthrough
-	case capacity == 400:
+	case 400:
 		fallthrough
-	case capacity == 800:
+	case 800:
 		fallthrough
-	case capacity == 1200:
+	case 1200:
 		fallthrough
-	case capacity == 1600:
+	case 1600:
 		fallthrough
-	case capacity == 2000:
+	case 2000:
 		fallthrough
-	case capacity == 2500:
+	case 2500:
 		fallthrough
-	case capacity == 3000:
+	case 3000:
 		return true
 	}
 
@@ -119,45 +118,108 @@ func PremiumGetMaxSizeGB(DTUs int) float64 {
 	case 500:
 		fallthrough
 	case 1000:
-		return 1000
+		return 1024
 	case 1500:
-		return 1500
+		return 1536
 	case 2000:
-		return 2000
+		return 2048
 	case 2500:
-		return 2500
+		return 2560
 	case 3000:
-		return 3000
+		return 3072
 	case 3500:
-		return 3500
+		return 3584
 	case 4000:
-		return 4000
+		return 4096
 	}
 	// Invalid DTU
 	return -1
 }
 
 func PremiumCapacityValid(capacity int) bool {
-	switch {
-	case capacity == 125:
+	switch capacity {
+	case 125:
 		fallthrough
-	case capacity == 250:
+	case 250:
 		fallthrough
-	case capacity == 500:
+	case 500:
 		fallthrough
-	case capacity == 1000:
+	case 1000:
 		fallthrough
-	case capacity == 1500:
+	case 1500:
 		fallthrough
-	case capacity == 2000:
+	case 2000:
 		fallthrough
-	case capacity == 2500:
+	case 2500:
 		fallthrough
-	case capacity == 3000:
+	case 3000:
 		fallthrough
-	case capacity == 3500:
+	case 3500:
 		fallthrough
-	case capacity == 4000:
+	case 4000:
+		return true
+	}
+
+	return false
+}
+
+func StantardPremiumMaxGBValid(gb float64) bool {
+	switch gb {
+	case 50:
+		fallthrough
+	case 100:
+		fallthrough
+	case 150:
+		fallthrough
+	case 200:
+		fallthrough
+	case 250:
+		fallthrough
+	case 300:
+		fallthrough
+	case 400:
+		fallthrough
+	case 500:
+		fallthrough
+	case 750:
+		fallthrough
+	case 800:
+		fallthrough
+	case 1024:
+		fallthrough
+	case 1200:
+		fallthrough
+	case 1280:
+		fallthrough
+	case 1536:
+		fallthrough
+	case 1600:
+		fallthrough
+	case 1792:
+		fallthrough
+	case 2000:
+		fallthrough
+	case 2048:
+		fallthrough
+	case 2304:
+		fallthrough
+	case 2500:
+		fallthrough
+	case 2560:
+		fallthrough
+	case 2816:
+		fallthrough
+	case 3000:
+		fallthrough
+	case 3072:
+		fallthrough
+	case 3328:
+		fallthrough
+	case 3584:
+		fallthrough
+	case 3840:
+		fallthrough
+	case 4096:
 		return true
 	}
 
@@ -177,7 +239,7 @@ func GeneralPurposeGetMaxSizeGB(vCores int, family string) float64 {
 		case 4:
 			fallthrough
 		case 5:
-			return 1500
+			return 1536
 		case 6:
 			fallthrough
 		case 7:
@@ -187,11 +249,11 @@ func GeneralPurposeGetMaxSizeGB(vCores int, family string) float64 {
 		case 9:
 			fallthrough
 		case 10:
-			return 2000
+			return 2048
 		case 16:
-			return 3500
+			return 3584
 		case 24:
-			return 4000
+			return 4096
 		}
 		// Invalid vCore
 		return -1
@@ -208,25 +270,25 @@ func GeneralPurposeGetMaxSizeGB(vCores int, family string) float64 {
 		case 8:
 			fallthrough
 		case 10:
-			return 1500
+			return 1536
 		case 12:
 			fallthrough
 		case 14:
 			fallthrough
 		case 16:
-			return 2000
+			return 2048
 		case 18:
 			fallthrough
 		case 20:
 			fallthrough
 		case 24:
-			return 3000
+			return 3072
 		case 32:
 			fallthrough
 		case 40:
 			fallthrough
 		case 80:
-			return 4000
+			return 4096
 		}
 		// Invalid vCore
 		return -1
@@ -238,30 +300,30 @@ func GeneralPurposeGetMaxSizeGB(vCores int, family string) float64 {
 
 func GeneralPurposeCapacityValid(capacity int, family string) bool {
 	if family == "gen4" {
-		switch {
-		case capacity == 1:
+		switch capacity {
+		case 1:
 			fallthrough
-		case capacity == 2:
+		case 2:
 			fallthrough
-		case capacity == 3:
+		case 3:
 			fallthrough
-		case capacity == 4:
+		case 4:
 			fallthrough
-		case capacity == 5:
+		case 5:
 			fallthrough
-		case capacity == 6:
+		case 6:
 			fallthrough
-		case capacity == 7:
+		case 7:
 			fallthrough
-		case capacity == 8:
+		case 8:
 			fallthrough
-		case capacity == 9:
+		case 9:
 			fallthrough
-		case capacity == 10:
+		case 10:
 			fallthrough
-		case capacity == 16:
+		case 16:
 			fallthrough
-		case capacity == 24:
+		case 24:
 			return true
 		}
 
@@ -269,34 +331,34 @@ func GeneralPurposeCapacityValid(capacity int, family string) bool {
 	}
 
 	if family == "gen5" {
-		switch {
-		case capacity == 2:
+		switch capacity {
+		case 2:
 			fallthrough
-		case capacity == 4:
+		case 4:
 			fallthrough
-		case capacity == 6:
+		case 6:
 			fallthrough
-		case capacity == 8:
+		case 8:
 			fallthrough
-		case capacity == 10:
+		case 10:
 			fallthrough
-		case capacity == 12:
+		case 12:
 			fallthrough
-		case capacity == 14:
+		case 14:
 			fallthrough
-		case capacity == 16:
+		case 16:
 			fallthrough
-		case capacity == 18:
+		case 18:
 			fallthrough
-		case capacity == 20:
+		case 20:
 			fallthrough
-		case capacity == 24:
+		case 24:
 			fallthrough
-		case capacity == 32:
+		case 32:
 			fallthrough
-		case capacity == 40:
+		case 40:
 			fallthrough
-		case capacity == 80:
+		case 80:
 			return true
 		}
 
@@ -331,7 +393,7 @@ func BusinessCriticalGetMaxSizeGB(vCores int, family string) float64 {
 		case 16:
 			fallthrough
 		case 24:
-			return 1000
+			return 1024
 		}
 		// Invalid vCore
 		return -1
@@ -340,13 +402,13 @@ func BusinessCriticalGetMaxSizeGB(vCores int, family string) float64 {
 	if family == "gen5" {
 		switch vCores {
 		case 4:
-			return 1000
+			return 1024
 		case 6:
 			fallthrough
 		case 8:
 			fallthrough
 		case 10:
-			return 1500
+			return 1536
 		case 12:
 			fallthrough
 		case 14:
@@ -356,7 +418,7 @@ func BusinessCriticalGetMaxSizeGB(vCores int, family string) float64 {
 		case 18:
 			fallthrough
 		case 20:
-			return 3000
+			return 3072
 		case 24:
 			fallthrough
 		case 32:
@@ -364,7 +426,7 @@ func BusinessCriticalGetMaxSizeGB(vCores int, family string) float64 {
 		case 40:
 			fallthrough
 		case 80:
-			return 4000
+			return 4096
 		}
 		// Invalid vCore
 		return -1
@@ -376,28 +438,28 @@ func BusinessCriticalGetMaxSizeGB(vCores int, family string) float64 {
 
 func BusinessCriticalCapacityValid(capacity int, family string) bool {
 	if family == "gen4" {
-		switch {
-		case capacity == 2:
+		switch capacity {
+		case 2:
 			fallthrough
-		case capacity == 3:
+		case 3:
 			fallthrough
-		case capacity == 4:
+		case 4:
 			fallthrough
-		case capacity == 5:
+		case 5:
 			fallthrough
-		case capacity == 6:
+		case 6:
 			fallthrough
-		case capacity == 7:
+		case 7:
 			fallthrough
-		case capacity == 8:
+		case 8:
 			fallthrough
-		case capacity == 9:
+		case 9:
 			fallthrough
-		case capacity == 10:
+		case 10:
 			fallthrough
-		case capacity == 16:
+		case 16:
 			fallthrough
-		case capacity == 24:
+		case 24:
 			return true
 		}
 
@@ -405,32 +467,32 @@ func BusinessCriticalCapacityValid(capacity int, family string) bool {
 	}
 
 	if family == "gen5" {
-		switch {
-		case capacity == 4:
+		switch capacity {
+		case 4:
 			fallthrough
-		case capacity == 6:
+		case 6:
 			fallthrough
-		case capacity == 8:
+		case 8:
 			fallthrough
-		case capacity == 10:
+		case 10:
 			fallthrough
-		case capacity == 12:
+		case 12:
 			fallthrough
-		case capacity == 14:
+		case 14:
 			fallthrough
-		case capacity == 16:
+		case 16:
 			fallthrough
-		case capacity == 18:
+		case 18:
 			fallthrough
-		case capacity == 20:
+		case 20:
 			fallthrough
-		case capacity == 24:
+		case 24:
 			fallthrough
-		case capacity == 32:
+		case 32:
 			fallthrough
-		case capacity == 40:
+		case 40:
 			fallthrough
-		case capacity == 80:
+		case 80:
 			return true
 		}
 
@@ -440,23 +502,16 @@ func BusinessCriticalCapacityValid(capacity int, family string) bool {
 	return false
 }
 
-func IsMaxGBValid(gbIncrement int64, maxSizeGB float64) (msg string, ok bool) {
-	// Get the increment for the value in bytes
-	// and the maxSizeGB in bytes
-	inc := 1073741824 * gbIncrement
+func IsInt(maxSizeGB float64) bool {
+	// Get the maxSizeGB for the value in bytes
 	max := 1073741824 * maxSizeGB
 
 	// Check to see if the resulting max_size_bytes value is an integral value
 	if max != math.Trunc(max) {
-		return "max_size_gb is not a valid value", false
+		return false
 	}
 
-	// Check to see if the maxSizeGB follows the increment constraint
-	if max/float64(inc) != math.Trunc(max/float64(inc)) {
-		return fmt.Sprintf("max_size_gb must be defined in increments of %d GB", gbIncrement), false
-	}
-
-	return "", true
+	return true
 }
 
 func NameFamilyValid(name string, family string) bool {

@@ -298,8 +298,8 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 					return fmt.Errorf("service tier 'GeneralPurpose' and 'BusinessCritical' must have a max_size_gb value equal to or greater than 5 GB, got %d GB", int(maxSizeGb.(float64)))
 				}
 
-				if err, ok := azure.IsMaxGBValid(1, maxSizeGb.(float64)); !ok {
-					return fmt.Errorf(err)
+				if !azure.IsInt(maxSizeGb.(float64)) {
+					return fmt.Errorf("max_size_gb (%f) is not an whole number of bytes", maxSizeGb.(float64))
 				}
 
 				if !azure.NameFamilyValid(name.(string), family.(string)) {
@@ -320,8 +320,8 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 						return fmt.Errorf("service tiers 'Standard', and 'Premium' must have a max_size_gb value equal to or greater than 50 GB, got %d GB", int(maxSizeGb.(float64)))
 					}
 
-					if err, ok := azure.IsMaxGBValid(50, maxSizeGb.(float64)); !ok {
-						return fmt.Errorf(err)
+					if !azure.StantardPremiumMaxGBValid(maxSizeGb.(float64)) {
+						return fmt.Errorf("max_size_gb (%d) is not a valid value, valid max_size_gb values are 50, 100, 150, 200, 250, 300, 400, 500, 750, 800, 1024, 1200, 1280, 1536, 1600, 1792, 2000, 2048, 2304, 2500, 2560, 2816, 3000, 3072, 3328, 3584, 3840 or 4096", int(maxSizeGb.(float64)))
 					}
 				}
 
