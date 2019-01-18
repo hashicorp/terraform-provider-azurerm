@@ -159,7 +159,7 @@ func validateStorageConfiguration(storageAccounts []media.StorageAccount) error 
 	for _, account := range storageAccounts {
 		if account.Type == media.Primary {
 			if primaryAssigned {
-				return fmt.Errorf("Error processing storage account '%v'. Another storage account is already assigned as is_primary = 'true'", account.ID)
+				return fmt.Errorf("Error processing storage account '%v'. Another storage account is already assigned as is_primary = 'true'", *(account.ID))
 			}
 		}
 		primaryAssigned = true

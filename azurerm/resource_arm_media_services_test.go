@@ -205,7 +205,7 @@ func TestAzureRMMediaServicesAccount_validateStorageConfiguration(t *testing.T) 
 	actualErr := validateStorageConfiguration(accounts)
 	expectedErr := fmt.Errorf("Error processing storage account 'id2'. Another storage account is already assigned as is_primary = 'true'")
 
-	if actualErr == nil && expectedErr.Error() != actualErr.Error() {
+	if actualErr == nil || expectedErr.Error() != actualErr.Error() {
 		t.Fatal("validateStorageConfiguration must throw an error when more than one storage account is Primary.")
 	}
 
