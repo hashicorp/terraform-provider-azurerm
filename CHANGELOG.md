@@ -18,7 +18,7 @@ BUG FIXES:
 * `azurerm_cosmosdb_account` - prevent occasional error when deleting the resource [GH-2702]
 * `azurerm_express_route_circuit` - added the `premium` SKU back to validation logic [GH-2692]
 * `azurerm_firewall` - ensuring rules aren't removed during an update [GH-2663]
-* `notification_hub_namespace` - now polls on creation to handle eventual consistency [GH-2701]
+* `azurerm_notification_hub_namespace` - now polls on creation to handle eventual consistency [GH-2701]
 * `azurerm_service_bus_subscription` - name's can now start with a digit [GH-2672]
 
 ## 1.21.0 (January 11, 2019)
