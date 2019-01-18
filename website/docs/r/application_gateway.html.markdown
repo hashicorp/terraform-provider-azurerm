@@ -191,6 +191,8 @@ A `backend_http_settings` block supports the following:
 
 * `request_timeout` - (Required) The request timeout in seconds, which must be between 1 and 86400 seconds.
 
+* `pick_host_name_from_backend_address` - (Optional) Whether host header should be picked from the host name of the backend server. Defaults to `false`.
+
 * `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks.
 
 ---
@@ -267,7 +269,7 @@ A `path_rule` block supports the following:
 
 A `probe` block support the following:
 
-* `host` - (Required) The Hostname used for this Probe. If the Application Gateway is configured for a single site, by default the Host name should be specified as ‘127.0.0.1’, unless otherwise configured in custom probe.
+* `host` - (Optional) The Hostname used for this Probe. If the Application Gateway is configured for a single site, by default the Host name should be specified as ‘127.0.0.1’, unless otherwise configured in custom probe. Cannot be set if `pick_host_name_from_backend_http_settings` is set to `true`.
 
 * `interval` - (Required) The Interval between two consecutive probes in seconds. Possible values range from 1 second to a maximum of 86,400 seconds.
 
@@ -280,6 +282,8 @@ A `probe` block support the following:
 * `timeout` - (Required) The Timeout used for this Probe, which indicates when a probe becomes unhealthy. Possible values range from 1 second to a maximum of 86,400 seconds.
 
 * `unhealthy_threshold` - (Required) The Unhealthy Threshold for this Probe, which indicates the amount of retries which should be attempted before a node is deemed unhealthy. Possible values are from 1 - 20 seconds.
+
+* `pick_host_name_from_backend_http_settings` - (Optional) Whether the host header should be picked from the backend http settings. Defaults to `false`.
 
 * `match` - (Optional) A `match` block as defined above.
 
