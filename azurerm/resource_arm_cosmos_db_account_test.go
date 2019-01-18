@@ -342,10 +342,10 @@ func TestAccAzureRMCosmosDBAccount_capabilityTable(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_capabilityCassandra(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
@@ -366,11 +366,36 @@ func TestAccAzureRMCosmosDBAccount_capabilityCassandra(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCosmosDBAccount_capabilityMongo35(t *testing.T) {
-	ri := acctest.RandInt()
+func TestAccAzureRMCosmosDBAccount_capabilityAggregationPipeline(t *testing.T) {
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDBAccount_capabilityAggregationPipeline(ri, testLocation()),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
+					resource.TestCheckResourceAttr(resourceName, "kind", "GlobalDocumentDB"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMCosmosDBAccount_capabilityMongo35(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	resourceName := "azurerm_cosmosdb_account.test"
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
@@ -392,10 +417,10 @@ func TestAccAzureRMCosmosDBAccount_capabilityMongo35(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_capabilityDocLevelTTL(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
@@ -417,7 +442,7 @@ func TestAccAzureRMCosmosDBAccount_capabilityDocLevelTTL(t *testing.T) {
 }
 
 func TestAbcAzureRMCosmosDBAccount_updatePropertiesAndLocation(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -759,6 +784,16 @@ func testAccAzureRMCosmosDBAccount_capabilityCassandra(rInt int, location string
 
         capabilities = {
           name = "EnableCassandra"
+        }
+    `)
+}
+
+func testAccAzureRMCosmosDBAccount_capabilityAggregationPipeline(rInt int, location string) string {
+	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", `
+        kind = "GlobalDocumentDB"
+
+        capabilities = {
+          name = "EnableAggregationPipeline"
         }
     `)
 }

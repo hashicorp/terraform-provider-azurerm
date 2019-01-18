@@ -201,6 +201,7 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 								"EnableTable",
 								"EnableGremlin",
 								"EnableCassandra",
+								"EnableAggregationPipeline",
 								"MongoDBv3.4",
 								"mongoEnableDocLevelTTL",
 							}, true),
@@ -370,6 +371,21 @@ func resourceArmCosmosDBAccountCreate(d *schema.ResourceData, meta interface{}) 
 	resp, err := resourceArmCosmosDBAccountApiUpsert(client, ctx, resourceGroup, name, account)
 	if err != nil {
 		return fmt.Errorf("Error creating CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	//for some reason capabilities doesn't always work on create, so lets patch it
+	future, err := client.Patch(ctx, resourceGroup, name, documentdb.DatabaseAccountPatchParameters{
+		DatabaseAccountPatchProperties: &documentdb.DatabaseAccountPatchProperties{
+			Capabilities: account.Capabilities,
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("Error Patching CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	future.WaitForCompletionRef(context.Background(), client.Client)
+	if err != nil {
+		return fmt.Errorf("Error waiting on patch future CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	id := resp.ID
