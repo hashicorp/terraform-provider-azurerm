@@ -12,31 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-/*
- Example terraform template:
-
-	resource "azurerm_media_services" "ams" {
-
-			name = "seushertestams2"
-			location = "westus"
-			resource_group_name = "seusher_dev"
-
-			storage_account {
-					id = "/subscriptions/7060bca0-7a3c-44bd-b54c-4bb1e9facfac/resourcegroups/seusher_dev/providers/Microsoft.Storage/storageAccounts/seusherams3"
-					is_primary = true
-			}
-
-			storage_account {
-					id = "/subscriptions/7060bca0-7a3c-44bd-b54c-4bb1e9facfac/resourcegroups/seusher_dev/providers/Microsoft.Storage/storageAccounts/seusheram2"
-					is_primary = false
-			}
-	}
-
-	output "rendered" {
-	value = "${azurerm_media_services.ams.id}"
-	}
-*/
-
 func resourceArmMediaServices() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmMediaServicesCreateUpdate,
@@ -47,15 +22,14 @@ func resourceArmMediaServices() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		// TODO: Add validation after finding out the rules for AMS names
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile("^[-a-z0-9]{3,50}$"),
-					"Media Services Account name must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
+					regexp.MustCompile("^[-a-z0-9]{3,24}$"),
+					"Media Services Account name must be 3 - 24 characters long, contain only lowercase letters and numbers.",
 				),
 			},
 
@@ -96,7 +70,8 @@ func resourceArmMediaServicesCreateUpdate(d *schema.ResourceData, meta interface
 	tags := d.Get("tags").(map[string]interface{})
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	storageAccounts, err := expandAzureRmStorageAccounts(d)
+	storageAccounts := expandAzureRmStorageAccounts(d)
+	err := validateStorageConfiguration(storageAccounts)
 	if err != nil {
 		return err
 	}
@@ -176,12 +151,26 @@ func resourceArmMediaServicesDelete(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func expandAzureRmStorageAccounts(d *schema.ResourceData) ([]media.StorageAccount, error) {
-	storageAccounts := d.Get("storage_account").(*schema.Set).List()
-	rules := make([]media.StorageAccount, 0)
+func validateStorageConfiguration(storageAccounts []media.StorageAccount) error {
 
 	// Only one storage account can be primary
 	primaryAssigned := false
+
+	for _, account := range storageAccounts {
+		if account.Type == media.Primary {
+			if primaryAssigned {
+				return fmt.Errorf("Error processing storage account '%v'. Another storage account is already assigned as is_primary = 'true'", account.ID)
+			}
+		}
+		primaryAssigned = true
+	}
+
+	return nil
+}
+
+func expandAzureRmStorageAccounts(d *schema.ResourceData) []media.StorageAccount {
+	storageAccounts := d.Get("storage_account").(*schema.Set).List()
+	rules := make([]media.StorageAccount, 0)
 
 	for _, accountMapRaw := range storageAccounts {
 		accountMap := accountMapRaw.(map[string]interface{})
@@ -191,13 +180,6 @@ func expandAzureRmStorageAccounts(d *schema.ResourceData) ([]media.StorageAccoun
 		storageType := media.Secondary
 		if accountMap["is_primary"].(bool) {
 			storageType = media.Primary
-
-			// TODO: This function shouldn't process storage accounts and validate them. Move logic out appropriately.
-			if primaryAssigned {
-				return nil, fmt.Errorf("Error processing storage account '%s'. Another storage account is already assigned as is_primary = 'true'", id)
-			}
-
-			primaryAssigned = true
 		}
 
 		storageAccount := media.StorageAccount{
@@ -208,5 +190,5 @@ func expandAzureRmStorageAccounts(d *schema.ResourceData) ([]media.StorageAccoun
 		rules = append(rules, storageAccount)
 	}
 
-	return rules, nil
+	return rules
 }

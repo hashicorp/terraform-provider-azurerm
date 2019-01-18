@@ -6,11 +6,14 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2018-07-01/media"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+// TODO: All ACC tests timeout on my machine, so I'm sure this test doesn't actually work yet.
 func init() {
 	resource.AddTestSweepers("azurerm_media_services", &resource.Sweeper{
 		Name: "azurerm_media_services",
@@ -56,15 +59,10 @@ func testSweepMediaServicesAccount(region string) error {
 	return nil
 }
 
-func TestAccAzureRMMediaServicesAccount_basiccreation(t *testing.T) {
+func TestAccAzureRMMediaServicesAccount_singlestorage(t *testing.T) {
 
-	t.Log("Running my test!")
 	ri := tf.AccRandTimeInt()
-	resourceName := "azurerm_media_services_test"
-
-	template := testAccAzureRMMediaServicesAccount_basic(ri, testLocation())
-
-	t.Log(template)
+	resourceName := fmt.Sprintf("%d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -72,42 +70,37 @@ func TestAccAzureRMMediaServicesAccount_basiccreation(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMediaServicesAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMediaServicesAccount_basic(ri, testLocation()),
+				Config: generateTemplate_singlestorage(resourceName, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMMediaServicesAccount_basic(resourceName, testLocation()),
+					checkAccAzureRMMediaServicesAccount("azurerm_media_services.ams", testLocation(), "1"),
 				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
-func testAccAzureRMMediaServicesAccount_basic(rInt int, location string) string {
+func generateTemplate_singlestorage(name string, location string) string {
 	return fmt.Sprintf(`
 	resource "azurerm_resource_group" "testrg" {
-		name     = "mstest-%[1]d"
-		location = "%s"
+			name     = "%[1]s"
+			location = "%[2]s"
 	  }
 	  
 	  resource "azurerm_storage_account" "testsa" {
-		name                     = "mstest%[1]d"
-		resource_group_name      = "${azurerm_resource_group.testrg.name}"
-		location                 = "${azurerm_resource_group.testrg.location}"
-		account_tier             = "Standard"
-		account_replication_type = "GRS"
-	  
-		tags {
-		  environment = "staging"
-		}
+			name                     = "%[1]s"
+			resource_group_name      = "${azurerm_resource_group.testrg.name}"
+			location                 = "${azurerm_resource_group.testrg.location}"
+			account_tier             = "Standard"
+			account_replication_type = "GRS"
+		
+			tags {
+			environment = "staging"
+			}
 	  }
 	  
 	  resource "azurerm_media_services" "ams" {
 	  
-			  name = "mstest%[1]d"
+			  name = "%[1]s"
 			  location = "${azurerm_resource_group.testrg.location}"
 			  resource_group_name = "${azurerm_resource_group.testrg.name}"
 			  
@@ -115,16 +108,133 @@ func testAccAzureRMMediaServicesAccount_basic(rInt int, location string) string 
 					  id = "${azurerm_storage_account.testsa.id}"
 					  is_primary = true
 			  }
+
+			  tags {
+				environment = "staging"
+			  }
 	  }
-`, rInt, location)
+`, name, location)
+}
+
+func TestAccAzureRMMediaServicesAccount_multiplestorage(t *testing.T) {
+
+	ri := tf.AccRandTimeInt()
+	resourceName := fmt.Sprintf("%d", ri)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMediaServicesAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: generateTemplate_multiplestorage(resourceName, testLocation()),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMMediaServicesAccount("azurerm_media_services.ams", testLocation(), "2"),
+				),
+			},
+		},
+	})
+}
+
+func generateTemplate_multiplestorage(name string, location string) string {
+	return fmt.Sprintf(`
+	resource "azurerm_resource_group" "testrg" {
+			name     = "%[1]s"
+			location = "%[2]s"
+	  }
+	  
+	  resource "azurerm_storage_account" "testsa1" {
+			name                     = "1%[1]s"
+			resource_group_name      = "${azurerm_resource_group.testrg.name}"
+			location                 = "${azurerm_resource_group.testrg.location}"
+			account_tier             = "Standard"
+			account_replication_type = "GRS"
+		
+			tags {
+			environment = "staging"
+			}
+	  }
+
+	  resource "azurerm_storage_account" "testsa2" {
+		name                     = "2%[1]s"
+		resource_group_name      = "${azurerm_resource_group.testrg.name}"
+		location                 = "${azurerm_resource_group.testrg.location}"
+		account_tier             = "Standard"
+		account_replication_type = "GRS"
+	
+		tags {
+		environment = "staging"
+		}
+  }
+	  
+	  resource "azurerm_media_services" "ams" {
+	  
+			  name = "%[1]s"
+			  location = "${azurerm_resource_group.testrg.location}"
+			  resource_group_name = "${azurerm_resource_group.testrg.name}"
+			  
+			  storage_account {
+					  id = "${azurerm_storage_account.testsa1.id}"
+					  is_primary = true
+			  }
+
+			  storage_account {
+					id = "${azurerm_storage_account.testsa2.id}"
+					is_primary = false
+			  }
+
+			  tags {
+					environment = "staging"
+			  }
+	  }
+`, name, location)
+}
+
+func TestAzureRMMediaServicesAccount_validateStorageConfiguration(t *testing.T) {
+
+	accounts := []media.StorageAccount{
+		media.StorageAccount{
+			ID:   utils.String("id1"),
+			Type: media.Primary,
+		},
+		media.StorageAccount{
+			ID:   utils.String("id2"),
+			Type: media.Primary,
+		},
+	}
+
+	actualErr := validateStorageConfiguration(accounts)
+	expectedErr := fmt.Errorf("Error processing storage account 'id2'. Another storage account is already assigned as is_primary = 'true'")
+
+	if actualErr == nil && expectedErr.Error() != actualErr.Error() {
+		t.Fatal("validateStorageConfiguration must throw an error when more than one storage account is Primary.")
+	}
+
+	accounts = []media.StorageAccount{
+		media.StorageAccount{
+			ID:   utils.String("id1"),
+			Type: media.Primary,
+		},
+		media.StorageAccount{
+			ID:   utils.String("id2"),
+			Type: media.Secondary,
+		},
+	}
+
+	actualErr = validateStorageConfiguration(accounts)
+
+	if actualErr != nil {
+		t.Fatal("validateStorageConfiguration must allow multiple storage accounts when only one is Primary.")
+	}
 }
 
 func testCheckAzureRMMediaServicesAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
+			return fmt.Errorf("Media service not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -175,11 +285,15 @@ func testCheckAzureRMMediaServicesAccountDestroy(s *terraform.State) error {
 	return nil
 }
 
-func checkAccAzureRMMediaServicesAccount_basic(resourceName string, location string) resource.TestCheckFunc {
+func checkAccAzureRMMediaServicesAccount(resourceName string, location string, storageCount string) resource.TestCheckFunc {
+	// It would be ideal to also validate which storage account was Primary, but that isn't straight forward.
+	// The key for the storage account's Primary flag is non-deterministic (ex: storage_account.1137153885.is_primary) and
+	// isn't based on the storage account name.
 	return resource.ComposeTestCheckFunc(
 		testCheckAzureRMMediaServicesAccountExists(resourceName),
 		resource.TestCheckResourceAttrSet(resourceName, "name"),
 		resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
 		resource.TestCheckResourceAttr(resourceName, "location", azureRMNormalizeLocation(location)),
+		resource.TestCheckResourceAttr(resourceName, "storage_account.#", storageCount),
 	)
 }
