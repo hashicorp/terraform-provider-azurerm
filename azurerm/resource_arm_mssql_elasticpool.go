@@ -269,7 +269,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 					maxAllowedGB := azure.BusinessCriticalGetMaxSizeGB(capacity.(int), "gen4")
 
 					if maxAllowedGB == 0 {
-						return fmt.Errorf("service tier 'BusinessCritical' Gen4 must have a capacity(%D) of 2, 3, 4, 5, 6, 7, 8, 9, 10, 16 or 24 vCores", capacity.(int))
+						return fmt.Errorf("service tier 'BusinessCritical' Gen4 must have a capacity(%d) of 2, 3, 4, 5, 6, 7, 8, 9, 10, 16 or 24 vCores", capacity.(int))
 					}
 
 					if maxSizeGb.(float64) > maxAllowedGB {
