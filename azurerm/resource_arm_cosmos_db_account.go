@@ -374,6 +374,7 @@ func resourceArmCosmosDBAccountCreate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	//for some reason capabilities doesn't always work on create, so lets patch it
+	//tracked: https://github.com/Azure/azure-sdk-for-go/issues/2864
 	future, err := client.Patch(ctx, resourceGroup, name, documentdb.DatabaseAccountPatchParameters{
 		DatabaseAccountPatchProperties: &documentdb.DatabaseAccountPatchProperties{
 			Capabilities: account.Capabilities,
