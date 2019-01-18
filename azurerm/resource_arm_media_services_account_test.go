@@ -25,7 +25,7 @@ func TestAccAzureRMMediaServicesAccount_singlestorage(t *testing.T) {
 			{
 				Config: generateTemplate_singlestorage(resourceName, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMMediaServicesAccount("azurerm_media_services.ams", testLocation(), "1"),
+					checkAccAzureRMMediaServicesAccount("azurerm_media_services_account.ams", testLocation(), "1"),
 				),
 			},
 		},
@@ -51,7 +51,7 @@ func generateTemplate_singlestorage(name string, location string) string {
 			}
 	  }
 	  
-	  resource "azurerm_media_services" "ams" {
+	  resource "azurerm_media_services_account" "ams" {
 	  
 			  name					= "%[1]s"
 			  location				= "${azurerm_resource_group.testrg.location}"
@@ -82,7 +82,7 @@ func TestAccAzureRMMediaServicesAccount_multiplestorage(t *testing.T) {
 			{
 				Config: generateTemplate_multiplestorage(resourceName, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMMediaServicesAccount("azurerm_media_services.ams", testLocation(), "2"),
+					checkAccAzureRMMediaServicesAccount("azurerm_media_services_account.ams", testLocation(), "2"),
 				),
 			},
 		},
@@ -120,7 +120,7 @@ func generateTemplate_multiplestorage(name string, location string) string {
 		}
   }
 	  
-	  resource "azurerm_media_services" "ams" {
+	  resource "azurerm_media_services_account" "ams" {
 	  
 			  name					= "%[1]s"
 			  location				= "${azurerm_resource_group.testrg.location}"
@@ -217,7 +217,7 @@ func testCheckAzureRMMediaServicesAccountDestroy(s *terraform.State) error {
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_media_services" {
+		if rs.Type != "azurerm_media_services_account" {
 			continue
 		}
 

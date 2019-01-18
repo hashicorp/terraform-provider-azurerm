@@ -1,14 +1,14 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_media_services"
-sidebar_current: "docs-azurerm-resource-media-media-services"
+page_title: "Azure Resource Manager: azurerm_media_services_account"
+sidebar_current: "docs-azurerm-resource-media-media-services-account"
 description: |-
-  Manages a Media Services account.
+  Manages a Media Services Account.
 ---
 
-# azurerm_media_services
+# azurerm_media_services_account
 
-Manages a Media Services account.
+Manages a Media Services Account.
 
 ## Example Usage
 
@@ -26,7 +26,7 @@ resource "azurerm_storage_account" "testsa" {
   account_replication_type = "GRS"
 }
 
-resource "azurerm_media_services" "ams" {
+resource "azurerm_media_services_account" "ams" {
 
   name                = "amstest"
   location            = "${azurerm_resource_group.testrg.location}"
@@ -43,9 +43,9 @@ resource "azurerm_media_services" "ams" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the MariaDB Server. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Media Services Account. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the MariaDB Server. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Media Services Account. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -61,6 +61,8 @@ A `storage_account` block supports the following:
 
 * `is_primary` - (Required) Specifies whether the storage account should be the primary account or not. Defaults to `false`.
 
+~> **NOTE:** Whilst multiple `storage_account` blocks can be specified - one of them must be set to the primary
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -69,11 +71,8 @@ The following attributes are exported:
 
 ## Import
 
-MariaDB Server's can be imported using the `resource id`, e.g.
+Media Services Account can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_media_services.ams1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Media/mediaservices/ams1
+terraform import azurerm_media_services_account.ams1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Media/mediaservices/ams1
 ```
-## Note
-
-Multiple `storage_account` arguments can be provided to `azurerm_media_services`, but only one can be marked as `is_primary`=`true`.

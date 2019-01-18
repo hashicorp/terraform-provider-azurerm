@@ -104,7 +104,7 @@ func resourceArmMediaServicesRead(d *schema.ResourceData, meta interface{}) erro
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error parsing Azure Resource ID %q: %+v", d.Id(), err)
+		return err
 	}
 
 	name := id.Path["mediaservices"]
@@ -127,7 +127,33 @@ func resourceArmMediaServicesRead(d *schema.ResourceData, meta interface{}) erro
 	}
 	flattenAndSetTags(d, resp.Tags)
 
+	d.Set("media_service_account_id", *(resp.ServiceProperties.MediaServiceID))
+	d.Set("storage_account", expandStorageAccountsForRead(resp.ServiceProperties.StorageAccounts))
+
 	return nil
+}
+
+func expandStorageAccountsForRead(storageAccounts *[]media.StorageAccount) []interface{} {
+
+	result := make([]interface{}, 0)
+
+	for _, storageAccount := range *storageAccounts {
+
+		sa := make(map[string]interface{}, 1)
+
+		sa["id"] = *storageAccount.ID
+
+		isPrimary := true
+		if storageAccount.Type == media.Secondary {
+			isPrimary = false
+		}
+
+		sa["is_primary"] = isPrimary
+
+		result = append(result, sa)
+	}
+
+	return result
 }
 
 func resourceArmMediaServicesDelete(d *schema.ResourceData, meta interface{}) error {
@@ -137,7 +163,7 @@ func resourceArmMediaServicesDelete(d *schema.ResourceData, meta interface{}) er
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error parsing Azure Resource ID %q: %+v", d.Id(), err)
+		return err
 	}
 
 	name := id.Path["mediaservices"]
