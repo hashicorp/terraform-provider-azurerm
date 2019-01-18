@@ -192,11 +192,11 @@ func generateTemplate_multiplestorage(name string, location string) string {
 func TestAzureRMMediaServicesAccount_validateStorageConfiguration(t *testing.T) {
 
 	accounts := []media.StorageAccount{
-		media.StorageAccount{
+		{
 			ID:   utils.String("id1"),
 			Type: media.Primary,
 		},
-		media.StorageAccount{
+		{
 			ID:   utils.String("id2"),
 			Type: media.Primary,
 		},
@@ -210,11 +210,11 @@ func TestAzureRMMediaServicesAccount_validateStorageConfiguration(t *testing.T) 
 	}
 
 	accounts = []media.StorageAccount{
-		media.StorageAccount{
+		{
 			ID:   utils.String("id1"),
 			Type: media.Primary,
 		},
-		media.StorageAccount{
+		{
 			ID:   utils.String("id2"),
 			Type: media.Secondary,
 		},
