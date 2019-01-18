@@ -17,6 +17,7 @@ IMPROVEMENTS:
 BUG FIXES:
 * `azurerm_batch_pool` - can now set multiple environment variables [GH-2685]
 * `azurerm_cosmosdb_account` - prevent occasional error when deleting the resource [GH-2702]
+* `azurerm_cosmosdb_account` - allow empty values for the `ip_range_filter` property [GH-2713]
 * `azurerm_express_route_circuit` - added the `premium` SKU back to validation logic [GH-2692]
 * `azurerm_firewall` - ensuring rules aren't removed during an update [GH-2663]
 * `azurerm_notification_hub_namespace` - now polls on creation to handle eventual consistency [GH-2701]
