@@ -458,6 +458,32 @@ func TestAccAzureRMCosmosDBAccount_complete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCosmosDBAccount_emptyIpFilter(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	resourceName := "azurerm_cosmosdb_account.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDBAccount_emptyIpFilter(ri, testLocation(), testAltLocation()),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 2),
+					resource.TestCheckResourceAttr(resourceName, "ip_range_filter", ""),
+					resource.TestCheckResourceAttr(resourceName, "enable_automatic_failover", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMCosmosDBAccount_multiMaster(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
@@ -665,6 +691,19 @@ func testAccAzureRMCosmosDBAccount_geoReplicated_customId(rInt int, location str
 func testAccAzureRMCosmosDBAccount_complete(rInt int, location string, altLocation string) string {
 	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", fmt.Sprintf(`
 		ip_range_filter				= "104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45/32,52.187.184.26,10.20.0.0/16"
+		enable_automatic_failover	= true
+
+        geo_location {
+            prefix            = "acctest-%d-custom-id"
+            location          = "%s"
+            failover_priority = 1
+        }
+    `, rInt, altLocation))
+}
+
+func testAccAzureRMCosmosDBAccount_emptyIpFilter(rInt int, location string, altLocation string) string {
+	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", fmt.Sprintf(`
+		ip_range_filter				= ""
 		enable_automatic_failover	= true
 
         geo_location {
