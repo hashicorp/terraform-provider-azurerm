@@ -11,42 +11,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func init() {
-	resource.AddTestSweepers("azurerm_monitor_log_profile", &resource.Sweeper{
-		Name: "azurerm_monitor_log_profile",
-		F:    testSweepMonitorLogProfiles,
-	})
-}
-
-func testSweepMonitorLogProfiles(region string) error {
-	armClient, err := buildConfigForSweepers()
-	if err != nil {
-		return fmt.Errorf("Error building config for sweepers: %+v", err)
-	}
-
-	client := (*armClient).monitorLogProfilesClient
-	ctx := (*armClient).StopContext
-
-	results, err := client.List(ctx)
-	if err != nil {
-		return fmt.Errorf("Error Listing on Log Profiles: %+v", err)
-	}
-
-	for _, logProfile := range *results.Value {
-		name := *logProfile.Name
-		// Use region as resource location as there's no location associated with a log profile
-		if !shouldSweepAcceptanceTestResource(name, region, region) {
-			continue
-		}
-
-		if _, err := client.Delete(ctx, name); err != nil {
-			return fmt.Errorf("Error deleting Log Profile %q: %+v", name, err)
-		}
-	}
-
-	return nil
-}
-
 // NOTE: this is a combined test rather than separate split out tests due to
 // Azure only being happy about provisioning one per subscription at once
 // (which our test suite can't easily workaround)
