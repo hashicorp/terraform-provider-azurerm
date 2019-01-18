@@ -1,7 +1,6 @@
 package azure
 
 import (
-	"math"
 	"strings"
 )
 
@@ -178,18 +177,6 @@ func BusinessCriticalGetMaxSizeGB(vCores int, family string) float64 {
 	}
 
 	return maxGB
-}
-
-func IsIntAsBytes(maxGB float64) bool {
-	// Get the maxSizeGB for the value in bytes
-	maxBytes := 1073741824 * maxGB
-
-	// Check to see if the resulting max_size_bytes value is an integral value
-	if maxBytes != math.Trunc(maxBytes) {
-		return false
-	}
-
-	return true
 }
 
 func NameFamilyValid(name string, family string) bool {

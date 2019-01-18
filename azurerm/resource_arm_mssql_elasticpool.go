@@ -298,8 +298,8 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 					return fmt.Errorf("service tier 'GeneralPurpose' and 'BusinessCritical' must have a 'max_size_gb' value equal to or greater than 5 GB, got %d GB", int(maxSizeGb.(float64)))
 				}
 
-				if !azure.IsIntAsBytes(maxSizeGb.(float64)) {
-					return fmt.Errorf("max_size_gb (%f) is not an whole number of bytes", maxSizeGb.(float64))
+				if maxSizeGb.(float64) != math.Trunc(maxSizeGb.(float64)) {
+					return fmt.Errorf("'max_size_gb' must be a whole number, got %f GB", maxSizeGb.(float64))
 				}
 
 				if !azure.NameFamilyValid(name.(string), family.(string)) {
