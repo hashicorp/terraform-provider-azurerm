@@ -6,6 +6,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -24,13 +26,14 @@ func resourceArmKeyVaultSecret() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateKeyVaultChildName,
+				ValidateFunc: azure.ValidateKeyVaultChildName,
 			},
 
 			"vault_uri": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.URLIsHTTPS,
 			},
 
 			"value": {
@@ -72,8 +75,7 @@ func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) e
 		Tags:        expandTags(tags),
 	}
 
-	_, err := client.SetSecret(ctx, keyVaultBaseUrl, name, parameters)
-	if err != nil {
+	if _, err := client.SetSecret(ctx, keyVaultBaseUrl, name, parameters); err != nil {
 		return err
 	}
 
@@ -96,7 +98,7 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 	ctx := meta.(*ArmClient).StopContext
 	log.Print("[INFO] preparing arguments for AzureRM KeyVault Secret update.")
 
-	id, err := parseKeyVaultChildID(d.Id())
+	id, err := azure.ParseKeyVaultChildID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -113,15 +115,17 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 			Tags:        expandTags(tags),
 		}
 
-		_, err := client.SetSecret(ctx, id.KeyVaultBaseUrl, id.Name, parameters)
-		if err != nil {
+		if _, err = client.SetSecret(ctx, id.KeyVaultBaseUrl, id.Name, parameters); err != nil {
 			return err
 		}
 
 		// "" indicates the latest version
-		read, err := client.GetSecret(ctx, id.KeyVaultBaseUrl, id.Name, "")
-		id, err = parseKeyVaultChildID(*read.ID)
-		if err != nil {
+		read, err2 := client.GetSecret(ctx, id.KeyVaultBaseUrl, id.Name, "")
+		if err2 != nil {
+			return fmt.Errorf("Error getting Key Vault Secret %q : %+v", id.Name, err2)
+		}
+
+		if _, err = azure.ParseKeyVaultChildID(*read.ID); err != nil {
 			return err
 		}
 
@@ -133,8 +137,7 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 			Tags:        expandTags(tags),
 		}
 
-		_, err = client.UpdateSecret(ctx, id.KeyVaultBaseUrl, id.Name, id.Version, parameters)
-		if err != nil {
+		if _, err = client.UpdateSecret(ctx, id.KeyVaultBaseUrl, id.Name, id.Version, parameters); err != nil {
 			return err
 		}
 	}
@@ -146,7 +149,7 @@ func resourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) err
 	client := meta.(*ArmClient).keyVaultManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseKeyVaultChildID(d.Id())
+	id, err := azure.ParseKeyVaultChildID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -163,7 +166,7 @@ func resourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	// the version may have changed, so parse the updated id
-	respID, err := parseKeyVaultChildID(*resp.ID)
+	respID, err := azure.ParseKeyVaultChildID(*resp.ID)
 	if err != nil {
 		return err
 	}
@@ -182,12 +185,11 @@ func resourceArmKeyVaultSecretDelete(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).keyVaultManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseKeyVaultChildID(d.Id())
+	id, err := azure.ParseKeyVaultChildID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	_, err = client.DeleteSecret(ctx, id.KeyVaultBaseUrl, id.Name)
-
 	return err
 }

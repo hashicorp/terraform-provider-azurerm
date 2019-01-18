@@ -39,14 +39,14 @@ resource "azurerm_autoscale_setting" "test" {
 
     rule {
       metric_trigger {
-        metric_name         = "Percentage CPU"
-        metric_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
-        time_grain          = "PT1M"
-        statistic           = "Average"
-        time_window         = "PT5M"
-        time_aggregation    = "Average"
-        operator            = "GreaterThan"
-        threshold           = 75
+        metric_name        = "Percentage CPU"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "GreaterThan"
+        threshold          = 75
       }
 
       scale_action {
@@ -59,14 +59,14 @@ resource "azurerm_autoscale_setting" "test" {
 
     rule {
       metric_trigger {
-        metric_name         = "Percentage CPU"
-        metric_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
-        time_grain          = "PT1M"
-        statistic           = "Average"
-        time_window         = "PT5M"
-        time_aggregation    = "Average"
-        operator            = "LessThan"
-        threshold           = 25
+        metric_name        = "Percentage CPU"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "LessThan"
+        threshold          = 25
       }
 
       scale_action {
@@ -79,7 +79,6 @@ resource "azurerm_autoscale_setting" "test" {
   }
 
   notification {
-    operation = "Scale"
     email {
       send_to_subscription_administrator    = true
       send_to_subscription_co_administrator = true
@@ -118,14 +117,14 @@ resource "azurerm_autoscale_setting" "test" {
 
     rule {
       metric_trigger {
-        metric_name         = "Percentage CPU"
-        metric_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
-        time_grain          = "PT1M"
-        statistic           = "Average"
-        time_window         = "PT5M"
-        time_aggregation    = "Average"
-        operator            = "GreaterThan"
-        threshold           = 90
+        metric_name        = "Percentage CPU"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "GreaterThan"
+        threshold          = 90
       }
 
       scale_action {
@@ -138,14 +137,14 @@ resource "azurerm_autoscale_setting" "test" {
 
     rule {
       metric_trigger {
-        metric_name         = "Percentage CPU"
-        metric_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
-        time_grain          = "PT1M"
-        statistic           = "Average"
-        time_window         = "PT5M"
-        time_aggregation    = "Average"
-        operator            = "LessThan"
-        threshold           = 10
+        metric_name        = "Percentage CPU"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "LessThan"
+        threshold          = 10
       }
 
       scale_action {
@@ -158,18 +157,14 @@ resource "azurerm_autoscale_setting" "test" {
 
     recurrence {
       frequency = "Week"
-      schedule {
-        timezone = "Pacific Standard Time"
-        days      = [ "Saturday", "Sunday" ]
-        hours     = [ 12 ]
-        minutes   = [ 0 ]
-      }
+      timezone  = "Pacific Standard Time"
+      days      = ["Saturday", "Sunday"]
+      hours     = [12]
+      minutes   = [0]
     }
   }
 
   notification {
-    operation = "Scale"
-
     email {
       send_to_subscription_administrator    = true
       send_to_subscription_co_administrator = true
@@ -209,14 +204,14 @@ resource "azurerm_autoscale_setting" "test" {
 
     rule {
       metric_trigger {
-        metric_name         = "Percentage CPU"
-        metric_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
-        time_grain          = "PT1M"
-        statistic           = "Average"
-        time_window         = "PT5M"
-        time_aggregation    = "Average"
-        operator            = "GreaterThan"
-        threshold           = 90
+        metric_name        = "Percentage CPU"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "GreaterThan"
+        threshold          = 90
       }
 
       scale_action {
@@ -229,14 +224,14 @@ resource "azurerm_autoscale_setting" "test" {
 
     rule {
       metric_trigger {
-        metric_name         = "Percentage CPU"
-        metric_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
-        time_grain          = "PT1M"
-        statistic           = "Average"
-        time_window         = "PT5M"
-        time_aggregation    = "Average"
-        operator            = "LessThan"
-        threshold           = 10
+        metric_name        = "Percentage CPU"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "LessThan"
+        threshold          = 10
       }
 
       scale_action {
@@ -249,14 +244,12 @@ resource "azurerm_autoscale_setting" "test" {
 
     fixed_date {
       timezone = "Pacific Standard Time"
-      start     = "2020-07-01T00:00:00Z"
-      end       = "2020-07-31T23:59:59Z"
+      start    = "2020-07-01T00:00:00Z"
+      end      = "2020-07-31T23:59:59Z"
     }
   }
 
   notification {
-    operation = "Scale"
-
     email {
       send_to_subscription_administrator    = true
       send_to_subscription_co_administrator = true

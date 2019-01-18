@@ -6,18 +6,19 @@ import (
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMPublicIPs_namePrefix(t *testing.T) {
 	dataSourceName := "data.azurerm_public_ips.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
 	location := testLocation()
 
 	resourceConfig := testAccDataSourceAzureRMPublicIPs_prefix(ri, rs, location)
 	dataSourceConfig := testAccDataSourceAzureRMPublicIPs_prefixDataSource(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
@@ -40,14 +41,14 @@ func TestAccDataSourceAzureRMPublicIPs_namePrefix(t *testing.T) {
 func TestAccDataSourceAzureRMPublicIPs_assigned(t *testing.T) {
 	attachedDataSourceName := "data.azurerm_public_ips.attached"
 	unattachedDataSourceName := "data.azurerm_public_ips.unattached"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
 	location := testLocation()
 
 	resourceConfig := testAccDataSourceAzureRMPublicIPs_attached(ri, rs, location)
 	dataSourceConfig := testAccDataSourceAzureRMPublicIPs_attachedDataSource(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
@@ -72,14 +73,14 @@ func TestAccDataSourceAzureRMPublicIPs_assigned(t *testing.T) {
 func TestAccDataSourceAzureRMPublicIPs_allocationType(t *testing.T) {
 	staticDataSourceName := "data.azurerm_public_ips.static"
 	dynamicDataSourceName := "data.azurerm_public_ips.dynamic"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
 	location := testLocation()
 
 	resourceConfig := testAccDataSourceAzureRMPublicIPs_allocationType(ri, rs, location)
 	dataSourceConfig := testAccDataSourceAzureRMPublicIPs_allocationTypeDataSources(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
@@ -109,12 +110,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  count                        = 7
-  name                         = "acctestpip%s-${count.index}"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
-  idle_timeout_in_minutes      = 30
+  count                   = 7
+  name                    = "acctestpip%s-${count.index}"
+  location                = "${azurerm_resource_group.test.location}"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  allocation_method       = "Static"
+  idle_timeout_in_minutes = 30
 
   tags {
     environment = "test"
@@ -160,12 +161,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  count                        = 2
-  name                         = "acctestpipb%s-${count.index}"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
-  idle_timeout_in_minutes      = 30
+  count                   = 2
+  name                    = "acctestpipb%s-${count.index}"
+  location                = "${azurerm_resource_group.test.location}"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  allocation_method       = "Static"
+  idle_timeout_in_minutes = 30
 
   tags {
     environment = "test"
@@ -173,12 +174,12 @@ resource "azurerm_public_ip" "test" {
 }
 
 resource "azurerm_public_ip" "test2" {
-  count                        = 2
-  name                         = "acctestpipa%s-${count.index}"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
-  idle_timeout_in_minutes      = 30
+  count                   = 2
+  name                    = "acctestpipa%s-${count.index}"
+  location                = "${azurerm_resource_group.test.location}"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  allocation_method       = "Static"
+  idle_timeout_in_minutes = 30
 
   tags {
     environment = "test"
@@ -207,12 +208,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "dynamic" {
-  count                        = 4
-  name                         = "acctestpipd%s-${count.index}"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "dynamic"
-  idle_timeout_in_minutes      = 30
+  count                   = 4
+  name                    = "acctestpipd%s-${count.index}"
+  location                = "${azurerm_resource_group.test.location}"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  allocation_method       = "Dynamic"
+  idle_timeout_in_minutes = 30
 
   tags {
     environment = "test"
@@ -220,12 +221,12 @@ resource "azurerm_public_ip" "dynamic" {
 }
 
 resource "azurerm_public_ip" "static" {
-  count                        = 3
-  name                         = "acctestpips%s-${count.index}"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
-  idle_timeout_in_minutes      = 30
+  count                   = 3
+  name                    = "acctestpips%s-${count.index}"
+  location                = "${azurerm_resource_group.test.location}"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  allocation_method       = "Static"
+  idle_timeout_in_minutes = 30
 
   tags {
     environment = "test"

@@ -3,13 +3,13 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_route_table"
 sidebar_current: "docs-azurerm-data-source-route-table"
 description: |-
-  Gets information about a Route Table
+  Gets information about an existing Route Table
 
 ---
 
 # Data Source: azurerm_route_table
 
-Gets information about a Route Table
+Use this data source to access information about an existing Route Table.
 
 ## Example Usage
 
@@ -51,4 +51,3 @@ The `route` block exports the following:
 * `next_hop_type` - The type of Azure hop the packet should be sent to.
 
 * `next_hop_in_ip_address` - Contains the IP address packets should be forwarded to.
-

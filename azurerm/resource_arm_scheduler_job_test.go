@@ -1,3 +1,5 @@
+// nolint: megacheck
+// entire automation SDK has been depreciated in v21.3 in favor of logic apps, an entirely different service.
 package azurerm
 
 import (
@@ -6,17 +8,17 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMSchedulerJob_web_basic(t *testing.T) {
 	resourceName := "azurerm_scheduler_job.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
@@ -40,9 +42,9 @@ func TestAccAzureRMSchedulerJob_web_basic(t *testing.T) {
 
 func TestAccAzureRMSchedulerJob_storageQueue(t *testing.T) {
 	resourceName := "azurerm_scheduler_job.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
@@ -69,9 +71,9 @@ func TestAccAzureRMSchedulerJob_storageQueue(t *testing.T) {
 
 func TestAccAzureRMSchedulerJob_storageQueue_errorAction(t *testing.T) {
 	resourceName := "azurerm_scheduler_job.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
@@ -100,9 +102,9 @@ func TestAccAzureRMSchedulerJob_storageQueue_errorAction(t *testing.T) {
 
 func TestAccAzureRMSchedulerJob_web_put(t *testing.T) {
 	resourceName := "azurerm_scheduler_job.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
@@ -127,9 +129,9 @@ func TestAccAzureRMSchedulerJob_web_put(t *testing.T) {
 
 func TestAccAzureRMSchedulerJob_web_authBasic(t *testing.T) {
 	resourceName := "azurerm_scheduler_job.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
@@ -155,9 +157,9 @@ func TestAccAzureRMSchedulerJob_web_authBasic(t *testing.T) {
 
 func TestAccAzureRMSchedulerJob_web_authCert(t *testing.T) {
 	resourceName := "azurerm_scheduler_job.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
@@ -192,7 +194,7 @@ func TestAccAzureRMSchedulerJob_web_authAd(t *testing.T) {
 	}
 
 	resourceName := "azurerm_scheduler_job.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	tenantId := os.Getenv("ARM_TENANT_ID")
@@ -205,7 +207,7 @@ func TestAccAzureRMSchedulerJob_web_authAd(t *testing.T) {
 	}
 
 	audience := env.ServiceManagementEndpoint
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
@@ -233,9 +235,9 @@ func TestAccAzureRMSchedulerJob_web_authAd(t *testing.T) {
 
 func TestAccAzureRMSchedulerJob_web_retry(t *testing.T) {
 	resourceName := "azurerm_scheduler_job.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
@@ -261,9 +263,9 @@ func TestAccAzureRMSchedulerJob_web_retry(t *testing.T) {
 
 func TestAccAzureRMSchedulerJob_web_recurring(t *testing.T) {
 	resourceName := "azurerm_scheduler_job.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
@@ -290,9 +292,9 @@ func TestAccAzureRMSchedulerJob_web_recurring(t *testing.T) {
 
 func TestAccAzureRMSchedulerJob_web_recurringDaily(t *testing.T) {
 	resourceName := "azurerm_scheduler_job.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
@@ -320,9 +322,9 @@ func TestAccAzureRMSchedulerJob_web_recurringDaily(t *testing.T) {
 
 func TestAccAzureRMSchedulerJob_web_recurringWeekly(t *testing.T) {
 	resourceName := "azurerm_scheduler_job.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
@@ -349,9 +351,9 @@ func TestAccAzureRMSchedulerJob_web_recurringWeekly(t *testing.T) {
 
 func TestAccAzureRMSchedulerJob_web_recurringMonthly(t *testing.T) {
 	resourceName := "azurerm_scheduler_job.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
@@ -378,9 +380,9 @@ func TestAccAzureRMSchedulerJob_web_recurringMonthly(t *testing.T) {
 
 func TestAccAzureRMSchedulerJob_web_recurringMonthlyOccurrences(t *testing.T) {
 	resourceName := "azurerm_scheduler_job.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
@@ -413,9 +415,9 @@ func TestAccAzureRMSchedulerJob_web_recurringMonthlyOccurrences(t *testing.T) {
 
 func TestAccAzureRMSchedulerJob_web_errorAction(t *testing.T) {
 	resourceName := "azurerm_scheduler_job.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
@@ -441,9 +443,9 @@ func TestAccAzureRMSchedulerJob_web_errorAction(t *testing.T) {
 
 func TestAccAzureRMSchedulerJob_web_complete(t *testing.T) {
 	resourceName := "azurerm_scheduler_job.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
@@ -500,12 +502,12 @@ func testCheckAzureRMSchedulerJobDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMSchedulerJobExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMSchedulerJobExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %q", name)
+			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -534,18 +536,17 @@ func testCheckAzureRMSchedulerJobExists(name string) resource.TestCheckFunc {
 
 func testAccAzureRMSchedulerJob_template(rInt int, location string) string {
 	return fmt.Sprintf(` 
-resource "azurerm_resource_group" "test" { 
-  name     = "acctestRG-%[1]d" 
-  location = "%[2]s" 
-} 
- 
-resource "azurerm_scheduler_job_collection" "test" {
-    name                = "acctest-%[1]d-job_collection"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku                 = "standard"
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
+resource "azurerm_scheduler_job_collection" "test" {
+  name                = "acctest-%[1]d-job_collection"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+}
 `, rInt, location)
 }
 
@@ -560,8 +561,9 @@ resource "azurerm_scheduler_job" "test" {
   action_web {
     url    = "http://example.com"
     method = "get"
-  } 
-}`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
+  }
+}
+`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
 }
 
 func testAccAzureRMSchedulerJob_web_put(rInt int, location string) string {
@@ -571,7 +573,6 @@ resource "azurerm_scheduler_job" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
 
-
   action_web {
     url    = "http://example.com"
     method = "put"
@@ -580,8 +581,9 @@ resource "azurerm_scheduler_job" "test" {
     headers = {
       "Content-Type" = "text"
     }
-  } 
-}`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
+  }
+}
+`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
 }
 
 func testAccAzureRMSchedulerJob_web_authBasic(rInt int, location string) string {
@@ -590,7 +592,6 @@ resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
   resource_group_name = "${azurerm_resource_group.test.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
-
 
   action_web {
     url    = "https://example.com"
@@ -601,7 +602,8 @@ resource "azurerm_scheduler_job" "test" {
       password = "apassword"
     }
   }
-}`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
+}
+`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
 }
 
 func testAccAzureRMSchedulerJob_web_authCert(rInt int, location string) string {
@@ -610,7 +612,6 @@ resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
   resource_group_name = "${azurerm_resource_group.test.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
-
 
   action_web {
     url    = "https://example.com"
@@ -621,7 +622,8 @@ resource "azurerm_scheduler_job" "test" {
       password = "terraform"
     }
   }
-}`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
+}
+`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
 }
 
 func testAccAzureRMSchedulerJob_web_authAd(rInt int, location, tenantId, clientId, secret, audience string) string {
@@ -630,7 +632,6 @@ resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
   resource_group_name = "${azurerm_resource_group.test.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
-
 
   action_web {
     url    = "https://example.com"
@@ -643,7 +644,8 @@ resource "azurerm_scheduler_job" "test" {
       audience  = "%s"
     }
   }
-}`, testAccAzureRMSchedulerJob_template(rInt, location), rInt, tenantId, clientId, secret, audience)
+}
+`, testAccAzureRMSchedulerJob_template(rInt, location), rInt, tenantId, clientId, secret, audience)
 }
 
 func testAccAzureRMSchedulerJob_web_retry(rInt int, location string) string {
@@ -653,18 +655,17 @@ resource "azurerm_scheduler_job" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
 
-
   action_web {
     url    = "https://example.com"
     method = "get"
   }
 
-  retry { 
+  retry {
     interval = "00:05:00" //5 min
-    count    =  10
-  } 
-
-}`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
+    count    = 10
+  }
+}
+`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
 }
 
 func testAccAzureRMSchedulerJob_web_recurring(rInt int, location string) string {
@@ -674,19 +675,18 @@ resource "azurerm_scheduler_job" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
 
-
   action_web {
     url    = "https://example.com"
     method = "get"
   }
 
   recurrence {
-    frequency  = "minute"
-    interval   = 5
-    count      = 10
-  } 
-
-}`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
+    frequency = "minute"
+    interval  = 5
+    count     = 10
+  }
+}
+`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
 }
 
 func testAccAzureRMSchedulerJob_web_recurringDaily(rInt int, location string) string {
@@ -696,7 +696,6 @@ resource "azurerm_scheduler_job" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
 
-
   action_web {
     url    = "https://example.com"
     method = "get"
@@ -704,12 +703,12 @@ resource "azurerm_scheduler_job" "test" {
 
   recurrence {
     frequency = "day"
-    count     = 100 
-    hours     = [0,12]
-    minutes   = [0,15,30,45] 
+    count     = 100
+    hours     = [0, 12]
+    minutes   = [0, 15, 30, 45]
   }
-
-}`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
+}
+`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
 }
 
 func testAccAzureRMSchedulerJob_web_recurringWeekly(rInt int, location string) string {
@@ -719,19 +718,18 @@ resource "azurerm_scheduler_job" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
 
-
   action_web {
     url    = "https://example.com"
     method = "get"
   }
 
   recurrence {
-     frequency    = "week"
-     count        = 100 
-     week_days = ["Sunday", "Saturday"] 
-  } 
-
-}`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
+    frequency = "week"
+    count     = 100
+    week_days = ["Sunday", "Saturday"]
+  }
+}
+`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
 }
 
 func testAccAzureRMSchedulerJob_web_recurringMonthly(rInt int, location string) string {
@@ -741,7 +739,6 @@ resource "azurerm_scheduler_job" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
 
-
   action_web {
     url    = "https://example.com"
     method = "get"
@@ -749,11 +746,11 @@ resource "azurerm_scheduler_job" "test" {
 
   recurrence {
     frequency  = "month"
-    count      = 100 
-    month_days = [-11,-1,1,11]
-  } 
-
-}`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
+    count      = 100
+    month_days = [-11, -1, 1, 11]
+  }
+}
+`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
 }
 
 func testAccAzureRMSchedulerJob_web_recurringMonthlyOccurrences(rInt int, location string) string {
@@ -763,15 +760,15 @@ resource "azurerm_scheduler_job" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
 
-
   action_web {
     url    = "https://example.com"
     method = "get"
   }
 
   recurrence {
-    frequency  = "month"
-    count      = 100 
+    frequency = "month"
+    count     = 100
+
     monthly_occurrences = [
       {
         day        = "sunday"
@@ -784,11 +781,11 @@ resource "azurerm_scheduler_job" "test" {
       {
         day        = "sunday"
         occurrence = -1
-      }
+      },
     ]
-  } 
-
-}`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
+  }
+}
+`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
 }
 
 func testAccAzureRMSchedulerJob_web_errorAction(rInt int, location string) string {
@@ -797,7 +794,6 @@ resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
   resource_group_name = "${azurerm_resource_group.test.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
-
 
   action_web {
     url    = "https://example.com"
@@ -808,8 +804,8 @@ resource "azurerm_scheduler_job" "test" {
     url    = "https://example.com"
     method = "get"
   }
-
-}`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
+}
+`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
 }
 
 func testAccAzureRMSchedulerJob_web_complete(rInt int, location, time string) string {
@@ -819,7 +815,6 @@ resource "azurerm_scheduler_job" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
 
-
   action_web {
     url    = "http://example.com"
     method = "put"
@@ -828,22 +823,22 @@ resource "azurerm_scheduler_job" "test" {
     headers = {
       "Content-Type" = "text"
     }
-  } 
+  }
 
-  retry { 
+  retry {
     interval = "00:05:00" //5 min
-    count    =  10
-  } 
+    count    = 10
+  }
 
   recurrence {
     frequency  = "month"
-    count      = 100 
-    month_days = [-11,-1,1,11]
-  } 
+    count      = 100
+    month_days = [-11, -1, 1, 11]
+  }
 
   start_time = "%s"
-
-}`, testAccAzureRMSchedulerJob_template(rInt, location), rInt, time)
+}
+`, testAccAzureRMSchedulerJob_template(rInt, location), rInt, time)
 }
 
 func testAccAzureRMSchedulerJob_storageQueue(rInt int, location string) string {
@@ -874,7 +869,8 @@ resource "azurerm_scheduler_job" "test" {
     sas_token            = "${azurerm_storage_account.test.primary_access_key}"
     message              = "storage message"
   }
-}`, testAccAzureRMSchedulerJob_template(rInt, location), strconv.Itoa(rInt)[0:5], rInt)
+}
+`, testAccAzureRMSchedulerJob_template(rInt, location), strconv.Itoa(rInt)[0:5], rInt)
 }
 
 func testAccAzureRMSchedulerJob_storageQueue_errorAction(rInt int, location string) string {
@@ -902,7 +898,7 @@ resource "azurerm_scheduler_job" "test" {
   action_web {
     url    = "http://example.com"
     method = "get"
-  } 
+  }
 
   error_action_storage_queue = {
     storage_account_name = "${azurerm_storage_account.test.name}"
@@ -910,5 +906,6 @@ resource "azurerm_scheduler_job" "test" {
     sas_token            = "${azurerm_storage_account.test.primary_access_key}"
     message              = "storage message"
   }
-}`, testAccAzureRMSchedulerJob_template(rInt, location), strconv.Itoa(rInt)[0:5], rInt)
+}
+`, testAccAzureRMSchedulerJob_template(rInt, location), strconv.Itoa(rInt)[0:5], rInt)
 }

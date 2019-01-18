@@ -41,7 +41,7 @@ resource "azurerm_public_ip" "webserverpublic_ip" {
   name                         = "${var.resource_prefix}_publicip"
   location                     = "${var.location}"
   resource_group_name          = "${azurerm_resource_group.webservers_rg.name}"
-  public_ip_address_allocation = "static"
+  allocation_method = "Static"
   domain_name_label            = "${var.lb_dns_label}"
 }
 
@@ -134,6 +134,7 @@ resource "azurerm_virtual_machine_scale_set" "webserver_ss" {
       name                                   = "web_ss_ip_profile"
       subnet_id                              = "${azurerm_subnet.webservers_subnet.id}"
       load_balancer_backend_address_pool_ids = ["${azurerm_lb_backend_address_pool.webservers_lb_backend.id}"]
+      primary                                = true
     }
   }
 

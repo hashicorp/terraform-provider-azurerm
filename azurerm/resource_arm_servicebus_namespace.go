@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,9 +20,9 @@ var serviceBusNamespaceDefaultAuthorizationRule = "RootManageSharedAccessKey"
 
 func resourceArmServiceBusNamespace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceBusNamespaceCreate,
+		Create: resourceArmServiceBusNamespaceCreateUpdate,
 		Read:   resourceArmServiceBusNamespaceRead,
-		Update: resourceArmServiceBusNamespaceCreate,
+		Update: resourceArmServiceBusNamespaceCreateUpdate,
 		Delete: resourceArmServiceBusNamespaceDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -61,7 +62,7 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 			"capacity": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validateIntInSlice([]int{1, 2, 4}),
+				ValidateFunc: validate.IntInSlice([]int{1, 2, 4}),
 			},
 
 			"default_primary_connection_string": {
@@ -107,7 +108,7 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 	}
 }
 
-func resourceArmServiceBusNamespaceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).serviceBusNamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -137,8 +138,7 @@ func resourceArmServiceBusNamespaceCreate(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 

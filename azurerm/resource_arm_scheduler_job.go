@@ -1,3 +1,5 @@
+// nolint: megacheck
+// entire automation SDK has been depreciated in v21.3 in favor of logic apps, an entirely different service.
 package azurerm
 
 import (
@@ -28,6 +30,8 @@ func resourceArmSchedulerJob() *schema.Resource {
 		Update: resourceArmSchedulerJobCreateUpdate,
 		Delete: resourceArmSchedulerJobDelete,
 
+		DeprecationMessage: "Scheduler Job's have been deprecated in favour of Logic Apps - more information can be found at https://docs.microsoft.com/en-us/azure/scheduler/migrate-from-scheduler-to-logic-apps",
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -51,7 +55,7 @@ func resourceArmSchedulerJob() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			//actions
@@ -102,7 +106,7 @@ func resourceArmSchedulerJob() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      "00:00:30",
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"count": {
@@ -191,15 +195,7 @@ func resourceArmSchedulerJob() *schema.Resource {
 							Elem: &schema.Schema{
 								Type:             schema.TypeString,
 								DiffSuppressFunc: suppress.CaseDifference,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(scheduler.Sunday),
-									string(scheduler.Monday),
-									string(scheduler.Tuesday),
-									string(scheduler.Wednesday),
-									string(scheduler.Thursday),
-									string(scheduler.Friday),
-									string(scheduler.Saturday),
-								}, true),
+								ValidateFunc:     validate.DayOfTheWeek(true),
 							},
 						},
 
@@ -227,15 +223,7 @@ func resourceArmSchedulerJob() *schema.Resource {
 										Type:             schema.TypeString,
 										Required:         true,
 										DiffSuppressFunc: suppress.CaseDifference,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(scheduler.Sunday),
-											string(scheduler.Monday),
-											string(scheduler.Tuesday),
-											string(scheduler.Wednesday),
-											string(scheduler.Thursday),
-											string(scheduler.Friday),
-											string(scheduler.Saturday),
-										}, true),
+										ValidateFunc:     validate.DayOfTheWeek(true),
 									},
 
 									"occurrence": {
@@ -283,7 +271,7 @@ func resourceArmSchedulerJobActionWebSchema(propertyName string) *schema.Resourc
 				Type:             schema.TypeString,
 				Required:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     validate.UrlIsHttpOrHttps(),
+				ValidateFunc:     validate.URLIsHTTPOrHTTPS,
 			},
 
 			"method": {
@@ -298,7 +286,7 @@ func resourceArmSchedulerJobActionWebSchema(propertyName string) *schema.Resourc
 			"body": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"headers": {
@@ -320,14 +308,14 @@ func resourceArmSchedulerJobActionWebSchema(propertyName string) *schema.Resourc
 						"username": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"password": {
 							Type:         schema.TypeString,
 							Required:     true,
 							Sensitive:    true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
@@ -347,14 +335,14 @@ func resourceArmSchedulerJobActionWebSchema(propertyName string) *schema.Resourc
 							Type:         schema.TypeString,
 							Required:     true,
 							Sensitive:    true, //sensitive & shortens diff
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"password": {
 							Type:         schema.TypeString,
 							Required:     true,
 							Sensitive:    true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"thumbprint": {
@@ -388,19 +376,19 @@ func resourceArmSchedulerJobActionWebSchema(propertyName string) *schema.Resourc
 						"tenant_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"client_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"secret": {
 							Type:         schema.TypeString,
 							Required:     true,
 							Sensitive:    true,
-							ValidateFunc: validation.NoZeroValues,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"audience": {
@@ -436,19 +424,19 @@ func resourceArmSchedulerJobActionStorageSchema() *schema.Resource {
 			"sas_token": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"message": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 		},
 	}
 }
 
-func resourceArmSchedulerJobCustomizeDiff(diff *schema.ResourceDiff, v interface{}) error {
+func resourceArmSchedulerJobCustomizeDiff(diff *schema.ResourceDiff, _ interface{}) error {
 
 	_, hasWeb := diff.GetOk("action_web")
 	_, hasStorage := diff.GetOk("action_storage_queue")
@@ -971,18 +959,18 @@ func flattenAzureArmSchedulerJobSchedule(recurrence *scheduler.JobRecurrence) []
 		}
 
 		if v := schedule.WeekDays; v != nil {
-			set := &schema.Set{F: schema.HashString}
+			s := &schema.Set{F: schema.HashString}
 			for _, v := range *v {
-				set.Add(string(v))
+				s.Add(string(v))
 			}
-			block["week_days"] = set
+			block["week_days"] = s
 		}
 		if v := schedule.MonthDays; v != nil {
 			block["month_days"] = set.FromInt32Slice(*v)
 		}
 
 		if monthly := schedule.MonthlyOccurrences; monthly != nil {
-			set := &schema.Set{F: resourceAzureRMSchedulerJobMonthlyOccurrenceHash}
+			s := &schema.Set{F: resourceAzureRMSchedulerJobMonthlyOccurrenceHash}
 			for _, e := range *monthly {
 
 				m := map[string]interface{}{
@@ -993,9 +981,9 @@ func flattenAzureArmSchedulerJobSchedule(recurrence *scheduler.JobRecurrence) []
 					m["occurrence"] = int(*v)
 				}
 
-				set.Add(m)
+				s.Add(m)
 			}
-			block["monthly_occurrences"] = set
+			block["monthly_occurrences"] = s
 		}
 	}
 

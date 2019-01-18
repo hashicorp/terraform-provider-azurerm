@@ -133,7 +133,7 @@ func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 	} else {
 		r := regexp.MustCompile(nameRegex.(string))
 
-		list := []compute.Image{}
+		list := make([]compute.Image, 0)
 		resp, err := client.ListByResourceGroupComplete(ctx, resGroup)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response().Response) {
@@ -143,7 +143,7 @@ func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		for resp.NotDone() {
-			img := resp.Value()
+			img = resp.Value()
 			if r.Match(([]byte)(*img.Name)) {
 				list = append(list, img)
 			}

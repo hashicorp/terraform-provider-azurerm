@@ -7,10 +7,6 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 )
 
-func ResponseWasConflict(resp autorest.Response) bool {
-	return responseWasStatusCode(resp, http.StatusConflict)
-}
-
 func ResponseWasNotFound(resp autorest.Response) bool {
 	return responseWasStatusCode(resp, http.StatusNotFound)
 }
@@ -30,7 +26,7 @@ func ResponseErrorIsRetryable(err error) bool {
 	return false
 }
 
-func responseWasStatusCode(resp autorest.Response, statusCode int) bool {
+func responseWasStatusCode(resp autorest.Response, statusCode int) bool { // nolint: unparam
 	if r := resp.Response; r != nil {
 		if r.StatusCode == statusCode {
 			return true

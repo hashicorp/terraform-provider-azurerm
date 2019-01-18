@@ -2,14 +2,21 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"log"
 )
 
 func dataSourceArmAzureADApplication() *schema.Resource {
 	return &schema.Resource{
+		DeprecationMessage: `The Azure Active Directory resources have been split out into their own Provider.
+
+Information on migrating to the new AzureAD Provider can be found here: https://terraform.io/docs/providers/azurerm/guides/migrating-to-azuread.html
+
+As such the Azure Active Directory resources within the AzureRM Provider are now deprecated and will be removed in v2.0 of the AzureRM Provider.
+`,
 		Read: dataSourceArmAzureADApplicationRead,
 
 		Schema: map[string]*schema.Schema{
@@ -125,39 +132,17 @@ func dataSourceArmAzureADApplicationRead(d *schema.ResourceData, meta interface{
 	d.Set("available_to_other_tenants", application.AvailableToOtherTenants)
 	d.Set("oauth2_allow_implicit_flow", application.Oauth2AllowImplicitFlow)
 
-	identifierUris := flattenAzureADDataSourceApplicationIdentifierUris(application.IdentifierUris)
-	if err := d.Set("identifier_uris", identifierUris); err != nil {
-		return fmt.Errorf("Error setting `identifier_uris`: %+v", err)
+	if s := application.IdentifierUris; s != nil {
+		if err := d.Set("identifier_uris", *s); err != nil {
+			return fmt.Errorf("Error setting `identifier_uris`: %+v", err)
+		}
 	}
 
-	replyUrls := flattenAzureADDataSourceApplicationReplyUrls(application.ReplyUrls)
-	if err := d.Set("reply_urls", replyUrls); err != nil {
-		return fmt.Errorf("Error setting `reply_urls`: %+v", err)
+	if s := application.ReplyUrls; s != nil {
+		if err := d.Set("reply_urls", *s); err != nil {
+			return fmt.Errorf("Error setting `reply_urls`: %+v", err)
+		}
 	}
 
 	return nil
-}
-
-func flattenAzureADDataSourceApplicationIdentifierUris(input *[]string) []string {
-	output := make([]string, 0)
-
-	if input != nil {
-		for _, v := range *input {
-			output = append(output, v)
-		}
-	}
-
-	return output
-}
-
-func flattenAzureADDataSourceApplicationReplyUrls(input *[]string) []string {
-	output := make([]string, 0)
-
-	if input != nil {
-		for _, v := range *input {
-			output = append(output, v)
-		}
-	}
-
-	return output
 }

@@ -38,6 +38,11 @@ func resourceArmUserAssignedIdentity() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"client_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -58,8 +63,7 @@ func resourceArmUserAssignedIdentityCreateUpdate(d *schema.ResourceData, meta in
 		Tags:     expandTags(tags),
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resGroup, name, identity)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, name, identity); err != nil {
 		return fmt.Errorf("Error Creating/Updating User Assigned Identity %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
@@ -104,6 +108,10 @@ func resourceArmUserAssignedIdentityRead(d *schema.ResourceData, meta interface{
 	if props := resp.IdentityProperties; props != nil {
 		if principalId := props.PrincipalID; principalId != nil {
 			d.Set("principal_id", principalId.String())
+		}
+
+		if clientId := props.ClientID; clientId != nil {
+			d.Set("client_id", clientId.String())
 		}
 	}
 

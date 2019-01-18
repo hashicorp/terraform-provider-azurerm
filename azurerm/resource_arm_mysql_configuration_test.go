@@ -4,19 +4,20 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMMySQLConfiguration_characterSetServer(t *testing.T) {
-	ri := acctest.RandInt()
+	resourceName := "azurerm_mysql_configuration.test"
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMMySQLConfiguration_characterSetServer(ri, location)
 	serverOnlyConfig := testAccAzureRMMySQLConfiguration_empty(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,
@@ -24,8 +25,13 @@ func TestAccAzureRMMySQLConfiguration_characterSetServer(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLConfigurationValue("azurerm_mysql_configuration.test", "hebrew"),
+					testCheckAzureRMMySQLConfigurationValue(resourceName, "hebrew"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: serverOnlyConfig,
@@ -39,12 +45,13 @@ func TestAccAzureRMMySQLConfiguration_characterSetServer(t *testing.T) {
 }
 
 func TestAccAzureRMMySQLConfiguration_interactiveTimeout(t *testing.T) {
-	ri := acctest.RandInt()
+	resourceName := "azurerm_mysql_configuration.test"
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMMySQLConfiguration_interactiveTimeout(ri, location)
 	serverOnlyConfig := testAccAzureRMMySQLConfiguration_empty(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,
@@ -52,8 +59,13 @@ func TestAccAzureRMMySQLConfiguration_interactiveTimeout(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLConfigurationValue("azurerm_mysql_configuration.test", "30"),
+					testCheckAzureRMMySQLConfigurationValue(resourceName, "30"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: serverOnlyConfig,
@@ -68,12 +80,12 @@ func TestAccAzureRMMySQLConfiguration_interactiveTimeout(t *testing.T) {
 
 func TestAccAzureRMMySQLConfiguration_logSlowAdminStatements(t *testing.T) {
 	resourceName := "azurerm_mysql_configuration.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMMySQLConfiguration_logSlowAdminStatements(ri, location)
 	serverOnlyConfig := testAccAzureRMMySQLConfiguration_empty(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,
@@ -83,6 +95,11 @@ func TestAccAzureRMMySQLConfiguration_logSlowAdminStatements(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLConfigurationValue(resourceName, "on"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: serverOnlyConfig,
@@ -230,9 +247,9 @@ resource "azurerm_mysql_server" "test" {
   }
 
   storage_profile {
-    storage_mb = 51200
+    storage_mb            = 51200
     backup_retention_days = 7
-    geo_redundant_backup = "Disabled"
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"

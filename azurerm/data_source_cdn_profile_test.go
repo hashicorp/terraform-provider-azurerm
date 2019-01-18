@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMCdnProfile_basic(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccDataSourceAzureRMCdnProfile_basic(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
@@ -30,11 +30,11 @@ func TestAccDataSourceAzureRMCdnProfile_basic(t *testing.T) {
 
 func TestAccDataSourceAzureRMCdnProfile_withTags(t *testing.T) {
 	resourceName := "data.azurerm_cdn_profile.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccDataSourceAzureRMCdnProfile_withTags(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
@@ -67,7 +67,7 @@ resource "azurerm_cdn_profile" "test" {
 }
 
 data "azurerm_cdn_profile" "test" {
-  name = "${azurerm_cdn_profile.test.name}"
+  name                = "${azurerm_cdn_profile.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt)
@@ -93,7 +93,7 @@ resource "azurerm_cdn_profile" "test" {
 }
 
 data "azurerm_cdn_profile" "test" {
-  name = "${azurerm_cdn_profile.test.name}"
+  name                = "${azurerm_cdn_profile.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt)

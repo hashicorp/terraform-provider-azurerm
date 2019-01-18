@@ -3,22 +3,25 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_policy_definition"
 sidebar_current: "docs-azurerm-resource-policy-definition"
 description: |-
-  Manages a policy for all of the resource groups under the subscription.
+  Manages a policy rule definition. Policy definitions do not take effect until they are assigned to a scope using a Policy Assignment.
 ---
 
 # azurerm_policy_definition
 
-Manages a policy for all of the resource groups under the subscription.
+Manages a policy rule definition on a management group or your provider subscription. 
+
+Policy definitions do not take effect until they are assigned to a scope using a Policy Assignment.
 
 ## Example Usage
 
 ```hcl
 resource "azurerm_policy_definition" "policy" {
   name         = "accTestPolicy"
-  policy_type  = "BuiltIn"
+  policy_type  = "Custom"
   mode         = "Indexed"
   display_name = "acceptance test policy definition"
-  policy_rule  = <<POLICY_RULE
+
+  policy_rule = <<POLICY_RULE
 	{
     "if": {
       "not": {
@@ -44,7 +47,6 @@ POLICY_RULE
     }
   }
 PARAMETERS
-
 }
 ```
 
@@ -67,13 +69,17 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of the policy definition.
 
+* `management_group_id` - (Optional) The ID of the Management Group where this policy should be defined. Changing this forces a new resource to be created.
+
+~> **Note:** if you are using `azurerm_management_group` to assign a value to `management_group_id`, be sure to use `.group_id` and not `.id`.
+
 * `policy_rule` - (Optional) The policy rule for the policy definition. This
     is a json object representing the rule that contains an if and
     a then block.
 
 * `metadata` - (Optional) The metadata for the policy definition. This
-    is a json object representing the rule that contains an if and
-    a then block.
+    is a json object representing additional metadata that should be stored
+    with the policy definition.
 
 * `parameters` - (Optional) Parameters for the policy definition. This field
     is a json object that allows you to parameterize your policy definition.
@@ -89,5 +95,11 @@ The following attributes are exported:
 Policy Definitions can be imported using the `policy name`, e.g.
 
 ```shell
-terraform import azurerm_policy_definition.testPolicy  /subscriptions/<SUBSCRIPTION_ID>/providers/Microsoft.Authorization/policyDefinitions/<POLICY_NAME>
+terraform import azurerm_policy_definition.testPolicy /subscriptions/<SUBSCRIPTION_ID>/providers/Microsoft.Authorization/policyDefinitions/<POLICY_NAME>
+```
+
+or
+
+```shell
+terraform import azurerm_policy_definition.testPolicy /providers/Microsoft.Management/managementgroups/<MANGAGEMENT_GROUP_ID>/providers/Microsoft.Authorization/policyDefinitions/<POLICY_NAME>
 ```

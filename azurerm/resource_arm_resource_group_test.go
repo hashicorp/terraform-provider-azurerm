@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -56,10 +56,11 @@ func testSweepResourceGroups(region string) error {
 }
 
 func TestAccAzureRMResourceGroup_basic(t *testing.T) {
-	ri := acctest.RandInt()
+	resourceName := "azurerm_resource_group.test"
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMResourceGroup_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
@@ -67,8 +68,13 @@ func TestAccAzureRMResourceGroup_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMResourceGroupExists("azurerm_resource_group.test"),
+					testCheckAzureRMResourceGroupExists(resourceName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -76,10 +82,10 @@ func TestAccAzureRMResourceGroup_basic(t *testing.T) {
 
 func TestAccAzureRMResourceGroup_disappears(t *testing.T) {
 	resourceName := "azurerm_resource_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMResourceGroup_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
@@ -98,12 +104,12 @@ func TestAccAzureRMResourceGroup_disappears(t *testing.T) {
 
 func TestAccAzureRMResourceGroup_withTags(t *testing.T) {
 	resourceName := "azurerm_resource_group.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	preConfig := testAccAzureRMResourceGroup_withTags(ri, location)
 	postConfig := testAccAzureRMResourceGroup_withTagsUpdated(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
@@ -118,6 +124,11 @@ func TestAccAzureRMResourceGroup_withTags(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMResourceGroupExists(resourceName),
@@ -125,16 +136,21 @@ func TestAccAzureRMResourceGroup_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "staging"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
-func testCheckAzureRMResourceGroupExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMResourceGroupExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		resourceGroup := rs.Primary.Attributes["name"]
@@ -149,19 +165,19 @@ func testCheckAzureRMResourceGroupExists(name string) resource.TestCheckFunc {
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Virtual Network %q (resource group: %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: resource group: %q does not exist", resourceGroup)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMResourceGroupDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMResourceGroupDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		resourceGroup := rs.Primary.Attributes["name"]
@@ -211,8 +227,8 @@ func testCheckAzureRMResourceGroupDestroy(s *terraform.State) error {
 func testAccAzureRMResourceGroup_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 `, rInt, location)
 }
@@ -220,13 +236,13 @@ resource "azurerm_resource_group" "test" {
 func testAccAzureRMResourceGroup_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 
-    tags {
-	environment = "Production"
-	cost_center = "MSFT"
-    }
+  tags {
+    environment = "Production"
+    cost_center = "MSFT"
+  }
 }
 `, rInt, location)
 }
@@ -234,12 +250,12 @@ resource "azurerm_resource_group" "test" {
 func testAccAzureRMResourceGroup_withTagsUpdated(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 
-    tags {
-	environment = "staging"
-    }
+  tags {
+    environment = "staging"
+  }
 }
 `, rInt, location)
 }

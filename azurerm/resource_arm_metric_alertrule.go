@@ -13,9 +13,9 @@ import (
 
 func resourceArmMetricAlertRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMetricAlertRuleCreateOrUpdate,
+		Create: resourceArmMetricAlertRuleCreateUpdate,
 		Read:   resourceArmMetricAlertRuleRead,
-		Update: resourceArmMetricAlertRuleCreateOrUpdate,
+		Update: resourceArmMetricAlertRuleCreateUpdate,
 		Delete: resourceArmMetricAlertRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -149,7 +149,7 @@ func resourceArmMetricAlertRule() *schema.Resource {
 	}
 }
 
-func resourceArmMetricAlertRuleCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMetricAlertRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).monitorAlertRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -172,8 +172,7 @@ func resourceArmMetricAlertRuleCreateOrUpdate(d *schema.ResourceData, meta inter
 		AlertRule: alertRule,
 	}
 
-	_, err = client.CreateOrUpdate(ctx, resourceGroup, name, alertRuleResource)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, resourceGroup, name, alertRuleResource); err != nil {
 		return err
 	}
 
@@ -251,11 +250,10 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 					email_action["send_to_service_owners"] = *sendToOwners
 				}
 
-				custom_emails := []string{}
-				for _, custom_email := range *emailAction.CustomEmails {
-					custom_emails = append(custom_emails, custom_email)
+				custom_emails := make([]string, 0)
+				if s := emailAction.CustomEmails; s != nil {
+					custom_emails = *s
 				}
-
 				email_action["custom_emails"] = custom_emails
 
 				email_actions = append(email_actions, email_action)
@@ -264,10 +262,10 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 
 				webhook_action["service_uri"] = *webhookAction.ServiceURI
 
-				properties := make(map[string]string, 0)
-				if props := webhookAction.Properties; props != nil {
-					for k, v := range props {
-						if k != "$type" {
+				properties := make(map[string]string)
+				for k, v := range webhookAction.Properties {
+					if k != "$type" {
+						if v != nil {
 							properties[k] = *v
 						}
 					}
@@ -421,17 +419,17 @@ func resourceGroupAndAlertRuleNameFromId(alertRuleId string) (string, string, er
 	return resourceGroup, name, nil
 }
 
-func validateMetricAlertRuleTags(v interface{}, f string) (ws []string, es []error) {
+func validateMetricAlertRuleTags(v interface{}, f string) (warnings []string, errors []error) {
 	// Normal validation required by any AzureRM resource.
-	ws, es = validateAzureRMTags(v, f)
+	warnings, errors = validateAzureRMTags(v, f)
 
 	tagsMap := v.(map[string]interface{})
 
 	for k := range tagsMap {
 		if strings.EqualFold(k, "$type") {
-			es = append(es, fmt.Errorf("the %q is not allowed as tag name", k))
+			errors = append(errors, fmt.Errorf("the %q is not allowed as tag name", k))
 		}
 	}
 
-	return ws, es
+	return warnings, errors
 }

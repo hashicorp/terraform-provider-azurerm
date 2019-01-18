@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -11,6 +13,12 @@ import (
 
 func resourceArmActiveDirectoryApplication() *schema.Resource {
 	return &schema.Resource{
+		DeprecationMessage: `The Azure Active Directory resources have been split out into their own Provider.
+
+Information on migrating to the new AzureAD Provider can be found here: https://terraform.io/docs/providers/azurerm/guides/migrating-to-azuread.html
+
+As such the Azure Active Directory resources within the AzureRM Provider are now deprecated and will be removed in v2.0 of the AzureRM Provider.
+`,
 		Create: resourceArmActiveDirectoryApplicationCreate,
 		Read:   resourceArmActiveDirectoryApplicationRead,
 		Update: resourceArmActiveDirectoryApplicationUpdate,
@@ -21,14 +29,16 @@ func resourceArmActiveDirectoryApplication() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"homepage": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validate.URLIsHTTPS,
 			},
 
 			"identifier_uris": {
@@ -37,7 +47,8 @@ func resourceArmActiveDirectoryApplication() *schema.Resource {
 				Computed: true,
 				MinItems: 1,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:         schema.TypeString,
+					ValidateFunc: validate.URLIsHTTPOrHTTPS,
 				},
 			},
 
@@ -46,7 +57,8 @@ func resourceArmActiveDirectoryApplication() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:         schema.TypeString,
+					ValidateFunc: validate.URLIsHTTPOrHTTPS,
 				},
 			},
 
@@ -72,6 +84,7 @@ func resourceArmActiveDirectoryApplicationCreate(d *schema.ResourceData, meta in
 	client := meta.(*ArmClient).applicationsClient
 	ctx := meta.(*ArmClient).StopContext
 
+	// NOTE: name isn't the Resource ID here, so we don't check it exists
 	name := d.Get("name").(string)
 	availableToOtherTenants := d.Get("available_to_other_tenants").(bool)
 
@@ -131,8 +144,7 @@ func resourceArmActiveDirectoryApplicationUpdate(d *schema.ResourceData, meta in
 		properties.Oauth2AllowImplicitFlow = utils.Bool(oauth)
 	}
 
-	_, err := client.Patch(ctx, d.Id(), properties)
-	if err != nil {
+	if _, err := client.Patch(ctx, d.Id(), properties); err != nil {
 		return fmt.Errorf("Error patching Azure AD Application with ID %q: %+v", d.Id(), err)
 	}
 
@@ -160,12 +172,18 @@ func resourceArmActiveDirectoryApplicationRead(d *schema.ResourceData, meta inte
 	d.Set("available_to_other_tenants", resp.AvailableToOtherTenants)
 	d.Set("oauth2_allow_implicit_flow", resp.Oauth2AllowImplicitFlow)
 
-	identifierUris := flattenAzureADApplicationIdentifierUris(resp.IdentifierUris)
+	identifierUris := make([]string, 0)
+	if s := resp.IdentifierUris; s != nil {
+		identifierUris = *s
+	}
 	if err := d.Set("identifier_uris", identifierUris); err != nil {
 		return fmt.Errorf("Error setting `identifier_uris`: %+v", err)
 	}
 
-	replyUrls := flattenAzureADApplicationReplyUrls(resp.ReplyUrls)
+	replyUrls := make([]string, 0)
+	if s := resp.IdentifierUris; s != nil {
+		replyUrls = *s
+	}
 	if err := d.Set("reply_urls", replyUrls); err != nil {
 		return fmt.Errorf("Error setting `reply_urls`: %+v", err)
 	}
@@ -184,8 +202,8 @@ func resourceArmActiveDirectoryApplicationDelete(d *schema.ResourceData, meta in
 		properties := graphrbac.ApplicationUpdateParameters{
 			AvailableToOtherTenants: utils.Bool(false),
 		}
-		_, err := client.Patch(ctx, d.Id(), properties)
-		if err != nil {
+
+		if _, err := client.Patch(ctx, d.Id(), properties); err != nil {
 			return fmt.Errorf("Error patching Azure AD Application with ID %q: %+v", d.Id(), err)
 		}
 	}
@@ -205,7 +223,7 @@ func expandAzureRmActiveDirectoryApplicationHomepage(d *schema.ResourceData, nam
 		return utils.String(v.(string))
 	}
 
-	return utils.String(fmt.Sprintf("http://%s", name))
+	return utils.String(fmt.Sprintf("https://%s", name))
 }
 
 func expandAzureRmActiveDirectoryApplicationIdentifierUris(d *schema.ResourceData) *[]string {
@@ -228,28 +246,4 @@ func expandAzureRmActiveDirectoryApplicationReplyUrls(d *schema.ResourceData) *[
 	}
 
 	return &urls
-}
-
-func flattenAzureADApplicationIdentifierUris(input *[]string) []string {
-	output := make([]string, 0)
-
-	if input != nil {
-		for _, v := range *input {
-			output = append(output, v)
-		}
-	}
-
-	return output
-}
-
-func flattenAzureADApplicationReplyUrls(input *[]string) []string {
-	output := make([]string, 0)
-
-	if input != nil {
-		for _, v := range *input {
-			output = append(output, v)
-		}
-	}
-
-	return output
 }

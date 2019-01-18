@@ -13,12 +13,11 @@ Manages a Management Group.
 ## Example Usage
 
 ```hcl
-
 data "azurerm_subscription" "current" {}
 
 resource "azurerm_management_group" "test" {
   subscription_ids = [
-    "${data.azurerm_subscription.current.id}"
+    "${data.azurerm_subscription.current.id}",
   ]
 }
 ```

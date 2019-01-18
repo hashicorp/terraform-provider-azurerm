@@ -28,7 +28,7 @@ resource "azurerm_public_ip" "pip" {
   name                         = "${var.hostname}-pip"
   location                     = "${azurerm_resource_group.rg.location}"
   resource_group_name          = "${azurerm_resource_group.rg.name}"
-  public_ip_address_allocation = "Dynamic"
+  allocation_method = "Dynamic"
   domain_name_label            = "${var.hostname}"
 }
 
@@ -109,6 +109,7 @@ resource "azurerm_virtual_machine_scale_set" "scaleset" {
       subnet_id                              = "${azurerm_subnet.subnet.id}"
       load_balancer_backend_address_pool_ids = ["${azurerm_lb_backend_address_pool.backlb.id}"]
       load_balancer_inbound_nat_rules_ids    = ["${element(azurerm_lb_nat_pool.np.*.id, count.index)}"]
+      primary                                = true
     }
   }
 

@@ -13,9 +13,9 @@ import (
 
 func resourceArmServiceBusTopic() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceBusTopicCreate,
+		Create: resourceArmServiceBusTopicCreateUpdate,
 		Read:   resourceArmServiceBusTopicRead,
-		Update: resourceArmServiceBusTopicCreate,
+		Update: resourceArmServiceBusTopicCreateUpdate,
 		Delete: resourceArmServiceBusTopicDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -116,7 +116,7 @@ func resourceArmServiceBusTopic() *schema.Resource {
 	}
 }
 
-func resourceArmServiceBusTopicCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).serviceBusTopicsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ServiceBus Topic creation.")
@@ -158,8 +158,7 @@ func resourceArmServiceBusTopicCreate(d *schema.ResourceData, meta interface{}) 
 		parameters.SBTopicProperties.DuplicateDetectionHistoryTimeWindow = utils.String(duplicateWindow)
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters); err != nil {
 		return err
 	}
 

@@ -76,7 +76,7 @@ resource "azurerm_public_ip" "pip" {
   name                         = "${var.public_ip_name}"
   location                     = "${azurerm_resource_group.rg.location}"
   resource_group_name          = "${azurerm_resource_group.rg.name}"
-  public_ip_address_allocation = "Static"
+  allocation_method = "Static"
   domain_name_label            = "${var.dns_name}"
 }
 

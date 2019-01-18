@@ -3,13 +3,13 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_public_ip"
 sidebar_current: "docs-azurerm-datasource-public-ip-x"
 description: |-
-  Retrieves information about the specified public IP address.
+  Gets information about an existing Public IP Address.
 
 ---
 
 # Data Source: azurerm_public_ip
 
-Use this data source to access the properties of an existing Azure Public IP Address.
+Use this data source to access information about an existing Public IP Address.
 
 ## Example Usage (reference an existing)
 
@@ -51,11 +51,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "test-pip"
-  location                     = "${azurerm_resource_group.test.location}"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
-  idle_timeout_in_minutes      = 30
+  name                    = "test-pip"
+  location                = "${azurerm_resource_group.test.location}"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  allocation_method       = "Dynamic"
+  idle_timeout_in_minutes = 30
 
   tags {
     environment = "test"
@@ -70,7 +70,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "static"
+    private_ip_address_allocation = "Static"
     private_ip_address            = "10.0.2.5"
     public_ip_address_id          = "${azurerm_public_ip.test.id}"
   }
@@ -107,4 +107,5 @@ output "public_ip_address" {
 * `idle_timeout_in_minutes` - Specifies the timeout for the TCP idle connection.
 * `fqdn` - Fully qualified domain name of the A DNS record associated with the public IP. This is the concatenation of the domainNameLabel and the regionalized DNS zone.
 * `ip_address` - The IP address value that was allocated.
+* `ip_version` - The IP version being used, for example `IPv4` or `IPv6`.
 * `tags` - A mapping of tags to assigned to the resource.

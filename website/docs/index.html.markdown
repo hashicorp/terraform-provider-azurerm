@@ -9,107 +9,127 @@ description: |-
 
 # Azure Provider
 
-The Azure Provider is used to interact with the many resources supported by Azure Resource Manager (AzureRM) through its APIs.
+The Azure Provider can be used to configure infrastructure in [Microsoft Azure](https://azure.microsoft.com/en-us/) using the Azure Resource Manager API's. Documentation regarding the [Data Sources](/docs/configuration/data-sources.html) and [Resources](/docs/configuration/resources.html) supported by the Azure Provider can be found in the navigation to the left.
 
-~> **Note:** This supercedes the [legacy Azure provider](/docs/providers/azure/index.html), which interacts with Azure using the Service Management API.
+Interested in the provider's latest features, or want to make sure you're up to date? Check out the [changelog](https://github.com/terraform-providers/terraform-provider-azurerm/blob/master/CHANGELOG.md) for version information and release notes.
 
-Use the navigation to the left to read about the available resources.
+## Authenticating to Azure
 
-# Creating Credentials
+Terraform supports a number of different methods for authenticating to Azure:
 
-Terraform supports authenticating to Azure through a Service Principal or the Azure CLI.
+* [Authenticating to Azure using the Azure CLI](auth/azure_cli.html)
+* [Authenticating to Azure using Managed Service Identity](auth/managed_service_identity.html)
+* [Authenticating to Azure using a Service Principal and a Client Certificate](auth/service_principal_client_certificate.html)
+* [Authenticating to Azure using a Service Principal and a Client Secret](auth/service_principal_client_secret.html)
 
-We recommend [using a Service Principal when running in a shared environment](authenticating_via_service_principal.html) (such as within a CI server/automation) - and [authenticating via the Azure CLI](authenticating_via_azure_cli.html) when you're running Terraform locally.
+---
 
-~> **NOTE:** Authenticating via the Azure CLI is only supported when using a User Account. If you're using a Service Principal (e.g. via `az login --service-principal`) you should instead [authenticate via the Service Principal directly](authenticating_via_service_principal.html).
+We recommend using either a Service Principal or Managed Service Identity when running Terraform non-interactively (such as when running Terraform in a CI server) - and authenticating using the Azure CLI when running Terraform locally.
 
 ## Example Usage
 
 ```hcl
 # Configure the Azure Provider
-provider "azurerm" { }
+provider "azurerm" {
+  # whilst the `version` attribute is optional, we recommend pinning to a given version of the Provider
+  version = "=1.21.0"
+}
 
 # Create a resource group
-resource "azurerm_resource_group" "network" {
+resource "azurerm_resource_group" "test" {
   name     = "production"
   location = "West US"
 }
 
 # Create a virtual network within the resource group
-resource "azurerm_virtual_network" "network" {
+resource "azurerm_virtual_network" "test" {
   name                = "production-network"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.network.location}"
-  resource_group_name = "${azurerm_resource_group.network.name}"
-
-  subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
-  }
-
-  subnet {
-    name           = "subnet2"
-    address_prefix = "10.0.2.0/24"
-  }
-
-  subnet {
-    name           = "subnet3"
-    address_prefix = "10.0.3.0/24"
-  }
 }
 ```
+
+## Features and Bug Requests
+
+The Azure provider's bugs and feature requests can be found in the [GitHub repo issues](https://github.com/terraform-providers/terraform-provider-azurerm/issues).
+Please avoid "me too" or "+1" comments. Instead, use a thumbs up [reaction](https://blog.github.com/2016-03-10-add-reactions-to-pull-requests-issues-and-comments/)
+on enhancement requests. Provider maintainers will often prioritize work based on the number of thumbs on an issue.
+
+Community input is appreciated on outstanding issues! We love to hear what use
+cases you have for new features, and want to provide the best possible
+experience for you using the Azure provider.
+
+If you have a bug or feature request without an existing issue
+
+* if an existing resource or field is working in an unexpected way, [file a bug](https://github.com/terraform-providers/terraform-provider-azurerm/issues/new?template=bug.md).
+
+* if you'd like the provider to support a new resource or field, [file an enhancement/feature request](https://github.com/terraform-providers/terraform-provider-azurerm/issues/new?template=enhancement.md).
+
+The provider maintainers will often use the assignee field on an issue to mark
+who is working on it.
+
+* An issue assigned to an individual maintainer indicates that maintainer is working
+on the issue
+
+* If you're interested in working on an issue please leave a comment in that issue
+
+---
+
+If you have configuration questions, or general questions about using the provider, try checking out:
+
+* [Terraform's community resources](https://www.terraform.io/docs/extend/community/index.html)
+* [HashiCorp support](https://support.hashicorp.com) for Terraform Enterprise customers
+
 
 ## Argument Reference
 
 The following arguments are supported:
 
-* `subscription_id` - (Optional) The subscription ID to use. It can also
-  be sourced from the `ARM_SUBSCRIPTION_ID` environment variable.
+* `client_id` - (Optional) The Client ID which should be used. This can also be sourced from the `ARM_CLIENT_ID` Environment Variable.
 
-* `client_id` - (Optional) The client ID to use. It can also be sourced from
-  the `ARM_CLIENT_ID` environment variable.
+* `environment` - (Optional) The Cloud Environment which should be used. Possible values are `public`, `usgovernment`, `german` and `china`. Defaults to `public`. This can also be sourced from the `ARM_ENVIRONMENT` environment variable.
 
-* `client_secret` - (Optional) The client secret to use. It can also be sourced from
-  the `ARM_CLIENT_SECRET` environment variable.
+* `subscription_id` - (Optional) The Subscription ID which should be used. This can also be sourced from the `ARM_SUBSCRIPTION_ID` Environment Variable.
 
-* `tenant_id` - (Optional) The tenant ID to use. It can also be sourced from the
-  `ARM_TENANT_ID` environment variable.
+* `tenant_id` - (Optional) The Tenant ID which should be used. This can also be sourced from the `ARM_TENANT_ID` Environment Variable.
 
-* `use_msi` - (Optional) Set to true to authenticate using managed service identity.
-  It can also be sourced from the `ARM_USE_MSI` environment variable.
+---
 
-* `msi_endpoint` - (Optional) The REST endpoint to retrieve an MSI token from. Terraform
-  will attempt to discover this automatically but it can be specified manually here.
-  It can also be sourced from the `ARM_MSI_ENDPOINT` environment variable.
+When authenticating as a Service Principal using a Client Certificate, the following fields can be set:
 
-* `environment` - (Optional) The cloud environment to use. It can also be sourced
-  from the `ARM_ENVIRONMENT` environment variable. Supported values are:
-  * `public` (default)
-  * `usgovernment`
-  * `german`
-  * `china`
+* `client_certificate_password` - (Optional) The password associated with the Client Certificate. This can also be sourced from the `ARM_CLIENT_CERTIFICATE_PASSWORD` Environment Variable.
 
-* `skip_credentials_validation` - (Optional) Prevents the provider from validating
-  the given credentials. When set to `true`, `skip_provider_registration` is assumed.
-  It can also be sourced from the `ARM_SKIP_CREDENTIALS_VALIDATION` environment
-  variable; defaults to `false`.
+* `client_certificate_path` - (Optional) The path to the Client Certificate associated with the Service Principal which should be used. This can also be sourced from the `ARM_CLIENT_CERTIFICATE_PATH` Environment Variable.
 
-* `skip_provider_registration` - (Optional) Prevents the provider from registering
-  the ARM provider namespaces, this can be used if you don't wish to give the Active
-  Directory Application permission to register resource providers. It can also be
-  sourced from the `ARM_SKIP_PROVIDER_REGISTRATION` environment variable; defaults
-  to `false`.
+More information on [how to configure a Service Principal using a Client Certificate can be found in this guide](auth/service_principal_client_certificate.html).
 
-## Testing
+---
 
-The following Environment Variables must be set to run the acceptance tests:
+When authenticating as a Service Principal using a Client Secret, the following fields can be set:
 
-~> **NOTE:** The Acceptance Tests require the use of a Service Principal - authenticating via either the Azure CLI or MSI is not supported.
+* `client_secret` - (Optional) The Client Secret which should be used. This can also be sourced from the `ARM_CLIENT_SECRET` Environment Variable.
 
-* `ARM_SUBSCRIPTION_ID` - The ID of the Azure Subscription in which to run the Acceptance Tests.
-* `ARM_CLIENT_ID` - The Client ID of the Service Principal.
-* `ARM_CLIENT_SECRET` - The Client Secret associated with the Service Principal.
-* `ARM_TENANT_ID` - The Tenant ID to use.
-* `ARM_ENVIRONMENT` - The Azure Cloud Environment to use, such as `public`, `german` etc. Defaults to `public`.
-* `ARM_TEST_LOCATION` - The primary Azure Region to provision resources in for the Acceptance Tests.
-* `ARM_TEST_LOCATION_ALT` - The secondary Azure Region to provision resources in for the Acceptance Tests. This needs to be a different region to `ARM_TEST_LOCATION`.
+More information on [how to configure a Service Principal using a Client Secret can be found in this guide](auth/service_principal_client_secret.html).
+
+---
+
+When authenticating using Managed Service Identity, the following fields can be set:
+
+* `msi_endpoint` - (Optional) The path to a custom endpoint for Managed Service Identity - in most circumstances this should be detected automatically. This can also be sourced from the `ARM_MSI_ENDPOINT` Environment Variable.
+
+* `use_msi` - (Optional) Should Managed Service Identity be used for Authentication? This can also be sourced from the `ARM_USE_MSI` Environment Variable. Defaults to `false`.
+
+More information on [how to configure a Service Principal using Managed Service Identity can be found in this guide](auth/managed_service_identity.html).
+
+---
+
+For some advanced scenarios, such as where more granular permissions are necessary - the following properties can be set:
+
+* `partner_id` - (Optional) A GUID/UUID that is [registered](https://docs.microsoft.com/azure/marketplace/azure-partner-customer-usage-attribution#register-guids-and-offers) with Microsoft to facilitate partner resource usage attribution. This can also be sourced from the `ARM_PARTNER_ID` Environment Variable.
+
+* `skip_credentials_validation` - (Optional) Should the AzureRM Provider skip verifying the credentials being used are valid? This can also be sourced from the `ARM_SKIP_CREDENTIALS_VALIDATION` Environment Variable. Defaults to `false`.
+
+* `skip_provider_registration` - (Optional) Should the AzureRM Provider skip registering any required Resource Providers? This can also be sourced from the `ARM_SKIP_PROVIDER_REGISTRATION` Environment Variable. Defaults to `false`.
+
+It's also possible to use multiple Provider blocks within a single Terraform configuration, for example to work with resources across multiple Subscriptions - more information can be found [in the documentation for Providers](https://www.terraform.io/docs/configuration/providers.html#multiple-provider-instances).

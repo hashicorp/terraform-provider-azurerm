@@ -8,16 +8,17 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMAutoScaleSetting_basic(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(6)
 	location := testLocation()
 	config := testAccAzureRMAutoScaleSetting_basic(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
@@ -34,18 +35,23 @@ func TestAccAzureRMAutoScaleSetting_basic(t *testing.T) {
 					resource.TestCheckNoResourceAttr(resourceName, "tags.$type"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
 func TestAccAzureRMAutoScaleSetting_multipleProfiles(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(6)
 	location := testLocation()
 	config := testAccAzureRMAutoScaleSetting_multipleProfiles(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
@@ -66,11 +72,11 @@ func TestAccAzureRMAutoScaleSetting_multipleProfiles(t *testing.T) {
 
 func TestAccAzureRMAutoScaleSetting_multipleRules(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(6)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
@@ -106,11 +112,11 @@ func TestAccAzureRMAutoScaleSetting_multipleRules(t *testing.T) {
 
 func TestAccAzureRMAutoScaleSetting_customEmails(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(6)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
@@ -142,12 +148,12 @@ func TestAccAzureRMAutoScaleSetting_customEmails(t *testing.T) {
 
 func TestAccAzureRMAutoScaleSetting_recurrence(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(6)
 	location := testLocation()
 	config := testAccAzureRMAutoScaleSetting_recurrence(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
@@ -163,17 +169,22 @@ func TestAccAzureRMAutoScaleSetting_recurrence(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "1"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
 func TestAccAzureRMAutoScaleSetting_recurrenceUpdate(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(6)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
@@ -210,12 +221,12 @@ func TestAccAzureRMAutoScaleSetting_recurrenceUpdate(t *testing.T) {
 
 func TestAccAzureRMAutoScaleSetting_fixedDate(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(6)
 	location := testLocation()
 	config := testAccAzureRMAutoScaleSetting_fixedDate(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
@@ -231,15 +242,20 @@ func TestAccAzureRMAutoScaleSetting_fixedDate(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "0"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
-func testCheckAzureRMAutoScaleSettingExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMAutoScaleSettingExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		autoscaleSettingName := rs.Primary.Attributes["name"]
@@ -312,14 +328,14 @@ resource "azurerm_autoscale_setting" "test" {
 
     rule {
       metric_trigger {
-        metric_name          = "Percentage CPU"
-        metric_resource_id   = "${azurerm_virtual_machine_scale_set.test.id}"
-        time_grain           = "PT1M"
-        statistic            = "Average"
-        time_window          = "PT5M"
-        time_aggregation     = "Average"
-        operator             = "GreaterThan"
-        threshold            = 75
+        metric_name        = "Percentage CPU"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "GreaterThan"
+        threshold          = 75
       }
 
       scale_action {
@@ -356,14 +372,14 @@ resource "azurerm_autoscale_setting" "test" {
 
     rule {
       metric_trigger {
-        metric_name          = "Percentage CPU"
-        metric_resource_id   = "${azurerm_virtual_machine_scale_set.test.id}"
-        time_grain           = "PT1M"
-        statistic            = "Average"
-        time_window          = "PT5M"
-        time_aggregation     = "Average"
-        operator             = "GreaterThan"
-        threshold            = 75
+        metric_name        = "Percentage CPU"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "GreaterThan"
+        threshold          = 75
       }
 
       scale_action {
@@ -376,14 +392,14 @@ resource "azurerm_autoscale_setting" "test" {
 
     rule {
       metric_trigger {
-        metric_name          = "Percentage CPU"
-        metric_resource_id   = "${azurerm_virtual_machine_scale_set.test.id}"
-        time_grain           = "PT1M"
-        statistic            = "Average"
-        time_window          = "PT5M"
-        time_aggregation     = "Average"
-        operator             = "GreaterThan"
-        threshold            = 75
+        metric_name        = "Percentage CPU"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "GreaterThan"
+        threshold          = 75
       }
 
       scale_action {
@@ -405,14 +421,16 @@ resource "azurerm_autoscale_setting" "test" {
     }
 
     recurrence {
-      timezone  = "Pacific Standard Time"
-      days      = [
+      timezone = "Pacific Standard Time"
+
+      days = [
         "Monday",
         "Wednesday",
-        "Friday"
+        "Friday",
       ]
-      hours     = [ 18 ]
-      minutes   = [ 0 ]
+
+      hours   = [18]
+      minutes = [0]
     }
   }
 }
@@ -506,14 +524,14 @@ resource "azurerm_autoscale_setting" "test" {
 
     rule {
       metric_trigger {
-        metric_name          = "Percentage CPU"
-        metric_resource_id   = "${azurerm_virtual_machine_scale_set.test.id}"
-        time_grain           = "PT1M"
-        statistic            = "Average"
-        time_window          = "PT5M"
-        time_aggregation     = "Average"
-        operator             = "GreaterThan"
-        threshold            = 75
+        metric_name        = "Percentage CPU"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "GreaterThan"
+        threshold          = 75
       }
 
       scale_action {
@@ -558,14 +576,14 @@ resource "azurerm_autoscale_setting" "test" {
 
     rule {
       metric_trigger {
-        metric_name          = "Percentage CPU"
-        metric_resource_id   = "${azurerm_virtual_machine_scale_set.test.id}"
-        time_grain           = "PT1M"
-        statistic            = "Average"
-        time_window          = "PT5M"
-        time_aggregation     = "Average"
-        operator             = "GreaterThan"
-        threshold            = 75
+        metric_name        = "Percentage CPU"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "GreaterThan"
+        threshold          = 75
       }
 
       scale_action {
@@ -609,14 +627,16 @@ resource "azurerm_autoscale_setting" "test" {
     }
 
     recurrence {
-      timezone  = "Pacific Standard Time"
-      days      = [
+      timezone = "Pacific Standard Time"
+
+      days = [
         "Monday",
         "Wednesday",
-        "Friday"
+        "Friday",
       ]
-      hours     = [ 18 ]
-      minutes   = [ 0 ]
+
+      hours   = [18]
+      minutes = [0]
     }
   }
 
@@ -651,14 +671,16 @@ resource "azurerm_autoscale_setting" "test" {
     }
 
     recurrence {
-      timezone  = "Pacific Standard Time"
-      days      = [
+      timezone = "Pacific Standard Time"
+
+      days = [
         "Monday",
         "Tuesday",
-        "Wednesday"
+        "Wednesday",
       ]
-      hours     = [ 20 ]
-      minutes   = [ 15 ]
+
+      hours   = [20]
+      minutes = [15]
     }
   }
 
@@ -674,7 +696,9 @@ resource "azurerm_autoscale_setting" "test" {
 
 func testAccAzureRMAutoScaleSetting_fixedDate(rInt int, rString string, location string) string {
 	template := testAccAzureRMAutoScaleSetting_template(rInt, rString, location)
-	return fmt.Sprintf(`%s
+	return fmt.Sprintf(`
+%s
+
 resource "azurerm_autoscale_setting" "test" {
   name                = "acctestautoscale-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -692,11 +716,12 @@ resource "azurerm_autoscale_setting" "test" {
 
     fixed_date {
       timezone = "Pacific Standard Time"
-      start     = "2020-06-18T00:00:00Z"
-      end       = "2020-06-18T23:59:59Z"
+      start    = "2020-06-18T00:00:00Z"
+      end      = "2020-06-18T23:59:59Z"
     }
   }
-}`, template, rInt)
+}
+`, template, rInt)
 }
 
 func testAccAzureRMAutoScaleSetting_template(rInt int, rString string, location string) string {
@@ -764,6 +789,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     ip_configuration {
       name      = "TestIPConfiguration"
       subnet_id = "${azurerm_subnet.test.id}"
+      primary   = true
     }
   }
 

@@ -9,15 +9,17 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmManagedDisk() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmManagedDiskCreate,
+		Create: resourceArmManagedDiskCreateUpdate,
 		Read:   resourceArmManagedDiskRead,
-		Update: resourceArmManagedDiskCreate,
+		Update: resourceArmManagedDiskCreateUpdate,
 		Delete: resourceArmManagedDiskDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -39,11 +41,12 @@ func resourceArmManagedDisk() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.StorageAccountTypesStandardLRS),
-					string(compute.StorageAccountTypesPremiumLRS),
-					string(compute.StorageAccountTypesStandardSSDLRS),
+					string(compute.StandardLRS),
+					string(compute.PremiumLRS),
+					string(compute.StandardSSDLRS),
+					string(compute.UltraSSDLRS),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"create_option": {
@@ -100,16 +103,16 @@ func resourceArmManagedDisk() *schema.Resource {
 	}
 }
 
-func validateDiskSizeGB(v interface{}, k string) (ws []string, errors []error) {
+func validateDiskSizeGB(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(int)
 	if value < 0 || value > 4095 {
 		errors = append(errors, fmt.Errorf(
 			"The `disk_size_gb` can only be between 0 and 4095"))
 	}
-	return
+	return warnings, errors
 }
 
-func resourceArmManagedDiskCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).diskClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -124,13 +127,13 @@ func resourceArmManagedDiskCreate(d *schema.ResourceData, meta interface{}) erro
 	expandedTags := expandTags(tags)
 	zones := expandZones(d.Get("zones").([]interface{}))
 
-	var skuName compute.StorageAccountTypes
-	if strings.EqualFold(storageAccountType, string(compute.StorageAccountTypesPremiumLRS)) {
-		skuName = compute.StorageAccountTypesPremiumLRS
-	} else if strings.EqualFold(storageAccountType, string(compute.StorageAccountTypesStandardLRS)) {
-		skuName = compute.StorageAccountTypesStandardLRS
-	} else if strings.EqualFold(storageAccountType, string(compute.StorageAccountTypesStandardSSDLRS)) {
-		skuName = compute.StorageAccountTypesStandardSSDLRS
+	var skuName compute.DiskStorageAccountTypes
+	if strings.EqualFold(storageAccountType, string(compute.PremiumLRS)) {
+		skuName = compute.PremiumLRS
+	} else if strings.EqualFold(storageAccountType, string(compute.StandardLRS)) {
+		skuName = compute.StandardLRS
+	} else if strings.EqualFold(storageAccountType, string(compute.StandardSSDLRS)) {
+		skuName = compute.StandardSSDLRS
 	}
 
 	createDisk := compute.Disk{
@@ -189,8 +192,7 @@ func resourceArmManagedDiskCreate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 
@@ -255,7 +257,7 @@ func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error 
 	if settings := resp.EncryptionSettings; settings != nil {
 		flattened := flattenManagedDiskEncryptionSettings(settings)
 		if err := d.Set("encryption_settings", flattened); err != nil {
-			return fmt.Errorf("Error flattening encryption settings: %+v", err)
+			return fmt.Errorf("Error setting encryption settings: %+v", err)
 		}
 	}
 
@@ -282,8 +284,7 @@ func resourceArmManagedDiskDelete(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
 			return err
 		}

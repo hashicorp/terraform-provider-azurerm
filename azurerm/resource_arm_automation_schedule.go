@@ -186,8 +186,8 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				return fmt.Errorf("`month_days` can only be set when frequency is `Month`")
 			}
 
-			_, hasMonthlyOccurances := diff.GetOk("monthly_occurrence")
-			if hasMonthlyOccurances && frequency != "month" {
+			_, hasMonthlyOccurrences := diff.GetOk("monthly_occurrence")
+			if hasMonthlyOccurrences && frequency != "month" {
 				return fmt.Errorf("`monthly_occurrence` can only be set when frequency is `Month`")
 			}
 
@@ -277,8 +277,7 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 		properties.AdvancedSchedule = advancedRef
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resGroup, accountName, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, accountName, name, parameters); err != nil {
 		return err
 	}
 
@@ -326,10 +325,10 @@ func resourceArmAutomationScheduleRead(d *schema.ResourceData, meta interface{})
 	d.Set("frequency", string(resp.Frequency))
 
 	if v := resp.StartTime; v != nil {
-		d.Set("start_time", string(v.Format(time.RFC3339)))
+		d.Set("start_time", v.Format(time.RFC3339))
 	}
 	if v := resp.ExpiryTime; v != nil {
-		d.Set("expiry_time", string(v.Format(time.RFC3339)))
+		d.Set("expiry_time", v.Format(time.RFC3339))
 	}
 	if v := resp.Interval; v != nil {
 		//seems to me missing its type in swagger, leading to it being a interface{} float64

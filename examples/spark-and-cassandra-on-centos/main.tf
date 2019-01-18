@@ -130,14 +130,14 @@ resource "azurerm_public_ip" "master" {
   name                         = "${var.public_ip_master_name}"
   location                     = "${azurerm_resource_group.rg.location}"
   resource_group_name          = "${azurerm_resource_group.rg.name}"
-  public_ip_address_allocation = "Static"
+  allocation_method = "Static"
 }
 
 resource "azurerm_public_ip" "slave" {
   name                         = "${var.public_ip_slave_name_prefix}${count.index}"
   location                     = "${azurerm_resource_group.rg.location}"
   resource_group_name          = "${azurerm_resource_group.rg.name}"
-  public_ip_address_allocation = "Static"
+  allocation_method = "Static"
   count                        = "${var.vm_number_of_slaves}"
 }
 
@@ -145,7 +145,7 @@ resource "azurerm_public_ip" "cassandra" {
   name                         = "${var.public_ip_cassandra_name}"
   location                     = "${azurerm_resource_group.rg.location}"
   resource_group_name          = "${azurerm_resource_group.rg.name}"
-  public_ip_address_allocation = "Static"
+  allocation_method = "Static"
 }
 
 # **********************  NETWORK INTERFACE ********************** #

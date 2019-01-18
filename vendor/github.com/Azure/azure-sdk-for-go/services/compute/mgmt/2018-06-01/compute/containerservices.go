@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -47,6 +48,16 @@ func NewContainerServicesClientWithBaseURI(baseURI string, subscriptionID string
 // containerServiceName - the name of the container service in the specified subscription and resource group.
 // parameters - parameters supplied to the Create or Update a Container Service operation.
 func (client ContainerServicesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, containerServiceName string, parameters ContainerService) (result ContainerServicesCreateOrUpdateFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ContainerServicesClient.CreateOrUpdate")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.ContainerServiceProperties", Name: validation.Null, Rule: false,
@@ -125,10 +136,6 @@ func (client ContainerServicesClient) CreateOrUpdateSender(req *http.Request) (f
 	if err != nil {
 		return
 	}
-	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted))
-	if err != nil {
-		return
-	}
 	future.Future, err = azure.NewFutureFromResponse(resp)
 	return
 }
@@ -154,6 +161,16 @@ func (client ContainerServicesClient) CreateOrUpdateResponder(resp *http.Respons
 // resourceGroupName - the name of the resource group.
 // containerServiceName - the name of the container service in the specified subscription and resource group.
 func (client ContainerServicesClient) Delete(ctx context.Context, resourceGroupName string, containerServiceName string) (result ContainerServicesDeleteFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ContainerServicesClient.Delete")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeletePreparer(ctx, resourceGroupName, containerServiceName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.ContainerServicesClient", "Delete", nil, "Failure preparing request")
@@ -199,10 +216,6 @@ func (client ContainerServicesClient) DeleteSender(req *http.Request) (future Co
 	if err != nil {
 		return
 	}
-	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent))
-	if err != nil {
-		return
-	}
 	future.Future, err = azure.NewFutureFromResponse(resp)
 	return
 }
@@ -226,6 +239,16 @@ func (client ContainerServicesClient) DeleteResponder(resp *http.Response) (resu
 // resourceGroupName - the name of the resource group.
 // containerServiceName - the name of the container service in the specified subscription and resource group.
 func (client ContainerServicesClient) Get(ctx context.Context, resourceGroupName string, containerServiceName string) (result ContainerService, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ContainerServicesClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetPreparer(ctx, resourceGroupName, containerServiceName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.ContainerServicesClient", "Get", nil, "Failure preparing request")
@@ -291,6 +314,16 @@ func (client ContainerServicesClient) GetResponder(resp *http.Response) (result 
 // List gets a list of container services in the specified subscription. The operation returns properties of each
 // container service including state, orchestrator, number of masters and agents, and FQDNs of masters and agents.
 func (client ContainerServicesClient) List(ctx context.Context) (result ContainerServiceListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ContainerServicesClient.List")
+		defer func() {
+			sc := -1
+			if result.cslr.Response.Response != nil {
+				sc = result.cslr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx)
 	if err != nil {
@@ -353,8 +386,8 @@ func (client ContainerServicesClient) ListResponder(resp *http.Response) (result
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client ContainerServicesClient) listNextResults(lastResults ContainerServiceListResult) (result ContainerServiceListResult, err error) {
-	req, err := lastResults.containerServiceListResultPreparer()
+func (client ContainerServicesClient) listNextResults(ctx context.Context, lastResults ContainerServiceListResult) (result ContainerServiceListResult, err error) {
+	req, err := lastResults.containerServiceListResultPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "compute.ContainerServicesClient", "listNextResults", nil, "Failure preparing next results request")
 	}
@@ -375,6 +408,16 @@ func (client ContainerServicesClient) listNextResults(lastResults ContainerServi
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
 func (client ContainerServicesClient) ListComplete(ctx context.Context) (result ContainerServiceListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ContainerServicesClient.List")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.page, err = client.List(ctx)
 	return
 }
@@ -385,6 +428,16 @@ func (client ContainerServicesClient) ListComplete(ctx context.Context) (result 
 // Parameters:
 // resourceGroupName - the name of the resource group.
 func (client ContainerServicesClient) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result ContainerServiceListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ContainerServicesClient.ListByResourceGroup")
+		defer func() {
+			sc := -1
+			if result.cslr.Response.Response != nil {
+				sc = result.cslr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.fn = client.listByResourceGroupNextResults
 	req, err := client.ListByResourceGroupPreparer(ctx, resourceGroupName)
 	if err != nil {
@@ -448,8 +501,8 @@ func (client ContainerServicesClient) ListByResourceGroupResponder(resp *http.Re
 }
 
 // listByResourceGroupNextResults retrieves the next set of results, if any.
-func (client ContainerServicesClient) listByResourceGroupNextResults(lastResults ContainerServiceListResult) (result ContainerServiceListResult, err error) {
-	req, err := lastResults.containerServiceListResultPreparer()
+func (client ContainerServicesClient) listByResourceGroupNextResults(ctx context.Context, lastResults ContainerServiceListResult) (result ContainerServiceListResult, err error) {
+	req, err := lastResults.containerServiceListResultPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "compute.ContainerServicesClient", "listByResourceGroupNextResults", nil, "Failure preparing next results request")
 	}
@@ -470,6 +523,16 @@ func (client ContainerServicesClient) listByResourceGroupNextResults(lastResults
 
 // ListByResourceGroupComplete enumerates all values, automatically crossing page boundaries as required.
 func (client ContainerServicesClient) ListByResourceGroupComplete(ctx context.Context, resourceGroupName string) (result ContainerServiceListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ContainerServicesClient.ListByResourceGroup")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.page, err = client.ListByResourceGroup(ctx, resourceGroupName)
 	return
 }

@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dev_test_lab"
 sidebar_current: "docs-azurerm-datasource-dev-test-lab"
 description: |-
-  Get information about a Dev Test Lab.
+  Gets information about an existing Dev Test Lab.
 ---
 
-# Data Source: azurerm_app_service
+# Data Source: azurerm_dev_test_lab
 
-Use this data source to obtain information about a Dev Test Lab.
+Use this data source to access information about an existing Dev Test Lab.
 
 ## Example Usage
 
