@@ -315,7 +315,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 				}
 			} else {
 				// DTU Based
-				if strings.EqualFold(tier.(string), "Basic") {
+				if !strings.EqualFold(tier.(string), "Basic") {
 					if int(maxSizeGb.(float64)) < 50 {
 						return fmt.Errorf("service tiers 'Standard', and 'Premium' must have a 'max_size_gb' value equal to or greater than 50 GB, got %d GB", int(maxSizeGb.(float64)))
 					}
