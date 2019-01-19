@@ -25,10 +25,10 @@ resource "azurerm_recovery_services_vault" "example" {
   sku                 = "Standard"
 }
 
-resource "azurerm_recovery_services_protection_policy_vm" "test" {
+resource "azurerm_recovery_services_protection_policy_vm" "example" {
   name                = "tfex-recovery-vault-policy"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  recovery_vault_name = "${azurerm_recovery_services_vault.example.name}"
 
   backup = {
     frequency = "Daily"
@@ -36,7 +36,7 @@ resource "azurerm_recovery_services_protection_policy_vm" "test" {
   }
 }
 
-resource "azurerm_recovery_services_protected_vm" "example" {
+resource "azurerm_recovery_services_protected_vm" "vm1" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.example.name}"
   source_vm_id        = "${azurerm_virtual_machine.example.id}"
