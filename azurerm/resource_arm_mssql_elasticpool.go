@@ -425,7 +425,13 @@ func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if properties := resp.ElasticPoolProperties; properties != nil {
-		d.Set("max_size_gb", float64(*properties.MaxSizeBytes/int64(1073741824)))
+		// Basic tier does not return max_size_bytes, so we need to skip setting this
+		// value if the pricing tier is equal to Basic
+		if tier, ok := d.GetOk("sku.0.tier"); ok {
+			if !strings.EqualFold(tier.(string), "Basic") {
+				d.Set("max_size_gb", float64(*properties.MaxSizeBytes/int64(1073741824)))
+			}
+		}
 		d.Set("zone_redundant", properties.ZoneRedundant)
 
 		//todo remove in 2.0
