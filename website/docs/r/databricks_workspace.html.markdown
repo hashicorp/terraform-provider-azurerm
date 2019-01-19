@@ -22,7 +22,7 @@ resource "azurerm_databricks_workspace" "test" {
   name                = "databricks-test"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  sku                 = "Standard"
+  sku                 = "standard"
 
   tags {
     Environment = "Production"
@@ -40,7 +40,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource has to be created. Changing this forces a new resource to be created.
 
-* `sku` - (Required) The `sku` to use for the Databricks Workspace. Possible values are `Standard` or `Premium`. Changing this forces a new resource to be created.
+* `sku` - (Required) The `sku` to use for the Databricks Workspace. Possible values are `standard` or `premium`. Changing this forces a new resource to be created.
 
 * `managed_resource_group_name` - (Optional) The name of the resource group where Azure should place the managed Databricks resources. Changing this forces a new resource to be created.
 
