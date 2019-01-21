@@ -813,6 +813,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	sku := expandApplicationGatewaySku(d)
 	sslCertificates := expandApplicationGatewaySslCertificates(d)
 	sslPolicy := expandApplicationGatewaySslPolicy(d)
+	customErrorConfigurations := expandApplicationGatewayCustomErrorConfigurations(d)
 	urlPathMaps := expandApplicationGatewayURLPathMaps(d, gatewayID)
 
 	gateway := network.ApplicationGateway{
@@ -833,6 +834,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 			Sku:                           sku,
 			SslCertificates:               sslCertificates,
 			SslPolicy:                     sslPolicy,
+			CustomErrorConfigurations:     customErrorConfigurations,
 			URLPathMaps:                   urlPathMaps,
 		},
 	}
@@ -967,6 +969,10 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 
 		if setErr := d.Set("ssl_certificate", flattenApplicationGatewaySslCertificates(props.SslCertificates, d)); setErr != nil {
 			return fmt.Errorf("Error setting `ssl_certificate`: %+v", setErr)
+		}
+
+		if setErr := d.Set("custom_error_configurations", flattenApplicationGatewayCustomErrorConfigurations(props.CustomErrorConfigurations)); setErr != nil {
+			return fmt.Errorf("Error setting `custom_error_configurations`: %+v", setErr)
 		}
 
 		urlPathMaps, err := flattenApplicationGatewayURLPathMaps(props.URLPathMaps)
@@ -2168,6 +2174,46 @@ func flattenApplicationGatewayWafConfig(input *network.ApplicationGatewayWebAppl
 	}
 
 	results = append(results, output)
+
+	return results
+}
+
+func expandApplicationGatewayCustomErrorConfigurations(d *schema.ResourceData) *network.ApplicationGatewayCustomError {
+	vs := d.Get("custom_error_configurations").([]interface{})
+	results := make([]network.ApplicationGatewayCustomErrorConfigurations, 0)
+
+	for _, raw := range vs {
+		v := raw.(map[string]interface{})
+		statusCode := v["status_code"].(string)
+		customErrorPageUrl := v["custom_error_page_url"].(string)
+
+		output := &network.ApplicationGatewayCustomErrorConfigurations{
+			StatusCode:         network.ApplicationGatewayCustomErrorStatusCode(statusCode),
+			CustomErrorPageURL: string(customErrorPageUrl),
+		}
+		results = append(results, output)
+	}
+}
+
+func flattenApplicationGatewayCustomErrorConfigurations(input *[]network.ApplicationGatewayCustomError) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, v := range *input {
+		output := map[string]interface{}{}
+
+		if v.StatusCode != nil {
+			output["status_code"] = *v.StatusCode
+		}
+
+		if v.CustomErrorPageURL != nil {
+			output["custom_error_page_url"] = *v.CustomErrorPageURL
+		}
+
+		results = append(results, output)
+	}
 
 	return results
 }
