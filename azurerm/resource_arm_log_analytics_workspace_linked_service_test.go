@@ -37,6 +37,38 @@ func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_log_analytics_workspace_linked_service.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLogAnalyticsWorkspaceLinkedService_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctestlaw-%d/Automation", ri)),
+					resource.TestCheckResourceAttr(resourceName, "workspace_name", fmt.Sprintf("acctestlaw-%d", ri)),
+					resource.TestCheckResourceAttr(resourceName, "linked_service_name", "automation"),
+				),
+			},
+			{
+				Config:      testAccAzureRMLogAnalyticsWorkspaceLinkedService_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_log_analytics_workspace_linked_service"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_complete(t *testing.T) {
 	resourceName := "azurerm_log_analytics_workspace_linked_service.test"
 	ri := tf.AccRandTimeInt()
@@ -132,6 +164,22 @@ func testAccAzureRMLogAnalyticsWorkspaceLinkedService_basic(rInt int, location s
 resource "azurerm_log_analytics_workspace_linked_service" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   workspace_name      = "${azurerm_log_analytics_workspace.test.name}"
+
+  linked_service_properties {
+    resource_id = "${azurerm_automation_account.test.id}"
+  }
+}
+`, template)
+}
+
+func testAccAzureRMLogAnalyticsWorkspaceLinkedService_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMLogAnalyticsWorkspaceLinkedService_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_workspace_linked_service" "import" {
+  resource_group_name = "${azurerm_log_analytics_workspace_linked_service.test.resource_group_name}"
+  workspace_name      = "${azurerm_log_analytics_workspace_linked_service.test.workspace_name}"
 
   linked_service_properties {
     resource_id = "${azurerm_automation_account.test.id}"
