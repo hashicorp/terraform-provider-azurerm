@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 	"testing"
@@ -14,54 +13,6 @@ import (
 )
 
 // TODO: refactor the test configs
-
-func init() {
-	resource.AddTestSweepers("azurerm_cosmosdb_account", &resource.Sweeper{
-		Name: "azurerm_cosmosdb_account",
-		F:    testSweepCosmosDBAccount,
-	})
-}
-
-func testSweepCosmosDBAccount(region string) error {
-	armClient, err := buildConfigForSweepers()
-	if err != nil {
-		return err
-	}
-
-	client := (*armClient).cosmosDBClient
-	ctx := (*armClient).StopContext
-
-	log.Printf("Retrieving the CosmosDB Accounts..")
-	results, err := client.List(ctx)
-	if err != nil {
-		return fmt.Errorf("Error Listing on CosmosDB Accounts: %+v", err)
-	}
-
-	for _, account := range *results.Value {
-		if !shouldSweepAcceptanceTestResource(*account.Name, *account.Location, region) {
-			continue
-		}
-
-		resourceId, err := parseAzureResourceID(*account.ID)
-		if err != nil {
-			return err
-		}
-
-		resourceGroup := resourceId.ResourceGroup
-		name := resourceId.Path["databaseAccounts"]
-
-		log.Printf("Deleting CosmosDB Account '%s' in Resource Group '%s'", name, resourceGroup)
-		future, err := client.Delete(ctx, resourceGroup, name)
-		if err != nil {
-			return err
-		}
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
 
 //consistency
 func TestAccAzureRMCosmosDBAccount_eventualConsistency(t *testing.T) {
@@ -507,6 +458,32 @@ func TestAccAzureRMCosmosDBAccount_complete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCosmosDBAccount_emptyIpFilter(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	resourceName := "azurerm_cosmosdb_account.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDBAccount_emptyIpFilter(ri, testLocation(), testAltLocation()),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 2),
+					resource.TestCheckResourceAttr(resourceName, "ip_range_filter", ""),
+					resource.TestCheckResourceAttr(resourceName, "enable_automatic_failover", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMCosmosDBAccount_multiMaster(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
@@ -714,6 +691,19 @@ func testAccAzureRMCosmosDBAccount_geoReplicated_customId(rInt int, location str
 func testAccAzureRMCosmosDBAccount_complete(rInt int, location string, altLocation string) string {
 	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", fmt.Sprintf(`
 		ip_range_filter				= "104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45/32,52.187.184.26,10.20.0.0/16"
+		enable_automatic_failover	= true
+
+        geo_location {
+            prefix            = "acctest-%d-custom-id"
+            location          = "%s"
+            failover_priority = 1
+        }
+    `, rInt, altLocation))
+}
+
+func testAccAzureRMCosmosDBAccount_emptyIpFilter(rInt int, location string, altLocation string) string {
+	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", fmt.Sprintf(`
+		ip_range_filter				= ""
 		enable_automatic_failover	= true
 
         geo_location {

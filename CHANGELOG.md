@@ -6,19 +6,22 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* dependencies: switching to Go Modules [GH-2705]
+* `azurerm_application_gateway` - support for the `file_upload_limit_mb` property [GH-2666]
+* `azurerm_application_gateway` - Support for `pick_host_name_from_backend_address` and `pick_host_name_from_backend_http_settings` properties [GH-2658]
 * `azurerm_data_lake_store_file` - support file uploads greater then 4 megabytes [GH-2633]
 * `azurerm_mssql_elasticpool` - support for setting `max_size_bytes` [GH-2346]
 * `azurerm_signalr_service` - exporting `primary_access_key`, `secondary_access_key`, `primary_connection_string` and `secondary_connection_string` and secondary access keys and connection strings [GH-2655]
 * `azurerm_subnet` - support for additional subnet delegation types [GH-2667]
-* `azurerm_application_gateway` - support for the `file_upload_limit_mb` property [GH-2666]
-: Adding upload limit
 
 BUG FIXES:
-* **New Resource:** `` ([#992](https://github.com/terraform-providers/terraform-provider-azurerm/issues/992))
 * `azurerm_batch_pool` - can now set multiple environment variables [GH-2685]
+* `azurerm_cosmosdb_account` - prevent occasional error when deleting the resource [GH-2702]
+* `azurerm_cosmosdb_account` - allow empty values for the `ip_range_filter` property [GH-2713]
 * `azurerm_express_route_circuit` - added the `premium` SKU back to validation logic [GH-2692]
 * `azurerm_firewall` - ensuring rules aren't removed during an update [GH-2663]
-* service bus subscription name's can now start with a digit [GH-2672]
+* `azurerm_notification_hub_namespace` - now polls on creation to handle eventual consistency [GH-2701]
+* `azurerm_service_bus_subscription` - name's can now start with a digit [GH-2672]
 
 ## 1.21.0 (January 11, 2019)
 

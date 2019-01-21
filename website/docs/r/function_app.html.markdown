@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_function_app"
-sidebar_current: "docs-azurerm-resource-function-app"
+sidebar_current: "docs-azurerm-resource-app-service-function-app"
 description: |-
   Manages a Function App.
 
