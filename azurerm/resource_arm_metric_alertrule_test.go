@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
@@ -105,6 +104,36 @@ func TestAccAzureRMMetricAlertRule_virtualMachineCpu(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMetricAlertRule_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_metric_alertrule.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+	enabled := true
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMetricAlertRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMetricAlertRule_virtualMachineCpu(ri, location, enabled),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMetricAlertRuleExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMMetricAlertRule_requiresImport(ri, location, enabled),
+				ExpectError: testRequiresImportError("azurerm_metric_alertrule"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMMetricAlertRule_sqlDatabaseStorage(t *testing.T) {
 	resourceName := "azurerm_metric_alertrule.test"
 	ri := tf.AccRandTimeInt()
@@ -185,10 +214,7 @@ func testCheckAzureRMMetricAlertRuleDestroy(s *terraform.State) error {
 }
 
 func testAccAzureRMMetricAlertRule_virtualMachineCpu(rInt int, location string, enabled bool) string {
-	basicLinuxMachine := testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_explicit(rInt, location)
-
-	enabledString := strconv.FormatBool(enabled)
-
+	template := testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_explicit(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -199,7 +225,7 @@ resource "azurerm_metric_alertrule" "test" {
 
   description = "An alert rule to watch the metric Percentage CPU"
 
-  enabled = %s
+  enabled = %t
 
   resource_id = "${azurerm_virtual_machine.test.id}"
   metric_name = "Percentage CPU"
@@ -225,7 +251,46 @@ resource "azurerm_metric_alertrule" "test" {
     }
   }
 }
-`, basicLinuxMachine, enabledString)
+`, template, enabled)
+}
+
+func testAccAzureRMMetricAlertRule_requiresImport(rInt int, location string, enabled bool) string {
+	template := testAccAzureRMMetricAlertRule_virtualMachineCpu(rInt, location, enabled)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_metric_alertrule" "import" {
+  name                = "${azurerm_metric_alertrule.test.name}"
+  resource_group_name = "${azurerm_metric_alertrule.test.resource_group_name}"
+  location            = "${azurerm_metric_alertrule.test.location}"
+  description         = "${azurerm_metric_alertrule.test.description}"
+  enabled             = "${azurerm_metric_alertrule.test.enabled}"
+
+  resource_id = "${azurerm_virtual_machine.test.id}"
+  metric_name = "Percentage CPU"
+  operator    = "GreaterThan"
+  threshold   = 75
+  aggregation = "Average"
+  period      = "PT5M"
+
+  email_action {
+    send_to_service_owners = false
+
+    custom_emails = [
+      "support@azure.microsoft.com",
+    ]
+  }
+
+  webhook_action {
+    service_uri = "https://requestb.in/18jamc41"
+
+    properties = {
+      severity        = "incredible"
+      acceptance_test = "true"
+    }
+  }
+}
+`, template)
 }
 
 func testAccAzureRMMetricAlertRule_sqlDatabaseStorage(rInt int, location string) string {
