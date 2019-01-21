@@ -66,6 +66,35 @@ func TestAccAzureRMManagementLock_resourceGroupReadOnlyBasic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMManagementLock_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_management_lock.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMManagementLockDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMManagementLock_resourceGroupReadOnlyBasic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMManagementLockExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMManagementLock_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_management_lock"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMManagementLock_resourceGroupReadOnlyComplete(t *testing.T) {
 	resourceName := "azurerm_management_lock.test"
 	ri := tf.AccRandTimeInt()
@@ -322,6 +351,19 @@ resource "azurerm_management_lock" "test" {
   lock_level = "ReadOnly"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMManagementLock_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMManagementLock_resourceGroupReadOnlyBasic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_management_lock" "import" {
+  name       = "${azurerm_management_lock.test.name}"
+  scope      = "${azurerm_management_lock.test.scope}"
+  lock_level = "${azurerm_management_lock.test.lock_level}"
+}
+`, template)
 }
 
 func testAccAzureRMManagementLock_resourceGroupReadOnlyComplete(rInt int, location string) string {
