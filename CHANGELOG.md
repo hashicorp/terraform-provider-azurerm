@@ -22,6 +22,7 @@ BUG FIXES:
 * `azurerm_firewall` - ensuring rules aren't removed during an update [GH-2663]
 * `azurerm_notification_hub_namespace` - now polls on creation to handle eventual consistency [GH-2701]
 * `azurerm_service_bus_subscription` - name's can now start with a digit [GH-2672]
+* `azurerm_security_center` - increase the creation timeout to `30m` [GH-2724]
 
 ## 1.21.0 (January 11, 2019)
 
