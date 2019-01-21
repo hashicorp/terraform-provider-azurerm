@@ -14,9 +14,10 @@ import (
 
 /*
 TODO: refactor this:
-* resource_group_name/workspace_name can become case-sensitive
-* linked_service_properties should be a list
-* uri segment is `linkedServices`
+
+ * resource_group_name/workspace_name can become case-sensitive
+ * linked_service_properties should be a list / removed in favour of the top level element?
+ * we can remove `workspace` from the resource name?
 */
 func resourceArmLogAnalyticsWorkspaceLinkedService() *schema.Resource {
 	return &schema.Resource{
@@ -81,7 +82,7 @@ func resourceArmLogAnalyticsWorkspaceLinkedServiceCreateUpdate(d *schema.Resourc
 	client := meta.(*ArmClient).linkedServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics linked services creation.")
+	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Linked Services creation.")
 
 	resGroup := d.Get("resource_group_name").(string)
 	workspaceName := d.Get("workspace_name").(string)
@@ -100,21 +101,20 @@ func resourceArmLogAnalyticsWorkspaceLinkedServiceCreateUpdate(d *schema.Resourc
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resGroup, workspaceName, lsName, parameters); err != nil {
-		return fmt.Errorf("Error issuing create request for Log Analytics Workspace Linked Service %q/%q (Resource Group %q): %+v", workspaceName, lsName, resGroup, err)
+		return fmt.Errorf("Error creating Linked Service %q (Workspace %q / Resource Group %q): %+v", lsName, workspaceName, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, workspaceName, lsName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Analytics Workspace Linked Service %q/%q (Resource Group %q): %+v", workspaceName, lsName, resGroup, err)
+		return fmt.Errorf("Error retrieving Linked Service %q (Worksppce %q / Resource Group %q): %+v", lsName, workspaceName, resGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Log Analytics Linked Service '%s' (resource group %s) ID", lsName, resGroup)
+		return fmt.Errorf("Cannot read Linked Service %q (Workspace %q / Resource Group %q) ID", lsName, workspaceName, resGroup)
 	}
 
 	d.SetId(*read.ID)
 
 	return resourceArmLogAnalyticsWorkspaceLinkedServiceRead(d, meta)
-
 }
 
 func resourceArmLogAnalyticsWorkspaceLinkedServiceRead(d *schema.ResourceData, meta interface{}) error {
@@ -128,7 +128,7 @@ func resourceArmLogAnalyticsWorkspaceLinkedServiceRead(d *schema.ResourceData, m
 
 	resGroup := id.ResourceGroup
 	workspaceName := id.Path["workspaces"]
-	lsName := id.Path["linkedservices"]
+	lsName := id.Path["linkedServices"]
 
 	resp, err := client.Get(ctx, resGroup, workspaceName, lsName)
 	if err != nil {
@@ -150,22 +150,11 @@ func resourceArmLogAnalyticsWorkspaceLinkedServiceRead(d *schema.ResourceData, m
 
 	linkedServiceProperties := flattenLogAnalyticsWorkspaceLinkedServiceProperties(resp.LinkedServiceProperties)
 	if err := d.Set("linked_service_properties", linkedServiceProperties); err != nil {
-		return fmt.Errorf("Error setting Log Analytics Linked Service Properties: %+v", err)
+		return fmt.Errorf("Error setting `linked_service_properties`: %+v", err)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
 	return nil
-}
-
-func flattenLogAnalyticsWorkspaceLinkedServiceProperties(input *operationalinsights.LinkedServiceProperties) interface{} {
-	properties := make(map[string]interface{})
-
-	// resource id linked service
-	if resourceID := input.ResourceID; resourceID != nil {
-		properties["resource_id"] = interface{}(*resourceID)
-	}
-
-	return interface{}(properties)
 }
 
 func resourceArmLogAnalyticsWorkspaceLinkedServiceDelete(d *schema.ResourceData, meta interface{}) error {
@@ -179,7 +168,7 @@ func resourceArmLogAnalyticsWorkspaceLinkedServiceDelete(d *schema.ResourceData,
 
 	resGroup := id.ResourceGroup
 	workspaceName := id.Path["workspaces"]
-	lsName := id.Path["linkedservices"]
+	lsName := id.Path["linkedServices"]
 
 	resp, err := client.Delete(ctx, resGroup, workspaceName, lsName)
 	if err != nil {
@@ -187,8 +176,23 @@ func resourceArmLogAnalyticsWorkspaceLinkedServiceDelete(d *schema.ResourceData,
 			return nil
 		}
 
-		return fmt.Errorf("Error issuing AzureRM delete request for Log Analytics Linked Service '%s': %+v", lsName, err)
+		return fmt.Errorf("Error deleting Linked Service %q (Workspace %q / Resource Group %q): %+v", lsName, workspaceName, resGroup, err)
 	}
 
 	return nil
+}
+
+func flattenLogAnalyticsWorkspaceLinkedServiceProperties(input *operationalinsights.LinkedServiceProperties) interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	properties := make(map[string]interface{})
+
+	// resource id linked service
+	if resourceID := input.ResourceID; resourceID != nil {
+		properties["resource_id"] = interface{}(*resourceID)
+	}
+
+	return interface{}(properties)
 }

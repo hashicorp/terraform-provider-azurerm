@@ -124,15 +124,48 @@ func testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceExists(resourceName strin
 	}
 }
 
-func testAccAzureRMLogAnalyticsWorkspaceLinkedService_prereqs(rInt int, location string) string {
+func testAccAzureRMLogAnalyticsWorkspaceLinkedService_basic(rInt int, location string) string {
+	template := testAccAzureRMLogAnalyticsWorkspaceLinkedService_template(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_workspace_linked_service" "test" {
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  workspace_name      = "${azurerm_log_analytics_workspace.test.name}"
+
+  linked_service_properties {
+    resource_id = "${azurerm_automation_account.test.id}"
+  }
+}
+`, template)
+}
+
+func testAccAzureRMLogAnalyticsWorkspaceLinkedService_complete(rInt int, location string) string {
+	template := testAccAzureRMLogAnalyticsWorkspaceLinkedService_template(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_workspace_linked_service" "test" {
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  workspace_name      = "${azurerm_log_analytics_workspace.test.name}"
+  linked_service_name = "automation"
+
+  linked_service_properties {
+    resource_id = "${azurerm_automation_account.test.id}"
+  }
+}
+`, template)
+}
+
+func testAccAzureRMLogAnalyticsWorkspaceLinkedService_template(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]v"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_automation_account" "test" {
-  name                = "acctestAutomation-%[1]d"
+  name                = "acctestAutomation-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -146,42 +179,11 @@ resource "azurerm_automation_account" "test" {
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctestLAW-%[1]d"
+  name                = "acctestLAW-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "PerGB2018"
   retention_in_days   = 30
 }
-`, rInt, location)
-}
-
-func testAccAzureRMLogAnalyticsWorkspaceLinkedService_basic(rInt int, location string) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_log_analytics_workspace_linked_service" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  workspace_name      = "${azurerm_log_analytics_workspace.test.name}"
-
-  linked_service_properties {
-    resource_id = "${azurerm_automation_account.test.id}"
-  }
-}
-`, testAccAzureRMLogAnalyticsWorkspaceLinkedService_prereqs(rInt, location))
-}
-
-func testAccAzureRMLogAnalyticsWorkspaceLinkedService_complete(rInt int, location string) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_log_analytics_workspace_linked_service" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  workspace_name      = "${azurerm_log_analytics_workspace.test.name}"
-  linked_service_name = "automation"
-
-  linked_service_properties {
-    resource_id = "${azurerm_automation_account.test.id}"
-  }
-}
-`, testAccAzureRMLogAnalyticsWorkspaceLinkedService_prereqs(rInt, location))
+`, rInt, location, rInt, rInt)
 }
