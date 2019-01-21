@@ -37,6 +37,36 @@ func TestAccAzureRMKeyVaultCertificate_basicImportPFX(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKeyVaultCertificate_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_key_vault_certificate.test"
+	rs := acctest.RandString(6)
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVaultCertificate_basicImportPFX(rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultCertificateExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "certificate_data"),
+				),
+			},
+			{
+				Config:      testAccAzureRMKeyVaultCertificate_requiresImport(rs, location),
+				ExpectError: testRequiresImportError("azurerm_key_vault_certificate"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMKeyVaultCertificate_disappears(t *testing.T) {
 	resourceName := "azurerm_key_vault_certificate.test"
 	rs := acctest.RandString(6)
@@ -329,6 +359,39 @@ resource "azurerm_key_vault_certificate" "test" {
   }
 }
 `, rString, location, rString, rString)
+}
+
+func testAccAzureRMKeyVaultCertificate_requiresImport(rString string, location string) string {
+	template := testAccAzureRMKeyVaultCertificate_basicImportPFX(rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_key_vault_certificate" "import" {
+  name      = "${azurerm_key_vault_certificate.test.name}"
+  vault_uri = "${azurerm_key_vault_certificate.test.vault_uri}"
+
+  certificate {
+    contents = "${base64encode(file("testdata/keyvaultcert.pfx"))}"
+    password = ""
+  }
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = false
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+  }
+}`, template)
 }
 
 func testAccAzureRMKeyVaultCertificate_basicGenerate(rString string, location string) string {
