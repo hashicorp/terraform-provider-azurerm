@@ -13,7 +13,7 @@ import (
 func TestAccAzureRMMariaDbDatabase_basic(t *testing.T) {
 	resourceName := "azurerm_mariadb_database.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMariaDbDatabase_basic(ri, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -21,12 +21,17 @@ func TestAccAzureRMMariaDbDatabase_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMariaDbDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMariaDbDatabase_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDbDatabaseExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "charset", "utf8"),
 					resource.TestCheckResourceAttr(resourceName, "collation", "utf8_general_ci"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
