@@ -12,6 +12,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+/*
+TODO: refactor this:
+* resource_group_name/workspace_name can become case-sensitive
+* linked_service_properties should be a list
+* uri segment is `linkedServices`
+*/
 func resourceArmLogAnalyticsWorkspaceLinkedService() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmLogAnalyticsWorkspaceLinkedServiceCreateUpdate,
@@ -35,11 +41,13 @@ func resourceArmLogAnalyticsWorkspaceLinkedService() *schema.Resource {
 			},
 
 			"linked_service_name": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				Default:      "automation",
-				ValidateFunc: validation.StringInSlice([]string{"automation"}, false),
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  "automation",
+				ValidateFunc: validation.StringInSlice([]string{
+					"automation",
+				}, false),
 			},
 
 			"linked_service_properties": {
@@ -135,7 +143,7 @@ func resourceArmLogAnalyticsWorkspaceLinkedServiceRead(d *schema.ResourceData, m
 		return nil
 	}
 
-	d.Set("name", *resp.Name)
+	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("workspace_name", workspaceName)
 	d.Set("linked_service_name", lsName)
