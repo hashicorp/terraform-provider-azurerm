@@ -737,6 +737,34 @@ func resourceArmApplicationGateway() *schema.Resource {
 				},
 			},
 
+			"custom_error_configurations": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"status_code": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.HTTPStatus403),
+								string(network.HTTPStatus502),
+							}, true),
+						},
+
+						"custom_error_page_url": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
