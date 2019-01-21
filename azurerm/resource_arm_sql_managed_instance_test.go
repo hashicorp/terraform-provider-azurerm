@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
@@ -10,55 +9,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
-
-func init() {
-	resource.AddTestSweepers("azurerm_sql_managed_instance", &resource.Sweeper{
-		Name: "azurerm_sql_managed_instance",
-		F:    testSweepSQLMiServer,
-	})
-}
-
-func testSweepSQLMiServer(region string) error {
-	armClient, err := buildConfigForSweepers()
-	if err != nil {
-		return err
-	}
-
-	client := (*armClient).sqlMiServersClient
-	ctx := (*armClient).StopContext
-
-	log.Printf("Retrieving the SQL Managed Instance..")
-	results, err := client.List(ctx)
-	if err != nil {
-		return fmt.Errorf("Error Listing on SQL Managed Instance: %+v", err)
-	}
-
-	for _, server := range results.Values() {
-		if !shouldSweepAcceptanceTestResource(*server.Name, *server.Location, region) {
-			continue
-		}
-
-		resourceId, err := parseAzureResourceID(*server.ID)
-		if err != nil {
-			return err
-		}
-
-		resourceGroup := resourceId.ResourceGroup
-		name := resourceId.Path["servers"]
-
-		log.Printf("Deleting SQL Managed Instance '%s' in Resource Group '%s'", name, resourceGroup)
-		future, err := client.Delete(ctx, resourceGroup, name)
-		if err != nil {
-			return err
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
 
 func TestAccAzureRMSqlMiServer_basic(t *testing.T) {
 	resourceName := "azurerm_sql_managed_instance.test"
