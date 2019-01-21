@@ -108,6 +108,37 @@ func TestAccAzureRMKubernetesCluster_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKubernetesCluster_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_kubernetes_cluster.test"
+	ri := tf.AccRandTimeInt()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesCluster_basic(ri, clientId, clientSecret, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMKubernetesCluster_requiresImport(ri, clientId, clientSecret, location),
+				ExpectError: testRequiresImportError("azurerm_kubernetes_cluster"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMKubernetesCluster_roleBasedAccessControl(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
 	ri := tf.AccRandTimeInt()
@@ -560,6 +591,31 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, rInt, location, rInt, rInt, clientId, clientSecret)
+}
+
+func testAccAzureRMKubernetesCluster_requiresImport(rInt int, clientId, clientSecret, location string) string {
+	template := testAccAzureRMKubernetesCluster_basic(rInt, clientId, clientSecret, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_kubernetes_cluster" "import" {
+  name                = "${azurerm_kubernetes_cluster.test.name}"
+  location            = "${azurerm_kubernetes_cluster.test.location}"
+  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+  dns_prefix          = "${azurerm_kubernetes_cluster.test.dns_prefix}"
+
+  agent_pool_profile {
+    name    = "default"
+    count   = "1"
+    vm_size = "Standard_DS2_v2"
+  }
+
+  service_principal {
+    client_id     = "%s"
+    client_secret = "%s"
+  }
+}
+`, template, clientId, clientSecret)
 }
 
 func testAccAzureRMKubernetesCluster_linuxProfile(rInt int, clientId string, clientSecret string, location string) string {
