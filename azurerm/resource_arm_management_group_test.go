@@ -34,6 +34,33 @@ func TestAccAzureRMManagementGroup_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMManagementGroup_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_management_group.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAzureRMManagementGroup_basic(),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMManagementGroupExists(resourceName),
+				),
+			},
+			{
+				Config:      testAzureRMManagementGroup_requiresImport(),
+				ExpectError: testRequiresImportError("azurerm_app_service_custom_hostname_binding"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMManagementGroup_nested(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -237,6 +264,16 @@ func testCheckAzureRMManagementGroupDestroy(s *terraform.State) error {
 func testAzureRMManagementGroup_basic() string {
 	return fmt.Sprintf(`
 resource "azurerm_management_group" "test" {}
+`)
+}
+
+func testAzureRMManagementGroup_requiresImport() string {
+	return fmt.Sprintf(`
+resource "azurerm_management_group" "test" {}
+
+resource "azurerm_management_group" "import" {
+  group_id = "${azurerm_management_group.test.group_id}"
+}
 `)
 }
 
