@@ -21,10 +21,11 @@ import (
 func TestAccAzureRMMonitorLogProfile(t *testing.T) {
 	testCases := map[string]map[string]func(t *testing.T){
 		"basic": {
-			"basic":      testAccAzureRMMonitorLogProfile_basic,
-			"servicebus": testAccAzureRMMonitorLogProfile_servicebus,
-			"complete":   testAccAzureRMMonitorLogProfile_complete,
-			"disappears": testAccAzureRMMonitorLogProfile_disappears,
+			"basic":          testAccAzureRMMonitorLogProfile_basic,
+			"requiresImport": testAccAzureRMMonitorLogProfile_requiresImport,
+			"servicebus":     testAccAzureRMMonitorLogProfile_servicebus,
+			"complete":       testAccAzureRMMonitorLogProfile_complete,
+			"disappears":     testAccAzureRMMonitorLogProfile_disappears,
 		},
 		"datasource": {
 			"eventhub":       testAccDataSourceAzureRMMonitorLogProfile_eventhub,
@@ -65,6 +66,36 @@ func testAccAzureRMMonitorLogProfile_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testAccAzureRMMonitorLogProfile_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_monitor_log_profile.test"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(10)
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLogProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMonitorLogProfile_basicConfig(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogProfileExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMMonitorLogProfile_requiresImportConfig(ri, rs, location),
+				ExpectError: testRequiresImportError("azurerm_monitor_log_profile"),
 			},
 		},
 	})
@@ -234,6 +265,25 @@ resource "azurerm_monitor_log_profile" "test" {
   }
 }
 `, rInt, location, rString, rInt, location)
+}
+
+func testAccAzureRMMonitorLogProfile_requiresImportConfig(rInt int, rString string, location string) string {
+	template := testAccAzureRMMonitorLogProfile_basicConfig(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_monitor_log_profile" "import" {
+  name               = "${azurerm_monitor_log_profile.test.name}"
+  categories         = "${azurerm_monitor_log_profile.test.categories}"
+  locations          = "${azurerm_monitor_log_profile.test.locations}"
+  storage_account_id = "${azurerm_monitor_log_profile.test.storage_account_id}"
+
+  retention_policy {
+    enabled = true
+    days    = 7
+  }
+}
+`, template)
 }
 
 func testAccAzureRMMonitorLogProfile_servicebusConfig(rInt int, rString string, location string) string {
