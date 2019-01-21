@@ -2178,21 +2178,23 @@ func flattenApplicationGatewayWafConfig(input *network.ApplicationGatewayWebAppl
 	return results
 }
 
-func expandApplicationGatewayCustomErrorConfigurations(d *schema.ResourceData) *network.ApplicationGatewayCustomError {
+func expandApplicationGatewayCustomErrorConfigurations(d *schema.ResourceData) *[]network.ApplicationGatewayCustomError {
 	vs := d.Get("custom_error_configurations").([]interface{})
-	results := make([]network.ApplicationGatewayCustomErrorConfigurations, 0)
+	results := make([]network.ApplicationGatewayCustomError, 0)
 
 	for _, raw := range vs {
 		v := raw.(map[string]interface{})
 		statusCode := v["status_code"].(string)
 		customErrorPageUrl := v["custom_error_page_url"].(string)
 
-		output := &network.ApplicationGatewayCustomErrorConfigurations{
+		output := network.ApplicationGatewayCustomError{
 			StatusCode:         network.ApplicationGatewayCustomErrorStatusCode(statusCode),
-			CustomErrorPageURL: string(customErrorPageUrl),
+			CustomErrorPageURL: utils.String(customErrorPageUrl),
 		}
 		results = append(results, output)
 	}
+
+	return &results
 }
 
 func flattenApplicationGatewayCustomErrorConfigurations(input *[]network.ApplicationGatewayCustomError) []interface{} {
@@ -2204,13 +2206,8 @@ func flattenApplicationGatewayCustomErrorConfigurations(input *[]network.Applica
 	for _, v := range *input {
 		output := map[string]interface{}{}
 
-		if v.StatusCode != nil {
-			output["status_code"] = *v.StatusCode
-		}
-
-		if v.CustomErrorPageURL != nil {
-			output["custom_error_page_url"] = *v.CustomErrorPageURL
-		}
+		output["status_code"] = string(v.StatusCode)
+		output["custom_error_page_url"] = *v.CustomErrorPageURL
 
 		results = append(results, output)
 	}
