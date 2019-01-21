@@ -198,7 +198,7 @@ type ArmClient struct {
 	msSqlElasticPoolsClient              MsSql.ElasticPoolsClient
 	sqlFirewallRulesClient               sql.FirewallRulesClient
 	sqlServersClient                     sql.ServersClient
-	sqlMiServersClient					 sql.ManagedInstancesClient
+	sqlMiServersClient                   sql.ManagedInstancesClient
 	sqlServerAzureADAdministratorsClient sql.ServerAzureADAdministratorsClient
 	sqlVirtualNetworkRulesClient         sql.VirtualNetworkRulesClient
 
