@@ -198,6 +198,7 @@ type ArmClient struct {
 	msSqlElasticPoolsClient              MsSql.ElasticPoolsClient
 	sqlFirewallRulesClient               sql.FirewallRulesClient
 	sqlServersClient                     sql.ServersClient
+	sqlMiServersClient					 sql.ManagedInstancesClient
 	sqlServerAzureADAdministratorsClient sql.ServerAzureADAdministratorsClient
 	sqlVirtualNetworkRulesClient         sql.VirtualNetworkRulesClient
 
@@ -754,6 +755,10 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	sqlSrvClient := sql.NewServersClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&sqlSrvClient.Client, auth)
 	c.sqlServersClient = sqlSrvClient
+
+	sqlMiSrvClient := sql.NewManagedInstancesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&sqlMiSrvClient.Client, auth)
+	c.sqlMiServersClient = sqlMiSrvClient
 
 	sqlADClient := sql.NewServerAzureADAdministratorsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&sqlADClient.Client, auth)
