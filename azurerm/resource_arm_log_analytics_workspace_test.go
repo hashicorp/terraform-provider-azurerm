@@ -76,6 +76,35 @@ func TestAccAzureRMLogAnalyticsWorkspace_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLogAnalyticsWorkspace_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_log_analytics_workspace.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLogAnalyticsWorkspace_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogAnalyticsWorkspaceExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMLogAnalyticsWorkspace_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_log_analytics_workspace"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMLogAnalyticsWorkspace_complete(t *testing.T) {
 	resourceName := "azurerm_log_analytics_workspace.test"
 	ri := tf.AccRandTimeInt()
@@ -169,6 +198,20 @@ resource "azurerm_log_analytics_workspace" "test" {
   sku                 = "PerGB2018"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMLogAnalyticsWorkspace_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMLogAnalyticsWorkspace_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_workspace" "import" {
+  name                = "${azurerm_log_analytics_workspace.test.name}"
+  location            = "${azurerm_log_analytics_workspace.test.location}"
+  resource_group_name = "${azurerm_log_analytics_workspace.test.resource_group_name}"
+  sku                 = "PerGB2018"
+}
+`, template)
 }
 
 func testAccAzureRMLogAnalyticsWorkspace_complete(rInt int, location string) string {

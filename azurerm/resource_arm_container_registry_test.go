@@ -444,7 +444,7 @@ func testCheckAzureRMContainerRegistryGeoreplications(resourceName string, sku s
 		expectedLocationsCount := len(expectedLocations) + 1 // the main location is returned by the API as a geolocation for replication.
 
 		// if Sku is not premium, listing the geo-replications locations returns an empty list
-		if strings.ToLower(sku) != strings.ToLower(string(containerregistry.Premium)) {
+		if !strings.EqualFold(sku, string(containerregistry.Premium)) {
 			expectedLocationsCount = 0
 		}
 

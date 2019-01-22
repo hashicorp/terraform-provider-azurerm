@@ -71,6 +71,35 @@ func TestAccAzureRMLoadBalancer_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLoadBalancer_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	var lb network.LoadBalancer
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLoadBalancer_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
+				),
+			},
+			{
+				Config:      testAccAzureRMLoadBalancer_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_lb"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMLoadBalancer_standard(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := tf.AccRandTimeInt()
@@ -254,7 +283,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_lb" "test" {
-  name                = "arm-test-loadbalancer-%d"
+  name                = "acctest-loadbalancer-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -264,6 +293,24 @@ resource "azurerm_lb" "test" {
   }
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMLoadBalancer_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMLoadBalancer_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_lb" "import" {
+  name                = "${azurerm_lb.test.name}"
+  location            = "${azurerm_lb.test.location}"
+  resource_group_name = "${azurerm_lb.test.resource_group_name}"
+
+  tags {
+    Environment = "production"
+    Purpose     = "AcceptanceTests"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMLoadBalancer_standard(rInt int, location string) string {
@@ -295,7 +342,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_lb" "test" {
-  name                = "arm-test-loadbalancer-%d"
+  name                = "acctest-loadbalancer-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -328,7 +375,7 @@ resource "azurerm_public_ip" "test1" {
 }
 
 resource "azurerm_lb" "test" {
-  name                = "arm-test-loadbalancer-%d"
+  name                = "acctest-loadbalancer-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -367,7 +414,7 @@ resource "azurerm_public_ip" "test1" {
 }
 
 resource "azurerm_lb" "test" {
-  name                = "arm-test-loadbalancer-%d"
+  name                = "acctest-loadbalancer-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -394,7 +441,7 @@ resource "azurerm_public_ip" "test" {
 }
 
 resource "azurerm_lb" "test" {
-  name                = "arm-test-loadbalancer-%d"
+  name                = "acctest-loadbalancer-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 

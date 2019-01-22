@@ -37,6 +37,35 @@ func TestAccAzureRMLocalNetworkGateway_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLocalNetworkGateway_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_local_network_gateway.test"
+
+	rInt := tf.AccRandTimeInt()
+	location := testLocation()
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLocalNetworkGatewayConfig_basic(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLocalNetworkGatewayExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMLocalNetworkGatewayConfig_requiresImport(rInt, location),
+				ExpectError: testRequiresImportError("azurerm_local_network_gateway"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMLocalNetworkGateway_disappears(t *testing.T) {
 	resourceName := "azurerm_local_network_gateway.test"
 	rInt := tf.AccRandTimeInt()
@@ -331,6 +360,21 @@ resource "azurerm_local_network_gateway" "test" {
   address_space       = ["127.0.0.0/8"]
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMLocalNetworkGatewayConfig_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMLocalNetworkGatewayConfig_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_local_network_gateway" "import" {
+  name                = "${azurerm_local_network_gateway.test.name}"
+  location            = "${azurerm_local_network_gateway.test.location}"
+  resource_group_name = "${azurerm_local_network_gateway.test.resource_group_name}"
+  gateway_address     = "127.0.0.1"
+  address_space       = ["127.0.0.0/8"]
+}
+`, template)
 }
 
 func testAccAzureRMLocalNetworkGatewayConfig_tags(rInt int, location string) string {
