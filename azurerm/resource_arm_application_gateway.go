@@ -33,6 +33,11 @@ func resourceArmApplicationGateway() *schema.Resource {
 
 			"location": locationSchema(),
 
+			"enable_http2": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"resource_group_name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -749,6 +754,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	}
 
 	location := azureRMNormalizeLocation(d.Get("location").(string))
+	enablehttp2 := d.Get("enable_http2").(bool)
 	tags := d.Get("tags").(map[string]interface{})
 
 	// Gateway ID is needed to link sub-resources together in expand functions
@@ -771,11 +777,13 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 
 	gateway := network.ApplicationGateway{
 		Location: utils.String(location),
-		Tags:     expandTags(tags),
+
+		Tags: expandTags(tags),
 		ApplicationGatewayPropertiesFormat: &network.ApplicationGatewayPropertiesFormat{
 			AuthenticationCertificates:    authenticationCertificates,
 			BackendAddressPools:           backendAddressPools,
 			BackendHTTPSettingsCollection: backendHTTPSettingsCollection,
+			EnableHTTP2:                   utils.Bool(enablehttp2),
 			FrontendIPConfigurations:      frontendIPConfigurations,
 			FrontendPorts:                 frontendPorts,
 			GatewayIPConfigurations:       gatewayIPConfigurations,
@@ -839,6 +847,7 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 
 	d.Set("name", applicationGateway.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("enable_http2", applicationGateway.EnableHTTP2)
 	if location := applicationGateway.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
