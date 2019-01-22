@@ -55,7 +55,7 @@ func TestAccAzureRMManagementGroup_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAzureRMManagementGroup_requiresImport(),
-				ExpectError: testRequiresImportError("azurerm_app_service_custom_hostname_binding"),
+				ExpectError: testRequiresImportError("azurerm_management_group"),
 			},
 		},
 	})
