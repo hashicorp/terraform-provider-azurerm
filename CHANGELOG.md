@@ -15,6 +15,8 @@ IMPROVEMENTS:
 * `azurerm_subnet` - support for additional subnet delegation types [GH-2667]
 
 BUG FIXES:
+
+* `azurerm_azuread_application` - fixing a bug where `reply_uris` was set incorrectly [GH-2729]
 * `azurerm_batch_pool` - can now set multiple environment variables [GH-2685]
 * `azurerm_cosmosdb_account` - prevent occasional error when deleting the resource [GH-2702]
 * `azurerm_cosmosdb_account` - allow empty values for the `ip_range_filter` property [GH-2713]
