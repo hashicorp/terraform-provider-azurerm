@@ -15,6 +15,7 @@ install:
 - make tools
 
 script:
+- go mod verify
 - make test
 - make lint
 - make website-test
