@@ -16,6 +16,7 @@ install:
 
 script:
 - go mod verify
+- go mod vendor
 - make test
 - make lint
 - make website-test
