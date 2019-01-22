@@ -89,7 +89,7 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Waiting"},
 		Target:     []string{"Populated"},
-		Timeout:    15 * time.Minute,
+		Timeout:    30 * time.Minute,
 		MinTimeout: 30 * time.Second,
 		Refresh: func() (interface{}, string, error) {
 

@@ -34,6 +34,34 @@ func TestAccAzureRMLogAnalyticsSolution_basicContainerMonitoring(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLogAnalyticsSolution_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_log_analytics_solution.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLogAnalyticsSolutionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLogAnalyticsSolution_containerMonitoring(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogAnalyticsSolutionExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMLogAnalyticsSolution_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_log_analytics_solution"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMLogAnalyticsSolution_basicSecurity(t *testing.T) {
 	resourceName := "azurerm_log_analytics_solution.test"
 	ri := tf.AccRandTimeInt()
@@ -141,6 +169,26 @@ resource "azurerm_log_analytics_solution" "test" {
   }
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMLogAnalyticsSolution_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMLogAnalyticsSolution_containerMonitoring(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_solution" "import" {
+  solution_name         = "${azurerm_log_analytics_solution.test.solution_name}"
+  location              = "${azurerm_log_analytics_solution.test.location}"
+  resource_group_name   = "${azurerm_log_analytics_solution.test.resource_group_name}"
+  workspace_resource_id = "${azurerm_log_analytics_solution.test.workspace_resource_id}"
+  workspace_name        = "${azurerm_log_analytics_solution.test.workspace_name}"
+
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/ContainerInsights"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMLogAnalyticsSolution_security(rInt int, location string) string {

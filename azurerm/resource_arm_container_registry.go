@@ -168,7 +168,7 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 	}
 
 	if v, ok := d.GetOk("storage_account_id"); ok {
-		if strings.ToLower(sku) != strings.ToLower(string(containerregistry.Classic)) {
+		if !strings.EqualFold(sku, string(containerregistry.Classic)) {
 			return fmt.Errorf("`storage_account_id` can only be specified for a Classic (unmanaged) Sku.")
 		}
 
@@ -176,7 +176,7 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 			ID: utils.String(v.(string)),
 		}
 	} else {
-		if strings.ToLower(sku) == strings.ToLower(string(containerregistry.Classic)) {
+		if strings.EqualFold(sku, string(containerregistry.Classic)) {
 			return fmt.Errorf("`storage_account_id` must be specified for a Classic (unmanaged) Sku.")
 		}
 	}

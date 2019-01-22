@@ -98,7 +98,7 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 			//so lets only allow it to be set if the SKU is premium
 			if _, ok := d.GetOk("capacity"); ok {
 				sku := d.Get("sku").(string)
-				if strings.ToLower(sku) != strings.ToLower(string(servicebus.Premium)) {
+				if strings.EqualFold(sku, string(servicebus.Premium)) {
 					return fmt.Errorf("`capacity` can only be set for a Premium SKU")
 				}
 			}

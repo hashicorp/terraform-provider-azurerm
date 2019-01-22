@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -104,6 +105,19 @@ func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) erro
 	log.Print("[INFO] preparing arguments for AzureRM KeyVault Key creation.")
 	name := d.Get("name").(string)
 	keyVaultBaseUrl := d.Get("vault_uri").(string)
+
+	if requireResourcesToBeImported {
+		existing, err := client.GetKey(ctx, keyVaultBaseUrl, name, "")
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Key %q (Key Vault %q): %s", name, keyVaultBaseUrl, err)
+			}
+		}
+
+		if existing.Key != nil && existing.Key.Kid != nil && *existing.Key.Kid != "" {
+			return tf.ImportAsExistsError("azurerm_key_vault_key", *existing.Key.Kid)
+		}
+	}
 
 	keyType := d.Get("key_type").(string)
 	keyOptions := expandKeyVaultKeyOptions(d)

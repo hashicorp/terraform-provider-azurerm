@@ -105,7 +105,7 @@ func resourceArmLogicAppTriggerHttpRequestCreateUpdate(d *schema.ResourceData, m
 
 	logicAppId := d.Get("logic_app_id").(string)
 	name := d.Get("name").(string)
-	if err := resourceLogicAppTriggerUpdate(d, meta, logicAppId, name, trigger); err != nil {
+	if err := resourceLogicAppTriggerUpdate(d, meta, logicAppId, name, trigger, "azurerm_logic_app_trigger_http_request"); err != nil {
 		return err
 	}
 
