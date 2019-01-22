@@ -151,6 +151,8 @@ The following arguments are supported:
 
 * `waf_configuration` - (Optional) A `waf_configuration` block as defined below.
 
+* `custom_error_configurations` - (Optional) One or more `custom_error_configurations` blocks as defined below.
+
 ---
 
 A `authentication_certificate` block supports the following:
@@ -341,6 +343,14 @@ A `waf_configuration` block supports the following:
 
 * `file_upload_limit_mb` - (Optional) The File Upload Limit in MB. Accepted values are in the range `1`MB to `500`MB. Defaults to `100`MB.
 
+---
+
+A `custom_error_configurations` block supports the following:
+
+* `status_code` - (Required) Status code of the application gateway customer error. Possible values are `HTTPStatus403` and `HTTPStatus502`
+
+* `custom_error_page_url` - (Required) Error page URL of the application gateway customer error.
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -370,6 +380,8 @@ The following attributes are exported:
 * `ssl_certificate` - A list of `ssl_certificate` blocks as defined below.
 
 * `url_path_map` - A list of `url_path_map` blocks as defined below.
+
+* `custom_error_configurations` - A list of `custom_error_configurations` blocks as defined below.
 
 ---
 
@@ -476,6 +488,16 @@ A `url_path_map` block exports the following:
 * `default_backend_http_settings_id` - The ID of the Default Backend HTTP Settings Collection.
 
 * `path_rule` - A list of `path_rule` blocks as defined above.
+
+---
+
+A `custom_error_configurations` block exports the following:
+
+* `id` - The ID of the Custom Error Configuration.
+
+* `status_code` - The status code of the application gateway custom error.
+
+* `custom_error_page_url` - The error page URL of the application gateway custom error.
 
 ## Import
 
