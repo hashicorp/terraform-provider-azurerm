@@ -103,6 +103,44 @@ func TestAccAzureRMLoadBalancerRule_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLoadBalancerRule_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	var lb network.LoadBalancer
+	ri := tf.AccRandTimeInt()
+	lbRuleName := fmt.Sprintf("LbRule-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
+	location := testLocation()
+
+	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
+	lbRule_id := fmt.Sprintf(
+		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/loadBalancingRules/%s",
+		subscriptionID, ri, ri, lbRuleName)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLoadBalancerRule_basic(ri, lbRuleName, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
+					testCheckAzureRMLoadBalancerRuleExists(lbRuleName, &lb),
+					resource.TestCheckResourceAttr(
+						"azurerm_lb_rule.test", "id", lbRule_id),
+				),
+			},
+			{
+				Config:      testAccAzureRMLoadBalancerRule_requiresImport(ri, lbRuleName, location),
+				ExpectError: testRequiresImportError("azurerm_lb_rule"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMLoadBalancerRule_removal(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := tf.AccRandTimeInt()
@@ -353,6 +391,24 @@ resource "azurerm_lb_rule" "test" {
   frontend_ip_configuration_name = "one-%d"
 }
 `, rInt, location, rInt, rInt, rInt, lbRuleName, rInt)
+}
+
+func testAccAzureRMLoadBalancerRule_requiresImport(rInt int, name string, location string) string {
+	template := testAccAzureRMLoadBalancerRule_basic(rInt, name, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_lb_rule" "import" {
+  name                           = "${azurerm_lb_rule.test.name}"
+  location                       = "${azurerm_lb_rule.test.location}"
+  resource_group_name            = "${azurerm_lb_rule.test.resource_group_name}"
+  loadbalancer_id                = "${azurerm_lb_rule.test.loadbalancer_id}"
+  frontend_ip_configuration_name = "${azurerm_lb_rule.test.frontend_ip_configuration_name}"
+  protocol                       = "Tcp"
+  frontend_port                  = 3389
+  backend_port                   = 3389
+}
+`, template)
 }
 
 func testAccAzureRMLoadBalancerRule_removal(rInt int, location string) string {

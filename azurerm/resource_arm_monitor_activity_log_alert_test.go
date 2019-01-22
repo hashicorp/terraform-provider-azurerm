@@ -15,7 +15,7 @@ import (
 func TestAccAzureRMMonitorActivityLogAlert_basic(t *testing.T) {
 	resourceName := "azurerm_monitor_activity_log_alert.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMonitorActivityLogAlert_basic(ri, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -23,7 +23,7 @@ func TestAccAzureRMMonitorActivityLogAlert_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorActivityLogAlertDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMonitorActivityLogAlert_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorActivityLogAlertExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
@@ -37,6 +37,35 @@ func TestAccAzureRMMonitorActivityLogAlert_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMMonitorActivityLogAlert_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_monitor_activity_log_alert.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMonitorActivityLogAlertDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMonitorActivityLogAlert_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorActivityLogAlertExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMMonitorActivityLogAlert_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_monitor_activity_log_alert"),
 			},
 		},
 	})
@@ -201,6 +230,23 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   }
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMMonitorActivityLogAlert_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMMonitorActivityLogAlert_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_monitor_activity_log_alert" "import" {
+  name                = "${azurerm_monitor_activity_log_alert.test.name}"
+  resource_group_name = "${azurerm_monitor_activity_log_alert.test.resource_group_name}"
+  scopes              = ["${azurerm_resource_group.test.id}"]
+
+  criteria {
+    category = "Recommendation"
+  }
+}
+`, template)
 }
 
 func testAccAzureRMMonitorActivityLogAlert_singleResource(rInt int, rString, location string) string {

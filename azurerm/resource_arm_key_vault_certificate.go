@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -302,8 +303,21 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 
 	name := d.Get("name").(string)
 	keyVaultBaseUrl := d.Get("vault_uri").(string)
-	tags := d.Get("tags").(map[string]interface{})
 
+	if requireResourcesToBeImported {
+		existing, err := client.GetCertificate(ctx, keyVaultBaseUrl, name, "")
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Certificate %q (Key Vault %q): %s", name, keyVaultBaseUrl, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_key_vault_certificate", *existing.ID)
+		}
+	}
+
+	tags := d.Get("tags").(map[string]interface{})
 	policy := expandKeyVaultCertificatePolicy(d)
 
 	if v, ok := d.GetOk("certificate"); ok {
