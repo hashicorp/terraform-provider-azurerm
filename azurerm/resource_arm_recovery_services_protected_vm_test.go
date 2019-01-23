@@ -156,6 +156,7 @@ func testCheckAzureRMRecoveryServicesProtectedVmExists(resourceName string) reso
 }
 
 func testAccAzureRMRecoveryServicesProtectedVm_base(rInt int, location string) string {
+	rstr := strconv.Itoa(rInt)
 	return fmt.Sprintf(` 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -281,7 +282,7 @@ resource "azurerm_recovery_services_protection_policy_vm" "test" {
     count = 10
   }
 }
-`, rInt, location, strconv.Itoa(rInt)[0:5])
+`, rInt, location, rstr[len(rstr)-5:] )
 }
 
 func testAccAzureRMRecoveryServicesProtectedVm_basic(rInt int, location string) string {
