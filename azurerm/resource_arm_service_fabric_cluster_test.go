@@ -190,6 +190,44 @@ func TestAccAzureRMServiceFabricCluster_reverseProxyCertificate(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "fabric_settings.0.name", "Security"),
 					resource.TestCheckResourceAttr(resourceName, "fabric_settings.0.parameters.ClusterProtectionLevel", "EncryptAndSign"),
 					resource.TestCheckResourceAttr(resourceName, "management_endpoint", "https://example:80"),
+					resource.TestCheckResourceAttr(resourceName, "node_type.0.reverse_proxy_endpoint_port", "19081"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMServiceFabricCluster_reverseProxyNotSet(t *testing.T) {
+	resourceName := "azurerm_service_fabric_cluster.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+	config := testAccAzureRMServiceFabricCluster_basic(ri, location, 3)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceFabricClusterExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "management_endpoint", "http://example:80"),
+					resource.TestCheckResourceAttr(resourceName, "add_on_features.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "certificate.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "reverse_proxy_certificate.#", "0"),
+					resource.TestCheckNoResourceAttr(resourceName, "node_type.0.reverse_proxy_endpoint_port"),
+					resource.TestCheckResourceAttr(resourceName, "client_certificate_thumbprint.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "azure_active_directory.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "diagnostics_config.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "node_type.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "node_type.0.instance_count", "3"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 			{
