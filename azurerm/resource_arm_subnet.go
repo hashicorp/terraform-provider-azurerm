@@ -317,23 +317,18 @@ func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 
 func expandSubnetServiceEndpoints(d *schema.ResourceData) []network.ServiceEndpointPropertiesFormat {
 	serviceEndpoints := d.Get("service_endpoints").([]interface{})
-	enpoints := make([]network.ServiceEndpointPropertiesFormat, 0)
+	endpoints := make([]network.ServiceEndpointPropertiesFormat, 0)
 
 	for _, svcEndpointRaw := range serviceEndpoints {
-		if svcEndpointRaw == nil {
-			continue
+		if svc, ok := svcEndpointRaw.(string); ok {
+			endpoint := network.ServiceEndpointPropertiesFormat{
+				Service: &svc,
+			}
+			endpoints = append(endpoints, endpoint)
 		}
-
-		svc := svcEndpointRaw.(string)
-
-		endpoint := network.ServiceEndpointPropertiesFormat{
-			Service: &svc,
-		}
-
-		enpoints = append(enpoints, endpoint)
 	}
 
-	return enpoints
+	return endpoints
 }
 
 func flattenSubnetServiceEndpoints(serviceEndpoints *[]network.ServiceEndpointPropertiesFormat) []string {
@@ -344,11 +339,9 @@ func flattenSubnetServiceEndpoints(serviceEndpoints *[]network.ServiceEndpointPr
 	}
 
 	for _, endpoint := range *serviceEndpoints {
-		if endpoint.Service == nil {
-			continue
+		if endpoint.Service != nil {
+			endpoints = append(endpoints, *endpoint.Service)
 		}
-
-		endpoints = append(endpoints, *endpoint.Service)
 	}
 
 	return endpoints
