@@ -75,7 +75,7 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`^(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\/([1-2][0-9]|3[0-2]))?\b[,]?){1,}$`),
+					regexp.MustCompile(`^(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\/([1-2][0-9]|3[0-2]))?\b[,]?)*$`),
 					"Cosmos DB ip_range_filter must be a set of CIDR IP addresses separated by commas with no spaces: '10.0.0.1,10.0.0.2,10.20.0.0/16'",
 				),
 			},
@@ -200,7 +200,10 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								"EnableTable",
 								"EnableGremlin",
-								`EnableCassandra`,
+								"EnableCassandra",
+								"EnableAggregationPipeline",
+								"MongoDBv3.4",
+								"mongoEnableDocLevelTTL",
 							}, true),
 						},
 					},
@@ -370,6 +373,21 @@ func resourceArmCosmosDBAccountCreate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error creating CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	//for some reason capabilities doesn't always work on create, so lets patch it
+	//tracked: https://github.com/Azure/azure-sdk-for-go/issues/2864
+	future, err := client.Patch(ctx, resourceGroup, name, documentdb.DatabaseAccountPatchParameters{
+		DatabaseAccountPatchProperties: &documentdb.DatabaseAccountPatchProperties{
+			Capabilities: account.Capabilities,
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("Error Patching CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if err := future.WaitForCompletionRef(context.Background(), client.Client); err != nil {
+		return fmt.Errorf("Error waiting on patch future CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
 	id := resp.ID
 	if id == nil {
 		return fmt.Errorf("Cannot read CosmosDB Account '%s' (resource group %s) ID", name, resourceGroup)
@@ -508,6 +526,21 @@ func resourceArmCosmosDBAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Cannot read CosmosDB Account '%s' (resource group %s) ID", name, resourceGroup)
 	}
 
+	//for some reason capabilities doesn't always work on create, so lets patch it
+	//tracked: https://github.com/Azure/azure-sdk-for-go/issues/2864
+	future, err := client.Patch(ctx, resourceGroup, name, documentdb.DatabaseAccountPatchParameters{
+		DatabaseAccountPatchProperties: &documentdb.DatabaseAccountPatchProperties{
+			Capabilities: account.Capabilities,
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("Error Patching CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if err := future.WaitForCompletionRef(context.Background(), client.Client); err != nil {
+		return fmt.Errorf("Error waiting on patch future CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
 	d.SetId(*id)
 
 	return resourceArmCosmosDBAccountRead(d, meta)
@@ -601,6 +634,12 @@ func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) er
 	// implying that it also returns the read only keys, however this appears to not be the case
 	keys, err := client.ListKeys(ctx, resourceGroup, name)
 	if err != nil {
+		if utils.ResponseWasNotFound(keys.Response) {
+			log.Printf("[DEBUG] Keys were not found for CosmosDB Account %q (Resource Group %q) - removing from state!", name, resourceGroup)
+			d.SetId("")
+			return nil
+		}
+
 		return fmt.Errorf("[ERROR] Unable to List Write keys for CosmosDB Account %s: %s", name, err)
 	}
 	d.Set("primary_master_key", keys.PrimaryMasterKey)
@@ -608,6 +647,12 @@ func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) er
 
 	readonlyKeys, err := client.ListReadOnlyKeys(ctx, resourceGroup, name)
 	if err != nil {
+		if utils.ResponseWasNotFound(keys.Response) {
+			log.Printf("[DEBUG] Read Only Keys were not found for CosmosDB Account %q (Resource Group %q) - removing from state!", name, resourceGroup)
+			d.SetId("")
+			return nil
+		}
+
 		return fmt.Errorf("[ERROR] Unable to List read-only keys for CosmosDB Account %s: %s", name, err)
 	}
 	d.Set("primary_readonly_master_key", readonlyKeys.PrimaryReadonlyMasterKey)
@@ -615,8 +660,15 @@ func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) er
 
 	connStringResp, err := client.ListConnectionStrings(ctx, resourceGroup, name)
 	if err != nil {
+		if utils.ResponseWasNotFound(keys.Response) {
+			log.Printf("[DEBUG] Connection Strings were not found for CosmosDB Account %q (Resource Group %q) - removing from state!", name, resourceGroup)
+			d.SetId("")
+			return nil
+		}
+
 		return fmt.Errorf("[ERROR] Unable to List connection strings for CosmosDB Account %s: %s", name, err)
 	}
+
 	var connStrings []string
 	if connStringResp.ConnectionStrings != nil {
 		connStrings = make([]string, len(*connStringResp.ConnectionStrings))

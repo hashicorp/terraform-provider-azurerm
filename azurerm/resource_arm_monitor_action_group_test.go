@@ -13,7 +13,7 @@ import (
 func TestAccAzureRMMonitorActionGroup_basic(t *testing.T) {
 	resourceName := "azurerm_monitor_action_group.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMonitorActionGroup_basic(ri, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -21,7 +21,7 @@ func TestAccAzureRMMonitorActionGroup_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMonitorActionGroup_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorActionGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
@@ -34,6 +34,35 @@ func TestAccAzureRMMonitorActionGroup_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMMonitorActionGroup_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_monitor_action_group.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMonitorActionGroup_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorActionGroupExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMMonitorActionGroup_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_app_service_custom_hostname_binding"),
 			},
 		},
 	})
@@ -322,6 +351,19 @@ resource "azurerm_monitor_action_group" "test" {
   short_name          = "acctestag"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMMonitorActionGroup_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMMonitorActionGroup_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_monitor_action_group" "import" {
+  name                = "${azurerm_monitor_action_group.test.name}"
+  resource_group_name = "${azurerm_monitor_action_group.test.resource_group_name}"
+  short_name          = "${azurerm_monitor_action_group.test.short_name}"
+}
+`, template)
 }
 
 func testAccAzureRMMonitorActionGroup_emailReceiver(rInt int, location string) string {

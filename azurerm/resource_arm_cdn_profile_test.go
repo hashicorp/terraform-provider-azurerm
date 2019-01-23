@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"testing"
 
@@ -10,55 +9,6 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
-
-func init() {
-	resource.AddTestSweepers("azurerm_cdn_profile", &resource.Sweeper{
-		Name: "azurerm_cdn_profile",
-		F:    testSweepCDNProfiles,
-	})
-}
-
-func testSweepCDNProfiles(region string) error {
-	armClient, err := buildConfigForSweepers()
-	if err != nil {
-		return err
-	}
-
-	client := (*armClient).cdnProfilesClient
-	ctx := (*armClient).StopContext
-
-	log.Printf("Retrieving the CDN Profiles..")
-	results, err := client.List(ctx)
-	if err != nil {
-		return fmt.Errorf("Error Listing on CDN Profiles: %+v", err)
-	}
-
-	for _, profile := range results.Values() {
-		if !shouldSweepAcceptanceTestResource(*profile.Name, *profile.Location, region) {
-			continue
-		}
-
-		resourceId, err := parseAzureResourceID(*profile.ID)
-		if err != nil {
-			return err
-		}
-
-		resourceGroup := resourceId.ResourceGroup
-		name := resourceId.Path["profiles"]
-
-		log.Printf("Deleting CDN Profile '%s' in Resource Group '%s'", name, resourceGroup)
-		future, err := client.Delete(ctx, resourceGroup, name)
-		if err != nil {
-			return err
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
 
 func TestAccAzureRMCdnProfile_basic(t *testing.T) {
 	resourceName := "azurerm_cdn_profile.test"

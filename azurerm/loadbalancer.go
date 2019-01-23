@@ -1,14 +1,12 @@
 package azurerm
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
-	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -125,17 +123,6 @@ func findLoadBalancerProbeByName(lb *network.LoadBalancer, name string) (*networ
 	}
 
 	return nil, -1, false
-}
-
-func loadbalancerStateRefreshFunc(ctx context.Context, client network.LoadBalancersClient, resourceGroupName string, loadbalancer string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, resourceGroupName, loadbalancer, "")
-		if err != nil {
-			return nil, "", fmt.Errorf("Error issuing read request in loadbalancerStateRefreshFunc to Azure ARM for Load Balancer '%s' (RG: '%s'): %s", loadbalancer, resourceGroupName, err)
-		}
-
-		return res, *res.LoadBalancerPropertiesFormat.ProvisioningState, nil
-	}
 }
 
 func validateLoadBalancerPrivateIpAddressAllocation(v interface{}, _ string) (warnings []string, errors []error) {

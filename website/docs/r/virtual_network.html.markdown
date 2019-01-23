@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_network"
-sidebar_current: "docs-azurerm-resource-network-virtual-network"
+sidebar_current: "docs-azurerm-resource-network-virtual-network-x"
 description: |-
   Manages a virtual network including any configured subnets. Each subnet can optionally be configured with a security group to be associated with the subnet.
 ---
@@ -101,7 +101,7 @@ A `ddos_protection_plan` block supports the following:
 
 * `id` - (Required) The Resource ID of DDoS Protection Plan.
 
-* `enable` - (Required) Enable/disable DDoS Protection Plan on Virtual Network. Defaults to `false`.
+* `enable` - (Required) Enable/disable DDoS Protection Plan on Virtual Network.
 
 ---
 

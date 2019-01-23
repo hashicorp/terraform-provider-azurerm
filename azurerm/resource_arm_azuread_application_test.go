@@ -200,7 +200,7 @@ func testAccAzureRMActiveDirectoryApplication_complete(id string) string {
 resource "azurerm_azuread_application" "test" {
   name                       = "acctest%s"
   homepage                   = "https://homepage-%s"
-  identifier_uris            = ["http://%s.hashicorptest.com"]
+  identifier_uris            = ["http://%s.hashicorptest.com/00000000-0000-0000-0000-00000000"]
   reply_urls                 = ["http://%s.hashicorptest.com"]
   oauth2_allow_implicit_flow = true
 }

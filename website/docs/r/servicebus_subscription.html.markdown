@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_subscription"
-sidebar_current: "docs-azurerm-resource-messaging-servicebus-subscription"
+sidebar_current: "docs-azurerm-resource-messaging-servicebus-subscription-x"
 description: |-
   Manages a ServiceBus Subscription.
 ---

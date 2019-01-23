@@ -17,7 +17,7 @@ resource "azurerm_policy_definition" "test" {
   name         = "my-policy-definition"
   policy_type  = "Custom"
   mode         = "All"
-  display_name = "acctestpol-%d"
+  display_name = "my-policy-definition"
 
   policy_rule = <<POLICY_RULE
 	{
@@ -57,7 +57,7 @@ resource "azurerm_policy_assignment" "test" {
   scope                = "${azurerm_resource_group.test.id}"
   policy_definition_id = "${azurerm_policy_definition.test.id}"
   description          = "Policy Assignment created via an Acceptance Test"
-  display_name         = "Acceptance Test Run %d"
+  display_name         = "My Example Policy Assignment"
 
   parameters = <<PARAMETERS
 {

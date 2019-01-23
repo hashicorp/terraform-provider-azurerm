@@ -206,8 +206,9 @@ func TestAccAzureRMBatchPoolStartTask_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "fixed_scale.0.target_low_priority_nodes", "0"),
 					resource.TestCheckResourceAttr(resourceName, "start_task.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "start_task.0.max_task_retry_count", "1"),
-					resource.TestCheckResourceAttr(resourceName, "start_task.0.environment.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "start_task.0.environment.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "start_task.0.environment.env", "TEST"),
+					resource.TestCheckResourceAttr(resourceName, "start_task.0.environment.bu", "Research&Dev"),
 					resource.TestCheckResourceAttr(resourceName, "start_task.0.user_identity.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "start_task.0.user_identity.0.auto_user.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "start_task.0.user_identity.0.auto_user.0.scope", "Task"),
@@ -449,7 +450,8 @@ resource "azurerm_batch_pool" "test" {
     wait_for_success     = true
 
     environment {
-      env = "TEST"
+			env = "TEST",
+			bu  = "Research&Dev"
     }
 
     user_identity {

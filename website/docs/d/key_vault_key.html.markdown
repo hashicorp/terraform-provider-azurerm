@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_key_vault_key"
-sidebar_current: "docs-azurerm-data-source-key-vault-key"
+sidebar_current: "docs-azurerm-datasource-key-vault-key"
 description: |-
   Gets information about an existing Key Vault Key.
 
