@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"regexp"
 	"testing"
@@ -11,56 +10,6 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
-
-func init() {
-	resource.AddTestSweepers("azurerm_servicebus_namespace", &resource.Sweeper{
-		Name: "azurerm_servicebus_namespace",
-		F:    testSweepServiceBusNamespace,
-	})
-}
-
-func testSweepServiceBusNamespace(region string) error {
-	armClient, err := buildConfigForSweepers()
-	if err != nil {
-		return err
-	}
-
-	client := (*armClient).serviceBusNamespacesClient
-	ctx := armClient.StopContext
-
-	log.Printf("Retrieving the Servicebus Namespaces..")
-	results, err := client.List(ctx)
-	if err != nil {
-		return fmt.Errorf("Error Listing on Servicebus Namespaces: %+v", err)
-	}
-
-	for _, profile := range results.Values() {
-		if !shouldSweepAcceptanceTestResource(*profile.Name, *profile.Location, region) {
-			continue
-		}
-
-		resourceId, err := parseAzureResourceID(*profile.ID)
-		if err != nil {
-			return err
-		}
-
-		resourceGroup := resourceId.ResourceGroup
-		name := resourceId.Path["namespaces"]
-
-		log.Printf("Deleting Servicebus Namespace %q in Resource Group %q", name, resourceGroup)
-		deleteFuture, err := client.Delete(ctx, resourceGroup, name)
-		if err != nil {
-			return err
-		}
-
-		err = deleteFuture.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
 
 func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
 	resourceName := "azurerm_servicebus_namespace.test"

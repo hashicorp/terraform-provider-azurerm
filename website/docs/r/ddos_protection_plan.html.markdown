@@ -17,12 +17,12 @@ Manages an Azure DDoS Protection Plan.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "testgroup"
+  name     = "example-resources"
   location = "West Europe"
 }
 
 resource "azurerm_ddos_protection_plan" "test" {
-  name                = "testddospplan-%d"
+  name                = "example-protection-plan"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
@@ -45,6 +45,7 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The Resource ID of the DDoS Protection Plan
+
 * `virtual_network_ids` - The Resource ID list of the Virtual Networks associated with DDoS Protection Plan.
 
 ## Import
