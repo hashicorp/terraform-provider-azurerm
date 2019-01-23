@@ -319,11 +319,15 @@ func expandSubnetServiceEndpoints(d *schema.ResourceData) []network.ServiceEndpo
 	serviceEndpoints := d.Get("service_endpoints").([]interface{})
 	enpoints := make([]network.ServiceEndpointPropertiesFormat, 0)
 
-	for _, serviceEndpointsRaw := range serviceEndpoints {
-		data := serviceEndpointsRaw.(string)
+	for _, svcEndpointRaw := range serviceEndpoints {
+		if svcEndpointRaw == nil {
+			continue
+		}
+
+		svc := svcEndpointRaw.(string)
 
 		endpoint := network.ServiceEndpointPropertiesFormat{
-			Service: &data,
+			Service: &svc,
 		}
 
 		enpoints = append(enpoints, endpoint)
@@ -335,10 +339,16 @@ func expandSubnetServiceEndpoints(d *schema.ResourceData) []network.ServiceEndpo
 func flattenSubnetServiceEndpoints(serviceEndpoints *[]network.ServiceEndpointPropertiesFormat) []string {
 	endpoints := make([]string, 0)
 
-	if serviceEndpoints != nil {
-		for _, endpoint := range *serviceEndpoints {
-			endpoints = append(endpoints, *endpoint.Service)
+	if serviceEndpoints == nil {
+		return endpoints
+	}
+
+	for _, endpoint := range *serviceEndpoints {
+		if endpoint.Service == nil {
+			continue
 		}
+
+		endpoints = append(endpoints, *endpoint.Service)
 	}
 
 	return endpoints
