@@ -359,6 +359,8 @@ The following attributes are exported:
 
 * `gateway_ip_configuration` - A list of `gateway_ip_configuration` blocks as defined below.
 
+* `http2_enabled` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
+
 * `http_listener` - A list of `http_listener` blocks as defined below.
 
 * `probe` - A `probe` block as defined below.
