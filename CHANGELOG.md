@@ -26,6 +26,7 @@ BUG FIXES:
 * `azurerm_express_route_circuit` - added the `premium` SKU back to validation logic [GH-2692]
 * `azurerm_firewall` - ensuring rules aren't removed during an update [GH-2663]
 * `azurerm_notification_hub_namespace` - now polls on creation to handle eventual consistency [GH-2701]
+* `azurerm_redis_cache` - locking on the Virtual Network/Subnet name to avoid a race condition [GH-2725]
 * `azurerm_service_bus_subscription` - name's can now start with a digit [GH-2672]
 * `azurerm_security_center` - increase the creation timeout to `30m` [GH-2724]
 * `azurerm_subnet` - fixing a crash when service endpoints was nil [GH-2742]
