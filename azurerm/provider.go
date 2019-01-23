@@ -133,6 +133,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_monitor_log_profile":                   dataSourceArmMonitorLogProfile(),
 			"azurerm_network_interface":                     dataSourceArmNetworkInterface(),
 			"azurerm_network_security_group":                dataSourceArmNetworkSecurityGroup(),
+			"azurerm_network_watcher":                       dataSourceArmNetworkWatcher(),
 			"azurerm_notification_hub_namespace":            dataSourceNotificationHubNamespace(),
 			"azurerm_notification_hub":                      dataSourceNotificationHub(),
 			"azurerm_platform_image":                        dataSourceArmPlatformImage(),

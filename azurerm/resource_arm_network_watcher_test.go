@@ -23,6 +23,9 @@ func TestAccAzureRMNetworkWatcher(t *testing.T) {
 			"update":         testAccAzureRMNetworkWatcher_update,
 			"disappears":     testAccAzureRMNetworkWatcher_disappears,
 		},
+		"DataSource": {
+			"basic": testAccDataSourceAzureRMNetworkWatcher_basic,
+		},
 		"PacketCapture": {
 			"localDisk":                  testAccAzureRMPacketCapture_localDisk,
 			"storageAccount":             testAccAzureRMPacketCapture_storageAccount,
