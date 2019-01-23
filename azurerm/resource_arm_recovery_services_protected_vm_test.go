@@ -282,7 +282,7 @@ resource "azurerm_recovery_services_protection_policy_vm" "test" {
     count = 10
   }
 }
-`, rInt, location, rstr[len(rstr)-5:] )
+`, rInt, location, rstr[len(rstr)-5:])
 }
 
 func testAccAzureRMRecoveryServicesProtectedVm_basic(rInt int, location string) string {
