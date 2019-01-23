@@ -47,7 +47,7 @@ goimport:
 
 lint:
 	@echo "==> Checking source code against linters..."
-	GO111MODULE=off @gometalinter ./...
+	@GO111MODULE=off gometalinter ./...
 
 tools:
 	@echo "==> installing required tooling..."
