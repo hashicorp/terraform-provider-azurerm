@@ -33,11 +33,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"enable_http2": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-
 			"resource_group_name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -483,6 +478,11 @@ func resourceArmApplicationGateway() *schema.Resource {
 				},
 			},
 
+			"enable_http2": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"probe": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -873,7 +873,6 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 
 	d.Set("name", applicationGateway.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("enable_http2", applicationGateway.EnableHTTP2)
 	if location := applicationGateway.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
@@ -900,6 +899,8 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `disabled_ssl_protocols`: %+v", setErr)
 		}
 
+		d.Set("enable_http2", props.EnableHTTP2)
+
 		httpListeners, err := flattenApplicationGatewayHTTPListeners(props.HTTPListeners)
 		if err != nil {
 			return fmt.Errorf("Error flattening `http_listener`: %+v", err)
@@ -908,16 +909,16 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `http_listener`: %+v", setErr)
 		}
 
-		if setErr := d.Set("gateway_ip_configuration", flattenApplicationGatewayIPConfigurations(props.GatewayIPConfigurations)); setErr != nil {
-			return fmt.Errorf("Error setting `gateway_ip_configuration`: %+v", setErr)
-		}
-
 		if setErr := d.Set("frontend_port", flattenApplicationGatewayFrontendPorts(props.FrontendPorts)); setErr != nil {
 			return fmt.Errorf("Error setting `frontend_port`: %+v", setErr)
 		}
 
 		if setErr := d.Set("frontend_ip_configuration", flattenApplicationGatewayFrontendIPConfigurations(props.FrontendIPConfigurations)); setErr != nil {
 			return fmt.Errorf("Error setting `frontend_ip_configuration`: %+v", setErr)
+		}
+
+		if setErr := d.Set("gateway_ip_configuration", flattenApplicationGatewayIPConfigurations(props.GatewayIPConfigurations)); setErr != nil {
+			return fmt.Errorf("Error setting `gateway_ip_configuration`: %+v", setErr)
 		}
 
 		if setErr := d.Set("probe", flattenApplicationGatewayProbes(props.Probes)); setErr != nil {
