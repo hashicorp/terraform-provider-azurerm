@@ -980,7 +980,7 @@ func TestAccAzureRMVirtualMachineScaleSet_updateDataDisks(t *testing.T) {
 				Config: noDataDisksConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineScaleSetExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "storage_profile_data_disk.#", "0"),
+					resource.TestCheckNoResourceAttr(resourceName, "storage_profile_data_disk.#"),
 				),
 			},
 			{
