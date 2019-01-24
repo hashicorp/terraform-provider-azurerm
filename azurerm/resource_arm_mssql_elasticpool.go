@@ -73,7 +73,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 
 						"tier": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Basic",
 								"Standard",
@@ -81,7 +81,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 								"GeneralPurpose",
 								"BusinessCritical",
 							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.IgnoreIfNotSet,
 						},
 
 						"family": {
@@ -184,7 +184,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 			maxCapacity, _ := diff.GetOk("per_database_settings.0.max_capacity")
 
 			// Basic Checks
-			if strings.EqualFold(tier.(string), "Basic") {
+			if strings.EqualFold(name.(string), "BasicPool") {
 				maxAllowedGB := azure.BasicGetMaxSizeGB(capacity.(int))
 
 				if maxAllowedGB == 0 {
@@ -198,7 +198,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 			}
 
 			// Standard Checks
-			if strings.EqualFold(tier.(string), "Standard") {
+			if strings.EqualFold(name.(string), "StandardPool") {
 				maxAllowedGB := azure.StandardGetMaxSizeGB(capacity.(int))
 
 				if maxAllowedGB == 0 {
@@ -211,7 +211,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 			}
 
 			// Premium Checks
-			if strings.EqualFold(tier.(string), "Premium") {
+			if strings.EqualFold(name.(string), "PremiumPool") {
 				maxAllowedGB := azure.PremiumGetMaxSizeGB(capacity.(int))
 
 				if maxAllowedGB == 0 {
@@ -305,7 +305,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 				}
 			} else {
 				// DTU Based
-				if !strings.EqualFold(tier.(string), "Basic") {
+				if !strings.EqualFold(name.(string), "BasicPool") {
 					if int(maxSizeGb.(float64)) < 50 {
 						return fmt.Errorf("service tiers 'Standard', and 'Premium' must have a 'max_size_gb' value equal to or greater than 50 GB, got %d GB", int(maxSizeGb.(float64)))
 					}
@@ -329,24 +329,28 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 			}
 
 			// Validate Name Tier combos for all SKUs
-			if strings.EqualFold(name.(string), "BasicPool") && !strings.EqualFold(tier.(string), "Basic") {
-				return fmt.Errorf("SKU has a name '%s' tier '%s' mismatch, expected 'tier' to be 'Basic'", name.(string), tier.(string))
-			}
+			// Do not validate the tier if it is set to nothing
+			// We will auto-fill the value in the expand func
+			if tier.(string) != "" {
+				if strings.EqualFold(name.(string), "BasicPool") && !strings.EqualFold(tier.(string), "Basic") {
+					return fmt.Errorf("SKU has a name '%s' tier '%s' mismatch, expected 'tier' to be 'Basic'", name.(string), tier.(string))
+				}
 
-			if strings.EqualFold(name.(string), "StandardPool") && !strings.EqualFold(tier.(string), "Standard") {
-				return fmt.Errorf("SKU has a name '%s' tier '%s' mismatch, expected 'tier' to be 'Standard'", name.(string), tier.(string))
-			}
+				if strings.EqualFold(name.(string), "StandardPool") && !strings.EqualFold(tier.(string), "Standard") {
+					return fmt.Errorf("SKU has a name '%s' tier '%s' mismatch, expected 'tier' to be 'Standard'", name.(string), tier.(string))
+				}
 
-			if strings.EqualFold(name.(string), "PremiumPool") && !strings.EqualFold(tier.(string), "Premium") {
-				return fmt.Errorf("SKU has a name '%s' tier '%s' mismatch, expected 'tier' to be 'Premium'", name.(string), tier.(string))
-			}
+				if strings.EqualFold(name.(string), "PremiumPool") && !strings.EqualFold(tier.(string), "Premium") {
+					return fmt.Errorf("SKU has a name '%s' tier '%s' mismatch, expected 'tier' to be 'Premium'", name.(string), tier.(string))
+				}
 
-			if strings.HasPrefix(strings.ToLower(name.(string)), "gp_") && !strings.EqualFold(tier.(string), "GeneralPurpose") {
-				return fmt.Errorf("SKU has a name '%s' tier '%s' mismatch, expected 'tier' to be 'GeneralPurpose'", name.(string), tier.(string))
-			}
+				if strings.HasPrefix(strings.ToLower(name.(string)), "gp_") && !strings.EqualFold(tier.(string), "GeneralPurpose") {
+					return fmt.Errorf("SKU has a name '%s' tier '%s' mismatch, expected 'tier' to be 'GeneralPurpose'", name.(string), tier.(string))
+				}
 
-			if strings.HasPrefix(strings.ToLower(name.(string)), "bc_") && !strings.EqualFold(tier.(string), "BusinessCritical") {
-				return fmt.Errorf("SKU has a name '%s' tier '%s' mismatch, expected 'tier' to be 'BusinessCritical'", name.(string), tier.(string))
+				if strings.HasPrefix(strings.ToLower(name.(string)), "bc_") && !strings.EqualFold(tier.(string), "BusinessCritical") {
+					return fmt.Errorf("SKU has a name '%s' tier '%s' mismatch, expected 'tier' to be 'BusinessCritical'", name.(string), tier.(string))
+				}
 			}
 
 			return nil
@@ -503,6 +507,11 @@ func expandAzureRmMsSqlElasticPoolSku(d *schema.ResourceData) *sql.Sku {
 	tier := sku["tier"].(string)
 	family := sku["family"].(string)
 	capacity := sku["capacity"].(int)
+
+	// Auto fill tier based off name
+	if tier == "" {
+		tier = azure.GetTier(name)
+	}
 
 	return &sql.Sku{
 		Name:     utils.String(name),

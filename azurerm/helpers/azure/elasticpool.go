@@ -182,3 +182,29 @@ func BusinessCriticalGetMaxSizeGB(vCores int, family string) float64 {
 func NameFamilyValid(name string, family string) bool {
 	return strings.Contains(strings.ToLower(name), strings.ToLower(family))
 }
+
+func GetTier(name string) string {
+	validTier := ""
+
+	if strings.EqualFold(name, "BasicPool") {
+		validTier = "Basic"
+	}
+
+	if strings.EqualFold(name, "StandardPool") {
+		validTier = "Standard"
+	}
+
+	if strings.EqualFold(name, "PremiumPool") {
+		validTier = "Premium"
+	}
+
+	if strings.HasPrefix(strings.ToLower(name), "gp_") {
+		validTier = "GeneralPurpose"
+	}
+
+	if strings.HasPrefix(strings.ToLower(name), "bc_") {
+		validTier = "BusinessCritical"
+	}
+
+	return validTier
+}
