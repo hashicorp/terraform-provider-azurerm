@@ -225,11 +225,6 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 
 			// GeneralPurpose Checks
 			if strings.HasPrefix(strings.ToLower(name.(string)), "gp_") {
-				//General Checks
-				if !strings.EqualFold(tier.(string), "GeneralPurpose") {
-					return fmt.Errorf("SKU has a name '%s' tier '%s' mismatch, expected 'GeneralPurpose'", name.(string), tier.(string))
-				}
-
 				// Gen4 Checks
 				if strings.EqualFold(family.(string), "Gen4") {
 					maxAllowedGB := azure.GeneralPurposeGetMaxSizeGB(capacity.(int), "Gen4")
@@ -259,11 +254,6 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 
 			// BusinessCritical Checks
 			if strings.HasPrefix(strings.ToLower(name.(string)), "bc_") {
-				//General Checks
-				if !strings.EqualFold(tier.(string), "BusinessCritical") {
-					return fmt.Errorf("SKU has a name '%s' tier '%s' mismatch, expected 'BusinessCritical'", name.(string), tier.(string))
-				}
-
 				// Gen4 Checks
 				if strings.EqualFold(family.(string), "Gen4") {
 					maxAllowedGB := azure.BusinessCriticalGetMaxSizeGB(capacity.(int), "Gen4")
@@ -336,6 +326,27 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 				if minCapacity.(float64) < 0.0 {
 					return fmt.Errorf("service tiers 'Basic', 'Standard', and 'Premium' per_database_settings min_capacity must be equal to or greater than zero")
 				}
+			}
+
+			// Validate Name Tier combos for all SKUs
+			if strings.EqualFold(name.(string), "BasicPool") && !strings.EqualFold(tier.(string), "Basic") {
+				return fmt.Errorf("SKU has a name '%s' tier '%s' mismatch, expected 'tier' to be 'Basic'", name.(string), tier.(string))
+			}
+
+			if strings.EqualFold(name.(string), "StandardPool") && !strings.EqualFold(tier.(string), "Standard") {
+				return fmt.Errorf("SKU has a name '%s' tier '%s' mismatch, expected 'tier' to be 'Standard'", name.(string), tier.(string))
+			}
+
+			if strings.EqualFold(name.(string), "PremiumPool") && !strings.EqualFold(tier.(string), "Premium") {
+				return fmt.Errorf("SKU has a name '%s' tier '%s' mismatch, expected 'tier' to be 'Premium'", name.(string), tier.(string))
+			}
+
+			if strings.HasPrefix(strings.ToLower(name.(string)), "gp_") && !strings.EqualFold(tier.(string), "GeneralPurpose") {
+				return fmt.Errorf("SKU has a name '%s' tier '%s' mismatch, expected 'tier' to be 'GeneralPurpose'", name.(string), tier.(string))
+			}
+
+			if strings.HasPrefix(strings.ToLower(name.(string)), "bc_") && !strings.EqualFold(tier.(string), "BusinessCritical") {
+				return fmt.Errorf("SKU has a name '%s' tier '%s' mismatch, expected 'tier' to be 'BusinessCritical'", name.(string), tier.(string))
 			}
 
 			return nil
