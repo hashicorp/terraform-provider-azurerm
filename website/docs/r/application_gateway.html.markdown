@@ -247,6 +247,8 @@ A `http_listener` block supports the following:
 
 * `ssl_certificate_name` - (Optional) The name of the associated SSL Certificate which should be used for this HTTP Listener.
 
+* `custom_error_configurations` - (Optional) One or more `custom_error_configurations` blocks as defined below.
+
 ---
 
 A `match` block supports the following:
