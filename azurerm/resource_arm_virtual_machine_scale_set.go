@@ -748,6 +748,7 @@ func resourceArmVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta 
 	name := d.Get("name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
+	dataDisksRaw := d.Get("storage_profile_data_disk").([]interface{})
 	tags := d.Get("tags").(map[string]interface{})
 	zones := expandZones(d.Get("zones").([]interface{}))
 
@@ -756,20 +757,15 @@ func resourceArmVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta 
 		return err
 	}
 
-	storageProfile := compute.VirtualMachineScaleSetStorageProfile{}
+	storageProfile := compute.VirtualMachineScaleSetStorageProfile{
+		DataDisks: expandAzureRMVirtualMachineScaleSetsStorageProfileDataDisk(dataDisksRaw),
+	}
+
 	osDisk, err := expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d)
 	if err != nil {
 		return err
 	}
 	storageProfile.OsDisk = osDisk
-
-	if _, ok := d.GetOk("storage_profile_data_disk"); ok {
-		dataDisks, err2 := expandAzureRMVirtualMachineScaleSetsStorageProfileDataDisk(d)
-		if err2 != nil {
-			return err2
-		}
-		storageProfile.DataDisks = &dataDisks
-	}
 
 	if _, ok := d.GetOk("storage_profile_image_reference"); ok {
 		imageRef, err2 := expandAzureRmVirtualMachineScaleSetStorageProfileImageReference(d)
@@ -1902,44 +1898,40 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *schema.Resource
 	return osDisk, nil
 }
 
-func expandAzureRMVirtualMachineScaleSetsStorageProfileDataDisk(d *schema.ResourceData) ([]compute.VirtualMachineScaleSetDataDisk, error) {
-	disks := d.Get("storage_profile_data_disk").([]interface{})
-	dataDisks := make([]compute.VirtualMachineScaleSetDataDisk, 0, len(disks))
-	for _, diskConfig := range disks {
-		config := diskConfig.(map[string]interface{})
+func expandAzureRMVirtualMachineScaleSetsStorageProfileDataDisk(input []interface{}) *[]compute.VirtualMachineScaleSetDataDisk {
+	dataDisks := make([]compute.VirtualMachineScaleSetDataDisk, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
 
-		createOption := config["create_option"].(string)
-		managedDiskType := config["managed_disk_type"].(string)
-		lun := int32(config["lun"].(int))
-
-		dataDisk := compute.VirtualMachineScaleSetDataDisk{
-			Lun:          &lun,
-			CreateOption: compute.DiskCreateOptionTypes(createOption),
-		}
-
-		managedDiskVMSS := &compute.VirtualMachineScaleSetManagedDiskParameters{}
-
-		if managedDiskType != "" {
-			managedDiskVMSS.StorageAccountType = compute.StorageAccountTypes(managedDiskType)
-		} else {
-			managedDiskVMSS.StorageAccountType = compute.StorageAccountTypes(compute.StandardLRS)
-		}
+		createOption := v["create_option"].(string)
+		managedDiskType := v["managed_disk_type"].(string)
+		lun := int32(v["lun"].(int))
 
 		// assume that data disks in VMSS can only be Managed Disks
-		dataDisk.ManagedDisk = managedDiskVMSS
-		if v := config["caching"].(string); v != "" {
-			dataDisk.Caching = compute.CachingTypes(v)
+		dataDisk := compute.VirtualMachineScaleSetDataDisk{
+			Lun:          utils.Int32(lun),
+			CreateOption: compute.DiskCreateOptionTypes(createOption),
+			ManagedDisk:  &compute.VirtualMachineScaleSetManagedDiskParameters{},
 		}
 
-		if v := config["disk_size_gb"]; v != nil {
-			diskSize := int32(config["disk_size_gb"].(int))
-			dataDisk.DiskSizeGB = &diskSize
+		if managedDiskType != "" {
+			dataDisk.ManagedDisk.StorageAccountType = compute.StorageAccountTypes(managedDiskType)
+		} else {
+			dataDisk.ManagedDisk.StorageAccountType = compute.StorageAccountTypes(compute.StandardLRS)
+		}
+
+		if caching := v["caching"].(string); caching != "" {
+			dataDisk.Caching = compute.CachingTypes(caching)
+		}
+
+		if diskSizeGB := v["disk_size_gb"]; diskSizeGB != nil {
+			dataDisk.DiskSizeGB = utils.Int32(int32(diskSizeGB.(int)))
 		}
 
 		dataDisks = append(dataDisks, dataDisk)
 	}
 
-	return dataDisks, nil
+	return &dataDisks
 }
 
 func expandAzureRmVirtualMachineScaleSetStorageProfileImageReference(d *schema.ResourceData) (*compute.ImageReference, error) {
