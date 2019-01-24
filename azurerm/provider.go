@@ -257,6 +257,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_mariadb_database":                       resourceArmMariaDbDatabase(),
 			"azurerm_mariadb_server":                         resourceArmMariaDbServer(),
 			"azurerm_metric_alertrule":                       resourceArmMetricAlertRule(),
+			"azurerm_monitor_autoscale_setting":              resourceArmMonitorAutoScaleSetting(),
 			"azurerm_monitor_action_group":                   resourceArmMonitorActionGroup(),
 			"azurerm_monitor_activity_log_alert":             resourceArmMonitorActivityLogAlert(),
 			"azurerm_monitor_diagnostic_setting":             resourceArmMonitorDiagnosticSetting(),

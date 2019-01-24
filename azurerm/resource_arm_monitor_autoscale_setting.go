@@ -16,19 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAutoScaleSetting() *schema.Resource {
+func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 	return &schema.Resource{
-		DeprecationMessage: `The 'azurerm_autoscale_setting' resource is deprecated in favour of the renamed version 'azurerm_monitor_autoscale_setting'.
-
-Information on migrating to the renamed resource can be found here: https://terraform.io/docs/providers/azurerm/guides/migrating-to-monitor-resources.html
-
-As such the existing 'azurerm_autoscale_setting' resource is deprecated and will be removed in the next major version of the AzureRM Provider (2.0).
-`,
-
-		Create: resourceArmAutoScaleSettingCreateUpdate,
-		Read:   resourceArmAutoScaleSettingRead,
-		Update: resourceArmAutoScaleSettingCreateUpdate,
-		Delete: resourceArmAutoScaleSettingDelete,
+		Create: resourceArmMonitorAutoScaleSettingCreateUpdate,
+		Read:   resourceArmMonitorAutoScaleSettingRead,
+		Update: resourceArmMonitorAutoScaleSettingCreateUpdate,
+		Delete: resourceArmMonitorAutoScaleSettingDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -219,7 +212,7 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 										Type:         schema.TypeString,
 										Optional:     true,
 										Default:      "UTC",
-										ValidateFunc: validateAutoScaleSettingsTimeZone(),
+										ValidateFunc: validateMonitorAutoScaleSettingsTimeZone(),
 									},
 									"start": {
 										Type:         schema.TypeString,
@@ -244,7 +237,7 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 										Type:         schema.TypeString,
 										Optional:     true,
 										Default:      "UTC",
-										ValidateFunc: validateAutoScaleSettingsTimeZone(),
+										ValidateFunc: validateMonitorAutoScaleSettingsTimeZone(),
 									},
 									"days": {
 										Type:     schema.TypeList,
@@ -346,7 +339,7 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 	}
 }
 
-func resourceArmAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMonitorAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).autoscaleSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -357,10 +350,10 @@ func resourceArmAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta interf
 	targetResourceId := d.Get("target_resource_id").(string)
 
 	notificationsRaw := d.Get("notification").([]interface{})
-	notifications := expandAzureRmAutoScaleSettingNotifications(notificationsRaw)
+	notifications := expandAzureRmMonitorAutoScaleSettingNotifications(notificationsRaw)
 
 	profilesRaw := d.Get("profile").([]interface{})
-	profiles, err := expandAzureRmAutoScaleSettingProfile(profilesRaw)
+	profiles, err := expandAzureRmMonitorAutoScaleSettingProfile(profilesRaw)
 	if err != nil {
 		return fmt.Errorf("Error expanding `profile`: %+v", err)
 	}
@@ -393,10 +386,10 @@ func resourceArmAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta interf
 
 	d.SetId(*read.ID)
 
-	return resourceArmAutoScaleSettingRead(d, meta)
+	return resourceArmMonitorAutoScaleSettingRead(d, meta)
 }
 
-func resourceArmAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMonitorAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).autoscaleSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -427,7 +420,7 @@ func resourceArmAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("enabled", resp.Enabled)
 	d.Set("target_resource_id", resp.TargetResourceURI)
 
-	profile, err := flattenAzureRmAutoScaleSettingProfile(resp.Profiles)
+	profile, err := flattenAzureRmMonitorAutoScaleSettingProfile(resp.Profiles)
 	if err != nil {
 		return fmt.Errorf("Error flattening `profile` of Autoscale Setting %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -435,7 +428,7 @@ func resourceArmAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error setting `profile` of Autoscale Setting %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	notifications := flattenAzureRmAutoScaleSettingNotification(resp.Notifications)
+	notifications := flattenAzureRmMonitorAutoScaleSettingNotification(resp.Notifications)
 	if err = d.Set("notification", notifications); err != nil {
 		return fmt.Errorf("Error setting `notification` of Autoscale Setting %q (resource group %q): %+v", name, resourceGroup, err)
 	}
@@ -447,7 +440,7 @@ func resourceArmAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceArmAutoScaleSettingDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMonitorAutoScaleSettingDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).autoscaleSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -468,7 +461,7 @@ func resourceArmAutoScaleSettingDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func expandAzureRmAutoScaleSettingProfile(input []interface{}) (*[]insights.AutoscaleProfile, error) {
+func expandAzureRmMonitorAutoScaleSettingProfile(input []interface{}) (*[]insights.AutoscaleProfile, error) {
 	results := make([]insights.AutoscaleProfile, 0)
 
 	for _, v := range input {
@@ -486,13 +479,13 @@ func expandAzureRmAutoScaleSettingProfile(input []interface{}) (*[]insights.Auto
 		}
 
 		recurrencesRaw := raw["recurrence"].([]interface{})
-		recurrence := expandAzureRmAutoScaleSettingRecurrence(recurrencesRaw)
+		recurrence := expandAzureRmMonitorAutoScaleSettingRecurrence(recurrencesRaw)
 
 		rulesRaw := raw["rule"].([]interface{})
-		rules := expandAzureRmAutoScaleSettingRule(rulesRaw)
+		rules := expandAzureRmMonitorAutoScaleSettingRule(rulesRaw)
 
 		fixedDatesRaw := raw["fixed_date"].([]interface{})
-		fixedDate, err := expandAzureRmAutoScaleSettingFixedDate(fixedDatesRaw)
+		fixedDate, err := expandAzureRmMonitorAutoScaleSettingFixedDate(fixedDatesRaw)
 		if err != nil {
 			return nil, fmt.Errorf("Error expanding `fixed_date`: %+v", err)
 		}
@@ -510,7 +503,7 @@ func expandAzureRmAutoScaleSettingProfile(input []interface{}) (*[]insights.Auto
 	return &results, nil
 }
 
-func expandAzureRmAutoScaleSettingRule(input []interface{}) *[]insights.ScaleRule {
+func expandAzureRmMonitorAutoScaleSettingRule(input []interface{}) *[]insights.ScaleRule {
 	rules := make([]insights.ScaleRule, 0)
 
 	for _, v := range input {
@@ -549,7 +542,7 @@ func expandAzureRmAutoScaleSettingRule(input []interface{}) *[]insights.ScaleRul
 	return &rules
 }
 
-func expandAzureRmAutoScaleSettingFixedDate(input []interface{}) (*insights.TimeWindow, error) {
+func expandAzureRmMonitorAutoScaleSettingFixedDate(input []interface{}) (*insights.TimeWindow, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -580,7 +573,7 @@ func expandAzureRmAutoScaleSettingFixedDate(input []interface{}) (*insights.Time
 	return &timeWindow, nil
 }
 
-func expandAzureRmAutoScaleSettingRecurrence(input []interface{}) *insights.Recurrence {
+func expandAzureRmMonitorAutoScaleSettingRecurrence(input []interface{}) *insights.Recurrence {
 	if len(input) == 0 {
 		return nil
 	}
@@ -615,7 +608,7 @@ func expandAzureRmAutoScaleSettingRecurrence(input []interface{}) *insights.Recu
 	}
 }
 
-func expandAzureRmAutoScaleSettingNotifications(input []interface{}) *[]insights.AutoscaleNotification {
+func expandAzureRmMonitorAutoScaleSettingNotifications(input []interface{}) *[]insights.AutoscaleNotification {
 	notifications := make([]insights.AutoscaleNotification, 0)
 
 	for _, v := range input {
@@ -623,10 +616,10 @@ func expandAzureRmAutoScaleSettingNotifications(input []interface{}) *[]insights
 
 		emailsRaw := notificationRaw["email"].([]interface{})
 		emailRaw := emailsRaw[0].(map[string]interface{})
-		email := expandAzureRmAutoScaleSettingNotificationEmail(emailRaw)
+		email := expandAzureRmMonitorAutoScaleSettingNotificationEmail(emailRaw)
 
 		configsRaw := notificationRaw["webhook"].([]interface{})
-		webhooks := expandAzureRmAutoScaleSettingNotificationWebhook(configsRaw)
+		webhooks := expandAzureRmMonitorAutoScaleSettingNotificationWebhook(configsRaw)
 
 		notification := insights.AutoscaleNotification{
 			Email:     email,
@@ -639,7 +632,7 @@ func expandAzureRmAutoScaleSettingNotifications(input []interface{}) *[]insights
 	return &notifications
 }
 
-func expandAzureRmAutoScaleSettingNotificationEmail(input map[string]interface{}) *insights.EmailNotification {
+func expandAzureRmMonitorAutoScaleSettingNotificationEmail(input map[string]interface{}) *insights.EmailNotification {
 	customEmails := make([]string, 0)
 	if v, ok := input["custom_emails"]; ok {
 		for _, item := range v.([]interface{}) {
@@ -656,7 +649,7 @@ func expandAzureRmAutoScaleSettingNotificationEmail(input map[string]interface{}
 	return &email
 }
 
-func expandAzureRmAutoScaleSettingNotificationWebhook(input []interface{}) *[]insights.WebhookNotification {
+func expandAzureRmMonitorAutoScaleSettingNotificationWebhook(input []interface{}) *[]insights.WebhookNotification {
 	webhooks := make([]insights.WebhookNotification, 0)
 
 	for _, v := range input {
@@ -681,7 +674,7 @@ func expandAzureRmAutoScaleSettingNotificationWebhook(input []interface{}) *[]in
 	return &webhooks
 }
 
-func flattenAzureRmAutoScaleSettingProfile(profiles *[]insights.AutoscaleProfile) ([]interface{}, error) {
+func flattenAzureRmMonitorAutoScaleSettingProfile(profiles *[]insights.AutoscaleProfile) ([]interface{}, error) {
 	if profiles == nil {
 		return []interface{}{}, nil
 	}
@@ -694,16 +687,16 @@ func flattenAzureRmAutoScaleSettingProfile(profiles *[]insights.AutoscaleProfile
 			result["name"] = *name
 		}
 
-		capacity, err := flattenAzureRmAutoScaleSettingCapacity(profile.Capacity)
+		capacity, err := flattenAzureRmMonitorAutoScaleSettingCapacity(profile.Capacity)
 		if err != nil {
 			return nil, fmt.Errorf("Error flattening `capacity`: %+v", err)
 		}
 		result["capacity"] = capacity
 
-		result["fixed_date"] = flattenAzureRmAutoScaleSettingFixedDate(profile.FixedDate)
-		result["recurrence"] = flattenAzureRmAutoScaleSettingRecurrence(profile.Recurrence)
+		result["fixed_date"] = flattenAzureRmMonitorAutoScaleSettingFixedDate(profile.FixedDate)
+		result["recurrence"] = flattenAzureRmMonitorAutoScaleSettingRecurrence(profile.Recurrence)
 
-		rule, err := flattenAzureRmAutoScaleSettingRules(profile.Rules)
+		rule, err := flattenAzureRmMonitorAutoScaleSettingRules(profile.Rules)
 		if err != nil {
 			return nil, fmt.Errorf("Error flattening Rule: %s", err)
 		}
@@ -714,7 +707,7 @@ func flattenAzureRmAutoScaleSettingProfile(profiles *[]insights.AutoscaleProfile
 	return results, nil
 }
 
-func flattenAzureRmAutoScaleSettingCapacity(input *insights.ScaleCapacity) ([]interface{}, error) {
+func flattenAzureRmMonitorAutoScaleSettingCapacity(input *insights.ScaleCapacity) ([]interface{}, error) {
 	if input == nil {
 		return []interface{}{}, nil
 	}
@@ -748,7 +741,7 @@ func flattenAzureRmAutoScaleSettingCapacity(input *insights.ScaleCapacity) ([]in
 	return []interface{}{result}, nil
 }
 
-func flattenAzureRmAutoScaleSettingRules(input *[]insights.ScaleRule) ([]interface{}, error) {
+func flattenAzureRmMonitorAutoScaleSettingRules(input *[]insights.ScaleRule) ([]interface{}, error) {
 	if input == nil {
 		return []interface{}{}, nil
 	}
@@ -820,7 +813,7 @@ func flattenAzureRmAutoScaleSettingRules(input *[]insights.ScaleRule) ([]interfa
 	return results, nil
 }
 
-func flattenAzureRmAutoScaleSettingFixedDate(input *insights.TimeWindow) []interface{} {
+func flattenAzureRmMonitorAutoScaleSettingFixedDate(input *insights.TimeWindow) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -842,7 +835,7 @@ func flattenAzureRmAutoScaleSettingFixedDate(input *insights.TimeWindow) []inter
 	return []interface{}{result}
 }
 
-func flattenAzureRmAutoScaleSettingRecurrence(input *insights.Recurrence) []interface{} {
+func flattenAzureRmMonitorAutoScaleSettingRecurrence(input *insights.Recurrence) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -881,7 +874,7 @@ func flattenAzureRmAutoScaleSettingRecurrence(input *insights.Recurrence) []inte
 	return []interface{}{result}
 }
 
-func flattenAzureRmAutoScaleSettingNotification(notifications *[]insights.AutoscaleNotification) []interface{} {
+func flattenAzureRmMonitorAutoScaleSettingNotification(notifications *[]insights.AutoscaleNotification) []interface{} {
 	results := make([]interface{}, 0)
 
 	if notifications == nil {
@@ -942,7 +935,7 @@ func flattenAzureRmAutoScaleSettingNotification(notifications *[]insights.Autosc
 	return results
 }
 
-func validateAutoScaleSettingsTimeZone() schema.SchemaValidateFunc {
+func validateMonitorAutoScaleSettingsTimeZone() schema.SchemaValidateFunc {
 	// from https://docs.microsoft.com/en-us/rest/api/monitor/autoscalesettings/createorupdate#timewindow
 	timeZones := []string{
 		"Dateline Standard Time",
