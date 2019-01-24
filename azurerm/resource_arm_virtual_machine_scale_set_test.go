@@ -964,6 +964,43 @@ func TestAccAzureRMVirtualMachineScaleSet_importBasic_managedDisk_withZones(t *t
 	})
 }
 
+func TestAccAzureRMVirtualMachineScaleSet_updateDataDisks(t *testing.T) {
+	resourceName := "azurerm_virtual_machine_scale_set.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+	noDataDisksConfig := testAccAzureRMVirtualMachineScaleSet_dataDisksUpdates(ri, location, false)
+	withDataDisksConfig := testAccAzureRMVirtualMachineScaleSet_dataDisksUpdates(ri, location, true)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: noDataDisksConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineScaleSetExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "storage_profile_data_disk.#", "0"),
+				),
+			},
+			{
+				Config: withDataDisksConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineScaleSetExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "storage_profile_data_disk.#", "1"),
+				),
+			},
+			{
+				Config: noDataDisksConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineScaleSetExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "storage_profile_data_disk.#", "0"),
+				),
+			},
+		},
+	})
+}
+
 func testGetAzureRMVirtualMachineScaleSet(s *terraform.State, resourceName string) (result *compute.VirtualMachineScaleSet, err error) {
 	// Ensure we have enough information in state to look up in API
 	rs, ok := s.RootModule().Resources[resourceName]
@@ -4932,4 +4969,83 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 }
 `, rInt, location, rString)
+}
+
+func testAccAzureRMVirtualMachineScaleSet_dataDisksUpdates(rInt int, location string, hasDataDisk bool) string {
+	dataDisks := ""
+	if hasDataDisk {
+		dataDisks = `
+storage_profile_data_disk {
+  managed_disk_type = "Standard_LRS"
+  create_option     = "Empty"
+  lun               = 0
+  disk_size_gb      = 32
+}`
+	}
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctsub-%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_virtual_machine_scale_set" "test" {
+  name                = "acctvmss-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  upgrade_policy_mode = "Manual"
+
+  sku {
+    name     = "Standard_F2"
+    tier     = "Standard"
+    capacity = 2
+  }
+
+  os_profile {
+    computer_name_prefix = "testvm-%d"
+    admin_username       = "myadmin"
+    admin_password       = "Passwword1234"
+  }
+
+  network_profile {
+    name    = "TestNetworkProfile"
+    primary = true
+
+    ip_configuration {
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = "${azurerm_subnet.test.id}"
+    }
+  }
+
+  storage_profile_os_disk {
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
+  }
+
+  storage_profile_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  %s
+
+}
+`, rInt, location, rInt, rInt, rInt, rInt, dataDisks)
 }
