@@ -208,3 +208,18 @@ func GetTier(name string) string {
 
 	return validTier
 }
+
+func GetFamily(name string) string {
+	if !strings.HasPrefix(strings.ToLower(name), "gp_") && !strings.HasPrefix(strings.ToLower(name), "bc_") {
+		return ""
+	}
+
+	nameFamily := name[3:len(name)]
+	retFamily := "Gen4"
+
+	if strings.EqualFold(nameFamily, "Gen5") {
+		retFamily = "Gen5"
+	}
+
+	return retFamily
+}

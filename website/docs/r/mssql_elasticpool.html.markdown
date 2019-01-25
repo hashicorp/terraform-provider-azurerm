@@ -37,8 +37,6 @@ resource "azurerm_mssql_elasticpool" "test" {
   sku {
     name     = "GP_Gen5"
     capacity = 4
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
   }
 
   per_database_settings {

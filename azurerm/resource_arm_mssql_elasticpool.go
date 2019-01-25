@@ -74,6 +74,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 						"tier": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Default:  "",
 							ValidateFunc: validation.StringInSlice([]string{
 								"Basic",
 								"Standard",
@@ -87,11 +88,12 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 						"family": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Default:  "",
 							ValidateFunc: validation.StringInSlice([]string{
 								"Gen4",
 								"Gen5",
 							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.IgnoreIfNotSet,
 						},
 					},
 				},
@@ -176,24 +178,33 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
 
 			name, _ := diff.GetOk("sku.0.name")
-			tier, _ := diff.GetOk("sku.0.tier")
+			tier, _ := diff.GetOkExists("sku.0.tier")
 			capacity, _ := diff.GetOk("sku.0.capacity")
-			family, _ := diff.GetOk("sku.0.family")
+			family, _ := diff.GetOkExists("sku.0.family")
 			maxSizeGb, _ := diff.GetOk("max_size_gb")
 			minCapacity, _ := diff.GetOk("per_database_settings.0.min_capacity")
 			maxCapacity, _ := diff.GetOk("per_database_settings.0.max_capacity")
+
+			// Set default auto-fill value for family value
+			tmpFamily := azure.GetFamily(name.(string))
+
+			// If family is deifined in the config file use that
+			// value instead of the auto-fill value
+			if family.(string) != "" {
+				tmpFamily = family.(string)
+			}
 
 			// Basic Checks
 			if strings.EqualFold(name.(string), "BasicPool") {
 				maxAllowedGB := azure.BasicGetMaxSizeGB(capacity.(int))
 
 				if maxAllowedGB == 0 {
-					return fmt.Errorf("service tier 'Basic' must have a capacity of 50, 100, 200, 300, 400, 800, 1200 or 1600 DTUs")
+					return fmt.Errorf("service tier 'Basic' must have a 'capacity'(%d) of 50, 100, 200, 300, 400, 800, 1200 or 1600 DTUs", capacity.(int))
 				}
 
 				// Basic SKU does not let you pick your max_size_GB they are fixed values
 				if maxSizeGb.(float64) != maxAllowedGB {
-					return fmt.Errorf("service tier 'Basic' with a capacity of %d must have a 'max_size_gb' of %.7f GB, got %.7f GB", capacity.(int), maxAllowedGB, maxSizeGb.(float64))
+					return fmt.Errorf("service tier 'Basic' with a 'capacity' of %d must have a 'max_size_gb' of %.7f GB, got %.7f GB", capacity.(int), maxAllowedGB, maxSizeGb.(float64))
 				}
 			}
 
@@ -202,11 +213,11 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 				maxAllowedGB := azure.StandardGetMaxSizeGB(capacity.(int))
 
 				if maxAllowedGB == 0 {
-					return fmt.Errorf("service tier 'Standard' must have a capacity(%d) of 50, 100, 200, 300, 400, 800, 1200, 1600, 2000, 2500 or 3000 DTUs", capacity.(int))
+					return fmt.Errorf("service tier 'Standard' must have a 'capacity'(%d) of 50, 100, 200, 300, 400, 800, 1200, 1600, 2000, 2500 or 3000 DTUs", capacity.(int))
 				}
 
 				if maxSizeGb.(float64) > maxAllowedGB {
-					return fmt.Errorf("service tier 'Standard' with a capacity of %d must have a 'max_size_gb' no greater than %d GB, got %d GB", capacity.(int), int(maxAllowedGB), int(maxSizeGb.(float64)))
+					return fmt.Errorf("service tier 'Standard' with a 'capacity' of %d must have a 'max_size_gb' no greater than %d GB, got %d GB", capacity.(int), int(maxAllowedGB), int(maxSizeGb.(float64)))
 				}
 			}
 
@@ -215,39 +226,39 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 				maxAllowedGB := azure.PremiumGetMaxSizeGB(capacity.(int))
 
 				if maxAllowedGB == 0 {
-					return fmt.Errorf("service tier 'Premium' must have a capacity(%d) of 125, 250, 500, 1000, 1500, 2000, 2500, 3000, 3500 or 4000 DTUs", capacity.(int))
+					return fmt.Errorf("service tier 'Premium' must have a 'capacity'(%d) of 125, 250, 500, 1000, 1500, 2000, 2500, 3000, 3500 or 4000 DTUs", capacity.(int))
 				}
 
 				if maxSizeGb.(float64) > maxAllowedGB {
-					return fmt.Errorf("service tier 'Premium' with a capacity of %d must have a 'max_size_gb' no greater than %d GB, got %d GB", capacity.(int), int(maxAllowedGB), int(maxSizeGb.(float64)))
+					return fmt.Errorf("service tier 'Premium' with a 'capacity' of %d must have a 'max_size_gb' no greater than %d GB, got %d GB", capacity.(int), int(maxAllowedGB), int(maxSizeGb.(float64)))
 				}
 			}
 
 			// GeneralPurpose Checks
 			if strings.HasPrefix(strings.ToLower(name.(string)), "gp_") {
 				// Gen4 Checks
-				if strings.EqualFold(family.(string), "Gen4") {
-					maxAllowedGB := azure.GeneralPurposeGetMaxSizeGB(capacity.(int), "Gen4")
+				if strings.EqualFold(tmpFamily, "Gen4") {
+					maxAllowedGB := azure.GeneralPurposeGetMaxSizeGB(capacity.(int), tmpFamily)
 
 					if maxAllowedGB == 0 {
-						return fmt.Errorf("service tier 'GeneralPurpose' Gen4 must have a capacity(%d) of 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 16 or 24 vCores", capacity.(int))
+						return fmt.Errorf("service tier 'GeneralPurpose' Gen4 must have a 'capacity'(%d) of 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 16 or 24 vCores", capacity.(int))
 					}
 
 					if maxSizeGb.(float64) > maxAllowedGB {
-						return fmt.Errorf("service tier 'GeneralPurpose' Gen4 with a capacity of %d vCores must have a 'max_size_gb' between 5 GB and %d GB, got %d GB", capacity.(int), int(maxAllowedGB), int(maxSizeGb.(float64)))
+						return fmt.Errorf("service tier 'GeneralPurpose' Gen4 with a 'capacity' of %d vCores must have a 'max_size_gb' between 5 GB and %d GB, got %d GB", capacity.(int), int(maxAllowedGB), int(maxSizeGb.(float64)))
 					}
 				}
 
 				// Gen5 Checks
-				if strings.EqualFold(family.(string), "Gen5") {
-					maxAllowedGB := azure.GeneralPurposeGetMaxSizeGB(capacity.(int), "Gen5")
+				if strings.EqualFold(tmpFamily, "Gen5") {
+					maxAllowedGB := azure.GeneralPurposeGetMaxSizeGB(capacity.(int), tmpFamily)
 
 					if maxAllowedGB == 0 {
-						return fmt.Errorf("service tier 'GeneralPurpose' Gen5 must have a capacity(%d) of 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 24, 32, 40 or 80 vCores", capacity.(int))
+						return fmt.Errorf("service tier 'GeneralPurpose' Gen5 must have a 'capacity'(%d) of 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 24, 32, 40 or 80 vCores", capacity.(int))
 					}
 
 					if maxSizeGb.(float64) > maxAllowedGB {
-						return fmt.Errorf("service tier 'GeneralPurpose' Gen5 with a capacity of %d vCores must have a 'max_size_gb' between 5 GB and %d GB, got %d GB", capacity.(int), int(maxAllowedGB), int(maxSizeGb.(float64)))
+						return fmt.Errorf("service tier 'GeneralPurpose' Gen5 with a 'capacity' of %d vCores must have a 'max_size_gb' between 5 GB and %d GB, got %d GB", capacity.(int), int(maxAllowedGB), int(maxSizeGb.(float64)))
 					}
 				}
 			}
@@ -255,28 +266,28 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 			// BusinessCritical Checks
 			if strings.HasPrefix(strings.ToLower(name.(string)), "bc_") {
 				// Gen4 Checks
-				if strings.EqualFold(family.(string), "Gen4") {
-					maxAllowedGB := azure.BusinessCriticalGetMaxSizeGB(capacity.(int), "Gen4")
+				if strings.EqualFold(tmpFamily, "Gen4") {
+					maxAllowedGB := azure.BusinessCriticalGetMaxSizeGB(capacity.(int), tmpFamily)
 
 					if maxAllowedGB == 0 {
-						return fmt.Errorf("service tier 'BusinessCritical' Gen4 must have a capacity(%d) of 2, 3, 4, 5, 6, 7, 8, 9, 10, 16 or 24 vCores", capacity.(int))
+						return fmt.Errorf("service tier 'BusinessCritical' Gen4 must have a 'capacity'(%d) of 2, 3, 4, 5, 6, 7, 8, 9, 10, 16 or 24 vCores", capacity.(int))
 					}
 
 					if maxSizeGb.(float64) > maxAllowedGB {
-						return fmt.Errorf("service tier 'BusinessCritical' Gen4 with a capacity of %d vCores must have a 'max_size_gb' between 5 GB and %d GB, got %d GB", capacity.(int), int(maxAllowedGB), int(maxSizeGb.(float64)))
+						return fmt.Errorf("service tier 'BusinessCritical' Gen4 with a 'capacity' of %d vCores must have a 'max_size_gb' between 5 GB and %d GB, got %d GB", capacity.(int), int(maxAllowedGB), int(maxSizeGb.(float64)))
 					}
 				}
 
 				// Gen5 Checks
-				if strings.EqualFold(family.(string), "Gen5") {
-					maxAllowedGB := azure.BusinessCriticalGetMaxSizeGB(capacity.(int), "Gen5")
+				if strings.EqualFold(tmpFamily, "Gen5") {
+					maxAllowedGB := azure.BusinessCriticalGetMaxSizeGB(capacity.(int), tmpFamily)
 
 					if maxAllowedGB == 0 {
-						return fmt.Errorf("service tier 'BusinessCritical' Gen5 must have a capacity(%d) of 4, 6, 8, 10, 12, 14, 16, 18, 20, 24, 32, 40 or 80 vCores", capacity.(int))
+						return fmt.Errorf("service tier 'BusinessCritical' Gen5 must have a 'capacity'(%d) of 4, 6, 8, 10, 12, 14, 16, 18, 20, 24, 32, 40 or 80 vCores", capacity.(int))
 					}
 
 					if maxSizeGb.(float64) > maxAllowedGB {
-						return fmt.Errorf("service tier 'BusinessCritical' Gen5 with a capacity of %d vCores must have a 'max_size_gb' between 5 GB and %d GB, got %d GB", capacity.(int), int(maxAllowedGB), int(maxSizeGb.(float64)))
+						return fmt.Errorf("service tier 'BusinessCritical' Gen5 with a 'capacity' of %d vCores must have a 'max_size_gb' between 5 GB and %d GB, got %d GB", capacity.(int), int(maxAllowedGB), int(maxSizeGb.(float64)))
 					}
 				}
 			}
@@ -292,16 +303,21 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 					return fmt.Errorf("'max_size_gb' must be a whole number, got %f GB", maxSizeGb.(float64))
 				}
 
-				if !azure.NameFamilyValid(name.(string), family.(string)) {
-					return fmt.Errorf("SKU has a name '%s' family '%s' mismatch", name.(string), family.(string))
+				// If family is not in the config skip this check
+				// we will auto-fill this attribute with the correct value
+				// in the expand func
+				if family.(string) != "" {
+					if !azure.NameFamilyValid(name.(string), family.(string)) {
+						return fmt.Errorf("Mismatch between SKU name '%s' and family '%s', expected '%s'", name.(string), family.(string), azure.GetFamily(name.(string)))
+					}
 				}
 
 				if maxCapacity.(float64) > float64(capacity.(int)) {
-					return fmt.Errorf("service tiers 'GeneralPurpose' and 'BusinessCritical' perDatabaseSettings maxCapacity must not be higher than the SKUs capacity value")
+					return fmt.Errorf("service tiers 'GeneralPurpose' and 'BusinessCritical' perDatabaseSettings maxCapacity must not be higher than the SKUs 'capacity'(%d) value", capacity.(int))
 				}
 
 				if minCapacity.(float64) > maxCapacity.(float64) {
-					return fmt.Errorf("perDatabaseSettings maxCapacity must be greater than or equal to the perDatabaseSettings minCapacity value")
+					return fmt.Errorf("perDatabaseSettings maxCapacity must be greater than or equal to the perDatabaseSettings 'minCapacity' value")
 				}
 			} else {
 				// DTU Based
@@ -315,41 +331,45 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 					}
 				}
 
+				if family.(string) != "" {
+					return fmt.Errorf("Invalid attribute 'family' (%s) for service tiers 'Basic', 'Standard', and 'Premium', remove the 'family' attribute from the configuration file", family.(string))
+				}
+
 				if maxCapacity.(float64) != math.Trunc(maxCapacity.(float64)) {
-					return fmt.Errorf("service tiers 'Basic', 'Standard', and 'Premium' must have whole numbers as their maxCapacity")
+					return fmt.Errorf("service tiers 'Basic', 'Standard', and 'Premium' must have whole numbers as their 'maxCapacity'")
 				}
 
 				if minCapacity.(float64) != math.Trunc(minCapacity.(float64)) {
-					return fmt.Errorf("service tiers 'Basic', 'Standard', and 'Premium' must have whole numbers as their minCapacity")
+					return fmt.Errorf("service tiers 'Basic', 'Standard', and 'Premium' must have whole numbers as their 'minCapacity'")
 				}
 
 				if minCapacity.(float64) < 0.0 {
-					return fmt.Errorf("service tiers 'Basic', 'Standard', and 'Premium' per_database_settings min_capacity must be equal to or greater than zero")
+					return fmt.Errorf("service tiers 'Basic', 'Standard', and 'Premium' per_database_settings 'min_capacity' must be equal to or greater than zero")
 				}
 			}
 
 			// Validate Name Tier combos for all SKUs
-			// Do not validate the tier if it is set to nothing
+			// Do not validate the tier if it is empty
 			// We will auto-fill the value in the expand func
 			if tier.(string) != "" {
 				if strings.EqualFold(name.(string), "BasicPool") && !strings.EqualFold(tier.(string), "Basic") {
-					return fmt.Errorf("SKU has a name '%s' tier '%s' mismatch, expected 'tier' to be 'Basic'", name.(string), tier.(string))
+					return fmt.Errorf("Mismatch between SKU name '%s' and tier '%s', expected 'tier' to be 'Basic'", name.(string), tier.(string))
 				}
 
 				if strings.EqualFold(name.(string), "StandardPool") && !strings.EqualFold(tier.(string), "Standard") {
-					return fmt.Errorf("SKU has a name '%s' tier '%s' mismatch, expected 'tier' to be 'Standard'", name.(string), tier.(string))
+					return fmt.Errorf("Mismatch between SKU name '%s' and tier '%s', expected 'tier' to be 'Standard'", name.(string), tier.(string))
 				}
 
 				if strings.EqualFold(name.(string), "PremiumPool") && !strings.EqualFold(tier.(string), "Premium") {
-					return fmt.Errorf("SKU has a name '%s' tier '%s' mismatch, expected 'tier' to be 'Premium'", name.(string), tier.(string))
+					return fmt.Errorf("Mismatch between SKU name '%s' and tier '%s', expected 'tier' to be 'Premium'", name.(string), tier.(string))
 				}
 
 				if strings.HasPrefix(strings.ToLower(name.(string)), "gp_") && !strings.EqualFold(tier.(string), "GeneralPurpose") {
-					return fmt.Errorf("SKU has a name '%s' tier '%s' mismatch, expected 'tier' to be 'GeneralPurpose'", name.(string), tier.(string))
+					return fmt.Errorf("Mismatch between SKU name '%s' and tier '%s', expected 'tier' to be 'GeneralPurpose'", name.(string), tier.(string))
 				}
 
 				if strings.HasPrefix(strings.ToLower(name.(string)), "bc_") && !strings.EqualFold(tier.(string), "BusinessCritical") {
-					return fmt.Errorf("SKU has a name '%s' tier '%s' mismatch, expected 'tier' to be 'BusinessCritical'", name.(string), tier.(string))
+					return fmt.Errorf("Mismatch between SKU name '%s' tier '%s', expected 'tier' to be 'BusinessCritical'", name.(string), tier.(string))
 				}
 			}
 
@@ -513,6 +533,11 @@ func expandAzureRmMsSqlElasticPoolSku(d *schema.ResourceData) *sql.Sku {
 		tier = azure.GetTier(name)
 	}
 
+	// Auto fill family based off name
+	if family == "" {
+		family = azure.GetFamily(name)
+	}
+
 	return &sql.Sku{
 		Name:     utils.String(name),
 		Tier:     utils.String(tier),
@@ -526,14 +551,6 @@ func flattenAzureRmMsSqlElasticPoolSku(resp *sql.Sku) []interface{} {
 
 	if name := resp.Name; name != nil {
 		values["name"] = *name
-	}
-
-	if tier := resp.Tier; tier != nil {
-		values["tier"] = *tier
-	}
-
-	if family := resp.Family; family != nil {
-		values["family"] = *family
 	}
 
 	if capacity := resp.Capacity; capacity != nil {
