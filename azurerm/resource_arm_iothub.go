@@ -321,7 +321,7 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 					Condition:     true,
 					EndpointNames: []string{"events"},
 					IsEnabled:     enableFallbackRoute,
-				}
+				},
 			},
 		},
 		Tags: expandTags(tags),
