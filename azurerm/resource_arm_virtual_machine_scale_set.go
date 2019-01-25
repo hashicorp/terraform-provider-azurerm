@@ -758,14 +758,13 @@ func resourceArmVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta 
 	}
 
 	storageProfile := compute.VirtualMachineScaleSetStorageProfile{}
-
 	osDisk, err := expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d)
 	if err != nil {
 		return err
 	}
 	storageProfile.OsDisk = osDisk
 
-	if osDisk.ManagedDisk != nil && osDisk.ManagedDisk.StorageAccountType != "" {
+	if osDisk != nil && osDisk.ManagedDisk != nil && osDisk.ManagedDisk.StorageAccountType != "" {
 		storageProfile.DataDisks = expandAzureRMVirtualMachineScaleSetsStorageProfileDataDisk(dataDisksRaw)
 	} else if len(dataDisksRaw) > 0 {
 		return fmt.Errorf("[ERROR] `storage_profile_data_disk` should not be used with unmanaged `storage_profile_os_disk`")
