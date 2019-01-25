@@ -622,6 +622,10 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) web.SiteConfig {
 		siteConfig.WebSocketsEnabled = utils.Bool(v.(bool))
 	}
 
+	if v, ok := config["linux_fx_version"]; ok {
+		siteConfig.LinuxFxVersion = utils.String(v.(string))
+	}
+
 	return siteConfig
 }
 
