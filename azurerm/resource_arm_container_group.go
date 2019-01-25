@@ -280,7 +280,7 @@ func resourceArmContainerGroup() *schema.Resource {
 			},
 
 			"log_analytics": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				ForceNew: true,
 				MaxItems: 1,
@@ -312,9 +312,13 @@ func resourceArmContainerGroup() *schema.Resource {
 							Type:     schema.TypeMap,
 							Optional: true,
 							ForceNew: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 					},
 				},
+				Set: containerGroupLogAnalyticsHash,
 			},
 
 			"ip_address": {
@@ -702,7 +706,7 @@ func expandContainerVolumes(input interface{}) (*[]containerinstance.VolumeMount
 }
 
 func expandContainerLogAnalytics(d *schema.ResourceData) *containerinstance.LogAnalytics {
-	logList := d.Get("log_analytics").([]interface{})
+	logList := d.Get("log_analytics").(*schema.Set).List()
 
 	if len(logList) <= 0 {
 		return nil
@@ -957,31 +961,35 @@ func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, cont
 	return volumeConfigs
 }
 
-func flattenContainerLogAnalytics(input *containerinstance.LogAnalytics) []interface{} {
+func flattenContainerLogAnalytics(input *containerinstance.LogAnalytics) *schema.Set {
 	if input == nil {
-		return []interface{}{}
+		return nil
 	}
 
-	output := make(map[string]interface{})
-
+	log := make(map[string]interface{})
+	logSet := schema.Set{
+		F: containerGroupLogAnalyticsHash,
+	}
 	if input.WorkspaceID != nil {
-		output["workspace_id"] = *input.WorkspaceID
+		log["workspace_id"] = *input.WorkspaceID
 	}
 
 	if input.WorkspaceKey != nil {
-		output["workspace_key"] = *input.WorkspaceKey
+		log["workspace_key"] = *input.WorkspaceKey
 	}
 
-	output["log_type"] = containerinstance.LogAnalyticsLogType(input.LogType)
+	log["log_type"] = containerinstance.LogAnalyticsLogType(input.LogType)
 
 	// TODO: string ?
 	metadata := make(map[string]interface{})
 	for k, v := range input.Metadata {
 		metadata[k] = *v
 	}
-	output["metadata"] = metadata
+	log["metadata"] = metadata
 
-	return []interface{}{output}
+	logSet.Add(log)
+
+	return &logSet
 }
 
 func resourceArmContainerGroupPortsHash(v interface{}) int {
@@ -990,6 +998,29 @@ func resourceArmContainerGroupPortsHash(v interface{}) int {
 	if m, ok := v.(map[string]interface{}); ok {
 		buf.WriteString(fmt.Sprintf("%d-", m["port"].(int)))
 		buf.WriteString(fmt.Sprintf("%s-", m["protocol"].(string)))
+	}
+
+	return hashcode.String(buf.String())
+}
+
+func containerGroupLogAnalyticsHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s-", m["workspace_id"].(string)))
+
+		if v, ok := m["log_type"].(containerinstance.LogAnalyticsLogType); ok {
+			buf.WriteString(fmt.Sprintf("%s-", string(v)))
+		}
+		if v, ok := m["log_type"].(string); ok {
+			buf.WriteString(fmt.Sprintf("%s-", v))
+		}
+
+		metadata := m["metadata"].(map[string]interface{})
+		for k, v := range metadata {
+			buf.WriteString(fmt.Sprintf("%s-", k))
+			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+		}
 	}
 
 	return hashcode.String(buf.String())

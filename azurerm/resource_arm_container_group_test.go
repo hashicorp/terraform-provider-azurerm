@@ -218,7 +218,6 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Linux"),
 					resource.TestCheckResourceAttr(resourceName, "restart_policy", "OnFailure"),
 					resource.TestCheckResourceAttr(resourceName, "log_analytics.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "log_analytics.0.log_type", "ContainerInsights"),
 				),
 			},
 			{

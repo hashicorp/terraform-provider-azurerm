@@ -110,13 +110,17 @@ The following arguments are supported:
 
 * `restart_policy` - (Optional) Restart policy for the container group. Allowed values are `Always`, `Never`, `OnFailure`. Defaults to `Always`.
 
-* `image_registry_credential` - (Optional) Set image registry credentials for the group as documented in the `image_registry_credential` block below
+* `image_registry_credential` - (Optional) Set image registry credentials for the group as documented in the `image_registry_credential` block below.
 
 * `container` - (Required) The definition of a container that is part of the group as documented in the `container` block below. Changing this forces a new resource to be created.
+
+* `log_analytics` - (Optional) The information of Log Analytics for the group as documented in the `log_analytics` block below. Changing this forces a new resource to be created.
 
 ~> **Note:** if `os_type` is set to `Windows` currently only a single `container` block is supported.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
 
 The `container` block supports:
 
@@ -142,6 +146,8 @@ The `container` block supports:
 
 * `volume` - (Optional) The definition of a volume mount for this container as documented in the `volume` block below. Changing this forces a new resource to be created.
 
+---
+
 The `volume` block supports:
 
 * `name` - (Required) The name of the volume mount. Changing this forces a new resource to be created.
@@ -156,6 +162,8 @@ The `volume` block supports:
 
 * `share_name` - (Required) The Azure storage share that is to be mounted as a volume. This must be created on the storage account specified as above. Changing this forces a new resource to be created.
 
+---
+
 The `image_registry_credential` block supports:
 
 * `username` - (Required) The username with which to connect to the registry.
@@ -164,11 +172,27 @@ The `image_registry_credential` block supports:
 
 * `server` - (Required) The address to use to connect to the registry without protocol ("https"/"http"). For example: "myacr.acr.io"
 
+---
+
 The `ports` block supports:
 
 * `port` - (Required) The port number the container will expose.
 
 * `protocol` - (Required) The network protocol associated with port. Possible values are `TCP` & `UDP`.
+
+---
+
+The `log_analytics` block supports:
+
+* `workspace_id` - (Required) The workspace id for Log Analytics.
+
+~> **NOTE:** This field is `workspace_id` of `azurerm_log_analytics_workspace.test.workspace_id`, NOT `id`.
+
+* `workspace_key` - (Required) The workspace key for Log Analytics.
+
+* `log_type` - (Required) The log type to be used. Possible values include: `ContainerInsights` and `ContainerInstanceLogs`.
+
+* `metadata` - (Optional) The metadata for Log Analytics.
 
 ## Attributes Reference
 
