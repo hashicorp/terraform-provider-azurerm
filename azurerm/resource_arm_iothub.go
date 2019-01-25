@@ -316,9 +316,8 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 				Endpoints: endpoints,
 				Routes:    routes,
 				FallbackRoute: &devices.FallbackRouteProperties{
-					Name:          "$fallback",
-					Source:        "DeviceMessages",
-					Condition:     true,
+					Name:          utils.String("$fallback"),
+					Source:        utils.String("DeviceMessages"),
 					EndpointNames: []string{"events"},
 					IsEnabled:     enableFallbackRoute,
 				},
