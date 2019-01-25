@@ -978,7 +978,7 @@ func flattenContainerLogAnalytics(input *containerinstance.LogAnalytics) *schema
 		log["workspace_key"] = *input.WorkspaceKey
 	}
 
-	log["log_type"] = containerinstance.LogAnalyticsLogType(input.LogType)
+	log["log_type"] = input.LogType
 
 	// TODO: string ?
 	metadata := make(map[string]interface{})
