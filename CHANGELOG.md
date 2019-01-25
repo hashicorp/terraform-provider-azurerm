@@ -1,8 +1,14 @@
 ## 1.22.0 (Unreleased)
 
+UPGRADE NOTES:
+
+* The v1.22 release includes a few new resources which are duplicates of existing resources, the purpose of this is to correct some invalid naming so that we can remove the mis-named resources in the next major version of the Provider. Please see [the upgrade guide](https://terraform.io/docs/providers/azurerm/guides/migrating-to-monitor-resources.html) for more information on how to migrate between these resources.
+* The `azurerm_metric_alertrule` resource has been deprecated in favour of the (new) `azurerm_monitor_metric_alertrule` resource and will be removed in the next major version of the AzureRM Provider (2.0) [GH-2762]
+
 FEATURES:
 
 * **New Resource:**  `azurerm_ddos_protection_plan` [GH-2654]
+* **New Resource:** `azurerm_monitor_metric_alertrule` [GH-2762]
 
 IMPROVEMENTS:
 
