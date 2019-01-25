@@ -2,7 +2,7 @@
 layout: "azurerm"
 page_title: "Azure Active Directory: Migrating to a renamed resource"
 sidebar_current: "docs-azurerm-migrating-to-a-renamed-resource"
-description: |-
+description: | -
     This page documents how to migrate between two resources in the Azure Provider which have been renamed.
 
 ---
@@ -11,10 +11,11 @@ description: |-
 
 In v1.22 of the AzureRM Provider several resources have been deprecated in favour of a renamed version - this guide covers how to migrate from the old resource to the new one and is applicable for the following resources:
 
-| Old Name                  | New Name                          |
-| ------------------------- | --------------------------------- |
-| azurerm_autoscale_setting | azurerm_monitor_autoscale_setting |
-| azurerm_metric_alertrule  | azurerm_monitor_metric_alertrule  |
+| Old Name                                       | New Name                             |
+| ---------------------------------------------- | ------------------------------------ |
+| azurerm_log_analytics_workspace_linked_service | azurerm_log_analytics_linked_service |
+| azurerm_autoscale_setting                      | azurerm_monitor_autoscale_setting    |
+| azurerm_metric_alertrule                       | azurerm_monitor_metric_alertrule     |
 
 As the Schema's for each resource are the same at this time - it's possible to migrate between the resources by updating your Terraform Configuration and updating the Statefile.
 
