@@ -96,6 +96,8 @@ A `ip_configuration` block exports the following:
 
 * `private_ip_address` - The private IP address of the Azure Firewall.
 
+-> **NOTE** `ip_configuration` is list of single element, you need to use `ip_configuration.0.private_ip_address` to access the value.
+
 ## Import
 
 Azure Firewalls can be imported using the `resource id`, e.g.
