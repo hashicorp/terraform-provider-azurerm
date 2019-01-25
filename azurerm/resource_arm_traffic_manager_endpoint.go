@@ -235,7 +235,7 @@ func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmana
 
 	if resourceId := d.Get("target_resource_id").(string); resourceId != "" {
 		endpointProps.TargetResourceID = utils.String(resourceId)
-		//TODO? Workaround for upstream behavior: if the target is blank instead of nil, the REST API will throw a 500 error. Remove if/when no longer necessary
+		//NOTE: Workaround for upstream behavior: if the target is blank instead of nil, the REST API will throw a 500 error
 		if target == "" {
 			endpointProps.Target = nil
 		}
