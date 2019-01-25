@@ -189,6 +189,11 @@ func resourceArmFunctionApp() *schema.Resource {
 							Optional: true,
 							Default:  false,
 						},
+						"linux_fx_version": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
 					},
 				},
 			},
