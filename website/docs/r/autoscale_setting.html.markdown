@@ -317,7 +317,9 @@ A `rule` block supports the following:
 
 A `metric_trigger` block supports the following:
 
-* `metric_name` - (Required) The name of the metric that defines what the rule monitors, such as `Percentage CPU`.
+* `metric_name` - (Required) The name of the metric that defines what the rule monitors, such as `Percentage CPU` for `Virtual Machine Scale Sets` and `CpuPercentage` for `App Service Plan`.
+
+-> **NOTE:** The allowed value of `metric_name` highly depends on the targeting resource type, please visit [Supported metrics with Azure Monitor](https://docs.microsoft.com/en-us/azure/azure-monitor/platform/metrics-supported) for more details.
 
 * `metric_resource_id` - (Required) The ID of the Resource which the Rule monitors.
 
