@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -65,6 +66,20 @@ func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) e
 
 	name := d.Get("name").(string)
 	keyVaultBaseUrl := d.Get("vault_uri").(string)
+
+	if requireResourcesToBeImported {
+		existing, err := client.GetSecret(ctx, keyVaultBaseUrl, name, "")
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Secret %q (Key Vault %q): %s", name, keyVaultBaseUrl, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_key_vault_secret", *existing.ID)
+		}
+	}
+
 	value := d.Get("value").(string)
 	contentType := d.Get("content_type").(string)
 	tags := d.Get("tags").(map[string]interface{})

@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_recovery_services_protection_policy_vm"
-sidebar_current: "docs-azurerm-resource-recovery-services-protection-policy-vm"
+sidebar_current: "docs-azurerm-recovery-services-protection-policy-vm"
 description: |-
   Manages an Recovery Services VM Protection Policy.
 ---
@@ -27,8 +27,8 @@ resource "azurerm_recovery_services_vault" "example" {
 
 resource "azurerm_recovery_services_protection_policy_vm" "test" {
   name                = "tfex-recovery-vault-policy"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  recovery_vault_name = "${azurerm_recovery_services_vault.example.name}"
 
   timezone = "UTC"
 

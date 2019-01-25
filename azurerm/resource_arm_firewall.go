@@ -128,12 +128,12 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if !d.IsNewResource() {
-		exists, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
+		exists, err2 := client.Get(ctx, resourceGroup, name)
+		if err2 != nil {
 			if utils.ResponseWasNotFound(exists.Response) {
 				return fmt.Errorf("Error retrieving existing Firewall %q (Resource Group %q): firewall not found in resource group", name, resourceGroup)
 			}
-			return fmt.Errorf("Error retrieving existing Firewall %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("Error retrieving existing Firewall %q (Resource Group %q): %s", name, resourceGroup, err2)
 		}
 		if exists.AzureFirewallPropertiesFormat == nil {
 			return fmt.Errorf("Error retrieving existing rules (Firewall %q / Resource Group %q): `props` was nil", name, resourceGroup)

@@ -11,7 +11,8 @@ import (
 func TestAccAzureRMLogicAppActionCustom_basic(t *testing.T) {
 	resourceName := "azurerm_logic_app_action_custom.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMLogicAppActionCustom_basic(ri, testLocation())
+	location := testLocation()
+	config := testAccAzureRMLogicAppActionCustom_basic(ri, location)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -27,6 +28,34 @@ func TestAccAzureRMLogicAppActionCustom_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMLogicAppActionCustom_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_logic_app_action_custom.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLogicAppActionCustom_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogicAppActionExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMLogicAppActionCustom_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_logic_app_action_custom"),
 			},
 		},
 	})
@@ -59,6 +88,19 @@ resource "azurerm_logic_app_action_custom" "test" {
 BODY
 }
 `, template, rInt)
+}
+
+func testAccAzureRMLogicAppActionCustom_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMLogicAppActionCustom_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_action_custom" "import" {
+  name         = "${azurerm_logic_app_action_custom.test.name}"
+  logic_app_id = "${azurerm_logic_app_action_custom.test.logic_app_id}"
+  body         = "${azurerm_logic_app_action_custom.test.body}"
+}
+`, template)
 }
 
 func testAccAzureRMLogicAppActionCustom_template(rInt int, location string) string {

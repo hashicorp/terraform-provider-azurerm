@@ -32,6 +32,34 @@ func TestAccAzureRMLogicAppActionHttp_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLogicAppActionHttp_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_logic_app_action_http.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLogicAppActionHttp_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogicAppActionExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMLogicAppActionHttp_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_logic_app_action_http"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMLogicAppActionHttp_headers(t *testing.T) {
 	resourceName := "azurerm_logic_app_action_http.test"
 	ri := tf.AccRandTimeInt()
@@ -98,6 +126,20 @@ resource "azurerm_logic_app_action_http" "test" {
   uri          = "http://example.com/hello"
 }
 `, template, rInt)
+}
+
+func testAccAzureRMLogicAppActionHttp_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMLogicAppActionHttp_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_action_http" "import" {
+  name         = "${azurerm_logic_app_action_http.test.name}"
+  logic_app_id = "${azurerm_logic_app_action_http.test.logic_app_id}"
+  method       = "${azurerm_logic_app_action_http.test.method}"
+  uri          = "${azurerm_logic_app_action_http.test.uri}"
+}
+`, template)
 }
 
 func testAccAzureRMLogicAppActionHttp_headers(rInt int, location string) string {
