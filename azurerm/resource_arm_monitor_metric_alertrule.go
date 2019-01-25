@@ -12,21 +12,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMetricAlertRule() *schema.Resource {
+func resourceArmMonitorMetricAlertRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMetricAlertRuleCreateUpdate,
-		Read:   resourceArmMetricAlertRuleRead,
-		Update: resourceArmMetricAlertRuleCreateUpdate,
-		Delete: resourceArmMetricAlertRuleDelete,
-
+		Create: resourceArmMonitorMetricAlertRuleCreateUpdate,
+		Read:   resourceArmMonitorMetricAlertRuleRead,
+		Update: resourceArmMonitorMetricAlertRuleCreateUpdate,
+		Delete: resourceArmMonitorMetricAlertRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-
-		DeprecationMessage: `This resource has been renamed to 'azurerm_monitor_metric_alertrule' to match the other monitor resources and will be removed in v2.0. 
-
-Functionally these resources are the same and to upgrade all that will need to be done is replace 'azurerm_metric_alertrule' with 'azurerm_monitor_metric_alertrule'
-`,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -156,7 +150,7 @@ Functionally these resources are the same and to upgrade all that will need to b
 	}
 }
 
-func resourceArmMetricAlertRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMonitorMetricAlertRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).monitorAlertRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -174,14 +168,14 @@ func resourceArmMetricAlertRuleCreateUpdate(d *schema.ResourceData, meta interfa
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_metric_alertrule", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_monitor_metric_alertrule", *existing.ID)
 		}
 	}
 
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
-	alertRule, err := expandAzureRmMetricThresholdAlertRule(d)
+	alertRule, err := expandAzureRmMonitorMetricThresholdAlertRule(d)
 	if err != nil {
 		return err
 	}
@@ -207,10 +201,10 @@ func resourceArmMetricAlertRuleCreateUpdate(d *schema.ResourceData, meta interfa
 
 	d.SetId(*read.ID)
 
-	return resourceArmMetricAlertRuleRead(d, meta)
+	return resourceArmMonitorMetricAlertRuleRead(d, meta)
 }
 
-func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMonitorMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).monitorAlertRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -309,7 +303,7 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceArmMetricAlertRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMonitorMetricAlertRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).monitorAlertRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -330,7 +324,7 @@ func resourceArmMetricAlertRuleDelete(d *schema.ResourceData, meta interface{}) 
 	return err
 }
 
-func expandAzureRmMetricThresholdAlertRule(d *schema.ResourceData) (*insights.AlertRule, error) {
+func expandAzureRmMonitorMetricThresholdAlertRule(d *schema.ResourceData) (*insights.AlertRule, error) {
 	name := d.Get("name").(string)
 
 	resource := d.Get("resource_id").(string)
@@ -429,7 +423,18 @@ func expandAzureRmMetricThresholdAlertRule(d *schema.ResourceData) (*insights.Al
 	return &alertRule, nil
 }
 
-func validateMetricAlertRuleTags(v interface{}, f string) (warnings []string, errors []error) {
+func resourceGroupAndAlertRuleNameFromId(alertRuleId string) (string, string, error) {
+	id, err := parseAzureResourceID(alertRuleId)
+	if err != nil {
+		return "", "", err
+	}
+	name := id.Path["alertrules"]
+	resourceGroup := id.ResourceGroup
+
+	return resourceGroup, name, nil
+}
+
+func validateMonitorMetricAlertRuleTags(v interface{}, f string) (warnings []string, errors []error) {
 	// Normal validation required by any AzureRM resource.
 	warnings, errors = validateAzureRMTags(v, f)
 
