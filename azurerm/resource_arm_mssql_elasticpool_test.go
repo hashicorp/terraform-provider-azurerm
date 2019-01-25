@@ -36,31 +36,33 @@ func TestAccAzureRMMsSqlElasticPool_basic_DTU(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMsSqlElasticPool_basic_DTU_AutoFill(t *testing.T) {
-	resourceName := "azurerm_mssql_elasticpool.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMsSqlElasticPool_basic_DTU_AutoFill(ri, testLocation())
+// Leaving this code here for release in 2.0
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMMsSqlElasticPoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlElasticPoolExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "BasicPool"),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "50"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "0"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "5"),
-					resource.TestCheckResourceAttrSet(resourceName, "max_size_gb"),
-					resource.TestCheckResourceAttrSet(resourceName, "zone_redundant"),
-				),
-			},
-		},
-	})
-}
+// func TestAccAzureRMMsSqlElasticPool_basic_DTU_AutoFill(t *testing.T) {
+// 	resourceName := "azurerm_mssql_elasticpool.test"
+// 	ri := tf.AccRandTimeInt()
+// 	config := testAccAzureRMMsSqlElasticPool_basic_DTU_AutoFill(ri, testLocation())
+
+// 	resource.ParallelTest(t, resource.TestCase{
+// 		PreCheck:     func() { testAccPreCheck(t) },
+// 		Providers:    testAccProviders,
+// 		CheckDestroy: testCheckAzureRMMsSqlElasticPoolDestroy,
+// 		Steps: []resource.TestStep{
+// 			{
+// 				Config: config,
+// 				Check: resource.ComposeTestCheckFunc(
+// 					testCheckAzureRMMsSqlElasticPoolExists(resourceName),
+// 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "BasicPool"),
+// 					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "50"),
+// 					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "0"),
+// 					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "5"),
+// 					resource.TestCheckResourceAttrSet(resourceName, "max_size_gb"),
+// 					resource.TestCheckResourceAttrSet(resourceName, "zone_redundant"),
+// 				),
+// 			},
+// 		},
+// 	})
+// }
 
 func TestAccAzureRMMsSqlElasticPool_standard_DTU(t *testing.T) {
 	resourceName := "azurerm_mssql_elasticpool.test"
@@ -126,37 +128,39 @@ func TestAccAzureRMMsSqlElasticPool_basic_vCore(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMsSqlElasticPool_basic_vCore_AutoFill(t *testing.T) {
-	resourceName := "azurerm_mssql_elasticpool.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMsSqlElasticPool_basic_vCore_AutoFill(ri, testLocation())
+// Leaving this code here for release in 2.0
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMMsSqlElasticPoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlElasticPoolExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "GP_Gen5"),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "4"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "0.25"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "4"),
-					resource.TestCheckResourceAttrSet(resourceName, "max_size_gb"),
-					resource.TestCheckResourceAttrSet(resourceName, "zone_redundant"),
-				),
-			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"max_size_gb"},
-			},
-		},
-	})
-}
+// func TestAccAzureRMMsSqlElasticPool_basic_vCore_AutoFill(t *testing.T) {
+// 	resourceName := "azurerm_mssql_elasticpool.test"
+// 	ri := tf.AccRandTimeInt()
+// 	config := testAccAzureRMMsSqlElasticPool_basic_vCore_AutoFill(ri, testLocation())
+
+// 	resource.ParallelTest(t, resource.TestCase{
+// 		PreCheck:     func() { testAccPreCheck(t) },
+// 		Providers:    testAccProviders,
+// 		CheckDestroy: testCheckAzureRMMsSqlElasticPoolDestroy,
+// 		Steps: []resource.TestStep{
+// 			{
+// 				Config: config,
+// 				Check: resource.ComposeTestCheckFunc(
+// 					testCheckAzureRMMsSqlElasticPoolExists(resourceName),
+// 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "GP_Gen5"),
+// 					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "4"),
+// 					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "0.25"),
+// 					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "4"),
+// 					resource.TestCheckResourceAttrSet(resourceName, "max_size_gb"),
+// 					resource.TestCheckResourceAttrSet(resourceName, "zone_redundant"),
+// 				),
+// 			},
+// 			{
+// 				ResourceName:            resourceName,
+// 				ImportState:             true,
+// 				ImportStateVerify:       true,
+// 				ImportStateVerifyIgnore: []string{"max_size_gb"},
+// 			},
+// 		},
+// 	})
+// }
 
 func TestAccAzureRMMsSqlElasticPool_disappears(t *testing.T) {
 	resourceName := "azurerm_mssql_elasticpool.test"
