@@ -248,7 +248,7 @@ func resourceArmIotHub() *schema.Resource {
 				},
 			},
 
-			"enableFallbackRoute": {
+			"enable_fallback_route": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
@@ -298,7 +298,7 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	skuInfo := expandIoTHubSku(d)
 	tags := d.Get("tags").(map[string]interface{})
-	enableFallbackRoute := d.Get("enableFallbackRoute").(bool)
+	enableFallbackRoute := d.Get("enable_fallback_route").(bool)
 
 	endpoints, err := expandIoTHubEndpoints(d, subscriptionID)
 	if err != nil {
