@@ -279,6 +279,44 @@ func resourceArmContainerGroup() *schema.Resource {
 				},
 			},
 
+			"log_analytics": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"workspace_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+						"workspace_key": {
+							Type:         schema.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ForceNew:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+						"log_type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(containerinstance.ContainerInsights),
+								string(containerinstance.ContainerInstanceLogs),
+							}, true),
+						},
+						"metadata": {
+							Type:     schema.TypeMap,
+							Optional: true,
+							ForceNew: true,
+						},
+					},
+				},
+			},
+
 			"ip_address": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -340,8 +378,17 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 		containerGroup.ContainerGroupProperties.IPAddress.DNSNameLabel = &dnsNameLabel
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resGroup, name, containerGroup); err != nil {
-		return err
+	containerGroup.Diagnostics = &containerinstance.ContainerGroupDiagnostics{
+		LogAnalytics: expandContainerLogAnalytics(d),
+	}
+
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, containerGroup)
+	if err != nil {
+		return fmt.Errorf("Error creating/updating container group %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for completion of container group %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
@@ -406,7 +453,14 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 
 		d.Set("restart_policy", string(props.RestartPolicy))
 		d.Set("os_type", string(props.OsType))
+
+		if diag := props.Diagnostics; diag != nil {
+			if err := d.Set("log_analytics", flattenContainerLogAnalytics(diag.LogAnalytics)); err != nil {
+				return fmt.Errorf("Error setting `log_analytics`: %+v", err)
+			}
+		}
 	}
+
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil
@@ -647,6 +701,33 @@ func expandContainerVolumes(input interface{}) (*[]containerinstance.VolumeMount
 	return &volumeMounts, &containerGroupVolumes
 }
 
+func expandContainerLogAnalytics(d *schema.ResourceData) *containerinstance.LogAnalytics {
+	logList := d.Get("log_analytics").([]interface{})
+
+	if len(logList) <= 0 {
+		return nil
+	}
+
+	log := logList[0].(map[string]interface{})
+	ws_id := log["workspace_id"].(string)
+	ws_key := log["workspace_key"].(string)
+	log_type := log["log_type"].(string)
+	metadataMap := log["metadata"].(map[string]interface{})
+	metadata := make(map[string]*string)
+	for k, v := range metadataMap {
+		// TODO:
+		strValue := v.(string)
+		metadata[k] = &strValue
+	}
+
+	return &containerinstance.LogAnalytics{
+		WorkspaceID:  &ws_id,
+		WorkspaceKey: &ws_key,
+		LogType:      containerinstance.LogAnalyticsLogType(log_type),
+		Metadata:     metadata,
+	}
+}
+
 func flattenContainerImageRegistryCredentials(d *schema.ResourceData, input *[]containerinstance.ImageRegistryCredential) []interface{} {
 	if input == nil {
 		return nil
@@ -874,6 +955,33 @@ func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, cont
 	}
 
 	return volumeConfigs
+}
+
+func flattenContainerLogAnalytics(input *containerinstance.LogAnalytics) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make(map[string]interface{})
+
+	if input.WorkspaceID != nil {
+		output["workspace_id"] = *input.WorkspaceID
+	}
+
+	if input.WorkspaceKey != nil {
+		output["workspace_key"] = *input.WorkspaceKey
+	}
+
+	output["log_type"] = containerinstance.LogAnalyticsLogType(input.LogType)
+
+	// TODO: string ?
+	metadata := make(map[string]interface{})
+	for k, v := range input.Metadata {
+		metadata[k] = *v
+	}
+	output["metadata"] = metadata
+
+	return []interface{}{output}
 }
 
 func resourceArmContainerGroupPortsHash(v interface{}) int {
