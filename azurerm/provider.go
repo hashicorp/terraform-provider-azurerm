@@ -243,6 +243,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_lb":                                     resourceArmLoadBalancer(),
 			"azurerm_local_network_gateway":                  resourceArmLocalNetworkGateway(),
 			"azurerm_log_analytics_solution":                 resourceArmLogAnalyticsSolution(),
+			"azurerm_log_analytics_linked_service":           resourceArmLogAnalyticsLinkedService(),
 			"azurerm_log_analytics_workspace_linked_service": resourceArmLogAnalyticsWorkspaceLinkedService(),
 			"azurerm_log_analytics_workspace":                resourceArmLogAnalyticsWorkspace(),
 			"azurerm_logic_app_action_custom":                resourceArmLogicAppActionCustom(),
