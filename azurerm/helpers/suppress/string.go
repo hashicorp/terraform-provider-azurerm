@@ -16,6 +16,4 @@ func IgnoreIfNotSet(_, old, new string, _ *schema.ResourceData) bool {
 	} else {
 		return strings.EqualFold(old, new)
 	}
-
-	return false
 }
