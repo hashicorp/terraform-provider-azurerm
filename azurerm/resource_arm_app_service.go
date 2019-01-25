@@ -82,6 +82,12 @@ func resourceArmAppService() *schema.Resource {
 				Default:  false,
 			},
 
+			"client_cert_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -225,6 +231,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	appServicePlanId := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
+	clientCertEnabled := d.Get("client_cert_enabled").(bool)
 	tags := d.Get("tags").(map[string]interface{})
 
 	siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
@@ -233,10 +240,11 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		Location: &location,
 		Tags:     expandTags(tags),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID: utils.String(appServicePlanId),
-			Enabled:      utils.Bool(enabled),
-			HTTPSOnly:    utils.Bool(httpsOnly),
-			SiteConfig:   &siteConfig,
+			ServerFarmID:      utils.String(appServicePlanId),
+			Enabled:           utils.Bool(enabled),
+			HTTPSOnly:         utils.Bool(httpsOnly),
+			ClientCertEnabled: utils.Bool(clientCertEnabled),
+			SiteConfig:        &siteConfig,
 		},
 	}
 
@@ -289,6 +297,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	appServicePlanId := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
+	clientCertEnabled := d.Get("client_cert_enabled").(bool)
 	tags := d.Get("tags").(map[string]interface{})
 
 	siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
@@ -296,10 +305,11 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		Location: &location,
 		Tags:     expandTags(tags),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID: utils.String(appServicePlanId),
-			Enabled:      utils.Bool(enabled),
-			HTTPSOnly:    utils.Bool(httpsOnly),
-			SiteConfig:   &siteConfig,
+			ServerFarmID:      utils.String(appServicePlanId),
+			Enabled:           utils.Bool(enabled),
+			HTTPSOnly:         utils.Bool(httpsOnly),
+			ClientCertEnabled: utils.Bool(clientCertEnabled),
+			SiteConfig:        &siteConfig,
 		},
 	}
 
@@ -453,6 +463,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 		d.Set("enabled", props.Enabled)
 		d.Set("https_only", props.HTTPSOnly)
+		d.Set("client_cert_enabled", props.ClientCertEnabled)
 		d.Set("default_site_hostname", props.DefaultHostName)
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
 		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
