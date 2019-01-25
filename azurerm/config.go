@@ -244,6 +244,7 @@ type ArmClient struct {
 	applicationGatewayClient        network.ApplicationGatewaysClient
 	applicationSecurityGroupsClient network.ApplicationSecurityGroupsClient
 	azureFirewallsClient            network.AzureFirewallsClient
+	connectionMonitorsClient        network.ConnectionMonitorsClient
 	ddosProtectionPlanClient        network.DdosProtectionPlansClient
 	expressRouteAuthsClient         network.ExpressRouteCircuitAuthorizationsClient
 	expressRouteCircuitClient       network.ExpressRouteCircuitsClient
@@ -908,6 +909,10 @@ func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, a
 	azureFirewallsClient := network.NewAzureFirewallsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&azureFirewallsClient.Client, auth)
 	c.azureFirewallsClient = azureFirewallsClient
+
+	connectionMonitorsClient := network.NewConnectionMonitorsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&connectionMonitorsClient.Client, auth)
+	c.connectionMonitorsClient = connectionMonitorsClient
 
 	ddosProtectionPlanClient := network.NewDdosProtectionPlansClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&ddosProtectionPlanClient.Client, auth)

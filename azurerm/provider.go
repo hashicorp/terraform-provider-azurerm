@@ -189,6 +189,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_cdn_endpoint":                           resourceArmCdnEndpoint(),
 			"azurerm_cdn_profile":                            resourceArmCdnProfile(),
 			"azurerm_cognitive_account":                      resourceArmCognitiveAccount(),
+			"azurerm_connection_monitor":                     resourceArmConnectionMonitor(),
 			"azurerm_container_group":                        resourceArmContainerGroup(),
 			"azurerm_container_registry":                     resourceArmContainerRegistry(),
 			"azurerm_container_service":                      resourceArmContainerService(),
