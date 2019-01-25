@@ -14,7 +14,7 @@ In v1.22 of the AzureRM Provider several resources have been deprecated in favou
 | Old Name                  | New Name                          |
 | ------------------------- | --------------------------------- |
 | azurerm_autoscale_setting | azurerm_monitor_autoscale_setting |
-
+| azurerm_metric_alertrule  | azurerm_monitor_metric_alertrule  |
 
 As the Schema's for each resource are the same at this time - it's possible to migrate between the resources by updating your Terraform Configuration and updating the Statefile.
 
