@@ -50,21 +50,46 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Required: true,
 						},
 
-						// TODO: ditch the suffix `_list` in the future
-						"fqdn_list": {
+						"fqdns": {
 							Type:     schema.TypeList,
 							Optional: true,
+							Computed: true,
 							MinItems: 1,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
 						},
 
-						// TODO: ditch the suffix `_list` in the future
-						"ip_address_list": {
+						"ip_addresses": {
 							Type:     schema.TypeList,
 							Optional: true,
+							Computed: true,
 							MinItems: 1,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.IPv4Address,
+							},
+						},
+
+						// TODO: remove in 2.0
+						"fqdn_list": {
+							Type:       schema.TypeList,
+							Optional:   true,
+							Computed:   true,
+							Deprecated: "`fqdn_list` has been deprecated in favour of the `fqdns` field",
+							MinItems:   1,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+
+						// TODO: remove in 2.0
+						"ip_address_list": {
+							Type:       schema.TypeList,
+							Optional:   true,
+							Computed:   true,
+							Deprecated: "`ip_address_list` has been deprecated in favour of the `ip_addresses` field",
+							MinItems:   1,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
 								ValidateFunc: validate.IPv4Address,
@@ -1050,12 +1075,24 @@ func expandApplicationGatewayBackendAddressPools(d *schema.ResourceData) *[]netw
 		v := raw.(map[string]interface{})
 		backendAddresses := make([]network.ApplicationGatewayBackendAddress, 0)
 
-		for _, ip := range v["ip_address_list"].([]interface{}) {
+		for _, ip := range v["fqdns"].([]interface{}) {
+			backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
+				Fqdn: utils.String(ip.(string)),
+			})
+		}
+		for _, ip := range v["ip_addresses"].([]interface{}) {
 			backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
 				IPAddress: utils.String(ip.(string)),
 			})
 		}
 
+		// TODO: remove in 2.0
+		for _, ip := range v["ip_address_list"].([]interface{}) {
+			backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
+				IPAddress: utils.String(ip.(string)),
+			})
+		}
+		// TODO: remove in 2.0
 		for _, ip := range v["fqdn_list"].([]interface{}) {
 			backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
 				Fqdn: utils.String(ip.(string)),
@@ -1099,6 +1136,10 @@ func flattenApplicationGatewayBackendAddressPools(input *[]network.ApplicationGa
 		}
 
 		output := map[string]interface{}{
+			"fqdns":        fqdnList,
+			"ip_addresses": ipAddressList,
+
+			// TODO: deprecated - remove in 2.0
 			"ip_address_list": ipAddressList,
 			"fqdn_list":       fqdnList,
 		}
