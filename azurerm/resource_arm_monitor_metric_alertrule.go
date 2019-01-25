@@ -208,10 +208,12 @@ func resourceArmMonitorMetricAlertRuleRead(d *schema.ResourceData, meta interfac
 	client := meta.(*ArmClient).monitorAlertRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	resourceGroup, name, err := resourceGroupAndAlertRuleNameFromId(d.Id())
+	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
+	name := id.Path["alertrules"]
+	resourceGroup := id.ResourceGroup
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -307,10 +309,12 @@ func resourceArmMonitorMetricAlertRuleDelete(d *schema.ResourceData, meta interf
 	client := meta.(*ArmClient).monitorAlertRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	resourceGroup, name, err := resourceGroupAndAlertRuleNameFromId(d.Id())
+	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
+	name := id.Path["alertrules"]
+	resourceGroup := id.ResourceGroup
 
 	resp, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
@@ -421,17 +425,6 @@ func expandAzureRmMonitorMetricThresholdAlertRule(d *schema.ResourceData) (*insi
 	}
 
 	return &alertRule, nil
-}
-
-func resourceGroupAndAlertRuleNameFromId(alertRuleId string) (string, string, error) {
-	id, err := parseAzureResourceID(alertRuleId)
-	if err != nil {
-		return "", "", err
-	}
-	name := id.Path["alertrules"]
-	resourceGroup := id.ResourceGroup
-
-	return resourceGroup, name, nil
 }
 
 func validateMonitorMetricAlertRuleTags(v interface{}, f string) (warnings []string, errors []error) {

@@ -444,3 +444,14 @@ func validateMetricAlertRuleTags(v interface{}, f string) (warnings []string, er
 
 	return warnings, errors
 }
+
+func resourceGroupAndAlertRuleNameFromId(alertRuleId string) (string, string, error) {
+	id, err := parseAzureResourceID(alertRuleId)
+	if err != nil {
+		return "", "", err
+	}
+	name := id.Path["alertrules"]
+	resourceGroup := id.ResourceGroup
+
+	return resourceGroup, name, nil
+}
