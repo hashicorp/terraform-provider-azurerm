@@ -22,6 +22,13 @@ TODO: refactor this:
 */
 func resourceArmLogAnalyticsWorkspaceLinkedService() *schema.Resource {
 	return &schema.Resource{
+		DeprecationMessage: `The 'azurerm_log_analytics_workspace_linked_service' resource is deprecated in favour of the renamed version 'azurerm_log_analytics_linked_service'.
+
+Information on migrating to the renamed resource can be found here: https://terraform.io/docs/providers/azurerm/guides/migrating-to-monitor-resources.html
+
+As such the existing 'azurerm_log_analytics_workspace_linked_service' resource is deprecated and will be removed in the next major version of the AzureRM Provider (2.0).
+`,
+
 		Create: resourceArmLogAnalyticsWorkspaceLinkedServiceCreateUpdate,
 		Read:   resourceArmLogAnalyticsWorkspaceLinkedServiceRead,
 		Update: resourceArmLogAnalyticsWorkspaceLinkedServiceCreateUpdate,
