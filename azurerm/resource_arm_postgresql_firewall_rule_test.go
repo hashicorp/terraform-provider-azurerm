@@ -13,7 +13,6 @@ import (
 func TestAccAzureRMPostgreSQLFirewallRule_basic(t *testing.T) {
 	resourceName := "azurerm_postgresql_firewall_rule.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMPostgreSQLFirewallRule_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -21,7 +20,7 @@ func TestAccAzureRMPostgreSQLFirewallRule_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPostgreSQLFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMPostgreSQLFirewallRule_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLFirewallRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "start_ip_address", "0.0.0.0"),
@@ -32,6 +31,31 @@ func TestAccAzureRMPostgreSQLFirewallRule_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMPostgreSQLFirewallRule_requiresImport(t *testing.T) {
+	resourceName := "azurerm_postgresql_firewall_rule.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPostgreSQLFirewallRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPostgreSQLFirewallRule_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLFirewallRuleExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "start_ip_address", "0.0.0.0"),
+					resource.TestCheckResourceAttr(resourceName, "end_ip_address", "255.255.255.255"),
+				),
+			},
+			{
+				Config:      testAccAzureRMPostgreSQLFirewallRule_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_postgresql_firewall_rule"),
 			},
 		},
 	})
@@ -136,4 +160,18 @@ resource "azurerm_postgresql_firewall_rule" "test" {
   end_ip_address      = "255.255.255.255"
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMPostgreSQLFirewallRule_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_firewall_rule" "import" {
+  name                = "${azurerm_postgresql_firewall_rule.test.name}"
+  resource_group_name = "${azurerm_postgresql_firewall_rule.test.resource_group_name}"
+  server_name         = "${azurerm_postgresql_firewall_rule.test.server_name}"
+  start_ip_address    = "${azurerm_postgresql_firewall_rule.test.start_ip_address}"
+  end_ip_address      = "${azurerm_postgresql_firewall_rule.test.end_ip_address}"
+}
+`, testAccAzureRMPostgreSQLFirewallRule_basic(rInt, location))
 }
