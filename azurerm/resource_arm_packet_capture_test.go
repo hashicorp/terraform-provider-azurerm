@@ -310,10 +310,10 @@ func testAzureRMPacketCapture_localDiskConfig_requiresImport(rInt int, location 
 %s
 
 resource "azurerm_packet_capture" "import" {
-  name                 = "acctestpc-%d"
-  network_watcher_name = "${azurerm_network_watcher.test.name}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  target_resource_id   = "${azurerm_virtual_machine.test.id}"
+  name                 = "${azurerm_packet_capture.test.name}"
+  network_watcher_name = "${azurerm_packet_capture.test.network_watcher_name}"
+  resource_group_name  = "${azurerm_packet_capture.test.resource_group_name}"
+  target_resource_id   = "${azurerm_packet_capture.test.target_resource_id}"
 
   storage_location {
     file_path = "/var/captures/packet.cap"
@@ -321,7 +321,7 @@ resource "azurerm_packet_capture" "import" {
 
   depends_on = ["azurerm_virtual_machine_extension.test"]
 }
-`, config, rInt)
+`, config)
 }
 
 func testAzureRMPacketCapture_localDiskConfigWithFilters(rInt int, location string) string {

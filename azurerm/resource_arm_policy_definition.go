@@ -3,6 +3,7 @@ package azurerm
 import (
 	"context"
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"log"
 	"regexp"
 	"strings"
@@ -108,6 +109,19 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 	displayName := d.Get("display_name").(string)
 	description := d.Get("description").(string)
 	managementGroupID := d.Get("management_group_id").(string)
+
+	if requireResourcesToBeImported {
+		existing, err := getPolicyDefinition(ctx, client, name, managementGroupID)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Policy Definition %q: %s", name, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_policy_definition", *existing.ID)
+		}
+	}
 
 	properties := policy.DefinitionProperties{
 		PolicyType:  policy.Type(policyType),

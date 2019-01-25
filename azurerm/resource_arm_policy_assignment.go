@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"log"
 
 	"time"
@@ -112,6 +113,19 @@ func resourceArmPolicyAssignmentCreateOrUpdate(d *schema.ResourceData, meta inte
 
 	policyDefinitionId := d.Get("policy_definition_id").(string)
 	displayName := d.Get("display_name").(string)
+
+	if requireResourcesToBeImported {
+		existing, err := client.Get(ctx, scope, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Policy Assignment %q: %s", name, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_policy_assignment", *existing.ID)
+		}
+	}
 
 	assignment := policy.Assignment{
 		AssignmentProperties: &policy.AssignmentProperties{

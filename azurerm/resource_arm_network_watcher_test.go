@@ -17,17 +17,17 @@ func TestAccAzureRMNetworkWatcher(t *testing.T) {
 	// (which our test suite can't easily workaround)
 	testCases := map[string]map[string]func(t *testing.T){
 		"basic": {
-			"basic":           testAccAzureRMNetworkWatcher_basic,
-			"complete":        testAccAzureRMNetworkWatcher_complete,
-			"update":          testAccAzureRMNetworkWatcher_update,
-			"disappears":      testAccAzureRMNetworkWatcher_disappears,
+			"basic":      testAccAzureRMNetworkWatcher_basic,
+			"complete":   testAccAzureRMNetworkWatcher_complete,
+			"update":     testAccAzureRMNetworkWatcher_update,
+			"disappears": testAccAzureRMNetworkWatcher_disappears,
 		},
 		"PacketCapture": {
 			"localDisk":                  testAccAzureRMPacketCapture_localDisk,
 			"storageAccount":             testAccAzureRMPacketCapture_storageAccount,
 			"storageAccountAndLocalDisk": testAccAzureRMPacketCapture_storageAccountAndLocalDisk,
 			"withFilters":                testAccAzureRMPacketCapture_withFilters,
-			"requiresImport": testAccAzureRMPacketCapture_requiresImport,
+			"requiresImport":             testAccAzureRMPacketCapture_requiresImport,
 		},
 	}
 
