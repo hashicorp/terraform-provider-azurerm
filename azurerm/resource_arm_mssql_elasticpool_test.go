@@ -37,6 +37,34 @@ func TestAccAzureRMMsSqlElasticPool_basic_DTU(t *testing.T) {
 	})
 }
 
+// Leaving this code here for release in 2.0
+
+// func TestAccAzureRMMsSqlElasticPool_basic_DTU_AutoFill(t *testing.T) {
+// 	resourceName := "azurerm_mssql_elasticpool.test"
+// 	ri := tf.AccRandTimeInt()
+// 	config := testAccAzureRMMsSqlElasticPool_basic_DTU_AutoFill(ri, testLocation())
+
+// 	resource.ParallelTest(t, resource.TestCase{
+// 		PreCheck:     func() { testAccPreCheck(t) },
+// 		Providers:    testAccProviders,
+// 		CheckDestroy: testCheckAzureRMMsSqlElasticPoolDestroy,
+// 		Steps: []resource.TestStep{
+// 			{
+// 				Config: config,
+// 				Check: resource.ComposeTestCheckFunc(
+// 					testCheckAzureRMMsSqlElasticPoolExists(resourceName),
+// 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "BasicPool"),
+// 					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "50"),
+// 					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "0"),
+// 					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "5"),
+// 					resource.TestCheckResourceAttrSet(resourceName, "max_size_gb"),
+// 					resource.TestCheckResourceAttrSet(resourceName, "zone_redundant"),
+// 				),
+// 			},
+// 		},
+// 	})
+// }
+
 func TestAccAzureRMMsSqlElasticPool_requiresImport(t *testing.T) {
 	if !requireResourcesToBeImported {
 		t.Skip("Skipping since resources aren't required to be imported")
