@@ -248,6 +248,12 @@ func resourceArmIotHub() *schema.Resource {
 				},
 			},
 
+			"enableFallbackRoute": {
+				Type:         schema.TypeBool,
+				Optional:     true,
+				Default:      true,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -292,6 +298,7 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	skuInfo := expandIoTHubSku(d)
 	tags := d.Get("tags").(map[string]interface{})
+	enableFallbackRoute := d.Get("enableFallbackRoute").(bool)
 
 	endpoints, err := expandIoTHubEndpoints(d, subscriptionID)
 	if err != nil {
@@ -308,6 +315,15 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 			Routing: &devices.RoutingProperties{
 				Endpoints: endpoints,
 				Routes:    routes,
+				FallbackRoute: &devices.FallbackRouteProperties{
+					Name:          "$fallback",
+					Source:        "DeviceMessages",
+					Condition:     true,
+					EndpointNames: [
+						"events"
+					]
+					IsEnabled:     enableFallbackRoute,
+				}
 			},
 		},
 		Tags: expandTags(tags),
