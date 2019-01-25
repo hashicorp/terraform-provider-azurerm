@@ -650,6 +650,10 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 		result["websockets_enabled"] = *input.WebSocketsEnabled
 	}
 
+	if input.LinuxFxVersion != nil {
+		result["linux_fx_version"] = *input.LinuxFxVersion
+	}
+
 	results = append(results, result)
 	return results
 }
