@@ -178,9 +178,9 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
 
 			name, _ := diff.GetOk("sku.0.name")
-			tier, _ := diff.GetOkExists("sku.0.tier")
+			tier, _ := diff.GetOk("sku.0.tier")
 			capacity, _ := diff.GetOk("sku.0.capacity")
-			family, _ := diff.GetOkExists("sku.0.family")
+			family, _ := diff.GetOk("sku.0.family")
 			maxSizeGb, _ := diff.GetOk("max_size_gb")
 			minCapacity, _ := diff.GetOk("per_database_settings.0.min_capacity")
 			maxCapacity, _ := diff.GetOk("per_database_settings.0.max_capacity")
