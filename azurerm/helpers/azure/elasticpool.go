@@ -214,7 +214,7 @@ func GetFamily(name string) string {
 		return ""
 	}
 
-	nameFamily := name[3:len(name)]
+	nameFamily := name[3:]
 	retFamily := "Gen4"
 
 	if strings.EqualFold(nameFamily, "Gen5") {

@@ -11,13 +11,11 @@ func CaseDifference(_, old, new string, _ *schema.ResourceData) bool {
 }
 
 func IgnoreIfNotSet(_, old, new string, _ *schema.ResourceData) bool {
-	retBool := false
-
 	if new == "" {
-		retBool = true
+		return true
 	} else {
-		retBool = strings.EqualFold(old, new)
+		return strings.EqualFold(old, new)
 	}
 
-	return retBool
+	return false
 }
