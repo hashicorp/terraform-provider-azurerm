@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_log_analytics_workspace_linked_service"
-sidebar_current: "docs-azurerm-oms-log-analytics-workspace-linked-service"
+sidebar_current: "docs-azurerm-log-analytics-workspace-linked-service"
 description: |-
   Manages a Log Analytics (formally Operational Insights) Linked Service.
 ---
