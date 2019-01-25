@@ -22,10 +22,11 @@ func resourceArmMetricAlertRule() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+		DeprecationMessage: `The 'azurerm_metric_alertrule' resource is deprecated in favour of the renamed version 'azurerm_monitor_metric_alertrule'.
 
-		DeprecationMessage: `This resource has been renamed to 'azurerm_monitor_metric_alertrule' to match the other monitor resources and will be removed in v2.0. 
+Information on migrating to the renamed resource can be found here: https://terraform.io/docs/providers/azurerm/guides/migrating-to-monitor-resources.html
 
-Functionally these resources are the same and to upgrade all that will need to be done is replace 'azurerm_metric_alertrule' with 'azurerm_monitor_metric_alertrule'
+As such the existing 'azurerm_metric_alertrule' resource is deprecated and will be removed in the next major version of the AzureRM Provider (2.0).
 `,
 
 		Schema: map[string]*schema.Schema{
