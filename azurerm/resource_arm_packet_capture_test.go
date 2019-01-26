@@ -17,7 +17,7 @@ func testAccAzureRMPacketCapture_localDisk(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPacketCaptureDestroy,
@@ -44,7 +44,7 @@ func testAccAzureRMPacketCapture_storageAccount(t *testing.T) {
 	rs := acctest.RandString(5)
 	location := testLocation()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPacketCaptureDestroy,
@@ -71,7 +71,7 @@ func testAccAzureRMPacketCapture_storageAccountAndLocalDisk(t *testing.T) {
 	rs := acctest.RandString(5)
 	location := testLocation()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPacketCaptureDestroy,
@@ -97,7 +97,7 @@ func testAccAzureRMPacketCapture_withFilters(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPacketCaptureDestroy,
