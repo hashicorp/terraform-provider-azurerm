@@ -36,6 +36,32 @@ func TestAccAzureRMSchedulerJobCollection_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSchedulerJobCollection_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	ri := tf.AccRandTimeInt()
+	resourceName := "azurerm_scheduler_job_collection.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSchedulerJobCollectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSchedulerJobCollection_basic(ri, testLocation(), ""),
+				Check:  checkAccAzureRMSchedulerJobCollection_basic(resourceName),
+			},
+			{
+				Config:      testAccAzureRMSchedulerJobCollection_requiresImport(ri, testLocation(), ""),
+				ExpectError: testRequiresImportError("azurerm_scheduler_job_collection"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMSchedulerJobCollection_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_scheduler_job_collection.test"
@@ -135,6 +161,20 @@ resource "azurerm_scheduler_job_collection" "test" {
   %s
 }
 `, rInt, location, rInt, additional)
+}
+
+func testAccAzureRMSchedulerJobCollection_requiresImport(rInt int, location string, additional string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_scheduler_job_collection" "import" {
+  name                = "${azurerm_scheduler_job_collection.test.name}"
+  location            = "${azurerm_scheduler_job_collection.test.location}"
+  resource_group_name = "${azurerm_scheduler_job_collection.test.resource_group_name}"
+  sku                 = "${azurerm_scheduler_job_collection.test.resource_group_name}"
+  %s
+}
+`, testAccAzureRMSchedulerJobCollection_basic(rInt, location, additional), additional)
 }
 
 func testAccAzureRMSchedulerJobCollection_complete(rInt int, location string) string {

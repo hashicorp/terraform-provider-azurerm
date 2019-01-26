@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2018-02-01/servicefabric"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -336,6 +338,19 @@ func resourceArmServiceFabricClusterCreate(d *schema.ResourceData, meta interfac
 	clusterCodeVersion := d.Get("cluster_code_version").(string)
 	vmImage := d.Get("vm_image").(string)
 	tags := d.Get("tags").(map[string]interface{})
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Service Fabric Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_service_fabric_cluster", *existing.ID)
+		}
+	}
 
 	addOnFeaturesRaw := d.Get("add_on_features").(*schema.Set).List()
 	addOnFeatures := expandServiceFabricClusterAddOnFeatures(addOnFeaturesRaw)

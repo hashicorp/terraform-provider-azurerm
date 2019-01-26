@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/2017-08-01-preview/security"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -66,6 +68,19 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 
 	name := securityCenterWorkspaceName
 
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Security Center Workspace: %+v", err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_security_center_workspace", *existing.ID)
+		}
+	}
+
 	contact := security.WorkspaceSetting{
 		WorkspaceSettingProperties: &security.WorkspaceSettingProperties{
 			Scope:       utils.String(d.Get("scope").(string)),
@@ -74,13 +89,11 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 	}
 
 	if d.IsNewResource() {
-		_, err = client.Create(ctx, name, contact)
-		if err != nil {
+		if _, err = client.Create(ctx, name, contact); err != nil {
 			return fmt.Errorf("Error creating Security Center Workspace: %+v", err)
 		}
 	} else {
-		_, err = client.Update(ctx, name, contact)
-		if err != nil {
+		if _, err = client.Update(ctx, name, contact); err != nil {
 			return fmt.Errorf("Error updating Security Center Workspace: %+v", err)
 		}
 	}

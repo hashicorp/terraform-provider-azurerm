@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/2017-08-01-preview/security"
@@ -58,6 +59,19 @@ func resourceArmSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta i
 	ctx := meta.(*ArmClient).StopContext
 
 	name := securityCenterContactName
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Security Center Contact: %+v", err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_security_center_contact", *existing.ID)
+		}
+	}
 
 	contact := security.Contact{
 		ContactProperties: &security.ContactProperties{
