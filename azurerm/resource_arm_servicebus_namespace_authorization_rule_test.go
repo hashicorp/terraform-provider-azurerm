@@ -100,6 +100,34 @@ func TestAccAzureRMServiceBusNamespaceAuthorizationRule_rightsUpdate(t *testing.
 		},
 	})
 }
+func TestAccAzureRMServiceBusNamespaceAuthorizationRule_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+	resourceName := "azurerm_servicebus_namespace_authorization_rule.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceBusNamespaceAuthorizationRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceBusNamespaceAuthorizationRule_base(tf.AccRandTimeInt(), testLocation(), true, false, false),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "listen", "true"),
+					resource.TestCheckResourceAttr(resourceName, "send", "false"),
+					resource.TestCheckResourceAttr(resourceName, "manage", "false"),
+				),
+			},
+			{
+				Config:      testAccAzureRMServiceBusNamespaceAuthorizationRule_requiresImport(tf.AccRandTimeInt(), testLocation(), true, false, false),
+				ExpectError: testRequiresImportError("azurerm_servicebus_namespace_authorization_rule"),
+			},
+		},
+	})
+}
 
 func testCheckAzureRMServiceBusNamespaceAuthorizationRuleDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).serviceBusNamespacesClient
@@ -179,4 +207,20 @@ resource "azurerm_servicebus_namespace_authorization_rule" "test" {
   manage = %[5]t
 }
 `, rInt, location, listen, send, manage)
+}
+
+func testAccAzureRMServiceBusNamespaceAuthorizationRule_requiresImport(rInt int, location string, listen, send, manage bool) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_servicebus_namespace_authorization_rule" "import" {
+  name                = "${azurerm_servicebus_namespace_authorization_rule.test.name}"
+  namespace_name      = "${azurerm_servicebus_namespace_authorization_rule.test.namespace_name}"
+  resource_group_name = "${azurerm_servicebus_namespace_authorization_rule.test.resource_group_name}"
+
+  listen = "${azurerm_servicebus_namespace_authorization_rule.test.listen}"
+  send   = "${azurerm_servicebus_namespace_authorization_rule.test.send}"
+  manage = "${azurerm_servicebus_namespace_authorization_rule.test.manage}"
+}
+`, testAccAzureRMServiceBusNamespaceAuthorizationRule_base(rInt, location, listen, send, manage))
 }

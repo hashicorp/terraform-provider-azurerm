@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -61,6 +62,19 @@ func resourceArmServiceBusTopicAuthorizationRuleCreateUpdate(d *schema.ResourceD
 	topicName := d.Get("topic_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, topicName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing ServiceBus Topic Authorization Rule %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_service_fabric_cluster", *existing.ID)
+		}
+	}
+
 	parameters := servicebus.SBAuthorizationRule{
 		Name: &name,
 		SBAuthorizationRuleProperties: &servicebus.SBAuthorizationRuleProperties{
@@ -74,7 +88,7 @@ func resourceArmServiceBusTopicAuthorizationRuleCreateUpdate(d *schema.ResourceD
 
 	read, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, topicName, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error getting ServiceBus Topic Authorization Rule %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if read.ID == nil {
