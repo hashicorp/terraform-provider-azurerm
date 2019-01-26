@@ -297,10 +297,10 @@ func resourceArmRecoveryServicesProtectionPolicyVmCreateUpdate(d *schema.Resourc
 	times := append(make([]date.Time, 0), date.Time{Time: dateOfDay})
 
 	if requireResourcesToBeImported {
-		existing, err := client.Get(ctx, vaultName, resourceGroup, policyName)
-		if err != nil {
+		existing, err2 := client.Get(ctx, vaultName, resourceGroup, policyName)
+		if err2 != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Recovery Service Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Recovery Service Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err2)
 			}
 		}
 
