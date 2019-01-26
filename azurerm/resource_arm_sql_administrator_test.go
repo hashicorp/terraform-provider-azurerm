@@ -13,8 +13,6 @@ import (
 func TestAccAzureRMSqlAdministrator_basic(t *testing.T) {
 	resourceName := "azurerm_sql_active_directory_administrator.test"
 	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMSqlAdministrator_basic(ri, testLocation())
-	postConfig := testAccAzureRMSqlAdministrator_withUpdates(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -22,7 +20,7 @@ func TestAccAzureRMSqlAdministrator_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlAdministratorDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMSqlAdministrator_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlAdministratorExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "login", "sqladmin"),
@@ -34,11 +32,38 @@ func TestAccAzureRMSqlAdministrator_basic(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMSqlAdministrator_withUpdates(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlAdministratorExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "login", "sqladmin2"),
 				),
+			},
+		},
+	})
+}
+func TestAccAzureRMSqlAdministrator_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+	resourceName := "azurerm_sql_active_directory_administrator.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlAdministratorDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSqlAdministrator_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlAdministratorExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "login", "sqladmin"),
+				),
+			},
+			{
+				Config:      testAccAzureRMSqlAdministrator_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_sql_active_directory_administrator"),
 			},
 		},
 	})
@@ -158,6 +183,20 @@ resource "azurerm_sql_active_directory_administrator" "test" {
   object_id           = "${data.azurerm_client_config.current.client_id}"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMSqlAdministrator_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sql_active_directory_administrator" "import" {
+  server_name         = "${azurerm_sql_active_directory_administrator.test.name}"
+  resource_group_name = "${azurerm_sql_active_directory_administrator.test.resource_group_name}"
+  login               = "${azurerm_sql_active_directory_administrator.test.login}"
+  tenant_id           = "${azurerm_sql_active_directory_administrator.test.tenant_id}"
+  object_id           = "${azurerm_sql_active_directory_administrator.test.object_id}"
+}
+`, testAccAzureRMSqlAdministrator_basic(rInt, location))
 }
 
 func testAccAzureRMSqlAdministrator_withUpdates(rInt int, location string) string {

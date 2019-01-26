@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/satori/go.uuid"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -58,6 +59,20 @@ func resourceArmSqlActiveDirectoryAdministratorCreateUpdate(d *schema.ResourceDa
 	login := d.Get("login").(string)
 	objectId := uuid.FromStringOrNil(d.Get("object_id").(string))
 	tenantId := uuid.FromStringOrNil(d.Get("tenant_id").(string))
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, serverName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing SQL Administrator (Resource Group %q, Server %q): %+v", resGroup, serverName, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_sql_active_directory_administrator", *existing.ID)
+		}
+	}
+
 	parameters := sql.ServerAzureADAdministrator{
 		ServerAdministratorProperties: &sql.ServerAdministratorProperties{
 			AdministratorType: utils.String("ActiveDirectory"),
@@ -69,16 +84,16 @@ func resourceArmSqlActiveDirectoryAdministratorCreateUpdate(d *schema.ResourceDa
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, parameters)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error issuing create/update request for SQL Administrator (Resource Group %q, Server %q): %+v", resGroup, serverName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return err
+		return fmt.Errorf("Error waiting on create/update future for SQL Administrator (Resource Group %q, Server %q): %+v", resGroup, serverName, err)
 	}
 
 	resp, err := client.Get(ctx, resGroup, serverName)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error issuing get request for SQL Administrator (Resource Group %q, Server %q): %+v", resGroup, serverName, err)
 	}
 
 	d.SetId(*resp.ID)
