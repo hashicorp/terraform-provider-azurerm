@@ -40,6 +40,11 @@ func TestAccAzureRMPublicIpStatic_basic(t *testing.T) {
 }
 
 func TestAccAzureRMPublicIpStatic_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
 	resourceName := "azurerm_public_ip.test"
 	ri := tf.AccRandTimeInt()
 

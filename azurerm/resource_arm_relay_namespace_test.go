@@ -39,6 +39,11 @@ func TestAccAzureRMRelayNamespace_basic(t *testing.T) {
 	})
 }
 func TestAccAzureRMRelayNamespace_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
 	resourceName := "azurerm_relay_namespace.test"
 	ri := tf.AccRandTimeInt()
 

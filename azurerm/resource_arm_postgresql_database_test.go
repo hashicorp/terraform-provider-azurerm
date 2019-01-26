@@ -32,6 +32,11 @@ func TestAccAzureRMPostgreSQLDatabase_basic(t *testing.T) {
 }
 
 func TestAccAzureRMPostgreSQLDatabase_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
 	resourceName := "azurerm_postgresql_database.test"
 	ri := tf.AccRandTimeInt()
 

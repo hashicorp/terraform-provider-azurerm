@@ -129,6 +129,11 @@ func TestAccAzureRMRedisCache_basic(t *testing.T) {
 }
 
 func TestAccAzureRMRedisCache_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
 	resourceName := "azurerm_redis_cache.test"
 	ri := tf.AccRandTimeInt()
 

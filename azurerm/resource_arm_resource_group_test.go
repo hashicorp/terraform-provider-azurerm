@@ -35,6 +35,11 @@ func TestAccAzureRMResourceGroup_basic(t *testing.T) {
 }
 
 func TestAccAzureRMResourceGroup_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
 	resourceName := "azurerm_resource_group.test"
 	ri := tf.AccRandTimeInt()
 

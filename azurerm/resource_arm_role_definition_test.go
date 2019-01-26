@@ -37,6 +37,11 @@ func TestAccAzureRMRoleDefinition_basic(t *testing.T) {
 }
 
 func TestAccAzureRMRoleDefinition_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
 	resourceName := "azurerm_role_definition.test"
 	ri := tf.AccRandTimeInt()
 

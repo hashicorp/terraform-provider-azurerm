@@ -34,6 +34,11 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_basicDaily(t *testing.T) {
 }
 
 func TestAccAzureRMRecoveryServicesProtectionPolicyVm_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
 	ri := tf.AccRandTimeInt()
 

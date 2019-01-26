@@ -92,6 +92,11 @@ func testAccAzureRMRoleAssignment_roleName(t *testing.T) {
 }
 
 func testAccAzureRMRoleAssignment_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
 	resourceName := "azurerm_role_assignment.test"
 	id := uuid.New().String()
 

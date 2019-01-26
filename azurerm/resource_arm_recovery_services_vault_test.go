@@ -42,6 +42,11 @@ func TestAccAzureRMRecoveryServicesVault_basic(t *testing.T) {
 }
 
 func TestAccAzureRMRecoveryServicesVault_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
 	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_recovery_services_vault.test"
 

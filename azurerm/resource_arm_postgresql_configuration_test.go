@@ -42,6 +42,11 @@ func TestAccAzureRMPostgreSQLConfiguration_backslashQuote(t *testing.T) {
 }
 
 func TestAccAzureRMPostgreSQLConfiguration_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
 	resourceName := "azurerm_postgresql_configuration.test"
 	ri := tf.AccRandTimeInt()
 

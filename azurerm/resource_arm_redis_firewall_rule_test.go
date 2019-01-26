@@ -76,6 +76,11 @@ func TestAccAzureRMRedisFirewallRule_basic(t *testing.T) {
 }
 
 func TestAccAzureRMRedisFirewallRule_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
 	resourceName := "azurerm_redis_firewall_rule.test"
 	ri := tf.AccRandTimeInt()
 
