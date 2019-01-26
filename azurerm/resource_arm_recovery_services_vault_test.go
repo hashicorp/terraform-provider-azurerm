@@ -14,9 +14,7 @@ import (
 
 func TestAccAzureRMRecoveryServicesVault_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-
 	resourceName := "azurerm_recovery_services_vault.test"
-	config := testAccAzureRMRecoveryServicesVault_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -24,7 +22,7 @@ func TestAccAzureRMRecoveryServicesVault_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRecoveryServicesVaultDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMRecoveryServicesVault_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRecoveryServicesVaultExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
@@ -38,6 +36,34 @@ func TestAccAzureRMRecoveryServicesVault_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMRecoveryServicesVault_requiresImport(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	resourceName := "azurerm_recovery_services_vault.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRecoveryServicesVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRecoveryServicesVault_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRecoveryServicesVaultExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "name"),
+					resource.TestCheckResourceAttrSet(resourceName, "location"),
+					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "sku", string(recoveryservices.Standard)),
+				),
+			},
+			{
+				Config:      testAccAzureRMRecoveryServicesVault_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_recovery_services_vault"),
 			},
 		},
 	})
@@ -114,4 +140,17 @@ resource "azurerm_recovery_services_vault" "test" {
   sku                 = "Standard"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMRecoveryServicesVault_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(` 
+%s
+
+resource "azurerm_recovery_services_vault" "import" {
+  name                = "${azurerm_recovery_services_vault.test.name}"
+  location            = "${azurerm_recovery_services_vault.test.location}"
+  resource_group_name = "${azurerm_recovery_services_vault.test.resource_group_name}"
+  sku                 = "${azurerm_recovery_services_vault.test.sku}"
+}
+`, testAccAzureRMRecoveryServicesVault_basic(rInt, location))
 }

@@ -14,7 +14,6 @@ import (
 func TestAccAzureRMRoleDefinition_basic(t *testing.T) {
 	resourceName := "azurerm_role_definition.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMRoleDefinition_basic(uuid.New().String(), ri)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -22,7 +21,7 @@ func TestAccAzureRMRoleDefinition_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRoleDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMRoleDefinition_basic(uuid.New().String(), ri),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRoleDefinitionExists(resourceName),
 				),
@@ -37,10 +36,9 @@ func TestAccAzureRMRoleDefinition_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMRoleDefinition_complete(t *testing.T) {
+func TestAccAzureRMRoleDefinition_requiresImport(t *testing.T) {
 	resourceName := "azurerm_role_definition.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMRoleDefinition_complete(uuid.New().String(), ri)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -48,7 +46,30 @@ func TestAccAzureRMRoleDefinition_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRoleDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMRoleDefinition_basic(uuid.New().String(), ri),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRoleDefinitionExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMRoleDefinition_requiresImport(uuid.New().String(), ri),
+				ExpectError: testRequiresImportError("azurerm_role_definition"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMRoleDefinition_complete(t *testing.T) {
+	resourceName := "azurerm_role_definition.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRoleDefinitionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRoleDefinition_complete(uuid.New().String(), ri),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRoleDefinitionExists(resourceName),
 				),
@@ -68,16 +89,13 @@ func TestAccAzureRMRoleDefinition_update(t *testing.T) {
 	id := uuid.New().String()
 	ri := tf.AccRandTimeInt()
 
-	config := testAccAzureRMRoleDefinition_basic(id, ri)
-	updatedConfig := testAccAzureRMRoleDefinition_updated(id, ri)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRoleDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMRoleDefinition_basic(id, ri),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRoleDefinitionExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "permissions.#", "1"),
@@ -87,7 +105,7 @@ func TestAccAzureRMRoleDefinition_update(t *testing.T) {
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMRoleDefinition_updated(id, ri),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRoleDefinitionExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "permissions.#", "1"),
@@ -103,7 +121,6 @@ func TestAccAzureRMRoleDefinition_update(t *testing.T) {
 
 func TestAccAzureRMRoleDefinition_emptyName(t *testing.T) {
 	resourceName := "azurerm_role_definition.test"
-
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -192,6 +209,27 @@ resource "azurerm_role_definition" "test" {
   ]
 }
 `, id, rInt)
+}
+
+func testAccAzureRMRoleDefinition_requiresImport(id string, rInt int) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_role_definition" "import" {
+  role_definition_id = "${azurerm_role_definition.test.role_definition_id}"
+  name               = "${azurerm_role_definition.test.name}"
+  scope              = "${azurerm_role_definition.test.scope}"
+
+  permissions {
+    actions     = ["*"]
+    not_actions = []
+  }
+
+  assignable_scopes = [
+    "${data.azurerm_subscription.primary.id}",
+  ]
+}
+`, testAccAzureRMRoleDefinition_basic(id, rInt))
 }
 
 func testAccAzureRMRoleDefinition_complete(id string, rInt int) string {

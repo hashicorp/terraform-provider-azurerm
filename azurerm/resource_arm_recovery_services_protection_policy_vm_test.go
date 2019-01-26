@@ -33,6 +33,27 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_basicDaily(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMRecoveryServicesProtectionPolicyVm_requiresImport(t *testing.T) {
+	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRecoveryServicesProtectionPolicyVm_basicDaily(ri, testLocation()),
+				Check:  checkAccAzureRMRecoveryServicesProtectionPolicyVm_basicDaily(resourceName, ri),
+			},
+			{
+				Config:      testAccAzureRMRecoveryServicesProtectionPolicyVm_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_recovery_services_protection_policy_vm"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMRecoveryServicesProtectionPolicyVm_basicWeekly(t *testing.T) {
 	resourceName := "azurerm_recovery_services_protection_policy_vm.test"
 	ri := tf.AccRandTimeInt()
@@ -321,6 +342,27 @@ resource "azurerm_recovery_services_protection_policy_vm" "test" {
   }
 }
 `, testAccAzureRMRecoveryServicesProtectionPolicyVm_base(rInt, location), rInt)
+}
+
+func testAccAzureRMRecoveryServicesProtectionPolicyVm_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_recovery_services_protection_policy_vm" "import" {
+  name                = "${azurerm_recovery_services_protection_policy_vm.test.name}"
+  resource_group_name = "${azurerm_recovery_services_protection_policy_vm.test.resource_group_name}"
+  recovery_vault_name = "${azurerm_recovery_services_protection_policy_vm.test.recovery_vault_name}"
+
+  backup = {
+    frequency = "Daily"
+    time      = "23:00"
+  }
+
+  retention_daily = {
+    count = 10
+  }
+}
+`, testAccAzureRMRecoveryServicesProtectionPolicyVm_basicDaily(rInt, location))
 }
 
 func checkAccAzureRMRecoveryServicesProtectionPolicyVm_basicDaily(resourceName string, ri int) resource.TestCheckFunc {

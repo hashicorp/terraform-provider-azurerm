@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -219,6 +221,19 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
 
+	if requireResourcesToBeImported {
+		existing, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Redis Instance %s (resource group %s) ID", name, resGroup)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_redis_cache", *existing.ID)
+		}
+	}
+
 	patchSchedule, err := expandRedisPatchSchedule(d)
 	if err != nil {
 		return fmt.Errorf("Error parsing Patch Schedule: %+v", err)
@@ -267,16 +282,16 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 
 	future, err := client.Create(ctx, resGroup, name, parameters)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error issuing creat request for read Redis Instance %s (resource group %s) ID", name, resGroup)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return err
+		return fmt.Errorf("Error waiting on create future for Redis Instance %s (resource group %s) ID", name, resGroup)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error issuing get request for  Redis Instance %s (resource group %s) ID", name, resGroup)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read Redis Instance %s (resource group %s) ID", name, resGroup)

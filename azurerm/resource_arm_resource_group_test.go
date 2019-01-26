@@ -13,7 +13,6 @@ import (
 func TestAccAzureRMResourceGroup_basic(t *testing.T) {
 	resourceName := "azurerm_resource_group.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMResourceGroup_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -21,7 +20,7 @@ func TestAccAzureRMResourceGroup_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMResourceGroup_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMResourceGroupExists(resourceName),
 				),
@@ -35,10 +34,9 @@ func TestAccAzureRMResourceGroup_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMResourceGroup_disappears(t *testing.T) {
+func TestAccAzureRMResourceGroup_requiresImport(t *testing.T) {
 	resourceName := "azurerm_resource_group.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMResourceGroup_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -46,7 +44,30 @@ func TestAccAzureRMResourceGroup_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMResourceGroup_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMResourceGroupExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMResourceGroup_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_resource_group"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMResourceGroup_disappears(t *testing.T) {
+	resourceName := "azurerm_resource_group.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMResourceGroup_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMResourceGroupExists(resourceName),
 					testCheckAzureRMResourceGroupDisappears(resourceName),
@@ -186,6 +207,17 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 `, rInt, location)
+}
+
+func testAccAzureRMResourceGroup_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_resource_group" "import" {
+  name     = "${azurerm_resource_group.test.name}"
+  location = "${azurerm_resource_group.test.location}"
+}
+`, testAccAzureRMResourceGroup_basic(rInt, location))
 }
 
 func testAccAzureRMResourceGroup_withTags(rInt int, location string) string {
