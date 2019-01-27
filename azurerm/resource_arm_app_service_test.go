@@ -291,7 +291,8 @@ func TestAccAzureRMAppService_httpsOnly(t *testing.T) {
 func TestAccAzureRMAppService_clientCertEnabled(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppService_clientCertEnabled(ri, testLocation())
+	configClientCertEnabled := testAccAzureRMAppService_clientCertEnabled(ri, testLocation())
+	configClientCertEnabledNotSet := testAccAzureRMAppService_clientCertEnabledNotSet(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -299,10 +300,17 @@ func TestAccAzureRMAppService_clientCertEnabled(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: configClientCertEnabled,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "client_cert_enabled", "true"),
+				),
+			},
+			{
+				Config: configClientCertEnabledNotSet,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "client_cert_enabled", "false"),
 				),
 			},
 			{
@@ -1446,7 +1454,34 @@ resource "azurerm_app_service" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  client_cert_enabled          = true
+  client_cert_enabled = true
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMAppService_clientCertEnabledNotSet(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
 }
 `, rInt, location, rInt, rInt)
 }

@@ -85,7 +85,6 @@ func resourceArmAppService() *schema.Resource {
 			"client_cert_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
 			},
 
 			"enabled": {
@@ -231,7 +230,6 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	appServicePlanId := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
-	clientCertEnabled := d.Get("client_cert_enabled").(bool)
 	tags := d.Get("tags").(map[string]interface{})
 
 	siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
@@ -240,11 +238,10 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		Location: &location,
 		Tags:     expandTags(tags),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID:      utils.String(appServicePlanId),
-			Enabled:           utils.Bool(enabled),
-			HTTPSOnly:         utils.Bool(httpsOnly),
-			ClientCertEnabled: utils.Bool(clientCertEnabled),
-			SiteConfig:        &siteConfig,
+			ServerFarmID: utils.String(appServicePlanId),
+			Enabled:      utils.Bool(enabled),
+			HTTPSOnly:    utils.Bool(httpsOnly),
+			SiteConfig:   &siteConfig,
 		},
 	}
 
@@ -256,6 +253,11 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	if v, ok := d.GetOkExists("client_affinity_enabled"); ok {
 		enabled := v.(bool)
 		siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(enabled)
+	}
+
+	if v, ok := d.GetOkExists("client_cert_enabled"); ok {
+		certEnabled := v.(bool)
+		siteEnvelope.SiteProperties.ClientCertEnabled = utils.Bool(certEnabled)
 	}
 
 	createFuture, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope)
@@ -297,7 +299,6 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	appServicePlanId := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
-	clientCertEnabled := d.Get("client_cert_enabled").(bool)
 	tags := d.Get("tags").(map[string]interface{})
 
 	siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
@@ -305,12 +306,16 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		Location: &location,
 		Tags:     expandTags(tags),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID:      utils.String(appServicePlanId),
-			Enabled:           utils.Bool(enabled),
-			HTTPSOnly:         utils.Bool(httpsOnly),
-			ClientCertEnabled: utils.Bool(clientCertEnabled),
-			SiteConfig:        &siteConfig,
+			ServerFarmID: utils.String(appServicePlanId),
+			Enabled:      utils.Bool(enabled),
+			HTTPSOnly:    utils.Bool(httpsOnly),
+			SiteConfig:   &siteConfig,
 		},
+	}
+
+	if v, ok := d.GetOkExists("client_cert_enabled"); ok {
+		certEnabled := v.(bool)
+		siteEnvelope.SiteProperties.ClientCertEnabled = utils.Bool(certEnabled)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope)
