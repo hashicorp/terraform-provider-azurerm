@@ -69,7 +69,7 @@ func resourceArmMySqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta inter
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_mssql_elasticpool", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_mysql_firewall_rule", *existing.ID)
 		}
 	}
 

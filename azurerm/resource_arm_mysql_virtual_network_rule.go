@@ -71,7 +71,7 @@ func resourceArmMySqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_mssql_elasticpool", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_mysql_virtual_network_rule", *existing.ID)
 		}
 	}
 

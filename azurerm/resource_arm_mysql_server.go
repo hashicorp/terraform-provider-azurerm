@@ -217,7 +217,7 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_mssql_elasticpool", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_mysql_server", *existing.ID)
 		}
 	}
 

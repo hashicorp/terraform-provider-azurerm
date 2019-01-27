@@ -20,7 +20,7 @@ func TestAccAzureRMMySQLServer_basicFiveSix(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySQLServer_basicFiveSeven(ri, testLocation()),
+				Config: testAccAzureRMMySQLServer_basicFiveSix(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(resourceName),
 				),
@@ -47,7 +47,7 @@ func TestAccAzureRMMySQLServer_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySQLServer_basicFiveSeven(ri, testLocation()),
+				Config: testAccAzureRMMySQLServer_basicFiveSevenUpdated(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(resourceName),
 				),
@@ -382,7 +382,7 @@ resource "azurerm_mysql_server" "import" {
   version                      = "5.7"
   ssl_enforcement              = "Enabled"
 }
-`, testAccAzureRMMySQLServer_basicFiveSeven(rInt, location))
+`, testAccAzureRMMySQLServer_basicFiveSevenUpdated(rInt, location))
 }
 
 func testAccAzureRMMySQLServer_basicFiveSevenUpdated(rInt int, location string) string {

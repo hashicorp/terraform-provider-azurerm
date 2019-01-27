@@ -72,7 +72,7 @@ func resourceArmMySqlDatabaseCreate(d *schema.ResourceData, meta interface{}) er
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_mssql_elasticpool", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_mysql_database", *existing.ID)
 		}
 	}
 
@@ -89,7 +89,6 @@ func resourceArmMySqlDatabaseCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting on create/update future for MySQL DataBase %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
 		return fmt.Errorf("Error waiting on create/update future for MySQL DataBase %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
 	}
 
