@@ -248,10 +248,52 @@ func resourceArmIotHub() *schema.Resource {
 				},
 			},
 
-			"enable_fallback_route": {
-				Type:     schema.TypeBool,
+			"fallback_route": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
 				Optional: true,
-				Default:  false, // todo change to true in 2.0
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							Default:      "$fallback",
+							ValidateFunc: validation.StringLenBetween(0, 64),
+						},
+						"source": {
+							Type:     schema.TypeString,
+							Required: true,
+							Default:  "DeviceMessages",
+							ValidateFunc: validation.StringInSlice([]string{
+								"DeviceJobLifecycleEvents",
+								"DeviceLifecycleEvents",
+								"DeviceMessages",
+								"Invalid",
+								"TwinChangeEvents",
+							}, false),
+						},
+						"condition": {
+							// The condition is a string value representing device-to-cloud message routes query expression
+							// https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  "true",
+						},
+						"endpoint_names": {
+							Type: schema.TypeList,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+							MaxItems: 1,
+							Required: true,
+							Default:  &[]string{"events"},
+						},
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+					},
+				},
 			},
 
 			"tags": tagsSchema(),
@@ -298,7 +340,7 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	skuInfo := expandIoTHubSku(d)
 	tags := d.Get("tags").(map[string]interface{})
-	enableFallbackRoute := d.Get("enable_fallback_route").(bool)
+	fallbackRoute := expandIoTHubFallbackRoute(d)
 
 	endpoints, err := expandIoTHubEndpoints(d, subscriptionID)
 	if err != nil {
@@ -313,14 +355,9 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		Sku:      skuInfo,
 		Properties: &devices.IotHubProperties{
 			Routing: &devices.RoutingProperties{
-				Endpoints: endpoints,
-				Routes:    routes,
-				FallbackRoute: &devices.FallbackRouteProperties{
-					Name:          utils.String("$fallback"),
-					Source:        utils.String("DeviceMessages"),
-					EndpointNames: &[]string{"events"},
-					IsEnabled:     utils.Bool(enableFallbackRoute),
-				},
+				Endpoints:     endpoints,
+				Routes:        routes,
+				FallbackRoute: fallbackRoute,
 			},
 		},
 		Tags: expandTags(tags),
@@ -405,6 +442,11 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 		routes := flattenIoTHubRoute(properties.Routing)
 		if err := d.Set("route", routes); err != nil {
 			return fmt.Errorf("Error setting `route` in IoTHub %q: %+v", name, err)
+		}
+
+		fallbackRoute := flattenIoTHubFallbackRoute(properties.Routing)
+		if err := d.Set("fallback_route", fallbackRoute); err != nil {
+			return fmt.Errorf("Error setting `fallbackRoute` in IoTHub %q: %+v", name, err)
 		}
 	}
 
@@ -586,6 +628,27 @@ func expandIoTHubEndpoints(d *schema.ResourceData, subscriptionId string) (*devi
 	}, nil
 }
 
+func expandIoTHubFallbackRoute(d *schema.ResourceData) *devices.FallbackRouteProperties {
+	fallbackRouteList := d.Get("fallback_route").([]interface{})
+	fallbackRouteMap := fallbackRouteList[0].(map[string]interface{})
+
+	name := fallbackRouteMap["name"].(string)
+	source := fallbackRouteMap["source"].(string)
+	endpointNamesRaw := route["endpoint_names"].([]interface{})
+	endpointsNames := make([]string, 0)
+	for _, n := range endpointNamesRaw {
+		endpointsNames = append(endpointsNames, n.(string))
+	}
+	isEnabled := fallbackRouteMap["enabled"].(bool)
+
+	return &devices.FallbackRouteProperties{
+		Name:          &name,
+		Source:        &source,
+		EndpointNames: &endpointNames,
+		IsEnabled:     &isEnabled,
+	}
+}
+
 func expandIoTHubSku(d *schema.ResourceData) *devices.IotHubSkuInfo {
 	skuList := d.Get("sku").([]interface{})
 	skuMap := skuList[0].(map[string]interface{})
@@ -751,6 +814,26 @@ func flattenIoTHubRoute(input *devices.RoutingProperties) []interface{} {
 	}
 
 	return results
+}
+
+func flattenIoTHubFallbackRoute(input *devices.FallbackRouteProperties) []interface{} {
+	output := make(map[string]interface{})
+
+	if name := input.Name; name != nil {
+		output["name"] = *name
+	}
+	if condition := input.Condition; condition != nil {
+		output["condition"] = *condition
+	}
+	if endpointNames := input.EndpointNames; endpointNames != nil {
+		output["endpoint_names"] = *endpointNames
+	}
+	if isEnabled := input.IsEnabled; isEnabled != nil {
+		output["enabled"] = *isEnabled
+	}
+	output["source"] = input.Source
+
+	return []interface{}{output}
 }
 
 func validateIoTHubEndpointName(v interface{}, _ string) (warnings []string, errors []error) {

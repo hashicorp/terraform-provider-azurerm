@@ -334,7 +334,6 @@ resource "azurerm_iothub" "test" {
   name                  = "acctestIoTHub-%d"
   resource_group_name   = "${azurerm_resource_group.test.name}"
 	location              = "${azurerm_resource_group.test.location}"
-	enable_fallback_route = true
 
   sku {
     name     = "S1"
@@ -342,7 +341,14 @@ resource "azurerm_iothub" "test" {
     capacity = "1"
   }
 
-  tags {
+  fallback_route {
+    name           = "fallback"
+    source         = "DeviceMessages"
+    endpoint_names = ["fallback"]
+    enabled        = true
+  }
+
+	tags {
     "purpose" = "testing"
   }
 }

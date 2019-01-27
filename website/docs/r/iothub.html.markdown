@@ -37,7 +37,6 @@ resource "azurerm_iothub" "test" {
   name                  = "test"
   resource_group_name   = "${azurerm_resource_group.test.name}"
   location              = "${azurerm_resource_group.test.location}"
-  enable_fallback_route = true
 
   sku {
     name     = "S1"
@@ -64,6 +63,10 @@ resource "azurerm_iothub" "test" {
     enabled        = true
   }
 
+  fallback_route {
+    enabled        = true
+  }
+
   tags {
     "purpose" = "testing"
   }
@@ -80,13 +83,13 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource has to be createc. Changing this forces a new resource to be created.
 
-* `enable_fallback_route` - (Optional) if the fallback route is enabled, messages that don't match any of the supplied routes are automatically sent to messages/events.
-
 * `sku` - (Required) A `sku` block as defined below.
 
 * `endpoint` - (Optional) An `endpoint` block as defined below.
 
 * `route` - (Optional) A `route` block as defined below.
+
+* `fallback_route` - (Optional) A `fallback_route` block as defined below. If the fallback route is enabled, messages that don't match any of the supplied routes are automatically sent to this route. Defaults to messages/events.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -135,6 +138,20 @@ A `route` block supports the following:
 * `endpoint_names` - (Required) The list of endpoints to which messages that satisfy the condition are routed.
 
 * `enabled` - (Required) Used to specify whether a route is enabled.
+
+---
+
+A `fallback_route` block supports the following:
+
+* `name` - (Required) The name of the route. The name can only include alphanumeric characters, periods, underscores, hyphens, has a maximum length of 64 characters, and must be unique.
+
+* `source` - (Required) The source that the routing rule is to be applied to, such as `DeviceMessages`. Possible values include: `RoutingSourceInvalid`, `RoutingSourceDeviceMessages`, `RoutingSourceTwinChangeEvents`, `RoutingSourceDeviceLifecycleEvents`, `RoutingSourceDeviceJobLifecycleEvents`.
+
+* `condition` - (Optional) The condition that is evaluated to apply the routing rule. If no condition is provided, it evaluates to true by default. For grammar, see: https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language.
+
+* `endpoint_names` - (Required) The list of endpoints to which messages that satisfy the condition are routed. Currently only 1 endpoint is allowed.
+
+* `enabled` - (Required) Used to specify whether the fallback route is enabled.
 
 ## Attributes Reference
 
