@@ -18,14 +18,14 @@ func TestAccAzureRMUserAssignedIdentity_basic(t *testing.T) {
 	resourceName := "azurerm_user_assigned_identity.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(14)
-	config := testAccAzureRMUserAssignedIdentity_basic(ri, testLocation(), rs)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMUserAssignedIdentityDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMUserAssignedIdentity_basic(ri, testLocation(), rs),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMUserAssignedIdentityExists(resourceName),
 					resource.TestMatchResourceAttr(resourceName, "principal_id", regexp.MustCompile(generatedUuidRegex)),
@@ -36,6 +36,37 @@ func TestAccAzureRMUserAssignedIdentity_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+func TestAccAzureRMUserAssignedIdentity_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	generatedUuidRegex := "^[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}$"
+	resourceName := "azurerm_user_assigned_identity.test"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(14)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMUserAssignedIdentityDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMUserAssignedIdentity_basic(ri, testLocation(), rs),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMUserAssignedIdentityExists(resourceName),
+					resource.TestMatchResourceAttr(resourceName, "principal_id", regexp.MustCompile(generatedUuidRegex)),
+					resource.TestMatchResourceAttr(resourceName, "client_id", regexp.MustCompile(generatedUuidRegex)),
+				),
+			},
+			{
+				Config:      testAccAzureRMUserAssignedIdentity_requiresImport(ri, testLocation(), rs),
+				ExpectError: testRequiresImportError("azurerm_user_assigned_identity"),
 			},
 		},
 	})
@@ -112,4 +143,16 @@ resource "azurerm_user_assigned_identity" "test" {
   location            = "${azurerm_resource_group.test.location}"
 }
 `, rInt, location, rString)
+}
+
+func testAccAzureRMUserAssignedIdentity_requiresImport(rInt int, location string, rString string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_user_assigned_identity" "import" {
+  name                = "${azurerm_user_assigned_identity.test.name}"
+  resource_group_name = "${azurerm_user_assigned_identity.test.resource_group_name}"
+  location            = "${azurerm_user_assigned_identity.test.location}"
+}
+`, testAccAzureRMUserAssignedIdentity_basic(rInt, location, rString))
 }
