@@ -23,7 +23,6 @@ func getTrafficManagerFQDN(hostname string) (string, error) {
 func TestAccAzureRMTrafficManagerProfile_geographic(t *testing.T) {
 	resourceName := "azurerm_traffic_manager_profile.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMTrafficManagerProfile_geographic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -31,7 +30,7 @@ func TestAccAzureRMTrafficManagerProfile_geographic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMTrafficManagerProfile_geographic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMTrafficManagerProfileExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "traffic_routing_method", "Geographic"),
@@ -41,6 +40,34 @@ func TestAccAzureRMTrafficManagerProfile_geographic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+func TestAccAzureRMTrafficManagerProfile_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_traffic_manager_profile.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMTrafficManagerProfile_geographic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMTrafficManagerProfileExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "traffic_routing_method", "Geographic"),
+				),
+			},
+			{
+				Config:      testAccAzureRMTrafficManagerProfile_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_traffic_manager_profile"),
 			},
 		},
 	})
@@ -363,6 +390,28 @@ resource "azurerm_traffic_manager_profile" "test" {
   }
 }
 `, rInt, location, rInt, rInt)
+}
+func testAccAzureRMTrafficManagerProfile_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_traffic_manager_profile" "test" {
+  name                   = "${azurerm_traffic_manager_profile.test.name}"
+  resource_group_name    = "${azurerm_traffic_manager_profile.test.resource_group_name}"
+  traffic_routing_method = "${azurerm_traffic_manager_profile.test.traffic_routing_method}"
+
+  dns_config {
+    relative_name = "acctesttmp%d"
+    ttl           = 30
+  }
+
+  monitor_config {
+    protocol = "https"
+    port     = 443
+    path     = "/"
+  }
+}
+`, testAccAzureRMTrafficManagerProfile_geographic(rInt, location), rInt)
 }
 
 func testAccAzureRMTrafficManagerProfile_weighted(rInt int, location string) string {
