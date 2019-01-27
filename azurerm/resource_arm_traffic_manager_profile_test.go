@@ -395,7 +395,7 @@ func testAccAzureRMTrafficManagerProfile_requiresImport(rInt int, location strin
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_traffic_manager_profile" "test" {
+resource "azurerm_traffic_manager_profile" "import" {
   name                   = "${azurerm_traffic_manager_profile.test.name}"
   resource_group_name    = "${azurerm_traffic_manager_profile.test.resource_group_name}"
   traffic_routing_method = "${azurerm_traffic_manager_profile.test.traffic_routing_method}"
