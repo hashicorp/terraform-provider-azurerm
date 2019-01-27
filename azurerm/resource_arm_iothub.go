@@ -256,13 +256,13 @@ func resourceArmIotHub() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:         schema.TypeString,
-							Required:     true,
+							Optional:     true,
 							Default:      "$fallback",
 							ValidateFunc: validation.StringLenBetween(0, 64),
 						},
 						"source": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 							Default:  "DeviceMessages",
 							ValidateFunc: validation.StringInSlice([]string{
 								"DeviceJobLifecycleEvents",
@@ -285,12 +285,12 @@ func resourceArmIotHub() *schema.Resource {
 								Type: schema.TypeString,
 							},
 							MaxItems: 1,
-							Required: true,
+							Optional: true,
 							Default:  &[]string{"events"},
 						},
 						"enabled": {
 							Type:     schema.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 					},
 				},
