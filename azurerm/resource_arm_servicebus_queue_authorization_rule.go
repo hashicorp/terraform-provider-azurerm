@@ -71,7 +71,7 @@ func resourceArmServiceBusQueueAuthorizationRuleCreateUpdate(d *schema.ResourceD
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_service_fabric_cluster", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_servicebus_queue_authorization_rule", *existing.ID)
 		}
 	}
 

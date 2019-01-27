@@ -141,7 +141,7 @@ func resourceArmServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, m
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_service_fabric_cluster", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_servicebus_subscription_rule", *existing.ID)
 		}
 	}
 

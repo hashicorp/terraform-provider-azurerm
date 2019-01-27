@@ -190,7 +190,7 @@ func testAccAzureRMSqlAdministrator_requiresImport(rInt int, location string) st
 %s
 
 resource "azurerm_sql_active_directory_administrator" "import" {
-  server_name         = "${azurerm_sql_active_directory_administrator.test.name}"
+  server_name         = "${azurerm_sql_active_directory_administrator.test.server_name}"
   resource_group_name = "${azurerm_sql_active_directory_administrator.test.resource_group_name}"
   login               = "${azurerm_sql_active_directory_administrator.test.login}"
   tenant_id           = "${azurerm_sql_active_directory_administrator.test.tenant_id}"

@@ -171,7 +171,7 @@ resource "azurerm_scheduler_job_collection" "import" {
   name                = "${azurerm_scheduler_job_collection.test.name}"
   location            = "${azurerm_scheduler_job_collection.test.location}"
   resource_group_name = "${azurerm_scheduler_job_collection.test.resource_group_name}"
-  sku                 = "${azurerm_scheduler_job_collection.test.resource_group_name}"
+  sku                 = "${azurerm_scheduler_job_collection.test.sku}"
   %s
 }
 `, testAccAzureRMSchedulerJobCollection_basic(rInt, location, additional), additional)

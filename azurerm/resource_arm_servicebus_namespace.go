@@ -131,7 +131,7 @@ func resourceArmServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta int
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_service_fabric_cluster", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_servicebus_namespace", *existing.ID)
 		}
 	}
 
