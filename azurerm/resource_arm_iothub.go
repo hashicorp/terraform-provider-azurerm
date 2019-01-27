@@ -821,7 +821,7 @@ func flattenIoTHubFallbackRoute(input *devices.RoutingProperties) []interface{} 
 			output["condition"] = *condition
 		}
 		if endpointNames := input.FallbackRoute.EndpointNames; endpointNames != nil {
-			output["endpoint_name"] = (*endpointNames)[0].(string)
+			output["endpoint_name"] = (*endpointNames)[0]
 		}
 		if isEnabled := input.FallbackRoute.IsEnabled; isEnabled != nil {
 			output["enabled"] = *isEnabled
