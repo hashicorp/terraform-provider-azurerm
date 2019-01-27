@@ -34,9 +34,10 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_iothub" "test" {
-  name                = "test"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  name                  = "test"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  location              = "${azurerm_resource_group.test.location}"
+  enable_fallback_route = true
 
   sku {
     name     = "S1"
@@ -78,6 +79,8 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group under which the IotHub resource has to be created. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource has to be createc. Changing this forces a new resource to be created.
+
+* `enable_fallback_route` - (Optional) if the fallback route is enabled, messages that don't match any of the supplied routes are automatically sent to messages/events.
 
 * `sku` - (Required) A `sku` block as defined below.
 

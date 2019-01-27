@@ -251,7 +251,7 @@ func resourceArmIotHub() *schema.Resource {
 			"enable_fallback_route": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  true,
+				Default:  false, // todo change to true in 2.0
 			},
 
 			"tags": tagsSchema(),

@@ -113,6 +113,30 @@ func TestAccAzureRMIotHub_customRoutes(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMIotHub_fallbackRoute(t *testing.T) {
+	resourceName := "azurerm_iothub.test"
+	rInt := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMIotHubDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMIotHub_fallbackRoute(rInt, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMIotHubExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMIotHubDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).iothubResourceClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -297,4 +321,30 @@ resource "azurerm_iothub" "test" {
   }
 }
 `, rInt, location, rStr, rInt)
+}
+
+func testAccAzureRMIotHub_fallbackRoute(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_iothub" "test" {
+  name                  = "acctestIoTHub-%d"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+	location              = "${azurerm_resource_group.test.location}"
+	enable_fallback_route = true
+
+  sku {
+    name     = "S1"
+    tier     = "Standard"
+    capacity = "1"
+  }
+
+  tags {
+    "purpose" = "testing"
+  }
+}
+`, rInt, location, rInt)
 }
