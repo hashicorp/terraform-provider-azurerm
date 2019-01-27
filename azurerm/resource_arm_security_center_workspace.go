@@ -47,24 +47,9 @@ func resourceArmSecurityCenterWorkspace() *schema.Resource {
 }
 
 func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	priceClient := meta.(*ArmClient).securityCenterPricingClient
 	client := meta.(*ArmClient).securityCenterWorkspaceClient
 	ctx := meta.(*ArmClient).StopContext
-
-	priceClient := meta.(*ArmClient).securityCenterPricingClient
-
-	//get pricing tier, workspace can only be configured when tier is not Free.
-	//API does not error, it just doesn't set the workspace scope
-	price, err := priceClient.GetSubscriptionPricing(ctx, securityCenterSubscriptionPricingName)
-	if err != nil {
-		return fmt.Errorf("Error reading Security Center Subscription pricing: %+v", err)
-	}
-
-	if price.PricingProperties == nil {
-		return fmt.Errorf("Security Center Subscription pricing propertier is nil")
-	}
-	if price.PricingProperties.PricingTier == security.Free {
-		return fmt.Errorf("Security Center Subscription workspace cannot be set when pricing tier is `Free`")
-	}
 
 	name := securityCenterWorkspaceName
 
@@ -79,6 +64,20 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 		if existing.ID != nil && *existing.ID != "" {
 			return tf.ImportAsExistsError("azurerm_security_center_workspace", *existing.ID)
 		}
+	}
+
+	//get pricing tier, workspace can only be configured when tier is not Free.
+	//API does not error, it just doesn't set the workspace scope
+	price, err := priceClient.GetSubscriptionPricing(ctx, securityCenterSubscriptionPricingName)
+	if err != nil {
+		return fmt.Errorf("Error reading Security Center Subscription pricing: %+v", err)
+	}
+
+	if price.PricingProperties == nil {
+		return fmt.Errorf("Security Center Subscription pricing propertier is nil")
+	}
+	if price.PricingProperties.PricingTier == security.Free {
+		return fmt.Errorf("Security Center Subscription workspace cannot be set when pricing tier is `Free`")
 	}
 
 	contact := security.WorkspaceSetting{

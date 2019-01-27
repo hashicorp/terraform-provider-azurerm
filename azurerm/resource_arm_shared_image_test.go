@@ -52,7 +52,7 @@ func TestAccAzureRMSharedImage_requiresImport(t *testing.T) {
 				),
 			},
 			{
-				Config:      testAccAzureRMSharedImage_requiresImport(ri, location),
+				Config:      testAccAzureRMSharedImage_requiresImport(ri, testLocation()),
 				ExpectError: testRequiresImportError("azurerm_shared_image"),
 			},
 		},

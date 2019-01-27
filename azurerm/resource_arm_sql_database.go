@@ -322,15 +322,9 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 	name := d.Get("name").(string)
 	serverName := d.Get("server_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	createMode := d.Get("create_mode").(string)
 	tags := d.Get("tags").(map[string]interface{})
-
-	threatDetection, err := expandArmSqlServerThreatDetectionPolicy(d, location)
-	if err != nil {
-		return fmt.Errorf("Error parsing the database threat detection policy: %+v", err)
-	}
 
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serverName, name, "")
@@ -343,6 +337,11 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 		if existing.ID != nil && *existing.ID != "" {
 			return tf.ImportAsExistsError("azurerm_sql_database", *existing.ID)
 		}
+	}
+
+	threatDetection, err := expandArmSqlServerThreatDetectionPolicy(d, location)
+	if err != nil {
+		return fmt.Errorf("Error parsing the database threat detection policy: %+v", err)
 	}
 
 	properties := sql.Database{
