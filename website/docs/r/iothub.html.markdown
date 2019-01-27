@@ -143,15 +143,15 @@ A `route` block supports the following:
 
 A `fallback_route` block supports the following:
 
-* `name` - (Required) The name of the route. The name can only include alphanumeric characters, periods, underscores, hyphens, has a maximum length of 64 characters, and must be unique.
+* `name` - (Optional) The name of the route. The name can only include alphanumeric characters, periods, underscores, hyphens, has a maximum length of 64 characters, and must be unique.
 
-* `source` - (Required) The source that the routing rule is to be applied to, such as `DeviceMessages`. Possible values include: `RoutingSourceInvalid`, `RoutingSourceDeviceMessages`, `RoutingSourceTwinChangeEvents`, `RoutingSourceDeviceLifecycleEvents`, `RoutingSourceDeviceJobLifecycleEvents`.
+* `source` - (Optional) The source that the routing rule is to be applied to, such as `DeviceMessages`. Possible values include: `RoutingSourceInvalid`, `RoutingSourceDeviceMessages`, `RoutingSourceTwinChangeEvents`, `RoutingSourceDeviceLifecycleEvents`, `RoutingSourceDeviceJobLifecycleEvents`.
 
 * `condition` - (Optional) The condition that is evaluated to apply the routing rule. If no condition is provided, it evaluates to true by default. For grammar, see: https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language.
 
-* `endpoint_names` - (Required) The list of endpoints to which messages that satisfy the condition are routed. Currently only 1 endpoint is allowed.
+* `endpoint_name` - (Optional) The endpoint to which messages that satisfy the condition are routed. Currently only 1 endpoint is allowed.
 
-* `enabled` - (Required) Used to specify whether the fallback route is enabled.
+* `enabled` - (Optional) Used to specify whether the fallback route is enabled.
 
 ## Attributes Reference
 

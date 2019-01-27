@@ -279,14 +279,11 @@ func resourceArmIotHub() *schema.Resource {
 							Optional: true,
 							Default:  "true",
 						},
-						"endpoint_names": {
-							Type: schema.TypeList,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-							MaxItems: 1,
-							Optional: true,
-							Default:  &[]string{"events"},
+						"endpoint_name": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "events",
+							ValidateFunc: validation.StringLenBetween(0, 64),
 						},
 						"enabled": {
 							Type:     schema.TypeBool,
@@ -634,11 +631,8 @@ func expandIoTHubFallbackRoute(d *schema.ResourceData) *devices.FallbackRoutePro
 
 	name := fallbackRouteMap["name"].(string)
 	source := fallbackRouteMap["source"].(string)
-	endpointNamesRaw := fallbackRouteMap["endpoint_names"].([]interface{})
 	endpointNames := make([]string, 0)
-	for _, n := range endpointNamesRaw {
-		endpointNames = append(endpointNames, n.(string))
-	}
+	endpointNames = append(endpointNames, fallbackRouteMap["endpoint_name"].(string))
 	isEnabled := fallbackRouteMap["enabled"].(bool)
 
 	return &devices.FallbackRouteProperties{
@@ -827,7 +821,7 @@ func flattenIoTHubFallbackRoute(input *devices.RoutingProperties) []interface{} 
 			output["condition"] = *condition
 		}
 		if endpointNames := input.FallbackRoute.EndpointNames; endpointNames != nil {
-			output["endpoint_names"] = *endpointNames
+			output["endpoint_name"] = *endpointNames[0].(string)
 		}
 		if isEnabled := input.FallbackRoute.IsEnabled; isEnabled != nil {
 			output["enabled"] = *isEnabled
