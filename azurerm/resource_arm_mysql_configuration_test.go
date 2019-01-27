@@ -13,9 +13,6 @@ import (
 func TestAccAzureRMMySQLConfiguration_characterSetServer(t *testing.T) {
 	resourceName := "azurerm_mysql_configuration.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
-	config := testAccAzureRMMySQLConfiguration_characterSetServer(ri, location)
-	serverOnlyConfig := testAccAzureRMMySQLConfiguration_empty(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -23,7 +20,7 @@ func TestAccAzureRMMySQLConfiguration_characterSetServer(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMySQLConfiguration_characterSetServer(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLConfigurationValue(resourceName, "hebrew"),
 				),
@@ -34,7 +31,7 @@ func TestAccAzureRMMySQLConfiguration_characterSetServer(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: serverOnlyConfig,
+				Config: testAccAzureRMMySQLConfiguration_empty(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					// "delete" resets back to the default value
 					testCheckAzureRMMySQLConfigurationValueReset(ri, "character_set_server"),
@@ -43,13 +40,14 @@ func TestAccAzureRMMySQLConfiguration_characterSetServer(t *testing.T) {
 		},
 	})
 }
+func TestAccAzureRMMySQLConfiguration_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
 
-func TestAccAzureRMMySQLConfiguration_interactiveTimeout(t *testing.T) {
 	resourceName := "azurerm_mysql_configuration.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
-	config := testAccAzureRMMySQLConfiguration_interactiveTimeout(ri, location)
-	serverOnlyConfig := testAccAzureRMMySQLConfiguration_empty(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -57,7 +55,30 @@ func TestAccAzureRMMySQLConfiguration_interactiveTimeout(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMySQLConfiguration_characterSetServer(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMySQLConfigurationValue(resourceName, "hebrew"),
+				),
+			},
+			{
+				Config:      testAccAzureRMMySQLConfiguration_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_mysql_configuration"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMMySQLConfiguration_interactiveTimeout(t *testing.T) {
+	resourceName := "azurerm_mysql_configuration.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMySQLConfiguration_interactiveTimeout(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLConfigurationValue(resourceName, "30"),
 				),
@@ -68,7 +89,7 @@ func TestAccAzureRMMySQLConfiguration_interactiveTimeout(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: serverOnlyConfig,
+				Config: testAccAzureRMMySQLConfiguration_empty(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					// "delete" resets back to the default value
 					testCheckAzureRMMySQLConfigurationValueReset(ri, "interactive_timeout"),
@@ -81,9 +102,6 @@ func TestAccAzureRMMySQLConfiguration_interactiveTimeout(t *testing.T) {
 func TestAccAzureRMMySQLConfiguration_logSlowAdminStatements(t *testing.T) {
 	resourceName := "azurerm_mysql_configuration.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
-	config := testAccAzureRMMySQLConfiguration_logSlowAdminStatements(ri, location)
-	serverOnlyConfig := testAccAzureRMMySQLConfiguration_empty(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -91,7 +109,7 @@ func TestAccAzureRMMySQLConfiguration_logSlowAdminStatements(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMySQLConfiguration_logSlowAdminStatements(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLConfigurationValue(resourceName, "on"),
 				),
@@ -102,7 +120,7 @@ func TestAccAzureRMMySQLConfiguration_logSlowAdminStatements(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: serverOnlyConfig,
+				Config: testAccAzureRMMySQLConfiguration_empty(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					// "delete" resets back to the default value
 					testCheckAzureRMMySQLConfigurationValueReset(ri, "log_slow_admin_statements"),
@@ -225,6 +243,19 @@ resource "azurerm_mysql_configuration" "test" {
 }
 `, name, value)
 	return server + config
+}
+
+func testAccAzureRMMySQLConfiguration_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mysql_configuration" "import" {
+  name                = "${azurerm_mysql_configuration.test.name}"
+  resource_group_name = "${azurerm_mysql_configuration.test.resource_group_name}"
+  server_name         = "${azurerm_mysql_configuration.test.server_name}"
+  value               = "${azurerm_mysql_configuration.test.value}"
+}
+`, testAccAzureRMMySQLConfiguration_characterSetServer(rInt, location))
 }
 
 func testAccAzureRMMySQLConfiguration_empty(rInt int, location string) string {
