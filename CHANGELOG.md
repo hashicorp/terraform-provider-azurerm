@@ -1,12 +1,19 @@
 ## 1.22.0 (Unreleased)
 
+UPGRADE NOTES:
+
+* The v1.22 release includes a few new resources which are duplicates of existing resources, the purpose of this is to correct some invalid naming so that we can remove the mis-named resources in the next major version of the Provider. Please see [the upgrade guide](https://terraform.io/docs/providers/azurerm/guides/migrating-to-monitor-resources.html) for more information on how to migrate between these resources.
+* The `azurerm_metric_alertrule` resource has been deprecated in favour of the (new) `azurerm_monitor_metric_alertrule` resource and will be removed in the next major version of the AzureRM Provider (2.0) [GH-2762]
+
 FEATURES:
 
 * **New Resource:**  `azurerm_ddos_protection_plan` [GH-2654]
+* **New Resource:** `azurerm_monitor_metric_alertrule` [GH-2762]
 
 IMPROVEMENTS:
 
 * dependencies: switching to Go Modules [GH-2705]
+* dependencies: upgrading to v11.3.2 of github.com/Azure/go-autorest [GH-2744]
 * `azurerm_application_gateway` - support for the `http2` property [GH-2735]
 * `azurerm_application_gateway` - support for the `file_upload_limit_mb` property [GH-2666]
 * `azurerm_application_gateway` - Support for `pick_host_name_from_backend_address` and `pick_host_name_from_backend_http_settings` properties [GH-2658]
@@ -25,8 +32,11 @@ BUG FIXES:
 * `azurerm_express_route_circuit` - added the `premium` SKU back to validation logic [GH-2692]
 * `azurerm_firewall` - ensuring rules aren't removed during an update [GH-2663]
 * `azurerm_notification_hub_namespace` - now polls on creation to handle eventual consistency [GH-2701]
+* `azurerm_redis_cache` - locking on the Virtual Network/Subnet name to avoid a race condition [GH-2725]
 * `azurerm_service_bus_subscription` - name's can now start with a digit [GH-2672]
 * `azurerm_security_center` - increase the creation timeout to `30m` [GH-2724]
+* `azurerm_subnet` - fixing a crash when service endpoints was nil [GH-2742]
+* `azurerm_subnet` - will no longer lose service endpoints during a virtual network update [GH-2738]
 
 ## 1.21.0 (January 11, 2019)
 

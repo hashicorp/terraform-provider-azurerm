@@ -5,7 +5,7 @@ require (
 	contrib.go.opencensus.io/exporter/ocagent v0.4.1 // indirect
 	git.apache.org/thrift.git v0.0.0-20181218151757-9b75e4fe745a // indirect
 	github.com/Azure/azure-sdk-for-go v24.0.0+incompatible
-	github.com/Azure/go-autorest v11.2.8+incompatible
+	github.com/Azure/go-autorest v11.3.2+incompatible
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/apparentlymart/go-cidr v0.0.0-20170418151526-7e4b007599d4 // indirect
 	github.com/apparentlymart/go-rundeck-api v0.0.0-20160826143032-f6af74d34d1e // indirect

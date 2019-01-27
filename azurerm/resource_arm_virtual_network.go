@@ -412,36 +412,19 @@ func resourceAzureSubnetHash(v interface{}) int {
 }
 
 func getExistingSubnet(ctx context.Context, resGroup string, vnetName string, subnetName string, meta interface{}) (*network.Subnet, error) {
-	//attempt to retrieve existing subnet from the server
-	existingSubnet := network.Subnet{}
 	subnetClient := meta.(*ArmClient).subnetClient
 	resp, err := subnetClient.Get(ctx, resGroup, vnetName, subnetName, "")
 
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
-			return &existingSubnet, nil
+			return &network.Subnet{}, nil
 		}
 		//raise an error if there was an issue other than 404 in getting subnet properties
 		return nil, err
 	}
 
-	existingSubnet.SubnetPropertiesFormat = &network.SubnetPropertiesFormat{
-		AddressPrefix: resp.SubnetPropertiesFormat.AddressPrefix,
-	}
-
-	if resp.SubnetPropertiesFormat.NetworkSecurityGroup != nil {
-		existingSubnet.SubnetPropertiesFormat.NetworkSecurityGroup = resp.SubnetPropertiesFormat.NetworkSecurityGroup
-	}
-
-	if resp.SubnetPropertiesFormat.RouteTable != nil {
-		existingSubnet.SubnetPropertiesFormat.RouteTable = resp.SubnetPropertiesFormat.RouteTable
-	}
-
-	if resp.SubnetPropertiesFormat.IPConfigurations != nil {
-		existingSubnet.SubnetPropertiesFormat.IPConfigurations = resp.SubnetPropertiesFormat.IPConfigurations
-	}
-
-	return &existingSubnet, nil
+	// Return it directly rather than copy the fields to prevent potential uncovered properties (for example, `ServiceEndpoints` mentioned in #1619)
+	return &resp, nil
 }
 
 func expandAzureRmVirtualNetworkVirtualNetworkSecurityGroupNames(d *schema.ResourceData) ([]string, error) {

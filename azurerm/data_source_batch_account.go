@@ -41,7 +41,6 @@ func dataSourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) err
 
 	ctx := meta.(*ArmClient).StopContext
 	resp, err := client.Get(ctx, resourceGroup, name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Batch account %q (Resource Group %q) was not found", name, resourceGroup)
