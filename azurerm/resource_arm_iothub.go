@@ -634,10 +634,10 @@ func expandIoTHubFallbackRoute(d *schema.ResourceData) *devices.FallbackRoutePro
 
 	name := fallbackRouteMap["name"].(string)
 	source := fallbackRouteMap["source"].(string)
-	endpointNamesRaw := route["endpoint_names"].([]interface{})
-	endpointsNames := make([]string, 0)
+	endpointNamesRaw := fallbackRouteMap["endpoint_names"].([]interface{})
+	endpointNames := make([]string, 0)
 	for _, n := range endpointNamesRaw {
-		endpointsNames = append(endpointsNames, n.(string))
+		endpointNames = append(endpointNames, n.(string))
 	}
 	isEnabled := fallbackRouteMap["enabled"].(bool)
 
@@ -816,22 +816,24 @@ func flattenIoTHubRoute(input *devices.RoutingProperties) []interface{} {
 	return results
 }
 
-func flattenIoTHubFallbackRoute(input *devices.FallbackRouteProperties) []interface{} {
+func flattenIoTHubFallbackRoute(input *devices.RoutingProperties) []interface{} {
 	output := make(map[string]interface{})
 
-	if name := input.Name; name != nil {
-		output["name"] = *name
+	if input.FallbackRoute != nil {
+		if name := input.FallbackRoute.Name; name != nil {
+			output["name"] = *name
+		}
+		if condition := input.FallbackRoute.Condition; condition != nil {
+			output["condition"] = *condition
+		}
+		if endpointNames := input.FallbackRoute.EndpointNames; endpointNames != nil {
+			output["endpoint_names"] = *endpointNames
+		}
+		if isEnabled := input.FallbackRoute.IsEnabled; isEnabled != nil {
+			output["enabled"] = *isEnabled
+		}
+		output["source"] = input.FallbackRoute.Source
 	}
-	if condition := input.Condition; condition != nil {
-		output["condition"] = *condition
-	}
-	if endpointNames := input.EndpointNames; endpointNames != nil {
-		output["endpoint_names"] = *endpointNames
-	}
-	if isEnabled := input.IsEnabled; isEnabled != nil {
-		output["enabled"] = *isEnabled
-	}
-	output["source"] = input.Source
 
 	return []interface{}{output}
 }
