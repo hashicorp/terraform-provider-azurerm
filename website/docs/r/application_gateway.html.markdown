@@ -151,7 +151,7 @@ The following arguments are supported:
 
 * `waf_configuration` - (Optional) A `waf_configuration` block as defined below.
 
-* `custom_error_configurations` - (Optional) One or more `custom_error_configurations` blocks as defined below.
+* `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
 
 ---
 
@@ -247,7 +247,7 @@ A `http_listener` block supports the following:
 
 * `ssl_certificate_name` - (Optional) The name of the associated SSL Certificate which should be used for this HTTP Listener.
 
-* `custom_error_configurations` - (Optional) One or more `custom_error_configurations` blocks as defined below.
+* `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
 
 ---
 
@@ -347,7 +347,7 @@ A `waf_configuration` block supports the following:
 
 ---
 
-A `custom_error_configurations` block supports the following:
+A `custom_error_configuration` block supports the following:
 
 * `status_code` - (Required) Status code of the application gateway customer error. Possible values are `HTTPStatus403` and `HTTPStatus502`
 
@@ -383,7 +383,7 @@ The following attributes are exported:
 
 * `url_path_map` - A list of `url_path_map` blocks as defined below.
 
-* `custom_error_configurations` - A list of `custom_error_configurations` blocks as defined below.
+* `custom_error_configuration` - A list of `custom_error_configuration` blocks as defined below.
 
 ---
 
@@ -493,13 +493,9 @@ A `url_path_map` block exports the following:
 
 ---
 
-A `custom_error_configurations` block exports the following:
+A `custom_error_configuration` block exports the following:
 
 * `id` - The ID of the Custom Error Configuration.
-
-* `status_code` - The status code of the application gateway custom error.
-
-* `custom_error_page_url` - The error page URL of the application gateway custom error.
 
 ## Import
 
