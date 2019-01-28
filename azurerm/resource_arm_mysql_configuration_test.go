@@ -218,19 +218,6 @@ resource "azurerm_mysql_configuration" "test" {
 	return server + config
 }
 
-func testAccAzureRMMySQLConfiguration_requiresImport(rInt int, location string) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_mysql_configuration" "import" {
-  name                = "${azurerm_mysql_configuration.test.name}"
-  resource_group_name = "${azurerm_mysql_configuration.test.resource_group_name}"
-  server_name         = "${azurerm_mysql_configuration.test.server_name}"
-  value               = "${azurerm_mysql_configuration.test.value}"
-}
-`, testAccAzureRMMySQLConfiguration_characterSetServer(rInt, location))
-}
-
 func testAccAzureRMMySQLConfiguration_empty(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
