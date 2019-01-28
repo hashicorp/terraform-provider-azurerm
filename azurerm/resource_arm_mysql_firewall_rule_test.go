@@ -13,7 +13,6 @@ import (
 func TestAccAzureRMMySQLFirewallRule_basic(t *testing.T) {
 	resourceName := "azurerm_mysql_firewall_rule.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMySQLFirewallRule_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -21,7 +20,7 @@ func TestAccAzureRMMySQLFirewallRule_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMySQLFirewallRule_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLFirewallRuleExists(resourceName),
 				),
@@ -30,6 +29,34 @@ func TestAccAzureRMMySQLFirewallRule_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMMySQLFirewallRule_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_mysql_firewall_rule.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMySQLFirewallRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMySQLFirewallRule_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMySQLFirewallRuleExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMMySQLFirewallRule_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_mysql_firewall_rule"),
 			},
 		},
 	})
@@ -131,4 +158,18 @@ resource "azurerm_mysql_firewall_rule" "test" {
   end_ip_address      = "255.255.255.255"
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMMySQLFirewallRule_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mysql_firewall_rule" "import" {
+  name                = "${azurerm_mysql_firewall_rule.test.name}"
+  resource_group_name = "${azurerm_mysql_firewall_rule.test.resource_group_name}"
+  server_name         = "${azurerm_mysql_firewall_rule.test.server_name}"
+  start_ip_address    = "${azurerm_mysql_firewall_rule.test.start_ip_address}"
+  end_ip_address      = "${azurerm_mysql_firewall_rule.test.end_ip_address}"
+}
+`, testAccAzureRMMySQLFirewallRule_basic(rInt, location))
 }
