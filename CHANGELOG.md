@@ -44,9 +44,9 @@ BUG FIXES:
 * `azurerm_redis_cache` - locking on the Virtual Network/Subnet name to avoid a race condition [GH-2725]
 * `azurerm_service_bus_subscription` - name's can now start with a digit [GH-2672]
 * `azurerm_security_center` - increase the creation timeout to `30m` [GH-2724]
+* `azurerm_service_fabric_cluster` - no longer pass `reverse_proxy_endpoint_port` to the API when not specified [GH-2747]
 * `azurerm_subnet` - fixing a crash when service endpoints was nil [GH-2742]
 * `azurerm_subnet` - will no longer lose service endpoints during a virtual network update [GH-2738]
-* `azurerm_service_fabric_cluster` - no longer pass `reverse_proxy_endpoint_port` to the API when not specified [GH-2747]
 
 ## 1.21.0 (January 11, 2019)
 
