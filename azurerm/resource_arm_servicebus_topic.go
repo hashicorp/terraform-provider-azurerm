@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -133,6 +134,19 @@ func resourceArmServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interfa
 	requiresDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
 	supportOrdering := d.Get("support_ordering").(bool)
 
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, namespaceName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing ServiceBus Topic %q (resource group %q, namespace %q): %v", name, resourceGroup, namespaceName, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_service_fabric_cluster", *existing.ID)
+		}
+	}
+
 	parameters := servicebus.SBTopic{
 		Name: &name,
 		SBTopicProperties: &servicebus.SBTopicProperties{
@@ -159,12 +173,12 @@ func resourceArmServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters); err != nil {
-		return err
+		return fmt.Errorf("Error issuing create/update request for ServiceBus Topic %q (resource group %q, namespace %q): %v", name, resourceGroup, namespaceName, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, namespaceName, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error issuing get request for ServiceBus Topic %q (resource group %q, namespace %q): %v", name, resourceGroup, namespaceName, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read ServiceBus Topic %s (resource group %s) ID", name, resourceGroup)
