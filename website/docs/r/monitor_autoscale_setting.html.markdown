@@ -1,16 +1,14 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_autoscale_setting"
+page_title: "Azure Resource Manager: azurerm_monitor_autoscale_setting"
 sidebar_current: "docs-azurerm-resource-monitor-autoscale-setting"
 description: |-
     Manages an AutoScale Setting which can be applied to Virtual Machine Scale Sets, App Services and other scalable resources.
 ---
 
-# azurerm_autoscale_setting
+# azurerm_monitor_autoscale_setting
 
-Manages an AutoScale Setting which can be applied to Virtual Machine Scale Sets, App Services and other scalable resources.
-
-~> **NOTE:** This resource has been deprecated in favour of the `azurerm_monitor_autoscale_setting` resource and will be removed in the next major version of the AzureRM Provider. The new resource shares the same fields as this one, and information on migrating across [can be found in this guide](../guides/migrating-between-renamed-resources.html).
+Manages a AutoScale Setting which can be applied to Virtual Machine Scale Sets, App Services and other scalable resources.
 
 ## Example Usage
 
@@ -24,7 +22,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   # ...
 }
 
-resource "azurerm_autoscale_setting" "test" {
+resource "azurerm_monitor_autoscale_setting" "test" {
   name                = "myAutoscaleSetting"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -102,7 +100,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   # ...
 }
 
-resource "azurerm_autoscale_setting" "test" {
+resource "azurerm_monitor_autoscale_setting" "test" {
   name                = "myAutoscaleSetting"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -188,7 +186,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   # ...
 }
 
-resource "azurerm_autoscale_setting" "test" {
+resource "azurerm_monitor_autoscale_setting" "test" {
   name                = "myAutoscaleSetting"
   enabled             = true
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -320,7 +318,7 @@ A `rule` block supports the following:
 A `metric_trigger` block supports the following:
 
 * `metric_name` - (Required) The name of the metric that defines what the rule monitors, such as `Percentage CPU` for `Virtual Machine Scale Sets` and `CpuPercentage` for `App Service Plan`.
-
+	
 -> **NOTE:** The allowed value of `metric_name` highly depends on the targeting resource type, please visit [Supported metrics with Azure Monitor](https://docs.microsoft.com/en-us/azure/azure-monitor/platform/metrics-supported) for more details.
 
 * `metric_resource_id` - (Required) The ID of the Resource which the Rule monitors.
@@ -408,5 +406,5 @@ The following attributes are exported:
 AutoScale Setting can be imported using the `resource id`, e.g.
 
 ```
-terraform import azurerm_autoscale_setting.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/microsoft.insights/autoscalesettings/setting1
+terraform import azurerm_monitor_autoscale_setting.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/microsoft.insights/autoscalesettings/setting1
 ```

@@ -146,6 +146,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 							Set: schema.HashString,
 						},
 
+						// TODO: does this want deprecating & a virtual resource for 2.0?
 						"application_security_group_ids": {
 							Type:     schema.TypeSet,
 							Optional: true,

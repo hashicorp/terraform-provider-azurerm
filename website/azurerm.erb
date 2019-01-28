@@ -899,7 +899,7 @@
             <li<%= sidebar_current("docs-azurerm-resource-monitor") %>>
               <a href="#">Monitor Resources</a>
               <ul class="nav nav-visible">
-                <li<%= sidebar_current("docs-azurerm-resource-monitor-autoscale-setting") %>>
+                <li<%= sidebar_current("docs-azurerm-resource-autoscale-setting") %>>
                   <a href="/docs/providers/azurerm/r/autoscale_setting.html">azurerm_autoscale_setting</a>
                 </li>
 
@@ -909,6 +909,9 @@
 
                 <li<%= sidebar_current("docs-azurerm-resource-monitor-activity-log-alert") %>>
                   <a href="/docs/providers/azurerm/r/monitor_activity_log_alert.html">azurerm_monitor_activity_log_alert</a>
+                </li>
+                <li<%= sidebar_current("docs-azurerm-resource-monitor-autoscale-setting") %>>
+                  <a href="/docs/providers/azurerm/r/monitor_autoscale_setting.html">azurerm_monitor_autoscale_setting</a>
                 </li>
 
                 <li<%= sidebar_current("docs-azurerm-resource-monitor-diagnostic-setting") %>>
@@ -1068,18 +1071,22 @@
               </ul>
             </li>
 
-            <li<%= sidebar_current("docs-azurerm-oms") %>>
-              <a href="#">Azure Monitor for containers Resources</a>
+            <li<%= sidebar_current("docs-azurerm-log-analytics") %>>
+              <a href="#">Log Analytics Resources</a>
               <ul class="nav nav-visible">
-                <li<%= sidebar_current("docs-azurerm-oms-log-analytics-solution") %>>
+                <li<%= sidebar_current("docs-azurerm-log-analytics-linked-service") %>>
+                  <a href="/docs/providers/azurerm/r/log_analytics_linked_service.html">azurerm_log_analytics_linked_service</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-log-analytics-solution") %>>
                   <a href="/docs/providers/azurerm/r/log_analytics_solution.html">azurerm_log_analytics_solution</a>
                 </li>
 
-                <li<%= sidebar_current("docs-azurerm-oms-log-analytics-workspace-x") %>>
+                <li<%= sidebar_current("docs-azurerm-log-analytics-workspace-x") %>>
                   <a href="/docs/providers/azurerm/r/log_analytics_workspace.html">azurerm_log_analytics_workspace</a>
                 </li>
 
-                <li<%= sidebar_current("docs-azurerm-oms-log-analytics-workspace-linked-service") %>>
+                <li<%= sidebar_current("docs-azurerm-log-analytics-workspace-linked-service") %>>
                   <a href="/docs/providers/azurerm/r/log_analytics_workspace_linked_service.html">azurerm_log_analytics_workspace_linked_service</a>
                 </li>
               </ul>

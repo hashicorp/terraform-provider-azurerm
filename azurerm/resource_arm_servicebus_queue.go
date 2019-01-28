@@ -107,13 +107,14 @@ func resourceArmServiceBusQueue() *schema.Resource {
 				Optional: true,
 			},
 
-			// TODO: remove these in the next major release
+			// TODO: remove this in 2.0
 			"enable_batched_operations": {
 				Type:       schema.TypeBool,
 				Optional:   true,
 				Deprecated: "This field has been removed by Azure.",
 			},
 
+			// TODO: remove this in 2.0
 			"support_ordering": {
 				Type:       schema.TypeBool,
 				Optional:   true,

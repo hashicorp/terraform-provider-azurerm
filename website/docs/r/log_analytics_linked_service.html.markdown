@@ -1,17 +1,14 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_log_analytics_workspace_linked_service"
-sidebar_current: "docs-azurerm-log-analytics-workspace-linked-service"
+page_title: "Azure Resource Manager: azurerm_log_analytics_linked_service"
+sidebar_current: "docs-azurerm-log-analytics-linked-service"
 description: |-
   Manages a Log Analytics (formally Operational Insights) Linked Service.
 ---
 
-# azurerm_log_analytics_workspace_linked_service
+# azurerm_log_analytics_linked_service
 
 Links a Log Analytics (formally Operational Insights) Workspace to another resource. The (currently) only linkable service is an Azure Automation Account.
-
-~> **NOTE:** This resource has been deprecated in favour of the `azurerm_log_analytics_linked_service` resource and will be removed in the next major version of the AzureRM Provider. The new resource shares the same fields as this one, and information on migrating across [can be found in this guide](../guides/migrating-between-renamed-resources.html).
-
 
 ## Example Usage
 
@@ -43,7 +40,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   retention_in_days   = 30
 }
 
-resource "azurerm_log_analytics_workspace_linked_service" "test" {
+resource "azurerm_log_analytics_linked_service" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   workspace_name      = "${azurerm_log_analytics_workspace.test.name}"
   resource_id         = "${azurerm_automation_account.test.id}"
@@ -85,5 +82,5 @@ The following attributes are exported:
 Log Analytics Workspaces can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_log_analytics_workspace_linked_service.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/linkedServices/automation
+terraform import azurerm_log_analytics_linked_service.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/linkedServices/automation
 ```
