@@ -108,6 +108,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_batch_account":                         dataSourceArmBatchAccount(),
 			"azurerm_batch_pool":                            dataSourceArmBatchPool(),
 			"azurerm_builtin_role_definition":               dataSourceArmBuiltInRoleDefinition(),
+			"azurerm_builtin_policy_definition":             dataSourceArmBuiltInPolicyDefinition(),
 			"azurerm_cdn_profile":                           dataSourceArmCdnProfile(),
 			"azurerm_client_config":                         dataSourceArmClientConfig(),
 			"azurerm_container_registry":                    dataSourceArmContainerRegistry(),
