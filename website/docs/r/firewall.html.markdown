@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `ip_configuration` - (Required) A `ip_configuration` block as documented below.
+* `ip_configuration` - (Required) A collection of `ip_configuration` blocks as documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -95,8 +95,6 @@ The following attributes are exported:
 A `ip_configuration` block exports the following:
 
 * `private_ip_address` - The private IP address of the Azure Firewall.
-
--> **NOTE** `ip_configuration` is list of single element, please use `ip_configuration.0.private_ip_address` to access the value.
 
 ## Import
 
