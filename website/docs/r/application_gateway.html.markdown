@@ -349,7 +349,7 @@ A `waf_configuration` block supports the following:
 
 A `custom_error_configuration` block supports the following:
 
-* `status_code` - (Required) Status code of the application gateway customer error. Possible values are `HTTPStatus403` and `HTTPStatus502`
+* `status_code` - (Required) Status code of the application gateway customer error. Possible values are `HttpStatus403` and `HttpStatus502`
 
 * `custom_error_page_url` - (Required) Error page URL of the application gateway customer error.
 

@@ -1435,22 +1435,22 @@ resource "azurerm_application_gateway" "test" {
     frontend_port_name             = "${local.frontend_port_name}"
     protocol                       = "Http"
     custom_error_configuration {
-      status_code           = "HTTPStatus403"
+      status_code           = "HttpStatus403"
       custom_error_page_url = "http://azure.com/error403_listener.html"
     }
     custom_error_configuration {
-      status_code           = "HTTPStatus502"
+      status_code           = "HttpStatus502"
       custom_error_page_url = "http://azure.com/error502_listener.html"
     }
   }
 
   custom_error_configuration {
-    status_code           = "HTTPStatus403"
+    status_code           = "HttpStatus403"
     custom_error_page_url = "http://azure.com/error.html"
   }
 
   custom_error_configuration {
-    status_code           = "HTTPStatus502"
+    status_code           = "HttpPStatus502"
     custom_error_page_url = "http://azure.com/error.html"
   }
 }
