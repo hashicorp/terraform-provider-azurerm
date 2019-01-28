@@ -27,6 +27,7 @@ func TestAccAzureRMNetworkWatcher(t *testing.T) {
 			"storageAccount":             testAccAzureRMPacketCapture_storageAccount,
 			"storageAccountAndLocalDisk": testAccAzureRMPacketCapture_storageAccountAndLocalDisk,
 			"withFilters":                testAccAzureRMPacketCapture_withFilters,
+			"requiresImport":             testAccAzureRMPacketCapture_requiresImport,
 		},
 	}
 

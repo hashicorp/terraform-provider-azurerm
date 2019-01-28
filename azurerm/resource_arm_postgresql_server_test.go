@@ -102,6 +102,37 @@ func TestAccAzureRMPostgreSQLServer_basicTenPointZero(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPostgreSQLServer_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_postgresql_server.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPostgreSQLServer_basicTenPointZero(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
+					resource.TestCheckResourceAttr(resourceName, "version", "10.0"),
+					resource.TestCheckResourceAttr(resourceName, "ssl_enforcement", "Enabled"),
+				),
+			},
+			{
+				Config:      testAccAzureRMPostgreSQLServer_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_postgresql_server"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMPostgreSQLServer_basicMaxStorage(t *testing.T) {
 	resourceName := "azurerm_postgresql_server.test"
 	ri := tf.AccRandTimeInt()
@@ -450,6 +481,36 @@ resource "azurerm_postgresql_server" "test" {
   ssl_enforcement              = "Enabled"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMPostgreSQLServer_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_server" "import" {
+  name                = "${azurerm_postgresql_server.test.name}"
+  location            = "${azurerm_postgresql_server.test.location}"
+  resource_group_name = "${azurerm_postgresql_server.test.resource_group_name}"
+
+  sku {
+    name     = "B_Gen4_2"
+    capacity = 2
+    tier     = "Basic"
+    family   = "Gen4"
+  }
+
+  storage_profile {
+    storage_mb            = 51200
+    backup_retention_days = 7
+    geo_redundant_backup  = "Disabled"
+  }
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+  version                      = "10.0"
+  ssl_enforcement              = "Enabled"
+}
+`, testAccAzureRMPostgreSQLServer_basicTenPointZero(rInt, location))
 }
 
 func testAccAzureRMPostgreSQLServer_basicNinePointSixUpdatedPassword(rInt int, location string) string {

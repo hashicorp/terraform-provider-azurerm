@@ -41,6 +41,39 @@ func TestAccAzureRMRecoveryServicesProtectedVm_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMRecoveryServicesProtectedVm_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_recovery_services_protected_vm.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRecoveryServicesProtectedVmDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRecoveryServicesProtectedVm_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRecoveryServicesProtectedVmExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+				),
+			},
+			{
+				Config:      testAccAzureRMRecoveryServicesProtectedVm_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_recovery_services_protected_vm"),
+			},
+			{ //vault cannot be deleted unless we unregister all backups
+				Config: testAccAzureRMRecoveryServicesProtectedVm_base(ri, testLocation()),
+				Check:  resource.ComposeTestCheckFunc(),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMRecoveryServicesProtectedVm_separateResourceGroups(t *testing.T) {
 	resourceName := "azurerm_recovery_services_protected_vm.test"
 	ri := tf.AccRandTimeInt()
@@ -296,6 +329,19 @@ resource "azurerm_recovery_services_protected_vm" "test" {
   backup_policy_id    = "${azurerm_recovery_services_protection_policy_vm.test.id}"
 }
 `, testAccAzureRMRecoveryServicesProtectedVm_base(rInt, location))
+}
+
+func testAccAzureRMRecoveryServicesProtectedVm_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_recovery_services_protected_vm" "import" {
+  resource_group_name = "${azurerm_recovery_services_protected_vm.test.resource_group_name}"
+  recovery_vault_name = "${azurerm_recovery_services_protected_vm.test.recovery_vault_name}"
+  source_vm_id        = "${azurerm_recovery_services_protected_vm.test.source_vm_id}"
+  backup_policy_id    = "${azurerm_recovery_services_protected_vm.test.backup_policy_id}"
+}
+`, testAccAzureRMRecoveryServicesProtectedVm_basic(rInt, location))
 }
 
 func testAccAzureRMRecoveryServicesProtectedVm_additionalVault(rInt int, location string) string {

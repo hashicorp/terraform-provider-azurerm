@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/Azure/go-autorest/autorest"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
@@ -116,6 +118,19 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 	displayName := d.Get("display_name").(string)
 	description := d.Get("description").(string)
 	managementGroupID := d.Get("management_group_id").(string)
+
+	if requireResourcesToBeImported {
+		existing, err := getPolicySetDefinition(ctx, client, name, managementGroupID)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Policy Set Definition %q: %s", name, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_policy_set_definition", *existing.ID)
+		}
+	}
 
 	properties := policy.SetDefinitionProperties{
 		PolicyType:  policy.Type(policyType),

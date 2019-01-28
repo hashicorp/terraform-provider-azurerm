@@ -5,6 +5,8 @@ import (
 	"log"
 	"strings"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
@@ -213,6 +215,19 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 	version := d.Get("version").(string)
 	createMode := "Default"
 	tags := d.Get("tags").(map[string]interface{})
+
+	if requireResourcesToBeImported {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_postgresql_server", *existing.ID)
+		}
+	}
 
 	sku := expandAzureRmPostgreSQLServerSku(d)
 	storageProfile := expandAzureRmPostgreSQLStorageProfile(d)
