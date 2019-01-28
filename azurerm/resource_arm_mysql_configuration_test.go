@@ -40,33 +40,6 @@ func TestAccAzureRMMySQLConfiguration_characterSetServer(t *testing.T) {
 		},
 	})
 }
-func TestAccAzureRMMySQLConfiguration_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
-	resourceName := "azurerm_mysql_configuration.test"
-	ri := tf.AccRandTimeInt()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMySQLConfiguration_characterSetServer(ri, testLocation()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLConfigurationValue(resourceName, "hebrew"),
-				),
-			},
-			{
-				Config:      testAccAzureRMMySQLConfiguration_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_mysql_configuration"),
-			},
-		},
-	})
-}
 
 func TestAccAzureRMMySQLConfiguration_interactiveTimeout(t *testing.T) {
 	resourceName := "azurerm_mysql_configuration.test"

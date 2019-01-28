@@ -54,19 +54,6 @@ func resourceArmMySQLConfigurationCreate(d *schema.ResourceData, meta interface{
 	serverName := d.Get("server_name").(string)
 	value := d.Get("value").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, serverName, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing MySQL Configuration %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
-			}
-		}
-
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_mysql_configuration", *existing.ID)
-		}
-	}
-
 	properties := mysql.Configuration{
 		ConfigurationProperties: &mysql.ConfigurationProperties{
 			Value: utils.String(value),
@@ -79,7 +66,7 @@ func resourceArmMySQLConfigurationCreate(d *schema.ResourceData, meta interface{
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting pm create/update future for MySQL Configuration %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
+		return fmt.Errorf("Error waiting for create/update of MySQL Configuration %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, serverName, name)
