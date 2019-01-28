@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 TEST?=$$(go list ./... |grep -v 'vendor')
 WEBSITE_REPO=github.com/hashicorp/terraform-website
 PKG_NAME=azurerm
@@ -45,7 +46,7 @@ goimport:
 
 lint:
 	@echo "==> Checking source code against linters..."
-	@gometalinter ./...
+	@gometalinter -d ./... 2> >(egrep '(^DEBUG.*linter took|^[^D])' >&2)
 
 tools:
 	@echo "==> installing required tooling..."
