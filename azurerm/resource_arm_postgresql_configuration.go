@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -54,21 +52,7 @@ func resourceArmPostgreSQLConfigurationCreateUpdate(d *schema.ResourceData, meta
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	serverName := d.Get("server_name").(string)
-
 	value := d.Get("value").(string)
-
-	if requireResourcesToBeImported {
-		existing, err := client.Get(ctx, resGroup, serverName, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing PostgreSQL Configuration %s (resource group %s) ID", name, resGroup)
-			}
-		}
-
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_postgresql_configuration", *existing.ID)
-		}
-	}
 
 	properties := postgresql.Configuration{
 		ConfigurationProperties: &postgresql.ConfigurationProperties{

@@ -43,6 +43,7 @@ func TestAccAzureRMRoleDefinition_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_role_definition.test"
+	id := uuid.New().String()
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -51,13 +52,13 @@ func TestAccAzureRMRoleDefinition_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRoleDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRoleDefinition_basic(uuid.New().String(), ri),
+				Config: testAccAzureRMRoleDefinition_basic(id, ri),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRoleDefinitionExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMRoleDefinition_requiresImport(uuid.New().String(), ri),
+				Config:      testAccAzureRMRoleDefinition_requiresImport(id, ri),
 				ExpectError: testRequiresImportError("azurerm_role_definition"),
 			},
 		},

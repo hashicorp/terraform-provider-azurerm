@@ -282,22 +282,22 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 
 	future, err := client.Create(ctx, resGroup, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error issuing creat request for read Redis Instance %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Error issuing create request for read Redis Cache %s (resource group %s) ID", name, resGroup)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting on create future for Redis Instance %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Error waiting for Redis Cache %s (resource group %s)", name, resGroup)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error issuing get request for  Redis Instance %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Error retrieving Redis Cache %s (resource group %s) ID", name, resGroup)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Redis Instance %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read Redis Cache %s (resource group %s) ID", name, resGroup)
 	}
 
-	log.Printf("[DEBUG] Waiting for Redis Instance (%s) to become available", d.Get("name"))
+	log.Printf("[DEBUG] Waiting for Redis Cache (%s) to become available", d.Get("name"))
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Scaling", "Updating", "Creating"},
 		Target:     []string{"Succeeded"},
@@ -306,7 +306,7 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 		MinTimeout: 15 * time.Second,
 	}
 	if _, err = stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Redis Instance (%s) to become available: %s", d.Get("name"), err)
+		return fmt.Errorf("Error waiting for Redis Cache (%s) to become available: %s", d.Get("name"), err)
 	}
 
 	d.SetId(*read.ID)

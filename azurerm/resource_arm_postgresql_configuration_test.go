@@ -41,34 +41,6 @@ func TestAccAzureRMPostgreSQLConfiguration_backslashQuote(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPostgreSQLConfiguration_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
-	resourceName := "azurerm_postgresql_configuration.test"
-	ri := tf.AccRandTimeInt()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLConfigurationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLConfiguration_backslashQuote(ri, testLocation()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLConfigurationValue(resourceName, "on"),
-				),
-			},
-			{
-				Config:      testAccAzureRMPostgreSQLConfiguration_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_postgresql_configuration"),
-			},
-		},
-	})
-}
-
 func TestAccAzureRMPostgreSQLConfiguration_clientMinMessages(t *testing.T) {
 	resourceName := "azurerm_postgresql_configuration.test"
 	ri := tf.AccRandTimeInt()
@@ -229,19 +201,6 @@ func testCheckAzureRMPostgreSQLConfigurationDestroy(s *terraform.State) error {
 
 func testAccAzureRMPostgreSQLConfiguration_backslashQuote(rInt int, location string) string {
 	return testAccAzureRMPostgreSQLConfiguration_template(rInt, location, "backslash_quote", "on")
-}
-
-func testAccAzureRMPostgreSQLConfiguration_requiresImport(rInt int, location string) string {
-	return fmt.Sprintf(`
-%s 
-
-resource "azurerm_postgresql_configuration" "import" {
-  name                = "${azurerm_postgresql_configuration.test.name}"
-  resource_group_name = "${azurerm_postgresql_configuration.test.resource_group_name}"
-  server_name         = "${azurerm_postgresql_configuration.test.server_name}"
-  value               = "${azurerm_postgresql_configuration.test.value}"
-}
-`, testAccAzureRMPostgreSQLConfiguration_backslashQuote(rInt, location))
 }
 
 func testAccAzureRMPostgreSQLConfiguration_clientMinMessages(rInt int, location string) string {
