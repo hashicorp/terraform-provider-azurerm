@@ -62,6 +62,7 @@ func testAccAzureRMServiceBusNamespaceAuthorizationRule(t *testing.T, listen, se
 
 func TestAccAzureRMServiceBusNamespaceAuthorizationRule_rightsUpdate(t *testing.T) {
 	resourceName := "azurerm_servicebus_namespace_authorization_rule.test"
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -69,7 +70,7 @@ func TestAccAzureRMServiceBusNamespaceAuthorizationRule_rightsUpdate(t *testing.
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceBusNamespaceAuthorizationRule_base(tf.AccRandTimeInt(), testLocation(), true, false, false),
+				Config: testAccAzureRMServiceBusNamespaceAuthorizationRule_base(ri, testLocation(), true, false, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "listen", "true"),
@@ -78,7 +79,7 @@ func TestAccAzureRMServiceBusNamespaceAuthorizationRule_rightsUpdate(t *testing.
 				),
 			},
 			{
-				Config: testAccAzureRMServiceBusNamespaceAuthorizationRule_base(tf.AccRandTimeInt(), testLocation(), true, true, true),
+				Config: testAccAzureRMServiceBusNamespaceAuthorizationRule_base(ri, testLocation(), true, true, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
@@ -106,6 +107,7 @@ func TestAccAzureRMServiceBusNamespaceAuthorizationRule_requiresImport(t *testin
 		return
 	}
 	resourceName := "azurerm_servicebus_namespace_authorization_rule.test"
+	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -113,7 +115,7 @@ func TestAccAzureRMServiceBusNamespaceAuthorizationRule_requiresImport(t *testin
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceBusNamespaceAuthorizationRule_base(tf.AccRandTimeInt(), testLocation(), true, false, false),
+				Config: testAccAzureRMServiceBusNamespaceAuthorizationRule_base(ri, testLocation(), true, false, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "listen", "true"),
@@ -122,7 +124,7 @@ func TestAccAzureRMServiceBusNamespaceAuthorizationRule_requiresImport(t *testin
 				),
 			},
 			{
-				Config:      testAccAzureRMServiceBusNamespaceAuthorizationRule_requiresImport(tf.AccRandTimeInt(), testLocation(), true, false, false),
+				Config:      testAccAzureRMServiceBusNamespaceAuthorizationRule_requiresImport(ri, testLocation(), true, false, false),
 				ExpectError: testRequiresImportError("azurerm_servicebus_namespace_authorization_rule"),
 			},
 		},
