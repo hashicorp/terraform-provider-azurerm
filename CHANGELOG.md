@@ -9,7 +9,7 @@ UPGRADE NOTES:
 
 FEATURES:
 
-* **New Resource:**  `azurerm_ddos_protection_plan` [GH-2654]
+* **New Resource:** `azurerm_ddos_protection_plan` [GH-2654]
 * **New Resource:** `azurerm_log_analytics_linked_service ` [GH-2768]
 * **New Resource:** `azurerm_monitor_autoscale_setting` [GH-2768]
 * **New Resource:** `azurerm_monitor_metric_alertrule` [GH-2762]
@@ -46,6 +46,7 @@ BUG FIXES:
 * `azurerm_security_center` - increase the creation timeout to `30m` [GH-2724]
 * `azurerm_subnet` - fixing a crash when service endpoints was nil [GH-2742]
 * `azurerm_subnet` - will no longer lose service endpoints during a virtual network update [GH-2738]
+* `azurerm_service_fabric_cluster` - no longer pass `reverse_proxy_endpoint_port` to the API when not specified [GH-2747]
 
 ## 1.21.0 (January 11, 2019)
 
