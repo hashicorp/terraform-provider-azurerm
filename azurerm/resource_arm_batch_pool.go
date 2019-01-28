@@ -248,12 +248,12 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 		existing, err := client.Get(ctx, resourceGroup, accountName, poolName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Batch Pool %q (Account %q / Resource Group %q): %+v", poolName, accountName, resourceGroup, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_batch_account", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_batch_pool", *existing.ID)
 		}
 	}
 
