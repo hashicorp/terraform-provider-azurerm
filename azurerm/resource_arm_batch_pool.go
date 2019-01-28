@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
@@ -242,6 +243,19 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 	poolName := d.Get("name").(string)
 	displayName := d.Get("display_name").(string)
 	vmSize := d.Get("vm_size").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, accountName, poolName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Batch Pool %q (Account %q / Resource Group %q): %+v", poolName, accountName, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_batch_pool", *existing.ID)
+		}
+	}
 
 	parameters := batch.Pool{
 		PoolProperties: &batch.PoolProperties{
