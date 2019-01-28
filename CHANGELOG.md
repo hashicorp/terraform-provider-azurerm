@@ -3,11 +3,15 @@
 UPGRADE NOTES:
 
 * The v1.22 release includes a few new resources which are duplicates of existing resources, the purpose of this is to correct some invalid naming so that we can remove the mis-named resources in the next major version of the Provider. Please see [the upgrade guide](https://terraform.io/docs/providers/azurerm/guides/migrating-to-monitor-resources.html) for more information on how to migrate between these resources.
+* The `azurerm_log_analytics_workspace_linked_service` resource has been deprecated in favour of the (new) `azurerm_log_analytics_linked_service` resource and will be removed in the next major version of the AzureRM Provider (2.0) [GH-2768]
+* The `azurerm_autoscale_setting` resource has been deprecated in favour of the (new) `azurerm_monitor_autoscale_setting` resource and will be removed in the next major version of the AzureRM Provider (2.0) [GH-2768]
 * The `azurerm_metric_alertrule` resource has been deprecated in favour of the (new) `azurerm_monitor_metric_alertrule` resource and will be removed in the next major version of the AzureRM Provider (2.0) [GH-2762]
 
 FEATURES:
 
 * **New Resource:**  `azurerm_ddos_protection_plan` [GH-2654]
+* **New Resource:** `azurerm_log_analytics_linked_service ` [GH-2768]
+* **New Resource:** `azurerm_monitor_autoscale_setting` [GH-2768]
 * **New Resource:** `azurerm_monitor_metric_alertrule` [GH-2762]
 
 IMPROVEMENTS:
@@ -20,17 +24,22 @@ IMPROVEMENTS:
 * `azurerm_cosmosdb_account` - support for the `EnableAggregationPipeline`, `MongoDBv3.4` and ` mongoEnableDocLevelTTL` capabilities [GH-2715]
 * `azurerm_data_lake_store_file` - support file uploads greater then 4 megabytes [GH-2633]
 * `azurerm_mssql_elasticpool` - support for setting `max_size_bytes` [GH-2346]
+* `azurerm_postgresql_server` - support for version `10` and `10.2` [GH-2768]
 * `azurerm_signalr_service` - exporting `primary_access_key`, `secondary_access_key`, `primary_connection_string` and `secondary_connection_string` and secondary access keys and connection strings [GH-2655]
 * `azurerm_subnet` - support for additional subnet delegation types [GH-2667]
 
 BUG FIXES:
 
+* `azurerm_application_gateway` - deprecating the `fqdn_list` field in favour of `fqdns` [GH-2768]
+* `azurerm_application_gateway` - deprecating the `ip_address_list` field in favour of `ip_addresses` [GH-2768]
 * `azurerm_azuread_application` - fixing a bug where `reply_uris` was set incorrectly [GH-2729]
 * `azurerm_batch_pool` - can now set multiple environment variables [GH-2685]
 * `azurerm_cosmosdb_account` - prevent occasional error when deleting the resource [GH-2702]
 * `azurerm_cosmosdb_account` - allow empty values for the `ip_range_filter` property [GH-2713]
 * `azurerm_express_route_circuit` - added the `premium` SKU back to validation logic [GH-2692]
 * `azurerm_firewall` - ensuring rules aren't removed during an update [GH-2663]
+* `azurerm_log_analytics_workspace_linked_service` - deprecating in favour of the (renamed) `azurerm_log_analytics_linked_service` resource [GH-2768]
+* `azurerm_monitor_autoscale_setting` - deprecating in favour of the (renamed) `azurerm_autoscale_setting` resource [GH-2768]
 * `azurerm_notification_hub_namespace` - now polls on creation to handle eventual consistency [GH-2701]
 * `azurerm_redis_cache` - locking on the Virtual Network/Subnet name to avoid a race condition [GH-2725]
 * `azurerm_service_bus_subscription` - name's can now start with a digit [GH-2672]
