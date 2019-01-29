@@ -129,7 +129,7 @@ func TestAccAzureRMIotHub_fallbackRoute(t *testing.T) {
 					resource.TestCheckResourceAttr("azurerm_iothub.test", "fallback_route.0.name", "fallback"),
 					resource.TestCheckResourceAttr("azurerm_iothub.test", "fallback_route.0.source", "DeviceMessages"),
 					resource.TestCheckResourceAttr("azurerm_iothub.test", "fallback_route.0.endpoint_name", "fallback"),
-					resource.TestCheckResourceAttr("azurerm_iothub.test", "fallback_route.0.enabled", true),
+					resource.TestCheckResourceAttr("azurerm_iothub.test", "fallback_route.0.enabled", "true"),
 				),
 			},
 			{
