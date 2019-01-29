@@ -145,6 +145,8 @@ The following arguments are supported:
 
 * `probe` - (Optional) One or more `probe` blocks as defined below.
 
+* `ssl_certificate` - (Optional) One or more `ssl_certificate` blocks as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `url_path_map` - (Optional) One or more `url_path_map` blocks as defined below.
@@ -318,6 +320,16 @@ A `sku` block supports the following:
 * `tier` - (Required) The Tier of the SKU to use for this Application Gateway. Possible values are `Standard`, `Standard_v2`, `WAF` and `WAF_v2`.
 
 * `capacity` - (Required) The Capacity of the SKU to use for this Application Gateway - which must be between 1 and 10.
+
+---
+
+A `ssl_certificate` block supports the following:
+
+* `name` - (Required) The Name of the SSL certificate that is unique within this Application Gateway
+
+* `data` - (Required) PFX certificate.
+
+* `password` - (Required) Password for the pfx file specified in data.
 
 ---
 
