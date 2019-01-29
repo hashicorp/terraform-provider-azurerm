@@ -56,10 +56,6 @@ func dataSourceArmBuiltInPolicyDefinitionRead(d *schema.ResourceData, meta inter
 				break
 			}
 		}
-		if policyDefinition.ID == nil && policyDefinitions.NotDone() {
-			policyDefinitions.NextWithContext(ctx)
-			vals = policyDefinitions.Values()
-		}
 	}
 
 	if policyDefinition.ID == nil {
