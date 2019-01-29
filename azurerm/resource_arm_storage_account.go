@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-getter/helper/url"
 	"log"
 	"regexp"
 	"strings"
@@ -195,7 +196,17 @@ func resourceArmStorageAccount() *schema.Resource {
 				Computed: true,
 			},
 
+			"primary_blob_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"secondary_blob_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_blob_host": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -205,7 +216,17 @@ func resourceArmStorageAccount() *schema.Resource {
 				Computed: true,
 			},
 
+			"primary_queue_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"secondary_queue_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_queue_host": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -215,13 +236,28 @@ func resourceArmStorageAccount() *schema.Resource {
 				Computed: true,
 			},
 
+			"primary_table_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"secondary_table_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_table_host": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			// NOTE: The API does not appear to expose a secondary file endpoint
 			"primary_file_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_file_host": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -663,10 +699,45 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		}
 
 		if endpoints := props.PrimaryEndpoints; endpoints != nil {
-			d.Set("primary_blob_endpoint", endpoints.Blob)
-			d.Set("primary_queue_endpoint", endpoints.Queue)
-			d.Set("primary_table_endpoint", endpoints.Table)
-			d.Set("primary_file_endpoint", endpoints.File)
+			if v := endpoints.Blob; v != nil {
+				d.Set("primary_blob_endpoint", endpoints.Blob)
+				if u, err := url.Parse(*v); err != nil {
+					d.Set("primary_blob_host", u.Host)
+				}
+			} else {
+				d.Set("primary_blob_endpoint", "")
+				d.Set("primary_blob_host", "")
+			}
+
+			if v := endpoints.Queue; v != nil {
+				d.Set("primary_queue_endpoint", endpoints.Queue)
+				if u, err := url.Parse(*v); err != nil {
+					d.Set("primary_queue_host", u.Host)
+				}
+			} else {
+				d.Set("primary_queue_endpoint", "")
+				d.Set("primary_queue_host", "")
+			}
+
+			if v := endpoints.Table; v != nil {
+				d.Set("primary_table_endpoint", endpoints.Table)
+				if u, err := url.Parse(*v); err != nil {
+					d.Set("primary_table_host", u.Host)
+				}
+			} else {
+				d.Set("primary_table_endpoint", "")
+				d.Set("primary_table_host", "")
+			}
+
+			if v := endpoints.File; v != nil {
+				d.Set("primary_file_endpoint", endpoints.File)
+				if u, err := url.Parse(*v); err != nil {
+					d.Set("primary_file_host", u.Host)
+				}
+			} else {
+				d.Set("primary_file_endpoint", "")
+				d.Set("primary_file_host", "")
+			}
 
 			pscs := fmt.Sprintf("DefaultEndpointsProtocol=https;BlobEndpoint=%s;AccountName=%s;AccountKey=%s",
 				*endpoints.Blob, *resp.Name, *accessKeys[0].Value)
@@ -676,24 +747,43 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		if endpoints := props.SecondaryEndpoints; endpoints != nil {
 			if blob := endpoints.Blob; blob != nil {
 				d.Set("secondary_blob_endpoint", blob)
+				if v := endpoints.Blob; v != nil {
+					if u, err := url.Parse(*v); err != nil {
+						d.Set("secondary_blob_host", u.Host)
+					}
+				}
+
 				sscs := fmt.Sprintf("DefaultEndpointsProtocol=https;BlobEndpoint=%s;AccountName=%s;AccountKey=%s",
 					*blob, *resp.Name, *accessKeys[1].Value)
 				d.Set("secondary_blob_connection_string", sscs)
 			} else {
 				d.Set("secondary_blob_endpoint", "")
+				d.Set("secondary_blob_host", "")
 				d.Set("secondary_blob_connection_string", "")
 			}
 
 			if endpoints.Queue != nil {
 				d.Set("secondary_queue_endpoint", endpoints.Queue)
+				if v := endpoints.Queue; v != nil {
+					if u, err := url.Parse(*v); err != nil {
+						d.Set("secondary_queue_host", u.Host)
+					}
+				}
 			} else {
 				d.Set("secondary_queue_endpoint", "")
+				d.Set("secondary_queue_host", "")
 			}
 
 			if endpoints.Table != nil {
 				d.Set("secondary_table_endpoint", endpoints.Table)
+				if v := endpoints.Table; v != nil {
+					if u, err := url.Parse(*v); err != nil {
+						d.Set("secondary_table_host", u.Host)
+					}
+				}
 			} else {
 				d.Set("secondary_table_endpoint", "")
+				d.Set("secondary_table_host", "")
 			}
 		}
 
