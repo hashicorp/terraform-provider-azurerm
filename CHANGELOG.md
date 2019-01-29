@@ -21,6 +21,7 @@ IMPROVEMENTS:
 * dependencies: upgrading to v11.3.2 of github.com/Azure/go-autorest [GH-2744]
 * `azurerm_application_gateway` - support for the `http2` property [GH-2735]
 * `azurerm_application_gateway` - support for the `file_upload_limit_mb` property [GH-2666]
+* `azurerm_application_gateway` - support for the `custom_error_configuration` property [GH-2783]
 * `azurerm_application_gateway` - Support for `pick_host_name_from_backend_address` and `pick_host_name_from_backend_http_settings` properties [GH-2658]
 * `azurerm_cosmosdb_account` - support for the `EnableAggregationPipeline`, `MongoDBv3.4` and ` mongoEnableDocLevelTTL` capabilities [GH-2715]
 * `azurerm_data_lake_store_file` - support file uploads greater then 4 megabytes [GH-2633]
