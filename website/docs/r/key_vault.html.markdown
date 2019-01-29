@@ -116,7 +116,7 @@ A `network_acls` block supports the following:
 
 A `sku` block supports the following:
 
-* `name` - (Required) The Name of the SKU used for this Key Vault. Possible values are `Standard` and `Premium`.
+* `name` - (Required) The Name of the SKU used for this Key Vault. Possible values are `standard` and `premium`.
 
 
 ## Attributes Reference
