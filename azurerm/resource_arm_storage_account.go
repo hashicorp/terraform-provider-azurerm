@@ -2,12 +2,12 @@ package azurerm
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-getter/helper/url"
 	"log"
 	"regexp"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
+	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
