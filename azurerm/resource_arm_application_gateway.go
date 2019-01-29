@@ -839,7 +839,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	sku := expandApplicationGatewaySku(d)
 	sslCertificates := expandApplicationGatewaySslCertificates(d)
 	sslPolicy := expandApplicationGatewaySslPolicy(d)
-	customErrorConfigurations := expandApplicationGatewayCustomErrorConfigurations(d)
+	customErrorConfigurations := expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]interface{}))
 	urlPathMaps := expandApplicationGatewayURLPathMaps(d, gatewayID)
 
 	gateway := network.ApplicationGateway{
@@ -1347,7 +1347,7 @@ func expandApplicationGatewayHTTPListeners(d *schema.ResourceData, gatewayID str
 		frontendIPConfigID := fmt.Sprintf("%s/frontendIPConfigurations/%s", gatewayID, frontendIPConfigName)
 		frontendPortID := fmt.Sprintf("%s/frontendPorts/%s", gatewayID, frontendPortName)
 
-		customErrorConfigurations := expandApplicationGatewayCustomErrorConfigurations(d)
+		customErrorConfigurations := expandApplicationGatewayCustomErrorConfigurations(v["custom_error_configuration"].([]interface{}))
 
 		listener := network.ApplicationGatewayHTTPListener{
 			Name: utils.String(name),
@@ -2209,8 +2209,7 @@ func flattenApplicationGatewayWafConfig(input *network.ApplicationGatewayWebAppl
 	return results
 }
 
-func expandApplicationGatewayCustomErrorConfigurations(d *schema.ResourceData) *[]network.ApplicationGatewayCustomError {
-	vs := d.Get("custom_error_configuration").([]interface{})
+func expandApplicationGatewayCustomErrorConfigurations(vs []interface{}) *[]network.ApplicationGatewayCustomError {
 	results := make([]network.ApplicationGatewayCustomError, 0)
 
 	for _, raw := range vs {

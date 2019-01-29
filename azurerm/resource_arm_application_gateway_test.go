@@ -1453,6 +1453,14 @@ resource "azurerm_application_gateway" "test" {
     status_code           = "HttpPStatus502"
     custom_error_page_url = "http://azure.com/error.html"
   }
+
+  request_routing_rule {
+    name                       = "${local.request_routing_rule_name}"
+    rule_type                  = "Basic"
+    http_listener_name         = "${local.listener_name}"
+    backend_address_pool_name  = "${local.backend_address_pool_name}"
+    backend_http_settings_name = "${local.http_setting_name}"
+  }
 }
 `, template, rInt)
 }
