@@ -97,6 +97,7 @@ func TestAccAzureRMBatchPool_fixedScale_complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBatchPoolExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "vm_size", "STANDARD_A1"),
+					resource.TestCheckResourceAttr(resourceName, "max_tasks_per_node", "2"),
 					resource.TestCheckResourceAttr(resourceName, "node_agent_sku_id", "batch.node.ubuntu 16.04"),
 					resource.TestCheckResourceAttr(resourceName, "account_name", fmt.Sprintf("testaccbatch%s", rs)),
 					resource.TestCheckResourceAttr(resourceName, "storage_image_reference.#", "1"),
@@ -323,7 +324,8 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   account_name        = "${azurerm_batch_account.test.name}"
   display_name        = "Test Acc Pool"
-  vm_size             = "Standard_A1"
+	vm_size             = "Standard_A1",
+	max_tasks_per_node  = 2
   node_agent_sku_id   = "batch.node.ubuntu 16.04"
   
   fixed_scale {

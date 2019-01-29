@@ -55,6 +55,11 @@ func resourceArmBatchPool() *schema.Resource {
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
+			"max_tasks_per_node": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Default:  1,
+			},
 			"fixed_scale": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -243,6 +248,8 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 	poolName := d.Get("name").(string)
 	displayName := d.Get("display_name").(string)
 	vmSize := d.Get("vm_size").(string)
+	maxTasksPerNode := d.Get("max_tasks_per_node").(int)
+	foo := int32(maxTasksPerNode)
 
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, accountName, poolName)
@@ -259,8 +266,10 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 
 	parameters := batch.Pool{
 		PoolProperties: &batch.PoolProperties{
-			VMSize:      &vmSize,
-			DisplayName: &displayName,
+			VMSize:          &vmSize,
+			DisplayName:     &displayName,
+			MaxTasksPerNode: &foo,
+			// MaxTasksPerNode: &maxTasksPerNode,
 		},
 	}
 

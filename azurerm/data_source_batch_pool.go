@@ -32,6 +32,10 @@ func dataSourceArmBatchPool() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"max_tasks_per_node": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
 			"fixed_scale": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -191,6 +195,7 @@ func dataSourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error 
 
 	if props := resp.PoolProperties; props != nil {
 		d.Set("vm_size", props.VMSize)
+		d.Set("max_tasks_per_node", props.MaxTasksPerNode)
 
 		if scaleSettings := props.ScaleSettings; scaleSettings != nil {
 			if err := d.Set("auto_scale", azure.FlattenBatchPoolAutoScaleSettings(scaleSettings.AutoScale)); err != nil {
