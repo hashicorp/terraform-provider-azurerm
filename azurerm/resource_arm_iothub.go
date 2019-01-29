@@ -638,6 +638,7 @@ func expandIoTHubFallbackRoute(d *schema.ResourceData) *devices.FallbackRoutePro
 
 	name := fallbackRouteMap["name"].(string)
 	source := fallbackRouteMap["source"].(string)
+	condition := fallbackRouteMap["condition"].(string)
 	endpointNames := make([]string, 0)
 	endpointNames = append(endpointNames, fallbackRouteMap["endpoint_name"].(string))
 	isEnabled := fallbackRouteMap["enabled"].(bool)
@@ -645,6 +646,7 @@ func expandIoTHubFallbackRoute(d *schema.ResourceData) *devices.FallbackRoutePro
 	return &devices.FallbackRouteProperties{
 		Name:          &name,
 		Source:        &source,
+		Condition:     &condition,
 		EndpointNames: &endpointNames,
 		IsEnabled:     &isEnabled,
 	}
