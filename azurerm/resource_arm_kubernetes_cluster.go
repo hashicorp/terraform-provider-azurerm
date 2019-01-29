@@ -3,6 +3,7 @@ package azurerm
 import (
 	"bytes"
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"log"
 	"strings"
 
@@ -78,7 +79,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.KubernetesDnsPrefix(),
+				ValidateFunc: validate.KubernetesDNSPrefix(),
 			},
 
 			"kubernetes_version": {
@@ -141,7 +142,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 
 						"os_type": {
@@ -233,7 +234,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 									"log_analytics_workspace_id": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: azure.ValidateResourceID,
 									},
 								},
 							},
@@ -316,7 +317,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Optional:     true,
 							Computed:     true,
 							ForceNew:     true,
-							ValidateFunc: validate.KubernetesDNSServiceIP(),
+							ValidateFunc: validate.IPv4Address,
 						},
 
 						"docker_bridge_cidr": {
@@ -324,7 +325,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Optional:     true,
 							Computed:     true,
 							ForceNew:     true,
-							ValidateFunc: validate.KubernetesCidr(),
+							ValidateFunc: validate.CIDR,
 						},
 
 						"pod_cidr": {
@@ -332,7 +333,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Optional:     true,
 							Computed:     true,
 							ForceNew:     true,
-							ValidateFunc: validate.KubernetesCidr(),
+							ValidateFunc: validate.CIDR,
 						},
 
 						"service_cidr": {
@@ -340,7 +341,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Optional:     true,
 							Computed:     true,
 							ForceNew:     true,
-							ValidateFunc: validate.KubernetesCidr(),
+							ValidateFunc: validate.CIDR,
 						},
 					},
 				},
@@ -370,14 +371,14 @@ func resourceArmKubernetesCluster() *schema.Resource {
 										Type:         schema.TypeString,
 										Required:     true,
 										ForceNew:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validate.UUID,
 									},
 
 									"server_app_id": {
 										Type:         schema.TypeString,
 										Required:     true,
 										ForceNew:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validate.UUID,
 									},
 
 									"server_app_secret": {
@@ -394,7 +395,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 										Optional:     true,
 										Computed:     true,
 										ForceNew:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validate.UUID,
 									},
 								},
 							},
