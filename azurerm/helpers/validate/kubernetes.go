@@ -13,7 +13,7 @@ func KubernetesAdminUserName(i interface{}, k string) (warnings []string, errors
 		errors = append(errors, fmt.Errorf("%s must start with alphabet and/or continue with alphanumeric characters, underscores, hyphens. Got %q.", k, adminUserName))
 	}
 
-	return
+	return warnings, errors
 }
 
 func KubernetesAgentPoolName(i interface{}, k string) (warnings []string, errors []error) {
@@ -24,7 +24,7 @@ func KubernetesAgentPoolName(i interface{}, k string) (warnings []string, errors
 		errors = append(errors, fmt.Errorf("%s must start with a lowercase letter, have max length of 12, and only have characters a-z0-9. Got %q.", k, agentPoolName))
 	}
 
-	return
+	return warnings, errors
 }
 
 func KubernetesDNSPrefix(i interface{}, k string) (warnings []string, errors []error) {
@@ -35,5 +35,5 @@ func KubernetesDNSPrefix(i interface{}, k string) (warnings []string, errors []e
 		errors = append(errors, fmt.Errorf("%s must contain between 2 and 45 characters. The name can contain only letters, numbers, and hyphens. The name must start with a letter and must end with an alphanumeric character.. Got %q.", k, dnsPrefix))
 	}
 
-	return
+	return warnings, errors
 }

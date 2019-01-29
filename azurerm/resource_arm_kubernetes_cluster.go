@@ -3,7 +3,6 @@ package azurerm
 import (
 	"bytes"
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"log"
 	"strings"
 
@@ -11,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/kubernetes"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"

@@ -38,7 +38,7 @@ func CIDR(i interface{}, k string) (warnings []string, errors []error) {
 		errors = append(errors, fmt.Errorf("%s must start with IPV4 address and/or slash, number of bits (0-32) as prefix. Example: 127.0.0.1/8. Got %q.", k, cidr))
 	}
 
-	return
+	return warnings, errors
 }
 
 func IPv4Address(i interface{}, k string) (warnings []string, errors []error) {
