@@ -819,23 +819,18 @@ func flattenIoTHubRoute(input *devices.RoutingProperties) []interface{} {
 func flattenIoTHubFallbackRoute(input *devices.RoutingProperties) []interface{} {
 	output := make(map[string]interface{})
 
-	if route := input.FallbackRoute; route != nil {
-		if route != nil {
-			if name := route.Name; name != nil {
-				output["name"] = *name
-			}
-			if condition := route.Condition; condition != nil {
-				output["condition"] = *condition
-			}
-			if endpointNames := route.EndpointNames; endpointNames != nil {
-				output["endpoint_name"] = *endpointNames[0].(string)
-			}
-			if isEnabled := route.IsEnabled; isEnabled != nil {
-				output["enabled"] = *isEnabled
-			}
-			if source := route.Source; source != nil {
-				output["source"] = *source
-			}
+	if input.FallbackRoute != nil {
+		if name := input.FallbackRoute.Name; name != nil {
+			output["name"] = *name
+		}
+		if condition := input.FallbackRoute.Condition; condition != nil {
+			output["condition"] = *condition
+		}
+		if endpointNames := input.FallbackRoute.EndpointNames; endpointNames != nil {
+			output["endpoint_name"] = (*endpointNames)[0]
+		}
+		if isEnabled := input.FallbackRoute.IsEnabled; isEnabled != nil {
+			output["enabled"] = *isEnabled
 		}
 	}
 
