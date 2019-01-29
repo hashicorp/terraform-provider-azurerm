@@ -213,7 +213,10 @@ func resourceArmIotHub() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringLenBetween(0, 64),
+							ValidateFunc: validation.StringMatch(
+								regexp.MustCompile("^[-_.a-zA-Z0-9]{1,64$"),
+								"Route Name name can only include alphanumeric characters, periods, underscores, hyphens, has a maximum length of 64 characters, and must be unique.",
+							),
 						},
 						"source": {
 							Type:     schema.TypeString,
@@ -258,7 +261,10 @@ func resourceArmIotHub() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      "$fallback",
-							ValidateFunc: validation.StringLenBetween(0, 64),
+							ValidateFunc: validation.StringMatch(
+								regexp.MustCompile("^[-_.a-zA-Z0-9]{1,64$"),
+								"Fallback Route Name name can only include alphanumeric characters, periods, underscores, hyphens, has a maximum length of 64 characters, and must be unique.",
+							),
 						},
 						"source": {
 							Type:     schema.TypeString,
@@ -813,20 +819,24 @@ func flattenIoTHubRoute(input *devices.RoutingProperties) []interface{} {
 func flattenIoTHubFallbackRoute(input *devices.RoutingProperties) []interface{} {
 	output := make(map[string]interface{})
 
-	if input.FallbackRoute != nil {
-		if name := input.FallbackRoute.Name; name != nil {
-			output["name"] = *name
+	if route := input.FallbackRoute; route != nil {
+		if route != nil {
+			if name := route.Name; name != nil {
+				output["name"] = *name
+			}
+			if condition := route.Condition; condition != nil {
+				output["condition"] = *condition
+			}
+			if endpointNames := route.EndpointNames; endpointNames != nil {
+				output["endpoint_name"] = *endpointNames[0].(string)
+			}
+			if isEnabled := route.IsEnabled; isEnabled != nil {
+				output["enabled"] = *isEnabled
+			}
+			if source := route.Source; source != nil {
+				output["source"] = *source
+			}
 		}
-		if condition := input.FallbackRoute.Condition; condition != nil {
-			output["condition"] = *condition
-		}
-		if endpointNames := input.FallbackRoute.EndpointNames; endpointNames != nil {
-			output["endpoint_name"] = *endpointNames[0].(string)
-		}
-		if isEnabled := input.FallbackRoute.IsEnabled; isEnabled != nil {
-			output["enabled"] = *isEnabled
-		}
-		output["source"] = input.FallbackRoute.Source
 	}
 
 	return []interface{}{output}

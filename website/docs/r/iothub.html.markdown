@@ -34,9 +34,9 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_iothub" "test" {
-  name                  = "test"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  location              = "${azurerm_resource_group.test.location}"
+  name                = "test"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
 
   sku {
     name     = "S1"
@@ -129,7 +129,7 @@ An `endpoint` block supports the following:
 
 A `route` block supports the following:
 
-* `name` - (Required) The name of the route. The name can only include alphanumeric characters, periods, underscores, hyphens, has a maximum length of 64 characters, and must be unique.
+* `name` - (Required) The name of the route.
 
 * `source` - (Required) The source that the routing rule is to be applied to, such as `DeviceMessages`. Possible values include: `RoutingSourceInvalid`, `RoutingSourceDeviceMessages`, `RoutingSourceTwinChangeEvents`, `RoutingSourceDeviceLifecycleEvents`, `RoutingSourceDeviceJobLifecycleEvents`.
 
@@ -143,7 +143,7 @@ A `route` block supports the following:
 
 A `fallback_route` block supports the following:
 
-* `name` - (Optional) The name of the route. The name can only include alphanumeric characters, periods, underscores, hyphens, has a maximum length of 64 characters, and must be unique.
+* `name` - (Optional) The name of the route.
 
 * `source` - (Optional) The source that the routing rule is to be applied to, such as `DeviceMessages`. Possible values include: `RoutingSourceInvalid`, `RoutingSourceDeviceMessages`, `RoutingSourceTwinChangeEvents`, `RoutingSourceDeviceLifecycleEvents`, `RoutingSourceDeviceJobLifecycleEvents`.
 
