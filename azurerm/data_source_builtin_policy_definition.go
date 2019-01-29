@@ -11,14 +11,25 @@ func dataSourceArmBuiltInPolicyDefinition() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmBuiltInPolicyDefinitionRead,
 		Schema: map[string]*schema.Schema{
-			"name": {
+			"display_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 			"management_group_id": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
+			},
+			"name": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"type": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"description": {
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 		},
 	}
@@ -28,7 +39,7 @@ func dataSourceArmBuiltInPolicyDefinitionRead(d *schema.ResourceData, meta inter
 	client := meta.(*ArmClient).policyDefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	name := d.Get("name").(string)
+	name := d.Get("display_name").(string)
 	managementGroupID := d.Get("management_group_id").(string)
 
 	var policyDefinitions policy.DefinitionListResultPage
@@ -63,6 +74,10 @@ func dataSourceArmBuiltInPolicyDefinitionRead(d *schema.ResourceData, meta inter
 	}
 
 	d.SetId(*policyDefinition.ID)
+	d.Set("name", *policyDefinition.Name)
+	d.Set("display_name", *policyDefinition.DisplayName)
+	d.Set("description", *policyDefinition.Description)
+	d.Set("type", string(policyDefinition.PolicyType))
 
 	return nil
 }
