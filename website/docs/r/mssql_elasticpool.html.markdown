@@ -66,6 +66,8 @@ The following arguments are supported:
 
 * `max_size_gb` - (Optional) The max data size of the elastic pool in gigabytes.
 
+* `max_size_bytes` - (Optional) The max data size of the elastic pool in bytes.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---

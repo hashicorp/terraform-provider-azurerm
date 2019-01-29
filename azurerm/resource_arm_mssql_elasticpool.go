@@ -159,11 +159,20 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 				},
 			},
 
+			"max_size_bytes": {
+				Type:          schema.TypeInt,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"max_size_gb"},
+				ValidateFunc:  validation.IntAtLeast(0),
+			},
+
 			"max_size_gb": {
-				Type:         schema.TypeFloat,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validate.FloatAtLeast(0),
+				Type:          schema.TypeFloat,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"max_size_bytes"},
+				ValidateFunc:  validate.FloatAtLeast(0),
 			},
 
 			"zone_redundant": {
@@ -180,9 +189,15 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 			tier, _ := diff.GetOk("sku.0.tier")
 			capacity, _ := diff.GetOk("sku.0.capacity")
 			family, _ := diff.GetOk("sku.0.family")
+			maxSizeBytes, _ := diff.GetOk("max_size_bytes")
 			maxSizeGb, _ := diff.GetOk("max_size_gb")
 			minCapacity, _ := diff.GetOk("per_database_settings.0.min_capacity")
 			maxCapacity, _ := diff.GetOk("per_database_settings.0.max_capacity")
+
+			// Convert Bytes to Gigabytes
+			if maxSizeBytes != 0 {
+				maxSizeGb = float64(maxSizeBytes.(int) / 1073741824)
+			}
 
 			// Basic Checks
 			if strings.EqualFold(name.(string), "BasicPool") {
@@ -395,9 +410,15 @@ func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interf
 		},
 	}
 
-	if v, ok := d.GetOk("max_size_gb"); ok {
-		maxSizeBytes := v.(float64) * 1073741824
-		elasticPool.MaxSizeBytes = utils.Int64(int64(maxSizeBytes))
+	if d.HasChange("max_size_gb") {
+		if v, ok := d.GetOk("max_size_gb"); ok {
+			maxSizeBytes := v.(float64) * 1073741824
+			elasticPool.MaxSizeBytes = utils.Int64(int64(maxSizeBytes))
+		}
+	} else {
+		if v, ok := d.GetOk("max_size_bytes"); ok {
+			elasticPool.MaxSizeBytes = utils.Int64(int64(v.(int)))
+		}
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, elasticPoolName, elasticPool)
@@ -459,6 +480,7 @@ func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) e
 		if tier, ok := d.GetOk("sku.0.tier"); ok {
 			if !strings.EqualFold(tier.(string), "Basic") {
 				d.Set("max_size_gb", float64(*properties.MaxSizeBytes/int64(1073741824)))
+				d.Set("max_size_bytes", properties.MaxSizeBytes)
 			}
 		}
 		d.Set("zone_redundant", properties.ZoneRedundant)
