@@ -1450,7 +1450,7 @@ resource "azurerm_application_gateway" "test" {
   }
 
   custom_error_configuration {
-    status_code           = "HttpPStatus502"
+    status_code           = "HttpStatus502"
     custom_error_page_url = "http://azure.com/error.html"
   }
 
