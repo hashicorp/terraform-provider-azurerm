@@ -13,6 +13,7 @@ FEATURES:
 * **New Resource:** `azurerm_log_analytics_linked_service ` [GH-2768]
 * **New Resource:** `azurerm_monitor_autoscale_setting` [GH-2768]
 * **New Resource:** `azurerm_monitor_metric_alertrule` [GH-2762]
+* **New Resource:** `azurerm_network_interface_application_security_group_association` [GH-2789]
 
 IMPROVEMENTS:
 
@@ -40,6 +41,7 @@ BUG FIXES:
 * `azurerm_firewall` - ensuring rules aren't removed during an update [GH-2663]
 * `azurerm_log_analytics_workspace_linked_service` - deprecating in favour of the (renamed) `azurerm_log_analytics_linked_service` resource [GH-2768]
 * `azurerm_monitor_autoscale_setting` - deprecating in favour of the (renamed) `azurerm_autoscale_setting` resource [GH-2768]
+* `azurerm_network_interface ` - deprecating the `application_security_group_ids` field in favour of the new `azurerm_network_interface_application_security_group_association` resource [GH-2789]
 * `azurerm_notification_hub_namespace` - now polls on creation to handle eventual consistency [GH-2701]
 * `azurerm_redis_cache` - locking on the Virtual Network/Subnet name to avoid a race condition [GH-2725]
 * `azurerm_service_bus_subscription` - name's can now start with a digit [GH-2672]
