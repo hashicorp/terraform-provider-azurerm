@@ -31,11 +31,11 @@ func validateIpv6Address(i interface{}, k string, allowEmpty bool) (warnings []s
 }
 
 func CIDR(i interface{}, k string) (warnings []string, errors []error) {
-	cidrValue := i.(string)
+	cidr := i.(string)
 
 	re := regexp.MustCompile(`^([0-9]{1,3}\.){3}[0-9]{1,3}(\/([0-9]|[1-2][0-9]|3[0-2]))?$`)
-	if re != nil && !re.MatchString(cidrValue) {
-		errors = append(errors, fmt.Errorf("%s must start with IPV4 address and/or slash, number of bits (0-32) as prefix. Example: 127.0.0.1/8. Got %q.", k, cidrValue))
+	if re != nil && !re.MatchString(cidr) {
+		errors = append(errors, fmt.Errorf("%s must start with IPV4 address and/or slash, number of bits (0-32) as prefix. Example: 127.0.0.1/8. Got %q.", k, cidr))
 	}
 
 	return

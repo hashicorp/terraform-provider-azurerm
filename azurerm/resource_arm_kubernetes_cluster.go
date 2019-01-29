@@ -79,7 +79,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.KubernetesDNSPrefix(),
+				ValidateFunc: validate.KubernetesDNSPrefix,
 			},
 
 			"kubernetes_version": {
@@ -99,7 +99,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: validate.KubernetesAgentPoolName(),
+							ValidateFunc: validate.KubernetesAgentPoolName,
 						},
 
 						"count": {
@@ -272,7 +272,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: validate.KubernetesAdminUserName(),
+							ValidateFunc: validate.KubernetesAdminUserName,
 						},
 						"ssh_key": {
 							Type:     schema.TypeList,

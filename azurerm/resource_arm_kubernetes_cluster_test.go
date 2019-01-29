@@ -60,7 +60,7 @@ func TestAzureRMKubernetesCluster_agentPoolName(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := validate.KubernetesAgentPoolName()(tc.Input, "")
+		_, errors := validate.KubernetesAgentPoolName(tc.Input, "")
 
 		hasError := len(errors) > 0
 
