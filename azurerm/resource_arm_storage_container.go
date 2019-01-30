@@ -12,6 +12,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func resourceArmStorageContainer() *schema.Resource {
@@ -110,9 +111,20 @@ func resourceArmStorageContainerCreateUpdate(d *schema.ResourceData, meta interf
 		accessType = storage.ContainerAccessType(d.Get("container_access_type").(string))
 	}
 
-	log.Printf("[INFO] Creating container %q in storage account %q.", name, storageAccountName)
 	reference := blobClient.GetContainerReference(name)
+	id := fmt.Sprintf("https://%s.blob.%s/%s", storageAccountName, armClient.environment.StorageEndpointSuffix, name)
+	if requireResourcesToBeImported && d.IsNewResource() {
+		exists, err := reference.Exists()
+		if err != nil {
+			return fmt.Errorf("Error checking if Storage Container %q exists (Account %q / Resource Group %q): %s", name, storageAccountName, resourceGroupName, err)
+		}
 
+		if exists {
+			return tf.ImportAsExistsError("azurerm_storage_container", id)
+		}
+	}
+
+	log.Printf("[INFO] Creating container %q in storage account %q.", name, storageAccountName)
 	err = resource.Retry(120*time.Second, checkContainerIsCreated(reference))
 	if err != nil {
 		return fmt.Errorf("Error creating container %q in storage account %q: %s", name, storageAccountName, err)
@@ -127,7 +139,6 @@ func resourceArmStorageContainerCreateUpdate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error setting permissions for container %s in storage account %s: %+v", name, storageAccountName, err)
 	}
 
-	id := fmt.Sprintf("https://%s.blob.%s/%s", storageAccountName, armClient.environment.StorageEndpointSuffix, name)
 	d.SetId(id)
 	return resourceArmStorageContainerRead(d, meta)
 }
