@@ -3,6 +3,7 @@
 UPGRADE NOTES:
 
 * The v1.22 release includes a few new resources which are duplicates of existing resources, the purpose of this is to correct some invalid naming so that we can remove the mis-named resources in the next major version of the Provider. Please see [the upgrade guide](https://terraform.io/docs/providers/azurerm/guides/migrating-to-monitor-resources.html) for more information on how to migrate between these resources.
+* The `azurerm_builtin_role_definition` Data Source has been deprecated in favour of the `azurerm_role_definition` Data Source, which now provides the same functionality and will be removed in the next major version of the AzureRM Provider (2.0) [GH-2798]
 * The `azurerm_log_analytics_workspace_linked_service` resource has been deprecated in favour of the (new) `azurerm_log_analytics_linked_service` resource and will be removed in the next major version of the AzureRM Provider (2.0) [GH-2768]
 * The `azurerm_autoscale_setting` resource has been deprecated in favour of the (new) `azurerm_monitor_autoscale_setting` resource and will be removed in the next major version of the AzureRM Provider (2.0) [GH-2768]
 * The `azurerm_metric_alertrule` resource has been deprecated in favour of the (new) `azurerm_monitor_metric_alertrule` resource and will be removed in the next major version of the AzureRM Provider (2.0) [GH-2762]
@@ -15,10 +16,20 @@ FEATURES:
 * **New Resource:** `azurerm_monitor_metric_alertrule` [GH-2762]
 * **New Resource:** `azurerm_network_interface_application_security_group_association` [GH-2789]
 
+DEPRECATIONS:
+
+* `azurerm_application_gateway` - deprecating the `fqdn_list` field in favour of `fqdns` [GH-2768]
+* `azurerm_application_gateway` - deprecating the `ip_address_list` field in favour of `ip_addresses` [GH-2768]
+* `azurerm_builtin_role_definition` - deprecating in favour of the `azurerm_role_definition` data source, which now provides the same functionality [GH-2798]
+* `azurerm_log_analytics_workspace_linked_service` - deprecating in favour of the (renamed) `azurerm_log_analytics_linked_service` resource [GH-2768]
+* `azurerm_monitor_autoscale_setting` - deprecating in favour of the (renamed) `azurerm_autoscale_setting` resource [GH-2768]
+* `azurerm_network_interface ` - deprecating the `application_security_group_ids` field in favour of the new `azurerm_network_interface_application_security_group_association` resource [GH-2789]
+
 IMPROVEMENTS:
 
 * dependencies: switching to Go Modules [GH-2705]
 * dependencies: upgrading to v11.3.2 of github.com/Azure/go-autorest [GH-2744]
+* Data Source: `azurerm_role_definition` - support for finding roles by name [GH-2798]
 * `azurerm_application_gateway` - support for the `http2` property [GH-2735]
 * `azurerm_application_gateway` - support for the `file_upload_limit_mb` property [GH-2666]
 * `azurerm_application_gateway` - support for the `custom_error_configuration` property [GH-2783]
@@ -34,17 +45,12 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
-* `azurerm_application_gateway` - deprecating the `fqdn_list` field in favour of `fqdns` [GH-2768]
-* `azurerm_application_gateway` - deprecating the `ip_address_list` field in favour of `ip_addresses` [GH-2768]
 * `azurerm_azuread_application` - fixing a bug where `reply_uris` was set incorrectly [GH-2729]
 * `azurerm_batch_pool` - can now set multiple environment variables [GH-2685]
 * `azurerm_cosmosdb_account` - prevent occasional error when deleting the resource [GH-2702]
 * `azurerm_cosmosdb_account` - allow empty values for the `ip_range_filter` property [GH-2713]
 * `azurerm_express_route_circuit` - added the `premium` SKU back to validation logic [GH-2692]
 * `azurerm_firewall` - ensuring rules aren't removed during an update [GH-2663]
-* `azurerm_log_analytics_workspace_linked_service` - deprecating in favour of the (renamed) `azurerm_log_analytics_linked_service` resource [GH-2768]
-* `azurerm_monitor_autoscale_setting` - deprecating in favour of the (renamed) `azurerm_autoscale_setting` resource [GH-2768]
-* `azurerm_network_interface ` - deprecating the `application_security_group_ids` field in favour of the new `azurerm_network_interface_application_security_group_association` resource [GH-2789]
 * `azurerm_notification_hub_namespace` - now polls on creation to handle eventual consistency [GH-2701]
 * `azurerm_redis_cache` - locking on the Virtual Network/Subnet name to avoid a race condition [GH-2725]
 * `azurerm_service_bus_subscription` - name's can now start with a digit [GH-2672]
