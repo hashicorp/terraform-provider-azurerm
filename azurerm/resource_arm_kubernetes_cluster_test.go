@@ -9,66 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
-
-func TestAzureRMKubernetesCluster_agentPoolName(t *testing.T) {
-	cases := []struct {
-		Input       string
-		ExpectError bool
-	}{
-		{
-			Input:       "",
-			ExpectError: true,
-		},
-		{
-			Input:       "hi",
-			ExpectError: false,
-		},
-		{
-			Input:       "hello",
-			ExpectError: false,
-		},
-		{
-			Input:       "hello-world",
-			ExpectError: true,
-		},
-		{
-			Input:       "helloworld123",
-			ExpectError: true,
-		},
-		{
-			Input:       "hello_world",
-			ExpectError: true,
-		},
-		{
-			Input:       "Hello-World",
-			ExpectError: true,
-		},
-		{
-			Input:       "20202020",
-			ExpectError: true,
-		},
-		{
-			Input:       "h20202020",
-			ExpectError: false,
-		},
-		{
-			Input:       "ABC123!@£",
-			ExpectError: true,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := validate.KubernetesAgentPoolName(tc.Input, "")
-
-		hasError := len(errors) > 0
-
-		if tc.ExpectError && !hasError {
-			t.Fatalf("Expected the Kubernetes Cluster Agent Pool Name to trigger a validation error for '%s'", tc.Input)
-		}
-	}
-}
 
 func TestAccAzureRMKubernetesCluster_basic(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"

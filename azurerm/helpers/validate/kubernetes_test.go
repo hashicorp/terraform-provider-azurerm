@@ -55,6 +55,42 @@ func TestKubernetesAgentPoolName(t *testing.T) {
 			AgentPoolName: "123abc",
 			Errors:        1,
 		},
+		{
+			AgentPoolName: "hi",
+			Errors:        0,
+		},
+		{
+			AgentPoolName: "hello",
+			Errors:        0,
+		},
+		{
+			AgentPoolName: "hello-world",
+			Errors:        1,
+		},
+		{
+			AgentPoolName: "helloworld123",
+			Errors:        1,
+		},
+		{
+			AgentPoolName: "hello_world",
+			Errors:        1,
+		},
+		{
+			AgentPoolName: "Hello-World",
+			Errors:        1,
+		},
+		{
+			AgentPoolName: "20202020",
+			Errors:        1,
+		},
+		{
+			AgentPoolName: "h20202020",
+			Errors:        0,
+		},
+		{
+			AgentPoolName: "ABC123!@£",
+			Errors:        1,
+		},
 	}
 
 	for _, tc := range cases {
