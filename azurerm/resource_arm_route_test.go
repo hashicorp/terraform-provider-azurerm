@@ -35,7 +35,13 @@ func TestAccAzureRMRoute_basic(t *testing.T) {
 }
 
 func TestAccAzureRMRoute_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
 	ri := tf.AccRandTimeInt()
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -43,13 +49,13 @@ func TestAccAzureRMRoute_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRouteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRoute_basic(ri, testLocation()),
+				Config: testAccAzureRMRoute_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteExists("azurerm_route.test"),
 				),
 			},
 			{
-				Config:      testAccAzureRMRoute_requiresImport(ri, testLocation()),
+				Config:      testAccAzureRMRoute_requiresImport(ri, location),
 				ExpectError: testRequiresImportError("azurerm_route"),
 			},
 		},
