@@ -102,7 +102,7 @@ The following arguments are supported:
 
 * `display_name` - (Optional) Specifies the display name of the Batch pool.
 
-* `max_tasks_per_node` - (Optional) Specifies the maximum number of tasks that can run concurrently on a single compute node in the pool.
+* `max_tasks_per_node` - (Optional) Specifies the maximum number of tasks that can run concurrently on a single compute node in the pool. Defaults to `1`.
 
 * `fixed_scale` - (Optional) A `fixed_scale` block that describes the scale settings when using fixed scale.
 
