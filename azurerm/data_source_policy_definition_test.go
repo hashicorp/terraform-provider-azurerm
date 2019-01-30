@@ -7,8 +7,8 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccDataSourceAzureRMBuiltInPolicyDefinition_AllowedResourceTypes(t *testing.T) {
-	dataSourceName := "data.azurerm_builtin_policy_definition.test"
+func TestAccDataSourceAzureRMPolicyDefinition_AllowedResourceTypes(t *testing.T) {
+	dataSourceName := "data.azurerm_policy_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -27,8 +27,8 @@ func TestAccDataSourceAzureRMBuiltInPolicyDefinition_AllowedResourceTypes(t *tes
 	})
 }
 
-func TestAccDataSourceAzureRMBuiltInPolicyDefinition_AtManagementGroup_AllowedResourceTypes(t *testing.T) {
-	dataSourceName := "data.azurerm_builtin_policy_definition.test"
+func TestAccDataSourceAzureRMPolicyDefinition_AtManagementGroup_AllowedResourceTypes(t *testing.T) {
+	dataSourceName := "data.azurerm_policy_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -45,7 +45,7 @@ func TestAccDataSourceAzureRMBuiltInPolicyDefinition_AtManagementGroup_AllowedRe
 
 func testAccDataSourceBuiltInPolicyDefinition(name string) string {
 	return fmt.Sprintf(`
-data "azurerm_builtin_policy_definition" "test" {
+data "azurerm_policy_definition" "test" {
   display_name = "%s"
 }
 `, name)
@@ -56,7 +56,7 @@ func testAccDataSourceBuiltInPolicyDefinitionAtManagementGroup(name string) stri
 
 data "azurerm_client_config" "current" {}
 
-data "azurerm_builtin_policy_definition" "test" {
+data "azurerm_policy_definition" "test" {
   display_name = "%s"
   management_group_id = "${data.azurerm_client_config.current.tenant_id}"
 }

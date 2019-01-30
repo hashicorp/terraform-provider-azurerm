@@ -7,9 +7,9 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-func dataSourceArmBuiltInPolicyDefinition() *schema.Resource {
+func dataSourceArmPolicyDefinition() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmBuiltInPolicyDefinitionRead,
+		Read: dataSourceArmPolicyDefinitionRead,
 		Schema: map[string]*schema.Schema{
 			"display_name": {
 				Type:     schema.TypeString,
@@ -35,7 +35,7 @@ func dataSourceArmBuiltInPolicyDefinition() *schema.Resource {
 	}
 }
 
-func dataSourceArmBuiltInPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).policyDefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
