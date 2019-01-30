@@ -11,9 +11,9 @@ func dataSourceArmBuiltInRoleDefinition() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmBuiltInRoleDefinitionRead,
 
-		DeprecationMessage: `This resource has been deprecated in favour of the 'azurerm_role_definition' resource that now can look up role definitions by names.
+		DeprecationMessage: `This Data Source has been deprecated in favour of the 'azurerm_role_definition' resource that now can look up role definitions by names.
 
-As such this resource will be removed in v2.0 of the AzureRM Provider.
+As such this Data Source will be removed in v2.0 of the AzureRM Provider.
 `,
 
 		Schema: map[string]*schema.Schema{

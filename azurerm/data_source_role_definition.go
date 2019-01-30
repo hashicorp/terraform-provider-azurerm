@@ -111,9 +111,10 @@ func dataSourceArmRoleDefinitionRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error one of `name` or `role_definition_id` must be specified")
 	}
 
-	//search by name
+	// search by name
 	var role authorization.RoleDefinition
 	if name != "" {
+		// TODO: remove this in 2.0
 		if name == "VirtualMachineContributor" {
 			name = "Virtual Machine Contributor"
 		}

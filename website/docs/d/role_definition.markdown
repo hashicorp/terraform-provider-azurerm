@@ -19,7 +19,7 @@ resource "azurerm_role_definition" "custom" {
   role_definition_id = "00000000-0000-0000-0000-000000000000"
   name               = "CustomRoleDef"
   scope              = "${data.azurerm_subscription.primary.id}"
-  
+
   #...
 }
 
@@ -49,7 +49,10 @@ output "contributor_role_definition_id" {
 
 ## Argument Reference
 
-* `name` - (Optional) Specifies the Name of the Role Definition, either built in or custom. Possible builtin values are: `Contributor`, `Owner`, `Reader` and `VirtualMachineContributor`.
+* `name` - (Optional) Specifies the Name of either a built-in or custom Role Definition.
+
+-> You can also use this for built-in roles such as `Contributor`, `Owner`, `Reader` and `Virtual Machine Contributor`
+
 * `role_definition_id` - (Optional) Specifies the ID of the Role Definition as a UUID/GUID.
 * `scope` - (Optional) Specifies the Scope at which the Custom Role Definition exists.
 
