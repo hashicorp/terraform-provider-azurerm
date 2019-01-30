@@ -56,9 +56,10 @@ func resourceArmBatchPool() *schema.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 			"max_tasks_per_node": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  1,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      1,
+				ValidateFunc: validation.IntAtLeast(1),
 			},
 			"fixed_scale": {
 				Type:     schema.TypeList,
