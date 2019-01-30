@@ -249,8 +249,7 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 	poolName := d.Get("name").(string)
 	displayName := d.Get("display_name").(string)
 	vmSize := d.Get("vm_size").(string)
-	maxTasksPerNode := d.Get("max_tasks_per_node").(int)
-	maxTasksPerNodeInt32 := int32(maxTasksPerNode)
+	maxTasksPerNode := int32(d.Get("max_tasks_per_node").(int))
 
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, accountName, poolName)
@@ -269,7 +268,7 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 		PoolProperties: &batch.PoolProperties{
 			VMSize:          &vmSize,
 			DisplayName:     &displayName,
-			MaxTasksPerNode: &maxTasksPerNodeInt32,
+			MaxTasksPerNode: &maxTasksPerNode,
 		},
 	}
 
