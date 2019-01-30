@@ -3,33 +3,57 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_role_definition"
 sidebar_current: "docs-azurerm-datasource-role-definition"
 description: |-
-  Get information about an existing Custom Role Definition.
+  Get information about an existing Role Definition.
 ---
 
 # Data Source: azurerm_role_definition
 
-Use this data source to access information about an existing Custom Role Definition. To access information about a built-in Role Definition, [please see the `azurerm_builtin_role_definition` data source](builtin_role_definition.html) instead.
+Use this data source to access information about an existing Role Definition.
 
 ## Example Usage
 
 ```hcl
 data "azurerm_subscription" "primary" {}
 
-data "azurerm_role_definition" "custom" {
+resource "azurerm_role_definition" "custom" {
   role_definition_id = "00000000-0000-0000-0000-000000000000"
+  name               = "CustomRoleDef"
+  scope              = "${data.azurerm_subscription.primary.id}"
+  
+  #...
+}
+
+data "azurerm_role_definition" "custom" {
+  role_definition_id = "${azurerm_role_definition.custom.role_definition_id}"
   scope              = "${data.azurerm_subscription.primary.id}" # /subscriptions/00000000-0000-0000-0000-000000000000
+}
+
+data "azurerm_role_definition" "custom-byname" {
+  name  = "${azurerm_role_definition.custom.name}"
+  scope = "${data.azurerm_subscription.primary.id}"
+}
+
+data "azurerm_builtin_role_definition" "builtin" {
+  name = "Contributor"
 }
 
 output "custom_role_definition_id" {
   value = "${data.azurerm_role_definition.custom.id}"
 }
+output "contributor_role_definition_id" {
+  value = "${data.azurerm_role_definition.builtin.id}"
+}
 ```
+
+
 
 ## Argument Reference
 
-* `role_definition_id` - (Required) Specifies the ID of the Role Definition as a UUID/GUID.
+* `name` - (Optional) Specifies the Name of the Role Definition, either built in or custom. Possible builtin values are: `Contributor`, `Owner`, `Reader` and `VirtualMachineContributor`.
+* `role_definition_id` - (Optional) Specifies the ID of the Role Definition as a UUID/GUID.
+* `scope` - (Optional) Specifies the Scope at which the Custom Role Definition exists.
 
-* `scope` - (Required) Specifies the Scope at which the Custom Role Definition exists.
+~> **NOTE:** One of `name` or `role_definition_id` must be specified.
 
 ## Attributes Reference
 
