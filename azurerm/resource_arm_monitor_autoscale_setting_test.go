@@ -12,7 +12,7 @@ import (
 )
 
 func TestAccAzureRMMonitorAutoScaleSetting_basic(t *testing.T) {
-	resourceName := "azurerm_autoscale_setting.test"
+	resourceName := "azurerm_monitor_autoscale_setting.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(6)
 	location := testLocation()
@@ -44,8 +44,38 @@ func TestAccAzureRMMonitorAutoScaleSetting_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMonitorAutoScaleSetting_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_monitor_autoscale_setting.test"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(6)
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMonitorAutoScaleSettingDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMonitorAutoScaleSetting_basic(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorAutoScaleSettingExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMMonitorAutoScaleSetting_requiresImport(ri, rs, location),
+				ExpectError: testRequiresImportError("azurerm_monitor_autoscale_setting"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMMonitorAutoScaleSetting_multipleProfiles(t *testing.T) {
-	resourceName := "azurerm_autoscale_setting.test"
+	resourceName := "azurerm_monitor_autoscale_setting.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(6)
 	location := testLocation()
@@ -71,7 +101,7 @@ func TestAccAzureRMMonitorAutoScaleSetting_multipleProfiles(t *testing.T) {
 }
 
 func TestAccAzureRMMonitorAutoScaleSetting_multipleRules(t *testing.T) {
-	resourceName := "azurerm_autoscale_setting.test"
+	resourceName := "azurerm_monitor_autoscale_setting.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(6)
 	location := testLocation()
@@ -111,7 +141,7 @@ func TestAccAzureRMMonitorAutoScaleSetting_multipleRules(t *testing.T) {
 }
 
 func TestAccAzureRMMonitorAutoScaleSetting_customEmails(t *testing.T) {
-	resourceName := "azurerm_autoscale_setting.test"
+	resourceName := "azurerm_monitor_autoscale_setting.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(6)
 	location := testLocation()
@@ -147,7 +177,7 @@ func TestAccAzureRMMonitorAutoScaleSetting_customEmails(t *testing.T) {
 }
 
 func TestAccAzureRMMonitorAutoScaleSetting_recurrence(t *testing.T) {
-	resourceName := "azurerm_autoscale_setting.test"
+	resourceName := "azurerm_monitor_autoscale_setting.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(6)
 	location := testLocation()
@@ -179,7 +209,7 @@ func TestAccAzureRMMonitorAutoScaleSetting_recurrence(t *testing.T) {
 }
 
 func TestAccAzureRMMonitorAutoScaleSetting_recurrenceUpdate(t *testing.T) {
-	resourceName := "azurerm_autoscale_setting.test"
+	resourceName := "azurerm_monitor_autoscale_setting.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(6)
 	location := testLocation()
@@ -220,7 +250,7 @@ func TestAccAzureRMMonitorAutoScaleSetting_recurrenceUpdate(t *testing.T) {
 }
 
 func TestAccAzureRMMonitorAutoScaleSetting_fixedDate(t *testing.T) {
-	resourceName := "azurerm_autoscale_setting.test"
+	resourceName := "azurerm_monitor_autoscale_setting.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(6)
 	location := testLocation()
@@ -285,7 +315,7 @@ func testCheckAzureRMMonitorAutoScaleSettingDestroy(s *terraform.State) error {
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_autoscale_setting" {
+		if rs.Type != "azurerm_monitor_autoscale_setting" {
 			continue
 		}
 
@@ -311,7 +341,7 @@ func testAccAzureRMMonitorAutoScaleSetting_basic(rInt int, rString string, locat
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_autoscale_setting" "test" {
+resource "azurerm_monitor_autoscale_setting" "test" {
   name                = "acctestautoscale-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -350,12 +380,56 @@ resource "azurerm_autoscale_setting" "test" {
 `, template, rInt)
 }
 
+func testAccAzureRMMonitorAutoScaleSetting_requiresImport(rInt int, rString string, location string) string {
+	template := testAccAzureRMMonitorAutoScaleSetting_basic(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_monitor_autoscale_setting" "import" {
+  name                = "${azurerm_monitor_autoscale_setting.test.name}"
+  resource_group_name = "${azurerm_monitor_autoscale_setting.test.resource_group_name}"
+  location            = "${azurerm_monitor_autoscale_setting.test.location}"
+  target_resource_id  = "${azurerm_monitor_autoscale_setting.test.target_resource_id}"
+
+  profile {
+    name = "metricRules"
+
+    capacity {
+      default = 1
+      minimum = 1
+      maximum = 10
+    }
+
+    rule {
+      metric_trigger {
+        metric_name        = "Percentage CPU"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "GreaterThan"
+        threshold          = 75
+      }
+
+      scale_action {
+        direction = "Increase"
+        type      = "ChangeCount"
+        value     = 1
+        cooldown  = "PT1M"
+      }
+    }
+  }
+}
+`, template)
+}
+
 func testAccAzureRMMonitorAutoScaleSetting_multipleProfiles(rInt int, rString string, location string) string {
 	template := testAccAzureRMMonitorAutoScaleSetting_template(rInt, rString, location)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_autoscale_setting" "test" {
+resource "azurerm_monitor_autoscale_setting" "test" {
   name                = "acctestautoscale-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -442,7 +516,7 @@ func testAccAzureRMMonitorAutoScaleSetting_multipleRules(rInt int, rString strin
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_autoscale_setting" "test" {
+resource "azurerm_monitor_autoscale_setting" "test" {
   name                = "acctestautoscale-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -507,7 +581,7 @@ func testAccAzureRMMonitorAutoScaleSetting_email(rInt int, rString string, locat
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_autoscale_setting" "test" {
+resource "azurerm_monitor_autoscale_setting" "test" {
   name                = "acctestautoscale-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -559,7 +633,7 @@ func testAccAzureRMMonitorAutoScaleSetting_emailUpdated(rInt int, rString string
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_autoscale_setting" "test" {
+resource "azurerm_monitor_autoscale_setting" "test" {
   name                = "acctestautoscale-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -611,7 +685,7 @@ func testAccAzureRMMonitorAutoScaleSetting_recurrence(rInt int, rString string, 
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_autoscale_setting" "test" {
+resource "azurerm_monitor_autoscale_setting" "test" {
   name                = "acctestautoscale-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -655,7 +729,7 @@ func testAccAzureRMMonitorAutoScaleSetting_recurrenceUpdated(rInt int, rString s
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_autoscale_setting" "test" {
+resource "azurerm_monitor_autoscale_setting" "test" {
   name                = "acctestautoscale-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -699,7 +773,7 @@ func testAccAzureRMMonitorAutoScaleSetting_fixedDate(rInt int, rString string, l
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_autoscale_setting" "test" {
+resource "azurerm_monitor_autoscale_setting" "test" {
   name                = "acctestautoscale-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
