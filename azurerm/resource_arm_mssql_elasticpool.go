@@ -196,7 +196,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 
 			// Convert Bytes to Gigabytes
 			if maxSizeBytes != 0 {
-				maxSizeGb = float64(maxSizeBytes.(int) / 1073741824)
+				maxSizeGb = float64(maxSizeBytes.(int) / 1024 / 1024 / 1024)
 			}
 
 			// Basic Checks
