@@ -5,9 +5,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
-func TestAccDataSourceAzureRMPolicyDefinition_AllowedResourceTypes(t *testing.T) {
+func TestAccDataSourceAzureRMPolicyDefinition_builtIn(t *testing.T) {
 	dataSourceName := "data.azurerm_policy_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -27,7 +29,7 @@ func TestAccDataSourceAzureRMPolicyDefinition_AllowedResourceTypes(t *testing.T)
 	})
 }
 
-func TestAccDataSourceAzureRMPolicyDefinition_AtManagementGroup_AllowedResourceTypes(t *testing.T) {
+func TestAccDataSourceAzureRMPolicyDefinition_builtIn_AtManagementGroup(t *testing.T) {
 	dataSourceName := "data.azurerm_policy_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -37,6 +39,26 @@ func TestAccDataSourceAzureRMPolicyDefinition_AtManagementGroup_AllowedResourceT
 				Config: testAccDataSourceBuiltInPolicyDefinitionAtManagementGroup("Allowed resource types"),
 				Check: resource.ComposeTestCheckFunc(
 					testAzureRMClientConfigAttr(dataSourceName, "id", "/providers/Microsoft.Authorization/policyDefinitions/a08ec900-254a-4555-9bf5-e42af04b5c5c"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAzureRMPolicyDefinition_custom(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	dataSourceName := "data.azurerm_policy_definition.test"
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceCustomPolicyDefinition(ri),
+				Check: resource.ComposeTestCheckFunc(
+					testAzureRMAttrExists(dataSourceName, "id"),
+					testAzureRMClientConfigAttr(dataSourceName, "name", fmt.Sprintf("acctestpol-%d", ri)),
+					testAzureRMClientConfigAttr(dataSourceName, "display_name", fmt.Sprintf("acctestpol-%d", ri)),
+					testAzureRMClientConfigAttr(dataSourceName, "type", "Custom"),
 				),
 			},
 		},
@@ -61,4 +83,40 @@ data "azurerm_policy_definition" "test" {
   management_group_id = "${data.azurerm_client_config.current.tenant_id}"
 }
 `, name)
+}
+
+func testAccDataSourceCustomPolicyDefinition(ri int) string {
+	return fmt.Sprintf(`
+resource "azurerm_policy_definition" "test_policy" {
+  name         = "acctestpol-%d"
+  policy_type  = "Custom"
+  mode         = "All"
+  display_name = "acctestpol-%d"
+
+  policy_rule = <<POLICY_RULE
+  {
+    "if": {
+      "not": {
+        "field": "location",
+        "equals": "East US"
+      }
+    },
+    "then": {
+      "effect": "audit"
+    }
+  }
+POLICY_RULE
+}
+
+data "azurerm_policy_definition" "test" {
+	display_name = "${azurerm_policy_definition.test_policy.display_name}"
+}
+
+`, ri, ri)
+}
+
+func testAzureRMAttrExists(name, key string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		return resource.TestCheckResourceAttrSet(name, key)(s)
+	}
 }

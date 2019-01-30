@@ -42,13 +42,13 @@ func dataSourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{})
 	name := d.Get("display_name").(string)
 	managementGroupID := d.Get("management_group_id").(string)
 
-	var policyDefinitions policy.DefinitionListResultPage
+	var policyDefinitions policy.DefinitionListResultIterator
 	var err error
 
 	if managementGroupID != "" {
-		policyDefinitions, err = client.ListByManagementGroup(ctx, managementGroupID)
+		policyDefinitions, err = client.ListByManagementGroupComplete(ctx, managementGroupID)
 	} else {
-		policyDefinitions, err = client.ListBuiltIn(ctx)
+		policyDefinitions, err = client.ListComplete(ctx)
 	}
 
 	if err != nil {
@@ -57,16 +57,13 @@ func dataSourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{})
 
 	var policyDefinition policy.Definition
 
-	for policyDefinition.ID == nil && policyDefinitions.NotDone() {
-		vals := policyDefinitions.Values()
-		for index := 0; index < len(vals); index++ {
-			def := vals[index]
-
-			if *def.DisplayName == name {
-				policyDefinition = def
-				break
-			}
+	for policyDefinitions.NotDone() {
+		def := policyDefinitions.Value()
+		if *def.DisplayName == name {
+			policyDefinition = def
+			break
 		}
+		policyDefinitions.NextWithContext(ctx)
 	}
 
 	if policyDefinition.ID == nil {
@@ -74,9 +71,9 @@ func dataSourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{})
 	}
 
 	d.SetId(*policyDefinition.ID)
-	d.Set("name", *policyDefinition.Name)
-	d.Set("display_name", *policyDefinition.DisplayName)
-	d.Set("description", *policyDefinition.Description)
+	d.Set("name", policyDefinition.Name)
+	d.Set("display_name", policyDefinition.DisplayName)
+	d.Set("description", policyDefinition.Description)
 	d.Set("type", string(policyDefinition.PolicyType))
 
 	return nil
