@@ -36,8 +36,14 @@ func TestAccAzureRMSharedImage_basic(t *testing.T) {
 	})
 }
 func TestAccAzureRMSharedImage_requiresImport(t *testing.T) {
+	if !requireResourcesToBeImported {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
 	resourceName := "azurerm_shared_image.test"
 	ri := tf.AccRandTimeInt()
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -45,14 +51,14 @@ func TestAccAzureRMSharedImage_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSharedImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSharedImage_basic(ri, testLocation()),
+				Config: testAccAzureRMSharedImage_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSharedImageExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
 				),
 			},
 			{
-				Config:      testAccAzureRMSharedImage_requiresImport(ri, testLocation()),
+				Config:      testAccAzureRMSharedImage_requiresImport(ri, location),
 				ExpectError: testRequiresImportError("azurerm_shared_image"),
 			},
 		},
