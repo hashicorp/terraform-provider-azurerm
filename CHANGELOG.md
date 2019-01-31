@@ -35,6 +35,7 @@ IMPROVEMENTS:
 * `azurerm_application_gateway` - support for the `custom_error_configuration` property [GH-2783]
 * `azurerm_application_gateway` - Support for `pick_host_name_from_backend_address` and `pick_host_name_from_backend_http_settings` properties [GH-2658]
 * `azurerm_app_service` - support for the `client_cert_enabled` property [GH-2765]
+* `azurerm_batch_pool` - support for the `max_tasks_per_node` property [GH-2805]
 * `azurerm_cosmosdb_account` - support for the `EnableAggregationPipeline`, `MongoDBv3.4` and ` mongoEnableDocLevelTTL` capabilities [GH-2715]
 * `azurerm_data_lake_store_file` - support file uploads greater then 4 megabytes [GH-2633]
 * `azurerm_mssql_elasticpool` - support for setting `max_size_bytes` [GH-2346]
