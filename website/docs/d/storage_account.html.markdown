@@ -64,31 +64,31 @@ output "storage_account_tier" {
 
 * `primary_blob_endpoint` - The endpoint URL for blob storage in the primary location.
 
-* `primary_blob_host` - The host for blob storage in the primary location.
+* `primary_blob_host` - The `host` or `host:port` for blob storage in the primary location.
 
 * `secondary_blob_endpoint` - The endpoint URL for blob storage in the secondary location.
 
-* `secondary_blob_host` - The host for blob storage in the secondary location.
+* `secondary_blob_host` - The `host` or `host:port` for blob storage in the secondary location.
 
 * `primary_queue_endpoint` - The endpoint URL for queue storage in the primary location.
 
-* `primary_queue_host` - The host for queue storage in the primary location.
+* `primary_queue_host` - The `host` or `host:port` for queue storage in the primary location.
 
 * `secondary_queue_endpoint` - The endpoint URL for queue storage in the secondary location.
 
-* `secondary_queue_host` - The host for queue storage in the secondary location.
+* `secondary_queue_host` - The `host` or `host:port` for queue storage in the secondary location.
 
 * `primary_table_endpoint` - The endpoint URL for table storage in the primary location.
 
-* `primary_table_host` - The host for table storage in the primary location.
+* `primary_table_host` - The `host` or `host:port` for table storage in the primary location.
 
 * `secondary_table_endpoint` - The endpoint URL for table storage in the secondary location.
 
-* `secondary_table_host` - The host for table storage in the secondary location.
+* `secondary_table_host` - The `host` or `host:port` for table storage in the secondary location.
 
 * `primary_file_endpoint` - The endpoint URL for file storage in the primary location.
 
-* `primary_file_host` - The host for file storage in the primary location.
+* `primary_file_host` - The `host` or `host:port` for file storage in the primary location.
 
 * `primary_access_key` - The primary access key for the Storage Account.
 
